@@ -1,0 +1,3 @@
+[submodule "mithril_client"]
+	path = mithril_client
+	url = ssh://git@***REMOVED***/~/_mithril/gradido_mithrilJS_client
