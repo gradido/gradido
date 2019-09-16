@@ -15,7 +15,8 @@
     <fieldset>
         <legend><?= __('Add Operator') ?></legend>
         <?php
-            echo $this->Form->control('username');
+            echo $this->Form->control('usernamePasswordHash');
+            echo $this->Form->control('operator_type_id');
             echo $this->Form->control('data_base64');
         ?>
     </fieldset>

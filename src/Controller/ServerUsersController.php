@@ -12,6 +12,13 @@ use App\Controller\AppController;
  */
 class ServerUsersController extends AppController
 {
+    public function initialize()
+    {
+        parent::initialize();
+        //$this->Auth->allow(['add', 'edit']);
+        $this->Auth->deny('index');
+    }
+    
     /**
      * Index method
      *
@@ -22,6 +29,23 @@ class ServerUsersController extends AppController
         $serverUsers = $this->paginate($this->ServerUsers);
 
         $this->set(compact('serverUsers'));
+    }
+    
+    public function login()
+    {
+        if ($this->request->is('post')) {
+            $user = $this->Auth->identify();
+            if ($user) {
+                $this->Auth->setUser($user);
+                return $this->redirect($this->Auth->redirectUrl());
+            }
+            $this->Flash->error(__('Invalid username or password, try again'));
+        }
+    }
+
+    public function logout()
+    {
+        return $this->redirect($this->Auth->logout());
     }
 
     /**

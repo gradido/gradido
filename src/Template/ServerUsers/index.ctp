@@ -17,7 +17,6 @@
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('username') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('password') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('email') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('role') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('activated') ?></th>
@@ -32,7 +31,6 @@
             <tr>
                 <td><?= $this->Number->format($serverUser->id) ?></td>
                 <td><?= h($serverUser->username) ?></td>
-                <td><?= h($serverUser->password) ?></td>
                 <td><?= h($serverUser->email) ?></td>
                 <td><?= h($serverUser->role) ?></td>
                 <td><?= h($serverUser->activated) ?></td>

@@ -19,8 +19,6 @@
             echo $this->Form->control('password');
             echo $this->Form->control('email');
             echo $this->Form->control('role');
-            echo $this->Form->control('activated');
-            echo $this->Form->control('last_login', ['empty' => true]);
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>

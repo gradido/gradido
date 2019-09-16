@@ -17,8 +17,8 @@
     <h3><?= h($operator->id) ?></h3>
     <table class="vertical-table">
         <tr>
-            <th scope="row"><?= __('Username') ?></th>
-            <td><?= h($operator->username) ?></td>
+            <th scope="row"><?= __('Username Password Hash') ?></th>
+            <td><?= h($operator->usernamePasswordHash) ?></td>
         </tr>
         <tr>
             <th scope="row"><?= __('Data Base64') ?></th>
@@ -27,6 +27,10 @@
         <tr>
             <th scope="row"><?= __('Id') ?></th>
             <td><?= $this->Number->format($operator->id) ?></td>
+        </tr>
+        <tr>
+            <th scope="row"><?= __('Operator Type Id') ?></th>
+            <td><?= $this->Number->format($operator->operator_type_id) ?></td>
         </tr>
     </table>
 </div>

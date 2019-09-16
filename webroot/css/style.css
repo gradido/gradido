@@ -522,3 +522,8 @@ table td {
     vertical-align: top;
     word-break: break-all;
 }
+
+.center {
+  margin-left:auto;
+  margin-right:auto;
+}

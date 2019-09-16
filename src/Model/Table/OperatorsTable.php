@@ -9,6 +9,8 @@ use Cake\Validation\Validator;
 /**
  * Operators Model
  *
+ * @property &\Cake\ORM\Association\BelongsTo $OperatorTypes
+ *
  * @method \App\Model\Entity\Operator get($primaryKey, $options = [])
  * @method \App\Model\Entity\Operator newEntity($data = null, array $options = [])
  * @method \App\Model\Entity\Operator[] newEntities(array $data, array $options = [])
@@ -31,8 +33,15 @@ class OperatorsTable extends Table
         parent::initialize($config);
 
         $this->setTable('operators');
-        $this->setDisplayField('id');
+        $this->setDisplayField('name');
         $this->setPrimaryKey('id');
+
+        $this->belongsTo('OperatorTypes', [
+            'foreignKey' => 'operator_type_id',
+            'joinType' => 'INNER'
+        ]);
+        
+        $this->addBehavior('Timestamp');
     }
 
     /**
@@ -48,11 +57,11 @@ class OperatorsTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->scalar('username')
-            ->maxLength('username', 128)
-            ->requirePresence('username', 'create')
-            ->notEmptyString('username')
-            ->add('username', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
+            ->scalar('usernamePasswordHash')
+            ->maxLength('usernamePasswordHash', 255)
+            ->requirePresence('usernamePasswordHash', 'create')
+            ->notEmptyString('usernamePasswordHash');
+            //->add('usernamePasswordHash', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         $validator
             ->scalar('data_base64')
@@ -72,7 +81,8 @@ class OperatorsTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->isUnique(['username']));
+        //$rules->add($rules->isUnique(['usernamePasswordHash']));
+        $rules->add($rules->existsIn(['operator_type_id'], 'OperatorTypes'));
 
         return $rules;
     }

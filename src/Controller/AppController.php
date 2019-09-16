@@ -46,10 +46,46 @@ class AppController extends Controller
         ]);
         $this->loadComponent('Flash');
 
+         $this->loadComponent('Auth', [
+            'loginAction' => [
+              'controller' => 'ServerUsers',
+              'action' => 'login'
+            ],
+            'loginRedirect' => [
+                'controller' => 'Transactions',
+                'action' => 'index'
+            ],
+            'logoutRedirect' => [
+                'controller' => 'Pages',
+                'action' => 'display',
+                'gradido'
+            ],
+            'authenticate' => [
+              'all' => ['userModel' => 'ServerUsers'],
+              'Form' => [
+                  'userModel' => 'ServerUsers',
+              ]
+            ]
+        ]);
+        
+        $this->Auth->deny(['index']);
+         
         /*
          * Enable the following component for recommended CakePHP security settings.
          * see https://book.cakephp.org/3.0/en/controllers/components/security.html
          */
         //$this->loadComponent('Security');
+    }
+    /*
+    public function beforeFilter(Event $event)
+    {
+      //$this->Auth->allow(['display']);
+    }
+     */
+    
+    public function returnJson($array) {
+      $this->autoRender = false;
+      $response = $this->response->withType('application/json');
+      return $response->withStringBody(json_encode($array));
     }
 }

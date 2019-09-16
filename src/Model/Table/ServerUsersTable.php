@@ -55,18 +55,18 @@ class ServerUsersTable extends Table
             ->scalar('username')
             ->maxLength('username', 50)
             ->requirePresence('username', 'create')
-            ->notEmptyString('username');
+            ->notEmptyString('username', __('Please give a username'));
 
         $validator
             ->scalar('password')
             ->maxLength('password', 255)
             ->requirePresence('password', 'create')
-            ->notEmptyString('password');
+            ->notEmptyString('password', __('Please give a password'));
 
         $validator
             ->email('email')
             ->requirePresence('email', 'create')
-            ->notEmptyString('email');
+            ->notEmptyString('email', __('Please give a email'));
 
         $validator
             ->scalar('role')

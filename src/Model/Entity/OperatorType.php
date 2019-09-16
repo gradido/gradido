@@ -4,14 +4,15 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Operator Entity
+ * OperatorType Entity
  *
  * @property int $id
- * @property string $username
- * @property int $operator_type_id
- * @property string $data_base64
+ * @property string $name
+ * @property string $text
+ *
+ * @property \App\Model\Entity\Operator[] $operators
  */
-class Operator extends Entity
+class OperatorType extends Entity
 {
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().
@@ -23,9 +24,8 @@ class Operator extends Entity
      * @var array
      */
     protected $_accessible = [
-        'usernamePasswordHash' => true,
-        'operator_type_id' => true,
-        'data_base64' => true,
-        'modified' => true
+        'name' => true,
+        'text' => true,
+        'operators' => true
     ];
 }

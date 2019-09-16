@@ -12,6 +12,12 @@ use App\Controller\AppController;
  */
 class OperatorsController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        $this->Auth->allow(['ajaxSave', 'ajaxLoad']);
+    }
     /**
      * Index method
      *
@@ -19,9 +25,68 @@ class OperatorsController extends AppController
      */
     public function index()
     {
+        $this->paginate = [
+            'contain' => ['OperatorTypes']
+        ];
         $operators = $this->paginate($this->Operators);
 
         $this->set(compact('operators'));
+    }
+    
+    public function ajaxSave() 
+    {
+      if ($this->request->is('post')) {
+        
+        
+        
+        $operatorTypeName = $this->request->getData('operator_type_name');
+        $usernamePasswordHash = $this->request->getData('usernamePasswordHash');
+        $operatorTypeId = $this->Operators->OperatorTypes->
+                find()
+                ->where(['name' => $operatorTypeName])
+                ->select(['id'])
+                ->first();
+        
+        // load operator from db if already exist
+        $operator = $this->Operators
+                ->find()
+                ->where([
+                    'operator_type_id' => $operatorTypeId->id,
+                    'usernamePasswordHash' => $usernamePasswordHash])
+                ->first();
+        if(!$operator) {
+          // create new entity
+          $operator = $this->Operators->newEntity();
+        }
+        
+        $operator = $this->Operators->patchEntity($operator, $this->request->getData());
+        $operator->operator_type_id = $operatorTypeId->id;
+        if ($this->Operators->save($operator)) {
+            return $this->returnJson(['state' => 'success']);
+        }
+        return $this->returnJson(['state' => 'error', 'details' => $operator->getErrors()]);
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
+    public function ajaxLoad()
+    {
+      if ($this->request->is('get')) {
+        $usernamePasswordHash = $this->request->getQuery('usernamePasswordHash');
+        $operators = $this->Operators
+                ->find()
+                ->where(['usernamePasswordHash' => $usernamePasswordHash])
+                ->contain(['OperatorTypes'])
+                ->toArray();
+        ;
+        if($operators) {
+          return $this->returnJson(['state' => 'success', 'operators' => $operators]);
+        } else {
+          return $this->returnJson(['state' => 'not found']);
+        }
+        
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
 
     /**
@@ -34,7 +99,7 @@ class OperatorsController extends AppController
     public function view($id = null)
     {
         $operator = $this->Operators->get($id, [
-            'contain' => []
+            'contain' => ['OperatorTypes']
         ]);
 
         $this->set('operator', $operator);
@@ -57,7 +122,8 @@ class OperatorsController extends AppController
             }
             $this->Flash->error(__('The operator could not be saved. Please, try again.'));
         }
-        $this->set(compact('operator'));
+        $operatorTypes = $this->Operators->OperatorTypes->find('list', ['limit' => 200]);
+        $this->set(compact('operator', 'operatorTypes'));
     }
 
     /**
@@ -81,7 +147,8 @@ class OperatorsController extends AppController
             }
             $this->Flash->error(__('The operator could not be saved. Please, try again.'));
         }
-        $this->set(compact('operator'));
+        $operatorTypes = $this->Operators->OperatorTypes->find('list', ['limit' => 200]);
+        $this->set(compact('operator', 'operatorTypes'));
     }
 
     /**
