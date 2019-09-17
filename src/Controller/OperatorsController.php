@@ -96,10 +96,10 @@ class OperatorsController extends AppController
     public function ajaxLoad()
     {
       if ($this->request->is('get')) {
-        $usernamePasswordHash = $this->request->getQuery('usernamePasswordHash');
+        $username = $this->request->getQuery('username');
         $operators = $this->Operators
                 ->find()
-                ->where(['usernamePasswordHash' => $usernamePasswordHash])
+                ->where(['username' => $username])
                 ->contain(['OperatorTypes'])
                 ->select(['data_base64', 'OperatorTypes.name'])
                 ->toArray();
