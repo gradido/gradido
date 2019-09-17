@@ -16,7 +16,8 @@
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('usernamePasswordHash') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('username') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('user_pubkey') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('operator_type_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('data_base64') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('modified') ?></th>
@@ -28,7 +29,8 @@
             //echo $operator->operator_type->name ?>
             <tr>
                 <td><?= $this->Number->format($operator->id) ?></td>
-                <td><?= h($operator->usernamePasswordHash) ?></td>
+                <td><?= h($operator->username) ?></td>
+                <td><?= h(bin2hex($operator->user_pubkey)) ?></td>
                 <td><?= $this->Html->link(__($operator->operator_type->name), ['controller' => 'OperatorTypes', 'action' => 'view', $operator->operator_type_id]) ?></td>
                 <td><?= h($operator->data_base64) ?></td>
                 <td><?= h($operator->modified) ?></td>

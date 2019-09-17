@@ -17,8 +17,12 @@
     <h3><?= h($operator->id) ?></h3>
     <table class="vertical-table">
         <tr>
-            <th scope="row"><?= __('Username Password Hash') ?></th>
-            <td><?= h($operator->usernamePasswordHash) ?></td>
+            <th scope="row"><?= __('Username') ?></th>
+            <td><?= h($operator->username) ?></td>
+        </tr>
+        <tr>
+            <th scope="row"><?= __('User Pubkey') ?></th>
+            <td><?= h(bin2hex($operator->user_pubkey)) ?></td>
         </tr>
         <tr>
             <th scope="row"><?= __('Data Base64') ?></th>

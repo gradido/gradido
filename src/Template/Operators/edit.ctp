@@ -21,7 +21,8 @@
     <fieldset>
         <legend><?= __('Edit Operator') ?></legend>
         <?php
-            echo $this->Form->control('usernamePasswordHash');
+            echo $this->Form->control('username');
+            echo $this->Form->control('user_pubkey');
             echo $this->Form->control('operator_type_id');
             echo $this->Form->control('data_base64');
         ?>

@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 
+//require_once "../../vendor/paragonie/sodium_compat/autoload.php";
+
 /**
  * Operators Controller
  *
@@ -37,10 +39,27 @@ class OperatorsController extends AppController
     {
       if ($this->request->is('post')) {
         
-        
-        
         $operatorTypeName = $this->request->getData('operator_type_name');
-        $usernamePasswordHash = $this->request->getData('usernamePasswordHash');
+        $username = $this->request->getData('username');
+        $pubkey_bin = base64_decode($this->request->getData('user_pubkey'));
+        $data = base64_decode($this->request->getData('data_base64'));
+        $sign = base64_decode($this->request->getData('sign'));
+        
+        //$publicKey_hex = bin2hex($pubkey_bin);
+        //$signature_hex = bin2hex($sign);
+        
+        if(!sodium_crypto_sign_verify_detached($sign, $data, $pubkey_bin)) {
+            return $this->returnJson([
+                'state' => 'wrong signature',
+          /*      'details' => [
+                    'pubkey' => $publicKey_hex,
+                    'sign' => $signature_hex,
+                    'data' => bin2hex($data)
+                ]
+*/
+              ]);
+        }
+  
         $operatorTypeId = $this->Operators->OperatorTypes->
                 find()
                 ->where(['name' => $operatorTypeName])
@@ -52,14 +71,19 @@ class OperatorsController extends AppController
                 ->find()
                 ->where([
                     'operator_type_id' => $operatorTypeId->id,
-                    'usernamePasswordHash' => $usernamePasswordHash])
+                    'username' => $username,
+                    'user_pubkey' => $pubkey_bin])
                 ->first();
         if(!$operator) {
           // create new entity
           $operator = $this->Operators->newEntity();
+        } else {
+          // check if request has valid signature
+          
         }
         
         $operator = $this->Operators->patchEntity($operator, $this->request->getData());
+        $operator->user_pubkey = $pubkey_bin;
         $operator->operator_type_id = $operatorTypeId->id;
         if ($this->Operators->save($operator)) {
             return $this->returnJson(['state' => 'success']);
@@ -77,6 +101,7 @@ class OperatorsController extends AppController
                 ->find()
                 ->where(['usernamePasswordHash' => $usernamePasswordHash])
                 ->contain(['OperatorTypes'])
+                ->select(['data_base64', 'OperatorTypes.name'])
                 ->toArray();
         ;
         if($operators) {

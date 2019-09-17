@@ -23,7 +23,8 @@ class Operator extends Entity
      * @var array
      */
     protected $_accessible = [
-        'usernamePasswordHash' => true,
+        'username' => true,
+        'user_pubkey' => true,
         'operator_type_id' => true,
         'data_base64' => true,
         'modified' => true

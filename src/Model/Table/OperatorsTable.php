@@ -57,12 +57,16 @@ class OperatorsTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->scalar('usernamePasswordHash')
-            ->maxLength('usernamePasswordHash', 255)
-            ->requirePresence('usernamePasswordHash', 'create')
-            ->notEmptyString('usernamePasswordHash');
+            ->scalar('username')
+            ->maxLength('username', 50)
+            ->requirePresence('username', 'create')
+            ->notEmptyString('username');
             //->add('usernamePasswordHash', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
+        $validator
+            ->requirePresence('user_pubkey', 'create')
+            ->notEmptyString('user_pubkey');
+        
         $validator
             ->scalar('data_base64')
             ->maxLength('data_base64', 255)
