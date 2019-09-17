@@ -18,7 +18,7 @@ class OperatorsController extends AppController
     public function initialize()
     {
         parent::initialize();
-        $this->Auth->allow(['ajaxSave', 'ajaxLoad']);
+        $this->Auth->allow(['ajaxSave', 'ajaxLoad', 'ajaxDelete']);
     }
     /**
      * Index method
@@ -110,6 +110,44 @@ class OperatorsController extends AppController
           return $this->returnJson(['state' => 'not found']);
         }
         
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
+    function ajaxDelete() {
+      if ($this->request->is('delete')) {
+        $operatorTypeName = $this->request->getData('operator_type_name');
+        $username = $this->request->getData('username');
+        $pubkey_bin = base64_decode($this->request->getData('user_pubkey'));
+        $sign = base64_decode($this->request->getData('sign'));
+
+        $operatorTypeId = $this->Operators->OperatorTypes->
+                find()
+                ->where(['name' => $operatorTypeName])
+                ->select(['id'])
+                ->first();
+        
+        // load operator from db if already exist
+        $operator = $this->Operators
+                ->find()
+                ->where([
+                    'operator_type_id' => $operatorTypeId->id,
+                    'username' => $username,
+                    'user_pubkey' => $pubkey_bin])
+                ->first();
+        if(!$operator) {
+          return $this->returnJson(['state' => 'error', 'msg' => 'not found']);
+        } else {
+          $data = base64_decode($operator->data_base64);
+          // check if request has valid signature
+          if(!sodium_crypto_sign_verify_detached($sign, $data, $pubkey_bin)) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'wrong signature']);
+          }
+        }
+        if ($this->Operators->delete($operator)) {
+          return $this->returnJson(['state' => 'success']);
+        }
+        return $this->returnJson(['state' => 'error', 'details' => $operator->getErrors()]);
       }
       return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
