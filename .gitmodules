@@ -1,0 +1,6 @@
+[submodule "dependencies/tinf"]
+	path = dependencies/tinf
+	url = https://github.com/jibsen/tinf.git
+[submodule "dependencies/iroha-ed25519"]
+	path = dependencies/iroha-ed25519
+	url = https://github.com/hyperledger/iroha-ed25519.git

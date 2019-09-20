@@ -1,0 +1,8 @@
+[requires]
+Poco/1.9.4@pocoproject/stable
+libsodium/1.0.18@bincrafters/stable
+protobuf/3.9.1@bincrafters/stable
+
+
+[generators]
+cmake
