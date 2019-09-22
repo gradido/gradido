@@ -1,0 +1,39 @@
+<%@ page class="LoginPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%! 
+	
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Login</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+</head>
+<body>
+<h1>Login</h1>
+<form method="POST">
+	<div class="grd_container">
+		<fieldset class="grd_container_small">
+			<legend>Login</legend>
+			<p>Bitte gebe deine Zugangsdaten ein um dich einzuloggen.</p>
+			<p class="grd_small">
+				<label for="login-username">Benutzernamen</label>
+				<input id="login-username" type="text" name="login-username"/>
+			</p>
+			<p class="grd_small">
+				<label for="login-password">Passwort</label>
+				<input id="login-password" type="password" name="login-password"/>
+			</p>
+			
+		</fieldset>
+		<input class="grd_bn_succeed" type="submit" name="submit" value="Einloggen">
+		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
+		<a href="/register">Neuen Account anlegen</a>
+	</div>
+</form>
+</body>
+</html>

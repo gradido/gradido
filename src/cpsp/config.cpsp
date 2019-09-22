@@ -1,0 +1,85 @@
+<%@ page class="ConfigPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%! 
+	
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Config</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+</head>
+<body>
+<h1>Config</h1>
+<form method="POST">
+	<div class="grd_container">
+
+		<fieldset class="grd_container_small">
+			<legend>Server Admin Key</legend>
+			<p>Möchtest du einen neuen Server Key generieren oder einen existierenden verwenden?</p>
+			<p>Wenn du bereits einen besitzt kopiere bitte den Merksatz dafür in die Textarea.</p>
+			<p class="grd_small">
+				<input id="server-admin-key-new-yes" type="radio" name="new-server-admin-key" value="yes" checked/>
+				<label for="server-admin-key-new-yes">Einen neuen generieren!</label>
+			</p>
+			<p class="grd_small">
+				<input id="server-admin-key-new-no" type="radio" name="new-server-admin-key" value="no"/>
+				<label for="server-admin-key-new-no">Einen existierenden verwenden!</label>
+			</p>
+			<textarea style="width:100%;height:100px" name="server-admin-key-existing"></textarea>
+		</fieldset>
+		<fieldset class="grd_container_small">
+			<legend>Login-Server (dieser Server)</legend>
+			<p>Bitte gebe die Daten für diesen Server an. </p>
+			<fieldset>
+				<legend>Datenbank</legend>
+				<div class="grd-input">
+					<label for="server-db-user">Benutzernamen: </label>
+					<input id="server-db-user" type="text" name="server-db-user" value="root">
+				</div>
+				<div class="grd-input">
+					<label for="server-db-pwd">Passwort: </label>
+					<input id="server-db-pwd" type="password" name="server-db-pwd" value="">
+				</div>
+				<div class="grd-input">
+					<label for="server-db-name">Datenbank Name: </label>
+					<input id="server-db-name" name="server-db-name" value="">
+				</div>
+			</fieldset>
+			<div class="grd-input">
+				<label for="server-domain">Server Name (Domain)</label>
+				<input id="server-domain" name="server-domain" type="text">
+			</div>
+		</fieldset>
+		<fieldset class="grd_container_small">
+			<legend>PHP-Server</legend>
+			<p>Bitte gebe hier die Daten des php-Servers an.</p>
+			<fieldset>
+				<legend>Datenbank</legend>
+				<div class="grd-input">
+					<label for="php-server-db-user">Benutzernamen: </label>
+					<input id="php-server-db-user" type="text" name="php-server-db-user" value="root">
+				</div>
+				<div class="grd-input">
+					<label for="php-server-db-pwd">Passwort: </label>
+					<input id="php-server-db-pwd" type="password" name="php-server-db-pwd" value="">
+				</div>
+				<div class="grd-input">
+					<label for="php-server-db-name">Datenbank Name: </label>
+					<input id="php-server-db-name" name="php-server-db-name" value="">
+				</div>
+			</fieldset>
+			<div class="grd-input">
+				<label for="php-server-url">PHP-Server Url (mit Port)</label>
+				<input id="php-server-url" name="php-server-url" type="text">
+			</div>
+		</fieldset>
+		<input class="grd_bn_succeed" type="submit" name="submit" value="Absenden">
+	</div>
+</form>
+</body>
+</html>

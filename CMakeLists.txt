@@ -11,12 +11,17 @@ include_directories(
 )
 
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
-SET(LOCAL_SRCS ${TINF})
+FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
+FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
+FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
+SET(LOCAL_SRCS ${TINF} ${MAIN} ${HTTPInterface} ${CRYPTO})
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
 # src
 source_group("tinf" FILES ${TINF})
+source_group("crypto" FILES ${CRYPTO})
+source_group("HTTP-Interface" FILES ${HTTPInterface})
 
 endif(MSVC)
 

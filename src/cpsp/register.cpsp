@@ -1,0 +1,46 @@
+<%@ page class="RegisterPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%! 
+	
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Register</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+</head>
+<body>
+<h1>Login</h1>
+<form method="POST">
+	<div class="grd_container">
+		<fieldset class="grd_container_small">
+			<legend>Account anlegen</legend>
+			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
+			<p class="grd_small">
+				<label for="register-username">Benutzernamen</label>
+				<input id="register-username" type="text" name="register-username"/>
+			</p>
+			<p class="grd_small">
+				<label for="register-password">Passwort</label>
+				<input id="register-password" type="password" name="register-password"/>
+			</p>
+			<p>Hast du bereits schonmal ein Gradido Konto besessen?</p>
+			<p class="grd_small">
+				<input id="register-key-new-yes" type="radio" name="register-key" value="yes" checked/>
+				<label for="register-key-new-yes">Nein, bitte ein neues erstellen!</label>
+			</p>
+			<p class="grd_small">
+				<input id="register-key-new-no" type="radio" name="register-key" value="no"/>
+				<label for="register-key-new-no">Ja, bitte wiederherstellen!</label>
+			</p>
+			<textarea style="width:100%;height:100px" name="register-key-existing"></textarea>
+		</fieldset>
+		<input class="grd_bn_succeed" type="submit" name="submit" value="Einloggen">
+	</div>
+</form>
+</body>
+</html>
