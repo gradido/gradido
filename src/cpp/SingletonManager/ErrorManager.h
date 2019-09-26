@@ -15,8 +15,8 @@
 #include <list>
 #include <map>
 #include <cstring>
-#include "../Error/Error.h"
-#include "../CoreLib/DRHash.hpp"
+#include "../Model/Error.h"
+#include "../Crypto/DRHash.h"
 
 class ErrorManager : public IErrorCollection
 {

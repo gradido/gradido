@@ -13,6 +13,7 @@
 
 #include "DRHashList.h"
 
+#define PHRASE_WORD_COUNT 24
 
 
 class Mnemonic 

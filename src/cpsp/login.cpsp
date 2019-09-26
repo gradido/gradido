@@ -21,8 +21,8 @@
 			<legend>Login</legend>
 			<p>Bitte gebe deine Zugangsdaten ein um dich einzuloggen.</p>
 			<p class="grd_small">
-				<label for="login-username">Benutzernamen</label>
-				<input id="login-username" type="text" name="login-username"/>
+				<label for="login-email">E-Mail</label>
+				<input id="login-email" type="text" name="login-email"/>
 			</p>
 			<p class="grd_small">
 				<label for="login-password">Passwort</label>

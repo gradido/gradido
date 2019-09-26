@@ -10,7 +10,8 @@
 #ifndef DR_LUA_WEB_MODULE_SESSION_SESSION_H
 #define DR_LUA_WEB_MODULE_SESSION_SESSION_H
 
-#include "../Error/ErrorList.h"
+#include "ErrorList.h"
+#include "User.h"
 
 class Session : public ErrorList
 {
@@ -18,11 +19,15 @@ public:
 	Session(int handle);
 	~Session();
 
+	bool createUser(const std::string& name, const std::string& email, const std::string& password, const std::string& passphrase);
+	bool loadUser(const std::string& email, const std::string& password);
+
 	inline int getHandle() { return mHandleId; }
-	virtual void reset() = 0;
+	void reset();
 
 protected:
 	int mHandleId;
+	User* mSessionUser;
 
 };
 

@@ -64,3 +64,19 @@ void ErrorList::printErrors()
 		delete error;
 	}
 }
+
+std::string ErrorList::getErrorsHtml()
+{
+	std::string res;
+	res = "<ul class='grd-no-style'>";
+	while (mErrorStack.size() > 0) {
+		auto error = mErrorStack.top();
+		mErrorStack.pop();
+		res += "<li class='grd-error'>";
+		res += error->getHtmlString();
+		res += "</li>";
+		delete error;
+	}
+	res += "</ul>";
+	return res;
+}

@@ -36,6 +36,7 @@ public:
 	int getErrors(ErrorList* send);
 
 	void printErrors();
+	std::string getErrorsHtml();
 
 protected:
 	std::stack<Error*> mErrorStack;

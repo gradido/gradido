@@ -1,104 +1,57 @@
-/*!
-*
-* \author: einhornimmond
-*
-* \date: 28.02.19
-*
-* \brief: manage Connections like mysql or socket connections to another server
-*/
+#ifndef GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE
+#define GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE
 
-#ifndef DR_LUA_WEB_MODULE_CONNECTION_MANAGER_H
-#define DR_LUA_WEB_MODULE_CONNECTION_MANAGER_H
+#include "../Crypto/DRHashList.h"
+#include <string>
 
-#include "../LuaWebModule.h"
-#include "../Connections/Connection.h"
-#include "../CoreLib/Profiler.h"
-#include "../CoreLib/Thread.h"
-#include "../CoreLib/DRResourcePtr.h"
-#include <queue>
-#include <map>
+#include "Poco/Util/LayeredConfiguration.h"
+#include "Poco/Data/SessionPoolContainer.h"
+#include "Poco/Data/MySQL/Connector.h"
 
-#define UNUSED_CONNECTION_TIMEOUT_SECONDS 2
+#include "../Model/ErrorList.h"
 
-class ConnectionManager;
-
-class ConnectThread : public Thread
-{
-public:
-	ConnectThread(ConnectionManager* parent);
-	virtual ~ConnectThread();
-
-	void addConnectionConnect(Connection* connection);
-	void addConnectionDestroy(Connection* connection);
-
-protected:
-	std::mutex mDataMutex;
-	std::queue<Connection*> mConnectionsWaitingOnConnectCall;
-	std::queue<Connection*> mConnectionWaitingOnDestroy;
-
-	virtual int ThreadFunction();
-	virtual void cleanUpInThread();
-
-	bool initMysqlThread;
-	ConnectionManager* mParent;
+enum ConnectionType {
+	CONNECTION_MYSQL_LOGIN_SERVER,
+	CONNECTION_MYSQL_PHP_SERVER,
+	CONNECTION_MAX
 };
-
 
 class ConnectionManager : public ErrorList
 {
-	friend ConnectThread;
-
-public:
+public: 
 	~ConnectionManager();
 
 	static ConnectionManager* getInstance();
 
-	bool addConnectionPool(DRSimpleResourcePtr<Config>* cfg);
-	bool markAsAvailable(Connection* con);
+	bool setConnectionsFromConfig(const Poco::Util::LayeredConfiguration& config, ConnectionType type);
 
-	bool isConnectionPool(DHASH id);
-	
-	static Connection* createConnection(DRSimpleResourcePtr<Config>* cfg);
-	inline Connection* getConnection(const char* name) { return getConnection(DRMakeStringHash(name)); }
+	//!  \param connectionString example: host=localhost;port=3306;db=mydb;user=alice;password=s3cr3t;compress=true;auto-reconnect=true
+	inline void setConnection(std::string connectionString, ConnectionType type) {
+		if (type == CONNECTION_MYSQL_LOGIN_SERVER || CONNECTION_MYSQL_PHP_SERVER) {
+			mSessionPoolNames[type] = Poco::Data::Session::uri(Poco::Data::MySQL::Connector::KEY, connectionString);
+			mSessionPools.add(Poco::Data::MySQL::Connector::KEY, connectionString);
+			//mConnectionData[type] = connectionString;
+		}
+	}
 
-	Connection* getConnection(DHASH id);
-
-	inline void lock() { mWorkingMutex.lock(); }
-	inline void unlock() { mWorkingMutex.unlock(); }
-
-	void deinitalize();
+	inline Poco::Data::Session getConnection(ConnectionType type) {
+		switch (type)
+		{
+		case CONNECTION_MYSQL_LOGIN_SERVER:
+			break;
+		case CONNECTION_MYSQL_PHP_SERVER:
+			break;
+		default:
+			break;
+		}
+	}
 
 protected:
 	ConnectionManager();
 
-	struct ConnectionPool {
-		ConnectionPool(): mFreeConnectionsCount(0), mErrorConnectingAttempts(0){}
-		DRSimpleResourcePtr<Config>* cfg_ptr;
-		std::stack<Connection*> mFreeConnections;
-		// used to measure how long at least two connections not used
-		Profiler mConnectionFreeTimeout;
-		// only for calculating connection timeout
-		int mFreeConnectionsCount;
-		
-		int mErrorConnectingAttempts;
-	};
-
-	void checkTime(ConnectionPool* pool);
-
-	//  connection Pool
-	std::map<int, ConnectionPool*> mConnections;
-
-	// access mutex
-	std::mutex mWorkingMutex;
-
-	inline void condSignal() { mConnectCond.notify_one(); }
-	
-	// creating and destroying connections thread
-	ConnectThread mConnectionEstablishThread;
-	std::condition_variable mConnectCond;
-	std::mutex mConnectCondMutex;
-
-	bool		mInitalized;
+private:
+	std::string mSessionPoolNames[CONNECTION_MAX];
+	Poco::Data::SessionPoolContainer mSessionPools;
 };
 
-#endif //DR_LUA_WEB_MODULE_CONNECTION_MANAGER_H
+#endif //GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE

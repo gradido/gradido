@@ -27,7 +27,14 @@ void HandleFileRequest::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	}
 	std::string path = "data" + uri;
 	printf("file path: %s\n", path.data());
-	response.sendFile(path, mediaType);
+	try {
+		response.sendFile(path, mediaType);
+	}
+	catch (...) {
+		std::ostream& _responseStream = response.send();
+		_responseStream << "Error, file not found";
+		
+	}
 /*
 	bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
 	if (_compressResponse) response.set("Content-Encoding", "gzip");

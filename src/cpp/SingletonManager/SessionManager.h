@@ -11,11 +11,21 @@
 #define DR_LUA_WEB_MODULE_SESSION_MANAGER_H
 
 
-#include "../Session/MysqlSession.h"
+#include "../Model/Session.h"
+
+#include "Poco/RegularExpression.h"
 
 #include <mutex>
 #include <map>
 #include <stack>
+
+enum SessionValidationTypes {
+	VALIDATE_NAME,
+	VALIDATE_EMAIL,
+	VALIDATE_PASSWORD,
+	VALIDATE_PASSPHRASE,
+	VALIDATE_MAX
+};
 
 class SessionManager
 {
@@ -24,15 +34,19 @@ public:
 
 	static SessionManager* getInstance();
 
-	MysqlSession* getNewMysqlSession(int* handle = nullptr);
-	inline bool releseMysqlSession(MysqlSession* requestSession) {
-		return releseMysqlSession(requestSession->getHandle());
+	Session* getNewSession(int* handle = nullptr);
+	inline bool releseSession(Session* requestSession) {
+		return releseSession(requestSession->getHandle());
 	}
-	bool releseMysqlSession(int requestHandleSession);
+	bool releseSession(int requestHandleSession);
 	bool isExist(int requestHandleSession);
-	MysqlSession* getMysqlSession(int handle);
+	Session* getSession(int handle);
 
+	bool init();
 	void deinitalize();
+
+	bool isValid(const std::string& subject, SessionValidationTypes validationType);
+
 protected:
 	SessionManager();
 
@@ -41,10 +55,13 @@ protected:
 	std::mutex mWorkingMutex;
 	
 	// sessions storage
-	std::map<int, MysqlSession*> mRequestSessionMap;
-	std::stack<int>				   mEmptyRequestStack;
+	std::map<int, Session*> mRequestSessionMap;
+	std::stack<int>			mEmptyRequestStack;
 
 	bool					mInitalized;
+
+	// validations
+	Poco::RegularExpression*  mValidations[VALIDATE_MAX];
 };
 
 #endif //DR_LUA_WEB_MODULE_SESSION_MANAGER_H

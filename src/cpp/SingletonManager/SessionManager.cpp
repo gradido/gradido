@@ -1,5 +1,8 @@
 #include "SessionManager.h"
 
+#include <sodium.h>
+
+
 SessionManager* SessionManager::getInstance()
 {
 	static SessionManager only;
@@ -7,7 +10,7 @@ SessionManager* SessionManager::getInstance()
 }
 
 SessionManager::SessionManager()
-	: mInitalized(true)
+	: mInitalized(false)
 {
 
 }
@@ -17,6 +20,26 @@ SessionManager::~SessionManager()
 	if (mInitalized) {
 		deinitalize();
 	}
+}
+
+
+bool SessionManager::init()
+{
+	mWorkingMutex.lock();
+	for (int i = 0; i < VALIDATE_MAX; i++) {
+		switch (i) {
+		//case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("/^[a-zA-Z_ -]{3,}$/"); break;
+		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z]{3,}$"); break;
+		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
+		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-])[A-Za-z0-9@$!%*?&+-]{8,}$"); break;
+		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
+		default: printf("[SessionManager::%s] unknown validation type\n", __FUNCTION__);
+		}
+	}
+
+	mInitalized = true; 
+	mWorkingMutex.unlock();
+	return true;
 }
 
 void SessionManager::deinitalize()
@@ -32,13 +55,26 @@ void SessionManager::deinitalize()
 		delete it->second;
 	}
 	mRequestSessionMap.clear();
+
+	for (int i = 0; i < VALIDATE_MAX; i++) {
+		delete mValidations[i];
+	}
+
 	
 	mInitalized = false;
 	mWorkingMutex.unlock();
 }
 
+bool SessionManager::isValid(const std::string& subject, SessionValidationTypes validationType)
+{
+	if (validationType >= VALIDATE_MAX) {
+		return false;
+	}
+	return *mValidations[validationType] == subject;
+}
 
-MysqlSession* SessionManager::getNewMysqlSession(int* handle)
+
+Session* SessionManager::getNewSession(int* handle)
 {
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
@@ -53,7 +89,7 @@ MysqlSession* SessionManager::getNewMysqlSession(int* handle)
 		mEmptyRequestStack.pop();
 		auto resultIt = mRequestSessionMap.find(local_handle);
 		if (resultIt != mRequestSessionMap.end()) {
-			MysqlSession* result = resultIt->second;
+			Session* result = resultIt->second;
 			mWorkingMutex.unlock();
 
 			if (handle) {
@@ -64,9 +100,23 @@ MysqlSession* SessionManager::getNewMysqlSession(int* handle)
 	}
 	else {
 		// else create new RequestSession Object
-		int newHandle = mRequestSessionMap.size();
-		auto requestSession = new MysqlSession(newHandle);
-		mRequestSessionMap.insert(std::pair<int, MysqlSession*>(newHandle, requestSession));
+		// calculate random handle
+		// check if already exist, if get new
+		int newHandle = 0;
+		int maxTrys = 0;
+		do {
+			newHandle = randombytes_random();
+			maxTrys++;
+		} while (mRequestSessionMap.find(newHandle) != mRequestSessionMap.end() && maxTrys < 100);
+
+		if (maxTrys >= 100 || 0 == newHandle) {
+			printf("[SessionManager::%s] can't find new handle, have already: %d",
+				__FUNCTION__, mRequestSessionMap.size());
+			return nullptr;
+		}
+
+		auto requestSession = new Session(newHandle);
+		mRequestSessionMap.insert(std::pair<int, Session*>(newHandle, requestSession));
 		mWorkingMutex.unlock();
 
 		if (handle) {
@@ -79,7 +129,7 @@ MysqlSession* SessionManager::getNewMysqlSession(int* handle)
 	return nullptr;
 }
 
-bool SessionManager::releseMysqlSession(int requestHandleSession)
+bool SessionManager::releseSession(int requestHandleSession)
 {
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
@@ -115,13 +165,13 @@ bool SessionManager::isExist(int requestHandleSession)
 	return result;
 }
 
-MysqlSession* SessionManager::getMysqlSession(int handle)
+Session* SessionManager::getSession(int handle)
 {
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return nullptr;
 	}
-	MysqlSession* result = nullptr;
+	Session* result = nullptr;
 	mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {

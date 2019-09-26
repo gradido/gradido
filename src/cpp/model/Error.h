@@ -22,6 +22,7 @@ public:
 	const char* getFunctionName() { return mFunctionName.data(); }
 	const char* getMessage() { return mMessage.data(); }
 	virtual std::string getString();
+	virtual std::string getHtmlString();
 
 protected:
 	std::string mFunctionName;
@@ -44,6 +45,7 @@ public:
 	}
 
 	virtual std::string getString();
+	virtual std::string getHtmlString();
 protected:
 	std::string mParam;
 };
