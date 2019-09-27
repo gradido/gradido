@@ -66,6 +66,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 	// write user into db
 	// generate and write email verification into db
 	// send email
+	createEmailVerificationCode();
 
 
 	return true;

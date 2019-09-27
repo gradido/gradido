@@ -8,9 +8,11 @@ class SendEmailTask : public UniLib::controller::Task
 {
 public:
 	SendEmailTask();
-	~SendEmailTask();
+	virtual ~SendEmailTask();
 
 	virtual int run();
+
+	virtual const char* getResourceType() const { return "SendEmailTask"; };
 protected:
 
 private:
