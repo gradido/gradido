@@ -1,0 +1,25 @@
+<%@ page class="DashboardPage" %>
+<%@	page compressed="true" %>
+<%! 
+#include "../SingletonManager/SessionManager.h"
+%>
+<% 
+	Poco::Net::NameValueCollection cookies;
+	request.getCookies(cookies);
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Dashboard</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+</head>
+<body>
+<div class="grd_container">
+	<h1>Willkommen <%= mSession->getUser()->getName() %></h1>
+	
+</div>
+</body>
+</html>
