@@ -13,7 +13,7 @@ class User : public ErrorList
 	friend NewUser;
 public:
 	// new user
-	User(const char* email, const char* name, const char* password, const char* passphrase);
+	User(const char* email, const char* name, const char* password);
 	// existing user
 	User(const char* email, const char* password);
 
@@ -23,21 +23,22 @@ public:
 	
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
 	inline const char* getEmail()  { return mEmail.data(); }
-
+	inline const char* getName() { return mFirstName.data(); }
 	
 protected:
 	void createCryptoKey(const char* email, const char* password);
 
-	inline void lock() { mWorkingMutex->lock(); }
-	inline void unlock() { mWorkingMutex->unlock(); }
+	inline void lock() { mWorkingMutex.lock(); }
+	inline void unlock() { mWorkingMutex.unlock(); }
 
 private:
 	std::string mEmail;
 	std::string mFirstName;
+	unsigned char mPasswordHashed[crypto_shorthash_BYTES];
 	// crypto key as obfus array 
 	ObfusArray* mCryptoKey;
 
-	Poco::Mutex* mWorkingMutex;
+	Poco::Mutex mWorkingMutex;
 	
 };
 

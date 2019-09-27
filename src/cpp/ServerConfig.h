@@ -1,4 +1,8 @@
 #include "Crypto/mnemonic.h"
+#include "Crypto/Obfus_array.h"
+#include "Poco/Util/LayeredConfiguration.h"
+
+#include "tasks/CPUSheduler.h"
 
 namespace ServerConfig {
 
@@ -9,6 +13,11 @@ namespace ServerConfig {
 	};
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
+	extern ObfusArray* g_ServerCryptoKey;
+	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 
-	void loadMnemonicWordLists();
+	bool loadMnemonicWordLists();
+	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
+
+	void unload();
 }

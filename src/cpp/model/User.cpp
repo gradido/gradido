@@ -2,6 +2,7 @@
 #include <sodium.h>
 #include "ed25519/ed25519.h"
 #include "Poco/Util/Application.h"
+#include "../ServerConfig.h"
 
 NewUser::NewUser(User* user, const char* password, const char* passphrase)
 	: mUser(user), mPassword(password), mPassphrase(passphrase)
@@ -46,16 +47,18 @@ void LoginUser::run()
 
 // *******************************************************************************
 
-User::User(const char* email, const char* name, const char* password, const char* passphrase)
+User::User(const char* email, const char* name, const char* password)
 	: mEmail(email), mFirstName(name), mCryptoKey(nullptr)
 {
-
+	//crypto_shorthash_KEYBYTES
+	//mPasswordHashed = 
+	crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 }
 
 User::User(const char* email, const char* password)
 	: mEmail(email)
 {
-
+	crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 }
 
 

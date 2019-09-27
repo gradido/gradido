@@ -15,18 +15,20 @@ include_directories(
 
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
+FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
 FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
 FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/Poco/*.h")
-SET(LOCAL_SRCS ${TINF} ${MAIN} ${HTTPInterface} ${CRYPTO} ${MODEL} ${SINGLETON_MANAGER} ${MYSQL})
+SET(LOCAL_SRCS ${TINF} ${MAIN} ${HTTPInterface} ${CRYPTO} ${MODEL} ${SINGLETON_MANAGER} ${MYSQL} ${TASKS})
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
 # src
 source_group("tinf" FILES ${TINF})
 source_group("crypto" FILES ${CRYPTO})
+source_group("tasks" FILES ${TASKS})
 source_group("model" FILES ${MODEL})
 source_group("mysql" FILES ${MYSQL})
 source_group("SingletonManager" FILES ${SINGLETON_MANAGER})

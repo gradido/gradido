@@ -90,6 +90,7 @@ Session* SessionManager::getNewSession(int* handle)
 		auto resultIt = mRequestSessionMap.find(local_handle);
 		if (resultIt != mRequestSessionMap.end()) {
 			Session* result = resultIt->second;
+			result->reset();
 			mWorkingMutex.unlock();
 
 			if (handle) {

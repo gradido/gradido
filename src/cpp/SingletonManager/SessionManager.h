@@ -27,6 +27,8 @@ enum SessionValidationTypes {
 	VALIDATE_MAX
 };
 
+
+// TODO: cleanup timeouted sessions
 class SessionManager
 {
 public:

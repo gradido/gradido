@@ -9,6 +9,7 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/HTTPServer.h"
+#include "Poco/Environment.h"
 #include "MySQL/Poco/Connector.h"
 
 #include <sodium.h>
@@ -70,9 +71,19 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	else
 	{
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
-
+	
 		// load word lists
-		ServerConfig::loadMnemonicWordLists();
+		if (!ServerConfig::loadMnemonicWordLists()) {
+			printf("[Gradido_LoginServer::%s] error loading mnemonic Word List\n", __FUNCTION__);
+			return Application::EXIT_CONFIG;
+		}
+		if (!ServerConfig::initServerCrypto(config())) {
+			printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
+			return Application::EXIT_CONFIG;
+		}
+
+		// start cpu scheduler
+		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(Poco::Environment::processorCount(), "Login Worker");
 
 		// load up connection configs
 		// register MySQL connector
@@ -97,6 +108,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		waitForTerminationRequest();
 		// Stop the HTTPServer
 		srv.stop();
+		ServerConfig::unload();
 	}
 	return Application::EXIT_OK;
 }
