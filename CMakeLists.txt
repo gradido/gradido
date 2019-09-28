@@ -20,7 +20,7 @@ FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonMan
 FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
-FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/Poco/*.h")
+FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
 SET(LOCAL_SRCS ${TINF} ${MAIN} ${HTTPInterface} ${CRYPTO} ${MODEL} ${SINGLETON_MANAGER} ${MYSQL} ${TASKS})
 aux_source_directory("src/cpp" LOCAL_SRCS)
 

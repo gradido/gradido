@@ -7,6 +7,7 @@
 #include "Poco/Util/LayeredConfiguration.h"
 #include "Poco/Data/SessionPoolContainer.h"
 #include "Poco/Data/MySQL/Connector.h"
+#include "Poco/Exception.h"
 
 #include "../Model/ErrorList.h"
 
@@ -37,13 +38,15 @@ public:
 	inline Poco::Data::Session getConnection(ConnectionType type) {
 		switch (type)
 		{
-		case CONNECTION_MYSQL_LOGIN_SERVER:
-			break;
+		case CONNECTION_MYSQL_LOGIN_SERVER: 
 		case CONNECTION_MYSQL_PHP_SERVER:
-			break;
+			return mSessionPools.get(mSessionPoolNames[type]);
 		default:
+			addError(new ParamError("[ConnectionManager::getConnection]", "Connection Type unknown", std::to_string(type)));
 			break;
 		}
+		throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
+		//return Poco::Data::Session(nullptr);
 	}
 
 protected:

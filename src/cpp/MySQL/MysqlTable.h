@@ -13,13 +13,10 @@
 
 #include <list>
 #include <string.h>
-#include "../Error/ErrorList.h"
+#include "../model/ErrorList.h"
 #include "mysql.h"
 
-extern "C" {
-#include "../import/lua/luaintf.h"
-#include "../import/lua/lauxlib.h"
-}
+#include "Poco/Data/Session.h"
 
 
 enum MysqlRowType {
@@ -29,6 +26,7 @@ enum MysqlRowType {
 	MYSQL_ROW_DECIMAL, // double
 	MYSQL_ROW_TIMESTAMP,
 	MYSQL_ROW_DATETIME,
+	MYSQL_ROW_BINARY,
 	MYSQL_ROW_NULL,
 	MYSQL_ROW_TYPE_COUNT,
 	MYSQL_ROW_TYPE_NONE
@@ -53,11 +51,14 @@ public:
 	inline bool isDateTime() const { return mType == MYSQL_ROW_DATETIME; }
 	inline bool isNull() const { return mType == MYSQL_ROW_NULL; }
 	inline bool isDecimal() const { return mType == MYSQL_ROW_DECIMAL;  }
+	inline bool isBinary() const { return mType == MYSQL_ROW_BINARY;  }
 	inline MysqlRowType getType() const { return mType; }
 
 	virtual operator const char*() const { return ""; }
 	virtual operator long() const { return 0; }
 	virtual operator long long() const { return 0; }
+	virtual operator unsigned char*() const { return nullptr; }
+	virtual size_t size() { return 0; }
 	
 protected:
 	MysqlRowType mType;
@@ -71,6 +72,7 @@ public:
 
 
 	virtual operator const char*() const { return mContent.data(); }
+	virtual size_t size() { return mContent.size(); }
 protected:
 	std::string mContent;
 };
@@ -123,6 +125,26 @@ protected:
 	double mDecimal;
 };
 
+class MysqlTableCellBinary : public MysqlTableCell
+{
+public:
+	MysqlTableCellBinary(const unsigned char* data, size_t _size) :MysqlTableCell(MYSQL_ROW_BINARY), m_data(nullptr), m_size(_size)  {
+		m_data = (unsigned char*)malloc(m_size);
+		memcpy(m_data, data, m_size);
+	}
+	~MysqlTableCellBinary() {
+		if (m_data) free(m_data);
+		m_data = nullptr;
+		m_size = 0;
+	}
+
+	virtual operator unsigned char*() const { return m_data; }
+	virtual size_t size() { return m_size; }
+protected:
+	unsigned char* m_data;
+	size_t m_size;
+
+};
 
 class MysqlTable : public ErrorList
 {
@@ -142,9 +164,9 @@ public:
 	inline bool addCellToCurrentRow(const long long& value) { return addCellToCurrentRow(new MysqlTableCellLong(value)); }
 	inline bool addCellToCurrentRow(const char* string) { return addCellToCurrentRow(new MysqlTableCellString(string)); }
 	inline bool addCellToCurrentRow(const double& value) { return addCellToCurrentRow(new MysqlTableCellDecimal(value)); }
+	inline bool addCellToCurrentRow(const unsigned char* bytes, size_t size) { return addCellToCurrentRow(new MysqlTableCellBinary(bytes, size)); }
 	inline bool addCellToCurrentRowTime(const time_t& time) { return addCellToCurrentRow(new MysqlTableCellTimestamp(time)); }
 	inline bool addCellToCurrentRow() { return addCellToCurrentRow(new MysqlTableCell); }
-	bool addCellToCurrentRow(MYSQL_BIND* bind);
 
 	//bool copyColumnValues()
 
@@ -157,9 +179,12 @@ public:
 		if (fieldIndex >= mFieldCount || fieldIndex < 0) return MYSQL_ROW_TYPE_NONE;
 		return mHeader[fieldIndex].type;
 	}
-	/// move to ParseMysqlTable
-	bool writeAsTableOntoLuaStack(lua_State* l);
 
+	inline void setTableName(const char* tableName) { mTableName = tableName; }
+	inline const char* getTableName() { return mTableName.data(); }
+
+	int connectToStatement(Poco::Data::Statement* stmt, int rowIndex = 0);
+	
 	static size_t getFieldTypeSize(MysqlRowType type);
 
 	static time_t parseFromMysqlDateTime(const char* mysql_date_time);
@@ -168,6 +193,7 @@ protected:
 	size_t mFieldCount;
 	MysqlTableColumn* mHeader;
 	std::list<std::list<MysqlTableCell*>*> mRows;
+	std::string mTableName;
 };
 
 
