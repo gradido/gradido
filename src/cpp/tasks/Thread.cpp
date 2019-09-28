@@ -55,10 +55,8 @@ namespace UniLib {
 			while (true) {
 				try {
 					semaphore.tryWait(100);
-					printf("[Thread::%s] end worker thread\n", __FUNCTION__);
-					break;
-				} catch (Poco::TimeoutException& e) {
-
+					//printf("[Thread::%s] end worker thread\n", __FUNCTION__);
+					//break;
 					if (exitCalled) return;
 					// Lock work mutex
 					threadLock();
@@ -81,10 +79,11 @@ namespace UniLib {
 						//LOG_ERROR("Fehler in Thread, exit", -1);
 						printf("[Thread::%s] exception: %s\n", __FUNCTION__, e.message().data());
 						return;
-					}	
-				
-				}
-				catch (Poco::Exception& e) {
+					}
+
+				} catch (Poco::TimeoutException& e) {
+					printf("[Thread::%s] timeout exception\n", __FUNCTION__);
+				} catch (Poco::Exception& e) {
 					printf("[Thread::%s] exception: %s\n", __FUNCTION__, e.message().data());
 					return;
 				}

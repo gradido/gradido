@@ -20,7 +20,7 @@ void NewUser::run()
 {
 	// create crypto key
 	if (!mUser->hasCryptoKey()) {
-		mUser->createCryptoKey(mUser->getEmail(), mPassword.data());
+		mUser->createCryptoKey(mPassword.data());
 	}
 
 	// generate 
@@ -45,20 +45,30 @@ void LoginUser::run()
 
 }
 
-// *******************************************************************************
+// -------------------------------------------------------------------------------------------------
 
-User::User(const char* email, const char* name, const char* password)
-	: mEmail(email), mFirstName(name), mCryptoKey(nullptr)
+int UserCreateCryptoKey::run() 
 {
-	//crypto_shorthash_KEYBYTES
-	//mPasswordHashed = 
-	crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
+	mUser->createCryptoKey(mPassword);
+	printf("crypto key created\n");
+	return 0;
 }
 
-User::User(const char* email, const char* password)
-	: mEmail(email)
+// -----------------------------------------------------------------------------------------------------
+
+int UserWriteIntoDB::run()
 {
-	crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
+	return 0;
+}
+
+// *******************************************************************************
+
+
+User::User(const char* email, const char* name)
+	: mEmail(email), mFirstName(name), mCryptoKey(nullptr)
+{
+	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
+	memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
 }
 
 
@@ -97,14 +107,12 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 	return phrase_buffer;
 }
 
-void User::createCryptoKey(const char* username, const char* password)
+void User::createCryptoKey(const std::string& password)
 {
 
 	// TODO: put it in secure location
 	static const unsigned char app_secret[] = { 0x21, 0xff, 0xbb, 0xc6, 0x16, 0xfe };
 
-	size_t username_size = strlen(username);
-	size_t password_size = strlen(password);
 	sha_context context_sha512;
 	//unsigned char* hash512 = (unsigned char*)malloc(SHA_512_SIZE);
 	if (SHA_512_SIZE < crypto_pwhash_SALTBYTES) {
@@ -113,21 +121,21 @@ void User::createCryptoKey(const char* username, const char* password)
 	}
 	
 
-
 	unsigned char hash512_salt[SHA_512_SIZE]; // need at least crypto_pwhash_SALTBYTES 16U
 	sha512_init(&context_sha512);
-	sha512_update(&context_sha512, (const unsigned char*)username, username_size);
+	sha512_update(&context_sha512, (const unsigned char*)mEmail.data(), mEmail.size());
 	sha512_update(&context_sha512, app_secret, 6);
 	sha512_final(&context_sha512, hash512_salt);
 
 	unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
 
-	if (crypto_pwhash(key, crypto_box_SEEDBYTES, password, password_size, hash512_salt, 2U, 8388608, 2) != 0) {
+	if (crypto_pwhash(key, crypto_box_SEEDBYTES, password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
 		addError(new ParamError(__FUNCTION__, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
 		//printf("[User::%s] error creating pwd hash, maybe to much memory requestet? error: %s\n", __FUNCTION__, strerror(errno));
 		//printf("pwd: %s\n", pwd);
 		return ;
 	}
+	crypto_shorthash(mPasswordHashed, key, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 	lock();
 	mCryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
 	unlock();

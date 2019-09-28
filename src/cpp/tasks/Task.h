@@ -65,8 +65,9 @@ namespace UniLib {
             bool isAllParentsReady();
             //! \brief return true if task has finished, else false
             //! automatic scheduling of task if he isn't finished and sheduled yet
-			virtual bool isTaskFinished() { return false; }
+			virtual bool isTaskFinished() { lock(); bool ret = mFinished; unlock(); return ret; }
             //! \brief called from task scheduler, maybe from another thread
+			//! \return if return 0, mark task as finished
             virtual int run() = 0;
 
 			
@@ -102,11 +103,14 @@ namespace UniLib {
 			// for poco auto ptr
 			void duplicate();
 			void release();
+
+			inline void setTaskFinished() { lock(); mFinished = true; unlock(); }
         protected:
 			// scheduling only once
 			inline bool isTaskSheduled() {return mTaskScheduled;}
 			inline void taskScheduled() {mTaskScheduled = true;}
 			
+
 			bool mTaskScheduled;
 			Command*	mFinishCommand;
         private:
@@ -114,6 +118,7 @@ namespace UniLib {
             size_t   mParentTaskPtrArraySize; 
             Poco::Mutex mWorkingMutex;
             bool     mDeleted;
+			bool     mFinished;
 			// for poco auto ptr
 			int mReferenceCount;
 #ifdef _UNI_LIB_DEBUG

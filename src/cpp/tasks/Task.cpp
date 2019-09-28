@@ -5,7 +5,7 @@ namespace UniLib {
 	namespace controller {
 		Task::Task() 
 		: mTaskScheduled(false), mFinishCommand(nullptr), mParentTaskPtrArray(nullptr),
-		  mParentTaskPtrArraySize(0), mDeleted(false), mReferenceCount(1)
+		  mParentTaskPtrArraySize(0), mDeleted(false), mFinished(false), mReferenceCount(1)
 		{
 		}
 
@@ -32,11 +32,7 @@ namespace UniLib {
 			lock();
             for(size_t i = 0; i < mParentTaskPtrArraySize; i++) {
                 TaskPtr task = mParentTaskPtrArray[i];
-				if (!task.isNull()) {
-					allFinished = false;
-					continue;
-				}
-                if(!task->isTaskFinished()) {
+				if (!task.isNull() && !task->isTaskFinished()) {
                     allFinished = false;
                     if(!task->isTaskSheduled()) 
                         mParentTaskPtrArray[i]->scheduleTask(mParentTaskPtrArray[i]);

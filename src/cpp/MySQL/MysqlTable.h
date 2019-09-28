@@ -160,6 +160,13 @@ public:
 		addError(new ParamError(__FUNCTION__, "invalid field index:", index));
 		return MYSQL_ROW_TYPE_NONE;
 	}
+	inline const char* getHeaderName(int index) {
+		if (index > 0 && index < mFieldCount) {
+			return mHeader[index].name.data();
+		}
+		addError(new ParamError(__FUNCTION__, "invalid field index:", index));
+		return nullptr;
+	}
 	inline bool addCellToCurrentRow(long value) { return addCellToCurrentRow(new MysqlTableCellInt(value)); }
 	inline bool addCellToCurrentRow(const long long& value) { return addCellToCurrentRow(new MysqlTableCellLong(value)); }
 	inline bool addCellToCurrentRow(const char* string) { return addCellToCurrentRow(new MysqlTableCellString(string)); }

@@ -6,7 +6,7 @@
 ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	: m_arraySize(0), m_offsetSize(0), m_dataSize(size), m_Data(nullptr)
 {
-	m_arraySize = size + randombytes_random() % (int)roundf(size*0.25f);
+	m_arraySize = size + 2 + randombytes_random() % (int)roundf(size*0.25f);
 	m_Data = (unsigned char*)malloc(m_arraySize);
 	m_offsetSize = randombytes_random() % (int)roundf((m_arraySize - m_dataSize) * 0.8f);
 

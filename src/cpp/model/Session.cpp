@@ -6,7 +6,7 @@
 #include "sodium.h"
 
 Session::Session(int handle)
-	: mHandleId(handle)
+	: mHandleId(handle), mSessionUser(nullptr)
 {
 
 }
@@ -60,8 +60,17 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		//mPassphrase = passphrase;
 	}*/
 
-	//mSessionUser = new User(email.data(), name.data(), password.data(), passphrase.size() ? passphrase.data() : mPassphrase.data());
+	mSessionUser = new User(email.data(), name.data());
 	updateTimeout();
+
+	// create user crypto key
+	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, password, ServerConfig::g_CPUScheduler));
+	//cryptoKeyTask->scheduleTask(cryptoKeyTask);
+
+	// depends on crypto key
+	UniLib::controller::TaskPtr writeUserIntoDB(new UserWriteIntoDB(mSessionUser, ServerConfig::g_CPUScheduler, 1));
+	writeUserIntoDB->setParentTaskPtrInArray(cryptoKeyTask, 0);
+	writeUserIntoDB->scheduleTask(writeUserIntoDB);
 
 	// write user into db
 	// generate and write email verification into db

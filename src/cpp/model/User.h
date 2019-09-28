@@ -5,17 +5,20 @@
 #include <string>
 #include "ErrorList.h"
 #include "Poco/Thread.h"
+#include "../tasks/CPUTask.h"
 
 class NewUser;
+class UserCreateCryptoKey;
 
 class User : public ErrorList
 {
 	friend NewUser;
+	friend UserCreateCryptoKey;
 public:
 	// new user
-	User(const char* email, const char* name, const char* password);
+	//User(const char* email, const char* name, const char* password);
 	// existing user
-	User(const char* email, const char* password);
+	User(const char* email, const char* name);
 
 	~User();
 
@@ -24,9 +27,11 @@ public:
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
 	inline const char* getEmail()  { return mEmail.data(); }
 	inline const char* getName() { return mFirstName.data(); }
+
+
 	
 protected:
-	void createCryptoKey(const char* email, const char* password);
+	void createCryptoKey(const std::string& password);
 
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
@@ -41,6 +46,33 @@ private:
 	Poco::Mutex mWorkingMutex;
 	
 };
+
+class UserCreateCryptoKey : public UniLib::controller::CPUTask
+{
+public:
+	UserCreateCryptoKey(User* user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
+		: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password)  {}
+
+	virtual int run();
+	virtual const char* getResourceType() const { return "UserCreateCryptoKey"; };
+
+private:
+	User* mUser;
+	std::string mPassword;
+};
+
+class UserWriteIntoDB : public UniLib::controller::CPUTask
+{
+public:
+	UserWriteIntoDB(User* user, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
+		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user) {}
+
+	virtual int run();
+	virtual const char* getResourceType() const { return "UserWriteIntoDB"; };
+private: 
+	User* mUser;
+};
+
 
 class NewUser : public Poco::Runnable
 {

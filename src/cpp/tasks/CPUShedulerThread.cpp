@@ -35,7 +35,9 @@ namespace UniLib {
 				const char* name = mWaitingTask->getName();
 				l->addTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder(), mWaitingTask->getResourceType(), mName.data(), name);
 #endif 
-				mWaitingTask->run();
+				if (!mWaitingTask->run()) {
+					mWaitingTask->setTaskFinished();
+				}
 #ifdef _UNI_LIB_DEBUG
 				l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
 				SpeedLog.writeToLog("%s used on thread: %s by Task: %s of: %s",

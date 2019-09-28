@@ -1,7 +1,7 @@
 #include "WriteIntoDBTask.h"
 
-WriteIntoDBTask::WriteIntoDBTask(ConnectionType type, std::vector<MysqlTable*> multipleData)
-	: mFinished(false), mConnectionType(type), mDataToInsert(multipleData)
+WriteIntoDBTask::WriteIntoDBTask(ConnectionType type, std::vector<MysqlTable*> multipleData, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount/* = 0*/)
+	: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount),  mConnectionType(type), mDataToInsert(multipleData)
 {
 
 }
@@ -26,7 +26,12 @@ int WriteIntoDBTask::run()
 			use(person.name),
 			use(person.address),
 			use(person.age);*/
-		insert << "INSERT INTO " << tableName << "VALUES(";
+		insert << "INSERT INTO " << tableName << " (";
+		for (int iField = 0; iField < (*it)->getFieldCount(); iField++) {
+			if (iField > 0) insert << ",";
+			insert << (*it)->getHeaderName(iField);
+		}
+		insert << ") VALUES(";
 		for (int iCell = 0; iCell < (*it)->getFieldCount(); iCell++) {
 			if (iCell > 0) insert << ",";
 			insert << "?";
@@ -34,10 +39,8 @@ int WriteIntoDBTask::run()
 		insert << ")";
 		(*it)->connectToStatement(&insert);
 		insert.execute();
+
 	}
-	lock();
-	mFinished = true;
-	unlock();
 
 	return 0;
 }
