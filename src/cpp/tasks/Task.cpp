@@ -20,6 +20,9 @@ namespace UniLib {
 			if (mParentTaskPtrArraySize) {
 				delete[] mParentTaskPtrArray;
 			}
+			if (mFinishCommand) {
+				delete mFinishCommand;
+			}
             mParentTaskPtrArraySize = 0;
 			mWorkingMutex.lock();
             mDeleted = true;
@@ -42,6 +45,14 @@ namespace UniLib {
             return allFinished;
         }
 
+		TaskPtr Task::getParent(int index)
+		{
+			if (index < 0 || index >= mParentTaskPtrArraySize) {
+				return nullptr;
+			}
+			return mParentTaskPtrArray[index];
+		}
+
 		void Task::duplicate()
 		{
 			mReferenceCount++;
@@ -54,6 +65,15 @@ namespace UniLib {
 				delete this;
 			}
 
+		}
+
+		void Task::setTaskFinished() {
+			lock(); 
+			mFinished = true; 
+			if (mFinishCommand) {
+				mFinishCommand->taskFinished(this);
+			}
+			unlock(); 
 		}
 
 	}

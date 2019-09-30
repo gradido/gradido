@@ -66,31 +66,32 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t";
 #line 48 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
  if(!form.empty() && userReturned) {	responseStream << "\n";
+	responseStream << "\t\t\n";
 	responseStream << "\t\t<div class=\"grd_text-max-width\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
-	responseStream << "\t\t\t\tSchreibe dir den Merkspruch auf und packe ihn gut weg. Du brauchst ihn um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.\n";
-	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t\t<div class=\"grd_textarea\">\n";
-	responseStream << "\t\t\t\t";
-#line 54 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
-	responseStream << ( session->getPassphrase() );
-	responseStream << "\n";
+	responseStream << "\t\t\t\tDeine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. \n";
+	responseStream << "\t\t\t\tWenn sie da ist, befolge ihren Anweisungen. \n";
+	responseStream << "\t\t\t\tMöchtest du wissen ob die E-Mail schon verschickt wurde? \n";
+	responseStream << "\t\t\t\tDann klicke einfach hier: \n";
+	responseStream << "\t\t\t\t<form action=\"/\">\n";
+	responseStream << "\t\t\t\t\t<input type=\"submit\" value=\"Status überprüfen\">\n";
+	responseStream << "\t\t\t\t</form>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 57 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 61 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
 	responseStream << "\t\n";
 	responseStream << "\t\t";
-#line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 64 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
  if(!form.empty() && !userReturned) {	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 61 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 65 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
 	responseStream << ( session->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 62 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 66 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
 } 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<legend>Account anlegen</legend>\n";
@@ -98,14 +99,14 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-name\">Vorname</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-name\" type=\"text\" name=\"register-name\" value=\"";
-#line 68 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 72 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 72 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 76 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
@@ -118,7 +119,7 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 82 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 86 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

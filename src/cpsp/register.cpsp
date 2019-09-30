@@ -46,12 +46,16 @@ label:not(.grd_radio_label) {
 <div class="grd_container">
 	<h1>Einen neuen Account anlegen</h1>
 	<% if(!form.empty() && userReturned) {%>
+		
 		<div class="grd_text-max-width">
 			<div class="grd_text">
-				Schreibe dir den Merkspruch auf und packe ihn gut weg. Du brauchst ihn um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.
-			</div>
-			<div class="grd_textarea">
-				<%= session->getPassphrase() %>
+				Deine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. 
+				Wenn sie da ist, befolge ihren Anweisungen. 
+				Möchtest du wissen ob die E-Mail schon verschickt wurde? 
+				Dann klicke einfach hier: 
+				<form action="/">
+					<input type="submit" value="Status überprüfen">
+				</form>
 			</div>
 		</div>
 	<% } else { %>

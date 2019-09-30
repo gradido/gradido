@@ -1,26 +1,27 @@
-<%@ page class="EmailOptInPage" %>
+<%@ page class="CheckEmailPage" %>
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
+
+enum PageState 
+{
+	PAGE_VERIFICATION_FAILED,
+	PAGE_ASK_PASSPHRASE,
+	PAGE_SHOW_PASSPHRASE
+};
 %>
 <%%
-	auto session = SessionManager::getInstance()->getNewSession();
-	bool userReturned = false;
-	if(!form.empty()) {
-		userReturned = session->createUser(
-			form.get("register-name"),
-			form.get("register-email"),
-			form.get("register-password")
-		);
-		if(userReturned) {
-			auto cookie_id = session->getHandle();
-			auto user_host = request.clientAddress().toString();
-			printf("cookie: %d, user_host: %s\n", cookie_id, user_host.data());
-			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
-		}
+	auto sm = SessionManager::getInstance();
+	bool hasErrors = false;
+	PageState state = PAGE_ASK_PASSPHRASE;
+	std::string uri = request.getURI();
+	printf("uri: %s\n", uri.data());
+	if(!mSession) {// || mSession->getEmailVerificationCode() != ) {
+		//mSession = sm->findByEmailVerificationCode();
 	}
+	
 %>
 <!DOCTYPE html>
 <html>
@@ -42,37 +43,24 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
+	<% if(hasErrors) {%>
+		<%= mSession->getErrorsHtml() %>
+	<%} %>
 	<h1>Einen neuen Account anlegen</h1>
-	<% if(!form.empty() && userReturned) {%>
+	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
 		<div class="grd_text-max-width">
 			<div class="grd_text">
 				Schreibe dir den Merkspruch auf und packe ihn gut weg. Du brauchst ihn um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.
 			</div>
 			<div class="grd_textarea">
-				<%= session->getPassphrase() %>
+				<%= mSession->getPassphrase() %>
 			</div>
 		</div>
-	<% } else { %>
+	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	<form method="POST">
-	
-		<% if(!form.empty() && !userReturned) {%>
-			<%= session->getErrorsHtml() %>
-		<%} %>
 		<fieldset class="grd_container_small">
 			<legend>Account anlegen</legend>
 			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
-			<p class="grd_small">
-				<label for="register-name">Vorname</label>
-				<input id="register-name" type="text" name="register-name" value="<%= !form.empty() ? form.get("register-name") : "" %>"/>
-			</p>
-			<p class="grd_small">
-				<label for="register-email">E-Mail</label>
-				<input id="register-email" type="email" name="register-email" value="<%= !form.empty() ? form.get("register-email") : "" %>"/>
-			</p>
-			<p class="grd_small">
-				<label for="register-password">Passwort</label>
-				<input id="register-password" type="password" name="register-password"/>
-			</p>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>
 			<p class="grd_small">
 				<input id="register-key-new-yes" type="radio" name="register-key" value="yes" checked/>
@@ -87,6 +75,23 @@ label:not(.grd_radio_label) {
 		<input class="grd_bn_succeed" type="submit" name="submit" value="Anmelden">
 		
 	</form>
+	<% } else if(state == PAGE_VERIFICATION_FAILED) { %>
+		<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+			<p>Bitte versuche es erneut</p>
+			<form method="GET" action="/checkEmail">
+				<input type="number" name="email-verification-code">
+				<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+			</form>
+		<% } else if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+			<div class="grd_text">Die E-Mail wurde nicht verschickt, bitte habe noch etwas Geduld.</div>
+		<% } else { %>
+			<div class="grd_text">Der Account wurde schon freigeschaltet.</div>
+			<a href="/">Zurück</a>
+		<% } %>
+	<% } else { %>
+		<div class="grd_text">
+			Ungültige Seite, wenn du das siehst stimmt hier was nicht. Bitte wende dich an den Server-Admin. 
+		</div>
 	<% } %>
 </div>
 </body>

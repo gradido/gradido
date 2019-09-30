@@ -5,15 +5,18 @@
 #include <string>
 #include "ErrorList.h"
 #include "Poco/Thread.h"
+#include "Poco/Data/Session.h"
 #include "../tasks/CPUTask.h"
 
 class NewUser;
 class UserCreateCryptoKey;
+class UserWriteIntoDB;
 
 class User : public ErrorList
 {
 	friend NewUser;
 	friend UserCreateCryptoKey;
+	friend UserWriteIntoDB;
 public:
 	// new user
 	//User(const char* email, const char* name, const char* password);
@@ -25,18 +28,21 @@ public:
 	static std::string generateNewPassphrase(Mnemonic* word_source);
 	
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
-	inline const char* getEmail()  { return mEmail.data(); }
-	inline const char* getName() { return mFirstName.data(); }
-
+	inline const char* getEmail() const { return mEmail.data(); }
+	inline const char* getName() const { return mFirstName.data(); }
+	inline int         getDBId() { return mDBId;  }
 
 	
 protected:
 	void createCryptoKey(const std::string& password);
+	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
+	bool loadEntryDBId(Poco::Data::Session session);
 
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
 
 private:
+	int mDBId;
 	std::string mEmail;
 	std::string mFirstName;
 	unsigned char mPasswordHashed[crypto_shorthash_BYTES];

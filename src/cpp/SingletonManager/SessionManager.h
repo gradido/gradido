@@ -43,6 +43,7 @@ public:
 	bool releseSession(int requestHandleSession);
 	bool isExist(int requestHandleSession);
 	Session* getSession(int handle);
+	Session* findByEmailVerificationCode(long long emailVerificationCode);
 
 	bool init();
 	void deinitalize();

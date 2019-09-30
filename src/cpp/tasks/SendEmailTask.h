@@ -1,13 +1,22 @@
 #ifndef GRADIDO_LOGIN_SERVER_TASKS_SEND_EMAIL_TASK_INCLUDE 
 #define GRADIDO_LOGIN_SERVER_TASKS_SEND_EMAIL_TASK_INCLUDE
 
-#include "Task.h"
+#include "CPUTask.h"
+#include "Poco/Net/MailMessage.h"
+
+/*
+ * @author: Dario Rekowski
+ *
+ * @date: 29.09.19
+ * @desc: Task for send an email, the first parent dependence pointer must be a prepare email task
+*/
 
 
-class SendEmailTask : public UniLib::controller::Task
+class SendEmailTask : public UniLib::controller::CPUTask
 {
 public:
-	SendEmailTask();
+
+	SendEmailTask(Poco::Net::MailMessage* mailMessage, UniLib::controller::CPUSheduler* cpuScheduler, size_t additionalTaskDependenceCount = 0);
 	virtual ~SendEmailTask();
 
 	virtual int run();
@@ -16,6 +25,7 @@ public:
 protected:
 
 private:
+	Poco::Net::MailMessage* mMailMessage;
 
 };
 

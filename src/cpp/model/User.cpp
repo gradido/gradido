@@ -4,6 +4,12 @@
 #include "Poco/Util/Application.h"
 #include "../ServerConfig.h"
 
+#include "../SingletonManager/ConnectionManager.h"
+
+#include "Poco/Data/Binding.h"
+
+using namespace Poco::Data::Keywords;
+
 NewUser::NewUser(User* user, const char* password, const char* passphrase)
 	: mUser(user), mPassword(password), mPassphrase(passphrase)
 {
@@ -58,6 +64,16 @@ int UserCreateCryptoKey::run()
 
 int UserWriteIntoDB::run()
 {
+	auto cm = ConnectionManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement insert = mUser->insertIntoDB(session);
+	if (1 != insert.execute()) {
+		mUser->addError(new Error("User::insertIntoDB", "error by inserting data tuple to db"));
+		return -1;
+	}
+	if (!mUser->loadEntryDBId(session)) {
+		return -2;
+	}
 	return 0;
 }
 
@@ -65,7 +81,7 @@ int UserWriteIntoDB::run()
 
 
 User::User(const char* email, const char* name)
-	: mEmail(email), mFirstName(name), mCryptoKey(nullptr)
+	: mDBId(0), mEmail(email), mFirstName(name), mCryptoKey(nullptr)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -143,4 +159,32 @@ void User::createCryptoKey(const std::string& password)
 
 	// mCryptoKey
 
+}
+
+Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
+{
+
+	Poco::Data::Statement insert(session);
+
+	Poco::Data::BLOB pwd(mPasswordHashed, crypto_shorthash_BYTES);
+
+	insert << "INSERT INTO users (email, name, password) VALUES(?, ?, ?);",
+		use(mEmail), use(mFirstName), bind(pwd);
+
+	return insert;
+}
+
+bool User::loadEntryDBId(Poco::Data::Session session)
+{
+	Poco::Data::Statement select(session);
+	 
+	select << "SELECT id from users where email = ?;", 
+		into(mDBId), use(mEmail);
+
+	if (select.execute() != 1) {
+		addError(new Error("User::loadEntryDBId", "didn't get expectet row count (1)"));
+		return false;
+	}
+
+	return true;
 }

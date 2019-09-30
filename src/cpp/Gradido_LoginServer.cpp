@@ -9,8 +9,10 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/HTTPServer.h"
+#include "Poco/Net/SSLManager.h"
 #include "Poco/Environment.h"
 #include "MySQL/Poco/Connector.h"
+
 
 #include <sodium.h>
 
@@ -82,8 +84,14 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
+		ServerConfig::initEMailAccount(config());
+
 		// start cpu scheduler
-		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(Poco::Environment::processorCount(), "Login Worker");
+		unsigned int worker_count = Poco::Environment::processorCount();
+		if (worker_count > 1) {
+			worker_count--;
+		}
+		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Login Worker");
 
 		// load up connection configs
 		// register MySQL connector
@@ -98,6 +106,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// put urandom on linux servers
 		//srand();
 
+		Poco::Net::initializeSSL();
+		ServerConfig::initSSLClientContext();
+
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
 		// set-up a HTTPServer instance
@@ -106,9 +117,11 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		srv.start();
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
+
 		// Stop the HTTPServer
 		srv.stop();
 		ServerConfig::unload();
+		Poco::Net::uninitializeSSL();
 	}
 	return Application::EXIT_OK;
 }

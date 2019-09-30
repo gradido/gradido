@@ -3,10 +3,25 @@
 #include "Crypto/mnemonic_bip0039.h"
 #include "sodium.h"
 
+#include "Poco/Net/SSLManager.h"
+#include "Poco/Net/KeyConsoleHandler.h"
+#include "Poco/Net/ConsoleCertificateHandler.h"
+#include "Poco/SharedPtr.h"
+
+using Poco::Net::SSLManager;
+using Poco::Net::Context;
+using Poco::Net::KeyConsoleHandler;
+using Poco::Net::PrivateKeyPassphraseHandler;
+using Poco::Net::InvalidCertificateHandler;
+using Poco::Net::ConsoleCertificateHandler;
+using Poco::SharedPtr;
+
 namespace ServerConfig {
 	Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 	ObfusArray* g_ServerCryptoKey = nullptr;
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
+	Context::Ptr g_SSL_CLient_Context = nullptr;
+	EmailAccount g_EmailAccount;
 
 	bool loadMnemonicWordLists()
 	{
@@ -48,6 +63,34 @@ namespace ServerConfig {
 			return false;
 		}
 		g_ServerCryptoKey = new ObfusArray(realBinSize, key);
+		return true;
+	}
+
+	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg)
+	{
+		g_EmailAccount.sender = cfg.getString("email.sender");
+		g_EmailAccount.username = cfg.getString("email.username");
+		g_EmailAccount.password = cfg.getString("email.password");
+		g_EmailAccount.url = cfg.getString("email.smtp.url");
+		g_EmailAccount.port = cfg.getInt("email.smtp.port");
+
+		return true;
+	}
+
+	bool initSSLClientContext()
+	{
+		SharedPtr<InvalidCertificateHandler> pCert = new ConsoleCertificateHandler(false); // ask the user via console
+		/*
+		Context(Usage usage,
+		const std::string& certificateNameOrPath,
+		VerificationMode verMode = VERIFY_RELAXED,
+		int options = OPT_DEFAULTS,
+		const std::string& certificateStoreName = CERT_STORE_MY);
+		*/
+		
+		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
+		SSLManager::instance().initializeClient(0, pCert, g_SSL_CLient_Context);
+
 		return true;
 	}
 

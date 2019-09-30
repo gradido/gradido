@@ -104,12 +104,13 @@ namespace UniLib {
 			void duplicate();
 			void release();
 
-			inline void setTaskFinished() { lock(); mFinished = true; unlock(); }
+			void setTaskFinished();
         protected:
 			// scheduling only once
 			inline bool isTaskSheduled() {return mTaskScheduled;}
 			inline void taskScheduled() {mTaskScheduled = true;}
 			
+			TaskPtr getParent(int index);
 
 			bool mTaskScheduled;
 			Command*	mFinishCommand;

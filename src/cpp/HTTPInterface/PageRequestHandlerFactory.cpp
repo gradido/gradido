@@ -7,6 +7,7 @@
 #include "RegisterPage.h"
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
+#include "CheckEmailPage.h"
 
 #include "../SingletonManager/SessionManager.h"
 
@@ -37,6 +38,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	} catch (...) {}
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
+	if (uri == "/checkEmail") {
+		return new CheckEmailPage(s);
+	}
 	if (s) {
 		
 		return new DashboardPage(s);

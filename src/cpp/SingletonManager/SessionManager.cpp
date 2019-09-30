@@ -181,3 +181,14 @@ Session* SessionManager::getSession(int handle)
 	mWorkingMutex.unlock();
 	return result;
 }
+
+Session* SessionManager::findByEmailVerificationCode(long long emailVerificationCode)
+{
+	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		if (it->second->getEmailVerificationCode() == emailVerificationCode) {
+			return it->second;
+		}
+	}
+
+	return nullptr;
+}
