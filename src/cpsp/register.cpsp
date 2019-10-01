@@ -8,12 +8,17 @@
 <%%
 	auto session = SessionManager::getInstance()->getNewSession();
 	bool userReturned = false;
+	
 	if(!form.empty()) {
-		userReturned = session->createUser(
-			form.get("register-name"),
-			form.get("register-email"),
-			form.get("register-password")
-		);
+		if(form.get("register-password2") != form.get("register-password")) {
+			session->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
+		} else {
+			userReturned = session->createUser(
+				form.get("register-name"),
+				form.get("register-email"),
+				form.get("register-password")
+			);
+		}
 		if(userReturned) {
 			auto cookie_id = session->getHandle();
 			//auto user_host_string = request.clientAddress().toString();
@@ -78,6 +83,10 @@ label:not(.grd_radio_label) {
 			<p class="grd_small">
 				<label for="register-password">Passwort</label>
 				<input id="register-password" type="password" name="register-password"/>
+			</p>
+			<p class="grd_small">
+				<label for="register-password">Passwort Best&auml;tigung</label>
+				<input id="register-password2" type="password" name="register-password2"/>
 			</p>
 		</fieldset>
 		<input class="grd_bn_succeed" type="submit" name="submit" value="Anmelden">

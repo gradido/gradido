@@ -8,10 +8,12 @@
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
 #include "CheckEmailPage.h"
+#include "SaveKeysPage.h"
 
 #include "../SingletonManager/SessionManager.h"
 
 PageRequestHandlerFactory::PageRequestHandlerFactory()
+	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)")
 {
 	
 }
@@ -21,7 +23,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	//printf("request uri: %s\n", request.getURI().data());
 
 	std::string uri = request.getURI();
+	std::string url_first_part;
+	mRemoveGETParameters.extract(uri, url_first_part);
 
+	printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
 	auto referer = request.find("Referer");
 	if (referer != request.end()) {
 		printf("referer: %s\n", referer->second.data());
@@ -38,11 +43,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	} catch (...) {}
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
-	if (uri == "/checkEmail") {
+	
+
+	if (url_first_part == "/checkEmail") {
 		return new CheckEmailPage(s);
 	}
 	if (s) {
-		
+		if (uri == "/saveKeys") {
+			return new SaveKeysPage(s);
+		}
 		return new DashboardPage(s);
 	} else {
 

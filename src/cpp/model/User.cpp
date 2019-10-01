@@ -1,4 +1,5 @@
 #include "User.h"
+#include "Profiler.h"
 #include <sodium.h>
 #include "ed25519/ed25519.h"
 #include "Poco/Util/Application.h"
@@ -81,10 +82,10 @@ int UserWriteIntoDB::run()
 
 
 User::User(const char* email, const char* name)
-	: mDBId(0), mEmail(email), mFirstName(name), mCryptoKey(nullptr)
+	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mCryptoKey(nullptr)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
-	memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
+	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
 }
 
 
@@ -123,9 +124,29 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 	return phrase_buffer;
 }
 
+bool User::validatePassphrase(const std::string& passphrase)
+{
+	std::istringstream iss(passphrase);
+	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
+								     std::istream_iterator<std::string>());
+	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
+		auto m = ServerConfig::g_Mnemonic_WordLists[i];
+		bool existAll = true;
+		for (auto it = results.begin(); it != results.end(); it++) {
+			if (!m.isWordExist(*it)) {
+				existAll = false;
+				continue;
+			}
+		}
+		if (existAll) return true;
+	}
+	return false;
+}
+
 void User::createCryptoKey(const std::string& password)
 {
 
+	Profiler timeUsed;
 	// TODO: put it in secure location
 	static const unsigned char app_secret[] = { 0x21, 0xff, 0xbb, 0xc6, 0x16, 0xfe };
 
@@ -151,14 +172,17 @@ void User::createCryptoKey(const std::string& password)
 		//printf("pwd: %s\n", pwd);
 		return ;
 	}
-	crypto_shorthash(mPasswordHashed, key, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+	if (sizeof(mPasswordHashed) != crypto_shorthash_BYTES) {
+		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(mPasswordHashed)");
+	}
+	crypto_shorthash((unsigned char*)&mPasswordHashed, key, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 	lock();
 	mCryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
 	unlock();
 	free(key);
 
 	// mCryptoKey
-
+	printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
@@ -166,10 +190,11 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 
 	Poco::Data::Statement insert(session);
 
-	Poco::Data::BLOB pwd(mPasswordHashed, crypto_shorthash_BYTES);
+	//Poco::Data::BLOB pwd(&mPasswordHashed[0], crypto_shorthash_BYTES);
 
+	printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
 	insert << "INSERT INTO users (email, name, password) VALUES(?, ?, ?);",
-		use(mEmail), use(mFirstName), bind(pwd);
+		use(mEmail), use(mFirstName), bind(mPasswordHashed);
 
 	return insert;
 }

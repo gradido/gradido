@@ -1,17 +1,17 @@
-#include "RegisterPage.h"
+#include "EmailOptInPage.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/HTMLForm.h"
 #include "Poco/DeflatingStream.h"
 
 
-#line 4 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 4 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
 
 
-void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
+void EmailOptInPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 	response.setChunkedTransferEncoding(true);
 	response.setContentType("text/html");
@@ -19,27 +19,20 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 8 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 8 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 
 	auto session = SessionManager::getInstance()->getNewSession();
 	bool userReturned = false;
-	
 	if(!form.empty()) {
-		if(form.get("register-password2") != form.get("register-password")) {
-			session->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
-		} else {
-			userReturned = session->createUser(
-				form.get("register-name"),
-				form.get("register-email"),
-				form.get("register-password")
-			);
-		}
+		userReturned = session->createUser(
+			form.get("register-name"),
+			form.get("register-email"),
+			form.get("register-password")
+		);
 		if(userReturned) {
 			auto cookie_id = session->getHandle();
-			//auto user_host_string = request.clientAddress().toString();
-			auto user_host = request.clientAddress().host();
-			session->setClientIp(user_host);
-			//printf("cookie: %d, user_host: %s\n", cookie_id, user_host.data());
+			auto user_host = request.clientAddress().toString();
+			printf("cookie: %d, user_host: %s\n", cookie_id, user_host.data());
 			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
 		}
 	}
@@ -52,7 +45,7 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
-	responseStream << "<title>Gradido Login Server: Register</title>\n";
+	responseStream << "<title>Gradido Login Server: Email OptIn</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://gradido2.dario-rekowski.de/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -69,34 +62,33 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
 	responseStream << "\t";
-#line 53 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 46 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
  if(!form.empty() && userReturned) {	responseStream << "\n";
-	responseStream << "\t\t\n";
 	responseStream << "\t\t<div class=\"grd_text-max-width\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
-	responseStream << "\t\t\t\tDeine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. \n";
-	responseStream << "\t\t\t\tWenn sie da ist, befolge ihren Anweisungen. \n";
-	responseStream << "\t\t\t\tMöchtest du wissen ob die E-Mail schon verschickt wurde? \n";
-	responseStream << "\t\t\t\tDann klicke einfach hier: \n";
-	responseStream << "\t\t\t\t<form action=\"/\">\n";
-	responseStream << "\t\t\t\t\t<input type=\"submit\" value=\"Status überprüfen\">\n";
-	responseStream << "\t\t\t\t</form>\n";
+	responseStream << "\t\t\t\tSchreibe dir den Merkspruch auf und packe ihn gut weg. Du brauchst ihn um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.\n";
+	responseStream << "\t\t\t</div>\n";
+	responseStream << "\t\t\t<div class=\"grd_textarea\">\n";
+	responseStream << "\t\t\t\t";
+#line 52 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
+	responseStream << ( session->getPassphrase() );
+	responseStream << "\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 66 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 55 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
 	responseStream << "\t\n";
 	responseStream << "\t\t";
-#line 69 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
  if(!form.empty() && !userReturned) {	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 70 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 59 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 	responseStream << ( session->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 71 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 } 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<legend>Account anlegen</legend>\n";
@@ -104,14 +96,14 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-name\">Vorname</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-name\" type=\"text\" name=\"register-name\" value=\"";
-#line 77 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 66 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 81 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 70 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
@@ -119,16 +111,25 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t\t<label for=\"register-password\">Passwort</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-password\" type=\"password\" name=\"register-password\"/>\n";
 	responseStream << "\t\t\t</p>\n";
+	responseStream << "\t\t\t<p>Hast du schonmal ein Gradido Konto besessen?</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
-	responseStream << "\t\t\t\t<label for=\"register-password\">Passwort Best&auml;tigung</label>\n";
-	responseStream << "\t\t\t\t<input id=\"register-password2\" type=\"password\" name=\"register-password2\"/>\n";
+	responseStream << "\t\t\t\t<input id=\"register-key-new-yes\" type=\"radio\" name=\"register-key\" value=\"yes\" checked/>\n";
+	responseStream << "\t\t\t\t<label class=\"grd_radio_label\" for=\"register-key-new-yes\">Nein, bitte ein neues erstellen!</label>\n";
 	responseStream << "\t\t\t</p>\n";
+	responseStream << "\t\t\t<p class=\"grd_small\">\n";
+	responseStream << "\t\t\t\t<input id=\"register-key-new-no\" type=\"radio\" name=\"register-key\" value=\"no\"/>\n";
+	responseStream << "\t\t\t\t<label class=\"grd_radio_label\" for=\"register-key-new-no\">Ja, bitte wiederherstellen!</label>\n";
+	responseStream << "\t\t\t</p>\n";
+	responseStream << "\t\t\t<textarea style=\"width:100%;height:100px\" name=\"register-key-existing\">";
+#line 85 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
+	responseStream << ( !form.empty() ? form.get("register-key-existing") : "" );
+	responseStream << "</textarea>\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" name=\"submit\" value=\"Anmelden\">\n";
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 95 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\register.cpsp"
+#line 90 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\emailOptIn.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

@@ -12,6 +12,7 @@
  */
 
 #include "DRHashList.h"
+#include <string>
 
 #define PHRASE_WORD_COUNT 24
 
@@ -26,6 +27,7 @@ public:
 
 	inline const char* getWord(unsigned int index) { if (index < 2048) return mWords[index]; return nullptr; }
 	inline unsigned long getWordIndex(const char* word) { DHASH word_hash = DRMakeStringHash(word); return (long)mWordHashIndices.findByHash(word_hash); }
+	inline bool isWordExist(const std::string& word) { DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.itemExists(word_hash); }
 
 protected:
 	char* mWords[2048];

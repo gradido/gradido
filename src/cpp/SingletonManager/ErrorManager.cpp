@@ -68,6 +68,7 @@ void ErrorManager::addError(Error* error)
 
 	if (it == mErrorsMap.end()) {
 		list = new std::list<Error *>;
+		mErrorsMap.insert(std::pair<DHASH, std::list<Error*>*>(id, list));
 	}
 	else {
 		list = it->second;
@@ -78,6 +79,7 @@ void ErrorManager::addError(Error* error)
 		}
 	}
 	list->push_back(error);
+
 	mWorkingMutex.unlock();
 
 }
@@ -97,7 +99,8 @@ void ErrorManager::sendErrorsAsEmail()
 		content += "\n";
 		for (auto it2 = error_list_functions->begin(); it2 != error_list_functions->end(); it2++) {
 			content += "\t";
-			content += (*it2)->getMessage();
+			size_t functionNameSize = strlen((*it2)->getFunctionName());
+			content += (*it2)->getString().substr(functionNameSize+1);
 			delete (*it2);
 			content += "\n";
 		}

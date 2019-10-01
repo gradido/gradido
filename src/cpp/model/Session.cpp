@@ -1,4 +1,5 @@
 #include "Session.h"
+#include "Profiler.h"
 #include "../ServerConfig.h"
 
 #include "Poco/RegularExpression.h"
@@ -18,12 +19,12 @@ using namespace Poco::Data::Keywords;
 int WriteEmailVerification::run()
 {	
 	auto verificationCode = mSession->getEmailVerificationCode();
-
+	printf("{[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	int user_id = mUser->getDBId();
 	Poco::Data::Statement insert(dbSession);
 	insert << "INSERT INTO email_opt_in (user_id, verification_code) VALUES(?,?);",
-		use(user_id), use(verificationCode);
+		use(user_id), bind(verificationCode);
 	if (1 != insert.execute()) {
 		mSession->addError(new Error("WriteEmailVerification", "error inserting email verification code"));
 		return -1;
@@ -47,7 +48,7 @@ Session::Session(int handle)
 Session::~Session()
 {
 
-
+	reset();
 }
 
 
@@ -68,6 +69,7 @@ void Session::updateTimeout()
 
 bool Session::createUser(const std::string& name, const std::string& email, const std::string& password)
 {
+	Profiler usedTime;
 	auto sm = SessionManager::getInstance();
 	if (!sm->isValid(name, VALIDATE_NAME)) {
 		addError(new Error("Vorname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keine Sonderzeichen oder Zahlen."));
@@ -159,14 +161,15 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 	// generate and write email verification into db
 	// send email
 	
-
+	printf("[Session::createUser] time: %s\n", usedTime.string().data());
 
 	return true;
 }
 
 bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 {
-	const char* funcName = "Session::updateEmailVerification";
+	Profiler usedTime;
+	const static char* funcName = "Session::updateEmailVerification";
 	auto em = ErrorManager::getInstance();
 	if(mEmailVerificationCode == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
@@ -189,6 +192,7 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 				em->sendErrorsAsEmail();
 			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+			printf("[%s] time: %s\n", funcName, usedTime.string().data());
 			return true;
 		}
 		else {
@@ -196,15 +200,18 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 			em->sendErrorsAsEmail();
 		}
 		if (!updated_rows) {
-			addError(new Error("E-Mail Verification", "Der Code stimmt nicht, bitte überprüfe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin"));
+			addError(new Error("E-Mail Verification", "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin"));
+			printf("[%s] time: %s\n", funcName, usedTime.string().data());
 			return false;
 		}
 		
 	}
 	else {
-		addError(new Error("E-Mail Verification", "Falscher Code für aktiven Login"));
+		addError(new Error("E-Mail Verification", "Falscher Code f&uuml;r aktiven Login"));
+		printf("[%s] time: %s\n", funcName, usedTime.string().data());
 		return false;
 	}
+	printf("[%s] time: %s\n", funcName, usedTime.string().data());
 	return false;
 }
 
@@ -213,6 +220,58 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 bool Session::loadUser(const std::string& email, const std::string& password)
 {
 	return true;
+}
+
+bool Session::loadFromEmailVerificationCode(unsigned long long emailVerificationCode)
+{
+	Profiler usedTime;
+	const static char* funcName = "Session::loadFromEmailVerificationCode";
+	auto em = ErrorManager::getInstance();
+	auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	
+	/*Poco::Data::Statement select(dbConnection);
+	int user_id = 0;
+	select << "SELECT user_id FROM email_opt_in WHERE verification_code=?", into(user_id), use(emailVerificationCode);
+	try {
+		if (select.execute() == 0) {
+			addError(new Error("E-Mail Verification", "Der Code konnte nicht in der Datenbank gefunden werden."));
+			return false;
+		}
+	}
+	catch (Poco::Exception& ex) {
+		em->addError(new ParamError(funcName, "error selecting verification code entry", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+		return false;
+	}*/
+	Poco::Data::Statement select(dbConnection);
+	std::string email, name;
+	select.reset(dbConnection);
+	select << "SELECT email, name FROM users where id = (SELECT user_id FROM email_opt_in WHERE verification_code=?)",
+		 into(email), into(name), use(emailVerificationCode);
+	try {
+		size_t rowCount = select.execute();
+		if (rowCount != 1) {
+			em->addError(new ParamError(funcName, "select user by email verification code work not like expected, selected row count", rowCount));
+			em->sendErrorsAsEmail();
+		}
+		if (rowCount < 0) {
+			addError(new Error("E-Mail Verification", "Konnte keinen passenden Account finden."));
+			return false;
+		}
+
+		mSessionUser = new User(email.data(), name.data());
+		mSessionUser->loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+		mEmailVerificationCode = emailVerificationCode;
+		updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+		printf("[Session::loadFromEmailVerificationCode] time: %s\n", usedTime.string().data());
+		return true;
+	}
+	catch (const Poco::Exception& ex) {
+		em->addError(new ParamError(funcName, "error selecting user from verification code", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+	}
+
+	return false;
 }
 
 void Session::updateState(SessionStates newState)
@@ -243,6 +302,9 @@ const char* Session::translateSessionStateToString(SessionStates state)
 	case SESSION_STATE_USER_WRITTEN: return "User saved";
 	case SESSION_STATE_EMAIL_VERIFICATION_WRITTEN: return "E-Mail verification code saved";
 	case SESSION_STATE_EMAIL_VERIFICATION_SEND: return "Verification E-Mail sended";
+	case SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED: return "Verification Code checked";
+	case SESSION_STATE_PASSPHRASE_GENERATED: return "Passphrase generated";
+	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown"; 
 	case SESSION_STATE_KEY_PAIR_GENERATED: return "Gradido Address created";
 	case SESSION_STATE_KEY_PAIR_WRITTEN: return "Gradido Address saved";
 	default: return "unknown";
@@ -258,4 +320,26 @@ void Session::createEmailVerificationCode()
 		code_p[i] = randombytes_random();
 	}
 
+}
+/*
+bool Session::useOrGeneratePassphrase(const std::string& passphase)
+{
+	if (passphase != "" && User::validatePassphrase(passphase)) {
+		// passphrase is valid 
+		setPassphrase(passphase);
+		updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+		return true;
+	}
+	else {
+		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+		updateState(SESSION_STATE_PASSPHRASE_GENERATED);
+		return true;
+	}
+}
+*/
+bool Session::generatePassphrase()
+{
+	mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+	updateState(SESSION_STATE_PASSPHRASE_GENERATED);
+	return true;
 }

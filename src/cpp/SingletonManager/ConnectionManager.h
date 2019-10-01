@@ -40,7 +40,7 @@ public:
 		{
 		case CONNECTION_MYSQL_LOGIN_SERVER: 
 		case CONNECTION_MYSQL_PHP_SERVER:
-			return mSessionPools.get(mSessionPoolNames[type]);
+			return mSessionPools.getPool(mSessionPoolNames[type]).get();
 		default:
 			addError(new ParamError("[ConnectionManager::getConnection]", "Connection Type unknown", std::to_string(type)));
 			break;

@@ -1,27 +1,89 @@
 <%@ page class="CheckEmailPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+#include "../model/User.h"
 #include "Poco/Net/HTTPCookie.h"
 
 enum PageState 
 {
 	PAGE_VERIFICATION_FAILED,
 	PAGE_ASK_PASSPHRASE,
-	PAGE_SHOW_PASSPHRASE
+	PAGE_SHOW_PASSPHRASE,
+	PAGE_ASK_VERIFICATION_CODE
 };
 %>
 <%%
 	auto sm = SessionManager::getInstance();
 	bool hasErrors = false;
+	unsigned long long verificationCode = 0;
 	PageState state = PAGE_ASK_PASSPHRASE;
 	std::string uri = request.getURI();
-	printf("uri: %s\n", uri.data());
-	if(!mSession) {// || mSession->getEmailVerificationCode() != ) {
-		//mSession = sm->findByEmailVerificationCode();
-	}
+	//printf("uri: %s\n", uri.data());
 	
+	if(!form.empty()) {
+	  try {
+		verificationCode = stoll(form.get("email-verification-code", "0"));
+	  } catch(...) {}
+	}
+	if(!verificationCode) {
+		size_t pos = uri.find_last_of("/");
+		try {
+			verificationCode = stoll(uri.substr(pos+1));
+		} catch(...) {}
+	}
+	if(!verificationCode) {
+		state = PAGE_ASK_VERIFICATION_CODE;
+	} else {
+		// no session
+		if(!mSession || mSession->getEmailVerificationCode() != verificationCode) {
+			mSession = sm->findByEmailVerificationCode(verificationCode);
+		}
+		// no session in server, load from db
+		if(!mSession) {
+			mSession = sm->getNewSession();
+			if(mSession->loadFromEmailVerificationCode(verificationCode)) {
+				auto cookie_id = mSession->getHandle();
+				auto user_host = request.clientAddress().host();
+				mSession->setClientIp(user_host);
+				response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
+			} else {
+				sm->releseSession(mSession);
+				mSession = nullptr;
+				state = PAGE_VERIFICATION_FAILED;
+			}
+		}
+		if(mSession) {
+			mSession->updateEmailVerification(verificationCode);
+			hasErrors = mSession->errorCount() > 0;
+			
+			if(!hasErrors && !form.empty()) {
+				auto registerKeyChoice = form.get("passphrase", "");
+				std::string oldPassphrase = "";
+				if(registerKeyChoice == "no") {
+					auto oldPassphrase = form.get("passphrase-existing", "");
+					
+					if(oldPassphrase != "" && User::validatePassphrase(oldPassphrase)) {
+						// passphrase is valid 
+						mSession->setPassphrase(oldPassphrase);
+						mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+						state = PAGE_SHOW_PASSPHRASE;
+					} else {
+						mSession->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+					}
+				} else if(registerKeyChoice == "yes") {
+					mSession->generatePassphrase();
+					state = PAGE_SHOW_PASSPHRASE;
+				}
+			}
+		} else {
+			state = PAGE_VERIFICATION_FAILED;
+		}
+	}
 %>
 <!DOCTYPE html>
 <html>
@@ -43,7 +105,7 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
-	<% if(hasErrors) {%>
+	<% if(mSession && hasErrors) {%>
 		<%= mSession->getErrorsHtml() %>
 	<%} %>
 	<h1>Einen neuen Account anlegen</h1>
@@ -55,6 +117,7 @@ label:not(.grd_radio_label) {
 			<div class="grd_textarea">
 				<%= mSession->getPassphrase() %>
 			</div>
+			<a href="/saveKeys">Weiter</a>
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	<form method="POST">
@@ -63,30 +126,40 @@ label:not(.grd_radio_label) {
 			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>
 			<p class="grd_small">
-				<input id="register-key-new-yes" type="radio" name="register-key" value="yes" checked/>
-				<label class="grd_radio_label" for="register-key-new-yes">Nein, bitte ein neues erstellen!</label>
+				<input id="passphrase-new-yes" type="radio" name="passphrase" value="yes" checked/>
+				<label class="grd_radio_label" for="passphrase-new-yes">Nein, bitte ein neues erstellen!</label>
 			</p>
 			<p class="grd_small">
-				<input id="register-key-new-no" type="radio" name="register-key" value="no"/>
-				<label class="grd_radio_label" for="register-key-new-no">Ja, bitte wiederherstellen!</label>
+				<input id="passphrase-new-no" type="radio" name="passphrase" value="no"/>
+				<label class="grd_radio_label" for="passphrase-new-no">Ja, bitte wiederherstellen!</label>
 			</p>
-			<textarea style="width:100%;height:100px" name="register-key-existing"><%= !form.empty() ? form.get("register-key-existing") : "" %></textarea>
+			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("register-key-existing", "") : "" %></textarea>
 		</fieldset>
-		<input class="grd_bn_succeed" type="submit" name="submit" value="Anmelden">
+		<input class="grd_bn_succeed" type="submit" name="submit" value="Weiter">
 		
 	</form>
+	<% } else if(state == PAGE_ASK_VERIFICATION_CODE) { %>
+	<form method="GET">
+		<p>Bitte gebe deinen E-Mail Verification Code ein. </p>
+		<input type="number" name="email-verification-code">
+		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+	</form>
 	<% } else if(state == PAGE_VERIFICATION_FAILED) { %>
-		<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
-			<p>Bitte versuche es erneut</p>
-			<form method="GET" action="/checkEmail">
-				<input type="number" name="email-verification-code">
-				<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
-			</form>
-		<% } else if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
-			<div class="grd_text">Die E-Mail wurde nicht verschickt, bitte habe noch etwas Geduld.</div>
+		<% if(mSession) { %>
+			<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+				<p>Bitte versuche es erneut</p>
+				<form method="GET" action="/checkEmail">
+					<input type="number" name="email-verification-code">
+					<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+				</form>
+			<% } else if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+				<div class="grd_text">Die E-Mail wurde nicht verschickt, bitte habe noch etwas Geduld.</div>
+			<% } else { %>
+				<div class="grd_text">Der Account wurde schon freigeschaltet.</div>
+				<a href="/">Zurück</a>
+			<% } %>
 		<% } else { %>
-			<div class="grd_text">Der Account wurde schon freigeschaltet.</div>
-			<a href="/">Zurück</a>
+			<p>Fehler, bitte wende dich an den Server-Admin order versuche dich erneut zu registrieren.</p>
 		<% } %>
 	<% } else { %>
 		<div class="grd_text">

@@ -11,7 +11,7 @@ namespace UniLib {
 
         Task::Task(size_t taskPointerArraySize)
             : mTaskScheduled(false), mFinishCommand(nullptr), mParentTaskPtrArray(new TaskPtr[taskPointerArraySize]), mParentTaskPtrArraySize(taskPointerArraySize),
-             mDeleted(false)
+             mDeleted(false), mFinished(false), mReferenceCount(1)
         {
         }
 		

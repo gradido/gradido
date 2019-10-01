@@ -1,0 +1,87 @@
+<%@ page class="SaveKeysPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%!
+
+#include "../model/Session.h"
+
+%>
+<%%
+
+	bool hasErrors = mSession->errorCount() > 0;
+	bool hasPassword = mSession->getUser()->hasCryptoKey();
+	
+	if(!form.empty()) {
+	}
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Daten auf Server speichern?</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+<style type="text/css" >
+input:not([type='radio']) {
+	width:200px;
+}
+label:not(.grd_radio_label) {
+	width:80px;
+	display:inline-block;
+}
+</style>
+</head>
+<body>
+<div class="grd_container">
+	<% if(hasErrors) {%>
+		<%= mSession->getErrorsHtml() %>
+	<%} %>
+	<h1>Daten speichern</h1>
+	<form method="POST">
+		<fieldset>
+			<legend>Gradido Private Key speichern</legend>
+			<div class="grd_text">
+				<p>M&ouml;chtest du deinen Gradido Private Key auf dem Server mit deinem Passwort verschl&uuml;sselt speichern?</p>
+				<p>Wenn du ihn speicherst brauchst du dich in Zukunft nur mit deiner E-Mail und deinem Passwort einzuloggen.</p>
+				<p>Wenn du ihn nicht speicherst, m&uuml;sstest du jedes mal wenn du eine Transaktion machen willst, deine Passphrase hier reinkopieren.</p>
+			</div>
+			<p class="grd_small">
+				<input id="save-privkey-yes" type="radio" name="save-privkey" value="yes" checked/>
+				<label class="grd_radio_label" for="save-privkey-yes">Ja, bitte speichern!</label>
+			</p>
+			<% if(!hasPassword) { %>
+				<p>Ich brauche nochmal dein Passwort wenn du dich für ja entscheidest.</p>
+				<p class="grd_small">
+					<label for="login-password">Passwort</label>
+					<input id="save-privkey-password" type="password" name="save-privkey-password"/>
+				</p>
+			<% } %>
+			<p class="grd_small">
+				<input id="save-privkey-no" type="radio" name="save-privkey" value="no"/>
+				<label class="grd_radio_label" for="save-privkey-no">Nein, ich k&uuml;mmere mich selbst darum!</label>
+			</p>
+		</fieldset>
+		<fieldset>
+			<legend>Passphrase speichern</legend>
+			<div class="grd_text">
+				<p>M&ouml;chtest du deine Passphrase mit dem Server-Admin-Key verschl&uuml;sselt auf dem Server gespeichert haben?</p>
+				<p>Dann kann dir der Server-Admin deine Passphrase zuschicken wenn du sie verlegt hast. </p>
+			</div>
+			<p class="grd_small">
+				<input id="save-passphrase-yes" type="radio" name="save-passphrase" value="yes" checked/>
+				<label class="grd_radio_label" for="save-passphrase-yes">Ja, bitte speichern!</label>
+			</p>
+			<p class="grd_small">
+				<input id="save-passphrase-no" type="radio" name="save-passphrase" value="no"/>
+				<label class="grd_radio_label" for="save-passphrase-no">Nein, ich vertraue nur mir selbst!</label>
+			</p>
+		</fieldset>
+		<input class="grd_bn_succeed" type="submit" value="Speichern">
+	</form>
+</div>
+</body>
+</html>

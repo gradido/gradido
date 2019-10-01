@@ -26,6 +26,9 @@ public:
 	~User();
 
 	static std::string generateNewPassphrase(Mnemonic* word_source);
+	static bool validatePassphrase(const std::string& passphrase);
+
+	bool loadEntryDBId(Poco::Data::Session session);
 	
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
 	inline const char* getEmail() const { return mEmail.data(); }
@@ -36,7 +39,7 @@ public:
 protected:
 	void createCryptoKey(const std::string& password);
 	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
-	bool loadEntryDBId(Poco::Data::Session session);
+	
 
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
@@ -45,7 +48,7 @@ private:
 	int mDBId;
 	std::string mEmail;
 	std::string mFirstName;
-	unsigned char mPasswordHashed[crypto_shorthash_BYTES];
+	unsigned long long mPasswordHashed;
 	// crypto key as obfus array 
 	ObfusArray* mCryptoKey;
 

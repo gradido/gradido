@@ -29,6 +29,8 @@ enum SessionStates {
 	SESSION_STATE_EMAIL_VERIFICATION_WRITTEN,
 	SESSION_STATE_EMAIL_VERIFICATION_SEND,
 	SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED,
+	SESSION_STATE_PASSPHRASE_GENERATED,
+	SESSION_STATE_PASSPHRASE_SHOWN,
 	SESSION_STATE_KEY_PAIR_GENERATED,
 	SESSION_STATE_KEY_PAIR_WRITTEN,
 	SESSION_STATE_COUNT
@@ -49,12 +51,16 @@ public:
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	bool loadUser(const std::string& email, const std::string& password);
 
+	bool loadFromEmailVerificationCode(unsigned long long emailVerificationCode);
+
 	bool updateEmailVerification(unsigned long long emailVerificationCode);
 
 	inline User* getUser() { return mSessionUser; }
 
 	inline int getHandle() { return mHandleId; }
-	inline const char* getPassphrase() { return mPassphrase.data(); }
+	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
+	inline const std::string& getPassphrase() { return mPassphrase; }
+	bool generatePassphrase();
 
 	inline void setClientIp(Poco::Net::IPAddress ip) { mClientLoginIP = ip; }
 	
