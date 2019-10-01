@@ -56,11 +56,6 @@ label:not(.grd_radio_label) {
 			<div class="grd_text">
 				Deine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. 
 				Wenn sie da ist, befolge ihren Anweisungen. 
-				Möchtest du wissen ob die E-Mail schon verschickt wurde? 
-				Dann klicke einfach hier: 
-				<form action="/">
-					<input type="submit" value="Status überprüfen">
-				</form>
 			</div>
 		</div>
 	<% } else { %>

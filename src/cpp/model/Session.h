@@ -61,11 +61,13 @@ public:
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
 	inline const std::string& getPassphrase() { return mPassphrase; }
 	bool generatePassphrase();
+	bool generateKeys(bool savePrivkey, bool savePassphrase);
 
 	inline void setClientIp(Poco::Net::IPAddress ip) { mClientLoginIP = ip; }
 	
 	 
 	inline bool isIPValid(Poco::Net::IPAddress ip) { return mClientLoginIP == ip; }
+	bool isPwdValid(const std::string& pwd);
 	void reset();
 
 	void updateState(SessionStates newState);

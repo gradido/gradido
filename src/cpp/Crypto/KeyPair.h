@@ -14,6 +14,8 @@ public:
 	~KeyPair();
 
 	bool generateFromPassphrase(const char* passphrase, Mnemonic* word_source);
+	std::string getPubkeyHex();
+	bool savePrivKey(int userId);
 
 protected:
 

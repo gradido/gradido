@@ -3,6 +3,11 @@
 #include <memory.h>
 #include <string.h>
 
+#include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/ConnectionManager.h"
+
+using namespace Poco::Data::Keywords;
+
 
 #define STR_BUFFER_SIZE 25
 
@@ -87,5 +92,41 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	mSodiumSecret = new ObfusArray(crypto_sign_SECRETKEYBYTES, sodium_secret);
 
 	// using 
+	return true;
+}
+
+std::string KeyPair::getPubkeyHex()
+{
+	size_t hexSize = crypto_sign_PUBLICKEYBYTES * 2 + 1;
+	char* hexString = (char*)malloc(hexSize);
+	memset(hexString, 0, hexSize);
+	sodium_bin2hex(hexString, hexSize, mSodiumPublic, crypto_sign_PUBLICKEYBYTES);
+	std::string pubHex = hexString;
+	free(hexString);
+
+	return pubHex;
+}
+
+bool KeyPair::savePrivKey(int userId)
+{
+	auto cm = ConnectionManager::getInstance();
+	auto em = ErrorManager::getInstance();
+	Poco::Data::Statement update(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+	Poco::Data::BLOB privkey_blob((const unsigned char*)(*mPrivateKey), mPrivateKey->size());
+
+	update << "UPDATE users set privkey = ? where id = ?",
+		use(privkey_blob), use(userId);
+		
+	try {
+		if (update.execute() != 1) {
+			em->addError(new ParamError("KeyPair::savePrivKey", "error writing privkey, user not found? ", std::to_string(userId)));
+			em->sendErrorsAsEmail();
+			return false;
+		}
+	} catch (Poco::Exception& ex) {
+		em->addError(new ParamError("KeyPair::savePrivKey", "exception by running mysql", ex.displayText()));
+		em->sendErrorsAsEmail();
+		return false;
+	}
 	return true;
 }

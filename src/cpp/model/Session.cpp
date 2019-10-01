@@ -191,6 +191,9 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 				em->addError(new Error(funcName, "delete from email_opt_in entry didn't work as expected, please check db"));
 				em->sendErrorsAsEmail();
 			}
+			if (mSessionUser) {
+				mSessionUser->setEmailChecked();
+			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			printf("[%s] time: %s\n", funcName, usedTime.string().data());
 			return true;
@@ -215,10 +218,17 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 	return false;
 }
 
-
+bool Session::isPwdValid(const std::string& pwd)
+{
+	if (mSessionUser) {
+		return mSessionUser->validatePwd(pwd);
+	}
+	return false;
+}
 
 bool Session::loadUser(const std::string& email, const std::string& password)
 {
+
 	return true;
 }
 
@@ -262,7 +272,7 @@ bool Session::loadFromEmailVerificationCode(unsigned long long emailVerification
 		mSessionUser = new User(email.data(), name.data());
 		mSessionUser->loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 		mEmailVerificationCode = emailVerificationCode;
-		updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+		updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
 		printf("[Session::loadFromEmailVerificationCode] time: %s\n", usedTime.string().data());
 		return true;
 	}
@@ -341,5 +351,16 @@ bool Session::generatePassphrase()
 {
 	mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 	updateState(SESSION_STATE_PASSPHRASE_GENERATED);
+	return true;
+}
+
+bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
+{
+	if (mSessionUser) {
+		if (!mSessionUser->generateKeys(savePrivkey, mPassphrase)) {
+
+		}
+	}
+
 	return true;
 }

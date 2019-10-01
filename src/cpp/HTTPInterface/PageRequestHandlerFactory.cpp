@@ -1,6 +1,7 @@
 #include "PageRequestHandlerFactory.h"
-#include "Poco/Net/HTTPServerRequest.h"
 
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTMLForm.h"
 
 #include "ConfigPage.h"
 #include "LoginPage.h"
@@ -8,6 +9,7 @@
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
 #include "CheckEmailPage.h"
+#include "PassphrasePage.h"
 #include "SaveKeysPage.h"
 
 #include "../SingletonManager/SessionManager.h"
@@ -44,12 +46,20 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
 	
-
 	if (url_first_part == "/checkEmail") {
-		return new CheckEmailPage(s);
+		//return new CheckEmailPage(s);
+		return handleCheckEmail(s, uri, request);
 	}
 	if (s) {
-		if (uri == "/saveKeys") {
+		auto sessionState = s->getSessionState();
+		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
+		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED) {
+		//if (url_first_part == "/passphrase") {
+			//return handlePassphrase(s, request);
+			return new PassphrasePage(s);
+		}
+		else if(sessionState == SESSION_STATE_PASSPHRASE_SHOWN) {
+		//else if (uri == "/saveKeys") {
 			return new SaveKeysPage(s);
 		}
 		return new DashboardPage(s);
@@ -67,4 +77,100 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 	return new HandleFileRequest;
 	//return new PageRequestHandlerFactory;
+}
+
+Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request)
+{
+	Poco::Net::HTMLForm form(request);
+	unsigned long long verificationCode = 0;
+
+	// if verification code is valid, go to next page, passphrase
+	// login via verification code, if no session is active
+	// try to get code from form get parameter
+	if (!form.empty()) {
+		try {
+			verificationCode = stoll(form.get("email-verification-code", "0"));
+		} catch (...) {}
+	}
+	// try to get code from uri parameter
+	if (!verificationCode) {
+		size_t pos = uri.find_last_of("/");
+		try {
+			verificationCode = stoll(uri.substr(pos + 1));
+		} catch (...) {}
+	}
+
+	// if no verification code given or error with given code, show form
+	if (!verificationCode) {
+		return new CheckEmailPage(session);
+	}
+
+	// we have a verification code, now let's check that thing
+	auto sm = SessionManager::getInstance();
+
+	// no session or active session don't belong to verification code
+	if (!session || session->getEmailVerificationCode() != verificationCode) {
+		session = sm->findByEmailVerificationCode(verificationCode);
+	}
+	// no suitable session in memory, try to create one from db data
+	if (!session) {
+		session = sm->getNewSession();
+		if (session->loadFromEmailVerificationCode(verificationCode)) {
+			// login not possible in this function
+			/*auto cookie_id = session->getHandle();
+			auto user_host = request.clientAddress().host();
+			session->setClientIp(user_host);
+			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
+			*/
+		}
+		else {
+			sm->releseSession(session);
+			session = nullptr;
+		}
+	}
+	// suitable session found or created
+	if (session) {
+		// update session, mark as verified 
+		if (session->updateEmailVerification(verificationCode)) {
+			return new PassphrasePage(session);
+		}
+		
+	}
+	
+	return new CheckEmailPage(session);
+	
+}
+Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handlePassphrase(Session* session, const Poco::Net::HTTPServerRequest& request)
+{
+	//couldn't use form here, because request is const
+	/*
+	Poco::Net::HTMLForm form(request);
+	if (!form.empty()) {
+		auto registerKeyChoice = form.get("passphrase", "");
+		std::string oldPassphrase = "";
+		if (registerKeyChoice == "no") {
+			auto oldPassphrase = form.get("passphrase-existing", "");
+
+			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase)) {
+				// passphrase is valid 
+				session->setPassphrase(oldPassphrase);
+				session->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+				// go one
+				return new SaveKeysPage(session);
+			}
+			else {
+				session->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+			}
+		}
+		else if (registerKeyChoice == "yes") {
+			session->generatePassphrase();
+		}
+	}
+	return new PassphrasePage(session);
+	*/
+}
+
+Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleSaveKeys(Session* session, const Poco::Net::HTTPServerRequest& request)
+{
+
 }

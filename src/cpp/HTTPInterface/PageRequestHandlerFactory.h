@@ -10,10 +10,13 @@ class PageRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory
 {
 public:
 	PageRequestHandlerFactory();
-
 	Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 
 protected:
+	Poco::Net::HTTPRequestHandler* handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request);
+	Poco::Net::HTTPRequestHandler* handlePassphrase(Session* session, const Poco::Net::HTTPServerRequest& request);
+	Poco::Net::HTTPRequestHandler* handleSaveKeys(Session* session, const Poco::Net::HTTPServerRequest& request);
+
 	Poco::RegularExpression mRemoveGETParameters;
 };
 

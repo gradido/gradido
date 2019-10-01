@@ -56,7 +56,17 @@ void LoginUser::run()
 
 int UserCreateCryptoKey::run() 
 {
-	mUser->createCryptoKey(mPassword);
+	auto cryptoKey = mUser->createCryptoKey(mPassword);
+	mUser->setCryptoKey(cryptoKey);
+
+	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
+		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(mPasswordHashed)");
+	}
+	User::passwordHashed pwdHashed;
+	crypto_shorthash((unsigned char*)&pwdHashed, *cryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+
+	mUser->setPwdHashed(pwdHashed);
+
 	printf("crypto key created\n");
 	return 0;
 }
@@ -82,10 +92,30 @@ int UserWriteIntoDB::run()
 
 
 User::User(const char* email, const char* name)
-	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mCryptoKey(nullptr)
+	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
+	auto cm = ConnectionManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+	Poco::Nullable<Poco::Data::BLOB> pubkey;
+
+	Poco::Data::Statement select(session);
+	select << "SELECT id, password, pubkey, email_checked from users where email = ?",
+		into(mDBId), into(mPasswordHashed), into(pubkey), into(mEmailChecked), use(mEmail);
+	try {
+		if (select.execute() == 1) {
+			if (!pubkey.isNull()) {
+				size_t hexSize = pubkey.value.size() * 2 + 1;
+				char* hexString = (char*)malloc(hexSize);
+				memset(hexString, 0, hexSize);
+				sodium_bin2hex(hexString, hexSize, pubkey.value.content().data(), pubkey.value.size());
+				mPublicHex = hexString;
+				free(hexString);
+			}
+		}
+	} catch(...) {}
 }
 
 
@@ -143,7 +173,28 @@ bool User::validatePassphrase(const std::string& passphrase)
 	return false;
 }
 
-void User::createCryptoKey(const std::string& password)
+bool User::validatePwd(const std::string& pwd)
+{
+	auto cmpCryptoKey = createCryptoKey(pwd);
+	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
+		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
+	}
+	User::passwordHashed pwdHashed;
+	crypto_shorthash((unsigned char*)&pwdHashed, *cmpCryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+	if (pwdHashed == mPasswordHashed) {
+		if (!mCryptoKey) {
+			mCryptoKey = cmpCryptoKey;
+		}
+		else {
+			delete cmpCryptoKey;
+		}
+		return true;
+	}
+	delete cmpCryptoKey;
+	return false;
+}
+
+ObfusArray* User::createCryptoKey(const std::string& password)
 {
 
 	Profiler timeUsed;
@@ -172,17 +223,21 @@ void User::createCryptoKey(const std::string& password)
 		//printf("pwd: %s\n", pwd);
 		return ;
 	}
-	if (sizeof(mPasswordHashed) != crypto_shorthash_BYTES) {
-		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(mPasswordHashed)");
-	}
-	crypto_shorthash((unsigned char*)&mPasswordHashed, key, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+	
 	lock();
-	mCryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
+	auto cryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
 	unlock();
 	free(key);
 
 	// mCryptoKey
 	printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
+	return cryptoKey;
+}
+
+bool User::generateKeys(bool savePrivkey, const std::string& passphrase)
+{
+	// TODO: call create key pair from passphrase from worker thread
+	// TODO: evt. save privkey from worker thread
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
@@ -192,7 +247,7 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 
 	//Poco::Data::BLOB pwd(&mPasswordHashed[0], crypto_shorthash_BYTES);
 
-	printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
+	//printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
 	insert << "INSERT INTO users (email, name, password) VALUES(?, ?, ?);",
 		use(mEmail), use(mFirstName), bind(mPasswordHashed);
 

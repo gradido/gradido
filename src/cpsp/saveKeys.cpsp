@@ -5,16 +5,42 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
-
-#include "../model/Session.h"
-
+	enum PageState {
+		PAGE_ASK,
+		PAGE_SHOW_PUBKEY
+	}
 %>
 <%%
 
 	bool hasErrors = mSession->errorCount() > 0;
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
+	PageState state = PAGE_ASK;
 	
 	if(!form.empty()) {
+		// privkey
+		auto savePrivkeyChoice = form.get("save-privkey");
+		bool savePrivkey = false;
+		if(savePrivkeyChoice == "yes") {
+			if(!hasPassword) {
+				// check pwd
+				auto pwd = form.get("save-privkey-password", "");
+				if(!mSession->getUser()->validatePwd(pwd)) {
+					mSession->addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					hasErrors = true;
+				} else {
+					savePrivkey = true;
+				}
+			} else {
+				savePrivkey = true;
+			}
+		}
+		if(!hasErrors) {
+			auto savePassphraseChoice = form.get("save-passphrase");
+			bool savePassphrase = false;
+			if(savePassphraseChoice == "yes") {
+				savePassphrase = true;
+			}
+		}
 	}
 %>
 <!DOCTYPE html>
@@ -41,6 +67,7 @@ label:not(.grd_radio_label) {
 		<%= mSession->getErrorsHtml() %>
 	<%} %>
 	<h1>Daten speichern</h1>
+	<% if(state == PAGE_ASK) { %>
 	<form method="POST">
 		<fieldset>
 			<legend>Gradido Private Key speichern</legend>
@@ -82,6 +109,9 @@ label:not(.grd_radio_label) {
 		</fieldset>
 		<input class="grd_bn_succeed" type="submit" value="Speichern">
 	</form>
+	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
+		
+	<% } %>
 </div>
 </body>
 </html>

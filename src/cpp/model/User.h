@@ -28,18 +28,28 @@ public:
 	static std::string generateNewPassphrase(Mnemonic* word_source);
 	static bool validatePassphrase(const std::string& passphrase);
 
+	bool generateKeys(bool savePrivkey, const std::string& passphrase);
+
 	bool loadEntryDBId(Poco::Data::Session session);
 	
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
+	
 	inline const char* getEmail() const { return mEmail.data(); }
 	inline const char* getName() const { return mFirstName.data(); }
 	inline int         getDBId() { return mDBId;  }
+	inline void		   setEmailChecked() { mEmailChecked = true; }
+	std::string        getPublicKeyHex() { return mPublicHex;  }
 
+	bool validatePwd(const std::string& pwd);
 	
 protected:
-	void createCryptoKey(const std::string& password);
+	typedef unsigned long long passwordHashed;
+
+	ObfusArray* createCryptoKey(const std::string& password);
+	inline void setCryptoKey(ObfusArray* cryptoKey) { mCryptoKey = cryptoKey; }
 	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
-	
+	inline passwordHashed getPwdHashed() { lock(); auto ret = mPasswordHashed; unlock(); return ret; }
+	inline void setPwdHashed(passwordHashed pwdHashed) { lock(); mPasswordHashed = pwdHashed; unlock(); }
 
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
@@ -48,10 +58,12 @@ private:
 	int mDBId;
 	std::string mEmail;
 	std::string mFirstName;
-	unsigned long long mPasswordHashed;
+	
+	passwordHashed mPasswordHashed;
+	bool mEmailChecked;
 	// crypto key as obfus array 
 	ObfusArray* mCryptoKey;
-
+	std::string mPublicHex;
 	Poco::Mutex mWorkingMutex;
 	
 };
