@@ -23,6 +23,7 @@ namespace ServerConfig {
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 	extern ObfusArray* g_ServerCryptoKey;
+	//extern unsigned char g_ServerAdminPublic[];
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 	extern Poco::Net::Context::Ptr g_SSL_CLient_Context;
 	extern EmailAccount g_EmailAccount;

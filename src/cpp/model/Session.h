@@ -18,6 +18,7 @@
 #include "Poco/Thread.h"
 #include "Poco/DateTime.h"
 #include "Poco/Net/IPAddress.h"
+#include "Poco/Net/HTTPCookie.h"
 
 #define EMAIL_VERIFICATION_CODE_SIZE 8
 
@@ -31,6 +32,7 @@ enum SessionStates {
 	SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED,
 	SESSION_STATE_PASSPHRASE_GENERATED,
 	SESSION_STATE_PASSPHRASE_SHOWN,
+	SESSION_STATE_PASSPHRASE_WRITTEN,
 	SESSION_STATE_KEY_PAIR_GENERATED,
 	SESSION_STATE_KEY_PAIR_WRITTEN,
 	SESSION_STATE_COUNT
@@ -54,6 +56,8 @@ public:
 	bool loadFromEmailVerificationCode(unsigned long long emailVerificationCode);
 
 	bool updateEmailVerification(unsigned long long emailVerificationCode);
+
+	Poco::Net::HTTPCookie getLoginCookie();
 
 	inline User* getUser() { return mSessionUser; }
 
@@ -108,6 +112,21 @@ private:
 	User* mUser;
 	Session* mSession;
 
+};
+
+class WritePassphraseIntoDB : public UniLib::controller::CPUTask
+{
+public:
+	WritePassphraseIntoDB(int userId, const std::string& passphrase)
+		: mUserId(userId), mPassphrase(passphrase) {}
+
+
+	virtual int run();
+	virtual const char* getResourceType() const { return "WritePassphraseIntoDB"; };
+
+protected:
+	int mUserId;
+	std::string mPassphrase;
 };
 
 class SessionStateUpdateCommand : public UniLib::controller::Command

@@ -7,8 +7,11 @@
 #include "ed25519/ed25519.h"
 #include <sodium.h>
 
+class UserWriteKeysIntoDB;
+
 class KeyPair 
 {
+	friend UserWriteKeysIntoDB;
 public:
 	KeyPair();
 	~KeyPair();
@@ -17,7 +20,11 @@ public:
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);
 
+	
+	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
+
 protected:
+	const ObfusArray* getPrivateKey() const { return mSodiumSecret; }
 
 private:
 	ObfusArray* mPrivateKey;

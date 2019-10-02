@@ -30,16 +30,16 @@ enum PageState
 
 			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase)) {
 				// passphrase is valid 
-				session->setPassphrase(oldPassphrase);
-				session->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+				mSession->setPassphrase(oldPassphrase);
+				mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 				state = PAGE_SHOW_PASSPHRASE;
 			}
 			else {
-				session->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+				mSession->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
 			}
 		}
 		else if (registerKeyChoice == "yes") {
-			session->generatePassphrase();
+			mSession->generatePassphrase();
 		}
 	}
 

@@ -5,10 +5,13 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
-	enum PageState {
-		PAGE_ASK,
-		PAGE_SHOW_PUBKEY
-	}
+enum PageState 
+{
+	PAGE_ASK,
+	PAGE_SHOW_PUBKEY,
+	PAGE_ERROR
+};
+
 %>
 <%%
 
@@ -39,6 +42,13 @@
 			bool savePassphrase = false;
 			if(savePassphraseChoice == "yes") {
 				savePassphrase = true;
+			}
+			if(!mSession->generateKeys(savePrivkey, savePassphrase)) {
+				hasErrors = true;
+			} else if(mSession->getSessionState() >= SESSION_STATE_KEY_PAIR_GENERATED) {
+				state = PAGE_SHOW_PUBKEY;
+			} else {
+				state = PAGE_ERROR;
 			}
 		}
 	}
@@ -110,7 +120,18 @@ label:not(.grd_radio_label) {
 		<input class="grd_bn_succeed" type="submit" value="Speichern">
 	</form>
 	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
-		
+		<div class="grd_text">
+			<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>
+			<p>Deine Gradido Adresse (Hex): </p>
+			<p class="grd_textarea">
+				<%= mSession->getUser()->getPublicKeyHex() %>
+			</p>
+			<a class="grd_bn" href="../">Zur&uuml;ck zur Startseite</a>
+		</div>
+	<% } else if(state == PAGE_ERROR) { %>
+		<div class="grd_text">
+			<p>Ein Fehler trat auf, bitte versuche es erneut oder wende dich an den Server-Admin</p>
+		</div>
 	<% } %>
 </div>
 </body>

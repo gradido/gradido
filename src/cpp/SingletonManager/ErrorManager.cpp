@@ -27,7 +27,8 @@ int SendErrorMessage::run()
 		mailClientSession->close();
 	}
 	catch (Poco::Exception& exc) {
-		printf("[SendErrorMessage::%s] error sending error message to admin\n", __FUNCTION__);
+		printf("[SendErrorMessage::%s] error sending error message to admin: %s\n", 
+			__FUNCTION__, exc.displayText().data());
 		return -1;
 	}
 	return 0;

@@ -1,56 +1,19 @@
 #include "User.h"
 #include "Profiler.h"
+#include "Session.h"
 #include <sodium.h>
 #include "ed25519/ed25519.h"
 #include "Poco/Util/Application.h"
 #include "../ServerConfig.h"
 
 #include "../SingletonManager/ConnectionManager.h"
+#include "../SingletonManager/ErrorManager.h"
 
 #include "Poco/Data/Binding.h"
 
 using namespace Poco::Data::Keywords;
 
-NewUser::NewUser(User* user, const char* password, const char* passphrase)
-	: mUser(user), mPassword(password), mPassphrase(passphrase)
-{
 
-}
-
-
-NewUser::~NewUser()
-{
-
-}
-
-void NewUser::run() 
-{
-	// create crypto key
-	if (!mUser->hasCryptoKey()) {
-		mUser->createCryptoKey(mPassword.data());
-	}
-
-	// generate 
-}
-
-
-// ------------------------------------------------------------------------------------
-
-LoginUser::LoginUser(User* user, const char* password)
-	: mUser(user), mPassword(password)
-{
-//	auto app = Poco::Util::Application::instance();
-}
-
-LoginUser::~LoginUser()
-{
-
-}
-
-void LoginUser::run() 
-{
-
-}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -71,6 +34,21 @@ int UserCreateCryptoKey::run()
 	return 0;
 }
 
+// -------------------------------------------------------------------------------------------------------------
+
+int UserGenerateKeys::run() 
+{
+	Profiler timeUsed;
+	// always return true, cannot fail (only if low on memory)
+	mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+
+	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
+
+	printf("[UserGenerateKeys::run] time: %s\n", timeUsed.string().data());
+
+	return 0;
+}
+
 // -----------------------------------------------------------------------------------------------------
 
 int UserWriteIntoDB::run()
@@ -88,11 +66,73 @@ int UserWriteIntoDB::run()
 	return 0;
 }
 
+// --------------------------------------------------------------------------------------------------------
+
+UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, User* user, bool savePrivKey)
+	: UniLib::controller::CPUTask(1), mUser(user), mSavePrivKey(savePrivKey)
+{
+	if (strcmp(parent->getResourceType(), "UserGenerateKeys") != 0) {
+		throw Poco::Exception("given TaskPtr isn't UserGenerateKeys");
+	}
+	setParentTaskPtrInArray(parent, 0);
+}
+
+int UserWriteKeysIntoDB::run()
+{
+	Profiler timeUsed;
+	auto cm = ConnectionManager::getInstance();
+	auto em = ErrorManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);	
+	auto keyPairs = getParent(0).cast<UserGenerateKeys>()->getKeyPairs();
+	auto pubKey = keyPairs->getPublicKey();
+	
+	Poco::Data::BLOB pubkey_blob(pubKey, crypto_sign_PUBLICKEYBYTES);
+	Poco::Data::Statement update(session);
+	Poco::Data::BLOB* pprivkey_blob = nullptr;
+	if (mSavePrivKey) {
+		// TODO: encrypt privkey
+		auto privKey = keyPairs->getPrivateKey();
+		pprivkey_blob = mUser->encrypt(privKey);
+		//Poco::Data::BLOB privkey_blob(*privKey, privKey->size());
+
+		update << "UPDATE users SET pubkey=?, privkey=? where id=?",
+			use(pubkey_blob), use(*pprivkey_blob), bind(mUser->getDBId());
+	}
+	else {
+		update << "UPDATE users SET pubkey=? where id=?",
+			use(pubkey_blob), bind(mUser->getDBId());
+	}
+
+	try {
+		if (update.execute() != 1) {
+			em->addError(new ParamError("UserWritePrivKeyIntoDB::run", "error writing keys into db for user", std::to_string(mUser->getDBId())));
+			em->sendErrorsAsEmail();
+			if (pprivkey_blob) {
+				delete pprivkey_blob;
+			}
+			return -1;
+		}
+	}
+	catch (Poco::Exception& ex) {
+		em->addError(new ParamError("UserWritePrivKeyIntoDB::run", "mysql error updating", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+		if (pprivkey_blob) {
+			delete pprivkey_blob;
+		}
+		return -1;
+	}
+	if (pprivkey_blob) {
+		delete pprivkey_blob;
+	}
+	printf("UserWritePrivKeyIntoDB time: %s\n", timeUsed.string().data());
+	return 0;
+}
+
 // *******************************************************************************
 
 
-User::User(const char* email, const char* name)
-	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
+User::User(const char* email)
+	: mDBId(0), mEmail(email), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -102,20 +142,26 @@ User::User(const char* email, const char* name)
 	Poco::Nullable<Poco::Data::BLOB> pubkey;
 
 	Poco::Data::Statement select(session);
-	select << "SELECT id, password, pubkey, email_checked from users where email = ?",
-		into(mDBId), into(mPasswordHashed), into(pubkey), into(mEmailChecked), use(mEmail);
+	select << "SELECT id, name, password, pubkey, email_checked from users where email = ?",
+		into(mDBId), into(mFirstName), into(mPasswordHashed), into(pubkey), into(mEmailChecked), use(mEmail);
 	try {
 		if (select.execute() == 1) {
 			if (!pubkey.isNull()) {
-				size_t hexSize = pubkey.value.size() * 2 + 1;
+				auto pubkey_value = pubkey.value();
+				size_t hexSize = pubkey_value.size() * 2 + 1;
 				char* hexString = (char*)malloc(hexSize);
 				memset(hexString, 0, hexSize);
-				sodium_bin2hex(hexString, hexSize, pubkey.value.content().data(), pubkey.value.size());
+				sodium_bin2hex(hexString, hexSize, pubkey_value.content().data(), pubkey_value.size());
 				mPublicHex = hexString;
 				free(hexString);
 			}
 		}
 	} catch(...) {}
+}
+
+User* User::login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr)
+{
+
 }
 
 
@@ -198,14 +244,14 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 {
 
 	Profiler timeUsed;
-	// TODO: put it in secure location
+	// TODO: put it in secure location, or use value from server config
 	static const unsigned char app_secret[] = { 0x21, 0xff, 0xbb, 0xc6, 0x16, 0xfe };
 
 	sha_context context_sha512;
 	//unsigned char* hash512 = (unsigned char*)malloc(SHA_512_SIZE);
 	if (SHA_512_SIZE < crypto_pwhash_SALTBYTES) {
 		addError(new Error(__FUNCTION__, "sha512 is to small for libsodium pwhash saltbytes"));
-		return;
+		return nullptr;
 	}
 	
 
@@ -221,7 +267,7 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 		addError(new ParamError(__FUNCTION__, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
 		//printf("[User::%s] error creating pwd hash, maybe to much memory requestet? error: %s\n", __FUNCTION__, strerror(errno));
 		//printf("pwd: %s\n", pwd);
-		return ;
+		return nullptr;
 	}
 	
 	lock();
@@ -234,10 +280,60 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	return cryptoKey;
 }
 
-bool User::generateKeys(bool savePrivkey, const std::string& passphrase)
+bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session* session)
 {
-	// TODO: call create key pair from passphrase from worker thread
-	// TODO: evt. save privkey from worker thread
+	Profiler timeUsed;
+	
+	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, passphrase));
+	generateKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_GENERATED, session));
+	//generateKeysTask->scheduleTask(generateKeysTask);
+	// run directly because we like to show pubkey on interface, shouldn't last to long
+	generateKeysTask->run();
+
+	if (mDBId == 0) {
+		loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+		if (mDBId == 0) {
+			auto em = ErrorManager::getInstance();
+			em->addError(new ParamError("User::generateKeys", "user not found in db with email", mEmail.data()));
+			em->sendErrorsAsEmail();
+		}
+		return false;
+	}
+
+	UniLib::controller::TaskPtr saveKeysTask(new UserWriteKeysIntoDB(generateKeysTask, this, savePrivkey));
+	saveKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_WRITTEN, session));
+	saveKeysTask->scheduleTask(saveKeysTask);
+
+
+	printf("[User::generateKeys] call two tasks, time used: %s\n", timeUsed.string().data());
+	return true;
+
+}
+
+Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
+{
+	if (!hasCryptoKey()) {
+		addError(new Error("User::encrypt", "hasn't crypto key"));
+		return nullptr;
+	}
+	size_t message_len = data->size();
+	size_t ciphertext_len = crypto_secretbox_MACBYTES + message_len;
+
+	unsigned char nonce[crypto_secretbox_NONCEBYTES];
+	// we use a hardcoded value for nonce
+	memset(nonce, 31, crypto_secretbox_NONCEBYTES);
+
+	unsigned char* ciphertext = (unsigned char*)malloc(ciphertext_len);
+	memset(ciphertext, 0, ciphertext_len);
+
+	if (0 != crypto_secretbox_easy(ciphertext, *data, message_len, nonce, *mCryptoKey)) {
+		//printf("[%s] error encrypting message \n", __FUNCTION__);
+		addError(new Error("User::encrypt", "encrypting message failed"));
+		free(ciphertext);
+		return nullptr;
+	}
+	free(ciphertext);
+	return new Poco::Data::BLOB(ciphertext, ciphertext_len);
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)

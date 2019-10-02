@@ -2,6 +2,26 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%! 
+#include "../SingletonManager/SessionManager.h"
+#include "Poco/Net/HTTPCookie.h"
+
+	
+%>
+<%% 
+	auto session = SessionManager::getInstance()->getNewSession();
+	
+	if(!form.empty()) {
+		auto email = form.get("login-email", "");
+		auto password = form.get("login-password", "");
+		if(session->loadUser(email, password)) {
+			auto user_host = request.clientAddress().host();
+			session->setClientIp(user_host);
+			response.addCookie(session->getLoginCookie());
+			auto uri_start = request.serverParams().getServerName();
+			response.redirect(uri_start + "/");
+			return;
+		}
+	}
 	
 %>
 <!DOCTYPE html>
@@ -12,8 +32,18 @@
 <title>Gradido Login Server: Login</title>
 <!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
 <link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+<style type="text/css" >
+input:not([type='radio']) {
+	width:200px;
+}
+label:not(.grd_radio_label) {
+	width:80px;
+	display:inline-block;
+}
+</style>
 </head>
 <body>
+<%= session->getErrorsHtml() %>
 <h1>Login</h1>
 <form method="POST">
 	<div class="grd_container">

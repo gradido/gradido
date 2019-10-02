@@ -20,12 +20,9 @@
 			);
 		}
 		if(userReturned) {
-			auto cookie_id = session->getHandle();
-			//auto user_host_string = request.clientAddress().toString();
 			auto user_host = request.clientAddress().host();
 			session->setClientIp(user_host);
-			//printf("cookie: %d, user_host: %s\n", cookie_id, user_host.data());
-			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
+			response.addCookie(session->getLoginCookie());
 		}
 	}
 %>

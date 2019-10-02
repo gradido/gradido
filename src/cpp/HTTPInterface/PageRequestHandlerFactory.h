@@ -3,6 +3,7 @@
 
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/RegularExpression.h"
+#include "../model/Session.h"
 
 #define HTTP_PAGES_COUNT 1
 
@@ -14,8 +15,6 @@ public:
 
 protected:
 	Poco::Net::HTTPRequestHandler* handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request);
-	Poco::Net::HTTPRequestHandler* handlePassphrase(Session* session, const Poco::Net::HTTPServerRequest& request);
-	Poco::Net::HTTPRequestHandler* handleSaveKeys(Session* session, const Poco::Net::HTTPServerRequest& request);
 
 	Poco::RegularExpression mRemoveGETParameters;
 };

@@ -49,7 +49,8 @@ namespace UniLib {
         {
         public: 
             CPUTask(CPUSheduler* cpuSheduler, size_t taskDependenceCount);			
-			CPUTask(CPUSheduler* cpuScheduler);			
+			CPUTask(CPUSheduler* cpuScheduler);	
+			CPUTask(size_t taskDependenceCount = 0);
             virtual ~CPUTask();
 
 			virtual const char* getResourceType() const {return "CPUTask";};

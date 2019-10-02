@@ -18,6 +18,7 @@ using namespace Poco::Data::Keywords;
 
 int WriteEmailVerification::run()
 {	
+	Profiler timeUsed;
 	auto verificationCode = mSession->getEmailVerificationCode();
 	printf("{[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -29,12 +30,31 @@ int WriteEmailVerification::run()
 		mSession->addError(new Error("WriteEmailVerification", "error inserting email verification code"));
 		return -1;
 	}
-
+	printf("[WriteEmailVerification::run] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 
+int WritePassphraseIntoDB::run()
+{
+	Profiler timeUsed;
+
+	// TODO: encrypt passphrase, need server admin crypto box pubkey
+	//int crypto_box_seal(unsigned char *c, const unsigned char *m,
+		//unsigned long long mlen, const unsigned char *pk);
+	size_t mlen = mPassphrase.size();
+	size_t crypto_size = crypto_box_SEALBYTES + mlen;
+
+
+	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement insert(dbSession);
+	insert << "INSERT INTO user_backups (user_id, passphrase) VALUES(?,?)",
+		use(mUserId), use(mPassphrase);
+
+	printf("[WritePassphraseIntoDB::run] timeUsed: %s\n", timeUsed.string().data());
+	return 0;
+}
 
 
 // --------------------------------------------------------------------------------------------------------------
@@ -232,6 +252,13 @@ bool Session::loadUser(const std::string& email, const std::string& password)
 	return true;
 }
 
+Poco::Net::HTTPCookie Session::getLoginCookie()
+{
+	auto keks = Poco::Net::HTTPCookie("user", std::to_string(mHandleId));
+	// TODO: additional config, like js permit
+	return keks;
+}
+
 bool Session::loadFromEmailVerificationCode(unsigned long long emailVerificationCode)
 {
 	Profiler usedTime;
@@ -315,6 +342,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 	case SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED: return "Verification Code checked";
 	case SESSION_STATE_PASSPHRASE_GENERATED: return "Passphrase generated";
 	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown"; 
+	case SESSION_STATE_PASSPHRASE_WRITTEN: return "Passphrase written";
 	case SESSION_STATE_KEY_PAIR_GENERATED: return "Gradido Address created";
 	case SESSION_STATE_KEY_PAIR_WRITTEN: return "Gradido Address saved";
 	default: return "unknown";
@@ -356,11 +384,28 @@ bool Session::generatePassphrase()
 
 bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 {
+	bool validUser = true;
 	if (mSessionUser) {
-		if (!mSessionUser->generateKeys(savePrivkey, mPassphrase)) {
-
+		if (!mSessionUser->generateKeys(savePrivkey, mPassphrase, this)) {
+			validUser = false;
+		}
+		else {
+			if (savePassphrase) {
+				UniLib::controller::TaskPtr savePassphrase(new WritePassphraseIntoDB(mSessionUser->getDBId(), mPassphrase));
+				savePassphrase->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_PASSPHRASE_WRITTEN, this));
+				savePassphrase->scheduleTask(savePassphrase);
+			}
 		}
 	}
+	else {
+		validUser = false;
+	}
+	if (!validUser) {
+		addError(new Error("Benutzer", "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."));
+		return false;
+	}
+	// delete passphrase after all went well
+	mPassphrase.clear();
 
 	return true;
 }

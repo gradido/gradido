@@ -140,37 +140,3 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	return new CheckEmailPage(session);
 	
 }
-Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handlePassphrase(Session* session, const Poco::Net::HTTPServerRequest& request)
-{
-	//couldn't use form here, because request is const
-	/*
-	Poco::Net::HTMLForm form(request);
-	if (!form.empty()) {
-		auto registerKeyChoice = form.get("passphrase", "");
-		std::string oldPassphrase = "";
-		if (registerKeyChoice == "no") {
-			auto oldPassphrase = form.get("passphrase-existing", "");
-
-			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase)) {
-				// passphrase is valid 
-				session->setPassphrase(oldPassphrase);
-				session->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
-				// go one
-				return new SaveKeysPage(session);
-			}
-			else {
-				session->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
-			}
-		}
-		else if (registerKeyChoice == "yes") {
-			session->generatePassphrase();
-		}
-	}
-	return new PassphrasePage(session);
-	*/
-}
-
-Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleSaveKeys(Session* session, const Poco::Net::HTTPServerRequest& request)
-{
-
-}

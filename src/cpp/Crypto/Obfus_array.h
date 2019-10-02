@@ -9,12 +9,9 @@ public:
 	ObfusArray(size_t size, const unsigned char * data);
 	~ObfusArray();
 
-	operator const unsigned char*() {
-		return &m_Data[m_offsetSize];
-	}
-	size_t size() {
-		return m_dataSize;
-	}
+	inline operator const unsigned char*() const {return &m_Data[m_offsetSize];}
+
+	inline size_t size() const { return m_dataSize;}
 
 private:
 	size_t m_arraySize;
