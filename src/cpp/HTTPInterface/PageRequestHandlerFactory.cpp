@@ -51,6 +51,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return handleCheckEmail(s, uri, request);
 	}
 	if (s) {
+		if(url_first_part == "/logout") {
+			sm->releseSession(s);
+			printf("session released\n");
+			return new LoginPage;
+		}
 		auto sessionState = s->getSessionState();
 		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
 		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED) {
@@ -62,10 +67,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		//else if (uri == "/saveKeys") {
 			return new SaveKeysPage(s);
 		}
-		return new DashboardPage(s);
+		if (s && s->getUser()) {
+			return new DashboardPage(s);
+		}
 	} else {
 
-		if (uri == "/") {
+		if (uri == "/config") {
 			return new ConfigPage;
 		}
 		else if (uri == "/login") {
@@ -75,7 +82,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return new RegisterPage;
 		}
 	}
-	return new HandleFileRequest;
+	return new LoginPage;
+	//return new HandleFileRequest;
 	//return new PageRequestHandlerFactory;
 }
 

@@ -21,7 +21,7 @@ class User : public ErrorList
 	friend UserWriteIntoDB;
 public:
 	// new user
-	//User(const char* email, const char* name, const char* password);
+	User(const char* email, const char* name);
 	// existing user
 	User(const char* email);
 	// login
@@ -31,7 +31,7 @@ public:
 
 	static std::string generateNewPassphrase(Mnemonic* word_source);
 	static bool validatePassphrase(const std::string& passphrase);
-	static User* login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr);
+	//static User* login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr);
 
 	bool generateKeys(bool savePrivkey, const std::string& passphrase, Session* session);
 
@@ -43,6 +43,7 @@ public:
 	inline const char* getName() const { return mFirstName.data(); }
 	inline int         getDBId() const { return mDBId;  }
 	inline void		   setEmailChecked() { mEmailChecked = true; }
+	inline bool        isEmailChecked() { return mEmailChecked; }
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
 

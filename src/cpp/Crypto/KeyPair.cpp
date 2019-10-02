@@ -14,7 +14,11 @@ using namespace Poco::Data::Keywords;
 KeyPair::KeyPair()
 	: mPrivateKey(nullptr), mSodiumSecret(nullptr)
 {
-
+	// TODO: set memory to zero for
+	// unsigned char mPublicKey[ed25519_pubkey_SIZE];
+	// unsigned char mSodiumPublic[crypto_sign_PUBLICKEYBYTES];
+	memset(mPublicKey, 0, ed25519_pubkey_SIZE);
+	memset(mSodiumPublic, 0, crypto_sign_PUBLICKEYBYTES);
 }
 
 KeyPair::~KeyPair()
@@ -91,6 +95,14 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	}
 	mSodiumSecret = new ObfusArray(crypto_sign_SECRETKEYBYTES, sodium_secret);
 
+	// print hex for all keys for debugging
+	printf("//********** Keys *************//\n");
+	printf("Public: \t%s\n", getHex(mPublicKey, ed25519_pubkey_SIZE).data());
+	printf("Private: \t%s\n", getHex(*mPrivateKey, mPrivateKey->size()).data());
+	printf("Sodium Public: \t%s\n", getHex(mSodiumPublic, crypto_sign_PUBLICKEYBYTES).data());
+	printf("Sodium Private: \t%s\n", getHex(*mSodiumSecret, mSodiumSecret->size()).data());
+	printf("//********* Keys End ************//\n");
+
 	// using 
 	return true;
 }
@@ -105,6 +117,18 @@ std::string KeyPair::getPubkeyHex()
 	free(hexString);
 
 	return pubHex;
+}
+
+std::string KeyPair::getHex(const unsigned char* data, size_t size)
+{
+	size_t hexSize = size * 2 + 1;
+	char* hexString = (char*)malloc(hexSize);
+	memset(hexString, 0, hexSize);
+	sodium_bin2hex(hexString, hexSize, data, size);
+	std::string hex = hexString;
+	free(hexString);
+
+	return hex;
 }
 
 bool KeyPair::savePrivKey(int userId)

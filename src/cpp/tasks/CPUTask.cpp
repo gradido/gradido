@@ -17,7 +17,7 @@ namespace UniLib {
 		}
 
 		CPUTask::CPUTask(size_t taskDependenceCount/* = 0*/)
-			: Task(), mScheduler(ServerConfig::g_CPUScheduler)
+			: Task(taskDependenceCount), mScheduler(ServerConfig::g_CPUScheduler)
 		{
 			assert(mScheduler);
 		}

@@ -28,12 +28,14 @@
 	<h1>Willkommen <%= mSession->getUser()->getName() %></h1>
 	<h3>Status</h3>
 	<p><%= mSession->getSessionStateString() %></p>
-	<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) %>
+	<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
 	<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>
 	<form method="GET" action="/checkEmail">
 		<input type="number" name="email-verification-code">
 		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
 	</form>
+	<% } %>
+	<a class="grd_bn" href="/logout">Abmelden</a>
 </div>
 </body>
 </html>

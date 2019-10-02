@@ -4,7 +4,7 @@
 <%! 
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
-
+#include "Poco/Net/HTTPServerParams.h"
 	
 %>
 <%% 
@@ -33,6 +33,13 @@
 <!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
 <link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
 <style type="text/css" >
+.grd_container
+{
+  max-width:820px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
 input:not([type='radio']) {
 	width:200px;
 }
@@ -43,10 +50,10 @@ label:not(.grd_radio_label) {
 </style>
 </head>
 <body>
-<%= session->getErrorsHtml() %>
-<h1>Login</h1>
 <form method="POST">
 	<div class="grd_container">
+		<h1>Login</h1>
+		<%= session->getErrorsHtml() %>
 		<fieldset class="grd_container_small">
 			<legend>Login</legend>
 			<p>Bitte gebe deine Zugangsdaten ein um dich einzuloggen.</p>

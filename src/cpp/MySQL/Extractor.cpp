@@ -144,7 +144,11 @@ bool Extractor::extract(std::size_t pos, Poco::Data::BLOB& val)
 	if (_metadata.isNull(static_cast<Poco::UInt32>(pos)))
 	return false;
 	
-	if (_metadata.metaColumn(static_cast<Poco::UInt32>(pos)).type() != Poco::Data::MetaColumn::FDT_BLOB)
+	// UNICORN ADD, Copy from string extract
+	// mysql reports BINARY types as FDT_STRING when being extracted
+	auto columnType = _metadata.metaColumn(static_cast<Poco::UInt32>(pos)).type();
+	//if (_metadata.metaColumn(static_cast<Poco::UInt32>(pos)).type() != Poco::Data::MetaColumn::FDT_BLOB)
+	if (columnType != Poco::Data::MetaColumn::FDT_STRING && columnType != Poco::Data::MetaColumn::FDT_BLOB)
 		throw MySQLException("Extractor: not a blob");
 	
 	val.assignRaw(_metadata.rawData(pos), _metadata.length(pos));

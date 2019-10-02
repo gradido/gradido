@@ -46,11 +46,22 @@ int WritePassphraseIntoDB::run()
 	size_t mlen = mPassphrase.size();
 	size_t crypto_size = crypto_box_SEALBYTES + mlen;
 
+	auto em = ErrorManager::getInstance();
 
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement insert(dbSession);
 	insert << "INSERT INTO user_backups (user_id, passphrase) VALUES(?,?)",
 		use(mUserId), use(mPassphrase);
+	try {
+		if (insert.execute() != 1) {
+			em->addError(new ParamError("WritePassphraseIntoDB::run", "inserting passphrase for user failed", std::to_string(mUserId)));
+			em->sendErrorsAsEmail();
+		}
+	}
+	catch (Poco::Exception& ex) {
+		em->addError(new ParamError("WritePassphraseIntoDB::run", "insert passphrase mysql error", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+	}
 
 	printf("[WritePassphraseIntoDB::run] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
@@ -60,7 +71,7 @@ int WritePassphraseIntoDB::run()
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr)
+	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY)
 {
 
 }
@@ -100,7 +111,23 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		return false;
 	}
 	if (!sm->isValid(password, VALIDATE_PASSWORD)) {
-		addError(new Error("Password", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen"));
+		// @$!%*?&+-
+		if (password.size() < 8) {
+			addError(new Error("Passwort", "Dein Passwort ist zu kurz!"));
+		}
+		else if (!sm->isValid(password, VALIDATE_HAS_LOWERCASE_LETTER)) {
+			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Kleinbuchstaben!"));
+		}
+		else if (!sm->isValid(password, VALIDATE_HAS_UPPERCASE_LETTER)) {
+			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Gro&szlig;buchstaben!"));
+		}
+		else if (!sm->isValid(password, VALIDATE_HAS_NUMBER)) {
+			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Zahlen!"));
+		}
+		else if (!sm->isValid(password, VALIDATE_HAS_SPECIAL_CHARACTER)) {
+			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Sonderzeichen (@$!%*?&+-)!"));
+		}
+		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen"));
 		return false;
 	}
 	/*if (passphrase.size() > 0 && !sm->isValid(passphrase, VALIDATE_PASSPHRASE)) {
@@ -248,8 +275,74 @@ bool Session::isPwdValid(const std::string& pwd)
 
 bool Session::loadUser(const std::string& email, const std::string& password)
 {
+	Profiler usedTime;
+	if (mSessionUser) delete mSessionUser;
+	mSessionUser = new User(email.data());
+	if (!mSessionUser->validatePwd(password)) {
+		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut"));
+		return false;
+	}
+	detectSessionState();
 
 	return true;
+}
+
+/*
+SESSION_STATE_CRYPTO_KEY_GENERATED,
+SESSION_STATE_USER_WRITTEN,
+SESSION_STATE_EMAIL_VERIFICATION_WRITTEN,
+SESSION_STATE_EMAIL_VERIFICATION_SEND,
+SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED,
+SESSION_STATE_PASSPHRASE_GENERATED,
+SESSION_STATE_PASSPHRASE_SHOWN,
+SESSION_STATE_PASSPHRASE_WRITTEN,
+SESSION_STATE_KEY_PAIR_GENERATED,
+SESSION_STATE_KEY_PAIR_WRITTEN,
+SESSION_STATE_COUNT
+*/
+void Session::detectSessionState()
+{
+	if (!mSessionUser || !mSessionUser->hasCryptoKey()) {
+		return;
+	}
+	if (mSessionUser->getDBId() == 0) {
+		updateState(SESSION_STATE_CRYPTO_KEY_GENERATED);
+		return;
+	}
+	if (!mSessionUser->isEmailChecked()) {
+		if (mEmailVerificationCode == 0)
+			updateState(SESSION_STATE_USER_WRITTEN);
+		else
+			updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
+		return;
+	}
+
+	if (mSessionUser->getPublicKeyHex() == "") {
+		
+		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+		Poco::Data::Statement select(dbConnection);
+		Poco::Nullable<Poco::Data::BLOB> passphrase;
+		select << "SELECT passphrase from user_backups where user_id = ?;", 
+			into(passphrase), bind(mSessionUser->getDBId());
+		try {
+			if (select.execute() == 1 && !passphrase.isNull()) {
+				updateState(SESSION_STATE_PASSPHRASE_WRITTEN);
+				return;
+			}
+		}
+		catch (Poco::Exception& exc) {
+			printf("mysql exception: %s\n", exc.displayText().data());
+		}
+		if (mPassphrase != "") {
+			updateState(SESSION_STATE_PASSPHRASE_GENERATED);
+			return;
+		}
+		updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+		return;
+	}
+
+	updateState(SESSION_STATE_KEY_PAIR_WRITTEN);
+
 }
 
 Poco::Net::HTTPCookie Session::getLoginCookie()
@@ -335,6 +428,7 @@ const char* Session::getSessionStateString()
 const char* Session::translateSessionStateToString(SessionStates state)
 {
 	switch (state) {
+	case SESSION_STATE_EMPTY: return "uninitalized";
 	case SESSION_STATE_CRYPTO_KEY_GENERATED: return "crpyto key generated";
 	case SESSION_STATE_USER_WRITTEN: return "User saved";
 	case SESSION_STATE_EMAIL_VERIFICATION_WRITTEN: return "E-Mail verification code saved";

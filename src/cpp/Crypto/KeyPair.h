@@ -19,12 +19,14 @@ public:
 	bool generateFromPassphrase(const char* passphrase, Mnemonic* word_source);
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);
-
+	static std::string getHex(const unsigned char* data, size_t size);
 	
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 
 protected:
 	const ObfusArray* getPrivateKey() const { return mSodiumSecret; }
+
+	
 
 private:
 	ObfusArray* mPrivateKey;

@@ -33,6 +33,10 @@ bool SessionManager::init()
 		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
 		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-])[A-Za-z0-9@$!%*?&+-]{8,}$"); break;
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
+		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression("[0-9]"); break;
+		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression("[@$!%*?&+-]"); break;
+		case VALIDATE_HAS_UPPERCASE_LETTER: mValidations[i] = new Poco::RegularExpression("[A-Z]"); break;
+		case VALIDATE_HAS_LOWERCASE_LETTER: mValidations[i] = new Poco::RegularExpression("[a-z]"); break;
 		default: printf("[SessionManager::%s] unknown validation type\n", __FUNCTION__);
 		}
 	}

@@ -92,6 +92,7 @@ int UserWriteKeysIntoDB::run()
 	if (mSavePrivKey) {
 		// TODO: encrypt privkey
 		auto privKey = keyPairs->getPrivateKey();
+		printf("[UserWriteKeysIntoDB] privKey hex: %s\n", KeyPair::getHex(*privKey, privKey->size()).data());
 		pprivkey_blob = mUser->encrypt(privKey);
 		//Poco::Data::BLOB privkey_blob(*privKey, privKey->size());
 
@@ -129,8 +130,13 @@ int UserWriteKeysIntoDB::run()
 }
 
 // *******************************************************************************
+// new user
+User::User(const char* email, const char* name)
+	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
+{
 
-
+}
+// load from db
 User::User(const char* email)
 	: mDBId(0), mEmail(email), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
 {
@@ -142,10 +148,13 @@ User::User(const char* email)
 	Poco::Nullable<Poco::Data::BLOB> pubkey;
 
 	Poco::Data::Statement select(session);
+	int email_checked = 0;
 	select << "SELECT id, name, password, pubkey, email_checked from users where email = ?",
-		into(mDBId), into(mFirstName), into(mPasswordHashed), into(pubkey), into(mEmailChecked), use(mEmail);
+		into(mDBId), into(mFirstName), into(mPasswordHashed), into(pubkey), into(email_checked), use(mEmail);
 	try {
-		if (select.execute() == 1) {
+		auto result = select.execute();
+		int zahl = 1;
+		if (result == 1) {
 			if (!pubkey.isNull()) {
 				auto pubkey_value = pubkey.value();
 				size_t hexSize = pubkey_value.size() * 2 + 1;
@@ -155,14 +164,13 @@ User::User(const char* email)
 				mPublicHex = hexString;
 				free(hexString);
 			}
+			if (email_checked != 0) mEmailChecked = true;
 		}
-	} catch(...) {}
+	} catch(Poco::Exception& ex) {
+		addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
+	}
 }
 
-User* User::login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr)
-{
-
-}
 
 
 User::~User()
@@ -175,13 +183,23 @@ User::~User()
 
 std::string User::generateNewPassphrase(Mnemonic* word_source)
 {
+	auto em = ErrorManager::getInstance();
 	unsigned int random_indices[PHRASE_WORD_COUNT];
 	unsigned int str_sizes[PHRASE_WORD_COUNT];
 	unsigned int phrase_buffer_size = 0;
 
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 		random_indices[i] = randombytes_random() % 2048;
-		str_sizes[i] = strlen(word_source->getWord(random_indices[i]));
+		auto word = word_source->getWord(random_indices[i]);
+		if (!word) {
+			em->addError(new ParamError("User::generateNewPassphrase", "empty word get for index", random_indices[i]));
+			em->sendErrorsAsEmail();
+
+			random_indices[i] = randombytes_random() % 2048;
+			word = word_source->getWord(random_indices[i]);
+			if (!word) return "Ein Fehler, bitte wende dich an den Server-Admin.";
+		}
+		str_sizes[i] = strlen(word);
 		phrase_buffer_size += str_sizes[i];
 	}
 	phrase_buffer_size += PHRASE_WORD_COUNT + 1;
@@ -285,10 +303,11 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 	Profiler timeUsed;
 	
 	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, passphrase));
-	generateKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_GENERATED, session));
+	//generateKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_GENERATED, session));
 	//generateKeysTask->scheduleTask(generateKeysTask);
 	// run directly because we like to show pubkey on interface, shouldn't last to long
 	generateKeysTask->run();
+	session->updateState(SESSION_STATE_KEY_PAIR_GENERATED);
 
 	if (mDBId == 0) {
 		loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
@@ -332,8 +351,12 @@ Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
 		free(ciphertext);
 		return nullptr;
 	}
+
+	printf("[User::encrypt] encrypted: %s\n", KeyPair::getHex(ciphertext, ciphertext_len).data());
+	auto result_blob = new Poco::Data::BLOB(ciphertext, ciphertext_len);
 	free(ciphertext);
-	return new Poco::Data::BLOB(ciphertext, ciphertext_len);
+	
+	return result_blob;
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)

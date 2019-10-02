@@ -25,6 +25,7 @@
 class WriteEmailVerification;
 
 enum SessionStates {
+	SESSION_STATE_EMPTY,
 	SESSION_STATE_CRYPTO_KEY_GENERATED,
 	SESSION_STATE_USER_WRITTEN,
 	SESSION_STATE_EMAIL_VERIFICATION_WRITTEN,
@@ -85,7 +86,7 @@ protected:
 	
 	void createEmailVerificationCode();
 	
-
+	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
 
 	int mHandleId;
