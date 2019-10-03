@@ -38,7 +38,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 		}
 	} else {
 		// remove old cookies if exist
-		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId))
+		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", "");
 		// max age of 0 delete cookie
 		keks.setMaxAge(0);
 		response.addCookie(keks);
