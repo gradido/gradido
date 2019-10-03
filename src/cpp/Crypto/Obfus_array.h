@@ -1,7 +1,7 @@
 #ifndef GRADIDO_LOGIN_SERVER_CRYPTO_OBFUS_ARRAY
 #define GRADIDO_LOGIN_SERVER_CRYPTO_OBFUS_ARRAY
 
-
+#include <stdio.h>
 
 class ObfusArray
 {

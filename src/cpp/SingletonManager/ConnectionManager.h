@@ -9,7 +9,7 @@
 #include "Poco/Data/MySQL/Connector.h"
 #include "Poco/Exception.h"
 
-#include "../Model/ErrorList.h"
+#include "../model/ErrorList.h"
 
 enum ConnectionType {
 	CONNECTION_MYSQL_LOGIN_SERVER,

@@ -135,7 +135,8 @@ bool KeyPair::savePrivKey(int userId)
 {
 	auto cm = ConnectionManager::getInstance();
 	auto em = ErrorManager::getInstance();
-	Poco::Data::Statement update(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+	auto mysql_session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement update(mysql_session);
 	Poco::Data::BLOB privkey_blob((const unsigned char*)(*mPrivateKey), mPrivateKey->size());
 
 	update << "UPDATE users set privkey = ? where id = ?",

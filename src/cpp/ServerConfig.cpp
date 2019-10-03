@@ -63,7 +63,7 @@ namespace ServerConfig {
 			return false;
 		}
 		if (realBinSize != crypto_shorthash_KEYBYTES) {
-			printf("[%s] serverKey hasn't valid size, expecting: %d, get: %d\n",
+			printf("[%s] serverKey hasn't valid size, expecting: %u, get: %lu\n",
 				__FUNCTION__, crypto_shorthash_KEYBYTES, realBinSize);
 			return false;
 		}
@@ -96,8 +96,9 @@ namespace ServerConfig {
 		int options = OPT_DEFAULTS,
 		const std::string& certificateStoreName = CERT_STORE_MY);
 		*/
-		
-		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
+		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", "", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		// another poco version?
+		//g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
 		SSLManager::instance().initializeClient(0, pCert, g_SSL_CLient_Context);
 
 		return true;

@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 #include <cstring>
-#include "../Model/Error.h"
+#include "../model/Error.h"
 #include "../Crypto/DRHash.h"
 #include "../tasks/CPUTask.h"
 

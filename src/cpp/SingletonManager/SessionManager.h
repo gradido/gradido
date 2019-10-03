@@ -11,7 +11,7 @@
 #define DR_LUA_WEB_MODULE_SESSION_MANAGER_H
 
 
-#include "../Model/Session.h"
+#include "../model/Session.h"
 
 #include "Poco/RegularExpression.h"
 
