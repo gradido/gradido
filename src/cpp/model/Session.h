@@ -16,6 +16,7 @@
 #include "../tasks/MultithreadContainer.h"
 
 #include "Poco/Thread.h"
+#include "Poco/Types.h"
 #include "Poco/DateTime.h"
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/HTTPCookie.h"
@@ -55,9 +56,9 @@ public:
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	bool loadUser(const std::string& email, const std::string& password);
 
-	bool loadFromEmailVerificationCode(unsigned long long emailVerificationCode);
+	bool loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode);
 
-	bool updateEmailVerification(unsigned long long emailVerificationCode);
+	bool updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
 	Poco::Net::HTTPCookie getLoginCookie();
 

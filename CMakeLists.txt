@@ -55,6 +55,8 @@ set(MYSQL_INCLUDE_DIR "import/mariadb/include")
 
 else(WIN32)
 
+add_subdirectory("dependencies/mariadb-connector-c")
+
 endif(WIN32)
 
 

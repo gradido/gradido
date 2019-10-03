@@ -19,13 +19,13 @@ using namespace Poco::Data::Keywords;
 int WriteEmailVerification::run()
 {	
 	Profiler timeUsed;
-	auto verificationCode = mSession->getEmailVerificationCode();
+	Poco::UInt64 verificationCode = mSession->getEmailVerificationCode();
 	//printf("[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-	int user_id = mUser->getDBId();
+	//int user_id = mUser->getDBId();
 	Poco::Data::Statement insert(dbSession);
 	insert << "INSERT INTO email_opt_in (user_id, verification_code) VALUES(?,?);",
-		use(user_id), bind(verificationCode);
+		bind(mUser->getDBId()), use(verificationCode);
 	if (1 != insert.execute()) {
 		mSession->addError(new Error("WriteEmailVerification", "error inserting email verification code"));
 		return -1;
@@ -218,7 +218,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 	return true;
 }
 
-bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
+bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
 
 	Profiler usedTime;
@@ -329,8 +329,9 @@ void Session::detectSessionState()
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(dbConnection);
 		Poco::Nullable<Poco::Data::BLOB> passphrase;
+		auto user_id = mSessionUser->getDBId();
 		select << "SELECT passphrase from user_backups where user_id = ?;", 
-			into(passphrase), bind(mSessionUser->getDBId());
+			into(passphrase), use(user_id);
 		try {
 			if (select.execute() == 1 && !passphrase.isNull()) {
 				updateState(SESSION_STATE_PASSPHRASE_WRITTEN);
@@ -363,7 +364,7 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	return keks;
 }
 
-bool Session::loadFromEmailVerificationCode(unsigned long long emailVerificationCode)
+bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 {
 	Profiler usedTime;
 	const static char* funcName = "Session::loadFromEmailVerificationCode";

@@ -6,6 +6,7 @@
 #include "ErrorList.h"
 
 #include "Poco/Thread.h"
+#include "Poco/Types.h"
 #include "Poco/Data/Session.h"
 #include "../tasks/CPUTask.h"
 
@@ -51,7 +52,7 @@ public:
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
 protected:
-	typedef unsigned long long passwordHashed;
+	typedef Poco::UInt64 passwordHashed;
 
 	ObfusArray* createCryptoKey(const std::string& password);
 	inline void setCryptoKey(ObfusArray* cryptoKey) { mCryptoKey = cryptoKey; }
