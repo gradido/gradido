@@ -20,7 +20,7 @@ int WriteEmailVerification::run()
 {	
 	Profiler timeUsed;
 	auto verificationCode = mSession->getEmailVerificationCode();
-	printf("{[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
+	//printf("[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	int user_id = mUser->getDBId();
 	Poco::Data::Statement insert(dbSession);
@@ -30,7 +30,7 @@ int WriteEmailVerification::run()
 		mSession->addError(new Error("WriteEmailVerification", "error inserting email verification code"));
 		return -1;
 	}
-	printf("[WriteEmailVerification::run] timeUsed: %s\n", timeUsed.string().data());
+	printf("[WriteEmailVerification] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
 }
 
@@ -63,7 +63,7 @@ int WritePassphraseIntoDB::run()
 		em->sendErrorsAsEmail();
 	}
 
-	printf("[WritePassphraseIntoDB::run] timeUsed: %s\n", timeUsed.string().data());
+	printf("[WritePassphraseIntoDB] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
 }
 
@@ -71,7 +71,7 @@ int WritePassphraseIntoDB::run()
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY)
+	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false)
 {
 
 }
@@ -90,7 +90,10 @@ void Session::reset()
 		mSessionUser = nullptr;
 	}
 	updateTimeout();
+	updateState(SESSION_STATE_EMPTY);
+	mPassphrase = "";
 	mClientLoginIP = Poco::Net::IPAddress();
+	mEmailVerificationCode = 0;
 }
 
 void Session::updateTimeout()
@@ -111,6 +114,8 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		return false;
 	}
 	if (!sm->isValid(password, VALIDATE_PASSWORD)) {
+		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen ein!"));
+
 		// @$!%*?&+-
 		if (password.size() < 8) {
 			addError(new Error("Passwort", "Dein Passwort ist zu kurz!"));
@@ -127,7 +132,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		else if (!sm->isValid(password, VALIDATE_HAS_SPECIAL_CHARACTER)) {
 			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Sonderzeichen (@$!%*?&+-)!"));
 		}
-		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen"));
+		
 		return false;
 	}
 	/*if (passphrase.size() > 0 && !sm->isValid(passphrase, VALIDATE_PASSPHRASE)) {
@@ -215,6 +220,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 
 bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 {
+
 	Profiler usedTime;
 	const static char* funcName = "Session::updateEmailVerification";
 	auto em = ErrorManager::getInstance();
@@ -243,6 +249,7 @@ bool Session::updateEmailVerification(unsigned long long emailVerificationCode)
 			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			printf("[%s] time: %s\n", funcName, usedTime.string().data());
+			
 			return true;
 		}
 		else {
@@ -347,8 +354,12 @@ void Session::detectSessionState()
 
 Poco::Net::HTTPCookie Session::getLoginCookie()
 {
-	auto keks = Poco::Net::HTTPCookie("user", std::to_string(mHandleId));
-	// TODO: additional config, like js permit
+	auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId));
+	// prevent reading or changing cookie with js
+	keks.setHttpOnly();
+	// send cookie only via https
+	keks.setSecure(true);
+	
 	return keks;
 }
 
@@ -407,7 +418,8 @@ bool Session::loadFromEmailVerificationCode(unsigned long long emailVerification
 void Session::updateState(SessionStates newState)
 {
 	lock();
-	printf("[Session::%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
+	updateTimeout();
+	printf("[%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
 	if (newState > mState) {
 		mState = newState;
 	}

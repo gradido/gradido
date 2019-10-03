@@ -1,5 +1,6 @@
 #include "SendEmailTask.h"
 #include "PrepareEmailTask.h"
+#include "../model/Profiler.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../ServerConfig.h"
 
@@ -19,6 +20,7 @@ SendEmailTask::~SendEmailTask()
 
 int SendEmailTask::run() 
 {
+	Profiler timeUsed;
 	auto er = ErrorManager::getInstance();
 	auto parent = getParent(0);
 
@@ -31,5 +33,6 @@ int SendEmailTask::run()
 	if (prepare->send(mMailMessage)) {
 		return -1;
 	}
+	printf("[SendEmailTask] time: %s\n", timeUsed.string().data());
 	return 0;
 }

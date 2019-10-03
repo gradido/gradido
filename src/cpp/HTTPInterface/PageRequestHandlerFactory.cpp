@@ -28,10 +28,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	std::string url_first_part;
 	mRemoveGETParameters.extract(uri, url_first_part);
 
-	printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
-	auto referer = request.find("Referer");
-	if (referer != request.end()) {
-		printf("referer: %s\n", referer->second.data());
+	if (uri != "/favicon.ico") {
+		printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
+		auto referer = request.find("Referer");
+		if (referer != request.end()) {
+			printf("referer: %s\n", referer->second.data());
+		}
 	}
 
 	// check if user has valid session
@@ -41,18 +43,25 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	int session_id = 0;
 
 	try {
-		session_id = atoi(cookies.get("user").data());
+		session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 	} catch (...) {}
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
+
+	// TODO: count invalid session requests from IP and block IP for some time to prevent brute force session hijacking
+	// or use log file and configure fail2ban for this to do
 	
 	if (url_first_part == "/checkEmail") {
 		//return new CheckEmailPage(s);
-		return handleCheckEmail(s, uri, request);
+		if (!s || s->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED) {
+			return handleCheckEmail(s, uri, request);
+		}
 	}
 	if (s) {
 		if(url_first_part == "/logout") {
 			sm->releseSession(s);
+			// remove cookie
+			
 			printf("session released\n");
 			return new LoginPage;
 		}
@@ -97,15 +106,26 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	// try to get code from form get parameter
 	if (!form.empty()) {
 		try {
-			verificationCode = stoll(form.get("email-verification-code", "0"));
+			verificationCode = stoull(form.get("email-verification-code", "0"));
 		} catch (...) {}
 	}
 	// try to get code from uri parameter
 	if (!verificationCode) {
 		size_t pos = uri.find_last_of("/");
 		try {
-			verificationCode = stoll(uri.substr(pos + 1));
-		} catch (...) {}
+			auto str = uri.substr(pos + 1);
+			verificationCode = stoull(uri.substr(pos + 1));
+		} catch (const std::invalid_argument& ia) {
+			std::cerr << "Invalid argument: " << ia.what() << '\n';
+		} catch (const std::out_of_range& oor) {
+			std::cerr << "Out of Range error: " << oor.what() << '\n';
+		}
+		catch (const std::logic_error & ler) {
+			std::cerr << "Logical error: " << ler.what() << '\n';
+		}
+		catch (...) {
+			std::cerr << "Unknown error" << '\n';
+		}
 	}
 
 	// if no verification code given or error with given code, show form
@@ -138,6 +158,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	}
 	// suitable session found or created
 	if (session) {
+		auto user_host = request.clientAddress().host();
+		session->setClientIp(user_host);
+
 		// update session, mark as verified 
 		if (session->updateEmailVerification(verificationCode)) {
 			return new PassphrasePage(session);

@@ -17,10 +17,7 @@ enum PageState
 	bool hasErrors = mSession->errorCount() > 0;
 	
 	// save login cookie, because maybe we've get an new session
-	auto cookie_id = mSession->getHandle();
-	auto user_host = request.clientAddress().host();
-	mSession->setClientIp(user_host);
-	response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
+	response.addCookie(mSession->getLoginCookie());
 	
 	if (!form.empty()) {
 		auto registerKeyChoice = form.get("passphrase", "");
@@ -90,7 +87,7 @@ label:not(.grd_radio_label) {
 			<a href="/saveKeys">Weiter</a>
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
-	<form method="POST">
+	<form method="POST" action="/passphrase">
 		<fieldset class="grd_container_small">
 			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>

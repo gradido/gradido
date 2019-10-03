@@ -46,6 +46,7 @@ public:
 	}
 	bool releseSession(int requestHandleSession);
 	bool isExist(int requestHandleSession);
+	// try to find existing session, return nullptr if not found
 	Session* getSession(int handle);
 	Session* findByEmailVerificationCode(long long emailVerificationCode);
 
@@ -54,9 +55,12 @@ public:
 
 	bool isValid(const std::string& subject, SessionValidationTypes validationType);
 
+	void checkTimeoutSession();
+
 protected:
 	SessionManager();
 
+	int generateNewUnusedHandle();
 
 	// access mutex
 	std::mutex mWorkingMutex;
@@ -69,6 +73,13 @@ protected:
 
 	// validations
 	Poco::RegularExpression*  mValidations[VALIDATE_MAX];
+};
+
+class CheckSessionTimeouted : public UniLib::controller::CPUTask
+{
+public:
+	virtual int run();
+	virtual const char* getResourceType() const { return "CheckSessionTimeouted"; };
 };
 
 #endif //DR_LUA_WEB_MODULE_SESSION_MANAGER_H

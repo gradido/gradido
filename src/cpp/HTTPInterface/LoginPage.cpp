@@ -36,6 +36,12 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			response.redirect(uri_start + "/");
 			return;
 		}
+	} else {
+		// remove old cookies if exist
+		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId))
+		// max age of 0 delete cookie
+		keks.setMaxAge(0);
+		response.addCookie(keks);
 	}
 	
 	std::ostream& _responseStream = response.send();
@@ -72,7 +78,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 56 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 62 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( session->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";

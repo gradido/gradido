@@ -39,11 +39,12 @@ enum SessionStates {
 	SESSION_STATE_COUNT
 };
 
-
+class SessionManager;
 
 class Session : public ErrorList, public UniLib::lib::MultithreadContainer
 {
 	friend WriteEmailVerification;
+	friend SessionManager;
 public:
 	Session(int handle);
 	~Session();
@@ -63,6 +64,7 @@ public:
 	inline User* getUser() { return mSessionUser; }
 
 	inline int getHandle() { return mHandleId; }
+	
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
 	inline const std::string& getPassphrase() { return mPassphrase; }
 	bool generatePassphrase();
@@ -81,14 +83,21 @@ public:
 
 	inline unsigned long long getEmailVerificationCode() { return mEmailVerificationCode; }
 
+	inline bool isActive() const { return mActive; }
+	inline void setActive(bool active) { mActive = active; }
+
+	inline Poco::DateTime getLastActivity() { return mLastActivity; }
+
 protected:
 	void updateTimeout();
+	inline void setHandle(int newHandle) { mHandleId = newHandle; }
 	
 	void createEmailVerificationCode();
 	
 	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
 
+private: 
 	int mHandleId;
 	User* mSessionUser;
 	std::string mPassphrase;
@@ -97,6 +106,8 @@ protected:
 	unsigned long long mEmailVerificationCode;
 
 	SessionStates mState;
+
+	bool mActive;
 };
 
 

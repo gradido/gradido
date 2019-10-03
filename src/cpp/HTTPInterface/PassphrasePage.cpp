@@ -35,10 +35,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	bool hasErrors = mSession->errorCount() > 0;
 	
 	// save login cookie, because maybe we've get an new session
-	auto cookie_id = mSession->getHandle();
-	auto user_host = request.clientAddress().host();
-	mSession->setClientIp(user_host);
-	response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
+	response.addCookie(mSession->getLoginCookie());
 	
 	if (!form.empty()) {
 		auto registerKeyChoice = form.get("passphrase", "");
@@ -97,18 +94,18 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 78 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 75 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  if(mSession && hasErrors) {	responseStream << "\n";
 	responseStream << "\t\t";
-#line 79 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 76 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 80 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 77 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 } 	responseStream << "\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
 	responseStream << "\t";
-#line 82 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 79 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  if(state == PAGE_SHOW_PASSPHRASE) {	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text-max-width\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
@@ -116,16 +113,16 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t<div class=\"grd_textarea\">\n";
 	responseStream << "\t\t\t\t";
-#line 88 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 85 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( mSession->getPassphrase() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t<a href=\"/saveKeys\">Weiter</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 92 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 89 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } else if(state == PAGE_ASK_PASSPHRASE) { 	responseStream << "\n";
-	responseStream << "\t<form method=\"POST\">\n";
+	responseStream << "\t<form method=\"POST\" action=\"/passphrase\">\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>\n";
 	responseStream << "\t\t\t<p>Hast du schonmal ein Gradido Konto besessen?</p>\n";
@@ -138,7 +135,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<label class=\"grd_radio_label\" for=\"passphrase-new-no\">Ja, bitte wiederherstellen!</label>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<textarea style=\"width:100%;height:100px\" name=\"passphrase-existing\">";
-#line 105 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 102 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( !form.empty() ? form.get("passphrase-existing", "") : "" );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t</fieldset>\n";
@@ -146,13 +143,13 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 110 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 107 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\tUngültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. \n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 114 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 111 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

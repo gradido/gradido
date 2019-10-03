@@ -21,6 +21,12 @@
 			response.redirect(uri_start + "/");
 			return;
 		}
+	} else {
+		// remove old cookies if exist
+		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId))
+		// max age of 0 delete cookie
+		keks.setMaxAge(0);
+		response.addCookie(keks);
 	}
 	
 %>

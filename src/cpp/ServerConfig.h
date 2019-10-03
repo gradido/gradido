@@ -27,6 +27,7 @@ namespace ServerConfig {
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 	extern Poco::Net::Context::Ptr g_SSL_CLient_Context;
 	extern EmailAccount g_EmailAccount;
+	extern int g_SessionTimeout;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

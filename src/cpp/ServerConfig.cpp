@@ -17,12 +17,16 @@ using Poco::Net::ConsoleCertificateHandler;
 using Poco::SharedPtr;
 
 namespace ServerConfig {
+
+#define SESSION_TIMEOUT_DEFAULT 10
+
 	Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 	ObfusArray* g_ServerCryptoKey = nullptr;
 //	std::string g_ServerAdminPublic;
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
 	Context::Ptr g_SSL_CLient_Context = nullptr;
 	EmailAccount g_EmailAccount;
+	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 
 	bool loadMnemonicWordLists()
 	{
@@ -66,6 +70,8 @@ namespace ServerConfig {
 		g_ServerCryptoKey = new ObfusArray(realBinSize, key);
 
 		//g_ServerAdminPublic = cfg.getString("crypto.server_admin_public");
+
+		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		return true;
 	}
 
