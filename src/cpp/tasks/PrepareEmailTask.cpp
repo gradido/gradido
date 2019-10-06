@@ -3,6 +3,8 @@
 #include "../ServerConfig.h"
 #include "../SingletonManager/ErrorManager.h"
 
+#include "Poco/Net/SSLException.h"
+
 PrepareEmailTask::PrepareEmailTask(UniLib::controller::CPUSheduler* cpuScheduler)
 	: UniLib::controller::CPUTask(cpuScheduler), mMailClientSession(nullptr)
 {
@@ -21,10 +23,13 @@ int PrepareEmailTask::run()
 	Profiler timeUsed;
 	mMailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
 	mMailClientSession->login();
-	mMailClientSession->startTLS(ServerConfig::g_SSL_CLient_Context);
-
-	
-	mMailClientSession->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, ServerConfig::g_EmailAccount.username, ServerConfig::g_EmailAccount.password);
+	try {
+		mMailClientSession->startTLS(ServerConfig::g_SSL_CLient_Context);
+		mMailClientSession->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, ServerConfig::g_EmailAccount.username, ServerConfig::g_EmailAccount.password);
+	} catch(Poco::Net::SSLException& ex) {
+		printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
+		return -1;
+	}
 
 	printf("[PrepareEmailTask] time: %s\n", timeUsed.string().data());
 	/*

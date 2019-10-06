@@ -5,7 +5,7 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 7 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 7 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  
 #include "../SingletonManager/SessionManager.h"
 
@@ -28,7 +28,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
-#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 10 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
@@ -48,26 +48,26 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
-#line 28 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 28 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
 	responseStream << ( mSession->getUser()->getName() );
 	responseStream << "</h1>\n";
 	responseStream << "\t<h3>Status</h3>\n";
 	responseStream << "\t<p>";
-#line 30 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 30 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 31 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 31 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
 	responseStream << "\t<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>\n";
-	responseStream << "\t<form method=\"GET\" action=\"/checkEmail\">\n";
+	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 37 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 37 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  } 	responseStream << "\n";
-	responseStream << "\t<a class=\"grd_bn\" href=\"/logout\">Abmelden</a>\n";
+	responseStream << "\t<a class=\"grd_bn\" href=\"logout\">Abmelden</a>\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";
 	responseStream << "</html>\n";

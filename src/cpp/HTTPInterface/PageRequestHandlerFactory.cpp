@@ -81,13 +81,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 	} else {
 
-		if (uri == "/config") {
+		if (url_first_part == "/config") {
 			return new ConfigPage;
 		}
-		else if (uri == "/login") {
+		else if (url_first_part == "/login") {
 			return new LoginPage;
 		}
-		else if (uri == "/register") {
+		else if (url_first_part == "/register") {
 			return new RegisterPage;
 		}
 	}

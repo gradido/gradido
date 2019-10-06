@@ -13,6 +13,8 @@ include_directories(
 	"import/mariadb/include"
 )
 
+
+
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
 FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
@@ -54,8 +56,16 @@ find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build/Debug
 set(MYSQL_INCLUDE_DIR "import/mariadb/include")
 
 else(WIN32)
-
+find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
+# set vars for mariadb cmake files 
+set(INSTALL_BINDIR "bin")
+set(INSTALL_PLUGINDIR "bin")
 add_subdirectory("dependencies/mariadb-connector-c")
+
+include_directories(
+	"dependencies/mariadb-connector-c/include"
+	"build/dependencies/mariadb-connector-c/include"
+)
 
 endif(WIN32)
 
@@ -65,4 +75,5 @@ if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
+target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoFoundation PocoData PocoNetSSL -lpthread)
 endif(WIN32)

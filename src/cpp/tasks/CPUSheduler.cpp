@@ -1,6 +1,7 @@
 #include "CPUSheduler.h"
 #include "CPUShedulerThread.h"
 #include "CPUTask.h"
+#include <memory.h>
 
 namespace UniLib {
 	namespace controller {
@@ -9,7 +10,9 @@ namespace UniLib {
 			: mThreads(new CPUShedulerThread*[threadCount]), mThreadCount(threadCount), mName(name)
 		{
 			char nameBuffer[10]; memset(nameBuffer, 0, 10);
-			uint8_t len = min(strlen(name), 7);
+			//uint8_t len = std:: min(strlen(name), 7);
+			uint8_t len = strlen(name);
+			if(len > 7) len = 7;
 			memcpy(nameBuffer, name, len);
 			for(int i = 0; i < threadCount; i++) {
 				sprintf(&nameBuffer[len], "%.2d", i); 

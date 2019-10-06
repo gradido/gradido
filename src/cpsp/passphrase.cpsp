@@ -84,10 +84,11 @@ label:not(.grd_radio_label) {
 			<div class="grd_textarea">
 				<%= mSession->getPassphrase() %>
 			</div>
-			<a href="/saveKeys">Weiter</a>
+			<a href="saveKeys">Weiter</a>
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
-	<form method="POST" action="/passphrase">
+	<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>
+	<form method="POST" action="passphrase">
 		<fieldset class="grd_container_small">
 			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>

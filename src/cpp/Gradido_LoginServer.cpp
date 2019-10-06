@@ -2,6 +2,7 @@
 #include "ServerConfig.h"
 #include "HTTPInterface/PageRequestHandlerFactory.h"
 
+#include "model/Profiler.h"
 
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"
@@ -66,6 +67,7 @@ void Gradido_LoginServer::displayHelp()
 
 int Gradido_LoginServer::main(const std::vector<std::string>& args)
 {
+	Profiler usedTime;
 	if (_helpRequested)
 	{
 		displayHelp();
@@ -99,7 +101,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		//Poco::Data::MySQL::Connector::KEY;
 		auto conn = ConnectionManager::getInstance();
 		//conn->setConnection()
+		//printf("try connect login server mysql db\n");
 		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		//printf("try connect php server mysql \n");
 		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
 
 		SessionManager::getInstance()->init();
@@ -107,7 +111,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		//srand();
 
 		Poco::Net::initializeSSL();
-		ServerConfig::initSSLClientContext();
+		if(!ServerConfig::initSSLClientContext()) {
+			printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
+			return Application::EXIT_CONFIG;
+		}
 
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
@@ -115,6 +122,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
 		// start the HTTPServer
 		srv.start();
+		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
 

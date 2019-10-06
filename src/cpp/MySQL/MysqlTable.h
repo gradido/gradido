@@ -55,8 +55,8 @@ public:
 	inline MysqlRowType getType() const { return mType; }
 
 	virtual operator const char*() const { return ""; }
-	virtual operator long() const { return 0; }
-	virtual operator long long() const { return 0; }
+	virtual operator Poco::Int32() const { return 0; }
+	virtual operator Poco::Int64() const { return 0; }
 	virtual operator unsigned char*() const { return nullptr; }
 	virtual size_t size() { return 0; }
 	
@@ -80,22 +80,22 @@ protected:
 class MysqlTableCellInt : public MysqlTableCell
 {
 public:
-	MysqlTableCellInt(long value) : MysqlTableCell(MYSQL_ROW_INT), mContent(value) {}
+	MysqlTableCellInt(Poco::Int32 value) : MysqlTableCell(MYSQL_ROW_INT), mContent(value) {}
 
-	virtual operator long() const { return mContent; }
+	virtual operator Poco::Int32() const { return mContent; }
 protected:
-	long mContent;
+	Poco::Int32 mContent;
 };
 
 class MysqlTableCellLong : public MysqlTableCell
 {
 public:
-	MysqlTableCellLong(const long long& value) : MysqlTableCell(MYSQL_ROW_LONG), mContent(value) {}
+	MysqlTableCellLong(const Poco::Int64& value) : MysqlTableCell(MYSQL_ROW_LONG), mContent(value) {}
 
-	virtual operator long long() const { return mContent; }
+	virtual operator Poco::Int64() const { return mContent; }
 
 protected: 
-	long long mContent;
+	Poco::Int64 mContent;
 };
 
 class MysqlTableCellTimestamp : public MysqlTableCell
@@ -167,8 +167,8 @@ public:
 		addError(new ParamError(__FUNCTION__, "invalid field index:", index));
 		return nullptr;
 	}
-	inline bool addCellToCurrentRow(long value) { return addCellToCurrentRow(new MysqlTableCellInt(value)); }
-	inline bool addCellToCurrentRow(const long long& value) { return addCellToCurrentRow(new MysqlTableCellLong(value)); }
+	inline bool addCellToCurrentRow(Poco::Int32 value) { return addCellToCurrentRow(new MysqlTableCellInt(value)); }
+	inline bool addCellToCurrentRow(const Poco::Int64& value) { return addCellToCurrentRow(new MysqlTableCellLong(value)); }
 	inline bool addCellToCurrentRow(const char* string) { return addCellToCurrentRow(new MysqlTableCellString(string)); }
 	inline bool addCellToCurrentRow(const double& value) { return addCellToCurrentRow(new MysqlTableCellDecimal(value)); }
 	inline bool addCellToCurrentRow(const unsigned char* bytes, size_t size) { return addCellToCurrentRow(new MysqlTableCellBinary(bytes, size)); }

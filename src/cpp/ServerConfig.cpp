@@ -5,7 +5,7 @@
 
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Net/KeyConsoleHandler.h"
-#include "Poco/Net/ConsoleCertificateHandler.h"
+#include "Poco/Net/RejectCertificateHandler.h"
 #include "Poco/SharedPtr.h"
 
 using Poco::Net::SSLManager;
@@ -13,7 +13,7 @@ using Poco::Net::Context;
 using Poco::Net::KeyConsoleHandler;
 using Poco::Net::PrivateKeyPassphraseHandler;
 using Poco::Net::InvalidCertificateHandler;
-using Poco::Net::ConsoleCertificateHandler;
+using Poco::Net::RejectCertificateHandler;
 using Poco::SharedPtr;
 
 namespace ServerConfig {
@@ -88,7 +88,7 @@ namespace ServerConfig {
 
 	bool initSSLClientContext()
 	{
-		SharedPtr<InvalidCertificateHandler> pCert = new ConsoleCertificateHandler(false); // ask the user via console
+		SharedPtr<InvalidCertificateHandler> pCert = new RejectCertificateHandler(false); // reject invalid certificates
 		/*
 		Context(Usage usage,
 		const std::string& certificateNameOrPath,
@@ -96,7 +96,13 @@ namespace ServerConfig {
 		int options = OPT_DEFAULTS,
 		const std::string& certificateStoreName = CERT_STORE_MY);
 		*/
-		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", "", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		try {
+			g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", "cacert.pem", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		} catch(Poco::Exception& ex) {
+			printf("[ServerConfig::initSSLClientContext] error init ssl context, maybe no cacert.pem found?\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n");
+			return false;
+		}
+		//g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", "", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 		// another poco version?
 		//g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
 		SSLManager::instance().initializeClient(0, pCert, g_SSL_CLient_Context);

@@ -96,13 +96,13 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	mSodiumSecret = new ObfusArray(crypto_sign_SECRETKEYBYTES, sodium_secret);
 
 	// print hex for all keys for debugging
-	printf("//********** Keys *************//\n");
+/*	printf("// ********** Keys ************* //\n");
 	printf("Public: \t%s\n", getHex(mPublicKey, ed25519_pubkey_SIZE).data());
 	printf("Private: \t%s\n", getHex(*mPrivateKey, mPrivateKey->size()).data());
 	printf("Sodium Public: \t%s\n", getHex(mSodiumPublic, crypto_sign_PUBLICKEYBYTES).data());
 	printf("Sodium Private: \t%s\n", getHex(*mSodiumSecret, mSodiumSecret->size()).data());
-	printf("//********* Keys End ************//\n");
-
+	printf("// ********* Keys End ************ //\n");
+*/
 	// using 
 	return true;
 }

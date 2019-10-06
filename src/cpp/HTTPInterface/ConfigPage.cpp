@@ -5,7 +5,7 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 4 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\config.cpsp"
+#line 4 "/home/rock/code/gradido_login_server/src/cpsp/config.cpsp"
  
 	
 

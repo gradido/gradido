@@ -76,16 +76,17 @@ int MysqlTable::connectToStatement(Poco::Data::Statement* stmt, int rowIndex/* =
 	for (auto itRow = mRows.begin(); itRow != mRows.end(); itRow++) {
 		if (0 == rowIndex) {
 			for (auto itCell = (*itRow)->begin(); itCell != (*itRow)->end(); itCell++) {
+				MysqlTableCell* cell = (*itCell);
 				switch ((*itCell)->getType()) {
 				case MYSQL_ROW_STRING:
-					strCopy = (const char*)(*itCell);
+					strCopy = (const char*)(*cell);
 					stmt->bind(strCopy);
 					break;
-				case MYSQL_ROW_INT: stmt->bind((long)(*itCell)); break;
-				case MYSQL_ROW_LONG: stmt->bind((long long)(*itCell)); break;
+				case MYSQL_ROW_INT: stmt->bind((Poco::Int32)(*cell)); break;
+				case MYSQL_ROW_LONG: stmt->bind((Poco::Int64)(*cell)); break;
 				case MYSQL_ROW_BINARY: 
 					// Poco::Data::BLOB data(std::vector<unsigned char>({ '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' }));
-					Poco::Data::BLOB data((unsigned char*)(*itCell), (*itCell)->size());
+					Poco::Data::BLOB data((unsigned char*)(*cell), cell->size());
 					stmt->bind(data);
 					break;
 				}
