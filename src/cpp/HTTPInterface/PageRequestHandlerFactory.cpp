@@ -77,6 +77,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return new SaveKeysPage(s);
 		}
 		if (s && s->getUser()) {
+			printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return new DashboardPage(s);
 		}
 	} else {

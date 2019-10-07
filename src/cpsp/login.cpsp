@@ -18,7 +18,8 @@
 			session->setClientIp(user_host);
 			response.addCookie(session->getLoginCookie());
 			auto uri_start = request.serverParams().getServerName();
-			response.redirect(uri_start + "/");
+			//response.redirect(uri_start + "/");
+			response.redirect("./");
 			return;
 		}
 	} else {

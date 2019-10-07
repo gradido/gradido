@@ -33,7 +33,8 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			session->setClientIp(user_host);
 			response.addCookie(session->getLoginCookie());
 			auto uri_start = request.serverParams().getServerName();
-			response.redirect(uri_start + "/");
+			//response.redirect(uri_start + "/");
+			response.redirect("./");
 			return;
 		}
 	} else {
@@ -78,7 +79,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 62 "/home/rock/code/gradido_login_server/src/cpsp/login.cpsp"
+#line 63 "/home/rock/code/gradido_login_server/src/cpsp/login.cpsp"
 	responseStream << ( session->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";

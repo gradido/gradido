@@ -498,6 +498,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		}
 		else {
 			if (savePassphrase) {
+				printf("[Session::generateKeys] create save passphrase task\n");
 				UniLib::controller::TaskPtr savePassphrase(new WritePassphraseIntoDB(mSessionUser->getDBId(), mPassphrase));
 				savePassphrase->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_PASSPHRASE_WRITTEN, this));
 				savePassphrase->scheduleTask(savePassphrase);

@@ -18,11 +18,15 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	d[m_arraySize - 4] = randombytes_random();
 
 	memcpy(&m_Data[m_offsetSize], data, size);
+	printf("[ObfusArray] data: %lld\n", (int64_t)m_Data);
 }
 
 ObfusArray::~ObfusArray()
 {
+	printf("[ObfusArray::~ObfusArray] data: %lld\n", (int64_t)m_Data);
 	if (m_Data) {
+		
 		free(m_Data);
 	}
+	printf("[ObfusArray::~ObfusArray] finish\n");
 }

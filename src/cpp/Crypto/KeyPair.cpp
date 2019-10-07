@@ -103,6 +103,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	printf("Sodium Private: \t%s\n", getHex(*mSodiumSecret, mSodiumSecret->size()).data());
 	printf("// ********* Keys End ************ //\n");
 */
+	printf("[KeyPair::generateFromPassphrase] finished!\n");
 	// using 
 	return true;
 }

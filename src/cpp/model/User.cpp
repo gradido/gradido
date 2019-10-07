@@ -23,11 +23,12 @@ int UserCreateCryptoKey::run()
 	mUser->setCryptoKey(cryptoKey);
 
 	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
+		printf("[UserCreateCryptoKey] crypto_shorthash_BYTES != sizeof(mPasswordHashed)\n");
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(mPasswordHashed)");
 	}
 	User::passwordHashed pwdHashed;
+	
 	crypto_shorthash((unsigned char*)&pwdHashed, *cryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
-
 	mUser->setPwdHashed(pwdHashed);
 
 	printf("crypto key created\n");
@@ -54,11 +55,18 @@ int UserGenerateKeys::run()
 int UserWriteIntoDB::run()
 {
 	auto cm = ConnectionManager::getInstance();
+	auto em = ErrorManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement insert = mUser->insertIntoDB(session);
-	if (1 != insert.execute()) {
-		mUser->addError(new Error("User::insertIntoDB", "error by inserting data tuple to db"));
-		return -1;
+	try {
+		if (1 != insert.execute()) {
+			mUser->addError(new Error("User::insertIntoDB", "error by inserting data tuple to db"));
+			return -1;
+		}
+	} catch (Poco::Exception& ex) {
+		em->addError(new ParamError("[UserWriteIntoDB]", "error writing into db", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+		return -3;
 	}
 	if (!mUser->loadEntryDBId(session)) {
 		return -2;
@@ -86,14 +94,18 @@ int UserWriteKeysIntoDB::run()
 	auto keyPairs = getParent(0).cast<UserGenerateKeys>()->getKeyPairs();
 	auto pubKey = keyPairs->getPublicKey();
 	
+	printf("[UserWriteKeysIntoDB] after init\n");
+	
 	Poco::Data::BLOB pubkey_blob(pubKey, crypto_sign_PUBLICKEYBYTES);
 	Poco::Data::Statement update(session);
 	Poco::Data::BLOB* pprivkey_blob = nullptr;
 	if (mSavePrivKey) {
+		printf("[UserWriteKeysIntoDB] save privkey\n");
 		// TODO: encrypt privkey
 		auto privKey = keyPairs->getPrivateKey();
 		printf("[UserWriteKeysIntoDB] privKey hex: %s\n", KeyPair::getHex(*privKey, privKey->size()).data());
 		pprivkey_blob = mUser->encrypt(privKey);
+		printf("[UserWriteKeysIntoDB] privkey encrypted\n");
 		//Poco::Data::BLOB privkey_blob(*privKey, privKey->size());
 
 		update << "UPDATE users SET pubkey=?, privkey=? where id=?",
@@ -122,6 +134,7 @@ int UserWriteKeysIntoDB::run()
 		}
 		return -1;
 	}
+	printf("[UserWriteKeysIntoDB] after saving into db\n");
 	if (pprivkey_blob) {
 		delete pprivkey_blob;
 	}
@@ -310,6 +323,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 	session->updateState(SESSION_STATE_KEY_PAIR_GENERATED);
 
 	if (mDBId == 0) {
+		//printf("[User::generateKeys] dbid is zero, load from db\n");
 		loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 		if (mDBId == 0) {
 			auto em = ErrorManager::getInstance();
@@ -375,14 +389,19 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 
 bool User::loadEntryDBId(Poco::Data::Session session)
 {
+	auto em = ErrorManager::getInstance();
 	Poco::Data::Statement select(session);
 	 
 	select << "SELECT id from users where email = ?;", 
 		into(mDBId), use(mEmail);
-
-	if (select.execute() != 1) {
-		addError(new Error("User::loadEntryDBId", "didn't get expectet row count (1)"));
-		return false;
+	try {
+		if (select.execute() != 1) {
+			addError(new Error("User::loadEntryDBId", "didn't get expectet row count (1)"));
+			return false;
+		}
+	} catch(Poco::Exception& ex) {
+		em->addError(new ParamError("[User::loadEntryDBId]", "error selecting from db", ex.displayText().data()));
+		em->sendErrorsAsEmail();
 	}
 
 	return true;

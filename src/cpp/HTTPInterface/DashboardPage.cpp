@@ -49,11 +49,13 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
 #line 28 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
+printf("[DashboardPage] call get User get Name: \n");
 	responseStream << ( mSession->getUser()->getName() );
 	responseStream << "</h1>\n";
 	responseStream << "\t<h3>Status</h3>\n";
 	responseStream << "\t<p>";
 #line 30 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
+printf("[DashboardPage] call getSessionStateString: \n");
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
