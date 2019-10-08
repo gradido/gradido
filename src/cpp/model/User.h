@@ -51,6 +51,10 @@ public:
 	bool validatePwd(const std::string& pwd);
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
+
+	// for poco auto ptr
+	void duplicate();
+	void release();
 protected:
 	typedef Poco::UInt64 passwordHashed;
 
@@ -66,6 +70,8 @@ protected:
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
 
+	
+
 private:
 	int mDBId;
 	std::string mEmail;
@@ -78,26 +84,28 @@ private:
 	std::string mPublicHex;
 	Poco::Mutex mWorkingMutex;
 	
+	// for poco auto ptr
+	int mReferenceCount;
 };
 
 class UserCreateCryptoKey : public UniLib::controller::CPUTask
 {
 public:
-	UserCreateCryptoKey(User* user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
+	UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
 		: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password)  {}
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserCreateCryptoKey"; };
 
 private:
-	User* mUser;
+	Poco::AutoPtr<User> mUser;
 	std::string mPassword;
 };
 
 class UserGenerateKeys : public UniLib::controller::CPUTask
 {
 public:
-	UserGenerateKeys(User* user, const std::string& passphrase)
+	UserGenerateKeys(Poco::AutoPtr<User> user, const std::string& passphrase)
 		: mUser(user), mPassphrase(passphrase) {}
 
 	~UserGenerateKeys() {
@@ -108,7 +116,7 @@ public:
 
 	virtual const char* getResourceType() const { return "UserGenerateKeys"; };
 protected:
-	User* mUser;
+	Poco::AutoPtr<User> mUser;
 	std::string mPassphrase;
 	KeyPair mKeys;
 };
@@ -116,25 +124,25 @@ protected:
 class UserWriteIntoDB : public UniLib::controller::CPUTask
 {
 public:
-	UserWriteIntoDB(User* user, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
+	UserWriteIntoDB(Poco::AutoPtr<User> user, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
 		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user) {}
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserWriteIntoDB"; };
 private: 
-	User* mUser;
+	Poco::AutoPtr<User> mUser;
 };
 
 class UserWriteKeysIntoDB : public UniLib::controller::CPUTask
 {
 public:
-	UserWriteKeysIntoDB(UniLib::controller::TaskPtr  parent, User* user, bool savePrivKey);
+	UserWriteKeysIntoDB(UniLib::controller::TaskPtr  parent, Poco::AutoPtr<User> user, bool savePrivKey);
 
 	virtual int run();
 
 	virtual const char* getResourceType() const { return "UserWriteKeysIntoDB"; };
 protected:
-	User* mUser;
+	Poco::AutoPtr<User> mUser;
 	bool mSavePrivKey;
 };
 

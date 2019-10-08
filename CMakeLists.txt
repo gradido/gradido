@@ -46,6 +46,7 @@ conan_basic_setup()
 
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
+#SUBDIRS("src/test")
 
 if(WIN32)
 
@@ -61,6 +62,7 @@ find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQU
 set(INSTALL_BINDIR "bin")
 set(INSTALL_PLUGINDIR "bin")
 add_subdirectory("dependencies/mariadb-connector-c")
+
 
 include_directories(
 	"dependencies/mariadb-connector-c/include"

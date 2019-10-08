@@ -19,16 +19,24 @@ using namespace Poco::Data::Keywords;
 int WriteEmailVerification::run()
 {	
 	Profiler timeUsed;
-	Poco::UInt64 verificationCode = mSession->getEmailVerificationCode();
+	auto em = ErrorManager::getInstance();
+	
 	//printf("[WriteEmailVerification::run] E-Mail Verification Code: %llu\n", verificationCode);
 	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	//int user_id = mUser->getDBId();
 	Poco::Data::Statement insert(dbSession);
 	insert << "INSERT INTO email_opt_in (user_id, verification_code) VALUES(?,?);",
-		bind(mUser->getDBId()), use(verificationCode);
-	if (1 != insert.execute()) {
-		mSession->addError(new Error("WriteEmailVerification", "error inserting email verification code"));
-		return -1;
+		bind(mUser->getDBId()), use(mEmailVerificationCode);
+	try {
+		if (1 != insert.execute()) {
+			em->addError(new Error("[WriteEmailVerification]", "error inserting email verification code"));
+			em->sendErrorsAsEmail();
+			return -1;
+		}
+	} catch (Poco::Exception& ex) {
+		em->addError(new ParamError("[WriteEmailVerification]", "error inserting email verification code", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+		return -2;
 	}
 	printf("[WriteEmailVerification] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
@@ -85,20 +93,27 @@ Session::~Session()
 
 void Session::reset()
 {
-	if (mSessionUser) {
-		delete mSessionUser;
-		mSessionUser = nullptr;
-	}
-	updateTimeout();
-	updateState(SESSION_STATE_EMPTY);
+	lock();
+	
+	mSessionUser = nullptr;
+
+	// watch out
+	//updateTimeout();
+	mLastActivity = Poco::DateTime();
+	
+	mState = SESSION_STATE_EMPTY;
+	
 	mPassphrase = "";
 	mClientLoginIP = Poco::Net::IPAddress();
 	mEmailVerificationCode = 0;
+	unlock();
 }
 
 void Session::updateTimeout()
 {
+	lock();
 	mLastActivity = Poco::DateTime();
+	unlock();
 }
 
 bool Session::createUser(const std::string& name, const std::string& email, const std::string& password)
@@ -114,7 +129,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		return false;
 	}
 	if (!sm->isValid(password, VALIDATE_PASSWORD)) {
-		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen ein!"));
+		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen (@$!%*?&+-) ein!"));
 
 		// @$!%*?&+-
 		if (password.size() < 8) {
@@ -181,7 +196,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 
 	createEmailVerificationCode();
 
-	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, this, ServerConfig::g_CPUScheduler, 1));
+	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, mEmailVerificationCode, ServerConfig::g_CPUScheduler, 1));
 	writeEmailVerification->setParentTaskPtrInArray(writeUserIntoDB, 0);
 	writeEmailVerification->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN, this));
 	writeEmailVerification->scheduleTask(writeEmailVerification);
@@ -419,6 +434,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 void Session::updateState(SessionStates newState)
 {
 	lock();
+	if (!mActive) return;
 	updateTimeout();
 	printf("[%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
 	if (newState > mState) {

@@ -79,7 +79,7 @@ label:not(.grd_radio_label) {
 	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
 		<div class="grd_text-max-width">
 			<div class="grd_text">
-				Schreibe dir den Merkspruch auf und packe ihn gut weg. Du brauchst ihn um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.
+				Schreibe dir die Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.
 			</div>
 			<div class="grd_textarea">
 				<%= mSession->getPassphrase() %>

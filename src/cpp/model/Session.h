@@ -62,7 +62,7 @@ public:
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
-	inline User* getUser() { return mSessionUser; }
+	inline Poco::AutoPtr<User> getUser() { return mSessionUser; }
 
 	inline int getHandle() { return mHandleId; }
 	
@@ -82,12 +82,13 @@ public:
 	const char* getSessionStateString();
 	inline SessionStates getSessionState() { SessionStates s; lock(); s = mState; unlock(); return s; }
 
-	inline unsigned long long getEmailVerificationCode() { return mEmailVerificationCode; }
+	inline Poco::UInt64 getEmailVerificationCode() { return mEmailVerificationCode; }
 
 	inline bool isActive() const { return mActive; }
 	inline void setActive(bool active) { mActive = active; }
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
+
 
 protected:
 	void updateTimeout();
@@ -100,30 +101,31 @@ protected:
 
 private: 
 	int mHandleId;
-	User* mSessionUser;
+	Poco::AutoPtr<User> mSessionUser;
 	std::string mPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
-	unsigned long long mEmailVerificationCode;
+	Poco::UInt64 mEmailVerificationCode;
 
 	SessionStates mState;
 
 	bool mActive;
+
 };
 
 
 class WriteEmailVerification : public UniLib::controller::CPUTask
 {
 public:
-	WriteEmailVerification(User* user, Session* session, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
-		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mSession(session) {}
+	WriteEmailVerification(Poco::AutoPtr<User> user, Poco::UInt64 emailVerificationCode, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
+		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mEmailVerificationCode(emailVerificationCode) {}
 
 	virtual const char* getResourceType() const { return "WriteEmailVerification"; };
 	virtual int run();
 
 private:
-	User* mUser;
-	Session* mSession;
+	Poco::AutoPtr<User> mUser;
+	Poco::UInt64 mEmailVerificationCode;
 
 };
 

@@ -76,7 +76,7 @@ int UserWriteIntoDB::run()
 
 // --------------------------------------------------------------------------------------------------------
 
-UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, User* user, bool savePrivKey)
+UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, Poco::AutoPtr<User> user, bool savePrivKey)
 	: UniLib::controller::CPUTask(1), mUser(user), mSavePrivKey(savePrivKey)
 {
 	if (strcmp(parent->getResourceType(), "UserGenerateKeys") != 0) {
@@ -201,6 +201,7 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 	unsigned int str_sizes[PHRASE_WORD_COUNT];
 	unsigned int phrase_buffer_size = 0;
 
+	// TODO: make sure words didn't double
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 		random_indices[i] = randombytes_random() % 2048;
 		auto word = word_source->getWord(random_indices[i]);
@@ -269,6 +270,20 @@ bool User::validatePwd(const std::string& pwd)
 	}
 	delete cmpCryptoKey;
 	return false;
+}
+
+void User::duplicate()
+{
+	mReferenceCount++;
+}
+
+void User::release()
+{
+	mReferenceCount--;
+	if (0 == mReferenceCount) {
+		delete this;
+	}
+
 }
 
 ObfusArray* User::createCryptoKey(const std::string& password)
