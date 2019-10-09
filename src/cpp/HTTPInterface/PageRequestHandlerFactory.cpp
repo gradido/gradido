@@ -11,6 +11,7 @@
 #include "CheckEmailPage.h"
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
+#include "ElopageWebhook.h"
 
 #include "../SingletonManager/SessionManager.h"
 
@@ -34,6 +35,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (referer != request.end()) {
 			printf("referer: %s\n", referer->second.data());
 		}
+	}
+
+	if (url_first_part == "/elopage_webhook_261") {
+		return new ElopageWebhook;
 	}
 
 	// check if user has valid session

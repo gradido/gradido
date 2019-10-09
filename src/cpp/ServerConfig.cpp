@@ -8,6 +8,12 @@
 #include "Poco/Net/RejectCertificateHandler.h"
 #include "Poco/SharedPtr.h"
 
+#include "Poco/Mutex.h"
+#include "Poco/FileStream.h"
+#include "Poco/LocalDateTime.h"
+#include "Poco/DateTimeFormat.h"
+#include "Poco/DateTimeFormatter.h"
+
 using Poco::Net::SSLManager;
 using Poco::Net::Context;
 using Poco::Net::KeyConsoleHandler;
@@ -117,5 +123,32 @@ namespace ServerConfig {
 		if (g_CPUScheduler) {
 			delete g_CPUScheduler;
 		}
+	}
+
+	void writeToFile(std::istream& datas, std::string& fileName)
+	{
+		static Poco::Mutex mutex;
+
+		mutex.lock();
+
+		Poco::FileOutputStream file(fileName, std::ios::out | std::ios::app);
+
+		if (!file.good()) {
+			printf("[ServerConfig::writeToFile] error creating file with name: %s\n", fileName.data());
+			mutex.unlock();
+			return;
+		}
+
+		Poco::LocalDateTime now;
+
+		std::string dateTimeStr = Poco::DateTimeFormatter::format(now, Poco::DateTimeFormat::ISO8601_FORMAT);
+		file << dateTimeStr << std::endl; 
+
+		for (std::string line; std::getline(datas, line); ) {
+			file << line << std::endl;
+		}
+		file << std::endl;
+		file.close();
+		mutex.unlock();
 	}
 }

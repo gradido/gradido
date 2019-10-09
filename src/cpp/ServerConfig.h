@@ -3,6 +3,7 @@
 #include "Poco/Util/LayeredConfiguration.h"
 #include "Poco/Net/Context.h"
 
+
 #include "tasks/CPUSheduler.h"
 
 namespace ServerConfig {
@@ -33,6 +34,8 @@ namespace ServerConfig {
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
+
+	void writeToFile(std::istream& datas, std::string& fileName);
 
 	void unload();
 };
