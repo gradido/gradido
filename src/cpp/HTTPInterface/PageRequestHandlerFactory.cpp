@@ -65,6 +65,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			printf("session released\n");
 			return new LoginPage;
 		}
+		if(url_first_part == "/user_delete") {
+			if(s->deleteUser()) {
+				sm->releseSession(s);
+				return new LoginPage;			
+			}
+			
+		}
 		auto sessionState = s->getSessionState();
 		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
 		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED) {

@@ -272,6 +272,33 @@ bool User::validatePwd(const std::string& pwd)
 	return false;
 }
 
+bool User::deleteFromDB()
+{
+	auto cm = ConnectionManager::getInstance();
+	auto em = ErrorManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	
+	Poco::Data::Statement deleteFromDB(session);
+	//DELETE FROM `table_name` [WHERE condition];
+	
+	deleteFromDB 
+		<< "DELETE from users where id = ?;"
+		<< "DELETE from email_opt_in where user_id = ?;"
+		<< "DELETE from user_backups where user_id = ?",
+		 use(mDBId), use(mDBId), use(mDBId);
+		
+	try {
+		auto result = deleteFromDB.execute();
+		printf("[User::deleteFromDB] deleted: %d\n", result);
+	} catch(Poco::Exception& ex) {
+		em->addError(new ParamError("[User::deleteFromDB]", "error deleting user tables", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+		return false;
+	}
+	
+	return true;
+}
+
 void User::duplicate()
 {
 	mReferenceCount++;

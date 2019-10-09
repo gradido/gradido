@@ -298,7 +298,7 @@ bool Session::isPwdValid(const std::string& pwd)
 bool Session::loadUser(const std::string& email, const std::string& password)
 {
 	Profiler usedTime;
-	if (mSessionUser) delete mSessionUser;
+	if (mSessionUser) mSessionUser = nullptr;
 	mSessionUser = new User(email.data());
 	if (!mSessionUser->validatePwd(password)) {
 		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut"));
@@ -307,6 +307,19 @@ bool Session::loadUser(const std::string& email, const std::string& password)
 	detectSessionState();
 
 	return true;
+}
+
+bool Session::deleteUser()
+{
+	bool bResult = false;
+	if(mSessionUser) {
+		bResult = mSessionUser->deleteFromDB();
+	}
+	if(!bResult) {
+		addError(new Error("Benutzer", "Fehler beim l&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal."));
+	}
+	
+	return bResult;
 }
 
 /*

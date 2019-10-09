@@ -27,6 +27,7 @@ ObfusArray::~ObfusArray()
 	if (m_Data) {
 		
 		free(m_Data);
+		m_Data = nullptr;
 	}
 	printf("[ObfusArray::~ObfusArray] finish\n");
 }

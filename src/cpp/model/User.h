@@ -38,6 +38,8 @@ public:
 
 	bool loadEntryDBId(Poco::Data::Session session);
 	
+	bool deleteFromDB();
+	
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
 	
 	inline const char* getEmail() const { return mEmail.data(); }

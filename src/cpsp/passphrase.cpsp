@@ -50,7 +50,7 @@ enum PageState
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradido Login Server: Merkspruch</title>
+<title>Gradido Login Server: Passphrase</title>
 <!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
 <link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
 <style type="text/css" >

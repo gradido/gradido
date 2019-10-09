@@ -268,8 +268,6 @@ void SessionManager::checkTimeoutSession()
 	
 }
 
-
-
 int CheckSessionTimeouted::run()
 {
 	SessionManager::getInstance()->checkTimeoutSession();

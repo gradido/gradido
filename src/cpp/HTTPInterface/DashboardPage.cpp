@@ -49,17 +49,19 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
 #line 28 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
-printf("[DashboardPage] call get User get Name: \n");
 	responseStream << ( mSession->getUser()->getName() );
 	responseStream << "</h1>\n";
+	responseStream << "\t";
+#line 29 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
+	responseStream << ( mSession->getErrorsHtml() );
+	responseStream << "\n";
 	responseStream << "\t<h3>Status</h3>\n";
 	responseStream << "\t<p>";
-#line 30 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
-printf("[DashboardPage] call getSessionStateString: \n");
+#line 31 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 31 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
+#line 32 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
 	responseStream << "\t<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
@@ -67,9 +69,10 @@ printf("[DashboardPage] call getSessionStateString: \n");
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 37 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
+#line 38 "/home/rock/code/gradido_login_server/src/cpsp/dashboard.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t<a class=\"grd_bn\" href=\"logout\">Abmelden</a>\n";
+	responseStream << "\t<a class=\"grd_bn\" href=\"user_delete\">Account l&ouml;schen</a>\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";
 	responseStream << "</html>\n";

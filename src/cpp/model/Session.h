@@ -55,6 +55,8 @@ public:
 	bool createUser(const std::string& name, const std::string& email, const std::string& password);
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	bool loadUser(const std::string& email, const std::string& password);
+	
+	bool deleteUser();
 
 	bool loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode);
 
