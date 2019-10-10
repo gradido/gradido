@@ -18,11 +18,11 @@
 #define Data_MySQL_SessionImpl_INCLUDED
 
 
-#include "Poco/MySQL.h"
+#include "MySQL.h"
 #include "Poco/Data/AbstractSessionImpl.h"
-#include "Poco/SessionHandle.h"
-#include "Poco/StatementExecutor.h"
-#include "Poco/ResultMetadata.h"
+#include "SessionHandle.h"
+#include "StatementExecutor.h"
+#include "ResultMetadata.h"
 #include "Poco/Mutex.h"
 
 

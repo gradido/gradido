@@ -18,9 +18,9 @@
 #define Data_MySQL_Extractor_INCLUDED
 
 
-#include "Poco/MySQL.h"
-#include "Poco/StatementExecutor.h"
-#include "Poco/ResultMetadata.h"
+#include "MySQL.h"
+#include "StatementExecutor.h"
+#include "ResultMetadata.h"
 #include "Poco/Data/AbstractExtractor.h"
 #include "Poco/Data/LOB.h"
 

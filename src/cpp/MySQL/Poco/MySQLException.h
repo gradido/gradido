@@ -17,7 +17,7 @@
 #ifndef Data_MySQL_MySQLException_INCLUDED
 #define Data_MySQL_MySQLException_INCLUDED
 
-#include "Poco/MySQL.h"
+#include "MySQL.h"
 #include "Poco/Data/DataException.h"
 #include <typeinfo>
 #include <string>

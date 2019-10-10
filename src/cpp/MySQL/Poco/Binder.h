@@ -20,7 +20,7 @@
 #include "MySQL.h"
 #include "Poco/Data/AbstractBinder.h"
 #include "Poco/Data/LOB.h"
-#include "Poco/MySQLException.h"
+#include "MySQLException.h"
 #ifdef _WIN32 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")

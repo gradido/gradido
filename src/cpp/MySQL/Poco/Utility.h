@@ -18,7 +18,7 @@
 #define MySQL_Utility_INCLUDED
 
 
-#include "Poco/MySQL.h"
+#include "MySQL.h"
 #include "Poco/Data/Session.h"
 
 

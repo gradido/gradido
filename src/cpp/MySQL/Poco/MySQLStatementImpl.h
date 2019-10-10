@@ -17,12 +17,12 @@
 #ifndef Data_MySQL_MySQLStatementImpl_INCLUDED
 #define Data_MySQL_MySQLStatementImpl_INCLUDED
 
-#include "Poco/MySQL.h"
-#include "Poco/SessionImpl.h"
-#include "Poco/Binder.h"
-#include "Poco/Extractor.h"
-#include "Poco/StatementExecutor.h"
-#include "Poco/ResultMetadata.h"
+#include "MySQL.h"
+#include "SessionImpl.h"
+#include "Binder.h"
+#include "Extractor.h"
+#include "StatementExecutor.h"
+#include "ResultMetadata.h"
 #include "Poco/Data/StatementImpl.h"
 #include "Poco/SharedPtr.h"
 #include "Poco/Format.h"
