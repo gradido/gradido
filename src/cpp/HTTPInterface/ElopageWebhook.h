@@ -5,6 +5,7 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "../tasks/CPUTask.h"
 
+#include "Poco/Net/NameValueCollection.h"
 
 class ElopageWebhook : public Poco::Net::HTTPRequestHandler
 {
@@ -15,8 +16,8 @@ public:
 class HandleElopageRequestTask : public UniLib::controller::CPUTask
 {
 public:
-	HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData)
-		: CPUTask(ServerConfig::g_CPUScheduler), mRequestData(requestData) {}
+	HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData);
+		
 
 	const char* getResourceType() const { return "HandleElopageRequestTask"; };
 	int run();

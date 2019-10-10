@@ -38,6 +38,12 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 }
 
 
+// ****************************************************************************
+HandleElopageRequestTask::HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData)
+	: CPUTask(ServerConfig::g_CPUScheduler), mRequestData(requestData) 
+{
+}
+
 int HandleElopageRequestTask::run()
 {
 	printf("[HandleElopageRequestTask::run]\n");
