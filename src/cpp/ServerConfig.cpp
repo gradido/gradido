@@ -130,7 +130,7 @@ namespace ServerConfig {
 		}
 	}
 
-	void writeToFile(std::istream& datas, std::string& fileName)
+	void writeToFile(std::istream& datas, std::string fileName)
 	{
 		static Poco::Mutex mutex;
 

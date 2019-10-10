@@ -36,7 +36,7 @@ namespace ServerConfig {
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
 
-	void writeToFile(std::istream& datas, std::string& fileName);
+	void writeToFile(std::istream& datas, std::string fileName);
 
 	void unload();
 };
