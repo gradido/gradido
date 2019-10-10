@@ -17,7 +17,7 @@
 #ifndef Data_MySQL_Binder_INCLUDED
 #define Data_MySQL_Binder_INCLUDED
 
-#include "Poco/MySQL.h"
+#include "MySQL.h"
 #include "Poco/Data/AbstractBinder.h"
 #include "Poco/Data/LOB.h"
 #include "Poco/MySQLException.h"

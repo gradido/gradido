@@ -413,7 +413,9 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	// prevent reading or changing cookie with js
 	keks.setHttpOnly();
 	// send cookie only via https
-	//keks.setSecure(true);
+#ifndef WIN32
+	keks.setSecure(true);
+#endif
 	
 	return keks;
 }
