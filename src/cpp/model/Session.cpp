@@ -297,11 +297,15 @@ bool Session::isPwdValid(const std::string& pwd)
 
 bool Session::loadUser(const std::string& email, const std::string& password)
 {
-	Profiler usedTime;
+	//Profiler usedTime;
+	if (email == "" || password == "") {
+		addError(new Error("Login", "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"));
+		return false;
+	}
 	if (mSessionUser) mSessionUser = nullptr;
 	mSessionUser = new User(email.data());
 	if (!mSessionUser->validatePwd(password)) {
-		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut"));
+		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
 		return false;
 	}
 	detectSessionState();

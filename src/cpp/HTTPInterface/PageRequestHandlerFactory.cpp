@@ -38,6 +38,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 
 	if (url_first_part == "/elopage_webhook_261") {
+		printf("choose elopage\n");
 		return new ElopageWebhook;
 	}
 
