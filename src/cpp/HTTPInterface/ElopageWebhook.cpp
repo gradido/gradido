@@ -15,10 +15,11 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	std::istream& stream = request.stream();
 	Poco::Net::NameValueCollection elopageRequestData;
 	while (!stream.eof()) {
-		char keyBuffer[30];
-		char valueBuffer[35];
+		char keyBuffer[30]; memset(keyBuffer, 0, 30);
+		char valueBuffer[35]; memset(valueBuffer, 0, 35);
 		stream.get(keyBuffer, 30, '=')
 			  .get(valueBuffer, 35, '&');
+		printf("[ElopageWebhook::handleRequest] key: %s, value: %s\n", keyBuffer, valueBuffer);
 		elopageRequestData.set(keyBuffer, valueBuffer);
 	}
 	UniLib::controller::TaskPtr handleElopageTask(new HandleElopageRequestTask(elopageRequestData));

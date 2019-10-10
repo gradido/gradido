@@ -13,7 +13,7 @@ namespace UniLib {
 
 		int Thread::init(const char* threadName)
 		{
-			semaphore.wait();
+			//semaphore.wait();
 			mPocoThread = new Poco::Thread(threadName);
 			mPocoThread->start(*this);
 			return 0;
@@ -21,15 +21,19 @@ namespace UniLib {
 
         Thread::~Thread()
         {
+			printf("[Thread::~Thread]\n");
             if(mPocoThread)
             {
                 //Post Exit to Thread
                 exitCalled = true;
-				semaphore.wait();
-                
+				printf("[Thread::~Thread] before semaphore wait\n");
+				//semaphore.wait();
+				printf("[Thread::~Thread] after semaphore wait, before condSignal\n");
                 condSignal();
+				printf("[Thread::~Thread] after condSignal, before thread join\n");
                 //SDL_Delay(500);
 				mPocoThread->join();
+				printf("[Thread::~Thread] after thread join\n");
                 //SDL_WaitThread(thread, NULL);
                 //LOG_WARNING_SDL();
 				delete mPocoThread;
@@ -54,7 +58,7 @@ namespace UniLib {
             //Thread* t = this;
 			while (true) {
 				try {
-					semaphore.tryWait(100);
+					//semaphore.tryWait(100);
 					//printf("[Thread::%s] end worker thread\n", __FUNCTION__);
 					//break;
 					if (exitCalled) return;
