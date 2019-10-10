@@ -69,7 +69,7 @@ namespace UniLib {
             Poco::Mutex		   mutex;
             Poco::Thread*      mPocoThread;
             Poco::Condition	   condition;
-            Poco::Semaphore	   semaphore;
+            //Poco::Semaphore	   semaphore;
             bool               exitCalled;
         };
 

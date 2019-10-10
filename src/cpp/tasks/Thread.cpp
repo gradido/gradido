@@ -6,7 +6,7 @@ namespace UniLib {
     namespace lib {
 
         Thread::Thread(const char* threadName/* = NULL*/, bool createInConstructor/* = true*/)
-            : mPocoThread(nullptr), semaphore(1), exitCalled(false)
+            : mPocoThread(nullptr), exitCalled(false)
         {
 			if (createInConstructor) init(threadName);
         } 
@@ -26,14 +26,14 @@ namespace UniLib {
             {
                 //Post Exit to Thread
                 exitCalled = true;
-				printf("[Thread::~Thread] before semaphore wait\n");
+				//printf("[Thread::~Thread] before semaphore wait\n");
 				//semaphore.wait();
-				printf("[Thread::~Thread] after semaphore wait, before condSignal\n");
+				//printf("[Thread::~Thread] after semaphore wait, before condSignal\n");
                 condSignal();
-				printf("[Thread::~Thread] after condSignal, before thread join\n");
+				//printf("[Thread::~Thread] after condSignal, before thread join\n");
                 //SDL_Delay(500);
 				mPocoThread->join();
-				printf("[Thread::~Thread] after thread join\n");
+				//printf("[Thread::~Thread] after thread join\n");
                 //SDL_WaitThread(thread, NULL);
                 //LOG_WARNING_SDL();
 				delete mPocoThread;
