@@ -12,7 +12,7 @@
 //
 
 
-#include "Poco/Data/MySQL/SessionHandle.h"
+#include "Poco/SessionHandle.h"
 #include "Poco/Data/DataException.h"
 #include "Poco/SingletonHolder.h"
 #ifdef POCO_OS_FAMILY_UNIX

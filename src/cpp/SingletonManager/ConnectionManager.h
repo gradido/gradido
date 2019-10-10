@@ -6,7 +6,7 @@
 
 #include "Poco/Util/LayeredConfiguration.h"
 #include "Poco/Data/SessionPoolContainer.h"
-#include "Poco/Data/MySQL/Connector.h"
+#include "../MySQL/Poco/Connector.h"
 #include "Poco/Exception.h"
 
 #include "../model/ErrorList.h"

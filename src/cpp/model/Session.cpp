@@ -94,6 +94,7 @@ Session::~Session()
 
 void Session::reset()
 {
+	printf("[Session::reset]\n");
 	lock();
 	
 	mSessionUser = nullptr;
@@ -108,6 +109,7 @@ void Session::reset()
 	mClientLoginIP = Poco::Net::IPAddress();
 	mEmailVerificationCode = 0;
 	unlock();
+	printf("[Session::reset] finished\n");
 }
 
 void Session::updateTimeout()
@@ -117,12 +119,16 @@ void Session::updateTimeout()
 	unlock();
 }
 
-bool Session::createUser(const std::string& name, const std::string& email, const std::string& password)
+bool Session::createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
 {
 	Profiler usedTime;
 	auto sm = SessionManager::getInstance();
-	if (!sm->isValid(name, VALIDATE_NAME)) {
+	if (!sm->isValid(first_name, VALIDATE_NAME)) {
 		addError(new Error("Vorname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keine Sonderzeichen oder Zahlen."));
+		return false;
+	}
+	if (!sm->isValid(last_name, VALIDATE_NAME)) {
+		addError(new Error("Nachname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keine Sonderzeichen oder Zahlen."));
 		return false;
 	}
 	if (!sm->isValid(email, VALIDATE_EMAIL)) {
@@ -177,7 +183,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 		printf("mysql exception: %s\n", exc.displayText().data());
 	}
 
-	mSessionUser = new User(email.data(), name.data());
+	mSessionUser = new User(email.data(), first_name.data(), last_name.data());
 	updateTimeout();
 
 	// Prepare E-Mail
@@ -321,7 +327,7 @@ bool Session::deleteUser()
 		bResult = mSessionUser->deleteFromDB();
 	}
 	if(!bResult) {
-		addError(new Error("Benutzer", "Fehler beim l&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal."));
+		addError(new Error("Benutzer", "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal."));
 	}
 	
 	return bResult;
@@ -392,7 +398,7 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	// prevent reading or changing cookie with js
 	keks.setHttpOnly();
 	// send cookie only via https
-	keks.setSecure(true);
+	//keks.setSecure(true);
 	
 	return keks;
 }

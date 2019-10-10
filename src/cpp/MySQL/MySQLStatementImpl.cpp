@@ -12,7 +12,7 @@
 //
 
 
-#include "Poco/Data/MySQL/MySQLStatementImpl.h"
+#include "Poco/MySQLStatementImpl.h"
 
 namespace Poco {
 namespace Data {

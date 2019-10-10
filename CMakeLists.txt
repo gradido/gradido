@@ -8,9 +8,11 @@ include_directories(
 	"dependencies" 
 	"dependencies/tinf/src/" 
 	"dependencies/iroha-ed25519/include"
+	"dependencies/mariadb-connector-c/include"
+	"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/include"
-	"import/mariadb/include"
+	#"import/mariadb/include"
 )
 
 
@@ -50,11 +52,32 @@ add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
 if(WIN32)
 
-find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "import/mariadb/lib/release")
+find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "dependencies/mariadb-connector-c/build/libmariadb/Release" REQUIRED)
 #find_library(MYSQL_LIBRARIES_DEBUG  mariadbclient.lib PATHS "import/mariadb/lib/debug")
-find_library(MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
+find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build/Debug" REQUIRED)
-set(MYSQL_INCLUDE_DIR "import/mariadb/include")
+set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
+
+#set(POCO_DEBUG_PATH "I:/FremdCode/C++/poco/win64/lib/Debug")
+
+#find_library(POCO_DEBUG_FOUNDATION PocoFoundationd PocoFoundation PATHS ${POCO_DEBUG_PATH} REQUIRED)
+#find_library(POCO_DEBUG_DATA PocoDatad PocoData PATHS ${POCO_DEBUG_PATH} REQUIRED)
+#find_library(POCO_DEBUG_NET PocoNetd PocoNet PATHS ${POCO_DEBUG_PATH} REQUIRED)
+#find_library(POCO_DEBUG_NET_SSL PocoNetSSLd PocoNetSSL PATHS ${POCO_DEBUG_PATH} REQUIRED)
+#find_library(POCO_DEBUG_UTIL PocoUtild PocoUtil PATHS ${POCO_DEBUG_PATH} REQUIRED)
+#find_library(POCO_DEBUG_CRYPTO PocoCryptod PocoCrypto PATHS ${POCO_DEBUG_PATH} REQUIRED)
+
+#set(POCO_DEBUG_LIBS ${POCO_DEBUG_FOUNDATION} ${POCO_DEBUG_UTIL} ${POCO_DEBUG_DATA} ${POCO_DEBUG_NET} ${POCO_DEBUG_NET_SSL} ${POCO_DEBUG_CRYPTO})
+#include_directories(
+#  "I:/FremdCode/C++/poco/Foundation/include"
+#  "I:/FremdCode/C++/poco/Data/include"
+#  "I:/FremdCode/C++/poco/Net/include"
+  #"I:/FremdCode/C++/poco/NetSSL_Win/include"
+#  "I:/FremdCode/C++/poco/NetSSL_OpenSSL/include"
+#  "I:/FremdCode/C++/poco/Crypto/include"
+#  "I:/FremdCode/C++/poco/Util/include"
+#  "I:/FremdCode/C++/ssl/include"
+#)
 
 else(WIN32)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
@@ -72,10 +95,10 @@ include_directories(
 endif(WIN32)
 
 
-target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519} ${MARIADB_CLIENT})
+target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
-TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${MARIADB_CLIENT_DEBUG} Shlwapi)
+TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
 target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoFoundation PocoData PocoNetSSL -lpthread)
 endif(WIN32)

@@ -144,8 +144,8 @@ int UserWriteKeysIntoDB::run()
 
 // *******************************************************************************
 // new user
-User::User(const char* email, const char* name)
-	: mDBId(0), mEmail(email), mFirstName(name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
+User::User(const char* email, const char* first_name, const char* last_name)
+	: mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
 {
 
 }
@@ -162,8 +162,8 @@ User::User(const char* email)
 
 	Poco::Data::Statement select(session);
 	int email_checked = 0;
-	select << "SELECT id, name, password, pubkey, email_checked from users where email = ?",
-		into(mDBId), into(mFirstName), into(mPasswordHashed), into(pubkey), into(email_checked), use(mEmail);
+	select << "SELECT id, first_name, last_name, password, pubkey, email_checked from users where email = ?",
+		into(mDBId), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(email_checked), use(mEmail);
 	try {
 		auto result = select.execute();
 		int zahl = 1;
@@ -283,20 +283,29 @@ bool User::deleteFromDB()
 	Poco::Data::Statement deleteFromDB(session);
 	//DELETE FROM `table_name` [WHERE condition];
 	
-	deleteFromDB 
+	std::string tables[] = { "users", "email_opt_in", "user_backups" };
+
+	/*deleteFromDB 
 		<< "DELETE from users where id = ?;"
-		<< "DELETE from email_opt_in where user_id = ?;"
-		<< "DELETE from user_backups where user_id = ?",
+		 "DELETE from email_opt_in where user_id = ?;"
+		 "DELETE from user_backups where user_id = ?",
 		 use(mDBId), use(mDBId), use(mDBId);
-		
-	try {
-		auto result = deleteFromDB.execute();
-		printf("[User::deleteFromDB] deleted: %d\n", result);
-	} catch(Poco::Exception& ex) {
-		em->addError(new ParamError("[User::deleteFromDB]", "error deleting user tables", ex.displayText().data()));
-		em->sendErrorsAsEmail();
-		return false;
+		 */
+	for (int i = 0; i < 3; i++) {
+		if (i > 0) deleteFromDB.reset(session);
+		deleteFromDB << "DELETE from " << tables[i] << " where id = ?", use(mDBId);
+
+		try {
+			auto result = deleteFromDB.execute();
+			//printf("[User::deleteFromDB] %s deleted: %d\n", tables[i].data(), result);
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError("[User::deleteFromDB]", "error deleting user tables", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+			//return false;
+		}
 	}
+	
 	
 	return true;
 }
@@ -425,8 +434,8 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 	//Poco::Data::BLOB pwd(&mPasswordHashed[0], crypto_shorthash_BYTES);
 
 	//printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
-	insert << "INSERT INTO users (email, name, password) VALUES(?, ?, ?);",
-		use(mEmail), use(mFirstName), bind(mPasswordHashed);
+	insert << "INSERT INTO users (email, first_name, last_name, password) VALUES(?, ?, ?, ?);",
+		use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed);
 
 	return insert;
 }

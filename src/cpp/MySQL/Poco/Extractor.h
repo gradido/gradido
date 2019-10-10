@@ -18,9 +18,9 @@
 #define Data_MySQL_Extractor_INCLUDED
 
 
-#include "Poco/Data/MySQL/MySQL.h"
-#include "Poco/Data/MySQL/StatementExecutor.h"
-#include "Poco/Data/MySQL/ResultMetadata.h"
+#include "Poco/MySQL.h"
+#include "Poco/StatementExecutor.h"
+#include "Poco/ResultMetadata.h"
 #include "Poco/Data/AbstractExtractor.h"
 #include "Poco/Data/LOB.h"
 
@@ -35,7 +35,7 @@ namespace Data {
 namespace MySQL {
 
 
-class MySQL_API Extractor: public Poco::Data::AbstractExtractor
+class  Extractor: public Poco::Data::AbstractExtractor
 	/// Extracts and converts data values from the result row returned by MySQL.
 	/// If NULL is received, the incoming val value is not changed and false is returned
 {

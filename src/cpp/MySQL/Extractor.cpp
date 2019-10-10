@@ -12,7 +12,7 @@
 //
 
 
-#include "Poco/Data/MySQL/Extractor.h"
+#include "Poco/Extractor.h"
 
 #include "Poco/Data/Date.h"
 #include "Poco/Data/Time.h"

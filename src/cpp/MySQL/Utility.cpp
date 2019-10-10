@@ -14,7 +14,7 @@
 //
 
 
-#include "Poco/Data/MySQL/Utility.h"
+#include "Poco/Utility.h"
 #include <mysql.h>
 
 

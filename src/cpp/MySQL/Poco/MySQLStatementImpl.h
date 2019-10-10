@@ -17,12 +17,12 @@
 #ifndef Data_MySQL_MySQLStatementImpl_INCLUDED
 #define Data_MySQL_MySQLStatementImpl_INCLUDED
 
-#include "Poco/Data/MySQL/MySQL.h"
-#include "Poco/Data/MySQL/SessionImpl.h"
-#include "Poco/Data/MySQL/Binder.h"
-#include "Poco/Data/MySQL/Extractor.h"
-#include "Poco/Data/MySQL/StatementExecutor.h"
-#include "Poco/Data/MySQL/ResultMetadata.h"
+#include "Poco/MySQL.h"
+#include "Poco/SessionImpl.h"
+#include "Poco/Binder.h"
+#include "Poco/Extractor.h"
+#include "Poco/StatementExecutor.h"
+#include "Poco/ResultMetadata.h"
 #include "Poco/Data/StatementImpl.h"
 #include "Poco/SharedPtr.h"
 #include "Poco/Format.h"
@@ -33,7 +33,7 @@ namespace Data {
 namespace MySQL {
 
 
-class MySQL_API MySQLStatementImpl: public Poco::Data::StatementImpl
+class MySQLStatementImpl: public Poco::Data::StatementImpl
 	/// Implements statement functionality needed for MySQL
 {
 public:

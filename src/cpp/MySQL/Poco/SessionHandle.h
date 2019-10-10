@@ -18,7 +18,7 @@
 #define Data_MySQL_SessionHandle_INCLUDED
 
 #include <mysql.h>
-#include "Poco/Data/MySQL/MySQLException.h"
+#include "Poco/MySQLException.h"
 
 namespace Poco {
 namespace Data {

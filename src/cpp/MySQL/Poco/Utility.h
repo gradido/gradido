@@ -18,7 +18,7 @@
 #define MySQL_Utility_INCLUDED
 
 
-#include "Poco/Data/MySQL/MySQL.h"
+#include "Poco/MySQL.h"
 #include "Poco/Data/Session.h"
 
 
@@ -31,7 +31,7 @@ namespace Data {
 namespace MySQL {
 
 
-class MySQL_API Utility
+class Utility
 	/// Various utility functions for MySQL.
 {
 public:

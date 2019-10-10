@@ -13,7 +13,7 @@
 
 
 #include <mysql.h>
-#include "Poco/Data/MySQL/StatementExecutor.h"
+#include "Poco/StatementExecutor.h"
 #include "Poco/Format.h"
 
 

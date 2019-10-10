@@ -17,10 +17,10 @@
 #ifndef Data_MySQL_Binder_INCLUDED
 #define Data_MySQL_Binder_INCLUDED
 
-#include "Poco/Data/MySQL/MySQL.h"
+#include "Poco/MySQL.h"
 #include "Poco/Data/AbstractBinder.h"
 #include "Poco/Data/LOB.h"
-#include "Poco/Data/MySQL/MySQLException.h"
+#include "Poco/MySQLException.h"
 #ifdef _WIN32 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")
@@ -32,7 +32,7 @@ namespace Data {
 namespace MySQL {
 
 
-class MySQL_API Binder: public Poco::Data::AbstractBinder
+class Binder: public Poco::Data::AbstractBinder
 	/// Binds placeholders in the sql query to the provided values. Performs data types mapping.
 {
 public:

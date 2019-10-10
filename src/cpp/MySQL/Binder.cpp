@@ -12,7 +12,7 @@
 //
 
 
-#include "Poco/Data/MySQL/Binder.h"
+#include "Poco/Binder.h"
 
 
 namespace Poco {

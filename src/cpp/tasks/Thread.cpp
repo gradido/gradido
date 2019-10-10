@@ -21,7 +21,7 @@ namespace UniLib {
 
         Thread::~Thread()
         {
-			printf("[Thread::~Thread]\n");
+			//printf("[Thread::~Thread]\n");
             if(mPocoThread)
             {
                 //Post Exit to Thread

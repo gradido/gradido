@@ -18,11 +18,11 @@
 #define Data_MySQL_SessionImpl_INCLUDED
 
 
-#include "Poco/Data/MySQL/MySQL.h"
+#include "Poco/MySQL.h"
 #include "Poco/Data/AbstractSessionImpl.h"
-#include "Poco/Data/MySQL/SessionHandle.h"
-#include "Poco/Data/MySQL/StatementExecutor.h"
-#include "Poco/Data/MySQL/ResultMetadata.h"
+#include "Poco/SessionHandle.h"
+#include "Poco/StatementExecutor.h"
+#include "Poco/ResultMetadata.h"
 #include "Poco/Mutex.h"
 
 
@@ -31,7 +31,7 @@ namespace Data {
 namespace MySQL {
 
 
-class MySQL_API SessionImpl: public Poco::Data::AbstractSessionImpl<SessionImpl>
+class SessionImpl: public Poco::Data::AbstractSessionImpl<SessionImpl>
 	/// Implements SessionImpl interface
 {
 public:

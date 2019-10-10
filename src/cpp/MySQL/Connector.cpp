@@ -12,8 +12,8 @@
 //
 
 
-#include "Poco/Data/MySQL/Connector.h"
-#include "Poco/Data/MySQL/SessionImpl.h"
+#include "Poco/Connector.h"
+#include "Poco/SessionImpl.h"
 #include "Poco/Data/SessionFactory.h"
 #include "Poco/Exception.h"
 #include <mysql.h>

@@ -17,7 +17,7 @@
 #ifndef Data_MySQL_MySQLException_INCLUDED
 #define Data_MySQL_MySQLException_INCLUDED
 
-#include "Poco/Data/MySQL/MySQL.h"
+#include "Poco/MySQL.h"
 #include "Poco/Data/DataException.h"
 #include <typeinfo>
 #include <string>
@@ -34,7 +34,7 @@ namespace MySQL {
 // End-user include this file and use in code ConnectionException/StatementException
 // So it need not know 
 
-class MySQL_API MySQLException: public Poco::Data::DataException
+class MySQLException: public Poco::Data::DataException
 	/// Base class for all MySQL exceptions
 {
 public:

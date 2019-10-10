@@ -14,7 +14,8 @@
 			session->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
 		} else {
 			userReturned = session->createUser(
-				form.get("register-name"),
+				form.get("register-first-name"),
+				form.get("register-last-name"),
 				form.get("register-email"),
 				form.get("register-password")
 			);
@@ -72,8 +73,12 @@ label:not(.grd_radio_label) {
 			<legend>Account anlegen</legend>
 			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
 			<p class="grd_small">
-				<label for="register-name">Vorname</label>
-				<input id="register-name" type="text" name="register-name" value="<%= !form.empty() ? form.get("register-name") : "" %>"/>
+				<label for="register-first-name">Vorname</label>
+				<input id="register-first-name" type="text" name="register-first-name" value="<%= !form.empty() ? form.get("register-first-name") : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="register-last-name">Nachname</label>
+				<input id="register-last-name" type="text" name="register-last-name" value="<%= !form.empty() ? form.get("register-last-name") : "" %>"/>
 			</p>
 			<p class="grd_small">
 				<label for="register-email">E-Mail</label>

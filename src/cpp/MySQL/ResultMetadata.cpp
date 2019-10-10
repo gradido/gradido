@@ -12,8 +12,8 @@
 //
 
 
-#include "Poco/Data/MySQL/ResultMetadata.h"
-#include "Poco/Data/MySQL/MySQLException.h"
+#include "Poco/ResultMetadata.h"
+#include "Poco/MySQLException.h"
 #include <cstring>
 
 namespace

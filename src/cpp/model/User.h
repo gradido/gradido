@@ -22,7 +22,7 @@ class User : public ErrorList
 	friend UserWriteIntoDB;
 public:
 	// new user
-	User(const char* email, const char* name);
+	User(const char* email, const char* first_name, const char* last_name);
 	// existing user
 	User(const char* email);
 	// login
@@ -43,7 +43,8 @@ public:
 	inline bool hasCryptoKey() { lock(); bool bRet = mCryptoKey != nullptr; unlock(); return bRet; }
 	
 	inline const char* getEmail() const { return mEmail.data(); }
-	inline const char* getName() const { return mFirstName.data(); }
+	inline const char* getFirstName() const { return mFirstName.data(); }
+	inline const char* getLastName() const { return mLastName.data(); }
 	inline int         getDBId() const { return mDBId;  }
 	inline void		   setEmailChecked() { mEmailChecked = true; }
 	inline bool        isEmailChecked() { return mEmailChecked; }
@@ -78,6 +79,7 @@ private:
 	int mDBId;
 	std::string mEmail;
 	std::string mFirstName;
+	std::string mLastName;
 	
 	passwordHashed mPasswordHashed;
 	bool mEmailChecked;
