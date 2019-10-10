@@ -22,6 +22,7 @@ namespace UniLib {
 
 		CPUSheduler::~CPUSheduler()
 		{
+			printf("[CPUSheduler::~CPUSheduler]\n");
 			for(int i = 0; i < mThreadCount; i++) {
 				if (mThreads[i]) {
 					delete mThreads[i];
@@ -29,6 +30,7 @@ namespace UniLib {
 			}
 			delete[] mThreads;
 			mThreadCount = 0;
+			printf("[CPUSheduler::~CPUSheduler] finished\n");
 		}
 
 		int CPUSheduler::sheduleTask(TaskPtr task)

@@ -9,7 +9,20 @@
 void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 	// simply write request to file for later lookup
-	ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
+	//ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
+
+
+	std::istream& stream = request.stream();
+	Poco::Net::NameValueCollection elopageRequestData;
+	while (!stream.eof()) {
+		char keyBuffer[30];
+		char valueBuffer[35];
+		stream.get(keyBuffer, 30, '=')
+			  .get(valueBuffer, 35, '&');
+		elopageRequestData.set(keyBuffer, valueBuffer);
+	}
+	UniLib::controller::TaskPtr handleElopageTask(new HandleElopageRequestTask(elopageRequestData));
+	handleElopageTask->scheduleTask(handleElopageTask);
 
 	response.setChunkedTransferEncoding(true);
 	response.setContentType("application/json");
@@ -22,4 +35,15 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	
 	if (_compressResponse) _gzipStream.close();
+}
+
+
+int HandleElopageRequestTask::run()
+{
+	printf("[HandleElopageRequestTask::run]\n");
+	for (auto it = mRequestData.begin(); it != mRequestData.end(); it++) {
+		printf("%s => %s\n", it->first.data(), it->second.data());
+	}
+	printf("[HandleElopageRequestTask::run] end\n");
+	return 0;
 }

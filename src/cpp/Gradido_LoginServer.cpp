@@ -89,11 +89,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::initEMailAccount(config());
 
 		// start cpu scheduler
-		unsigned int worker_count = Poco::Environment::processorCount();
-		if (worker_count > 1) {
-			worker_count--;
-		}
-		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Login Worker");
+		unsigned int worker_count = Poco::Environment::processorCount() * 2;
+		
+		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
+		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
 
 		// load up connection configs
 		// register MySQL connector
@@ -119,6 +118,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
 		// set-up a HTTPServer instance
+		Poco::ThreadPool& pool = Poco::ThreadPool::defaultPool();
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
 		// start the HTTPServer
 		srv.start();

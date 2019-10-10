@@ -30,6 +30,7 @@ namespace ServerConfig {
 	ObfusArray* g_ServerCryptoKey = nullptr;
 //	std::string g_ServerAdminPublic;
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
+	UniLib::controller::CPUSheduler* g_CryptoCPUScheduler = nullptr;
 	Context::Ptr g_SSL_CLient_Context = nullptr;
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
@@ -122,6 +123,10 @@ namespace ServerConfig {
 		}
 		if (g_CPUScheduler) {
 			delete g_CPUScheduler;
+		}
+
+		if (g_CryptoCPUScheduler) {
+			delete g_CryptoCPUScheduler;
 		}
 	}
 

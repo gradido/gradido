@@ -188,8 +188,10 @@ User::User(const char* email)
 
 User::~User()
 {
+	printf("[User::~User]\n");
 	if (mCryptoKey) {
 		delete mCryptoKey;
+		mCryptoKey = nullptr;
 	}
 }
 

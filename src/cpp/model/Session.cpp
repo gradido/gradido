@@ -86,8 +86,9 @@ Session::Session(int handle)
 
 Session::~Session()
 {
-
+	printf("[Session::~Session] \n");
 	reset();
+	printf("[Session::~Session] finished \n");
 }
 
 
@@ -184,7 +185,7 @@ bool Session::createUser(const std::string& name, const std::string& email, cons
 	prepareEmail->scheduleTask(prepareEmail);
 
 	// create user crypto key
-	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, password, ServerConfig::g_CPUScheduler));
+	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, password, ServerConfig::g_CryptoCPUScheduler));
 	cryptoKeyTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_CRYPTO_KEY_GENERATED, this));
 	cryptoKeyTask->scheduleTask(cryptoKeyTask);
 

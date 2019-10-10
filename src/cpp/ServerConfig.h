@@ -26,6 +26,7 @@ namespace ServerConfig {
 	extern ObfusArray* g_ServerCryptoKey;
 	//extern unsigned char g_ServerAdminPublic[];
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
+	extern UniLib::controller::CPUSheduler* g_CryptoCPUScheduler;
 	extern Poco::Net::Context::Ptr g_SSL_CLient_Context;
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
