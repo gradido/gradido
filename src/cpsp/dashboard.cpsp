@@ -25,12 +25,18 @@
 </head>
 <body>
 <div class="grd_container">
-	<h1>Willkommen <%= mSession->getUser()->getName() %></h1>
+	<h1>Willkommen <%= mSession->getUser()->getFirstName() %>&nbsp;<%= mSession->getUser()->getLastName() %></h1>
 	<%= mSession->getErrorsHtml() %>
 	<h3>Status</h3>
 	<p><%= mSession->getSessionStateString() %></p>
 	<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
 	<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>
+	<form method="GET" action="checkEmail">
+		<input type="number" name="email-verification-code">
+		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+	</form>
+	<% } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { %>
+	<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>
 	<form method="GET" action="checkEmail">
 		<input type="number" name="email-verification-code">
 		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">

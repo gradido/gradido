@@ -32,6 +32,9 @@ int UserCreateCryptoKey::run()
 	mUser->setPwdHashed(pwdHashed);
 
 	printf("crypto key created\n");
+	setTaskFinished();
+	// must poke cpu scheduler manually because another task is waiting for this task, but in the other scheduler
+	ServerConfig::g_CPUScheduler->checkPendingTasks();
 	return 0;
 }
 
@@ -145,13 +148,14 @@ int UserWriteKeysIntoDB::run()
 // *******************************************************************************
 // new user
 User::User(const char* email, const char* first_name, const char* last_name)
-	: mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
+	: mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr),
+	mReferenceCount(1)
 {
 
 }
 // load from db
 User::User(const char* email)
-	: mDBId(0), mEmail(email), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr)
+	: mDBId(0), mEmail(email), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -188,7 +192,7 @@ User::User(const char* email)
 
 User::~User()
 {
-	printf("[User::~User]\n");
+//	printf("[User::~User]\n");
 	if (mCryptoKey) {
 		delete mCryptoKey;
 		mCryptoKey = nullptr;
@@ -292,8 +296,13 @@ bool User::deleteFromDB()
 		 use(mDBId), use(mDBId), use(mDBId);
 		 */
 	for (int i = 0; i < 3; i++) {
-		if (i > 0) deleteFromDB.reset(session);
-		deleteFromDB << "DELETE from " << tables[i] << " where id = ?", use(mDBId);
+		if (i > 0) {
+			deleteFromDB.reset(session);
+			deleteFromDB << "DELETE from " << tables[i] << " where user_id = ?", use(mDBId);
+		}
+		else {
+			deleteFromDB << "DELETE from " << tables[i] << " where id = ?", use(mDBId);
+		}
 
 		try {
 			auto result = deleteFromDB.execute();
@@ -312,15 +321,23 @@ bool User::deleteFromDB()
 
 void User::duplicate()
 {
+	mWorkingMutex.lock();
 	mReferenceCount++;
+	//printf("[User::duplicate] new value: %d\n", mReferenceCount);
+	mWorkingMutex.unlock();
 }
 
 void User::release()
 {
+	mWorkingMutex.lock();
 	mReferenceCount--;
+	//printf("[User::release] new value: %d\n", mReferenceCount);
 	if (0 == mReferenceCount) {
+		mWorkingMutex.unlock();
 		delete this;
+		return;
 	}
+	mWorkingMutex.unlock();
 
 }
 
@@ -368,6 +385,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 {
 	Profiler timeUsed;
 	
+	duplicate();
 	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, passphrase));
 	//generateKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_GENERATED, session));
 	//generateKeysTask->scheduleTask(generateKeysTask);
@@ -386,6 +404,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 		return false;
 	}
 
+	duplicate();
 	UniLib::controller::TaskPtr saveKeysTask(new UserWriteKeysIntoDB(generateKeysTask, this, savePrivkey));
 	saveKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_WRITTEN, session));
 	saveKeysTask->scheduleTask(saveKeysTask);

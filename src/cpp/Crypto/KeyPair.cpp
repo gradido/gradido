@@ -23,11 +23,14 @@ KeyPair::KeyPair()
 
 KeyPair::~KeyPair()
 {
+	printf("[KeyPair::~KeyPair] privkey: %d, soduium privkey: %d \n", mPrivateKey, mSodiumSecret);
 	if (mPrivateKey) {
 		delete mPrivateKey;
+		mPrivateKey = nullptr;
 	}
 	if (mSodiumSecret) {
 		delete mSodiumSecret;
+		mSodiumSecret = nullptr;
 	}
 }
 

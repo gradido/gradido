@@ -89,7 +89,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::initEMailAccount(config());
 
 		// start cpu scheduler
-		unsigned int worker_count = Poco::Environment::processorCount() * 2;
+		uint8_t worker_count = Poco::Environment::processorCount() * 2;
 		
 		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");

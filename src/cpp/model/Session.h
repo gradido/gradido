@@ -64,7 +64,9 @@ public:
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
-	inline Poco::AutoPtr<User> getUser() { return mSessionUser; }
+	Poco::AutoPtr<User> getUser() { 
+		return mSessionUser; 
+	}
 
 	inline int getHandle() { return mHandleId; }
 	

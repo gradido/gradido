@@ -49,7 +49,10 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
 #line 28 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
-	responseStream << ( mSession->getUser()->getName() );
+	responseStream << ( mSession->getUser()->getFirstName() );
+	responseStream << "&nbsp;";
+#line 28 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( mSession->getUser()->getLastName() );
 	responseStream << "</h1>\n";
 	responseStream << "\t";
 #line 29 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
@@ -70,6 +73,14 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
 #line 38 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+ } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { 	responseStream << "\n";
+	responseStream << "\t<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>\n";
+	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
+	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
+	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
+	responseStream << "\t</form>\n";
+	responseStream << "\t";
+#line 44 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t<a class=\"grd_bn\" href=\"logout\">Abmelden</a>\n";
 	responseStream << "\t<a class=\"grd_bn\" href=\"user_delete\">Account l&ouml;schen</a>\n";

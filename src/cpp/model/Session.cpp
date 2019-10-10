@@ -214,7 +214,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, email));
 	message->setSubject("Gradido: E-Mail Verification");
 	std::stringstream ss;
-	ss << "Hallo " << name << "," << std::endl << std::endl;
+	ss << "Hallo " << first_name << " " << last_name << "," << std::endl << std::endl;
 	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
 	ss << "Wenn du es warst, klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << mEmailVerificationCode << std::endl;
 	ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl << std::endl;
@@ -356,10 +356,25 @@ void Session::detectSessionState()
 		return;
 	}
 	if (!mSessionUser->isEmailChecked()) {
-		if (mEmailVerificationCode == 0)
-			updateState(SESSION_STATE_USER_WRITTEN);
-		else
-			updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
+
+		if (mEmailVerificationCode == 0) {
+			auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select(dbConnection);
+			auto user_id = mSessionUser->getDBId();
+			select << "SELECT verification_code from email_opt_in where user_id = ?",
+				into(mEmailVerificationCode), use(user_id);
+			try {
+				if (select.execute() == 1) {
+					updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
+					return;
+				}
+			}
+			catch (Poco::Exception& ex) {
+				printf("[Session::detectSessionState] mysql exception: %s\n", ex.displayText().data());
+			}
+		}
+		
+		updateState(SESSION_STATE_USER_WRITTEN);
 		return;
 	}
 
@@ -378,7 +393,7 @@ void Session::detectSessionState()
 			}
 		}
 		catch (Poco::Exception& exc) {
-			printf("mysql exception: %s\n", exc.displayText().data());
+			printf("[Session::detectSessionState] 2 mysql exception: %s\n", exc.displayText().data());
 		}
 		if (mPassphrase != "") {
 			updateState(SESSION_STATE_PASSPHRASE_GENERATED);
@@ -425,10 +440,10 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 		return false;
 	}*/
 	Poco::Data::Statement select(dbConnection);
-	std::string email, name;
+	std::string email, first_name, last_name;
 	select.reset(dbConnection);
-	select << "SELECT email, name FROM users where id = (SELECT user_id FROM email_opt_in WHERE verification_code=?)",
-		 into(email), into(name), use(emailVerificationCode);
+	select << "SELECT email, first_name, last_name FROM users where id = (SELECT user_id FROM email_opt_in WHERE verification_code=?)",
+		 into(email), into(first_name), into(last_name), use(emailVerificationCode);
 	try {
 		size_t rowCount = select.execute();
 		if (rowCount != 1) {
@@ -440,7 +455,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 			return false;
 		}
 
-		mSessionUser = new User(email.data(), name.data());
+		mSessionUser = new User(email.data(), first_name.data(), last_name.data());
 		mSessionUser->loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 		mEmailVerificationCode = emailVerificationCode;
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);

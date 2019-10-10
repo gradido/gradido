@@ -17,6 +17,8 @@ namespace UniLib {
 		
 		Task::~Task()
 		{
+			mWorkingMutex.lock();
+			//printf("[Task::~Task]\n");
 			if (mParentTaskPtrArraySize) {
 				delete[] mParentTaskPtrArray;
 			}
@@ -24,9 +26,11 @@ namespace UniLib {
 				delete mFinishCommand;
 			}
             mParentTaskPtrArraySize = 0;
-			mWorkingMutex.lock();
+			
             mDeleted = true;
+			//printf("[Task::~Task] finished\n");
 			mWorkingMutex.unlock();
+			
 		}
 
         bool Task::isAllParentsReady()
@@ -55,15 +59,23 @@ namespace UniLib {
 
 		void Task::duplicate()
 		{
+			lock();
 			mReferenceCount++;
+			//printf("[Task::duplicate] new value: %d\n", mReferenceCount);
+			unlock();
 		}
 
 		void Task::release()
 		{
+			lock();
 			mReferenceCount--;
+			//printf("[Task::release] new value: %d\n", mReferenceCount);
 			if (0 == mReferenceCount) {
+				unlock();
 				delete this;
+				return;
 			}
+			unlock();
 
 		}
 
