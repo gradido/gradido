@@ -4,6 +4,7 @@
 
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "../tasks/CPUTask.h"
+#include "../model/ErrorList.h"
 
 #include "Poco/Net/NameValueCollection.h"
 
@@ -13,7 +14,7 @@ public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 };
 
-class HandleElopageRequestTask : public UniLib::controller::CPUTask
+class HandleElopageRequestTask : public UniLib::controller::CPUTask, protected ErrorList
 {
 public:
 	HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData);
@@ -23,7 +24,18 @@ public:
 	int run();
 
 protected:
-	Poco::Net::NameValueCollection mRequestData;
+
+	// return true if at least one entry in db with this email exist
+	bool validateInput();
+	void writeUserIntoDB();
+	int getUserIdFromDB();
+	bool createEmailVerificationCode();
+
+	Poco::Net::NameValueCollection mRequestData; 
+	std::string mEmail;
+	std::string mFirstName;
+	std::string mLastName;
+	Poco::UInt64 mEmailVerificationCode;
 };
 
 

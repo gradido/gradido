@@ -518,7 +518,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 void Session::createEmailVerificationCode()
 {
 	uint32_t* code_p = (uint32_t*)&mEmailVerificationCode;
-	for (int i = 0; i < EMAIL_VERIFICATION_CODE_SIZE / 4; i++) {
+	for (int i = 0; i < sizeof(mEmailVerificationCode) / 4; i++) {
 		code_p[i] = randombytes_random();
 	}
 

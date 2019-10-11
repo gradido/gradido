@@ -453,8 +453,15 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 	//Poco::Data::BLOB pwd(&mPasswordHashed[0], crypto_shorthash_BYTES);
 
 	//printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
-	insert << "INSERT INTO users (email, first_name, last_name, password) VALUES(?, ?, ?, ?);",
-		use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed);
+	if (mPasswordHashed) {
+		insert << "INSERT INTO users (email, first_name, last_name, password) VALUES(?, ?, ?, ?);",
+			use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed);
+	}
+	else {
+		insert << "INSERT INTO users (email, first_name, last_name) VALUES(?, ?, ?);",
+			use(mEmail), use(mFirstName), use(mLastName);
+	}
+
 
 	return insert;
 }

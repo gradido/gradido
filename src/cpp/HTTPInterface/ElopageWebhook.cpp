@@ -3,8 +3,22 @@
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DeflatingStream.h"
 #include "Poco/URI.h"
+#include "Poco/Data/Binding.h"
+
+using namespace Poco::Data::Keywords;
+
+#include "../SingletonManager/ConnectionManager.h"
+#include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/SessionManager.h"
 
 #include "../ServerConfig.h"
+
+#include "../tasks/PrepareEmailTask.h"
+#include "../tasks/SendEmailTask.h"
+
+#include "../model/EmailVerificationCode.h"
+
+
 
 
 void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
@@ -94,12 +108,155 @@ HandleElopageRequestTask::HandleElopageRequestTask(Poco::Net::NameValueCollectio
 {
 }
 
+bool HandleElopageRequestTask::validateInput()
+{
+	auto sm = SessionManager::getInstance();
+	if (mEmail == "" || !sm->isValid(mEmail, VALIDATE_EMAIL)) {
+		addError(new Error(__FUNCTION__, "email is invalid or empty"));
+		return false;
+	}
+	if (mFirstName == "" || !sm->isValid(mFirstName, VALIDATE_NAME)) {
+		addError(new Error(__FUNCTION__, "first name is invalid or empty"));
+		return false;
+	}
+
+	if (mLastName == "" || !sm->isValid(mLastName, VALIDATE_NAME)) {
+		addError(new Error(__FUNCTION__, "last name is invalid or empty"));
+		return false;
+	}
+
+	return true;
+}
+
+
+void HandleElopageRequestTask::writeUserIntoDB()
+{
+	auto cm = ConnectionManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement insert(session);
+	insert << "INSERT INTO users (email, first_name, last_name) VALUES(?, ?, ?);",
+		use(mEmail), use(mFirstName), use(mLastName);
+	try {
+		insert.execute();
+	}
+	catch (Poco::Exception& ex) {
+		addError(new ParamError(__FUNCTION__, "mysql error", ex.displayText().data()));
+	}
+}
+
+int HandleElopageRequestTask::getUserIdFromDB()
+{
+	auto cm = ConnectionManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement select(session);
+	int user_id = 0;
+	select << "SELECT id from users where email = ?;",
+		into(user_id), use(mEmail);
+	try {
+		select.execute();
+	}
+	catch (Poco::Exception& ex) {
+		addError(new ParamError(__FUNCTION__, "mysql error selecting from db", ex.displayText().data()));
+	}
+
+	return user_id;
+}
+
+bool HandleElopageRequestTask::createEmailVerificationCode()
+{
+	// create email verification code
+	uint32_t* code_p = (uint32_t*)&mEmailVerificationCode;
+	for (int i = 0; i < sizeof(mEmailVerificationCode) / 4; i++) {
+		code_p[i] = randombytes_random();
+	}
+	return mEmailVerificationCode != 0;
+}
+
 int HandleElopageRequestTask::run()
 {
-	printf("[HandleElopageRequestTask::run]\n");
-	for (auto it = mRequestData.begin(); it != mRequestData.end(); it++) {
-		printf("%s => %s\n", it->first.data(), it->second.data());
+	// get input data
+	
+	mEmail = mRequestData.get("payer[email]", "");
+	mFirstName = mRequestData.get("payer[first_name]", "");
+	mLastName = mRequestData.get("payer[last_name]", "");
+	std::string order_id = mRequestData.get("order_id", "");
+
+	addError(new ParamError("HandleElopageRequestTask", "order_id", order_id.data()));
+
+	// validate input
+	if (!validateInput()) {
+		// if input is invalid we can stop now
+		sendErrorsAsEmail();
+		return -1;
 	}
-	printf("[HandleElopageRequestTask::run] end\n");
+
+	// if user exist we can stop now
+	if (getUserIdFromDB()) {
+		sendErrorsAsEmail();
+		return -2;
+	}
+
+	// if user with this email didn't exist
+	// we can create a new user and send a email to him
+	
+	// prepare email in advance
+	// create connection to email server
+	UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
+	prepareEmail->scheduleTask(prepareEmail);
+
+	// write user entry into db
+	writeUserIntoDB();
+	
+	// get user id from db
+	int user_id = getUserIdFromDB();
+	// we didn't get a user_id, something went wrong
+	if (!user_id) {
+		addError(new Error("User loadEntryDBId", "user_id is zero"));
+		sendErrorsAsEmail();
+		return -3;
+	}
+
+	EmailVerificationCode emailVerification(user_id);
+
+	// create email verification code
+	if (!emailVerification.getCode()) {
+		// exit if email verification code is empty
+		addError(new Error("Email verification", "code is empty, error in random?"));
+		sendErrorsAsEmail();
+		return -4;
+	}
+
+	// write email verification code into db
+	UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask((ModelBase*)&emailVerification));
+	saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
+
+	// send email to user
+	auto message = new Poco::Net::MailMessage;
+
+	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
+	message->setSubject("Gradido: E-Mail Verification");
+	std::stringstream ss;
+	ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
+	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Elopage für Gradido angemeldet. " << std::endl;
+	ss << "Um dein Gradido Konto anzulegen und deine E-Mail zu best&auml;tigen," << std::endl;
+	ss << "klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << mEmailVerificationCode << std::endl;
+	ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl << std::endl;
+	ss << "Mit freundlichen Grüße" << std::endl;
+	ss << "Dario, Gradido Server Admin" << std::endl;
+
+
+	message->addContent(new Poco::Net::StringPartSource(ss.str()));
+
+	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
+	sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
+	sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
+	sendEmail->scheduleTask(sendEmail);
+
+	// if errors occured, send via email
+	//if (errorCount() > 1) {
+		sendErrorsAsEmail();
+	//}
+	
+	
 	return 0;
 }

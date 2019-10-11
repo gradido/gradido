@@ -4,37 +4,8 @@
 #include "Poco/Net/SecureSMTPClientSession.h"
 #include "Poco/Net/StringPartSource.h"
 
-SendErrorMessage::~SendErrorMessage()
-{
-	if (mMessage) {
-		delete mMessage;
-		mMessage = nullptr;
-	}
-}
+#include "../model/ErrorList.h"
 
-int SendErrorMessage::run() 
-{
-	auto mailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
-	mailClientSession->login();
-	mailClientSession->startTLS(ServerConfig::g_SSL_CLient_Context);
-
-
-	mailClientSession->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, ServerConfig::g_EmailAccount.username, ServerConfig::g_EmailAccount.password);
-
-	try {
-		mMessage->setSender(ServerConfig::g_EmailAccount.sender);
-		mailClientSession->sendMessage(*mMessage);
-		mailClientSession->close();
-	}
-	catch (Poco::Exception& exc) {
-		printf("[SendErrorMessage::%s] error sending error message to admin: %s\n", 
-			__FUNCTION__, exc.displayText().data());
-		return -1;
-	}
-	return 0;
-}
-
-// ------------------------------------------------------------------------------------
 
 ErrorManager* ErrorManager::getInstance()
 {

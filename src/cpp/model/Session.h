@@ -21,7 +21,7 @@
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/HTTPCookie.h"
 
-#define EMAIL_VERIFICATION_CODE_SIZE 8
+
 
 class WriteEmailVerification;
 
