@@ -54,6 +54,8 @@ public:
 	void deinitalize();
 
 	bool isValid(const std::string& subject, SessionValidationTypes validationType);
+	//! \return true if password is valid
+	bool checkPwdValidation(const std::string& pwd, ErrorList* errorReciver);
 
 	void checkTimeoutSession();
 

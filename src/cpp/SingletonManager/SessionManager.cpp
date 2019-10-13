@@ -268,6 +268,34 @@ void SessionManager::checkTimeoutSession()
 	
 }
 
+bool SessionManager::checkPwdValidation(const std::string& pwd, ErrorList* errorReciver)
+{
+	if (!isValid(pwd, VALIDATE_PASSWORD)) {
+		errorReciver->addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen (@$!%*?&+-) ein!"));
+
+		// @$!%*?&+-
+		if (pwd.size() < 8) {
+			errorReciver->addError(new Error("Passwort", "Dein Passwort ist zu kurz!"));
+		}
+		else if (!isValid(pwd, VALIDATE_HAS_LOWERCASE_LETTER)) {
+			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Kleinbuchstaben!"));
+		}
+		else if (!isValid(pwd, VALIDATE_HAS_UPPERCASE_LETTER)) {
+			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Gro&szlig;buchstaben!"));
+		}
+		else if (!isValid(pwd, VALIDATE_HAS_NUMBER)) {
+			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Zahlen!"));
+		}
+		else if (!isValid(pwd, VALIDATE_HAS_SPECIAL_CHARACTER)) {
+			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Sonderzeichen (@$!%*?&+-)!"));
+		}
+
+		return false;
+	}
+	return true;
+}
+
+
 int CheckSessionTimeouted::run()
 {
 	SessionManager::getInstance()->checkTimeoutSession();

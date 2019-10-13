@@ -7,7 +7,13 @@
 
 #line 7 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 
+#include "../model/Profiler.h"
 
+enum PageState 
+{
+	MAIL_NOT_SEND,
+	ASK_VERIFICATION_CODE
+};
 
 
 CheckEmailPage::CheckEmailPage(Session* arg):
@@ -24,11 +30,16 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 16 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 
+	Profiler timeUsed;
 	bool hasErrors = false;
+	PageState state = ASK_VERIFICATION_CODE;
 	if(mSession) {
 		hasErrors = mSession->errorCount() > 0;
+		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
+			state = MAIL_NOT_SEND;
+		}
 	}
 
 
@@ -64,34 +75,46 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 45 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 56 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  if(mSession && hasErrors) {	responseStream << "\n";
 	responseStream << "\t\t";
-#line 46 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 57 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 47 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 } 	responseStream << "\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
 	responseStream << "\t";
-#line 49 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
- if(mSession && mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
+#line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+ if(state == MAIL_NOT_SEND) { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\t<p>Die E-Mail wurde noch nicht verschickt, bitte habe noch etwas Geduld.</p>\n";
 	responseStream << "\t\t\t<p>Versuche es einfach in 1-2 Minuten erneut.</p>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 54 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
- } else { 	responseStream << "\n";
+#line 65 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+ } else if(state == ASK_VERIFICATION_CODE) { 	responseStream << "\n";
 	responseStream << "\t<form method=\"GET\">\n";
 	responseStream << "\t\t<p>Bitte gebe deinen E-Mail Verification Code ein. </p>\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 71 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+ } else { 	responseStream << "\n";
+	responseStream << "\t<div class=\"grd_text\">\n";
+	responseStream << "\t\t\tUngültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. \n";
+	responseStream << "\t\t</div>\n";
+	responseStream << "\t";
+#line 75 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << "\n";
+	responseStream << "</div>\n";
+	responseStream << "<div class=\"grd-time-used\">\n";
+	responseStream << "\t";
+#line 78 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+	responseStream << ( timeUsed.string() );
+	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";
 	responseStream << "</html>\n";

@@ -14,17 +14,22 @@ class NewUser;
 class UserCreateCryptoKey;
 class UserWriteIntoDB;
 class Session;
+class UserWriteCryptoKeyHashIntoDB;
+
 
 class User : public ErrorList
 {
 	friend NewUser;
 	friend UserCreateCryptoKey;
 	friend UserWriteIntoDB;
+	friend UserWriteCryptoKeyHashIntoDB;
 public:
 	// new user
 	User(const char* email, const char* first_name, const char* last_name);
 	// existing user
 	User(const char* email);
+
+	User(int user_id);
 	// login
 	//User(const std::string& email, const std::string& password);
 
@@ -51,7 +56,9 @@ public:
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
 
-	bool validatePwd(const std::string& pwd);
+	bool isEmptyPassword();
+	bool setNewPassword(const std::string& newPassword);
+	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
 
@@ -62,11 +69,12 @@ protected:
 	typedef Poco::UInt64 passwordHashed;
 
 	ObfusArray* createCryptoKey(const std::string& password);
-	inline void setCryptoKey(ObfusArray* cryptoKey) { mCryptoKey = cryptoKey; }
+	inline void setCryptoKey(ObfusArray* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
 	
 
 	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
+	bool updateIntoDB(const char* fieldName);
 	inline passwordHashed getPwdHashed() { lock(); auto ret = mPasswordHashed; unlock(); return ret; }
 	inline void setPwdHashed(passwordHashed pwdHashed) { lock(); mPasswordHashed = pwdHashed; unlock(); }
 
@@ -90,6 +98,8 @@ private:
 	
 	// for poco auto ptr
 	int mReferenceCount;
+
+	UniLib::controller::TaskPtr mCreateCryptoKeyTask;
 };
 
 class UserCreateCryptoKey : public UniLib::controller::CPUTask
@@ -148,6 +158,18 @@ public:
 protected:
 	Poco::AutoPtr<User> mUser;
 	bool mSavePrivKey;
+};
+
+class UserWriteCryptoKeyHashIntoDB : public UniLib::controller::CPUTask
+{
+public:
+	UserWriteCryptoKeyHashIntoDB(Poco::AutoPtr<User> user, int dependencieCount = 0);
+
+	int run();
+	const char* getResourceType() const { return "UserWriteCryptoKeyHashIntoDB"; };
+
+protected:
+	Poco::AutoPtr<User> mUser;
 };
 
 #endif //GRADIDO_LOGIN_SERVER_MODEL_USER_INCLUDE

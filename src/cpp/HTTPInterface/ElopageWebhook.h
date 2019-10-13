@@ -29,13 +29,11 @@ protected:
 	bool validateInput();
 	void writeUserIntoDB();
 	int getUserIdFromDB();
-	bool createEmailVerificationCode();
 
 	Poco::Net::NameValueCollection mRequestData; 
 	std::string mEmail;
 	std::string mFirstName;
 	std::string mLastName;
-	Poco::UInt64 mEmailVerificationCode;
 };
 
 

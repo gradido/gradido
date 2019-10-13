@@ -10,6 +10,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "../model/Profiler.h"
 	
 
 
@@ -21,8 +22,9 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
+	Profiler timeUsed;
 	auto session = SessionManager::getInstance()->getNewSession();
 	
 	if(!form.empty()) {
@@ -79,7 +81,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 63 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 65 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( session->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -98,6 +100,12 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" name=\"submit\" value=\"Einloggen\">\n";
 	responseStream << "\t\t<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>\n";
 	responseStream << "\t\t<a href=\"register\">Neuen Account anlegen</a>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "\t<div class=\"grd-time-used\">\n";
+	responseStream << "\t\t";
+#line 84 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+	responseStream << ( timeUsed.string() );
+	responseStream << "\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</form>\n";
 	responseStream << "</body>\n";

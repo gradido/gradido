@@ -5,6 +5,7 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
+#include "../model/Profiler.h"
 
 enum PageState 
 {
@@ -13,6 +14,7 @@ enum PageState
 };
 %>
 <%%
+	Profiler timeUsed;
 	PageState state = PAGE_ASK_PASSPHRASE;
 	bool hasErrors = mSession->errorCount() > 0;
 	
@@ -110,6 +112,9 @@ label:not(.grd_radio_label) {
 			Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. 
 		</div>
 	<% } %>
+</div>
+<div class="grd-time-used">
+	<%= timeUsed.string() %>
 </div>
 </body>
 </html>

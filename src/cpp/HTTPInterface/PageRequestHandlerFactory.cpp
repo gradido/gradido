@@ -12,8 +12,13 @@
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
 #include "ElopageWebhook.h"
+#include "UpdateUserPasswordPage.h"
+#include "Error500Page.h"
+
 
 #include "../SingletonManager/SessionManager.h"
+
+#include "../model/Profiler.h"
 
 PageRequestHandlerFactory::PageRequestHandlerFactory()
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)")
@@ -63,7 +68,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return handleCheckEmail(s, uri, request);
 		}
 	}
+	
 	if (s) {
+		auto user = s->getUser();
+		if (s->errorCount() || (user && user->errorCount())) {
+			return new Error500Page(s);
+		}
+
 		if(url_first_part == "/logout") {
 			sm->releseSession(s);
 			// remove cookie
@@ -112,6 +123,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 
 Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request)
 {
+	Profiler timeUsed;
 	Poco::Net::HTMLForm form(request);
 	unsigned long long verificationCode = 0;
 
@@ -158,16 +170,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	if (!session) {
 		session = sm->getNewSession();
 		if (session->loadFromEmailVerificationCode(verificationCode)) {
-			// login not possible in this function
+			// login not possible in this function, forwarded to PassphrasePage
 			/*auto cookie_id = session->getHandle();
 			auto user_host = request.clientAddress().host();
 			session->setClientIp(user_host);
 			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
 			*/
 		}
-		else {
-			sm->releseSession(session);
-			session = nullptr;
+		else {	
+			return new CheckEmailPage(session);
 		}
 	}
 	// suitable session found or created
@@ -175,8 +186,14 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		auto user_host = request.clientAddress().host();
 		session->setClientIp(user_host);
 
+		if (session->getUser()->isEmptyPassword()) {
+			// user has no password, maybe account created from elopage webhook
+			return new UpdateUserPasswordPage(session);
+		}
+
 		// update session, mark as verified 
 		if (session->updateEmailVerification(verificationCode)) {
+			printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
 			return new PassphrasePage(session);
 		}
 		

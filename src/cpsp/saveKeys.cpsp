@@ -6,6 +6,7 @@
 <%@	page compressed="true" %>
 <%!
 #include "Poco/Net/HTTPServerParams.h"
+#include "../model/Profiler.h"
 
 enum PageState 
 {
@@ -16,8 +17,9 @@ enum PageState
 
 %>
 <%%
-
+	Profiler timeUsed;
 	bool hasErrors = mSession->errorCount() > 0;
+	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
 	
@@ -29,7 +31,8 @@ enum PageState
 			if(!hasPassword) {
 				// check pwd
 				auto pwd = form.get("save-privkey-password", "");
-				if(!mSession->getUser()->validatePwd(pwd)) {
+				
+				if(!mSession->isPwdValid(pwd)) {
 					mSession->addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
 					hasErrors = true;
 				} else {
@@ -148,6 +151,9 @@ label:not(.grd_radio_label) {
 			<%= mSession->getSessionStateString() %>
 		</div>
 	<% } %>
+</div>
+<div class="grd-time-used">
+	<%= timeUsed.string() %>
 </div>
 </body>
 </html>

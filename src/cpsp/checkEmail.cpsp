@@ -5,12 +5,23 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
+#include "../model/Profiler.h"
 
+enum PageState 
+{
+	MAIL_NOT_SEND,
+	ASK_VERIFICATION_CODE
+};
 %>
 <%%
+	Profiler timeUsed;
 	bool hasErrors = false;
+	PageState state = ASK_VERIFICATION_CODE;
 	if(mSession) {
 		hasErrors = mSession->errorCount() > 0;
+		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
+			state = MAIL_NOT_SEND;
+		}
 	}
 
 
@@ -46,18 +57,25 @@ label:not(.grd_radio_label) {
 		<%= mSession->getErrorsHtml() %>
 	<%} %>
 	<h1>Einen neuen Account anlegen</h1>
-	<% if(mSession && mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+	<% if(state == MAIL_NOT_SEND) { %>
 		<div class="grd_text">
 			<p>Die E-Mail wurde noch nicht verschickt, bitte habe noch etwas Geduld.</p>
 			<p>Versuche es einfach in 1-2 Minuten erneut.</p>
 		</div>
-	<% } else { %>
+	<% } else if(state == ASK_VERIFICATION_CODE) { %>
 	<form method="GET">
 		<p>Bitte gebe deinen E-Mail Verification Code ein. </p>
 		<input type="number" name="email-verification-code">
 		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
 	</form>
+	<% } else { %>
+	<div class="grd_text">
+			Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. 
+		</div>
 	<% } %>
+</div>
+<div class="grd-time-used">
+	<%= timeUsed.string() %>
 </div>
 </body>
 </html>

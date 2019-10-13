@@ -135,26 +135,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 		addError(new Error("E-Mail", "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."));
 		return false;
 	}
-	if (!sm->isValid(password, VALIDATE_PASSWORD)) {
-		addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen (@$!%*?&+-) ein!"));
-
-		// @$!%*?&+-
-		if (password.size() < 8) {
-			addError(new Error("Passwort", "Dein Passwort ist zu kurz!"));
-		}
-		else if (!sm->isValid(password, VALIDATE_HAS_LOWERCASE_LETTER)) {
-			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Kleinbuchstaben!"));
-		}
-		else if (!sm->isValid(password, VALIDATE_HAS_UPPERCASE_LETTER)) {
-			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Gro&szlig;buchstaben!"));
-		}
-		else if (!sm->isValid(password, VALIDATE_HAS_NUMBER)) {
-			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Zahlen!"));
-		}
-		else if (!sm->isValid(password, VALIDATE_HAS_SPECIAL_CHARACTER)) {
-			addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Sonderzeichen (@$!%*?&+-)!"));
-		}
-		
+	if (!sm->checkPwdValidation(password, this)) {
 		return false;
 	}
 	/*if (passphrase.size() > 0 && !sm->isValid(passphrase, VALIDATE_PASSPHRASE)) {
@@ -257,6 +238,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		// load correct user from db
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement update(dbConnection);
+
 		update << "UPDATE users SET email_checked=1 where id = (SELECT user_id FROM email_opt_in where verification_code=?)", use(emailVerificationCode);
 		auto updated_rows = update.execute();
 		if (updated_rows == 1) {
@@ -297,7 +279,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 bool Session::isPwdValid(const std::string& pwd)
 {
 	if (mSessionUser) {
-		return mSessionUser->validatePwd(pwd);
+		return mSessionUser->validatePwd(pwd, this);
 	}
 	return false;
 }
@@ -311,8 +293,12 @@ bool Session::loadUser(const std::string& email, const std::string& password)
 	}
 	if (mSessionUser) mSessionUser = nullptr;
 	mSessionUser = new User(email.data());
-	if (!mSessionUser->validatePwd(password)) {
+	if (!mSessionUser->validatePwd(password, this)) {
 		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
+		return false;
+	}
+	if (!mSessionUser->isEmailChecked()) {
+		addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
 		return false;
 	}
 	detectSessionState();
@@ -427,38 +413,25 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 	auto em = ErrorManager::getInstance();
 	auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	
-	/*Poco::Data::Statement select(dbConnection);
-	int user_id = 0;
-	select << "SELECT user_id FROM email_opt_in WHERE verification_code=?", into(user_id), use(emailVerificationCode);
-	try {
-		if (select.execute() == 0) {
-			addError(new Error("E-Mail Verification", "Der Code konnte nicht in der Datenbank gefunden werden."));
-			return false;
-		}
-	}
-	catch (Poco::Exception& ex) {
-		em->addError(new ParamError(funcName, "error selecting verification code entry", ex.displayText().data()));
-		em->sendErrorsAsEmail();
-		return false;
-	}*/
 	Poco::Data::Statement select(dbConnection);
 	std::string email, first_name, last_name;
+	int user_id = 0;
 	select.reset(dbConnection);
-	select << "SELECT email, first_name, last_name FROM users where id = (SELECT user_id FROM email_opt_in WHERE verification_code=?)",
-		 into(email), into(first_name), into(last_name), use(emailVerificationCode);
+	select << "SELECT user_id FROM email_opt_in WHERE verification_code=?",
+		 into(user_id), use(emailVerificationCode);
 	try {
 		size_t rowCount = select.execute();
 		if (rowCount != 1) {
 			em->addError(new ParamError(funcName, "select user by email verification code work not like expected, selected row count", rowCount));
 			em->sendErrorsAsEmail();
 		}
-		if (rowCount < 0) {
+		if (rowCount < 1) {
 			addError(new Error("E-Mail Verification", "Konnte keinen passenden Account finden."));
 			return false;
 		}
 
-		mSessionUser = new User(email.data(), first_name.data(), last_name.data());
-		mSessionUser->loadEntryDBId(ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+		mSessionUser = new User(user_id);
+
 		mEmailVerificationCode = emailVerificationCode;
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
 		printf("[Session::loadFromEmailVerificationCode] time: %s\n", usedTime.string().data());

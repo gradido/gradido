@@ -1,0 +1,98 @@
+<%@ page class="UpdateUserPage" %>
+<%@ page form="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@	page compressed="true" %>
+<%!
+#include "../SingletonManager/SessionManager.h"
+#include "Poco/Net/HTTPCookie.h"
+#include "../model/Profiler.h"
+%>
+<%%
+	Profiler timeUsed;
+	auto user = mSession->getUser();
+	
+	if(!form.empty()) {
+		auto pwd = form.get("update-password", "");
+		if(pwd != "") {
+			if(pwd != form.get("update-password", "")) {
+				session->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
+			} else {
+				userReturned = session->getUser()->setNewPassword(
+					form.get("update-password")
+				);
+			}
+		}
+	}
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: Register</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+<style type="text/css" >
+.grd_container
+{
+  max-width:820px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+input:not([type='radio']) {
+	width:200px;
+}
+label:not(.grd_radio_label) {
+	width:80px;
+	display:inline-block;
+}
+</style>
+</head>
+<body>
+<div class="grd_container">
+	<h1>Einen neuen Account anlegen</h1>
+	<% if(!form.empty()) {%>
+		<div class="grd_text-max-width">
+			<div class="grd_text">
+				..
+			</div>
+		</div>
+	<% } else { %>
+	<form method="POST">
+	
+		<% if(!form.empty() && !userReturned) {%>
+			<%= session->getErrorsHtml() %>
+		<%} %>
+		<fieldset class="grd_container_small">
+			<legend>Account anlegen</legend>
+			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
+			<p class="grd_small">
+				<label for="update-first-name">Vorname</label>
+				<input id="update-first-name" type="text" name="update-first-name" value="<%= !user ? user->getFirstName() : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="update-last-name">Nachname</label>
+				<input id="update-last-name" type="text" name="update-last-name" value="<%= !user ? user->getLastName() : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="update-password">Passwort</label>
+				<input id="update-password" type="password" name="update-password"/>
+			</p>
+			<p class="grd_small">
+				<label for="update-password">Passwort Best&auml;tigung</label>
+				<input id="update-password2" type="password" name="update-password2"/>
+			</p>
+		</fieldset>
+		<input class="grd_bn_succeed" type="submit" name="submit" value="&Auml;nderung(en) speichern">
+		
+	</form>
+	<% } %>
+</div>
+<div class="grd-time-used">
+	s<%= timeUsed.string() %>
+</div>
+</body>
+</html>

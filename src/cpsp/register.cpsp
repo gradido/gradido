@@ -4,8 +4,10 @@
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
+#include "../model/Profiler.h"
 %>
 <%%
+	Profiler timeUsed;
 	auto session = SessionManager::getInstance()->getNewSession();
 	bool userReturned = false;
 	
@@ -97,6 +99,9 @@ label:not(.grd_radio_label) {
 		
 	</form>
 	<% } %>
+</div>
+<div class="grd-time-used">
+	<%= timeUsed.string() %>
 </div>
 </body>
 </html>

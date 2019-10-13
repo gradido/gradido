@@ -162,15 +162,6 @@ int HandleElopageRequestTask::getUserIdFromDB()
 	return user_id;
 }
 
-bool HandleElopageRequestTask::createEmailVerificationCode()
-{
-	// create email verification code
-	uint32_t* code_p = (uint32_t*)&mEmailVerificationCode;
-	for (int i = 0; i < sizeof(mEmailVerificationCode) / 4; i++) {
-		code_p[i] = randombytes_random();
-	}
-	return mEmailVerificationCode != 0;
-}
 
 int HandleElopageRequestTask::run()
 {
@@ -216,10 +207,10 @@ int HandleElopageRequestTask::run()
 		return -3;
 	}
 
-	EmailVerificationCode emailVerification(user_id);
+	Poco::AutoPtr<EmailVerificationCode> emailVerification(new EmailVerificationCode(user_id));
 
 	// create email verification code
-	if (!emailVerification.getCode()) {
+	if (!emailVerification->getCode()) {
 		// exit if email verification code is empty
 		addError(new Error("Email verification", "code is empty, error in random?"));
 		sendErrorsAsEmail();
@@ -227,7 +218,7 @@ int HandleElopageRequestTask::run()
 	}
 
 	// write email verification code into db
-	UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask((ModelBase*)&emailVerification));
+	UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask(emailVerification));
 	saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
 
 	// send email to user
@@ -238,9 +229,9 @@ int HandleElopageRequestTask::run()
 	std::stringstream ss;
 	ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
 	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Elopage für Gradido angemeldet. " << std::endl;
-	ss << "Um dein Gradido Konto anzulegen und deine E-Mail zu best&auml;tigen," << std::endl;
-	ss << "klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << mEmailVerificationCode << std::endl;
-	ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl << std::endl;
+	ss << "Um dein Gradido Konto anzulegen und deine E-Mail zu bestätigen," << std::endl;
+	ss << "klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << emailVerification->getCode() << std::endl;
+	ss << "oder kopiere den Code: " << emailVerification->getCode() << " selbst dort hinein." << std::endl << std::endl;
 	ss << "Mit freundlichen Grüße" << std::endl;
 	ss << "Dario, Gradido Server Admin" << std::endl;
 

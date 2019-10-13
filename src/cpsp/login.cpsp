@@ -5,9 +5,11 @@
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "../model/Profiler.h"
 	
 %>
 <%% 
+	Profiler timeUsed;
 	auto session = SessionManager::getInstance()->getNewSession();
 	
 	if(!form.empty()) {
@@ -77,6 +79,9 @@ label:not(.grd_radio_label) {
 		<input class="grd_bn_succeed" type="submit" name="submit" value="Einloggen">
 		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
 		<a href="register">Neuen Account anlegen</a>
+	</div>
+	<div class="grd-time-used">
+		<%= timeUsed.string() %>
 	</div>
 </form>
 </body>

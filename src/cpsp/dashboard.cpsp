@@ -6,8 +6,10 @@
 <%@	page compressed="true" %>
 <%! 
 #include "../SingletonManager/SessionManager.h"
+#include "../model/Profiler.h"
 %>
 <% 
+	Profiler timeUsed;
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
 	if(!form.empty()) {
@@ -44,6 +46,9 @@
 	<% } %>
 	<a class="grd_bn" href="logout">Abmelden</a>
 	<a class="grd_bn" href="user_delete">Account l&ouml;schen</a>
+</div>
+<div class="grd-time-used">
+	<%= timeUsed.string() %>
 </div>
 </body>
 </html>
