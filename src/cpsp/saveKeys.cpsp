@@ -7,6 +7,7 @@
 <%!
 #include "Poco/Net/HTTPServerParams.h"
 #include "../model/Profiler.h"
+#include "../ServerConfig.h"
 
 enum PageState 
 {
@@ -22,7 +23,7 @@ enum PageState
 	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
-	auto uri_start = request.serverParams().getServerName();
+	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
 	
 	if(!form.empty()) {
 		// privkey

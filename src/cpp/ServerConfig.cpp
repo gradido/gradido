@@ -34,6 +34,7 @@ namespace ServerConfig {
 	Context::Ptr g_SSL_CLient_Context = nullptr;
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
+	std::string g_serverPath;
 
 	bool loadMnemonicWordLists()
 	{
@@ -79,6 +80,7 @@ namespace ServerConfig {
 		//g_ServerAdminPublic = cfg.getString("crypto.server_admin_public");
 
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
+		g_serverPath = cfg.getString("loginServer.path", "");
 		return true;
 	}
 

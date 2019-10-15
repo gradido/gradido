@@ -17,8 +17,8 @@ private:
 	size_t m_arraySize;
 	size_t m_offsetSize;
 	size_t m_dataSize;
-	//unsigned char* m_Data;
-	unsigned char m_Data[64];
+	unsigned char* m_Data;
+	//unsigned char m_Data[64];
 };
 
 #endif //GRADIDO_LOGIN_SERVER_CRYPTO_OBFUS_ARRAY

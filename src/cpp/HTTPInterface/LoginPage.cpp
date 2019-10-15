@@ -11,6 +11,7 @@
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
 #include "../model/Profiler.h"
+#include "../ServerConfig.h"	
 	
 
 
@@ -22,7 +23,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 13 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 14 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
 	
 	auto sm = SessionManager::getInstance();
@@ -50,18 +51,15 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 				addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				// response.redirect(uri_start + "/checkEmail");
 				session->addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
-				response.redirect("./checkEmail");
+				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
-				// response.redirect(uri_start + "/passphrase");
-				response.redirect("./passphrase");
+				response.redirect(ServerConfig::g_serverPath + "/passphrase");
 				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
-				// response.redirect(uri_start + "/");
-				response.redirect("./");
+				response.redirect(ServerConfig::g_serverPath + "/");
 				return;
 			}
 			
@@ -109,7 +107,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 95 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 93 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -131,7 +129,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"grd-time-used\">\n";
 	responseStream << "\t\t";
-#line 114 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 112 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "\t</div>\n";

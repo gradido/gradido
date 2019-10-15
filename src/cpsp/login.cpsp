@@ -8,6 +8,7 @@
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
 #include "../model/Profiler.h"
+#include "../ServerConfig.h"	
 	
 %>
 <%% 
@@ -37,18 +38,15 @@
 				addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				// response.redirect(uri_start + "/checkEmail");
 				session->addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
-				response.redirect("./checkEmail");
+				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
-				// response.redirect(uri_start + "/passphrase");
-				response.redirect("./passphrase");
+				response.redirect(ServerConfig::g_serverPath + "/passphrase");
 				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
-				// response.redirect(uri_start + "/");
-				response.redirect("./");
+				response.redirect(ServerConfig::g_serverPath + "/");
 				return;
 			}
 			

@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <math.h>
 #include <assert.h>
-/*
+
 ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	: m_arraySize(0), m_offsetSize(0), m_dataSize(size), m_Data(nullptr)
 {
@@ -23,7 +23,8 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	memcpy(&m_Data[m_offsetSize], data, size);
 	printf("[ObfusArray] data: %lld\n", (int64_t)m_Data);
 }
-*/
+
+/*
 ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	: m_arraySize(64), m_offsetSize(0), m_dataSize(size)
 {
@@ -31,10 +32,10 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	memcpy(m_Data, data, size);
 	//printf("[ObfusArray] data: %lld\n", (int64_t)m_Data);
 }
-
+*/
 ObfusArray::~ObfusArray()
 {
-	/*
+	
 	printf("[ObfusArray::~ObfusArray] data: %lld\n", (int64_t)m_Data);
 	if (m_Data) {
 		
@@ -42,5 +43,5 @@ ObfusArray::~ObfusArray()
 		m_Data = nullptr;
 	}
 	printf("[ObfusArray::~ObfusArray] finish\n");
-	*/
+	
 }
