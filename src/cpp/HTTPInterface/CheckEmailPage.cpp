@@ -39,7 +39,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	if(mSession) {
 		getErrors(mSession);
 		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
-			state = MAIL_NOT_SEND;
+			//state = MAIL_NOT_SEND;
 		}
 	}
 
@@ -93,22 +93,34 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
  } else if(state == ASK_VERIFICATION_CODE) { 	responseStream << "\n";
 	responseStream << "\t<form method=\"GET\">\n";
 	responseStream << "\t\t<p>Bitte gebe deinen E-Mail Verification Code ein. </p>\n";
+	responseStream << "\t\t";
+#line 68 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+ if(mSession && !mSession->getUser().isNull()) {	responseStream << "\n";
+	responseStream << "\t\t\t<p>Er wurde an deine E-Mail Adresse: ";
+#line 69 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+	responseStream << ( mSession->getUser()->getEmail() );
+	responseStream << " gesendet.</p>\n";
+	responseStream << "\t\t";
+#line 70 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
+	responseStream << "\t\t<p>Du hast bisher keinen Code erhalten? </p>\n";
+	responseStream << "\t\t<p>E-Mail erneut zuschicken (in Arbeit)</p>\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 71 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 76 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\tUngültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. \n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 75 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 80 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
-#line 78 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+#line 83 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";

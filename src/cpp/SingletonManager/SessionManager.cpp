@@ -265,6 +265,10 @@ Session* SessionManager::findByEmailVerificationCode(long long emailVerification
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		if (it->second->getEmailVerificationCode() == emailVerificationCode) {
 			result = it->second;
+			if (!result->isActive()) {
+				result = nullptr;
+				continue;
+			}
 			break;
 		}
 	}
@@ -315,6 +319,7 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 		}
 		// delete cookie
 		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", it->second);
+		keks.setPath("/");
 		// max age of 0 delete cookie
 		keks.setMaxAge(0);
 		response.addCookie(keks);

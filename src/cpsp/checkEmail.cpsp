@@ -21,7 +21,7 @@ enum PageState
 	if(mSession) {
 		getErrors(mSession);
 		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
-			state = MAIL_NOT_SEND;
+			//state = MAIL_NOT_SEND;
 		}
 	}
 
@@ -65,8 +65,13 @@ label:not(.grd_radio_label) {
 	<% } else if(state == ASK_VERIFICATION_CODE) { %>
 	<form method="GET">
 		<p>Bitte gebe deinen E-Mail Verification Code ein. </p>
+		<% if(mSession && !mSession->getUser().isNull()) {%>
+			<p>Er wurde an deine E-Mail Adresse: <%= mSession->getUser()->getEmail() %> gesendet.</p>
+		<% } %>
 		<input type="number" name="email-verification-code">
 		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+		<p>Du hast bisher keinen Code erhalten? </p>
+		<p>E-Mail erneut zuschicken (in Arbeit)</p>
 	</form>
 	<% } else { %>
 	<div class="grd_text">

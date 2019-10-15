@@ -340,6 +340,8 @@ bool User::isEmptyPassword()
 {
 	bool bRet = false;
 	lock();
+	printf("[User::isEmptyPassword] pwd hashed: %d, running: %d, this: %d\n",
+		mPasswordHashed, !mCreateCryptoKeyTask.isNull(), this);
 	bRet = mPasswordHashed == 0 && (mCreateCryptoKeyTask.isNull() || mCreateCryptoKeyTask->isTaskFinished());
 	unlock();
 	return bRet;
@@ -372,6 +374,7 @@ bool User::setNewPassword(const std::string& newPassword)
 	}
 	duplicate();
 	lock();
+	printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
 	mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
 	mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
 	unlock();
@@ -490,7 +493,7 @@ void User::release()
 	mWorkingMutex.lock();
 	mReferenceCount--;
 #ifdef DEBUG_USER_DELETE_ENV
-	printf("[User::release] new value: %d\n", mReferenceCount);
+	printf("[User::release] new value: %d, this: %d\n", mReferenceCount, this);
 #endif
 	if (0 == mReferenceCount) {
 		mWorkingMutex.unlock();

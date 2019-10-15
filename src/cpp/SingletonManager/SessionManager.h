@@ -46,6 +46,7 @@ public:
 
 	Session* getNewSession(int* handle = nullptr);
 	inline bool releaseSession(Session* requestSession) {
+		if (!requestSession) return false;
 		return releaseSession(requestSession->getHandle());
 	}
 	bool releaseSession(int requestHandleSession);

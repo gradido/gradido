@@ -7,7 +7,7 @@
 <%!
 #include "../model/Profiler.h"
 #include "../SingletonManager/SessionManager.h"
-
+#include "Poco/Net/HTTPServerParams.h"
 
 enum PageState 
 {
@@ -19,6 +19,7 @@ enum PageState
 	PageState state = PAGE_ASK_PASSPHRASE;
 	
 	auto sm = SessionManager::getInstance();
+	auto uri_start = request.serverParams().getServerName();
 	// remove old cookies if exist
 	sm->deleteLoginCookies(request, response, mSession);
 	// save login cookie, because maybe we've get an new session
@@ -92,7 +93,7 @@ label:not(.grd_radio_label) {
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>
-	<form method="POST" action="./passphrase">
+	<form method="POST" action="<%= uri_start %>/passphrase">
 		<fieldset class="grd_container_small">
 			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>

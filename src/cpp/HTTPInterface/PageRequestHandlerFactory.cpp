@@ -164,10 +164,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 
 	// no session or active session don't belong to verification code
 	if (!session || session->getEmailVerificationCode() != verificationCode) {
-		sm->releaseSession(session);
-		session = nullptr;
+		//sm->releaseSession(session);
+		//session = nullptr;
 		// it is maybe unsafe
-		//session = sm->findByEmailVerificationCode(verificationCode);
+		session = sm->findByEmailVerificationCode(verificationCode);
 	}
 	// no suitable session in memory, try to create one from db data
 	if (!session) {

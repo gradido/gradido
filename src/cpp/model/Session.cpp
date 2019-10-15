@@ -290,7 +290,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	lock();
 	if (mSessionUser) mSessionUser = nullptr;
 	mSessionUser = new User(email.data());
-	if (mSessionUser->getUserState() == USER_LOADED_FROM_DB) {
+	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		if (!mSessionUser->validatePwd(password, this)) {
 			return USER_PASSWORD_INCORRECT;
 		}
@@ -406,6 +406,7 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId));
 	// prevent reading or changing cookie with js
 	keks.setHttpOnly();
+	keks.setPath("/");
 	// send cookie only via https
 #ifndef WIN32
 	keks.setSecure(true);
