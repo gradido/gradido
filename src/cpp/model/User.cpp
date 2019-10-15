@@ -14,7 +14,7 @@
 
 using namespace Poco::Data::Keywords;
 
-//#define DEBUG_USER_DELETE_ENV
+#define DEBUG_USER_DELETE_ENV
 
 
 // -------------------------------------------------------------------------------------------------
@@ -157,37 +157,45 @@ UserWriteCryptoKeyHashIntoDB::UserWriteCryptoKeyHashIntoDB(Poco::AutoPtr<User> u
 
 int UserWriteCryptoKeyHashIntoDB::run()
 {
-	mUser->updateIntoDB("password");
+	mUser->updateIntoDB(USER_FIELDS_PASSWORD);
 	return 0;
 }
 
 // *******************************************************************************
 // new user
 User::User(const char* email, const char* first_name, const char* last_name)
-	: mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr),
-	mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr),
+	 mReferenceCount(1)
 {
 
 }
 // load from db
 User::User(const char* email)
-	: mDBId(0), mEmail(email), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
-	Poco::Nullable<Poco::Data::BLOB> pubkey;
+	Poco::Nullable<Poco::Data::BLOB> pubkey; 
+	Poco::Nullable<Poco::Data::BLOB> privkey;
 
 	Poco::Data::Statement select(session);
 	int email_checked = 0;
-	select << "SELECT id, first_name, last_name, password, pubkey, email_checked from users where email = ?",
-		into(mDBId), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(email_checked), use(mEmail);
+	select << "SELECT id, first_name, last_name, password, pubkey, privkey, email_checked from users where email = ?",
+		into(mDBId), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), use(mEmail);
 	try {
 		auto result = select.execute();
-		int zahl = 1;
 		if (result == 1) {
+			mState = USER_LOADED_FROM_DB;
+			if (email_checked == 0) {    mState = USER_EMAIL_NOT_ACTIVATED;}
+			else if (pubkey.isNull()) {  mState = USER_NO_KEYS;}
+			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
+			else {						 mState = USER_COMPLETE;}
+
+			mEmailChecked = email_checked == 1;
+
 			if (!pubkey.isNull()) {
 				auto pubkey_value = pubkey.value();
 				size_t hexSize = pubkey_value.size() * 2 + 1;
@@ -197,7 +205,12 @@ User::User(const char* email)
 				mPublicHex = hexString;
 				free(hexString);
 			}
-			if (email_checked != 0) mEmailChecked = true;
+			if (!privkey.isNull()) {
+				auto privkey_value = privkey.value();
+				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+			}
+			
+
 		}
 	} catch(Poco::Exception& ex) {
 		addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
@@ -205,21 +218,29 @@ User::User(const char* email)
 }
 
 User::User(int user_id)
-: mDBId(user_id), mPasswordHashed(0), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+: mState(USER_EMPTY), mDBId(user_id), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
 	Poco::Nullable<Poco::Data::BLOB> pubkey;
+	Poco::Nullable<Poco::Data::BLOB> privkey;
 
 	Poco::Data::Statement select(session);
 	int email_checked = 0;
-	select << "SELECT email, first_name, last_name, password, pubkey, email_checked from users where id = ?",
-		into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(email_checked), use(user_id);
+	select << "SELECT email, first_name, last_name, password, pubkey, privkey, email_checked from users where id = ?",
+		into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), use(user_id);
 	try {
 		auto result = select.execute();
-		int zahl = 1;
 		if (result == 1) {
+			mState = USER_LOADED_FROM_DB;
+			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
+			else if (pubkey.isNull()) { mState = USER_NO_KEYS; }
+			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
+			else { mState = USER_COMPLETE; }
+
+			mEmailChecked = email_checked == 1;
+
 			if (!pubkey.isNull()) {
 				auto pubkey_value = pubkey.value();
 				size_t hexSize = pubkey_value.size() * 2 + 1;
@@ -229,7 +250,10 @@ User::User(int user_id)
 				mPublicHex = hexString;
 				free(hexString);
 			}
-			if (email_checked != 0) mEmailChecked = true;
+			if (!privkey.isNull()) {
+				auto privkey_value = privkey.value();
+				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+			}
 		}
 	}
 	catch (Poco::Exception& ex) {
@@ -247,6 +271,10 @@ User::~User()
 	if (mCryptoKey) {
 		delete mCryptoKey;
 		mCryptoKey = nullptr;
+	}
+	if (mPrivateKey) {
+		delete mPrivateKey;
+		mPrivateKey = nullptr;
 	}
 }
 
@@ -310,40 +338,80 @@ bool User::validatePassphrase(const std::string& passphrase)
 
 bool User::isEmptyPassword()
 {
-	return mPasswordHashed == 0 && (mCreateCryptoKeyTask.isNull() || mCreateCryptoKeyTask->isTaskFinished());
+	bool bRet = false;
+	lock();
+	bRet = mPasswordHashed == 0 && (mCreateCryptoKeyTask.isNull() || mCreateCryptoKeyTask->isTaskFinished());
+	unlock();
+	return bRet;
+}
+
+UserStates User::getUserState()
+{
+	UserStates state;
+	lock();
+	state = mState;
+	unlock();
+	return state;
 }
 
 // TODO: if a password and privkey already exist, load current private key and re encrypt with new crypto key
 bool User::setNewPassword(const std::string& newPassword)
 {
+	
 	if (newPassword == "") {
+		lock();
 		addError(new Error("Passwort", "Ist leer."));
+		unlock();
 		return false;
 	}
 	if (!mCreateCryptoKeyTask.isNull() && !mCreateCryptoKeyTask->isTaskFinished()) {
+		lock();
 		addError(new Error("Passwort", "Wird bereits erstellt, bitte in ca. 1 sekunde neuladen."));
+		unlock();
 		return false;
 	}
 	duplicate();
+	lock();
 	mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
 	mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
-
+	unlock();
 	duplicate();
 	UniLib::controller::TaskPtr savePassword(new UserWriteCryptoKeyHashIntoDB(this, 1));
 	savePassword->setParentTaskPtrInArray(mCreateCryptoKeyTask, 0);
 	savePassword->scheduleTask(savePassword);
 
+	unlock();
 	return true;
+}
+
+void User::setEmailChecked()
+{
+	lock();
+	mEmailChecked = true;
+	if (mState <= USER_EMAIL_NOT_ACTIVATED) {
+		if (mPublicHex == "") {
+			mState = USER_NO_KEYS;
+		}
+		else if (!mPrivateKey) {
+			mState = USER_NO_PRIVATE_KEY;
+		}
+		else {
+			mState = USER_COMPLETE;
+		}
+	}
+	unlock();
 }
 
 bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint)
 {
+	
 	auto cmpCryptoKey = createCryptoKey(pwd);
 	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
 	}
 	User::passwordHashed pwdHashed;
 	crypto_shorthash((unsigned char*)&pwdHashed, *cmpCryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+	lock();
 	if (pwdHashed == mPasswordHashed) {
 		if (!mCryptoKey) {
 			mCryptoKey = cmpCryptoKey;
@@ -351,11 +419,12 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 		else {
 			delete cmpCryptoKey;
 		}
+		unlock();
 		return true;
 	}
 	delete cmpCryptoKey;
 	
-	
+	unlock();
 	return false;
 }
 
@@ -386,10 +455,13 @@ bool User::deleteFromDB()
 		}
 
 		try {
+			lock();
 			auto result = deleteFromDB.execute();
+			unlock();
 			//printf("[User::deleteFromDB] %s deleted: %d\n", tables[i].data(), result);
 		}
 		catch (Poco::Exception& ex) {
+			unlock();
 			em->addError(new ParamError("[User::deleteFromDB]", "error deleting user tables", ex.displayText().data()));
 			em->sendErrorsAsEmail();
 			//return false;
@@ -412,6 +484,9 @@ void User::duplicate()
 
 void User::release()
 {
+	if (!mCreateCryptoKeyTask.isNull() && mCreateCryptoKeyTask->isTaskFinished()) {
+		mCreateCryptoKeyTask = nullptr;
+	}
 	mWorkingMutex.lock();
 	mReferenceCount--;
 #ifdef DEBUG_USER_DELETE_ENV
@@ -436,7 +511,9 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	sha_context context_sha512;
 	//unsigned char* hash512 = (unsigned char*)malloc(SHA_512_SIZE);
 	if (SHA_512_SIZE < crypto_pwhash_SALTBYTES) {
+		lock();
 		addError(new Error(__FUNCTION__, "sha512 is to small for libsodium pwhash saltbytes"));
+		unlock();
 		return nullptr;
 	}
 	
@@ -450,7 +527,9 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
 
 	if (crypto_pwhash(key, crypto_box_SEEDBYTES, password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
+		lock();
 		addError(new ParamError(__FUNCTION__, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
+		unlock();
 		//printf("[User::%s] error creating pwd hash, maybe to much memory requestet? error: %s\n", __FUNCTION__, strerror(errno));
 		//printf("pwd: %s\n", pwd);
 		return nullptr;
@@ -551,30 +630,33 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 	return insert;
 }
 
-bool User::updateIntoDB(const char* fieldName)
+bool User::updateIntoDB(UserFields fieldType)
 {
 	
 	if (mDBId == 0) {
 		addError(new Error("User::updateIntoDB", "user id is zero"));
 		return false; 
 	}
-
-	if (strcmp(fieldName, "password") == 0 && mPasswordHashed != 0) {
+	if (USER_FIELDS_PASSWORD == fieldType || USER_FIELDS_EMAIL_CHECKED == fieldType) {
 		auto session = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement update(session);
-		// UPDATE `table_name` SET `column_name` = `new_value' [WHERE condition];
-		update << "UPDATE users SET password = ? where id = ?",
-			use(mPasswordHashed), use(mDBId);
+		if (USER_FIELDS_PASSWORD == fieldType) {
+			update << "UPDATE users SET password = ? where id = ?",
+				use(mPasswordHashed), use(mDBId);
+		}
+		else if (USER_FIELDS_EMAIL_CHECKED == fieldType) {
+			update << "UPDATE users SET email_checked = ? where id = ?",
+				use(mEmailChecked), use(mDBId);
+		}
 		try {
 			if (update.execute() == 1) return true;
-			addError(new ParamError("User::updateIntoDB", "update not affected 1 rows", fieldName));
+			addError(new ParamError("User::updateIntoDB", "update not affected 1 rows", fieldType));
 		}
 		catch (Poco::Exception& ex) {
 			auto em = ErrorManager::getInstance();
 			em->addError(new ParamError("User::updateIntoDB", "mysql error", ex.displayText().data()));
 			em->sendErrorsAsEmail();
 		}
-			
 	}
 
 	return false;

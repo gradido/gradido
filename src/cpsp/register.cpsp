@@ -1,32 +1,42 @@
 <%@ page class="RegisterPage" %>
 <%@ page form="true" %>
 <%@	page compressed="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="PageRequestMessagedHandler.h" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
-#include "../model/Profiler.h"
 %>
 <%%
-	Profiler timeUsed;
-	auto session = SessionManager::getInstance()->getNewSession();
+	auto sm = SessionManager::getInstance();
+	
 	bool userReturned = false;
 	
 	if(!form.empty()) {
 		if(form.get("register-password2") != form.get("register-password")) {
-			session->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
+			addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
 		} else {
+			auto session = sm->getSession(request);
+			if(!session) {
+				session = sm->getNewSession();		
+				auto user_host = request.clientAddress().host();
+				session->setClientIp(user_host);
+				response.addCookie(session->getLoginCookie());
+			}
+			
 			userReturned = session->createUser(
 				form.get("register-first-name"),
 				form.get("register-last-name"),
 				form.get("register-email"),
 				form.get("register-password")
 			);
+			getErrors(session);
 		}
-		if(userReturned) {
-			auto user_host = request.clientAddress().host();
-			session->setClientIp(user_host);
-			response.addCookie(session->getLoginCookie());
-		}
+		
+	} else {
+		// on enter login page with empty form
+		// remove old cookies if exist
+		sm->deleteLoginCookies(request, response);
 	}
 %>
 <!DOCTYPE html>
@@ -57,8 +67,8 @@ label:not(.grd_radio_label) {
 <body>
 <div class="grd_container">
 	<h1>Einen neuen Account anlegen</h1>
+	<%= getErrorsHtml() %>
 	<% if(!form.empty() && userReturned) {%>
-		
 		<div class="grd_text-max-width">
 			<div class="grd_text">
 				Deine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. 
@@ -67,10 +77,7 @@ label:not(.grd_radio_label) {
 		</div>
 	<% } else { %>
 	<form method="POST">
-	
-		<% if(!form.empty() && !userReturned) {%>
-			<%= session->getErrorsHtml() %>
-		<%} %>
+		
 		<fieldset class="grd_container_small">
 			<legend>Account anlegen</legend>
 			<p>Bitte gebe deine Daten um einen Account anzulegen</p>
@@ -101,7 +108,7 @@ label:not(.grd_radio_label) {
 	<% } %>
 </div>
 <div class="grd-time-used">
-	<%= timeUsed.string() %>
+	<%= mTimeProfiler.string() %>
 </div>
 </body>
 </html>

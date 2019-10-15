@@ -6,6 +6,8 @@
 <%@	page compressed="true" %>
 <%!
 #include "../model/Profiler.h"
+#include "../SingletonManager/SessionManager.h"
+
 
 enum PageState 
 {
@@ -14,10 +16,11 @@ enum PageState
 };
 %>
 <%%
-	Profiler timeUsed;
 	PageState state = PAGE_ASK_PASSPHRASE;
-	bool hasErrors = mSession->errorCount() > 0;
 	
+	auto sm = SessionManager::getInstance();
+	// remove old cookies if exist
+	sm->deleteLoginCookies(request, response, mSession);
 	// save login cookie, because maybe we've get an new session
 	response.addCookie(mSession->getLoginCookie());
 	
@@ -34,7 +37,7 @@ enum PageState
 				state = PAGE_SHOW_PASSPHRASE;
 			}
 			else {
-				mSession->addError(new Error("Merkspruch", "Dieser Merkspruch ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+				addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
 			}
 		}
 		else if (registerKeyChoice == "yes") {
@@ -46,6 +49,7 @@ enum PageState
 		state = PAGE_SHOW_PASSPHRASE;
 		mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 	}
+	getErrors(mSession);
 %>
 <!DOCTYPE html>
 <html>
@@ -74,10 +78,8 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
-	<% if(mSession && hasErrors) {%>
-		<%= mSession->getErrorsHtml() %>
-	<%} %>
 	<h1>Einen neuen Account anlegen</h1>
+	<%= getErrorsHtml() %>
 	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
 		<div class="grd_text-max-width">
 			<div class="grd_text">
@@ -90,7 +92,7 @@ label:not(.grd_radio_label) {
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>
-	<form method="POST" action="passphrase">
+	<form method="POST" action="./passphrase">
 		<fieldset class="grd_container_small">
 			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
 			<p>Hast du schonmal ein Gradido Konto besessen?</p>
@@ -114,7 +116,7 @@ label:not(.grd_radio_label) {
 	<% } %>
 </div>
 <div class="grd-time-used">
-	<%= timeUsed.string() %>
+	<%= mTimeProfiler.string() %>
 </div>
 </body>
 </html>

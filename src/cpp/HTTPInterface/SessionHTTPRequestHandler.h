@@ -2,10 +2,10 @@
 #define SESSION_HTTP_REQUEST_HANDLER_INCLUDED
 
 #include "../model/Session.h"
-#include "Poco/Net/HTTPRequestHandler.h"
+#include "PageRequestMessagedHandler.h"
 
 
-class SessionHTTPRequestHandler : public Poco::Net::HTTPRequestHandler
+class SessionHTTPRequestHandler : public PageRequestMessagedHandler
 {
 public:
 	SessionHTTPRequestHandler(Session* session) : mSession(session) {}

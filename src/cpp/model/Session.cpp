@@ -284,26 +284,32 @@ bool Session::isPwdValid(const std::string& pwd)
 	return false;
 }
 
-bool Session::loadUser(const std::string& email, const std::string& password)
+UserStates Session::loadUser(const std::string& email, const std::string& password)
 {
 	//Profiler usedTime;
-	if (email == "" || password == "") {
-		addError(new Error("Login", "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"));
-		return false;
-	}
+	lock();
 	if (mSessionUser) mSessionUser = nullptr;
 	mSessionUser = new User(email.data());
-	if (!mSessionUser->validatePwd(password, this)) {
+	if (mSessionUser->getUserState() == USER_LOADED_FROM_DB) {
+		if (!mSessionUser->validatePwd(password, this)) {
+			return USER_PASSWORD_INCORRECT;
+		}
+	}
+
+	/*if (!mSessionUser->validatePwd(password, this)) {
 		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
+		unlock();
 		return false;
 	}
 	if (!mSessionUser->isEmailChecked()) {
 		addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
+		unlock();
 		return false;
-	}
+	}*/
 	detectSessionState();
+	unlock();
 
-	return true;
+	return mSessionUser->getUserState();
 }
 
 bool Session::deleteUser()
@@ -337,11 +343,13 @@ void Session::detectSessionState()
 	if (!mSessionUser || !mSessionUser->hasCryptoKey()) {
 		return;
 	}
+	UserStates userState = mSessionUser->getUserState();
+	/*
 	if (mSessionUser->getDBId() == 0) {
 		updateState(SESSION_STATE_CRYPTO_KEY_GENERATED);
 		return;
-	}
-	if (!mSessionUser->isEmailChecked()) {
+	}*/
+	if (userState <= USER_EMAIL_NOT_ACTIVATED) {
 
 		if (mEmailVerificationCode == 0) {
 			auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -364,7 +372,7 @@ void Session::detectSessionState()
 		return;
 	}
 
-	if (mSessionUser->getPublicKeyHex() == "") {
+	if (USER_NO_KEYS == userState) {
 		
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(dbConnection);

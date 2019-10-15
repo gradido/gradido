@@ -54,7 +54,9 @@ public:
 	// TODO: register state: written into db, mails sended, update state only if new state is higher as old state
 	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
-	bool loadUser(const std::string& email, const std::string& password);
+	UserStates loadUser(const std::string& email, const std::string& password);
+
+	inline void setUser(Poco::AutoPtr<User> user) { mSessionUser = user; }
 	
 	bool deleteUser();
 
@@ -88,8 +90,8 @@ public:
 
 	inline Poco::UInt64 getEmailVerificationCode() { return mEmailVerificationCode; }
 
-	inline bool isActive() const { return mActive; }
-	inline void setActive(bool active) { mActive = active; }
+	inline bool isActive() { bool bret = false; lock(); bret = mActive; unlock(); return bret; }
+	inline void setActive(bool active) { lock();  mActive = active; unlock(); }
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 

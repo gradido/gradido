@@ -5,7 +5,7 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
-#include "../model/Profiler.h"
+#include "../SingletonManager/SessionManager.h"
 
 enum PageState 
 {
@@ -14,11 +14,12 @@ enum PageState
 };
 %>
 <%%
-	Profiler timeUsed;
-	bool hasErrors = false;
+	// remove old cookies if exist
+	auto sm = SessionManager::getInstance();
+	sm->deleteLoginCookies(request, response, mSession);
 	PageState state = ASK_VERIFICATION_CODE;
 	if(mSession) {
-		hasErrors = mSession->errorCount() > 0;
+		getErrors(mSession);
 		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
 			state = MAIL_NOT_SEND;
 		}
@@ -53,10 +54,9 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
-	<% if(mSession && hasErrors) {%>
-		<%= mSession->getErrorsHtml() %>
-	<%} %>
+	
 	<h1>Einen neuen Account anlegen</h1>
+	<%= getErrorsHtml() %>
 	<% if(state == MAIL_NOT_SEND) { %>
 		<div class="grd_text">
 			<p>Die E-Mail wurde noch nicht verschickt, bitte habe noch etwas Geduld.</p>
@@ -75,7 +75,7 @@ label:not(.grd_radio_label) {
 	<% } %>
 </div>
 <div class="grd-time-used">
-	<%= timeUsed.string() %>
+	<%= mTimeProfiler.string() %>
 </div>
 </body>
 </html>

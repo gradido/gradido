@@ -6,15 +6,16 @@
 <%@	page compressed="true" %>
 <%! 
 #include "../SingletonManager/SessionManager.h"
-#include "../model/Profiler.h"
+#include "Poco/Net/HTTPServerParams.h"
 %>
 <% 
-	Profiler timeUsed;
+	
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
 	if(!form.empty()) {
 		//form.get("email-verification-code")
 	}
+	auto uri_start = request.serverParams().getServerName();
 %>
 <!DOCTYPE html>
 <html>
@@ -44,11 +45,11 @@
 		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
 	</form>
 	<% } %>
-	<a class="grd_bn" href="logout">Abmelden</a>
-	<a class="grd_bn" href="user_delete">Account l&ouml;schen</a>
+	<a class="grd_bn" href="<%= uri_start %>/logout">Abmelden</a>
+	<a class="grd_bn" href="<%= uri_start %>/user_delete">Account l&ouml;schen</a>
 </div>
 <div class="grd-time-used">
-	<%= timeUsed.string() %>
+	<%= mTimeProfiler.string() %>
 </div>
 </body>
 </html>

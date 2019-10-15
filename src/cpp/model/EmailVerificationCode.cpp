@@ -58,3 +58,30 @@ Poco::Data::Statement EmailVerificationCode::loadFromDB(Poco::Data::Session sess
 
 	return select;
 }
+
+/*
+Poco::Data::Statement select(session);
+int email_checked = 0;
+select << "SELECT email, first_name, last_name, password, pubkey, email_checked from users where id = ?",
+into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(email_checked), use(user_id);
+try {
+auto result = select.execute();
+int zahl = 1;
+if (result == 1) {
+
+if (!pubkey.isNull()) {
+auto pubkey_value = pubkey.value();
+size_t hexSize = pubkey_value.size() * 2 + 1;
+char* hexString = (char*)malloc(hexSize);
+memset(hexString, 0, hexSize);
+sodium_bin2hex(hexString, hexSize, pubkey_value.content().data(), pubkey_value.size());
+mPublicHex = hexString;
+free(hexString);
+}
+if (email_checked != 0) mEmailChecked = true;
+}
+}
+catch (Poco::Exception& ex) {
+addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
+}
+*/

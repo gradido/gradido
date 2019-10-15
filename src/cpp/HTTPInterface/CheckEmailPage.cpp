@@ -7,7 +7,7 @@
 
 #line 7 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 
-#include "../model/Profiler.h"
+#include "../SingletonManager/SessionManager.h"
 
 enum PageState 
 {
@@ -32,11 +32,12 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	Poco::Net::HTMLForm form(request, request.stream());
 #line 16 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
 
-	Profiler timeUsed;
-	bool hasErrors = false;
+	// remove old cookies if exist
+	auto sm = SessionManager::getInstance();
+	sm->deleteLoginCookies(request, response, mSession);
 	PageState state = ASK_VERIFICATION_CODE;
 	if(mSession) {
-		hasErrors = mSession->errorCount() > 0;
+		getErrors(mSession);
 		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
 			state = MAIL_NOT_SEND;
 		}
@@ -74,17 +75,12 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
-	responseStream << "\t";
-#line 56 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
- if(mSession && hasErrors) {	responseStream << "\n";
-	responseStream << "\t\t";
-#line 57 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( mSession->getErrorsHtml() );
-	responseStream << "\n";
-	responseStream << "\t";
-#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
-} 	responseStream << "\n";
+	responseStream << "\t\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
+	responseStream << "\t";
+#line 59 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
+	responseStream << ( getErrorsHtml() );
+	responseStream << "\n";
 	responseStream << "\t";
 #line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  if(state == MAIL_NOT_SEND) { 	responseStream << "\n";
@@ -113,7 +109,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
 #line 78 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( timeUsed.string() );
+	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

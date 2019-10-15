@@ -1,5 +1,7 @@
 <%@ page class="LoginPage" %>
 <%@ page form="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="PageRequestMessagedHandler.h" %>
 <%@	page compressed="true" %>
 <%! 
 #include "../SingletonManager/SessionManager.h"
@@ -9,28 +11,56 @@
 	
 %>
 <%% 
-	Profiler timeUsed;
-	auto session = SessionManager::getInstance()->getNewSession();
+	
+	auto sm = SessionManager::getInstance();
 	
 	if(!form.empty()) {
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
-		if(session->loadUser(email, password)) {
-			auto user_host = request.clientAddress().host();
-			session->setClientIp(user_host);
-			response.addCookie(session->getLoginCookie());
+		
+		if(email != "" && password != "") {
+			auto session = sm->getSession(request);
+			if(!session) {
+				session = sm->getNewSession();		
+				auto user_host = request.clientAddress().host();
+				session->setClientIp(user_host);
+				response.addCookie(session->getLoginCookie());
+			}
+			auto userState = session->loadUser(email, password);
+			getErrors(session);
+			
 			auto uri_start = request.serverParams().getServerName();
-			//response.redirect(uri_start + "/");
-			response.redirect("./");
-			return;
+			
+			switch(userState) {
+			case USER_EMPTY: 
+			case USER_PASSWORD_INCORRECT:
+				addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
+				break;
+			case USER_EMAIL_NOT_ACTIVATED: 
+				// response.redirect(uri_start + "/checkEmail");
+				session->addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
+				response.redirect("./checkEmail");
+				return;
+			case USER_NO_KEYS: 
+				// response.redirect(uri_start + "/passphrase");
+				response.redirect("./passphrase");
+				return;
+			case USER_NO_PRIVATE_KEY:
+			case USER_COMPLETE:
+				// response.redirect(uri_start + "/");
+				response.redirect("./");
+				return;
+			}
+			
+		} else {
+			addError(new Error("Login", "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"));
 		}
+		
 	} else {
+		// on enter login page with empty form
 		// remove old cookies if exist
-		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", "");
-		// max age of 0 delete cookie
-		keks.setMaxAge(0);
-		response.addCookie(keks);
-	}
+		sm->deleteLoginCookies(request, response);
+	}	
 	
 %>
 <!DOCTYPE html>
@@ -62,7 +92,7 @@ label:not(.grd_radio_label) {
 <form method="POST">
 	<div class="grd_container">
 		<h1>Login</h1>
-		<%= session->getErrorsHtml() %>
+		<%= getErrorsHtml() %>
 		<fieldset class="grd_container_small">
 			<legend>Login</legend>
 			<p>Bitte gebe deine Zugangsdaten ein um dich einzuloggen.</p>
@@ -81,7 +111,7 @@ label:not(.grd_radio_label) {
 		<a href="register">Neuen Account anlegen</a>
 	</div>
 	<div class="grd-time-used">
-		<%= timeUsed.string() %>
+		<%= mTimeProfiler.string() %>
 	</div>
 </form>
 </body>

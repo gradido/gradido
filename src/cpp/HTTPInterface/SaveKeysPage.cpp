@@ -35,11 +35,12 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	Poco::Net::HTMLForm form(request, request.stream());
 #line 19 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
 
-	Profiler timeUsed;
+	
 	bool hasErrors = mSession->errorCount() > 0;
 	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
+	auto uri_start = request.serverParams().getServerName();
 	
 	if(!form.empty()) {
 		// privkey
@@ -51,7 +52,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 				auto pwd = form.get("save-privkey-password", "");
 				
 				if(!mSession->isPwdValid(pwd)) {
-					mSession->addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
 					hasErrors = true;
 				} else {
 					savePrivkey = true;
@@ -70,8 +71,8 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 				hasErrors = true;
 			} else if(mSession->getSessionState() >= SESSION_STATE_KEY_PAIR_GENERATED) {
 				state = PAGE_SHOW_PUBKEY;
-				auto uri_start = request.serverParams().getServerName();
-				printf("uri_start: %s\n", uri_start.data());
+				
+				//printf("uri_start: %s\n", uri_start.data());
 				//response.redirect(uri_start + "/");
 			} else {
 				state = PAGE_ERROR;
@@ -80,6 +81,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 		printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
 			hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
 	}
+	getErrors(mSession);
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
@@ -111,17 +113,11 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
-	responseStream << "\t";
-#line 93 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
- if(hasErrors) {	responseStream << "\n";
-	responseStream << "\t\t";
-#line 94 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
-	responseStream << ( mSession->getErrorsHtml() );
-	responseStream << "\n";
-	responseStream << "\t";
-#line 95 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
-} 	responseStream << "\n";
 	responseStream << "\t<h1>Daten speichern</h1>\n";
+	responseStream << "\t";
+#line 96 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
+	responseStream << ( getErrorsHtml() );
+	responseStream << "\n";
 	responseStream << "\t";
 #line 97 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
  if(state == PAGE_ASK) { 	responseStream << "\n";
@@ -182,7 +178,10 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << ( mSession->getUser()->getPublicKeyHex() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</p>\n";
-	responseStream << "\t\t\t<a class=\"grd_bn\" href=\"../\">Zur&uuml;ck zur Startseite</a>\n";
+	responseStream << "\t\t\t<a class=\"grd_bn\" href=\"";
+#line 146 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
+	responseStream << ( uri_start );
+	responseStream << "/\">Zur&uuml;ck zur Startseite</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
 #line 148 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
@@ -201,7 +200,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
 #line 156 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
-	responseStream << ( timeUsed.string() );
+	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

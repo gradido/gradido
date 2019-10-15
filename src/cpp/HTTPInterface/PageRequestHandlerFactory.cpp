@@ -71,12 +71,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	
 	if (s) {
 		auto user = s->getUser();
-		if (s->errorCount() || (user && user->errorCount())) {
+		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
 			return new Error500Page(s);
 		}
 
 		if(url_first_part == "/logout") {
-			sm->releseSession(s);
+			sm->releaseSession(s);
 			// remove cookie
 			
 			printf("session released\n");
@@ -84,7 +84,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		if(url_first_part == "/user_delete") {
 			if(s->deleteUser()) {
-				sm->releseSession(s);
+				sm->releaseSession(s);
 				return new LoginPage;			
 			}
 			
@@ -100,7 +100,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		//else if (uri == "/saveKeys") {
 			return new SaveKeysPage(s);
 		}
-		if (s && s->getUser()) {
+		if (s && !s->getUser().isNull()) {
 			printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return new DashboardPage(s);
 		}
@@ -164,7 +164,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 
 	// no session or active session don't belong to verification code
 	if (!session || session->getEmailVerificationCode() != verificationCode) {
-		session = sm->findByEmailVerificationCode(verificationCode);
+		sm->releaseSession(session);
+		session = nullptr;
+		// it is maybe unsafe
+		//session = sm->findByEmailVerificationCode(verificationCode);
 	}
 	// no suitable session in memory, try to create one from db data
 	if (!session) {
@@ -178,6 +181,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			*/
 		}
 		else {	
+			//sm->releaseSession(session);
 			return new CheckEmailPage(session);
 		}
 	}
@@ -198,7 +202,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		}
 		
 	}
+	if (session) {
+		sm->releaseSession(session);
+	}
 	
-	return new CheckEmailPage(session);
+	return new CheckEmailPage(nullptr);
 	
 }

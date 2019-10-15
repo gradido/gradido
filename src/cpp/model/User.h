@@ -3,7 +3,7 @@
 
 #include "../Crypto/KeyPair.h"
 #include <string>
-#include "ErrorList.h"
+#include "ModelBase.h"
 
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
@@ -16,6 +16,26 @@ class UserWriteIntoDB;
 class Session;
 class UserWriteCryptoKeyHashIntoDB;
 
+
+enum UserStates
+{
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_COMPLETE
+};
+
+enum UserFields
+{
+	USER_FIELDS_ID,
+	USER_FIELDS_FIRST_NAME,
+	USER_FIELDS_LAST_NAME,
+	USER_FIELDS_PASSWORD,
+	USER_FIELDS_EMAIL_CHECKED
+};
 
 class User : public ErrorList
 {
@@ -51,16 +71,19 @@ public:
 	inline const char* getFirstName() const { return mFirstName.data(); }
 	inline const char* getLastName() const { return mLastName.data(); }
 	inline int         getDBId() const { return mDBId;  }
-	inline void		   setEmailChecked() { mEmailChecked = true; }
-	inline bool        isEmailChecked() { return mEmailChecked; }
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
 
+	UserStates         getUserState();
+
+	void setEmailChecked();
 	bool isEmptyPassword();
 	bool setNewPassword(const std::string& newPassword);
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
+
+	
 
 	// for poco auto ptr
 	void duplicate();
@@ -71,10 +94,10 @@ protected:
 	ObfusArray* createCryptoKey(const std::string& password);
 	inline void setCryptoKey(ObfusArray* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
-	
+	void detectState();
 
 	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
-	bool updateIntoDB(const char* fieldName);
+	bool updateIntoDB(UserFields fieldType);
 	inline passwordHashed getPwdHashed() { lock(); auto ret = mPasswordHashed; unlock(); return ret; }
 	inline void setPwdHashed(passwordHashed pwdHashed) { lock(); mPasswordHashed = pwdHashed; unlock(); }
 
@@ -84,16 +107,27 @@ protected:
 	
 
 private:
+	UserStates mState;
+
+	// ************************* DB FIELDS ******************************
 	int mDBId;
 	std::string mEmail;
 	std::string mFirstName;
 	std::string mLastName;
 	
 	passwordHashed mPasswordHashed;
-	bool mEmailChecked;
-	// crypto key as obfus array 
-	ObfusArray* mCryptoKey;
+	
 	std::string mPublicHex;
+	ObfusArray* mPrivateKey;
+	// TODO: insert created if necessary
+
+	bool mEmailChecked;
+
+	// ************************ DB FIELDS END ******************************
+	// crypto key as obfus array 
+	// only in memory, if user has typed in password
+	ObfusArray* mCryptoKey;
+
 	Poco::Mutex mWorkingMutex;
 	
 	// for poco auto ptr

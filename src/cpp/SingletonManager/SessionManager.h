@@ -14,6 +14,8 @@
 #include "../model/Session.h"
 
 #include "Poco/RegularExpression.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
 
 #include <mutex>
 #include <map>
@@ -40,14 +42,17 @@ public:
 
 	static SessionManager* getInstance();
 
+	
+
 	Session* getNewSession(int* handle = nullptr);
-	inline bool releseSession(Session* requestSession) {
-		return releseSession(requestSession->getHandle());
+	inline bool releaseSession(Session* requestSession) {
+		return releaseSession(requestSession->getHandle());
 	}
-	bool releseSession(int requestHandleSession);
+	bool releaseSession(int requestHandleSession);
 	bool isExist(int requestHandleSession);
 	// try to find existing session, return nullptr if not found
 	Session* getSession(int handle);
+	Session* getSession(const Poco::Net::HTTPServerRequest& request);
 	Session* findByEmailVerificationCode(long long emailVerificationCode);
 
 	bool init();
@@ -58,6 +63,9 @@ public:
 	bool checkPwdValidation(const std::string& pwd, ErrorList* errorReciver);
 
 	void checkTimeoutSession();
+
+	// delete all current active login cookies
+	void deleteLoginCookies(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Session* activeSession = nullptr);
 
 protected:
 	SessionManager();

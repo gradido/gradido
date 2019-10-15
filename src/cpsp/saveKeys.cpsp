@@ -17,11 +17,12 @@ enum PageState
 
 %>
 <%%
-	Profiler timeUsed;
+	
 	bool hasErrors = mSession->errorCount() > 0;
 	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
+	auto uri_start = request.serverParams().getServerName();
 	
 	if(!form.empty()) {
 		// privkey
@@ -33,7 +34,7 @@ enum PageState
 				auto pwd = form.get("save-privkey-password", "");
 				
 				if(!mSession->isPwdValid(pwd)) {
-					mSession->addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
 					hasErrors = true;
 				} else {
 					savePrivkey = true;
@@ -52,8 +53,8 @@ enum PageState
 				hasErrors = true;
 			} else if(mSession->getSessionState() >= SESSION_STATE_KEY_PAIR_GENERATED) {
 				state = PAGE_SHOW_PUBKEY;
-				auto uri_start = request.serverParams().getServerName();
-				printf("uri_start: %s\n", uri_start.data());
+				
+				//printf("uri_start: %s\n", uri_start.data());
 				//response.redirect(uri_start + "/");
 			} else {
 				state = PAGE_ERROR;
@@ -62,6 +63,7 @@ enum PageState
 		printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
 			hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
 	}
+	getErrors(mSession);
 %>
 <!DOCTYPE html>
 <html>
@@ -90,10 +92,8 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
-	<% if(hasErrors) {%>
-		<%= mSession->getErrorsHtml() %>
-	<%} %>
 	<h1>Daten speichern</h1>
+	<%= getErrorsHtml() %>
 	<% if(state == PAGE_ASK) { %>
 	<form method="POST">
 		<fieldset>
@@ -143,7 +143,7 @@ label:not(.grd_radio_label) {
 			<p class="grd_textarea">
 				<%= mSession->getUser()->getPublicKeyHex() %>
 			</p>
-			<a class="grd_bn" href="../">Zur&uuml;ck zur Startseite</a>
+			<a class="grd_bn" href="<%= uri_start %>/">Zur&uuml;ck zur Startseite</a>
 		</div>
 	<% } else if(state == PAGE_ERROR) { %>
 		<div class="grd_text">
@@ -153,7 +153,7 @@ label:not(.grd_radio_label) {
 	<% } %>
 </div>
 <div class="grd-time-used">
-	<%= timeUsed.string() %>
+	<%= mTimeProfiler.string() %>
 </div>
 </body>
 </html>

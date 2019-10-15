@@ -8,7 +8,7 @@
 #line 7 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  
 #include "../SingletonManager/SessionManager.h"
-#include "../model/Profiler.h"
+#include "Poco/Net/HTTPServerParams.h"
 
 
 DashboardPage::DashboardPage(Session* arg):
@@ -31,12 +31,13 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\n";
 #line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  
-	Profiler timeUsed;
+	
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
 	if(!form.empty()) {
 		//form.get("email-verification-code")
 	}
+	auto uri_start = request.serverParams().getServerName();
 	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
@@ -50,23 +51,23 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
-#line 30 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 31 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getUser()->getFirstName() );
 	responseStream << "&nbsp;";
-#line 30 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 31 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getUser()->getLastName() );
 	responseStream << "</h1>\n";
 	responseStream << "\t";
-#line 31 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 32 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<h3>Status</h3>\n";
 	responseStream << "\t<p>";
-#line 33 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 34 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 34 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 35 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
 	responseStream << "\t<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
@@ -74,7 +75,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 40 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 41 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { 	responseStream << "\n";
 	responseStream << "\t<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
@@ -82,15 +83,21 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 46 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+#line 47 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  } 	responseStream << "\n";
-	responseStream << "\t<a class=\"grd_bn\" href=\"logout\">Abmelden</a>\n";
-	responseStream << "\t<a class=\"grd_bn\" href=\"user_delete\">Account l&ouml;schen</a>\n";
+	responseStream << "\t<a class=\"grd_bn\" href=\"";
+#line 48 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( uri_start );
+	responseStream << "/logout\">Abmelden</a>\n";
+	responseStream << "\t<a class=\"grd_bn\" href=\"";
+#line 49 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( uri_start );
+	responseStream << "/user_delete\">Account l&ouml;schen</a>\n";
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
-#line 51 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
-	responseStream << ( timeUsed.string() );
+#line 52 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

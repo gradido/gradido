@@ -151,20 +151,21 @@ Session* SessionManager::getNewSession(int* handle)
 	if (handle) {
 		*handle = newHandle;
 	}
-	
+	printf("[SessionManager::getNewSession] handle: %ld, sum: %u\n", newHandle, mRequestSessionMap.size());
 	return requestSession;
 	
 
 	//return nullptr;
 }
 
-bool SessionManager::releseSession(int requestHandleSession)
+bool SessionManager::releaseSession(int requestHandleSession)
 {
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return false;
 	}
 	mWorkingMutex.lock();
+	
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it == mRequestSessionMap.end()) {
 		printf("[SessionManager::releaseRequestSession] requestSession with handle: %d not found\n", requestHandleSession);
@@ -177,6 +178,7 @@ bool SessionManager::releseSession(int requestHandleSession)
 	// change request handle we don't want session hijacking
 	
 	int newHandle = generateNewUnusedHandle();
+	//printf("[SessionManager::releseSession] oldHandle: %ld, newHandle: %ld\n", requestHandleSession, newHandle);
 	// erase after generating new number to prevent to getting the same number again
 	mRequestSessionMap.erase(requestHandleSession);
 
@@ -206,9 +208,29 @@ bool SessionManager::isExist(int requestHandleSession)
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it != mRequestSessionMap.end()) {
 		result = true;
+		if (!it->second->isActive()) {
+			printf("[SessionManager::isExist] session isn't active\n");
+		}
 	}
 	mWorkingMutex.unlock();
 	return result;
+}
+
+Session* SessionManager::getSession(const Poco::Net::HTTPServerRequest& request)
+{
+	// check if user has valid session
+	Poco::Net::NameValueCollection cookies;
+	request.getCookies(cookies);
+
+	int session_id = 0;
+
+	try {
+		session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
+		return getSession(session_id);
+	}
+	catch (...) {}
+
+	return nullptr;
 }
 
 Session* SessionManager::getSession(int handle)
@@ -217,14 +239,21 @@ Session* SessionManager::getSession(int handle)
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return nullptr;
 	}
+	if (0 == handle) return nullptr;
 	Session* result = nullptr;
 	mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
 		result = it->second;
-		result->setActive(true);
+		if (!result->isActive()) {
+			//printf("[SessionManager::getSession] session isn't active\n");
+			mWorkingMutex.unlock();
+			return nullptr;
+		}
+		//result->setActive(true);
 		result->updateTimeout();
 	}
+	printf("[SessionManager::getSession] handle: %ld\n", handle);
 	mWorkingMutex.unlock();
 	return result;
 }
@@ -263,9 +292,35 @@ void SessionManager::checkTimeoutSession()
 	while (toRemove.size() > 0) {
 		int handle = toRemove.top();
 		toRemove.pop();
-		releseSession(handle);
+		releaseSession(handle);
 	}
 	
+}
+
+void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Session* activeSession/* = nullptr*/)
+{
+	Poco::Net::NameValueCollection cookies;
+	request.getCookies(cookies);
+	// go from first login cookie
+	for (auto it = cookies.find("GRADIDO_LOGIN"); it != cookies.end(); it++) {
+		// break if no login any more
+		if (it->first != "GRADIDO_LOGIN") break;
+		// skip if it is from the active session
+		if (activeSession) {
+			try {
+				int session_id = atoi(it->second.data());
+				if (session_id == activeSession->getHandle()) continue;
+			}
+			catch (...) {}
+		}
+		// delete cookie
+		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", it->second);
+		// max age of 0 delete cookie
+		keks.setMaxAge(0);
+		response.addCookie(keks);
+	}
+
+	//session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 }
 
 bool SessionManager::checkPwdValidation(const std::string& pwd, ErrorList* errorReciver)

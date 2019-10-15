@@ -20,6 +20,7 @@ public:
 	virtual Poco::Data::Statement insertIntoDB(Poco::Data::Session session) = 0;
 	virtual Poco::Data::Statement updateIntoDB(Poco::Data::Session session) = 0;
 	virtual Poco::Data::Statement loadFromDB(Poco::Data::Session session, std::string& fieldName) = 0;
+	virtual bool executeLoadFromDB(Poco::Data::Statement select) { return select.execute() == 1; };
 
 	inline void setID(int id) { lock(); mID = id; unlock(); }
 	inline int getID() { lock(); int id = mID; unlock(); return id; }

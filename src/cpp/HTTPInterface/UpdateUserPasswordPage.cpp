@@ -9,7 +9,6 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
-#include "../model/Profiler.h"
 
 
 UpdateUserPasswordPage::UpdateUserPasswordPage(Session* arg):
@@ -26,10 +25,12 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 
-	Profiler timeUsed;
 	auto user = mSession->getUser();
+	auto sm = SessionManager::getInstance();
+	// remove old cookies if exist
+	sm->deleteLoginCookies(request, response, mSession);
 	// save login cookie, because maybe we've get an new session
 	response.addCookie(mSession->getLoginCookie());
 	
@@ -48,6 +49,8 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 			}
 		}
 	}
+	getErrors(mSession);
+	getErrors(user);
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
@@ -94,15 +97,11 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"grd_container\">\n";
-	responseStream << "\t";
-#line 75 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
-	responseStream << ( mSession->getErrorsHtml() );
-	responseStream << "\n";
-	responseStream << "\t";
-#line 76 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
-	responseStream << ( user->getErrorsHtml() );
-	responseStream << " \n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
+	responseStream << "\t";
+#line 79 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+	responseStream << ( getErrorsHtml() );
+	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
@@ -123,8 +122,8 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
-#line 97 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
-	responseStream << ( timeUsed.string() );
+#line 99 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";
 	responseStream << "</body>\n";

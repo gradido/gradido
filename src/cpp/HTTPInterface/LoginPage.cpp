@@ -5,7 +5,7 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 4 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
@@ -22,30 +22,58 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 13 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
-	Profiler timeUsed;
-	auto session = SessionManager::getInstance()->getNewSession();
+	
+	auto sm = SessionManager::getInstance();
 	
 	if(!form.empty()) {
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
-		if(session->loadUser(email, password)) {
-			auto user_host = request.clientAddress().host();
-			session->setClientIp(user_host);
-			response.addCookie(session->getLoginCookie());
+		
+		if(email != "" && password != "") {
+			auto session = sm->getSession(request);
+			if(!session) {
+				session = sm->getNewSession();		
+				auto user_host = request.clientAddress().host();
+				session->setClientIp(user_host);
+				response.addCookie(session->getLoginCookie());
+			}
+			auto userState = session->loadUser(email, password);
+			getErrors(session);
+			
 			auto uri_start = request.serverParams().getServerName();
-			//response.redirect(uri_start + "/");
-			response.redirect("./");
-			return;
+			
+			switch(userState) {
+			case USER_EMPTY: 
+			case USER_PASSWORD_INCORRECT:
+				addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
+				break;
+			case USER_EMAIL_NOT_ACTIVATED: 
+				// response.redirect(uri_start + "/checkEmail");
+				session->addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
+				response.redirect("./checkEmail");
+				return;
+			case USER_NO_KEYS: 
+				// response.redirect(uri_start + "/passphrase");
+				response.redirect("./passphrase");
+				return;
+			case USER_NO_PRIVATE_KEY:
+			case USER_COMPLETE:
+				// response.redirect(uri_start + "/");
+				response.redirect("./");
+				return;
+			}
+			
+		} else {
+			addError(new Error("Login", "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"));
 		}
+		
 	} else {
+		// on enter login page with empty form
 		// remove old cookies if exist
-		auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", "");
-		// max age of 0 delete cookie
-		keks.setMaxAge(0);
-		response.addCookie(keks);
-	}
+		sm->deleteLoginCookies(request, response);
+	}	
 	
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
@@ -81,8 +109,8 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 65 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
-	responseStream << ( session->getErrorsHtml() );
+#line 95 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<legend>Login</legend>\n";
@@ -103,12 +131,12 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"grd-time-used\">\n";
 	responseStream << "\t\t";
-#line 84 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
-	responseStream << ( timeUsed.string() );
+#line 114 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</form>\n";
 	responseStream << "</body>\n";
-	responseStream << "</html>\n";
+	responseStream << "</html>";
 	if (_compressResponse) _gzipStream.close();
 }

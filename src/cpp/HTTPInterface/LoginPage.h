@@ -5,7 +5,10 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 
 
-class LoginPage: public Poco::Net::HTTPRequestHandler
+#include "PageRequestMessagedHandler.h"
+
+
+class LoginPage: public PageRequestMessagedHandler
 {
 public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
