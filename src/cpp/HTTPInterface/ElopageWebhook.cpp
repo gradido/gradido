@@ -24,10 +24,13 @@ using namespace Poco::Data::Keywords;
 void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 	// simply write request to file for later lookup
-	ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
+	//ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
+
+	
 
 
 	std::istream& stream = request.stream();
+	std::string completeRequest;
 	Poco::Net::NameValueCollection elopageRequestData;
 	int breakCount = 100;
 	while (stream.good() && breakCount > 0) {
@@ -42,6 +45,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 		int cursor = 0;
 		for (int i = 0; i < line.size(); i++) {
 			char c = line.at(i);
+			completeRequest += c;
 			if (c == '\n') break;
 			if (c == '+') {
 				c = ' ';
@@ -85,6 +89,30 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 		stream.good();
 		breakCount--;
 	}
+
+	// write stream result also to file
+	static Poco::Mutex mutex;
+
+	mutex.lock();
+
+	Poco::FileOutputStream file("elopage_webhook_requests.txt", std::ios::out | std::ios::app);
+
+	if (!file.good()) {
+		printf("[ElopageWebhook::handleRequest] error creating file with name: elopage_webhook_requests.txt\n");
+		mutex.unlock();
+		return;
+	}
+
+	Poco::LocalDateTime now;
+
+	std::string dateTimeStr = Poco::DateTimeFormatter::format(now, Poco::DateTimeFormat::ISO8601_FORMAT);
+	file << dateTimeStr << std::endl;
+	file << completeRequest << std::endl;
+	file << std::endl;
+	file.close();
+	mutex.unlock();
+
+
 	UniLib::controller::TaskPtr handleElopageTask(new HandleElopageRequestTask(elopageRequestData));
 	handleElopageTask->scheduleTask(handleElopageTask);
 
