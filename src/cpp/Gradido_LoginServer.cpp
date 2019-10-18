@@ -17,6 +17,7 @@
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/ConsoleChannel.h"
+#include "Poco/SplitterChannel.h"
 #include "MySQL/Poco/Connector.h"
 
 
@@ -138,7 +139,13 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// logging for request handling
 		Poco::AutoPtr<Poco::ConsoleChannel> requestLogConsoleChannel(new Poco::ConsoleChannel);
-		Poco::AutoPtr<Poco::AsyncChannel> requestLogAsyncChannel(new Poco::AsyncChannel(requestLogConsoleChannel));
+		Poco::AutoPtr<Poco::SimpleFileChannel> requestLogFileChannel(new Poco::SimpleFileChannel("requestLog.txt"));
+		Poco::AutoPtr<Poco::SplitterChannel> requestLogSplitter(new Poco::SplitterChannel);
+		requestLogSplitter->addChannel(requestLogConsoleChannel);
+		requestLogSplitter->addChannel(requestLogFileChannel);
+
+		Poco::AutoPtr<Poco::AsyncChannel> requestLogAsyncChannel(new Poco::AsyncChannel(requestLogSplitter));
+		
 		Poco::Logger& requestLog = Poco::Logger::get("requestLog");
 		requestLog.setChannel(requestLogAsyncChannel);
 		requestLog.setLevel("information");
