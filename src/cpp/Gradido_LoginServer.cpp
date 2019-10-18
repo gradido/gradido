@@ -106,7 +106,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			<n> K:     rotate if file size exceeds <n> Kilobytes
 			<n> M:    rotate if file size exceeds <n> Megabytes
 		*/
-		speedLogFileChannel->setProperty("rotation", "2 K");
+		speedLogFileChannel->setProperty("rotation", "500 K");
 		Poco::AutoPtr<Poco::AsyncChannel> speedLogAsyncChannel(new Poco::AsyncChannel(speedLogFileChannel));
 
 		Poco::Logger& speedLogger = Poco::Logger::get("SpeedLog");
@@ -140,6 +140,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// logging for request handling
 		Poco::AutoPtr<Poco::ConsoleChannel> requestLogConsoleChannel(new Poco::ConsoleChannel);
 		Poco::AutoPtr<Poco::SimpleFileChannel> requestLogFileChannel(new Poco::SimpleFileChannel("requestLog.txt"));
+		requestLogFileChannel->setProperty("rotation", "500 K");
 		Poco::AutoPtr<Poco::SplitterChannel> requestLogSplitter(new Poco::SplitterChannel);
 		requestLogSplitter->addChannel(requestLogConsoleChannel);
 		requestLogSplitter->addChannel(requestLogFileChannel);
