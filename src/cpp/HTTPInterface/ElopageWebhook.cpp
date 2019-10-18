@@ -24,7 +24,7 @@ using namespace Poco::Data::Keywords;
 void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 	// simply write request to file for later lookup
-	//ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
+	ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
 
 
 	std::istream& stream = request.stream();
