@@ -378,12 +378,13 @@ bool User::setNewPassword(const std::string& newPassword)
 	mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
 	mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
 	unlock();
+
 	duplicate();
+	
 	UniLib::controller::TaskPtr savePassword(new UserWriteCryptoKeyHashIntoDB(this, 1));
 	savePassword->setParentTaskPtrInArray(mCreateCryptoKeyTask, 0);
 	savePassword->scheduleTask(savePassword);
 
-	unlock();
 
 	printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
 	return true;
