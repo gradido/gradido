@@ -3,6 +3,8 @@
 #include "CPUTask.h"
 #include <memory.h>
 
+#include "../ServerConfig.h"
+
 namespace UniLib {
 	namespace controller {
 
@@ -14,6 +16,8 @@ namespace UniLib {
 			uint8_t len = strlen(name);
 			if(len > 7) len = 7;
 			memcpy(nameBuffer, name, len);
+			int i = 0;
+			ServerConfig::g_ServerKeySeed->put(threadCount, 1726199827);
 			for(int i = 0; i < threadCount; i++) {
 				sprintf(&nameBuffer[len], "%.2d", i); 
 				mThreads[i] = new CPUShedulerThread(this, nameBuffer);

@@ -5,6 +5,8 @@
 #include <cstring>
 #include "../dependencies/tinf/src/tinf.h"
 
+#include "DRRandom.h"
+
 Mnemonic::Mnemonic()
 {
 	memset(mWords, 0, 2048);
@@ -46,6 +48,9 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 	}
 	else {
 		free(buffer);
+
+		DRRandom::seed(compressed_size);
+
 
 		//printf("c[Mnemonic::%s] uncompressing success\n", __FUNCTION__);
 		// fill words in array and hashList

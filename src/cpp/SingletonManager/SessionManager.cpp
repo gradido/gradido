@@ -1,6 +1,7 @@
 #include "SessionManager.h"
 #include "ErrorManager.h"
 #include "../ServerConfig.h"
+#include "../Crypto/DRRandom.h"
 
 #include <sodium.h>
 
@@ -28,7 +29,9 @@ SessionManager::~SessionManager()
 bool SessionManager::init()
 {
 	mWorkingMutex.lock();
-	for (int i = 0; i < VALIDATE_MAX; i++) {
+	int i;
+	DISASM_MISALIGN;
+	for (i = 0; i < VALIDATE_MAX; i++) {
 		switch (i) {
 		//case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("/^[a-zA-Z_ -]{3,}$/"); break;
 		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z]{3,}$"); break;
@@ -37,11 +40,15 @@ bool SessionManager::init()
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
 		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression(".*[0-9].*"); break;
 		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[@$!%*?&+-].*"); break;
-		case VALIDATE_HAS_UPPERCASE_LETTER: mValidations[i] = new Poco::RegularExpression(".*[A-Z].*"); break;
+		case VALIDATE_HAS_UPPERCASE_LETTER: 
+			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*"); 
+			ServerConfig::g_ServerKeySeed->put(i, DRRandom::r64());
+			break;
 		case VALIDATE_HAS_LOWERCASE_LETTER: mValidations[i] = new Poco::RegularExpression(".*[a-z].*"); break;
 		default: printf("[SessionManager::%s] unknown validation type\n", __FUNCTION__);
 		}
 	}
+	
 
 	mInitalized = true; 
 	mWorkingMutex.unlock();

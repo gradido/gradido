@@ -18,6 +18,8 @@
 #include "Poco/Exception.h"
 #include <mysql.h>
 
+#include "../ServerConfig.h"
+#include "../Crypto/DRRandom.h"
 
 namespace Poco {
 namespace Data {
@@ -56,6 +58,7 @@ void Connector::registerConnector()
 	{
 		throw Exception("mysql_library_init error");
 	}
+	ServerConfig::g_ServerKeySeed->put(4, DRRandom::r64());
 
 	Poco::Data::SessionFactory::instance().add(new Connector());
 }

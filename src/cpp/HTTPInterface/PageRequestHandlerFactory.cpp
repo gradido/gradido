@@ -20,10 +20,13 @@
 
 #include "../model/Profiler.h"
 
+#include "../ServerConfig.h"
+#include "../Crypto/DRRandom.h"
+
 PageRequestHandlerFactory::PageRequestHandlerFactory()
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
 {
-	
+	ServerConfig::g_ServerKeySeed->put(8, DRRandom::r64());
 }
 
 Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)

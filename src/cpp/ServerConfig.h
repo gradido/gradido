@@ -2,7 +2,7 @@
 #include "Crypto/Obfus_array.h"
 #include "Poco/Util/LayeredConfiguration.h"
 #include "Poco/Net/Context.h"
-
+#include "Poco/Types.h"
 
 #include "tasks/CPUSheduler.h"
 
@@ -23,7 +23,10 @@ namespace ServerConfig {
 	};
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
+
 	extern ObfusArray* g_ServerCryptoKey;
+	extern ObfusArray* g_ServerKeySeed;
+
 	//extern unsigned char g_ServerAdminPublic[];
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 	extern UniLib::controller::CPUSheduler* g_CryptoCPUScheduler;
@@ -31,6 +34,7 @@ namespace ServerConfig {
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
 	extern std::string g_serverPath;
+
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

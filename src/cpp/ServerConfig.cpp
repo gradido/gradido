@@ -1,7 +1,9 @@
 #include "ServerConfig.h"
 #include "Crypto/mnemonic_german.h"
 #include "Crypto/mnemonic_bip0039.h"
+#include "Crypto/DRRandom.h"
 #include "sodium.h"
+
 
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Net/KeyConsoleHandler.h"
@@ -28,6 +30,7 @@ namespace ServerConfig {
 
 	Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 	ObfusArray* g_ServerCryptoKey = nullptr;
+	ObfusArray* g_ServerKeySeed = nullptr;
 //	std::string g_ServerAdminPublic;
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
 	UniLib::controller::CPUSheduler* g_CryptoCPUScheduler = nullptr;
@@ -66,6 +69,7 @@ namespace ServerConfig {
 		auto serverKey = cfg.getString("crypto.server_key");
 		unsigned char key[crypto_shorthash_KEYBYTES];
 		size_t realBinSize = 0;
+		NULLPAD_10;
 		if (sodium_hex2bin(key, crypto_shorthash_KEYBYTES, serverKey.data(), serverKey.size(), nullptr, &realBinSize, nullptr)) {
 			printf("[%s] serverKey isn't valid hex: %s\n", __FUNCTION__, serverKey.data());
 			return false;
@@ -76,9 +80,14 @@ namespace ServerConfig {
 			return false;
 		}
 		g_ServerCryptoKey = new ObfusArray(realBinSize, key);
+		g_ServerKeySeed = new ObfusArray(9*8);
+		Poco::Int64 i1 = randombytes_random();
+		Poco::Int64 i2 = randombytes_random(); 
+		g_ServerKeySeed->put(0, i1 | (i2 << 8));
 
 		//g_ServerAdminPublic = cfg.getString("crypto.server_admin_public");
 
+		DISASM_FALSERET;
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
 		return true;
@@ -91,7 +100,8 @@ namespace ServerConfig {
 		g_EmailAccount.password = cfg.getString("email.password");
 		g_EmailAccount.url = cfg.getString("email.smtp.url");
 		g_EmailAccount.port = cfg.getInt("email.smtp.port");
-
+		DISASM_FALSERET;
+		g_ServerKeySeed->put(3, DRRandom::r64());
 		return true;
 	}
 
@@ -116,8 +126,10 @@ namespace ServerConfig {
 			printf("[ServerConfig::initSSLClientContext] error init ssl context, maybe no cacert.pem found?\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n");
 			return false;
 		}
-		
+		DISASM_FALSERET;
 		SSLManager::instance().initializeClient(0, pCert, g_SSL_CLient_Context);
+
+		g_ServerKeySeed->put(5, DRRandom::r64());
 
 		return true;
 	}
@@ -125,6 +137,9 @@ namespace ServerConfig {
 	void unload() {
 		if (g_ServerCryptoKey) {
 			delete g_ServerCryptoKey;
+		}
+		if (g_ServerKeySeed) {
+			delete g_ServerKeySeed;
 		}
 		if (g_CPUScheduler) {
 			delete g_CPUScheduler;

@@ -92,6 +92,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
+		Poco::Int64 i1 = randombytes_random();
+		Poco::Int64 i2 = randombytes_random();
+		ServerConfig::g_ServerKeySeed->put(1, i1 | (i2 << 8));
+
 		ServerConfig::initEMailAccount(config());
 
 		// start cpu scheduler
@@ -156,6 +160,14 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// set-up a HTTPServer instance
 		Poco::ThreadPool& pool = Poco::ThreadPool::defaultPool();
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
+		ServerConfig::g_ServerKeySeed->put(7, 918276611);
+		Poco::Int64 key[6];
+		const unsigned char* seed = *ServerConfig::g_ServerKeySeed;
+		// skip first two values
+		seed += 16;
+		memcpy(key, seed, 6 * 8);
+		printf("key: 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx\n", 
+			key[0], key[1], key[2], key[3], key[4], key[5]);
 		// start the HTTPServer
 		srv.start();
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
