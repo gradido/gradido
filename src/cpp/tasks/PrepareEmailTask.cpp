@@ -31,7 +31,7 @@ int PrepareEmailTask::run()
 		return -1;
 	}
 
-	printf("[PrepareEmailTask] time: %s\n", timeUsed.string().data());
+	//printf("[PrepareEmailTask] time: %s\n", timeUsed.string().data());
 	/*
 	session.login();
 	session.startTLS(pContext);

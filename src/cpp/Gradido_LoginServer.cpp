@@ -16,7 +16,7 @@
 #include "Poco/Logger.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
-
+#include "Poco/ConsoleChannel.h"
 #include "MySQL/Poco/Connector.h"
 
 
@@ -135,6 +135,13 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
 			return Application::EXIT_CONFIG;
 		}
+
+		// logging for request handling
+		Poco::AutoPtr<Poco::ConsoleChannel> requestLogConsoleChannel(new Poco::ConsoleChannel);
+		Poco::AutoPtr<Poco::AsyncChannel> requestLogAsyncChannel(new Poco::AsyncChannel(requestLogConsoleChannel));
+		Poco::Logger& requestLog = Poco::Logger::get("requestLog");
+		requestLog.setChannel(requestLogAsyncChannel);
+		requestLog.setLevel("information");
 
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);

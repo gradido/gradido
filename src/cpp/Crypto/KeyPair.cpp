@@ -23,7 +23,7 @@ KeyPair::KeyPair()
 
 KeyPair::~KeyPair()
 {
-	printf("[KeyPair::~KeyPair] privkey: %d, soduium privkey: %d \n", mPrivateKey, mSodiumSecret);
+	//printf("[KeyPair::~KeyPair] privkey: %d, soduium privkey: %d \n", mPrivateKey, mSodiumSecret);
 	if (mPrivateKey) {
 		delete mPrivateKey;
 		mPrivateKey = nullptr;
@@ -106,7 +106,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	printf("Sodium Private: \t%s\n", getHex(*mSodiumSecret, mSodiumSecret->size()).data());
 	printf("// ********* Keys End ************ //\n");
 */
-	printf("[KeyPair::generateFromPassphrase] finished!\n");
+	//printf("[KeyPair::generateFromPassphrase] finished!\n");
 	// using 
 	return true;
 }

@@ -21,7 +21,7 @@
 #include "../model/Profiler.h"
 
 PageRequestHandlerFactory::PageRequestHandlerFactory()
-	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)")
+	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
 {
 	
 }
@@ -35,15 +35,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	mRemoveGETParameters.extract(uri, url_first_part);
 
 	if (uri != "/favicon.ico") {
-		printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
-		auto referer = request.find("Referer");
+		//printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
+		/*auto referer = request.find("Referer");
 		if (referer != request.end()) {
 			printf("referer: %s\n", referer->second.data());
-		}
+		}*/
 	}
 
 	if (url_first_part == "/elopage_webhook_261") {
-		//printf("choose elopage\n");
+		printf("call from elopage\n");
 		return new ElopageWebhook;
 	}
 
@@ -58,6 +58,16 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	} catch (...) {}
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
+
+	// for debugging
+	std::stringstream logStream;
+	auto referer = request.find("Referer");
+	logStream << "call " << uri;
+	if (s) {logStream << ", with session: " << std::to_string(s->getHandle()); }
+	if (referer != request.end()) { logStream << ", from: " << referer->second;}
+	logStream << std::endl;
+	mLogging.information(logStream.str());
+	// end debugging
 
 	// TODO: count invalid session requests from IP and block IP for some time to prevent brute force session hijacking
 	// or use log file and configure fail2ban for this to do
@@ -79,7 +89,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			sm->releaseSession(s);
 			// remove cookie
 			
-			printf("session released\n");
+			//printf("session released\n");
 			return new LoginPage;
 		}
 		if(url_first_part == "/user_delete") {
@@ -101,7 +111,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return new SaveKeysPage(s);
 		}
 		if (s && !s->getUser().isNull()) {
-			printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
+			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return new DashboardPage(s);
 		}
 	} else {

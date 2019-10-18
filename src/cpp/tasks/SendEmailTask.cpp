@@ -33,6 +33,6 @@ int SendEmailTask::run()
 	if (prepare->send(mMailMessage)) {
 		return -1;
 	}
-	printf("[SendEmailTask] time: %s\n", timeUsed.string().data());
+	//printf("[SendEmailTask] time: %s\n", timeUsed.string().data());
 	return 0;
 }

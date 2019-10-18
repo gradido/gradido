@@ -443,7 +443,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 
 		mEmailVerificationCode = emailVerificationCode;
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
-		printf("[Session::loadFromEmailVerificationCode] time: %s\n", usedTime.string().data());
+		//printf("[Session::loadFromEmailVerificationCode] time: %s\n", usedTime.string().data());
 		return true;
 	}
 	catch (const Poco::Exception& ex) {
