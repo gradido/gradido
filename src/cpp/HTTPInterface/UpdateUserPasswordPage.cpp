@@ -45,6 +45,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				if(user->setNewPassword(form.get("register-password"))) {
 					//std::string referUri = request.get("Referer", uri_start + "/");
 					//printf("[updateUserPasswordPage] redirect to referUri: %s\n", referUri.data());
+					// I think we can savly assume that this session was loaded from verification code 
 					mSession->updateEmailVerification(mSession->getEmailVerificationCode());
 					mSession->getErrors(user);
 					response.redirect(uri_start + "/passphrase");
@@ -104,7 +105,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
 	responseStream << "\t";
-#line 84 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 85 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";
@@ -127,7 +128,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
-#line 104 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 105 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";

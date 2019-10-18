@@ -96,8 +96,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			if(s->deleteUser()) {
 				sm->releaseSession(s);
 				return new LoginPage;			
-			}
-			
+			}			
 		}
 		auto sessionState = s->getSessionState();
 		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 

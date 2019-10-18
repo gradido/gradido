@@ -79,8 +79,8 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 				state = PAGE_ERROR;
 			}
 		}
-		printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
-			hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
+		//printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
+			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
 	}
 	getErrors(mSession);
 	std::ostream& _responseStream = response.send();
