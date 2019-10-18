@@ -60,7 +60,7 @@ namespace UniLib {
 			int sheduleTask(TaskPtr task); 
 			void checkPendingTasks();
 #ifdef _UNI_LIB_DEBUG
-			CPUShedulerThread** getThreads(u8& count) {count = mThreadCount; return mThreads;};
+			CPUShedulerThread** getThreads(uint8_t& count) {count = mThreadCount; return mThreads;};
 #endif
 			// called from scheduler thread if he wants a new task to do
 			// return null if no task pending, putting thread in wait queue,

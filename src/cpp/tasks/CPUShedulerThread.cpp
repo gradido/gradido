@@ -4,7 +4,9 @@
 //#include "debug/CPUSchedulerTasksLog.h"
 
 #ifdef _UNI_LIB_DEBUG
-#include "lib/TimeCounter.h"
+//#include "lib/TimeCounter.h"
+#include "../model/Profiler.h"
+#include "Poco/Message.h"
 #endif //_UNI_LIB_DEBUG
 
 
@@ -12,6 +14,9 @@ namespace UniLib {
 	namespace controller {
 		CPUShedulerThread::CPUShedulerThread(CPUSheduler* parent, const char* name)
 			: Thread(name), mParent(parent)
+#ifdef _UNI_LIB_DEBUG
+			, mSpeedLog(Poco::Logger::get("SpeedLog"))
+#endif
 		{
 #ifdef _UNI_LIB_DEBUG
 			mName = name;
@@ -30,18 +35,18 @@ namespace UniLib {
 			{
 				
 #ifdef _UNI_LIB_DEBUG
-				lib::TimeCounter counter;
-				debug::CPUShedulerTasksLog* l = debug::CPUShedulerTasksLog::getInstance();
+				Profiler counter;
+				//debug::CPUShedulerTasksLog* l = debug::CPUShedulerTasksLog::getInstance();
 				const char* name = mWaitingTask->getName();
-				l->addTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder(), mWaitingTask->getResourceType(), mName.data(), name);
+				//l->addTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder(), mWaitingTask->getResourceType(), mName.data(), name);
 #endif 
 				if (!mWaitingTask->run()) {
 					mWaitingTask->setTaskFinished();
 				}
 #ifdef _UNI_LIB_DEBUG
-				l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
-				SpeedLog.writeToLog("%s used on thread: %s by Task: %s of: %s",
-					counter.string().data(), mName.data(), mWaitingTask->getResourceType(), name);
+				//l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
+				mSpeedLog.information("%s used on thread: %s by Task: %s of: %s",
+					counter.string(), mName, mWaitingTask->getResourceType(), name);
 #endif
 				mWaitingTask = mParent->getNextUndoneTask(this);
 			}

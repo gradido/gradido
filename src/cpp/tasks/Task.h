@@ -91,7 +91,7 @@ namespace UniLib {
 			virtual const char* getResourceType() const {return "Task";};
 #ifdef _UNI_LIB_DEBUG
 			virtual const char* getName() const { return mName.data(); }
-			__inline__ void setName(const char* name) { mName = name; }
+			inline void setName(const char* name) { mName = name; }
 #else
 			virtual const char* getName() const { return ""; }
 #endif

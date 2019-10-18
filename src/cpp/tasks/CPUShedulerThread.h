@@ -32,8 +32,13 @@
 #ifndef __DR_UNIVERSUM_LIB_CONTROLLER_CPU_SHEDULER_THREAD_H__
 #define __DR_UNIVERSUM_LIB_CONTROLLER_CPU_SHEDULER_THREAD_H__
 
+#define _UNI_LIB_DEBUG
+
 #include "Thread.h"
 #include "Poco/AutoPtr.h"
+#ifdef _UNI_LIB_DEBUG
+#include "Poco/Logger.h"
+#endif
 
 namespace UniLib {
     namespace controller {
@@ -64,6 +69,7 @@ namespace UniLib {
         protected:
 #ifdef _UNI_LIB_DEBUG
 			std::string mName;
+			Poco::Logger& mSpeedLog;
 #endif
 			
 		private: 

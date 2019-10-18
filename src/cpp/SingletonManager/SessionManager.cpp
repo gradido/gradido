@@ -151,7 +151,7 @@ Session* SessionManager::getNewSession(int* handle)
 	if (handle) {
 		*handle = newHandle;
 	}
-	printf("[SessionManager::getNewSession] handle: %ld, sum: %u\n", newHandle, mRequestSessionMap.size());
+	//printf("[SessionManager::getNewSession] handle: %ld, sum: %u\n", newHandle, mRequestSessionMap.size());
 	return requestSession;
 	
 
@@ -168,7 +168,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 	
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it == mRequestSessionMap.end()) {
-		printf("[SessionManager::releaseRequestSession] requestSession with handle: %d not found\n", requestHandleSession);
+		//printf("[SessionManager::releaseRequestSession] requestSession with handle: %d not found\n", requestHandleSession);
 		mWorkingMutex.unlock();
 		return false;
 	}
@@ -253,7 +253,7 @@ Session* SessionManager::getSession(int handle)
 		//result->setActive(true);
 		result->updateTimeout();
 	}
-	printf("[SessionManager::getSession] handle: %ld\n", handle);
+	//printf("[SessionManager::getSession] handle: %ld\n", handle);
 	mWorkingMutex.unlock();
 	return result;
 }

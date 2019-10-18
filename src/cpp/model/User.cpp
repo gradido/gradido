@@ -33,7 +33,7 @@ int UserCreateCryptoKey::run()
 	crypto_shorthash((unsigned char*)&pwdHashed, *cryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 	mUser->setPwdHashed(pwdHashed);
 
-	printf("crypto key created\n");
+	//printf("crypto key created\n");
 	setTaskFinished();
 	// must poke cpu scheduler manually because another task is waiting for this task, but in the other scheduler
 	ServerConfig::g_CPUScheduler->checkPendingTasks();
@@ -50,7 +50,7 @@ int UserGenerateKeys::run()
 
 	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
 
-	printf("[UserGenerateKeys::run] time: %s\n", timeUsed.string().data());
+	//printf("[UserGenerateKeys::run] time: %s\n", timeUsed.string().data());
 
 	return 0;
 }
@@ -340,8 +340,8 @@ bool User::isEmptyPassword()
 {
 	bool bRet = false;
 	lock();
-	printf("[User::isEmptyPassword] pwd hashed: %d, running: %d, this: %d\n",
-		mPasswordHashed, !mCreateCryptoKeyTask.isNull(), this);
+	//printf("[User::isEmptyPassword] pwd hashed: %d, running: %d, this: %d\n",
+//		mPasswordHashed, !mCreateCryptoKeyTask.isNull(), this);
 	bRet = mPasswordHashed == 0 && (mCreateCryptoKeyTask.isNull() || mCreateCryptoKeyTask->isTaskFinished());
 	unlock();
 	return bRet;
@@ -359,7 +359,7 @@ UserStates User::getUserState()
 // TODO: if a password and privkey already exist, load current private key and re encrypt with new crypto key
 bool User::setNewPassword(const std::string& newPassword)
 {
-	Profiler timeUsed;
+	//Profiler timeUsed;
 	if (newPassword == "") {
 		lock();
 		addError(new Error("Passwort", "Ist leer."));
@@ -374,7 +374,7 @@ bool User::setNewPassword(const std::string& newPassword)
 	}
 	duplicate();
 	lock();
-	printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
+	//printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
 	mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
 	mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
 	unlock();
@@ -386,7 +386,7 @@ bool User::setNewPassword(const std::string& newPassword)
 	savePassword->scheduleTask(savePassword);
 
 
-	printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
+	//printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
 	return true;
 }
 
@@ -547,7 +547,7 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	free(key);
 
 	// mCryptoKey
-	printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
+	//printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
 	return cryptoKey;
 }
 
@@ -580,7 +580,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 	saveKeysTask->scheduleTask(saveKeysTask);
 
 
-	printf("[User::generateKeys] call two tasks, time used: %s\n", timeUsed.string().data());
+//	printf("[User::generateKeys] call two tasks, time used: %s\n", timeUsed.string().data());
 	return true;
 
 }
@@ -608,7 +608,7 @@ Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
 		return nullptr;
 	}
 
-	printf("[User::encrypt] encrypted: %s\n", KeyPair::getHex(ciphertext, ciphertext_len).data());
+	//printf("[User::encrypt] encrypted: %s\n", KeyPair::getHex(ciphertext, ciphertext_len).data());
 	auto result_blob = new Poco::Data::BLOB(ciphertext, ciphertext_len);
 	free(ciphertext);
 	

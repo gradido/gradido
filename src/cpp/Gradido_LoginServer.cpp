@@ -7,11 +7,16 @@
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"
 
+
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Environment.h"
+#include "Poco/Logger.h"
+#include "Poco/AsyncChannel.h"
+#include "Poco/SimpleFileChannel.h"
+
 #include "MySQL/Poco/Connector.h"
 
 
@@ -90,7 +95,23 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// start cpu scheduler
 		uint8_t worker_count = Poco::Environment::processorCount() * 2;
-		
+
+		// init speed logger
+		Poco::AutoPtr<Poco::SimpleFileChannel> speedLogFileChannel(new Poco::SimpleFileChannel("speedLog.txt"));
+		/*
+			The optional log file rotation mode:
+			never:      no rotation (default)
+			<n>:  rotate if file size exceeds <n> bytes
+			<n> K:     rotate if file size exceeds <n> Kilobytes
+			<n> M:    rotate if file size exceeds <n> Megabytes
+		*/
+		speedLogFileChannel->setProperty("rotation", "2 K");
+		Poco::AutoPtr<Poco::AsyncChannel> speedLogAsyncChannel(new Poco::AsyncChannel(speedLogFileChannel));
+
+		Poco::Logger& speedLogger = Poco::Logger::get("SpeedLog");
+		speedLogger.setChannel(speedLogAsyncChannel);
+		speedLogger.setLevel("information");
+
 		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
 

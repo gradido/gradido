@@ -38,7 +38,7 @@ int WriteEmailVerification::run()
 		em->sendErrorsAsEmail();
 		return -2;
 	}
-	printf("[WriteEmailVerification] timeUsed: %s\n", timeUsed.string().data());
+	//printf("[WriteEmailVerification] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
 }
 
@@ -71,7 +71,7 @@ int WritePassphraseIntoDB::run()
 		em->sendErrorsAsEmail();
 	}
 
-	printf("[WritePassphraseIntoDB] timeUsed: %s\n", timeUsed.string().data());
+	//printf("[WritePassphraseIntoDB] timeUsed: %s\n", timeUsed.string().data());
 	return 0;
 }
 
@@ -86,15 +86,15 @@ Session::Session(int handle)
 
 Session::~Session()
 {
-	printf("[Session::~Session] \n");
+	//printf("[Session::~Session] \n");
 	reset();
-	printf("[Session::~Session] finished \n");
+	//printf("[Session::~Session] finished \n");
 }
 
 
 void Session::reset()
 {
-	printf("[Session::reset]\n");
+	//printf("[Session::reset]\n");
 	lock();
 	
 	mSessionUser = nullptr;
@@ -109,7 +109,7 @@ void Session::reset()
 	mClientLoginIP = Poco::Net::IPAddress();
 	mEmailVerificationCode = 0;
 	unlock();
-	printf("[Session::reset] finished\n");
+	//printf("[Session::reset] finished\n");
 }
 
 void Session::updateTimeout()
@@ -216,7 +216,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	// generate and write email verification into db
 	// send email
 	
-	printf("[Session::createUser] time: %s\n", usedTime.string().data());
+	//printf("[Session::createUser] time: %s\n", usedTime.string().data());
 
 	return true;
 }
@@ -272,7 +272,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		printf("[%s] time: %s\n", funcName, usedTime.string().data());
 		return false;
 	}
-	printf("[%s] time: %s\n", funcName, usedTime.string().data());
+	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 	return false;
 }
 
@@ -459,7 +459,7 @@ void Session::updateState(SessionStates newState)
 	lock();
 	if (!mActive) return;
 	updateTimeout();
-	printf("[%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
+	//printf("[%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
 	if (newState > mState) {
 		mState = newState;
 	}
