@@ -65,7 +65,6 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	logStream << "call " << uri;
 	if (s) {logStream << ", with session: " << std::to_string(s->getHandle()); }
 	if (referer != request.end()) { logStream << ", from: " << referer->second;}
-	logStream << std::endl;
 	mLogging.information(logStream.str());
 	// end debugging
 
