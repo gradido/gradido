@@ -33,6 +33,7 @@
 
 
  //#include "UniversumLib.h"
+#define _UNI_LIB_DEBUG
 
 #include "Poco/AutoPtr.h"
 #include "Poco/Mutex.h"

@@ -7,6 +7,9 @@
 ModelInsertTask::ModelInsertTask(Poco::AutoPtr<ModelBase> model)
 	: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model) 
 {
+#ifdef _UNI_LIB_DEBUG
+	setName(model->getTableName());
+#endif
 }
 
 int ModelInsertTask::run()

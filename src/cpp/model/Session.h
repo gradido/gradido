@@ -124,7 +124,11 @@ class WriteEmailVerification : public UniLib::controller::CPUTask
 {
 public:
 	WriteEmailVerification(Poco::AutoPtr<User> user, Poco::UInt64 emailVerificationCode, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
-		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mEmailVerificationCode(emailVerificationCode) {}
+		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mEmailVerificationCode(emailVerificationCode) {
+#ifdef _UNI_LIB_DEBUG
+		setName(user->getEmail());
+#endif
+	}
 
 	virtual const char* getResourceType() const { return "WriteEmailVerification"; };
 	virtual int run();
@@ -139,7 +143,10 @@ class WritePassphraseIntoDB : public UniLib::controller::CPUTask
 {
 public:
 	WritePassphraseIntoDB(int userId, const std::string& passphrase)
-		: mUserId(userId), mPassphrase(passphrase) {}
+		: mUserId(userId), mPassphrase(passphrase) {
+#ifdef _UNI_LIB_DEBUG
+		setName(std::to_string(userId).data());
+#endif}
 
 
 	virtual int run();

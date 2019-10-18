@@ -84,6 +84,9 @@ int UserWriteIntoDB::run()
 UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, Poco::AutoPtr<User> user, bool savePrivKey)
 	: UniLib::controller::CPUTask(1), mUser(user), mSavePrivKey(savePrivKey)
 {
+#ifdef _UNI_LIB_DEBUG
+	setName(user->getEmail());
+#endif
 	if (strcmp(parent->getResourceType(), "UserGenerateKeys") != 0) {
 		throw Poco::Exception("given TaskPtr isn't UserGenerateKeys");
 	}
@@ -152,7 +155,9 @@ int UserWriteKeysIntoDB::run()
 UserWriteCryptoKeyHashIntoDB::UserWriteCryptoKeyHashIntoDB(Poco::AutoPtr<User> user, int dependencieCount/* = 0*/)
 	: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler, dependencieCount), mUser(user)
 {
-
+#ifdef _UNI_LIB_DEBUG
+	setName(user->getEmail());
+#endif
 }
 
 int UserWriteCryptoKeyHashIntoDB::run()

@@ -140,7 +140,11 @@ class UserCreateCryptoKey : public UniLib::controller::CPUTask
 {
 public:
 	UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
-		: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password)  {}
+		: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password)  {
+#ifdef _UNI_LIB_DEBUG
+		setName(user->getEmail());
+#endif
+	}
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserCreateCryptoKey"; };
@@ -154,7 +158,11 @@ class UserGenerateKeys : public UniLib::controller::CPUTask
 {
 public:
 	UserGenerateKeys(Poco::AutoPtr<User> user, const std::string& passphrase)
-		: mUser(user), mPassphrase(passphrase) {}
+		: mUser(user), mPassphrase(passphrase) {
+#ifdef _UNI_LIB_DEBUG
+		setName(user->getEmail());
+#endif
+	}
 
 	~UserGenerateKeys() {
 
@@ -173,7 +181,11 @@ class UserWriteIntoDB : public UniLib::controller::CPUTask
 {
 public:
 	UserWriteIntoDB(Poco::AutoPtr<User> user, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
-		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user) {}
+		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user) {
+#ifdef _UNI_LIB_DEBUG
+		setName(user->getEmail());
+#endif
+	}
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserWriteIntoDB"; };

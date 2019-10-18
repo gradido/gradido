@@ -58,6 +58,7 @@ public:
 	~SendErrorMessage();
 
 	virtual int run();
+	const char* getResourceType() const { return "SendErrorMessage"; };
 
 
 protected:

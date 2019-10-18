@@ -7,7 +7,6 @@
 SendEmailTask::SendEmailTask(Poco::Net::MailMessage* mailMessage, UniLib::controller::CPUSheduler* cpuScheduler, size_t additionalTaskDependenceCount/* = 0*/)
 	: UniLib::controller::CPUTask(cpuScheduler, additionalTaskDependenceCount+1), mMailMessage(mailMessage)
 {
-
 }
 
 SendEmailTask::~SendEmailTask()
