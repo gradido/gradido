@@ -134,6 +134,9 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 HandleElopageRequestTask::HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData)
 	: CPUTask(ServerConfig::g_CPUScheduler), mRequestData(requestData) 
 {
+#ifdef _UNI_LIB_DEBUG
+	setName(mRequestData.get("order_id", "").data());
+#endif
 }
 
 bool HandleElopageRequestTask::validateInput()
