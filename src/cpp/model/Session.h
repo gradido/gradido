@@ -146,7 +146,8 @@ public:
 		: mUserId(userId), mPassphrase(passphrase) {
 #ifdef _UNI_LIB_DEBUG
 		setName(std::to_string(userId).data());
-#endif}
+#endif
+	}
 
 
 	virtual int run();

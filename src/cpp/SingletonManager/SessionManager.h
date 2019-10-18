@@ -90,7 +90,7 @@ class CheckSessionTimeouted : public UniLib::controller::CPUTask
 {
 public:
 	virtual int run();
-	virtual const char* getResourceType() const { return "CheckSessionTimeouted"; };
+	virtual const char* getResourceType() const { return "CheckSessionTimeouted"; }
 };
 
 #endif //DR_LUA_WEB_MODULE_SESSION_MANAGER_H
