@@ -9,6 +9,7 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPCookie.h"
+#include "../ServerConfig.h"
 
 
 UpdateUserPasswordPage::UpdateUserPasswordPage(Session* arg):
@@ -25,10 +26,11 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 
 	auto user = mSession->getUser();
 	auto sm = SessionManager::getInstance();
+	auto uri_start = ServerConfig::g_serverPath;
 	// remove old cookies if exist
 	sm->deleteLoginCookies(request, response, mSession);
 	// save login cookie, because maybe we've get an new session
@@ -41,10 +43,11 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				mSession->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
 			} else if(SessionManager::getInstance()->checkPwdValidation(pwd, mSession)) {
 				if(user->setNewPassword(form.get("register-password"))) {
-					std::string referUri = request.get("Referer", "./");
-					//printf("[updateUserPasswordPage] referUri: %s\n", referUri.data());
+					//std::string referUri = request.get("Referer", uri_start + "/");
+					//printf("[updateUserPasswordPage] redirect to referUri: %s\n", referUri.data());
+					mSession->updateEmailVerification(mSession->getEmailVerificationCode());
 					mSession->getErrors(user);
-					response.redirect(referUri);
+					response.redirect(uri_start + "/passphrase");
 					return;
 				}
 				
@@ -101,7 +104,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
 	responseStream << "\t";
-#line 81 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 84 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";
@@ -124,7 +127,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"grd-time-used\">\n";
 	responseStream << "\t";
-#line 101 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 104 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "</div>\n";

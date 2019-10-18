@@ -14,7 +14,7 @@
 
 using namespace Poco::Data::Keywords;
 
-#define DEBUG_USER_DELETE_ENV
+//#define DEBUG_USER_DELETE_ENV
 
 
 // -------------------------------------------------------------------------------------------------
@@ -359,7 +359,7 @@ UserStates User::getUserState()
 // TODO: if a password and privkey already exist, load current private key and re encrypt with new crypto key
 bool User::setNewPassword(const std::string& newPassword)
 {
-	
+	Profiler timeUsed;
 	if (newPassword == "") {
 		lock();
 		addError(new Error("Passwort", "Ist leer."));
@@ -384,6 +384,8 @@ bool User::setNewPassword(const std::string& newPassword)
 	savePassword->scheduleTask(savePassword);
 
 	unlock();
+
+	printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
 	return true;
 }
 

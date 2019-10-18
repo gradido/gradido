@@ -71,9 +71,12 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 #line 36 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
  if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
 	responseStream << "\t<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>\n";
-	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
+	responseStream << "\t<form method=\"GET\" action=\"";
+#line 38 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( uri_start );
+	responseStream << "/checkEmail\">\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
-	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
+	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
 #line 42 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"

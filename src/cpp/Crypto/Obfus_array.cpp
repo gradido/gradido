@@ -12,15 +12,15 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	
 	m_offsetSize = randombytes_random() % (int)roundf((m_arraySize - m_dataSize) * 0.8f);
 
-	printf("[ObfusArray::ObfusArray] array_size: %d, start by: %lld, size: %u, offset: %u\n",
-		m_arraySize, m_Data, size, m_offsetSize);
+	//printf("[ObfusArray::ObfusArray] array_size: %d, start by: %lld, size: %u, offset: %u\n",
+		//m_arraySize, m_Data, size, m_offsetSize);
 
 	assert(m_arraySize - m_offsetSize >= size);
 
 	uint32_t* d = (uint32_t*)m_Data;
 	size_t dMax = (size_t)floorf(m_arraySize / 4.0f);
 
-	printf("d start by: %lld, dMax: %u\n", d, dMax);
+	//printf("d start by: %lld, dMax: %u\n", d, dMax);
 	for (size_t i = 0; i < dMax; i++) {
 		d[i] = randombytes_random();
 	}
@@ -30,7 +30,7 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 	//d[m_arraySize - 4] = randombytes_random();
 
 	memcpy(&m_Data[m_offsetSize], data, size);
-	printf("[ObfusArray] data: %lld\n", (int64_t)m_Data);
+	//printf("[ObfusArray] data: %lld\n", (int64_t)m_Data);
 }
 
 /*
@@ -45,12 +45,12 @@ ObfusArray::ObfusArray(size_t size, const unsigned char * data)
 ObfusArray::~ObfusArray()
 {
 	
-	printf("[ObfusArray::~ObfusArray] data: %lld\n", (int64_t)m_Data);
+	//printf("[ObfusArray::~ObfusArray] data: %lld\n", (int64_t)m_Data);
 	if (m_Data) {
 		
 		free(m_Data);
 		m_Data = nullptr;
 	}
-	printf("[ObfusArray::~ObfusArray] finish\n");
+	//printf("[ObfusArray::~ObfusArray] finish\n");
 	
 }
