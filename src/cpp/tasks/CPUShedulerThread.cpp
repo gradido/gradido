@@ -37,7 +37,7 @@ namespace UniLib {
 #ifdef _UNI_LIB_DEBUG
 				Profiler counter;
 				//debug::CPUShedulerTasksLog* l = debug::CPUShedulerTasksLog::getInstance();
-				const char* name = mWaitingTask->getName();
+				std::string name = mWaitingTask->getName();
 				//l->addTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder(), mWaitingTask->getResourceType(), mName.data(), name);
 #endif 
 				if (!mWaitingTask->run()) {
@@ -46,7 +46,7 @@ namespace UniLib {
 #ifdef _UNI_LIB_DEBUG
 				//l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
 				mSpeedLog.information("%s used on thread: %s by Task: %s of: %s",
-					counter.string(), mName, mWaitingTask->getResourceType(), name);
+					counter.string(), mName, std::string(mWaitingTask->getResourceType()), name);
 #endif
 				mWaitingTask = mParent->getNextUndoneTask(this);
 			}

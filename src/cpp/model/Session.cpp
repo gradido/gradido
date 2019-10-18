@@ -252,7 +252,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 				mSessionUser->setEmailChecked();
 			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
-			printf("[%s] time: %s\n", funcName, usedTime.string().data());
+			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 			
 			return true;
 		}
@@ -537,7 +537,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		}
 		else {
 			if (savePassphrase) {
-				printf("[Session::generateKeys] create save passphrase task\n");
+				//printf("[Session::generateKeys] create save passphrase task\n");
 				UniLib::controller::TaskPtr savePassphrase(new WritePassphraseIntoDB(mSessionUser->getDBId(), mPassphrase));
 				savePassphrase->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_PASSPHRASE_WRITTEN, this));
 				savePassphrase->scheduleTask(savePassphrase);
