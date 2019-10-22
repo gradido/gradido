@@ -2,7 +2,6 @@
 #define __JSON_INTERFACE_JSON_GET_LOGIN_
 
 #include "JsonRequestHandler.h"
-#include "Poco/Dynamic/Var.h"
 
 class JsonGetLogin : public JsonRequestHandler
 {
