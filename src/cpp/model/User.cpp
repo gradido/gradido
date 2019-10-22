@@ -365,6 +365,7 @@ Poco::JSON::Object User::getJson()
 {
 	lock();
 	Poco::JSON::Object userObj;
+	
 	userObj.set("first_name", mFirstName);
 	userObj.set("last_name", mLastName);
 	userObj.set("email", mEmail);

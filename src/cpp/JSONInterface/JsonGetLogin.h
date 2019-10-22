@@ -6,7 +6,7 @@
 class JsonGetLogin : public JsonRequestHandler
 {
 public:
-	Poco::JSON::Object handle(Poco::Dynamic::Var params);
+	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
 
 protected:
 	
