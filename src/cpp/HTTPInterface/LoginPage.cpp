@@ -59,7 +59,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
-				response.redirect(ServerConfig::g_serverPath + "/");
+				response.redirect(ServerConfig::g_php_serverPath + "/");
 				return;
 			}
 			

@@ -61,7 +61,7 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 				return result;
 			}
 			result->set("state", "success");
-			result->set("clientIP", session->getClientIp());
+			result->set("clientIP", session->getClientIp().toString());
 			result->set("user", user->getJson());
 			return result;
 		}

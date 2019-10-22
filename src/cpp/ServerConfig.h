@@ -34,6 +34,7 @@ namespace ServerConfig {
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
 	extern std::string g_serverPath;
+	extern std::string g_php_serverPath;
 
 
 	bool loadMnemonicWordLists();

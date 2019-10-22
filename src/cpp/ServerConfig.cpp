@@ -38,6 +38,7 @@ namespace ServerConfig {
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;
+	std::string g_php_serverPath;
 
 	bool loadMnemonicWordLists()
 	{
@@ -90,6 +91,7 @@ namespace ServerConfig {
 		DISASM_FALSERET;
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
+		g_php_serverPath = cfg.getString("phpServer.url", "");
 		return true;
 	}
 
