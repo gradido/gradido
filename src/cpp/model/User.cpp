@@ -361,6 +361,19 @@ UserStates User::getUserState()
 	return state;
 }
 
+Poco::JSON::Object User::getJson()
+{
+	lock();
+	Poco::JSON::Object userObj;
+	userObj.set("first_name", mFirstName);
+	userObj.set("last_name", mLastName);
+	userObj.set("email", mEmail);
+	userObj.set("public_hex", mPublicHex);
+	userObj.set("state", userStateToString(mState));
+	unlock();
+	return userObj;
+}
+
 // TODO: if a password and privkey already exist, load current private key and re encrypt with new crypto key
 bool User::setNewPassword(const std::string& newPassword)
 {
@@ -692,4 +705,18 @@ bool User::loadEntryDBId(Poco::Data::Session session)
 	}
 
 	return true;
+}
+
+const char* User::userStateToString(UserStates state)
+{
+	switch (state) {
+	case USER_EMPTY: return "empty";
+	case USER_LOADED_FROM_DB: return "loaded from db";
+	case USER_PASSWORD_INCORRECT: return "password incorrect";
+	case USER_EMAIL_NOT_ACTIVATED: return "email not activated";
+	case USER_NO_KEYS: return "no keys";
+	case USER_NO_PRIVATE_KEY: return "no private key";
+	case USER_COMPLETE: return "complete";
+	}
+	return "- unknown -";
 }

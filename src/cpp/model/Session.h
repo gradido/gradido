@@ -78,7 +78,7 @@ public:
 	bool generateKeys(bool savePrivkey, bool savePassphrase);
 
 	inline void setClientIp(Poco::Net::IPAddress ip) { mClientLoginIP = ip; }
-	
+	inline Poco::Net::IPAddress getClientIp() { return mClientLoginIP; }
 	 
 	inline bool isIPValid(Poco::Net::IPAddress ip) { return mClientLoginIP == ip; }
 	bool isPwdValid(const std::string& pwd);

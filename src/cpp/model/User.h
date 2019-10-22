@@ -8,6 +8,7 @@
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
 #include "Poco/Data/Session.h"
+#include "Poco/JSON/Object.h"
 #include "../tasks/CPUTask.h"
 
 class NewUser;
@@ -57,6 +58,7 @@ public:
 
 	static std::string generateNewPassphrase(Mnemonic* word_source);
 	static bool validatePassphrase(const std::string& passphrase);
+	static const char* userStateToString(UserStates state);
 	//static User* login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr);
 
 	bool generateKeys(bool savePrivkey, const std::string& passphrase, Session* session);
@@ -83,7 +85,7 @@ public:
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
 
-	
+	Poco::JSON::Object getJson();
 
 	// for poco auto ptr
 	void duplicate();

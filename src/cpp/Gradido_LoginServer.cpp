@@ -1,6 +1,7 @@
 #include "Gradido_LoginServer.h"
 #include "ServerConfig.h"
 #include "HTTPInterface/PageRequestHandlerFactory.h"
+#include "JSONInterface/JsonRequestHandlerFactory.h"
 
 #include "model/Profiler.h"
 
@@ -81,6 +82,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	else
 	{
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
+		unsigned short json_port = (unsigned short)config().getInt("JSONServer.port", 1201);
 	
 		// load word lists
 		if (!ServerConfig::loadMnemonicWordLists()) {
@@ -155,27 +157,33 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		requestLog.setChannel(requestLogAsyncChannel);
 		requestLog.setLevel("information");
 
+		// HTTP Interface Server
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
 		// set-up a HTTPServer instance
 		Poco::ThreadPool& pool = Poco::ThreadPool::defaultPool();
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
 		ServerConfig::g_ServerKeySeed->put(7, 918276611);
-		Poco::Int64 key[6];
-		const unsigned char* seed = *ServerConfig::g_ServerKeySeed;
-		// skip first two values
-		seed += 16;
-		memcpy(key, seed, 6 * 8);
-		printf("key: 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx\n", 
-			key[0], key[1], key[2], key[3], key[4], key[5]);
+		
 		// start the HTTPServer
 		srv.start();
+
+		// JSON Interface Server
+		Poco::Net::ServerSocket json_svs(json_port);
+		Poco::Net::HTTPServer json_srv(new JsonRequestHandlerFactory, json_svs, new Poco::Net::HTTPServerParams);
+
+		// start the json server
+		json_srv.start();
+
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
 
 		// Stop the HTTPServer
 		srv.stop();
+		// Stop the json server
+		json_srv.stop();
+
 		ServerConfig::unload();
 		Poco::Net::uninitializeSSL();
 	}
