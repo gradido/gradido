@@ -13,14 +13,14 @@
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 
-	response.setChunkedTransferEncoding(true);
+	response.setChunkedTransferEncoding(false);
 	response.setContentType("application/json");
-	bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
-	if (_compressResponse) response.set("Content-Encoding", "gzip");
+	//bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
+	//if (_compressResponse) response.set("Content-Encoding", "gzip");
 
-	std::ostream& _responseStream = response.send();
-	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
-	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
+	std::ostream& responseStream = response.send();
+	//Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
+	//std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
@@ -47,5 +47,5 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		delete json_result;
 	}
 
-	if (_compressResponse) _gzipStream.close();
+	//if (_compressResponse) _gzipStream.close();
 }
