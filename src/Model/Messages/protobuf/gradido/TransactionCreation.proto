@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package gradido;
+
+import "BasicTypes.proto";
+
+// need signature from group admin or 
+// percent of group users another than the receiver
+message TransactionCreation {
+	ReceiverAmount receiverAmount = 1;
+	sint32 ident_hash = 2;
+	
+}

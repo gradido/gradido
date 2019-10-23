@@ -1,10 +1,11 @@
-syntax = "proto3"
+syntax = "proto3";
 
 package gradido;
 
 import "Transfer.proto";
 import "StateCreateGroup.proto";
 import "StateGroupChangeParent.proto";
+import "TransactionCreation.proto";
 
 message TransactionBody {
 	string memo = 1; // max 150 chars
@@ -12,5 +13,6 @@ message TransactionBody {
 		StateCreateGroup createGroup = 2;
 		StateGroupChangeParent groupChangeParent = 3;
 		Transfer transfer = 4;
+		TransactionCreation creation = 5;
 	}
 }

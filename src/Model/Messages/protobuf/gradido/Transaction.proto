@@ -1,9 +1,8 @@
-syntax = "proto3"
+syntax = "proto3";
 
 package gradido;
 
 import "BasicTypes.proto";
-import "TransactionBody.proto";
 
 /*
 	id will be set by Node server

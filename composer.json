@@ -10,7 +10,8 @@
         "cakephp/migrations": "^2.0.0",
         "cakephp/plugin-installer": "^1.0",
         "mobiledetect/mobiledetectlib": "2.*",
-        "paragonie/sodium_compat": "^1.11"
+        "paragonie/sodium_compat": "^1.11",
+        "google/protobuf": "v3.10.*"
     },
     "require-dev": {
         "cakephp/bake": "^1.9.0",
