@@ -1,0 +1,20 @@
+syntax = "proto3"
+
+package gradido;
+
+import "BasicTypes.proto";
+import "TransactionBody.proto";
+
+/*
+	id will be set by Node server
+	txHash will be also set by Node server,
+	  calculated from previous transaction txHash and this id, sigMap and received;
+*/
+
+message Transaction {
+	uint64 	id = 1;
+	TimestampSeconds received = 2;
+	SignatureMap sigMap = 3;
+	bytes txHash = 4;
+	bytes bodyBytes = 5;
+}

@@ -64,8 +64,9 @@ class TransactionCreationsTable extends Table
             ->notEmptyString('amount');
 
         $validator
-            ->requirePresence('ident_hash', 'create')
-            ->notEmptyString('ident_hash');
+            //->requirePresence('ident_hash', 'create')
+            //->notEmptyString('ident_hash');
+            ->allowEmptyString('ident_hash', null, 'create');
 
         return $validator;
     }

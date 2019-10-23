@@ -41,10 +41,10 @@ class StateUsersTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
-        $this->belongsTo('Indices', [
+        /*$this->belongsTo('Indices', [
             'foreignKey' => 'index_id',
             'joinType' => 'INNER'
-        ]);
+        ]);*/
         $this->belongsTo('StateGroups', [
             'foreignKey' => 'state_group_id',
             'joinType' => 'INNER'
@@ -91,8 +91,8 @@ class StateUsersTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['index_id'], 'Indices'));
-        $rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
+       // $rules->add($rules->existsIn(['index_id'], 'Indices'));
+        //$rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
 
         return $rules;
     }

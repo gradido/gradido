@@ -12,6 +12,13 @@ use App\Controller\AppController;
  */
 class TransactionCreationsController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        //$this->Auth->allow(['add', 'edit']);
+        $this->Auth->allow('add');
+    }
     /**
      * Index method
      *
@@ -42,6 +49,19 @@ class TransactionCreationsController extends AppController
 
         $this->set('transactionCreation', $transactionCreation);
     }
+    
+    public function create()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend');
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        //var_dump($user);
+        $transactionCreation = $this->TransactionCreations->newEntity();
+        $transactionCreation->state_user_id  = $user->id;
+        $timeUsed = microtime(true) - $startTime;
+        $this->set(compact('transactionCreation', 'timeUsed'));
+    }
 
     /**
      * Add method
@@ -50,6 +70,7 @@ class TransactionCreationsController extends AppController
      */
     public function add()
     {
+        
         $transactionCreation = $this->TransactionCreations->newEntity();
         if ($this->request->is('post')) {
             $transactionCreation = $this->TransactionCreations->patchEntity($transactionCreation, $this->request->getData());

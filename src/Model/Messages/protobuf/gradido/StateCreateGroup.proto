@@ -1,0 +1,15 @@
+syntax = "proto3"
+
+package gradido;
+
+import "BasicTypes.proto";
+
+// need signature from this group and from parent (if it isn't zero)
+message StateCreateGroup {
+	string name = 1;
+	Key groupPublicKey = 2;
+	Key parentGroupPublicKey = 3;
+	reserved "hederaConsensusId";
+	reserved 4;
+	
+}
