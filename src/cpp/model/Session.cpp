@@ -124,11 +124,11 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	Profiler usedTime;
 	auto sm = SessionManager::getInstance();
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
-		addError(new Error("Vorname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keine Sonderzeichen oder Zahlen."));
+		addError(new Error("Vorname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;"));
 		return false;
 	}
 	if (!sm->isValid(last_name, VALIDATE_NAME)) {
-		addError(new Error("Nachname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keine Sonderzeichen oder Zahlen."));
+		addError(new Error("Nachname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;"));
 		return false;
 	}
 	if (!sm->isValid(email, VALIDATE_EMAIL)) {

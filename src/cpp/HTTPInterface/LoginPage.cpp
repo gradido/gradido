@@ -37,6 +37,8 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			if(!session) {
 				session = sm->getNewSession();		
 				auto user_host = request.clientAddress().host();
+				auto client_ip = request.clientAddress();
+				printf("client ip: %s\n", client_ip.toString().data());
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
 			}

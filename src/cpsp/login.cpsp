@@ -23,6 +23,8 @@
 			auto session = sm->getSession(request);
 			if(!session) {
 				session = sm->getNewSession();		
+				auto client_ip = request.clientAddress();
+				printf("client ip: %s\n", client_ip.toString());
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());

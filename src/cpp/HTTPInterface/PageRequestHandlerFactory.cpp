@@ -80,7 +80,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return handleCheckEmail(s, uri, request);
 		}
 	}
-	
+	if (url_first_part == "/register") {
+		return new RegisterPage;
+	}
 	if (s) {
 		auto user = s->getUser();
 		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
@@ -115,6 +117,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return new DashboardPage(s);
 		}
+		
 	} else {
 
 		if (url_first_part == "/config") {
@@ -122,9 +125,6 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		else if (url_first_part == "/login") {
 			return new LoginPage;
-		}
-		else if (url_first_part == "/register") {
-			return new RegisterPage;
 		}
 	}
 	return new LoginPage;
