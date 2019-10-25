@@ -79,7 +79,7 @@ int WritePassphraseIntoDB::run()
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false)
+	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false), mProcessingTransaction(nullptr)
 {
 
 }
@@ -98,6 +98,7 @@ void Session::reset()
 	lock();
 	
 	mSessionUser = nullptr;
+	mProcessingTransaction = nullptr;
 
 	// watch out
 	//updateTimeout();
@@ -276,6 +277,39 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 	return false;
+}
+
+bool Session::startProcessingTransaction(std::string proto_message_base64)
+{
+	lock();
+	HASH hs = ProcessingTransaction::calculateHash(proto_message_base64);
+	// check if it is already running or waiting
+	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
+		if (it->isNull()) {
+			it = mProcessingTransactions.erase(it);
+		}
+		if (hs == (*it)->getHash()) {
+			addError(new Error("Session::startProcessingTransaction", "transaction already in list"));
+			unlock();
+			return false;
+		}
+	}
+	UniLib::controller::TaskPtr processorTask(new ProcessingTransaction(proto_message_base64));
+	processorTask->scheduleTask(processorTask);
+	mProcessingTransactions.push_back(processorTask);
+	unlock();
+	return true;
+	
+}
+
+Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction()
+{
+	lock();
+	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
+		if ((*it)->isTaskFinished()) {
+
+		}
+	}
 }
 
 bool Session::isPwdValid(const std::string& pwd)

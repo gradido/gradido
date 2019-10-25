@@ -26,11 +26,18 @@ FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
-SET(LOCAL_SRCS ${TINF} ${MAIN} ${HTTPInterface} ${JSONInterface} ${CRYPTO} ${MODEL} ${SINGLETON_MANAGER} ${MYSQL} ${TASKS})
+FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h")
+SET(LOCAL_SRCS 
+	${TINF} ${MAIN} ${HTTPInterface} 
+	${JSONInterface} ${CRYPTO} ${MODEL} 
+	${SINGLETON_MANAGER} ${MYSQL} ${TASKS}
+	${PROTO_GRADIDO}
+)
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
 # src
+source_group("proto" FILES ${PROTO_GRADIDO})
 source_group("tinf" FILES ${TINF})
 source_group("crypto" FILES ${CRYPTO})
 source_group("tasks" FILES ${TASKS})

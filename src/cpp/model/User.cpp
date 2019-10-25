@@ -266,6 +266,50 @@ User::User(int user_id)
 	}
 }
 
+User::User(const unsigned char* pubkey_array)
+	: mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+{
+	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
+	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
+	auto cm = ConnectionManager::getInstance();
+	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+	Poco::Data::BLOB pubkey(pubkey_array, 32);
+	Poco::Nullable<Poco::Data::BLOB> privkey;
+
+	Poco::Data::Statement select(session);
+	int email_checked = 0;
+	select << "SELECT id, email, first_name, last_name, password, privkey, email_checked from users where pubkey = ?",
+		into(mDBId), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(privkey), into(email_checked), use(pubkey);
+	try {
+		auto result = select.execute();
+		if (result == 1) {
+			mState = USER_LOADED_FROM_DB;
+			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
+			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
+			else { mState = USER_COMPLETE; }
+
+			mEmailChecked = email_checked == 1;
+
+			size_t hexSize = pubkey.size() * 2 + 1;
+			char* hexString = (char*)malloc(hexSize);
+			memset(hexString, 0, hexSize);
+			sodium_bin2hex(hexString, hexSize, pubkey.content().data(), pubkey.size());
+			mPublicHex = hexString;
+			free(hexString);
+			
+			if (!privkey.isNull()) {
+				auto privkey_value = privkey.value();
+				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+			}
+
+		}
+
+	}
+	catch (Poco::Exception& ex) {
+		addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
+	}
+}
 
 
 User::~User()
@@ -372,7 +416,7 @@ Poco::JSON::Object User::getJson()
 	userObj.set("public_hex", mPublicHex);
 	userObj.set("state", userStateToString(mState));
 	userObj.set("email_checked", mEmailChecked);
-	userObj.set("ident_hash", DRMakeStringHash(mEmail.data()));
+	userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
 	unlock();
 	return userObj;
 }
@@ -453,6 +497,14 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 	
 	unlock();
 	return false;
+}
+
+bool User::validateIdentHash(HASH hash)
+{
+	lock();
+	HASH local_hash = DRMakeStringHash(mEmail.data(), mEmail.size());
+	unlock();
+	return local_hash == hash;
 }
 
 bool User::deleteFromDB()

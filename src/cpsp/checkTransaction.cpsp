@@ -1,0 +1,48 @@
+<%@ page class="CheckTransactionPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%!
+#include "../SingletonManager/SessionManager.h"
+%>
+<%% 
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradido Login Server: &Uuml;berpr&uuml;fe Transaktion</title>
+<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
+<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+<style type="text/css" >
+.grd_container
+{
+  max-width:820px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+input:not([type='radio']) {
+	width:200px;
+}
+label:not(.grd_radio_label) {
+	width:80px;
+	display:inline-block;
+}
+</style>
+</head>
+<body>
+<div class="grd_container">
+	
+	<h1>Eine Transaktion pr&uuml;fen</h1>
+	<%= getErrorsHtml() %>
+	
+</div>
+<div class="grd-time-used">
+	<%= mTimeProfiler.string() %>
+</div>
+</body>
+</html>

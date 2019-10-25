@@ -50,6 +50,9 @@ public:
 	// existing user
 	User(const char* email);
 
+	// existing user by public key
+	User(const unsigned char* pubkey_array);
+
 	User(int user_id);
 	// login
 	//User(const std::string& email, const std::string& password);
@@ -82,6 +85,7 @@ public:
 	bool isEmptyPassword();
 	bool setNewPassword(const std::string& newPassword);
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
+	bool validateIdentHash(HASH hash);
 	
 	Poco::Data::BLOB* encrypt(const ObfusArray* data);
 

@@ -14,6 +14,7 @@
 #include "User.h"
 
 #include "../tasks/MultithreadContainer.h"
+#include "../tasks/ProcessingTransaction.h"
 
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
@@ -64,6 +65,8 @@ public:
 
 	bool updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
+	bool startProcessingTransaction(std::string proto_message_base64);
+
 	Poco::Net::HTTPCookie getLoginCookie();
 
 	Poco::AutoPtr<User> getUser() { 
@@ -95,6 +98,7 @@ public:
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 
+	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction();
 
 protected:
 	void updateTimeout();
@@ -104,6 +108,8 @@ protected:
 	
 	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
+
+	
 
 private: 
 	int mHandleId;
@@ -116,7 +122,8 @@ private:
 	SessionStates mState;
 
 	bool mActive;
-
+	std::list<Poco::AutoPtr<ProcessingTransaction>> mProcessingTransactions;
+	std::list<Poco::AutoPtr<ProcessingTransaction>>  
 };
 
 
