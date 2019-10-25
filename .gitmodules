@@ -8,3 +8,6 @@
 	path = dependencies/mariadb-connector-c
 	url = https://github.com/MariaDB/mariadb-connector-c.git
 
+[submodule "src/proto"]
+	path = src/proto
+	url = git@***REMOVED***:~/_protobuf/gradido_protobuf
