@@ -371,6 +371,7 @@ Poco::JSON::Object User::getJson()
 	userObj.set("email", mEmail);
 	userObj.set("public_hex", mPublicHex);
 	userObj.set("state", userStateToString(mState));
+	userObj.set("email_checked", mEmailChecked);
 	unlock();
 	return userObj;
 }
