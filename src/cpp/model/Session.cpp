@@ -79,7 +79,7 @@ int WritePassphraseIntoDB::run()
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false), mProcessingTransaction(nullptr)
+	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false)
 {
 
 }
@@ -98,7 +98,6 @@ void Session::reset()
 	lock();
 	
 	mSessionUser = nullptr;
-	mProcessingTransaction = nullptr;
 
 	// watch out
 	//updateTimeout();
@@ -279,7 +278,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	return false;
 }
 
-bool Session::startProcessingTransaction(std::string proto_message_base64)
+bool Session::startProcessingTransaction(const std::string& proto_message_base64)
 {
 	lock();
 	HASH hs = ProcessingTransaction::calculateHash(proto_message_base64);
@@ -294,7 +293,7 @@ bool Session::startProcessingTransaction(std::string proto_message_base64)
 			return false;
 		}
 	}
-	UniLib::controller::TaskPtr processorTask(new ProcessingTransaction(proto_message_base64));
+	Poco::AutoPtr<ProcessingTransaction> processorTask(new ProcessingTransaction(proto_message_base64));
 	processorTask->scheduleTask(processorTask);
 	mProcessingTransactions.push_back(processorTask);
 	unlock();
@@ -302,14 +301,31 @@ bool Session::startProcessingTransaction(std::string proto_message_base64)
 	
 }
 
-Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction()
+Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* working/* = nullptr*/)
 {
 	lock();
+	if (working) {
+		*working = 0;
+	}
+	Poco::AutoPtr<ProcessingTransaction> ret;
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
-		if ((*it)->isTaskFinished()) {
-
+		if (working && !(*it)->isTaskFinished()) {
+			*working++;
+		}
+		if (ret.isNull() && (*it)->isTaskFinished()) {
+			if (!working) {
+				unlock();
+				return *it;
+			}
+			// no early exit
+			else {
+				ret = *it;
+			}
+			
 		}
 	}
+	unlock();
+	return nullptr;
 }
 
 bool Session::isPwdValid(const std::string& pwd)
@@ -324,12 +340,20 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 {
 	//Profiler usedTime;
 	lock();
-	if (mSessionUser) mSessionUser = nullptr;
-	mSessionUser = new User(email.data());
+	if (mSessionUser && mSessionUser->getEmail() != email) {
+		mSessionUser = nullptr;
+	}
+	if (!mSessionUser) {
+		// load user for email only once from db
+		mSessionUser = new User(email.data());
+	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		if (!mSessionUser->validatePwd(password, this)) {
 			return USER_PASSWORD_INCORRECT;
 		}
+	}
+	else {
+		User::fakeCreateCryptoKey();
 	}
 
 	/*if (!mSessionUser->validatePwd(password, this)) {

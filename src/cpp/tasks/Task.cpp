@@ -59,23 +59,23 @@ namespace UniLib {
 
 		void Task::duplicate()
 		{
-			lock();
+			mReferenceMutex.lock();
 			mReferenceCount++;
 			//printf("[Task::duplicate] new value: %d\n", mReferenceCount);
-			unlock();
+			mReferenceMutex.unlock();
 		}
 
 		void Task::release()
 		{
-			lock();
+			mReferenceMutex.lock();
 			mReferenceCount--;
 			//printf("[Task::release] new value: %d\n", mReferenceCount);
 			if (0 == mReferenceCount) {
-				unlock();
+				mReferenceMutex.unlock();
 				delete this;
 				return;
 			}
-			unlock();
+			mReferenceMutex.unlock();
 
 		}
 

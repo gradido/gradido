@@ -6,8 +6,28 @@
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+
+enum PageState {
+	PAGE_TRANSACTION_CREATION,
+	PAGE_TRANSACTION_TRANSFER,
+	PAGE_NO_TRANSACTIONS
+};
+
 %>
 <%% 
+	PageState state = PAGE_NO_TRANSACTIONS;
+	size_t notReadyTransactions = 0;
+	size_t sumTransactions = mSession->getProcessingTransactionCount();
+	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+	if(!processingTransaction.isNull()) {
+		auto transactionType = processingTransaction->getType();
+		switch(transactionType) {
+			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
+			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+		}
+	}
+	
+
 %>
 <!DOCTYPE html>
 <html>
@@ -39,7 +59,20 @@ label:not(.grd_radio_label) {
 	
 	<h1>Eine Transaktion pr&uuml;fen</h1>
 	<%= getErrorsHtml() %>
+	<% if(sumTransactions - notReadyTransactions != 1) { %>
+		<pre><%= sumTransactions - notReadyTransactions %> von <%= sumTransactions %> Transaktionen sind bereit zum pr&uuml;fen</pre>
+	<% } %>
+	<% if(state == PAGE_NO_TRANSACTIONS) { %>
+	<div class="grd_text-max-width">
+		<% if(sumTransactions == 0) { %>
+			<div class="grd_text">Es gibt zurzeit keine Transaktionen zum &uuml;berpr&uuml;fen</div>
+		<% } else { %>
+			<div class="grd_text">Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.</div>
+		<% } %>
+	</div>
 	
+	<% } else if(state == PAGE_TRANSACTION_CREATION) { %>
+	<% } %>
 </div>
 <div class="grd-time-used">
 	<%= mTimeProfiler.string() %>

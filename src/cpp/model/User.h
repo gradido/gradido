@@ -94,13 +94,16 @@ public:
 	// for poco auto ptr
 	void duplicate();
 	void release();
+
+	//! \brief wait time create crypto key is normally running
+	static void fakeCreateCryptoKey();
 protected:
 	typedef Poco::UInt64 passwordHashed;
 
 	ObfusArray* createCryptoKey(const std::string& password);
 	inline void setCryptoKey(ObfusArray* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
-	void detectState();
+	//void detectState();
 
 	Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
 	bool updateIntoDB(UserFields fieldType);
@@ -135,6 +138,7 @@ private:
 	ObfusArray* mCryptoKey;
 
 	Poco::Mutex mWorkingMutex;
+	Poco::Mutex mReferenceMutex;
 	
 	// for poco auto ptr
 	int mReferenceCount;

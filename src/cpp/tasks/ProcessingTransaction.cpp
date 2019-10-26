@@ -4,7 +4,7 @@
 #include "../model/TransactionCreation.h"
 #include "../model/TransactionTransfer.h"
 
-ProcessingTransaction::ProcessingTransaction(std::string proto_message_base64)
+ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_base64)
 	: mType(TRANSACTION_NONE), mProtoMessageBase64(proto_message_base64), mTransactionSpecific(nullptr)
 {
 	mHashMutex.lock();
@@ -23,14 +23,13 @@ ProcessingTransaction::~ProcessingTransaction()
 }
 
 
-HASH ProcessingTransaction::calculateHash(std::string proto_message_base64)
+HASH ProcessingTransaction::calculateHash(const std::string& proto_message_base64)
 {
 	return DRMakeStringHash(proto_message_base64.data(), proto_message_base64.size());
 }
 
 int ProcessingTransaction::run()
 {
-	
 	lock();
 	//mTransactionBody.ParseFromString();
 	unsigned char* binBuffer = (unsigned char*)malloc(mProtoMessageBase64.size());

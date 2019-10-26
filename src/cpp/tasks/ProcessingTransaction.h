@@ -4,6 +4,7 @@
 #include "CPUTask.h"
 
 #include "../model/ErrorList.h"
+#include "../Crypto/DRHash.h"
 #include "../model/TransactionBase.h"
 
 #include "../proto/gradido/TransactionBody.pb.h"
@@ -27,7 +28,7 @@ class TransactionTransfer;
 class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorList
 {
 public:
-	ProcessingTransaction(std::string proto_message_base64);
+	ProcessingTransaction(const std::string& proto_message_base64);
 	virtual ~ProcessingTransaction();
 
 	int run();
@@ -44,7 +45,7 @@ public:
 	TransactionCreation* getCreationTransaction();
 	TransactionTransfer* getTransferTransaction();
 
-	static HASH calculateHash(std::string proto_message_base64);
+	static HASH calculateHash(const std::string& proto_message_base64);
 	inline HASH getHash() { mHashMutex.lock(); HASH hs = mHash; mHashMutex.unlock(); return hs; }
 
 protected:

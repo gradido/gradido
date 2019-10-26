@@ -65,7 +65,7 @@ public:
 
 	bool updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
-	bool startProcessingTransaction(std::string proto_message_base64);
+	
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
@@ -98,7 +98,11 @@ public:
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 
-	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction();
+	//! \return true if succeed
+	bool startProcessingTransaction(const std::string& proto_message_base64);
+	//! \param working if set will filled with transaction running
+	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
+	inline size_t getProcessingTransactionCount() { lock(); auto ret = mProcessingTransactions.size(); unlock(); return ret; }
 
 protected:
 	void updateTimeout();
@@ -123,7 +127,6 @@ private:
 
 	bool mActive;
 	std::list<Poco::AutoPtr<ProcessingTransaction>> mProcessingTransactions;
-	std::list<Poco::AutoPtr<ProcessingTransaction>>  
 };
 
 

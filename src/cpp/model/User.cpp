@@ -553,12 +553,12 @@ bool User::deleteFromDB()
 
 void User::duplicate()
 {
-	mWorkingMutex.lock();
+	mReferenceMutex.lock();
 	mReferenceCount++;
 #ifdef DEBUG_USER_DELETE_ENV
 	printf("[User::duplicate] new value: %d\n", mReferenceCount);
 #endif
-	mWorkingMutex.unlock();
+	mReferenceMutex.unlock();
 }
 
 void User::release()
@@ -566,17 +566,17 @@ void User::release()
 	if (!mCreateCryptoKeyTask.isNull() && mCreateCryptoKeyTask->isTaskFinished()) {
 		mCreateCryptoKeyTask = nullptr;
 	}
-	mWorkingMutex.lock();
+	mReferenceMutex.lock();
 	mReferenceCount--;
 #ifdef DEBUG_USER_DELETE_ENV
 	printf("[User::release] new value: %d, this: %d\n", mReferenceCount, this);
 #endif
 	if (0 == mReferenceCount) {
-		mWorkingMutex.unlock();
+		mReferenceMutex.unlock();
 		delete this;
 		return;
 	}
-	mWorkingMutex.unlock();
+	mReferenceMutex.unlock();
 
 }
 
@@ -622,6 +622,11 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	// mCryptoKey
 	//printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
 	return cryptoKey;
+}
+
+void User::fakeCreateCryptoKey()
+{
+	Poco::Thread::sleep(820);
 }
 
 bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session* session)

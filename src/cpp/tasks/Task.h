@@ -119,6 +119,7 @@ namespace UniLib {
             TaskPtr* mParentTaskPtrArray;
             size_t   mParentTaskPtrArraySize; 
             Poco::Mutex mWorkingMutex;
+			Poco::Mutex mReferenceMutex;
             bool     mDeleted;
 			bool     mFinished;
 			// for poco auto ptr

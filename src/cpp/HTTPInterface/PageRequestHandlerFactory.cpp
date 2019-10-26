@@ -14,6 +14,7 @@
 #include "ElopageWebhook.h"
 #include "UpdateUserPasswordPage.h"
 #include "Error500Page.h"
+#include "CheckTransactionPage.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -113,7 +114,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		//else if (uri == "/saveKeys") {
 			return new SaveKeysPage(s);
 		}
-		if (s && !s->getUser().isNull()) {
+		if (url_first_part == "/checkTransactions") {
+			return new CheckTransactionPage(s);
+		}
+		if (s && !user.isNull() && user->hasCryptoKey()) {
 			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return new DashboardPage(s);
 		}
