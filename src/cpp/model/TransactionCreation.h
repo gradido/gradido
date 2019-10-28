@@ -16,7 +16,7 @@
 class TransactionCreation : public TransactionBase
 {
 public:
-	TransactionCreation(const model::messages::gradido::TransactionCreation& protoCreation);
+	TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation);
 	~TransactionCreation();
 
 	int prepare();
@@ -25,6 +25,7 @@ public:
 	inline google::protobuf::int64 getAmount() { return mProtoCreation.receiveramount().amount(); }
 	inline char* getPublicHex() { return mReceiverPublicHex; }
 
+	inline std::string getAmountString() { return amountToString(getAmount()); }
 
 protected:
 	const model::messages::gradido::TransactionCreation& mProtoCreation;

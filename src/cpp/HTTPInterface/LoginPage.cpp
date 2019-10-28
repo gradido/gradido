@@ -7,9 +7,12 @@
 
 #line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
-#include "../SingletonManager/SessionManager.h"
+
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "Poco/Logger.h"
+
+#include "../SingletonManager/SessionManager.h"
 #include "../model/Profiler.h"
 #include "../ServerConfig.h"	
 	
@@ -23,7 +26,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 14 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 17 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
 	
 	auto sm = SessionManager::getInstance();
@@ -36,9 +39,14 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			auto session = sm->getSession(request);
 			if(!session) {
 				session = sm->getNewSession();		
-				auto user_host = request.clientAddress().host();
+				
+				// for debugging client ip
 				auto client_ip = request.clientAddress();
-				printf("client ip: %s\n", client_ip.toString().data());
+				std::string clientIpString = "client ip: ";
+				clientIpString += client_ip.toString();
+				Poco::Logger::get("requestLog").information(clientIpString);
+				// debugging end
+				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
 			}
@@ -109,7 +117,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 93 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 103 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -131,7 +139,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"grd-time-used\">\n";
 	responseStream << "\t\t";
-#line 112 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 122 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "\t</div>\n";

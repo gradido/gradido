@@ -139,7 +139,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
  if(!hasPassword) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>Ich brauche nochmal dein Passwort wenn du dich für ja entscheidest.</p>\n";
 	responseStream << "\t\t\t\t<p class=\"grd_small\">\n";
-	responseStream << "\t\t\t\t\t<label for=\"login-password\">Passwort</label>\n";
+	responseStream << "\t\t\t\t\t<label for=\"save-privkey-password\">Passwort</label>\n";
 	responseStream << "\t\t\t\t\t<input id=\"save-privkey-password\" type=\"password\" name=\"save-privkey-password\"/>\n";
 	responseStream << "\t\t\t\t</p>\n";
 	responseStream << "\t\t\t";

@@ -2,13 +2,13 @@
 #define Elopage_Webhook_INCLUDED
 
 
-#include "Poco/Net/HTTPRequestHandler.h"
+#include "PageRequestMessagedHandler.h"
 #include "../tasks/CPUTask.h"
 #include "../model/ErrorList.h"
 
 #include "Poco/Net/NameValueCollection.h"
 
-class ElopageWebhook : public Poco::Net::HTTPRequestHandler
+class ElopageWebhook : public PageRequestMessagedHandler
 {
 public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);

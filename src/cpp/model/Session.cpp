@@ -307,25 +307,48 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 	if (working) {
 		*working = 0;
 	}
-	Poco::AutoPtr<ProcessingTransaction> ret;
+	else if (!mCurrentActiveProcessingTransaction.isNull()) 
+	{
+		unlock();
+		return mCurrentActiveProcessingTransaction;	
+	}
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
 		if (working && !(*it)->isTaskFinished()) {
 			*working++;
 		}
-		if (ret.isNull() && (*it)->isTaskFinished()) {
+		if (mCurrentActiveProcessingTransaction.isNull() && (*it)->isTaskFinished()) {
 			if (!working) {
+				mCurrentActiveProcessingTransaction = *it;
 				unlock();
-				return *it;
+				return mCurrentActiveProcessingTransaction;
 			}
 			// no early exit
 			else {
-				ret = *it;
+				mCurrentActiveProcessingTransaction = *it;
 			}
 			
 		}
 	}
 	unlock();
-	return nullptr;
+	return mCurrentActiveProcessingTransaction;
+}
+
+void Session::finalizeTransaction(bool sign, bool reject)
+{
+	lock();
+	if (mCurrentActiveProcessingTransaction.isNull()) {
+		unlock();
+		return;
+	}
+	mProcessingTransactions.remove(mCurrentActiveProcessingTransaction);
+	
+	if (!reject) {
+		if (sign) {
+
+		}
+	}
+	mCurrentActiveProcessingTransaction = nullptr;
+	unlock();
 }
 
 bool Session::isPwdValid(const std::string& pwd)

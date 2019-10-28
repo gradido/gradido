@@ -1,7 +1,6 @@
 #include "ElopageWebhook.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/DeflatingStream.h"
 #include "Poco/URI.h"
 #include "Poco/Data/Binding.h"
 
@@ -26,8 +25,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	// simply write request to file for later lookup
 	//ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
 
-	
-
+	// empty response, we didn't need to set anything
 
 	std::istream& stream = request.stream();
 	std::string completeRequest;
@@ -90,6 +88,12 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 		breakCount--;
 	}
 
+	// check event type
+	std::string event = elopageRequestData.get("event", "");
+	if (event == "lesson.viewed") {
+		return;
+	}
+
 	// write stream result also to file
 	static Poco::Mutex mutex;
 
@@ -116,17 +120,6 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	UniLib::controller::TaskPtr handleElopageTask(new HandleElopageRequestTask(elopageRequestData));
 	handleElopageTask->scheduleTask(handleElopageTask);
 
-	response.setChunkedTransferEncoding(true);
-	response.setContentType("application/json");
-	bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
-	if (_compressResponse) response.set("Content-Encoding", "gzip");
-
-	
-	std::ostream& _responseStream = response.send();
-	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
-	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
-	
-	if (_compressResponse) _gzipStream.close();
 }
 
 
@@ -197,7 +190,12 @@ int HandleElopageRequestTask::getUserIdFromDB()
 int HandleElopageRequestTask::run()
 {
 	// get input data
-	
+	// check event type
+	std::string event = mRequestData.get("event", "");
+	if (event == "lesson.viewed") {
+		return 0;
+	}
+
 	mEmail = mRequestData.get("payer[email]", "");
 	mFirstName = mRequestData.get("payer[first_name]", "");
 	mLastName = mRequestData.get("payer[last_name]", "");

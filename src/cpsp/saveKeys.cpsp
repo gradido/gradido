@@ -111,7 +111,7 @@ label:not(.grd_radio_label) {
 			<% if(!hasPassword) { %>
 				<p>Ich brauche nochmal dein Passwort wenn du dich für ja entscheidest.</p>
 				<p class="grd_small">
-					<label for="login-password">Passwort</label>
+					<label for="save-privkey-password">Passwort</label>
 					<input id="save-privkey-password" type="password" name="save-privkey-password"/>
 				</p>
 			<% } %>

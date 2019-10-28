@@ -13,6 +13,7 @@ class PageRequestMessagedHandler : public Poco::Net::HTTPRequestHandler, public 
 public:
 	PageRequestMessagedHandler() {}
 
+	inline void setProfiler(Profiler profiler) { mTimeProfiler = profiler; }
 	//Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 
 protected:

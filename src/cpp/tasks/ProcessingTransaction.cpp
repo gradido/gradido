@@ -57,11 +57,11 @@ int ProcessingTransaction::run()
 	// check Type
 	if (mTransactionBody.has_creation()) {
 		mType = TRANSACTION_CREATION;
-		mTransactionSpecific = new TransactionCreation(mTransactionBody.creation());
+		mTransactionSpecific = new TransactionCreation(mTransactionBody.memo(), mTransactionBody.creation());
 	}
 	else if (mTransactionBody.has_transfer()) {
 		mType = TRANSACTION_TRANSFER;
-		mTransactionSpecific = new TransactionTransfer(mTransactionBody.transfer());
+		mTransactionSpecific = new TransactionTransfer(mTransactionBody.memo(), mTransactionBody.transfer());
 	}
 	if (mTransactionSpecific) {
 		if (mTransactionSpecific->prepare()) {

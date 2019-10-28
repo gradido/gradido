@@ -102,6 +102,7 @@ public:
 	bool startProcessingTransaction(const std::string& proto_message_base64);
 	//! \param working if set will filled with transaction running
 	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
+	void finalizeTransaction(bool sign, bool reject);
 	inline size_t getProcessingTransactionCount() { lock(); auto ret = mProcessingTransactions.size(); unlock(); return ret; }
 
 protected:
@@ -127,6 +128,7 @@ private:
 
 	bool mActive;
 	std::list<Poco::AutoPtr<ProcessingTransaction>> mProcessingTransactions;
+	Poco::AutoPtr<ProcessingTransaction> mCurrentActiveProcessingTransaction;
 };
 
 

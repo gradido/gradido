@@ -4,9 +4,12 @@
 <%@ header include="PageRequestMessagedHandler.h" %>
 <%@	page compressed="true" %>
 <%! 
-#include "../SingletonManager/SessionManager.h"
+
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "Poco/Logger.h"
+
+#include "../SingletonManager/SessionManager.h"
 #include "../model/Profiler.h"
 #include "../ServerConfig.h"	
 	
@@ -23,8 +26,13 @@
 			auto session = sm->getSession(request);
 			if(!session) {
 				session = sm->getNewSession();		
+				
+				// for debugging client ip
 				auto client_ip = request.clientAddress();
-				printf("client ip: %s\n", client_ip.toString());
+				std::string clientIpString = "client ip: ";
+				clientIpString += client_ip.toString();
+				Poco::Logger::get("requestLog").information(clientIpString);
+				// debugging end
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());

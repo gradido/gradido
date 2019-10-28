@@ -1,7 +1,7 @@
 #include "TransactionTransfer.h"
 
-TransactionTransfer::TransactionTransfer(const model::messages::gradido::Transfer& protoTransfer)
-	: mProtoTransfer(protoTransfer)
+TransactionTransfer::TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer)
+	: TransactionBase(memo), mProtoTransfer(protoTransfer)
 {
 
 }

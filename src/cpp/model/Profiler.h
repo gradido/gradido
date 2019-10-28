@@ -17,6 +17,7 @@ class Profiler
 {
 public:
 	Profiler();
+	Profiler(const Profiler& copy);
 	~Profiler();
 
 	inline void reset() { mStartTick = std::chrono::high_resolution_clock::now(); }

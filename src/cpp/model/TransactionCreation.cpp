@@ -1,8 +1,8 @@
 #include "TransactionCreation.h"
 #include <sodium.h>
 
-TransactionCreation::TransactionCreation(const model::messages::gradido::TransactionCreation& protoCreation)
-	: mProtoCreation(protoCreation), mReceiverUser(nullptr)
+TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
+	: TransactionBase(memo), mProtoCreation(protoCreation), mReceiverUser(nullptr)
 {
 	memset(mReceiverPublicHex, 0, 65);
 }

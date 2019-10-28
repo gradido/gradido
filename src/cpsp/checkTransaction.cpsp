@@ -6,6 +6,8 @@
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+#include "../model/TransactionCreation.h"
+#include "../model/TransactionTransfer.h"
 
 enum PageState {
 	PAGE_TRANSACTION_CREATION,
@@ -19,6 +21,7 @@ enum PageState {
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+	auto accountUser = mSession->getUser();
 	if(!processingTransaction.isNull()) {
 		auto transactionType = processingTransaction->getType();
 		switch(transactionType) {
@@ -26,7 +29,25 @@ enum PageState {
 			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
 		}
 	}
-	
+	bool hasErrors = false;
+	if(!form.empty()) {
+		auto ok = form.get("ok", "");
+		auto abort = form.get("abort", "");
+		if(abort != "") {
+			mSession->finalizeTransaction(false, true);
+		} else if(ok != "") {
+			if(!accountUser->hasCryptoKey()) {
+				auto pwd = form.get("sign-password", "");
+				if(!mSession->isPwdValid(pwd)) {
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					hasErrors = true;
+				}
+			}
+			if(!hasErrors) {
+				mSession->finalizeTransaction(true, false);
+			}
+		}
+	}
 
 %>
 <!DOCTYPE html>
@@ -56,7 +77,6 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="grd_container">
-	
 	<h1>Eine Transaktion pr&uuml;fen</h1>
 	<%= getErrorsHtml() %>
 	<% if(sumTransactions - notReadyTransactions != 1) { %>
@@ -71,7 +91,40 @@ label:not(.grd_radio_label) {
 		<% } %>
 	</div>
 	
-	<% } else if(state == PAGE_TRANSACTION_CREATION) { %>
+	<% } else if(state == PAGE_TRANSACTION_CREATION) { 
+		auto creationTransaction = processingTransaction->getCreationTransaction();
+		auto transactionUser = creationTransaction->getUser();
+		
+	%>
+	<div class="grd_text-max-width">
+		<h2>Sch&ouml;pfungstransaktion</h2>
+		<b>Memo: </b>
+		<p><%= creationTransaction->getMemo() %></p>
+		<b>Empf&auml;nger: </b>
+		<% if(transactionUser) { %>
+			<%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %>
+			<%= transactionUser->getEmail() %>
+		<% } else { %>
+			<%= creationTransaction->getPublicHex() %>
+		<% } %>
+		<b>Summe: </b>
+		<%= creationTransaction->getAmountString() %>&nbsp;Gradido
+		<form >
+			Unterschreiben mit aktuellem Account?<br>
+			<p><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %></p>
+			<p><%= accountUser->getEmail() %></p>
+			<% // TODO: additional password check %>
+			<% if(!accountUser->hasCryptoKey()) {%>
+			<p>Ich brauche nochmal dein Passwort</p>
+				<p class="grd_small">
+					<label for="sign-password">Passwort</label>
+					<input id="sign-password" type="password" name="sign-password"/>
+				</p>
+			<% } %>
+			<input class="grd_bn grd_bn_succeed grd_clickable" type="submit" name="ok" value="Transaktion unterzeichnen">
+			<input class="grd_bn grd_bn_delete grd_clickable" type="submit" name="abort" value="Transaktion verwerfen">
+		</form>
+	</div>	
 	<% } %>
 </div>
 <div class="grd-time-used">

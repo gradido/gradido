@@ -7,6 +7,11 @@ Profiler::Profiler()
 	reset();
 }
 
+Profiler::Profiler(const Profiler& copy)
+{
+	mStartTick = copy.mStartTick;
+}
+
 Profiler::~Profiler()
 {
 
