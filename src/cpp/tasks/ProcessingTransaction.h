@@ -24,9 +24,11 @@ enum TransactionType {
 
 class TransactionCreation;
 class TransactionTransfer;
+class SigningTransaction;
 
 class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorList
 {
+	friend SigningTransaction;
 public:
 	ProcessingTransaction(const std::string& proto_message_base64);
 	virtual ~ProcessingTransaction();

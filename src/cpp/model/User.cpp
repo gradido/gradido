@@ -693,6 +693,35 @@ Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
 	return result_blob;
 }
 
+ObfusArray* User::decrypt(const ObfusArray* encryptedData)
+{
+	if (!hasCryptoKey()) {
+		addError(new Error("User::decrypt", "hasn't crypto key"));
+		return nullptr;
+	}
+
+	//ObfusArray* decrypetData = new ObfusArray(encryptedData->size() - crypto_secretbox_MACBYTES);
+	
+	size_t decryptSize = encryptedData->size() - crypto_secretbox_MACBYTES;
+	unsigned char* decryptBuffer = (unsigned char*)malloc(decryptSize);
+	unsigned char nonce[crypto_secretbox_NONCEBYTES];
+	// we use a hardcoded value for nonce
+	memset(nonce, 31, crypto_secretbox_NONCEBYTES);
+
+	if (crypto_secretbox_open_easy(decryptBuffer, *encryptedData, encryptedData->size(), nonce, *mCryptoKey)) {
+		free(decryptBuffer);
+		addError(new Error("User::decrypt", "error decrypting"));
+		return nullptr;
+	}
+	/*int crypto_secretbox_open_easy(unsigned char *m, const unsigned char *c,
+		unsigned long long clen, const unsigned char *n,
+		const unsigned char *k);*/
+
+	ObfusArray* decryptedData = new ObfusArray(decryptSize, decryptBuffer);
+	free(decryptBuffer);
+	return decryptedData;	
+}
+
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 {
 
@@ -779,4 +808,17 @@ const char* User::userStateToString(UserStates state)
 	case USER_COMPLETE: return "complete";
 	}
 	return "- unknown -";
+}
+
+ObfusArray* User::getPrivKey()
+{
+	if (mState != USER_COMPLETE) {
+		addError(new Error("User::getPrivKey", "no private key saved"));
+		return nullptr;
+	}
+	if (!hasCryptoKey()) {
+		addError(new Error("User::getPrivKey", "no crypto key set for decrypting priv key"));
+		return nullptr;
+	}
+	return decrypt(mPrivateKey);
 }

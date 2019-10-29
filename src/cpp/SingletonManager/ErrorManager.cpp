@@ -56,6 +56,17 @@ void ErrorManager::addError(Error* error)
 
 }
 
+int ErrorManager::getErrors(ErrorList* send)
+{
+	Error* error = nullptr;
+	int iCount = 0;
+	while (error = send->getLastError()) {
+		addError(error);
+		iCount++;
+	}
+	return iCount;
+}
+
 void ErrorManager::sendErrorsAsEmail()
 {
 	auto message = new Poco::Net::MailMessage();

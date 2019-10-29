@@ -186,6 +186,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		ServerConfig::unload();
 		Poco::Net::uninitializeSSL();
+		// Optional:  Delete all global objects allocated by libprotobuf.
+		google::protobuf::ShutdownProtobufLibrary();
+
 	}
 	return Application::EXIT_OK;
 }

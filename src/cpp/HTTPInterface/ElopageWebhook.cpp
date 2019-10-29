@@ -82,6 +82,13 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 				break;
 			}
 		}
+		// last key-value pair
+		std::string urlDecodedValue;
+		Poco::URI::decode(valueBuffer, urlDecodedValue);
+		if (strcmp(keyBuffer, "")) {
+			elopageRequestData.set(keyBuffer, urlDecodedValue);
+		}
+
 		//printf("[ElopageWebhook::handleRequest] key: %s, value: %s\n", keyBuffer, valueBuffer);
 	///	elopageRequestData.set(keyBuffer, valueBuffer);
 		stream.good();

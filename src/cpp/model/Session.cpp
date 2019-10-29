@@ -8,8 +8,10 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
+
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
+#include "../tasks/SigningTransaction.h"
 
 
 #include "sodium.h"
@@ -344,7 +346,8 @@ void Session::finalizeTransaction(bool sign, bool reject)
 	
 	if (!reject) {
 		if (sign) {
-
+			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mSessionUser));
+			signingTransaction->scheduleTask(signingTransaction);
 		}
 	}
 	mCurrentActiveProcessingTransaction = nullptr;

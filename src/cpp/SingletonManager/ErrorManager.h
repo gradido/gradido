@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 #include <cstring>
-#include "../model/Error.h"
+#include "../model/ErrorList.h"
 #include "../Crypto/DRHash.h"
 #include "../tasks/CPUTask.h"
 
@@ -32,6 +32,8 @@ public:
 	
 	// will called delete on error 
 	virtual void addError(Error* error);
+
+	int getErrors(ErrorList* send);
 
 	virtual void sendErrorsAsEmail();
 
