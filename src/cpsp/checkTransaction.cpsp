@@ -18,20 +18,10 @@ enum PageState {
 %>
 <%% 
 	const char* pageName = "&Uuml;berpr&uuml;fe Transaktion";
-	
-	PageState state = PAGE_NO_TRANSACTIONS;
-	size_t notReadyTransactions = 0;
-	size_t sumTransactions = mSession->getProcessingTransactionCount();
-	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
 	auto accountUser = mSession->getUser();
-	if(!processingTransaction.isNull()) {
-		auto transactionType = processingTransaction->getType();
-		switch(transactionType) {
-			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
-			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
-		}
-	}
 	bool hasErrors = false;
+	bool enableLogout = true;
+	
 	if(!form.empty()) {
 		auto ok = form.get("ok", "");
 		auto abort = form.get("abort", "");
@@ -50,13 +40,37 @@ enum PageState {
 			}
 		}
 	}
+	
+	PageState state = PAGE_NO_TRANSACTIONS;
+	size_t notReadyTransactions = 0;
+	size_t sumTransactions = mSession->getProcessingTransactionCount();
+	if(sumTransactions == 0) {
+		response.redirect(ServerConfig::g_php_serverPath + "/");
+	}
+	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+	if(sumTransactions > 0) {
+		enableLogout = false;
+	}
+	if(!processingTransaction.isNull()) {
+		auto transactionType = processingTransaction->getType();
+		switch(transactionType) {
+			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
+			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+		}
+	}
+	
+	
 
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header.cpsp" %><%@ include file="navi.cpsp" %>
 <div class="grd_container">
 	<h1>Eine Transaktion pr&uuml;fen</h1>
 	<%= getErrorsHtml() %>
-	<% if(sumTransactions - notReadyTransactions != 1) { %>
-		<pre><%= sumTransactions - notReadyTransactions %> von <%= sumTransactions %> Transaktionen sind bereit zum pr&uuml;fen</pre>
+	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
+		<% if(notReadyTransactions > 0) { %> 
+			<pre><%= sumTransactions - notReadyTransactions %> von <%= sumTransactions %> Transaktionen sind bereit zum pr&uuml;fen</pre>
+		<% } else { %>
+			<pre><%= sumTransactions %> Transaktionen warten darauf &uuml;berpr&uuml;ft zu werden.</pre>
+		<% } %>
 	<% } %>
 	<% if(state == PAGE_NO_TRANSACTIONS) { %>
 	<div class="grd_text-max-width">
@@ -78,17 +92,17 @@ enum PageState {
 		<p><%= creationTransaction->getMemo() %></p>
 		<b>Empf&auml;nger: </b>
 		<% if(transactionUser) { %>
-			<%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %>
-			<%= transactionUser->getEmail() %>
+			<p class="grd_small"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %></p>
+			<p class="grd_small"><%= transactionUser->getEmail() %></p>
 		<% } else { %>
-			<%= creationTransaction->getPublicHex() %>
+			<p class="grd_small"><%= creationTransaction->getPublicHex() %></p>
 		<% } %>
 		<b>Summe: </b>
 		<%= creationTransaction->getAmountString() %>&nbsp;Gradido
 		<form >
 			Unterschreiben mit aktuellem Account?<br>
-			<p><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %></p>
-			<p><%= accountUser->getEmail() %></p>
+			<p class="grd_small"><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %></p>
+			<p class="grd_small"><%= accountUser->getEmail() %></p>
 			<% // TODO: additional password check %>
 			<% if(!accountUser->hasCryptoKey()) {%>
 			<p>Ich brauche nochmal dein Passwort</p>
@@ -97,8 +111,8 @@ enum PageState {
 					<input id="sign-password" type="password" name="sign-password"/>
 				</p>
 			<% } %>
-			<input class="grd_bn grd_bn_succeed grd_clickable" type="submit" name="ok" value="Transaktion unterzeichnen">
-			<input class="grd_bn grd_bn_delete grd_clickable" type="submit" name="abort" value="Transaktion verwerfen">
+			<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="ok" value="Transaktion unterzeichnen">
+			<input class="grd-form-bn grd-form-bn-discard grd_clickable" type="submit" name="abort" value="Transaktion verwerfen">
 		</form>
 	</div>	
 	<% } %>

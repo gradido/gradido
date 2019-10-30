@@ -9,6 +9,9 @@
  
 #include <Poco/Net/HTTPResponse.h>
 	
+#line 1 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+ 
+#include "../ServerConfig.h"	
 
 
 Error500Page::Error500Page(Session* arg):
@@ -38,17 +41,21 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 		auto user = mSession->getUser();
 	}
 	// begin include header.cpsp
+	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 9 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
-	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://gradido2.dario-rekowski.de/css/styles.css\">\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
 	responseStream << ".grd_container\n";
 	responseStream << "{\n";
@@ -76,7 +83,7 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\tposition: fixed;\n";
 	responseStream << "\tcolor:grey;\n";
 	responseStream << "\tfont-size: smaller;\n";
-	responseStream << "\tleft:0;\n";
+	responseStream << "\tleft:8px;\n";
 	responseStream << "}\n";
 	responseStream << ".grd-time-used {  \n";
 	responseStream << "  bottom:0;\n";
@@ -89,9 +96,20 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
-	responseStream << "\t<p>Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p>Alpha 0.4.1</p>\n";
-	responseStream << "</div>";
+	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.2</p>\n";
+	responseStream << "</div>\n";
+	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
+	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
+	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
+	responseStream << "\t\t  <li><a href=\"";
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
+	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
+	responseStream << "\t\t</ul>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "</nav>-->";
 	// end include header.cpsp
 	responseStream << "\n";
 	responseStream << "\t<h1>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h1>\n";

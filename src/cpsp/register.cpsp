@@ -77,7 +77,7 @@
 				<input id="register-password2" type="password" name="register-password2"/>
 			</p>
 		</fieldset>
-		<input class="grd_bn_succeed" type="submit" name="submit" value="Anmelden">
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Anmelden">
 		
 	</form>
 	<% } %>

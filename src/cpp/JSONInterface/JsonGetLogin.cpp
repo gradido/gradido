@@ -63,6 +63,7 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 			result->set("state", "success");
 			result->set("clientIP", session->getClientIp().toString());
 			result->set("user", user->getJson());
+			result->set("Transaction.pending", session->getProcessingTransactionCount());
 			return result;
 		}
 		else {

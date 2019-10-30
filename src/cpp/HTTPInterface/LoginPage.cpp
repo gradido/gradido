@@ -14,8 +14,10 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "../model/Profiler.h"
-#include "../ServerConfig.h"	
 	
+#line 1 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+ 
+#include "../ServerConfig.h"	
 
 
 void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
@@ -26,7 +28,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 17 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 16 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
  
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
@@ -88,17 +90,21 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
 	// begin include header.cpsp
+	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 9 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
-	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://gradido2.dario-rekowski.de/css/styles.css\">\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
 	responseStream << ".grd_container\n";
 	responseStream << "{\n";
@@ -126,7 +132,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\tposition: fixed;\n";
 	responseStream << "\tcolor:grey;\n";
 	responseStream << "\tfont-size: smaller;\n";
-	responseStream << "\tleft:0;\n";
+	responseStream << "\tleft:8px;\n";
 	responseStream << "}\n";
 	responseStream << ".grd-time-used {  \n";
 	responseStream << "  bottom:0;\n";
@@ -139,16 +145,27 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
-	responseStream << "\t<p>Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p>Alpha 0.4.1</p>\n";
-	responseStream << "</div>";
+	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.2</p>\n";
+	responseStream << "</div>\n";
+	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
+	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
+	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
+	responseStream << "\t\t  <li><a href=\"";
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
+	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
+	responseStream << "\t\t</ul>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "</nav>-->";
 	// end include header.cpsp
 	responseStream << "\n";
 	responseStream << "<form method=\"POST\">\n";
 	responseStream << "\t<div class=\"grd_container\">\n";
 	responseStream << "\t\t<h1>Login</h1>\n";
 	responseStream << "\t\t";
-#line 77 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
+#line 76 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\login.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -164,7 +181,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t\n";
 	responseStream << "\t\t</fieldset>\n";
-	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" name=\"submit\" value=\"Einloggen\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" name=\"submit\" value=\"Einloggen\">\n";
 	responseStream << "\t\t<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>\n";
 	responseStream << "\t\t<a href=\"https://gradido.com\">Neuen Account anlegen</a>\n";
 	responseStream << "\t</div>\n";

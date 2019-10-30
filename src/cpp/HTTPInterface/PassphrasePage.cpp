@@ -10,13 +10,15 @@
 #include "../model/Profiler.h"
 #include "../SingletonManager/SessionManager.h"
 //#include "Poco/Net/HTTPServerParams.h"
-#include "../ServerConfig.h"
 
 enum PageState 
 {
 	PAGE_ASK_PASSPHRASE,
 	PAGE_SHOW_PASSPHRASE
 };
+#line 1 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+ 
+#include "../ServerConfig.h"	
 
 
 PassphrasePage::PassphrasePage(Session* arg):
@@ -33,7 +35,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 19 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 18 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 
 	const char* pageName = "Passphrase";
 	PageState state = PAGE_ASK_PASSPHRASE;
@@ -76,17 +78,21 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
 	// begin include header.cpsp
+	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 9 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
-	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://gradido2.dario-rekowski.de/css/styles.css\">\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
 	responseStream << ".grd_container\n";
 	responseStream << "{\n";
@@ -114,7 +120,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\tposition: fixed;\n";
 	responseStream << "\tcolor:grey;\n";
 	responseStream << "\tfont-size: smaller;\n";
-	responseStream << "\tleft:0;\n";
+	responseStream << "\tleft:8px;\n";
 	responseStream << "}\n";
 	responseStream << ".grd-time-used {  \n";
 	responseStream << "  bottom:0;\n";
@@ -127,19 +133,30 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
-	responseStream << "\t<p>Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p>Alpha 0.4.1</p>\n";
-	responseStream << "</div>";
+	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.2</p>\n";
+	responseStream << "</div>\n";
+	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
+	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
+	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
+	responseStream << "\t\t  <li><a href=\"";
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
+	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
+	responseStream << "\t\t</ul>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "</nav>-->";
 	// end include header.cpsp
 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
 	responseStream << "\t";
-#line 59 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 60 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 59 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  if(state == PAGE_SHOW_PASSPHRASE) {	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text-max-width\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
@@ -147,18 +164,18 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t<div class=\"grd_textarea\">\n";
 	responseStream << "\t\t\t\t";
-#line 66 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 65 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( mSession->getPassphrase() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t\t<a href=\"saveKeys\">Weiter</a>\n";
+	responseStream << "\t\t\t<a href=\"saveKeys\" class=\"grd-form-bn-succeed\">Weiter</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 70 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 69 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } else if(state == PAGE_ASK_PASSPHRASE) { 	responseStream << "\n";
 	responseStream << "\t<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>\n";
 	responseStream << "\t<form method=\"POST\" action=\"";
-#line 72 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 71 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/passphrase\">\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -173,21 +190,21 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<label class=\"grd_radio_label\" for=\"passphrase-new-no\">Ja, bitte wiederherstellen!</label>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<textarea style=\"width:100%;height:100px\" name=\"passphrase-existing\">";
-#line 84 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 83 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( !form.empty() ? form.get("passphrase-existing", "") : "" );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t</fieldset>\n";
-	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" name=\"submit\" value=\"Weiter\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" name=\"submit\" value=\"Weiter\">\n";
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 89 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 88 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\tUngültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. \n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 93 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
+#line 92 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

@@ -11,7 +11,6 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "../model/Profiler.h"
-#include "../ServerConfig.h"	
 	
 %>
 <%% 
@@ -88,7 +87,7 @@
 			</p>
 			
 		</fieldset>
-		<input class="grd_bn_succeed" type="submit" name="submit" value="Einloggen">
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Einloggen">
 		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
 		<a href="https://gradido.com">Neuen Account anlegen</a>
 	</div>

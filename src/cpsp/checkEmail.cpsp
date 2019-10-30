@@ -45,7 +45,7 @@ enum PageState
 			<p>Er wurde an deine E-Mail Adresse: <%= mSession->getUser()->getEmail() %> gesendet.</p>
 		<% } %>
 		<input type="number" name="email-verification-code">
-		<input class="grd_bn_succeed" type="submit" value="Überprüfe Code">
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" value="Überprüfe Code">
 		<p>Du hast bisher keinen Code erhalten? </p>
 		<p>E-Mail erneut zuschicken (in Arbeit)</p>
 	</form>

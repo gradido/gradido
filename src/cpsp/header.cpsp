@@ -1,3 +1,6 @@
+<%! 
+#include "../ServerConfig.h"	
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gradido Login Server: <%= pageName %></title>
 <!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
-<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>/css/styles.css">
 <style type="text/css" >
 .grd_container
 {
@@ -33,7 +36,7 @@ label:not(.grd_radio_label) {
 	position: fixed;
 	color:grey;
 	font-size: smaller;
-	left:0;
+	left:8px;
 }
 .grd-time-used {  
   bottom:0;
@@ -46,6 +49,14 @@ label:not(.grd_radio_label) {
 </head>
 <body>
 <div class="versionstring dev-info">
-	<p>Login Server in Entwicklung</p>
-	<p>Alpha 0.4.1</p>
+	<p class="grd_small">Login Server in Entwicklung</p>
+	<p class="grd_small">Alpha 0.4.2</p>
 </div>
+<!--<nav class="grd-left-bar expanded" data-topbar role="navigation">
+	<div class="grd-left-bar-section">
+		<ul class="grd-no-style">
+		  <li><a href="<%= ServerConfig::g_php_serverPath %>" class="grd-nav-bn">Startseite</a>
+		  <li><a href="./account/logout" class="grd-nav-bn">Logout</a></li>
+		</ul>
+	</div>
+</nav>-->

@@ -29,6 +29,8 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				return result;
 			}
 			if (!session->startProcessingTransaction(transactionIT->second)) {
+				auto lastError = session->getLastError();
+				if (lastError) delete lastError;
 				result->set("state", "error");
 				result->set("msg", "already enlisted");
 				return result;

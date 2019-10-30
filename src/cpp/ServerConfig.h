@@ -1,3 +1,6 @@
+#ifndef __GRADIDO_LOGIN_SERVER_SERVER_CONFIG__
+#define __GRADIDO_LOGIN_SERVER_SERVER_CONFIG__
+
 #include "Crypto/mnemonic.h"
 #include "Crypto/Obfus_array.h"
 #include "Poco/Util/LayeredConfiguration.h"
@@ -46,3 +49,5 @@ namespace ServerConfig {
 
 	void unload();
 };
+
+#endif //__GRADIDO_LOGIN_SERVER_SERVER_CONFIG__

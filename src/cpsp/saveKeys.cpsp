@@ -7,7 +7,6 @@
 <%!
 #include "Poco/Net/HTTPServerParams.h"
 #include "../model/Profiler.h"
-#include "../ServerConfig.h"
 
 enum PageState 
 {
@@ -23,7 +22,7 @@ enum PageState
 	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
-	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
+	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
 	
 	// skip asking user if he like to save keys and passphrase on server
 	state = PAGE_SHOW_PUBKEY;
@@ -115,7 +114,7 @@ enum PageState
 				<label class="grd_radio_label" for="save-passphrase-no">Nein, ich vertraue nur mir selbst!</label>
 			</p>
 		</fieldset>
-		<input class="grd_bn_succeed" type="submit" value="Speichern">
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" value="Speichern">
 	</form>
 	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
 		<div class="grd_text">
@@ -125,7 +124,7 @@ enum PageState
 			<p class="grd_textarea">
 				<%= mSession->getUser()->getPublicKeyHex() %>
 			</p>-->
-			<a class="grd_bn" href="<%= uri_start %>/">Zur&uuml;ck zur Startseite</a>
+			<a class="grd-form-bn" href="<%= uri_start %>/">Zur&uuml;ck zur Startseite</a>
 		</div>
 	<% } else if(state == PAGE_ERROR) { %>
 		<div class="grd_text">
