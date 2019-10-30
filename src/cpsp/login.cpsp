@@ -15,7 +15,7 @@
 	
 %>
 <%% 
-	
+	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
 	
 	if(!form.empty()) {
@@ -70,33 +70,7 @@
 		sm->deleteLoginCookies(request, response);
 	}	
 	
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradido Login Server: Login</title>
-<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
-<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
-<style type="text/css" >
-.grd_container
-{
-  max-width:820px;
-  margin-left:auto;
-  margin-right:auto;
-}
-
-input:not([type='radio']) {
-	width:200px;
-}
-label:not(.grd_radio_label) {
-	width:80px;
-	display:inline-block;
-}
-</style>
-</head>
-<body>
+%><%@ include file="header.cpsp" %>
 <form method="POST">
 	<div class="grd_container">
 		<h1>Login</h1>
@@ -116,11 +90,8 @@ label:not(.grd_radio_label) {
 		</fieldset>
 		<input class="grd_bn_succeed" type="submit" name="submit" value="Einloggen">
 		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
-		<a href="register">Neuen Account anlegen</a>
+		<a href="https://gradido.com">Neuen Account anlegen</a>
 	</div>
-	<div class="grd-time-used">
-		<%= mTimeProfiler.string() %>
-	</div>
+	
 </form>
-</body>
-</html>
+<%@ include file="footer.cpsp" %>

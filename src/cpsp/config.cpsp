@@ -2,18 +2,8 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%! 
-	
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradido Login Server: Config</title>
-<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
-<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
-</head>
-<body>
+	const char* pageName = "Config";
+%><%@ include file="header.cpsp" %>
 <h1>Config</h1>
 <form method="POST">
 	<div class="grd_container">

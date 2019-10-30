@@ -1,0 +1,5 @@
+	<div class="grd-time-used dev-info">
+			<%= mTimeProfiler.string() %>
+	</div>
+</body>
+</html>

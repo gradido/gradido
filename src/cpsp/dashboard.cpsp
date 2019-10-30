@@ -10,24 +10,14 @@
 #include "../ServerConfig.h"
 %>
 <% 
-	
+	const char* pageName = "Dashboard";
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
 	if(!form.empty()) {
 		//form.get("email-verification-code")
 	}
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradido Login Server: Dashboard</title>
-<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
-<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
-</head>
-<body>
+%><%@ include file="header.cpsp" %>
 <div class="grd_container">
 	<h1>Willkommen <%= mSession->getUser()->getFirstName() %>&nbsp;<%= mSession->getUser()->getLastName() %></h1>
 	<%= mSession->getErrorsHtml() %>
@@ -49,8 +39,4 @@
 	<a class="grd_bn" href="<%= uri_start %>/logout">Abmelden</a>
 	<a class="grd_bn" href="<%= uri_start %>/user_delete">Account l&ouml;schen</a>
 </div>
-<div class="grd-time-used">
-	<%= mTimeProfiler.string() %>
-</div>
-</body>
-</html>
+<%@ include file="footer.cpsp" %>

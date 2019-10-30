@@ -199,7 +199,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	std::stringstream ss;
 	ss << "Hallo " << first_name << " " << last_name << "," << std::endl << std::endl;
 	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
-	ss << "Wenn du es warst, klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << mEmailVerificationCode << std::endl;
+	ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << mEmailVerificationCode << std::endl;
 	//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
 	ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
 	ss << std::endl;

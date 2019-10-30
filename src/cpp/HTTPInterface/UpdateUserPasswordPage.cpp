@@ -28,6 +28,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	Poco::Net::HTMLForm form(request, request.stream());
 #line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 
+	const char* pageName = "Passwort bestimmen";
 	auto user = mSession->getUser();
 	auto sm = SessionManager::getInstance();
 	auto uri_start = ServerConfig::g_serverPath;
@@ -61,12 +62,16 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
+	// begin include header.cpsp
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
-	responseStream << "<title>Gradido Login Server: Passwort bestimmen</title>\n";
+	responseStream << "<title>Gradido Login Server: ";
+#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+	responseStream << ( pageName );
+	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://gradido2.dario-rekowski.de/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -92,20 +97,32 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "  max-width:550px;\n";
 	responseStream << "  margin-bottom: 5px;\n";
 	responseStream << "}\n";
-	responseStream << ".grd-time-used {\n";
-	responseStream << "  position: fixed;\n";
+	responseStream << ".dev-info {\n";
+	responseStream << "\tposition: fixed;\n";
+	responseStream << "\tcolor:grey;\n";
+	responseStream << "\tfont-size: smaller;\n";
+	responseStream << "\tleft:0;\n";
+	responseStream << "}\n";
+	responseStream << ".grd-time-used {  \n";
 	responseStream << "  bottom:0;\n";
-	responseStream << "  left:0;\n";
-	responseStream << "  color:grey;\n";
-	responseStream << "  font-size: smaller;\n";
 	responseStream << "} \n";
+	responseStream << "\n";
+	responseStream << ".versionstring {\n";
+	responseStream << "\ttop:0;\n";
+	responseStream << "}\n";
 	responseStream << "</style>\n";
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
+	responseStream << "<div class=\"versionstring dev-info\">\n";
+	responseStream << "\t<p>Login Server in Entwicklung</p>\n";
+	responseStream << "\t<p>Alpha 0.4.1</p>\n";
+	responseStream << "</div>";
+	// end include header.cpsp
+	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
 	responseStream << "\t";
-#line 85 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 45 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";
@@ -126,13 +143,16 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t<input class=\"grd_bn_succeed\" type=\"submit\" name=\"submit\" value=\"&Auml;nderung(en) speichern\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "</div>\n";
-	responseStream << "<div class=\"grd-time-used\">\n";
-	responseStream << "\t";
-#line 105 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\UpdateUserPassword.cpsp"
+	// begin include footer.cpsp
+	responseStream << "\t<div class=\"grd-time-used dev-info\">\n";
+	responseStream << "\t\t\t";
+#line 2 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\footer.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
-	responseStream << "</div>\n";
+	responseStream << "\t</div>\n";
 	responseStream << "</body>\n";
-	responseStream << "</html>\n";
+	responseStream << "</html>";
+	// end include footer.cpsp
+	responseStream << "\n";
 	if (_compressResponse) _gzipStream.close();
 }

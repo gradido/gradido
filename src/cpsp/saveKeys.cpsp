@@ -18,12 +18,18 @@ enum PageState
 
 %>
 <%%
-	
+	const char* pageName = "Daten auf Server speichern?";
 	bool hasErrors = mSession->errorCount() > 0;
 	// crypto key only in memory, if user has tipped in his passwort in this session
 	bool hasPassword = mSession->getUser()->hasCryptoKey();
 	PageState state = PAGE_ASK;
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
+	
+	// skip asking user if he like to save keys and passphrase on server
+	state = PAGE_SHOW_PUBKEY;
+	if(!mSession->generateKeys(true, true)) {
+		getErrors(mSession);
+	}
 	
 	if(!form.empty()) {
 		// privkey
@@ -65,33 +71,7 @@ enum PageState
 			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
 	}
 	getErrors(mSession);
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradido Login Server: Daten auf Server speichern?</title>
-<!--<link rel="stylesheet" type="text/css" href="css/styles.min.css">-->
-<link rel="stylesheet" type="text/css" href="https://gradido2.dario-rekowski.de/css/styles.css">
-<style type="text/css" >
-.grd_container
-{
-  max-width:820px;
-  margin-left:auto;
-  margin-right:auto;
-}
-
-input:not([type='radio']) {
-	width:200px;
-}
-label:not(.grd_radio_label) {
-	width:80px;
-	display:inline-block;
-}
-</style>
-</head>
-<body>
+%><%@ include file="header.cpsp" %>
 <div class="grd_container">
 	<h1>Daten speichern</h1>
 	<%= getErrorsHtml() %>
@@ -139,11 +119,12 @@ label:not(.grd_radio_label) {
 	</form>
 	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
 		<div class="grd_text">
-			<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>
-			<p>Deine Gradido Adresse (Hex): </p>
+			<!--<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>-->
+			<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>
+			<!--<p>Deine Gradido Adresse (Hex): </p>
 			<p class="grd_textarea">
 				<%= mSession->getUser()->getPublicKeyHex() %>
-			</p>
+			</p>-->
 			<a class="grd_bn" href="<%= uri_start %>/">Zur&uuml;ck zur Startseite</a>
 		</div>
 	<% } else if(state == PAGE_ERROR) { %>
@@ -153,8 +134,4 @@ label:not(.grd_radio_label) {
 		</div>
 	<% } %>
 </div>
-<div class="grd-time-used">
-	<%= mTimeProfiler.string() %>
-</div>
-</body>
-</html>
+<%@ include file="footer.cpsp" %>
