@@ -106,7 +106,7 @@ class DashboardController extends AppController
                   //echo $json['user']['email_checked'];
                   //var_dump($json);
                   //
-                  //return $this->redirect(Router::url('/', true) . 'account/', 303);
+                  return $this->redirect(Router::url('/', true) . 'account/', 303);
                   }
                 }
               }
