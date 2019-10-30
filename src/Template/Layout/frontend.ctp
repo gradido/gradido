@@ -17,7 +17,7 @@ use Cake\Routing\Router;
 $cakeDescription = 'Gradido';
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
-
+//echo "transactions pending: " . $transactionPendings;
 ?>
 <!DOCTYPE html>
 <html>
