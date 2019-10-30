@@ -13,7 +13,7 @@ use Google\Protobuf\Internal\GPBUtil;
  *
  * Generated from protobuf message <code>model.messages.gradido.Timestamp</code>
  */
-final class Timestamp extends \Google\Protobuf\Internal\Message
+class Timestamp extends \Google\Protobuf\Internal\Message
 {
     /**
      * Number of complete seconds since the start of the epoch

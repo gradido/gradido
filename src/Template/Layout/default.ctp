@@ -52,7 +52,8 @@ $cakeDescription = 'Gradido';
     <div class="container clearfix">
         <?= $this->fetch('content') ?>
     </div>
-    <footer>
-    </footer>
+    <div class="grd-time-used dev-info">
+    <?=  round($timeUsed * 1000.0, 4) ?> ms
+    </div>
 </body>
 </html>

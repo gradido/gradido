@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.Key</code>
  */
-final class Key extends \Google\Protobuf\Internal\Message
+class Key extends \Google\Protobuf\Internal\Message
 {
     protected $key;
 

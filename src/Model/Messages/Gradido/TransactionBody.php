@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.TransactionBody</code>
  */
-final class TransactionBody extends \Google\Protobuf\Internal\Message
+class TransactionBody extends \Google\Protobuf\Internal\Message
 {
     /**
      * max 150 chars

@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.SignaturePair</code>
  */
-final class SignaturePair extends \Google\Protobuf\Internal\Message
+class SignaturePair extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>bytes pubKey = 1;</code>

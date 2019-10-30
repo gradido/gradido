@@ -13,7 +13,7 @@ use Google\Protobuf\Internal\GPBUtil;
  *
  * Generated from protobuf message <code>model.messages.gradido.StateCreateGroup</code>
  */
-final class StateCreateGroup extends \Google\Protobuf\Internal\Message
+class StateCreateGroup extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>string name = 1;</code>

@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.SignatureMap</code>
  */
-final class SignatureMap extends \Google\Protobuf\Internal\Message
+class SignatureMap extends \Google\Protobuf\Internal\Message
 {
     /**
      * Each signature pair corresponds to a unique Key required to sign the transaction.

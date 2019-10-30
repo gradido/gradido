@@ -45,43 +45,51 @@ class DashboardController extends AppController
         
         // login server cannot detect host ip
         //echo "client ip: $ip<br>";
-        //echo $session_id;
-        if($session_id != 0 && $session->read('session_id') != $session_id) {
-          
-          $http = new Client();
-          try {
-            $loginServer = Configure::read('LoginServer');
-            $url = $loginServer['host'] . ':' . $loginServer['port'];
-            //$url = 'http://***REMOVED***';
-            $response = $http->get($url . '/login', ['session_id' => $session_id]);
-            $json = $response->getJson();
-            
-            if(isset($json) && count($json) > 0) {
-              
-              if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
-                //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
-                $session->destroy();
-                foreach($json['user'] as $key => $value) {
-                  if($key === 'state') { continue; }
-                  $session->write('StateUser.' . $key, $value );
-                }
-                $session->write('session_id', $session_id);
-                $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-                if($json['user']['public_hex'] != '') {
-                  $public_key_bin = hex2bin($json['user']['public_hex']);
-                  $stateUserQuery = $stateUserTable->find('all')->where(['public_key' => $public_key_bin]);
-                  if($stateUserQuery->count() == 1) {
-                    $stateUser = $stateUserQuery->first();
-                    $session->write('StateUser.id', $stateUser['id']);
-                    //echo $stateUser['id'];
-                  } else {
-                    $newStateUser = $stateUserTable->newEntity();
-                    $newStateUser->public_key = $public_key_bin;
-                    $newStateUser->first_name = $json['user']['first_name'];
-                    $newStateUser->last_name = $json['user']['last_name'];
-                    $stateUserTable->save($newStateUser);
-                    $session->write('StateUser.id', $newStateUser->id);
-                    //echo $newStateUser->id;
+        //echo $session_id; echo "<br>";
+        //echo $session->read('session_id');
+        if($session_id != 0) {
+          $userStored = $session->read('StateUser');
+          $transactionPendings = $session->read('Transactions.pending');
+          if($session->read('session_id') != $session_id || 
+             ( $userStored && !isset($userStored['id'])) ||
+              intval($transactionPendings) > 0) {
+            $http = new Client();
+            try {
+              $loginServer = Configure::read('LoginServer');
+              $url = $loginServer['host'] . ':' . $loginServer['port'];
+              //$url = 'http://***REMOVED***';
+              $response = $http->get($url . '/login', ['session_id' => $session_id]);
+              $json = $response->getJson();
+
+              if(isset($json) && count($json) > 0) {
+
+                if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
+                  //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
+                  $session->destroy();
+                  foreach($json['user'] as $key => $value) {
+                    if($key === 'state') { continue; }
+                    $session->write('StateUser.' . $key, $value );
+                  }
+                  $transactionPendings = $json['Transaction.pending'];
+                  $session->write('Transaction.pending', $transactionPendings);
+                  $session->write('session_id', $session_id);
+                  $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+                  if($json['user']['public_hex'] != '') {
+                    $public_key_bin = hex2bin($json['user']['public_hex']);
+                    $stateUserQuery = $stateUserTable->find('all')->where(['public_key' => $public_key_bin]);
+                    if($stateUserQuery->count() == 1) {
+                      $stateUser = $stateUserQuery->first();
+                      $session->write('StateUser.id', $stateUser['id']);
+                      //echo $stateUser['id'];
+                    } else {
+                      $newStateUser = $stateUserTable->newEntity();
+                      $newStateUser->public_key = $public_key_bin;
+                      $newStateUser->first_name = $json['user']['first_name'];
+                      $newStateUser->last_name = $json['user']['last_name'];
+                      $stateUserTable->save($newStateUser);
+                      $session->write('StateUser.id', $newStateUser->id);
+                      //echo $newStateUser->id;
+                    }
                   }
                 }
                 
@@ -89,7 +97,7 @@ class DashboardController extends AppController
                 // for debugging
                 
                 $this->set('user', $json['user']);
-                $this->set('json', $json);
+                //$this->set('json', $json);
                 $this->set('timeUsed', microtime(true) - $startTime);
                 
               } else {
@@ -98,19 +106,25 @@ class DashboardController extends AppController
                   //echo $json['user']['email_checked'];
                   //var_dump($json);
                   //
-                  return $this->redirect(Router::url('/', true) . 'account/', 303);
+                  //return $this->redirect(Router::url('/', true) . 'account/', 303);
                 }
               }
-            }
           
-          } catch(\Exception $e) {
-            $msg = $e->getMessage();
-            $this->Flash->error(__('error http request: ') . $msg);
-            
-            //continue;
+            } catch(\Exception $e) {
+              $msg = $e->getMessage();
+              $this->Flash->error(__('error http request: ') . $msg);
+
+              //continue;
+            }
+          } else {
+            // login already in session
+            $user = $session->read('StateUser');
+            $this->set('user', $user);
+            $this->set('timeUsed', microtime(true) - $startTime);
           }
           
         } else {
+          // no login
           return $this->redirect(Router::url('/', true) . 'account/', 303);
         }
     }

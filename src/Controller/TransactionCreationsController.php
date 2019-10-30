@@ -92,6 +92,8 @@ class TransactionCreationsController extends AppController
         
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
+          $mode = 'next';
+          if(isset($requestData['add'])) {$mode = 'add'; }
           if($creationForm->validate($requestData)) {
           
             $pubKeyHex = '';
@@ -139,14 +141,27 @@ class TransactionCreationsController extends AppController
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
-                    $this->Flash->error(__('session not found, please login again'));
+                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    //$this->Flash->error(__('session not found, please login again'));
                   } else {
                     $this->Flash->error(__('login server return error: ' . json_encode($json)));
                   }
                 } else {
-                  return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                  $pendingTransactionCount = $session->read('Transactions.pending');
+                  if($pendingTransactionCount == null) {
+                    $pendingTransactionCount = 1;
+                  } else {
+                    $pendingTransactionCount++;
+                  }
+                  $session->write('Transactions.pending', $pendingTransactionCount);
+                  //echo "pending: " . $pendingTransactionCount;
+                  if($mode === 'next') {
+                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                  } else {
+                    $this->Flash->success(__('Transaction submitted for review.'));
+                  }
                 }
-           
+                
               } catch(\Exception $e) {
                   $msg = $e->getMessage();
                   $this->Flash->error(__('error http request: ') . $msg);

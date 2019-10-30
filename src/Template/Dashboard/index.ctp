@@ -9,17 +9,20 @@
 if(isset($user)) {
   //var_dump($user);
 }
+$this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']);
 ?>
-<div class="grd_container">
-	<h1>Willkommen <?= $user['first_name'] ?>&nbsp;<?= $user['last_name'] ?></h1>
   <div class="grd_container_small">
     <fieldset>
-      <h3>Geld ...</h3>
-      <?= $this->Html->link(__('schöpfen'), ['controller' => 'TransactionCreations', 'action' => 'create'], ['class' => 'grd_bn grd_bg-bn']); ?>
-      <a class="grd_bn grd_bg-bn">überweisen</a>
+      <h3>Gradido ...</h3>
+      <?= $this->Html->link(
+              __('schöpfen'), 
+              ['controller' => 'TransactionCreations', 'action' => 'create'], 
+              ['class' => 'grd-nav-bn grd-nav-bn-large']
+          ); ?>
+      <a class="grd-nav-bn grd-nav-bn-large">überweisen</a>
+    </fieldset>
+    <fieldset class="grd-margin-top-10">
+      <h3>Account ...</h3>
+      <a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>
     </fieldset>
   </div>
-</div>
-<div class="grd-time-used">
-  <?=  round($timeUsed * 1000.0, 4) ?> ms
-</div>

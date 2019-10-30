@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.Transfer</code>
  */
-final class Transfer extends \Google\Protobuf\Internal\Message
+class Transfer extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>repeated .model.messages.gradido.SenderAmount senderAmounts = 1;</code>

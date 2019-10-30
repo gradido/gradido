@@ -12,7 +12,7 @@ class CreationForm extends Form
     protected function _buildSchema(Schema $schema)
     {
         return $schema
-            ->addField('receiver_pubkey_hex', ['type' => 'string'])
+            //->addField('receiver_pubkey_hex', ['type' => 'string'])
             ->addField('receiver', ['type' => 'select'])
             ->addField('amount', ['type' => 'decimal', 'precision' => 2])
             ->addField('memo', ['type' =>'string', 'default' => '']);
@@ -37,12 +37,12 @@ class CreationForm extends Form
         ])
         ->ascii('memo', __('Only Ascii Character allowed'))
         ->allowEmptyString('memo', null, 'create')
-        ->add('receiver_pubkey_hex', 'custom', [
+        /*->add('receiver_pubkey_hex', 'custom', [
             'rule' => 'hexKey64',
             'provider' => 'custom',
             'message' => 'a valid pubkey in hex format is required (64 character)'
         ])
-        ->allowEmptyString('receiver_pubkey_hex', null, 'create')
+        ->allowEmptyString('receiver_pubkey_hex', null, 'create')*/
         ->add('amount', 'custom', [
             'rule' => 'amount',
             'provider' => 'custom', 

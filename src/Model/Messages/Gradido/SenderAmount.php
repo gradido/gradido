@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.SenderAmount</code>
  */
-final class SenderAmount extends \Google\Protobuf\Internal\Message
+class SenderAmount extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>bytes ed25519_sender_pubkey = 1;</code>

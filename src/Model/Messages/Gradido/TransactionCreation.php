@@ -14,7 +14,7 @@ use Google\Protobuf\Internal\GPBUtil;
  *
  * Generated from protobuf message <code>model.messages.gradido.TransactionCreation</code>
  */
-final class TransactionCreation extends \Google\Protobuf\Internal\Message
+class TransactionCreation extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>.model.messages.gradido.ReceiverAmount receiverAmount = 1;</code>

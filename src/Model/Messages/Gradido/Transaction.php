@@ -11,7 +11,7 @@ use Google\Protobuf\Internal\GPBUtil;
 /**
  * Generated from protobuf message <code>model.messages.gradido.Transaction</code>
  */
-final class Transaction extends \Google\Protobuf\Internal\Message
+class Transaction extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>uint64 id = 1;</code>
