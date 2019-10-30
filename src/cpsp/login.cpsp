@@ -87,7 +87,7 @@
 			</p>
 			
 		</fieldset>
-		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Einloggen">
+		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Einloggen">
 		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
 		<a href="https://gradido.com">Neuen Account anlegen</a>
 	</div>

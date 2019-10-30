@@ -98,7 +98,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.2</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.3</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -139,7 +139,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << ( uri_start );
 	responseStream << "/checkEmail\">\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
-	responseStream << "\t\t<input class=\"grd-form-bn-succeed\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn-succeed grd_clickable\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
 #line 31 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"
@@ -147,7 +147,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
-	responseStream << "\t\t<input class=\"grd-form-bn-succeed\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn-succeed grd_clickable\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
 #line 37 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\dashboard.cpsp"

@@ -26,13 +26,13 @@
 	<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>
 	<form method="GET" action="<%= uri_start %>/checkEmail">
 		<input type="number" name="email-verification-code">
-		<input class="grd-form-bn-succeed" type="submit" value="&Uuml;berpr&uuml;fe Code">
+		<input class="grd-form-bn-succeed grd_clickable" type="submit" value="&Uuml;berpr&uuml;fe Code">
 	</form>
 	<% } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { %>
 	<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>
 	<form method="GET" action="checkEmail">
 		<input type="number" name="email-verification-code">
-		<input class="grd-form-bn-succeed" type="submit" value="&Uuml;berpr&uuml;fe Code">
+		<input class="grd-form-bn-succeed grd_clickable" type="submit" value="&Uuml;berpr&uuml;fe Code">
 	</form>
 	<% } %>
 	<a class="grd-form-bn" href="<%= uri_start %>/logout">Abmelden</a>
