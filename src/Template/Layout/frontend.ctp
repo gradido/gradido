@@ -26,7 +26,7 @@ $cakeDescription = 'Gradido';
     </title>
     <?= $this->Html->meta('icon') ?>
 
-    <?= $this->Html->css('base.css') ?>
+    <!--<?= $this->Html->css('base.css') ?>-->
     <?= $this->Html->css('styles.css') ?>
 
     <?= $this->fetch('meta') ?>
