@@ -91,7 +91,7 @@ class DashboardController extends AppController
                       //echo $newStateUser->id;
                     }
                   }
-                }
+                
                 
                 
                 // for debugging
@@ -100,13 +100,14 @@ class DashboardController extends AppController
                 //$this->set('json', $json);
                 $this->set('timeUsed', microtime(true) - $startTime);
                 
-              } else {
-                if($json['state'] === 'not found' ) {
-                  $this->Flash->error(__('invalid session'));
+                } else {
+                  if($json['state'] === 'not found' ) {
+                    $this->Flash->error(__('invalid session'));
                   //echo $json['user']['email_checked'];
                   //var_dump($json);
                   //
                   //return $this->redirect(Router::url('/', true) . 'account/', 303);
+                  }
                 }
               }
           
