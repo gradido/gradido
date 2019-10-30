@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package model.messages.gradido;
+
+import "BasicTypes.proto";
+
+message Transfer {
+	repeated SenderAmount senderAmounts = 1;
+	repeated ReceiverAmount receiverAmounts = 2; 
+}
