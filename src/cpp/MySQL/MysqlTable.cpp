@@ -2,6 +2,8 @@
 #include "Poco/Mutex.h"
 #include <time.h>
 
+#include "../ServerConfig.h"
+
 MysqlTable::MysqlTable(size_t fieldCount)
 	: mFieldCount(fieldCount), mHeader(nullptr)
 {
@@ -114,7 +116,7 @@ time_t MysqlTable::parseFromMysqlDateTime(const char* mysql_date_time)
 	
 	struct tm * parsedTime;
 	// used because localtime return an internal pointer, not thread safe
-	static Poco::Mutex timeMutex;
+	Poco::Mutex& timeMutex = ServerConfig::g_TimeMutex;
 
 	int year, month, day, hour, minute, second;
 	// ex: 2009-10-29 

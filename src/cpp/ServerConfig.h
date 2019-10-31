@@ -38,6 +38,7 @@ namespace ServerConfig {
 	extern int g_SessionTimeout;
 	extern std::string g_serverPath;
 	extern std::string g_php_serverPath;
+	extern Poco::Mutex g_TimeMutex;
 
 
 	bool loadMnemonicWordLists();

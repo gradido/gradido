@@ -39,6 +39,7 @@ namespace ServerConfig {
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;
 	std::string g_php_serverPath;
+	Poco::Mutex g_TimeMutex;
 
 	bool loadMnemonicWordLists()
 	{

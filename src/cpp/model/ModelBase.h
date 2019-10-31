@@ -25,6 +25,8 @@ public:
 	inline void setID(int id) { lock(); mID = id; unlock(); }
 	inline int getID() { lock(); int id = mID; unlock(); return id; }
 
+	static Poco::DateTime parseElopageDate(std::string dateString);
+
 	// for poco auto ptr
 	void duplicate();
 	void release();

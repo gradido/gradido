@@ -179,15 +179,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			auto str = uri.substr(pos + 1);
 			verificationCode = stoull(uri.substr(pos + 1));
 		} catch (const std::invalid_argument& ia) {
-			std::cerr << "Invalid argument: " << ia.what() << '\n';
+			std::cerr << __FUNCTION__ << "Invalid argument: " << ia.what() << '\n';
 		} catch (const std::out_of_range& oor) {
-			std::cerr << "Out of Range error: " << oor.what() << '\n';
+			std::cerr << __FUNCTION__ << "Out of Range error: " << oor.what() << '\n';
 		}
 		catch (const std::logic_error & ler) {
-			std::cerr << "Logical error: " << ler.what() << '\n';
+			std::cerr << __FUNCTION__ << "Logical error: " << ler.what() << '\n';
 		}
 		catch (...) {
-			std::cerr << "Unknown error" << '\n';
+			std::cerr << __FUNCTION__ << "Unknown error" << '\n';
 		}
 	}
 

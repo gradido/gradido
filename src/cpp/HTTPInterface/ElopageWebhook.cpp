@@ -16,6 +16,7 @@ using namespace Poco::Data::Keywords;
 #include "../tasks/SendEmailTask.h"
 
 #include "../model/EmailVerificationCode.h"
+#include "../model/ElopageBuy.h"
 
 
 
@@ -100,6 +101,8 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	if (event == "lesson.viewed") {
 		return;
 	}
+	
+	
 
 	// write stream result also to file
 	static Poco::Mutex mutex;
@@ -175,6 +178,7 @@ void HandleElopageRequestTask::writeUserIntoDB()
 	}
 }
 
+
 int HandleElopageRequestTask::getUserIdFromDB()
 {
 	auto cm = ConnectionManager::getInstance();
@@ -203,87 +207,118 @@ int HandleElopageRequestTask::run()
 		return 0;
 	}
 
-	mEmail = mRequestData.get("payer[email]", "");
-	mFirstName = mRequestData.get("payer[first_name]", "");
-	mLastName = mRequestData.get("payer[last_name]", "");
-	std::string order_id = mRequestData.get("order_id", "");
+	// elopage buy
+	Poco::AutoPtr<ElopageBuy> elopageBuy(new ElopageBuy(mRequestData));
+	if (elopageBuy->errorCount() > 0) {
+		getErrors(elopageBuy);
+	}
+	UniLib::controller::TaskPtr saveElopageBuy(new ModelInsertTask(elopageBuy));
+	saveElopageBuy->scheduleTask(saveElopageBuy);
 
+	// check product id
+	Poco::UInt64 product_id = 0;
+	try {
+		product_id = stoull(mRequestData.get("product[id]", "0"));
+	}
+	catch (const std::invalid_argument& ia) {
+		std::cerr << __FUNCTION__ << "Invalid argument: " << ia.what() << '\n';
+	}
+	catch (const std::out_of_range& oor) {
+		std::cerr << __FUNCTION__ << "Out of Range error: " << oor.what() << '\n';
+	}
+	catch (const std::logic_error & ler) {
+		std::cerr << __FUNCTION__ << "Logical error: " << ler.what() << '\n';
+	}
+	catch (...) {
+		std::cerr << __FUNCTION__ << "Unknown error" << '\n';
+	}
+	std::string order_id = mRequestData.get("order_id", "");
 	addError(new ParamError("HandleElopageRequestTask", "order_id", order_id.data()));
 
-	// validate input
-	if (!validateInput()) {
-		// if input is invalid we can stop now
-		sendErrorsAsEmail();
-		return -1;
+	// only for product 36001 and 43741 create user accounts and send emails
+	if (product_id == 36001 || product_id == 43741) {
+		mEmail = mRequestData.get("payer[email]", "");
+		mFirstName = mRequestData.get("payer[first_name]", "");
+		mLastName = mRequestData.get("payer[last_name]", "");
+
+		// validate input
+		if (!validateInput()) {
+			// if input is invalid we can stop now
+			sendErrorsAsEmail();
+			return -1;
+		}
+
+		// if user exist we can stop now
+		if (getUserIdFromDB()) {
+			sendErrorsAsEmail();
+			return -2;
+		}
+
+		// if user with this email didn't exist
+		// we can create a new user and send a email to him
+
+		// prepare email in advance
+		// create connection to email server
+		UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
+		prepareEmail->scheduleTask(prepareEmail);
+
+		// write user entry into db
+		writeUserIntoDB();
+
+		// get user id from db
+		int user_id = getUserIdFromDB();
+		// we didn't get a user_id, something went wrong
+		if (!user_id) {
+			addError(new Error("User loadEntryDBId", "user_id is zero"));
+			sendErrorsAsEmail();
+			return -3;
+		}
+
+		// email verification code
+		Poco::AutoPtr<EmailVerificationCode> emailVerification(new EmailVerificationCode(user_id));
+
+		// create email verification code
+		if (!emailVerification->getCode()) {
+			// exit if email verification code is empty
+			addError(new Error("Email verification", "code is empty, error in random?"));
+			sendErrorsAsEmail();
+			return -4;
+		}
+
+		// write email verification code into db
+		UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask(emailVerification));
+		saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
+
+		// send email to user
+		auto message = new Poco::Net::MailMessage;
+
+		message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
+		message->setSubject("Gradido: E-Mail Verification");
+		std::stringstream ss;
+		ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
+		ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
+		ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getCode() << std::endl;
+		//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
+		ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
+		ss << std::endl;
+		ss << "Mit freundlichen Grüße" << std::endl;
+		ss << "Dario, Gradido Server Admin" << std::endl;
+
+		message->addContent(new Poco::Net::StringPartSource(ss.str()));
+
+		UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
+		sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
+		sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
+		sendEmail->scheduleTask(sendEmail);
 	}
 
-	// if user exist we can stop now
-	if (getUserIdFromDB()) {
-		sendErrorsAsEmail();
-		return -2;
-	}
-
-	// if user with this email didn't exist
-	// we can create a new user and send a email to him
 	
-	// prepare email in advance
-	// create connection to email server
-	UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
-	prepareEmail->scheduleTask(prepareEmail);
 
-	// write user entry into db
-	writeUserIntoDB();
 	
-	// get user id from db
-	int user_id = getUserIdFromDB();
-	// we didn't get a user_id, something went wrong
-	if (!user_id) {
-		addError(new Error("User loadEntryDBId", "user_id is zero"));
-		sendErrorsAsEmail();
-		return -3;
-	}
-
-	Poco::AutoPtr<EmailVerificationCode> emailVerification(new EmailVerificationCode(user_id));
-
-	// create email verification code
-	if (!emailVerification->getCode()) {
-		// exit if email verification code is empty
-		addError(new Error("Email verification", "code is empty, error in random?"));
-		sendErrorsAsEmail();
-		return -4;
-	}
-
-	// write email verification code into db
-	UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask(emailVerification));
-	saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
-
-	// send email to user
-	auto message = new Poco::Net::MailMessage;
-
-	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
-	message->setSubject("Gradido: E-Mail Verification");
-	std::stringstream ss;
-	ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
-	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Elopage für Gradido angemeldet. " << std::endl;
-	ss << "Um dein Gradido Konto anzulegen und deine E-Mail zu bestätigen," << std::endl;
-	ss << "klicke bitte auf den Link: https://gradido2.dario-rekowski.de/account/checkEmail/" << emailVerification->getCode() << std::endl;
-	ss << "oder kopiere den Code: " << emailVerification->getCode() << " selbst dort hinein." << std::endl << std::endl;
-	ss << "Mit freundlichen Grüße" << std::endl;
-	ss << "Dario, Gradido Server Admin" << std::endl;
-
-
-	message->addContent(new Poco::Net::StringPartSource(ss.str()));
-
-	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-	sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-	sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
-	sendEmail->scheduleTask(sendEmail);
-
 	// if errors occured, send via email
-	//if (errorCount() > 1) {
+	if (errorCount() > 1) {
 		sendErrorsAsEmail();
-	//}
-	
+	}
 	
 	return 0;
 }
