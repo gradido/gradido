@@ -8,10 +8,12 @@
 #include <sodium.h>
 
 class UserWriteKeysIntoDB;
+class UserGenerateKeys;
 // TODO: https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519
 class KeyPair 
 {
 	friend UserWriteKeysIntoDB;
+	friend UserGenerateKeys;
 public:
 	KeyPair();
 	~KeyPair();

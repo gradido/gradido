@@ -312,10 +312,7 @@ int HandleElopageRequestTask::run()
 		sendEmail->scheduleTask(sendEmail);
 	}
 
-	
-
-	
-	// if errors occured, send via email
+		// if errors occured, send via email
 	if (errorCount() > 1) {
 		sendErrorsAsEmail();
 	}

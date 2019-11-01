@@ -17,6 +17,7 @@ class UserWriteIntoDB;
 class Session;
 class UserWriteCryptoKeyHashIntoDB;
 class SigningTransaction;
+class UserGenerateKeys;
 
 enum UserStates
 {
@@ -45,6 +46,7 @@ class User : public ErrorList
 	friend UserWriteIntoDB;
 	friend UserWriteCryptoKeyHashIntoDB;
 	friend SigningTransaction;
+	friend UserGenerateKeys;
 public:
 	// new user
 	User(const char* email, const char* first_name, const char* last_name);
@@ -88,8 +90,9 @@ public:
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	bool validateIdentHash(HASH hash);
 	
-	Poco::Data::BLOB* encrypt(const ObfusArray* data);
+	ObfusArray* encrypt(const ObfusArray* data);
 	ObfusArray* decrypt(const ObfusArray* encryptedData);
+	ObfusArray* sign(const unsigned char* message, size_t messageSize);
 
 	Poco::JSON::Object getJson();
 
@@ -116,6 +119,7 @@ protected:
 	inline void unlock() { mWorkingMutex.unlock(); }
 
 	ObfusArray* getPrivKey();
+	bool setPrivKey(const ObfusArray* privKey);
 
 private:
 	UserStates mState;

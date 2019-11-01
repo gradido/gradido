@@ -152,7 +152,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.3</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.4</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -237,7 +237,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t<a class=\"grd-form-bn\" href=\"";
 #line 127 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( uri_start );
-	responseStream << "/\">Zur&uuml;ck zur Startseite</a>\n";
+	responseStream << "\">Zur&uuml;ck zur Startseite</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
 #line 129 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\saveKeys.cpsp"

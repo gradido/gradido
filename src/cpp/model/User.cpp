@@ -49,6 +49,9 @@ int UserGenerateKeys::run()
 	mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 
 	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
+	if (mUser->hasCryptoKey()) {
+		mUser->setPrivKey(mKeys.getPrivateKey());
+	}
 
 	//printf("[UserGenerateKeys::run] time: %s\n", timeUsed.string().data());
 
@@ -112,7 +115,10 @@ int UserWriteKeysIntoDB::run()
 		// TODO: encrypt privkey
 		auto privKey = keyPairs->getPrivateKey();
 		//printf("[UserWriteKeysIntoDB] privKey hex: %s\n", KeyPair::getHex(*privKey, privKey->size()).data());
-		pprivkey_blob = mUser->encrypt(privKey);
+		auto encryptedPrivKey = mUser->encrypt(privKey);
+		//pprivkey_blob = mUser->encrypt(privKey);
+		
+		pprivkey_blob = new Poco::Data::BLOB(*encryptedPrivKey, encryptedPrivKey->size());
 		//printf("[UserWriteKeysIntoDB] privkey encrypted\n");
 		//Poco::Data::BLOB privkey_blob(*privKey, privKey->size());
 
@@ -142,10 +148,12 @@ int UserWriteKeysIntoDB::run()
 		}
 		return -1;
 	}
+		
 	//printf("[UserWriteKeysIntoDB] after saving into db\n");
 	if (pprivkey_blob) {
 		delete pprivkey_blob;
 	}
+	
 	//printf("UserWritePrivKeyIntoDB time: %s\n", timeUsed.string().data());
 	return 0;
 }
@@ -663,7 +671,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 
 }
 
-Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
+ObfusArray* User::encrypt(const ObfusArray* data)
 {
 	if (!hasCryptoKey()) {
 		addError(new Error("User::encrypt", "hasn't crypto key"));
@@ -678,19 +686,22 @@ Poco::Data::BLOB* User::encrypt(const ObfusArray* data)
 
 	unsigned char* ciphertext = (unsigned char*)malloc(ciphertext_len);
 	memset(ciphertext, 0, ciphertext_len);
-
+	lock();
 	if (0 != crypto_secretbox_easy(ciphertext, *data, message_len, nonce, *mCryptoKey)) {
 		//printf("[%s] error encrypting message \n", __FUNCTION__);
 		addError(new Error("User::encrypt", "encrypting message failed"));
 		free(ciphertext);
+		unlock();
 		return nullptr;
 	}
+	unlock();
 
-	//printf("[User::encrypt] encrypted: %s\n", KeyPair::getHex(ciphertext, ciphertext_len).data());
-	auto result_blob = new Poco::Data::BLOB(ciphertext, ciphertext_len);
+	//printf("[User::encrypt] encrypted: %s, ciphertext len: %u\n", KeyPair::getHex(ciphertext, ciphertext_len).data(), ciphertext_len);
+	
+	auto resultObfus = new ObfusArray(ciphertext_len, ciphertext);
 	free(ciphertext);
 	
-	return result_blob;
+	return resultObfus;
 }
 
 ObfusArray* User::decrypt(const ObfusArray* encryptedData)
@@ -699,7 +710,7 @@ ObfusArray* User::decrypt(const ObfusArray* encryptedData)
 		addError(new Error("User::decrypt", "hasn't crypto key"));
 		return nullptr;
 	}
-
+	//printf("[User::decrypt] decrypt: %s, ciphertext len: %u\n", KeyPair::getHex(*encryptedData, encryptedData->size()).data(), encryptedData->size());
 	//ObfusArray* decrypetData = new ObfusArray(encryptedData->size() - crypto_secretbox_MACBYTES);
 	
 	size_t decryptSize = encryptedData->size() - crypto_secretbox_MACBYTES;
@@ -720,6 +731,33 @@ ObfusArray* User::decrypt(const ObfusArray* encryptedData)
 	ObfusArray* decryptedData = new ObfusArray(decryptSize, decryptBuffer);
 	free(decryptBuffer);
 	return decryptedData;	
+}
+
+ObfusArray* User::sign(const unsigned char* message, size_t messageSize)
+{
+	/*
+	if (!message || !messageSize) return nullptr;
+	if (!hasCryptoKey()) {
+		addError(new Error("User::sign", "hasn't crypto key"));
+		return nullptr;
+	}
+
+	//binArrayObj = new BinaryArray(crypto_sign_BYTES);
+	unsigned char* signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
+
+	crypto_sign_detached(signBinBuffer, NULL, message, messageSize, key->sodium_secret);
+
+	if (crypto_sign_verify_detached(binArrayObj->bytes, binArray, binArraySize, key->sodium_public) != 0) {
+		// Incorrect signature! 
+		printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
+	}
+
+	size_t hex_sig_size = crypto_sign_BYTES * 2;
+	char sig_hex[crypto_sign_BYTES * 2 + 1];
+	sodium_bin2hex(sig_hex, hex_sig_size + 1, binArrayObj->bytes, crypto_sign_BYTES);
+	printf("c[KeyBuffer::%s] signature hex: %s\n", __FUNCTION__, sig_hex);
+	*/
+	return  nullptr;
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
@@ -812,7 +850,7 @@ const char* User::userStateToString(UserStates state)
 
 ObfusArray* User::getPrivKey()
 {
-	if (mState != USER_COMPLETE) {
+	if (!mPrivateKey) {
 		addError(new Error("User::getPrivKey", "no private key saved"));
 		return nullptr;
 	}
@@ -821,4 +859,21 @@ ObfusArray* User::getPrivKey()
 		return nullptr;
 	}
 	return decrypt(mPrivateKey);
+}
+
+bool User::setPrivKey(const ObfusArray* privKey)
+{
+	if (!hasCryptoKey()) {
+		lock();
+		addError(new Error("User::getPrivKey", "no crypto key set for encrypting priv key"));
+		unlock();
+		return false;
+	}
+	auto encyrptedPrivKey = encrypt(privKey);
+	lock();
+	mState = USER_COMPLETE;
+	mPrivateKey = encrypt(privKey);
+	unlock();
+
+	return true;
 }

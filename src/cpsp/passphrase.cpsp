@@ -64,7 +64,8 @@ enum PageState
 			<div class="grd_textarea">
 				<%= mSession->getPassphrase() %>
 			</div>
-			<a href="saveKeys" class="grd-form-bn-succeed">Weiter</a>
+			<div class="grd-margin-top-10"></div>
+			<a href="saveKeys" class="grd-form-bn grd-form-bn-succeed grd_clickable">Weiter</a>
 		</div>
 	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>
@@ -82,7 +83,8 @@ enum PageState
 			</p>
 			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
 		</fieldset>
-		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Weiter">
+		
+		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Weiter">
 		
 	</form>
 	<% } else { %>

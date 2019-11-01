@@ -17,10 +17,12 @@ int SigningTransaction::run() {
 	auto em = ErrorManager::getInstance();
 
 
-	Error* transactionError = new Error("SigningTransaction start", mProcessingeTransaction->mTransactionBody.SerializeAsString().data());
+	Error* transactionError = new Error("SigningTransaction start", mProcessingeTransaction->mProtoMessageBase64.data());
+
 	
 	//= new Error("SigningTransaction start", mProcessingeTransaction->g)
 	if (mUser.isNull() || !mUser->hasCryptoKey()) {
+		em->addError(transactionError);
 		em->addError(new Error("SigningTransaction", "user hasn't crypto key or is null"));
 		em->sendErrorsAsEmail();
 		return -1;
@@ -28,12 +30,15 @@ int SigningTransaction::run() {
 
 	auto privKey = mUser->getPrivKey();
 	if (!privKey) {
+		em->addError(transactionError);
 		em->getErrors(mUser);
 		em->addError(new Error("SigningTransaction", "couldn't get user priv key"));
 		em->sendErrorsAsEmail();
 		return -2;
 	}
 
+
+	delete transactionError;
 	delete privKey;
 
 	return 0;

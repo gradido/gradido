@@ -124,7 +124,7 @@ enum PageState
 			<p class="grd_textarea">
 				<%= mSession->getUser()->getPublicKeyHex() %>
 			</p>-->
-			<a class="grd-form-bn" href="<%= uri_start %>/">Zur&uuml;ck zur Startseite</a>
+			<a class="grd-form-bn" href="<%= uri_start %>">Zur&uuml;ck zur Startseite</a>
 		</div>
 	<% } else if(state == PAGE_ERROR) { %>
 		<div class="grd_text">

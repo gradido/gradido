@@ -50,6 +50,7 @@ public:
 	static HASH calculateHash(const std::string& proto_message_base64);
 	inline HASH getHash() { mHashMutex.lock(); HASH hs = mHash; mHashMutex.unlock(); return hs; }
 
+
 protected:
 	TransactionType mType;
 	std::string mProtoMessageBase64;

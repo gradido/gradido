@@ -110,7 +110,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.3</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.4</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -155,7 +155,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 #line 46 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
-	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" value=\"Überprüfe Code\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed grd_clickable\" type=\"submit\" value=\"Überprüfe Code\">\n";
 	responseStream << "\t\t<p>Du hast bisher keinen Code erhalten? </p>\n";
 	responseStream << "\t\t<p>E-Mail erneut zuschicken (in Arbeit)</p>\n";
 	responseStream << "\t</form>\n";

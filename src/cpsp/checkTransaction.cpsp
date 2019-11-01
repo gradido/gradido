@@ -45,7 +45,8 @@ enum PageState {
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
-		response.redirect(ServerConfig::g_php_serverPath + "/");
+		response.redirect(ServerConfig::g_php_serverPath);
+		return;
 	}
 	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
 	if(sumTransactions > 0) {

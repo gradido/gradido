@@ -134,7 +134,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.3</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.4.4</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -168,7 +168,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << ( mSession->getPassphrase() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t\t<a href=\"saveKeys\" class=\"grd-form-bn-succeed\">Weiter</a>\n";
+	responseStream << "\t\t\t<a href=\"saveKeys\" class=\"grd-margin-top-10 grd-form-bn grd-form-bn-succeed\">Weiter</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
 #line 69 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\passphrase.cpsp"
@@ -194,7 +194,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << ( !form.empty() ? form.get("passphrase-existing", "") : "" );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t</fieldset>\n";
-	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" name=\"submit\" value=\"Weiter\">\n";
+	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed grd-margin-top-10\" type=\"submit\" name=\"submit\" value=\"Weiter\">\n";
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
