@@ -19,7 +19,7 @@
 
 #include "../SingletonManager/SessionManager.h"
 
-#include "../model/Profiler.h"
+#include "../lib/Profiler.h"
 
 #include "../ServerConfig.h"
 #include "../Crypto/DRRandom.h"

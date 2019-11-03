@@ -6,7 +6,6 @@
 <%@	page compressed="true" %>
 <%!
 #include "Poco/Net/HTTPServerParams.h"
-#include "../model/Profiler.h"
 
 enum PageState 
 {

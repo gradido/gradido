@@ -10,7 +10,6 @@
 #include "Poco/Logger.h"
 
 #include "../SingletonManager/SessionManager.h"
-#include "../model/Profiler.h"
 	
 %>
 <%% 

@@ -4,7 +4,7 @@
 
 #include "PageRequestMessagedHandler.h"
 #include "../tasks/CPUTask.h"
-#include "../model/ErrorList.h"
+#include "../lib/ErrorList.h"
 
 #include "Poco/Net/NameValueCollection.h"
 

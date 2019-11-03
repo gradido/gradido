@@ -5,7 +5,7 @@
 #include "Poco/RegularExpression.h"
 #include "Poco/Logger.h"
 #include "../model/Session.h"
-#include "../model/Profiler.h"
+#include "../lib/Profiler.h"
 
 #define HTTP_PAGES_COUNT 1
 

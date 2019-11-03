@@ -768,7 +768,7 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	auto mm = MemoryManager::getInstance();
 	//auto signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
 	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
-	auto privKey = decrypt(mPrivateKey);
+	auto privKey = getPrivKey();
 
 	crypto_sign_detached(*signBinBuffer, NULL, message, messageSize, *privKey);
 
@@ -791,7 +791,7 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	
 	mm->releaseMemory(privKey);
 
-	return  signBinBuffer;
+	return signBinBuffer;
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)

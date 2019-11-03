@@ -5,7 +5,6 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%!
-#include "../model/Profiler.h"
 #include "../SingletonManager/SessionManager.h"
 //#include "Poco/Net/HTTPServerParams.h"
 

@@ -4,7 +4,7 @@
 #include "Poco/Net/SecureSMTPClientSession.h"
 #include "Poco/Net/StringPartSource.h"
 
-#include "../model/ErrorList.h"
+#include "../lib/ErrorList.h"
 
 
 ErrorManager* ErrorManager::getInstance()

@@ -3,7 +3,7 @@
 #include "HTTPInterface/PageRequestHandlerFactory.h"
 #include "JSONInterface/JsonRequestHandlerFactory.h"
 
-#include "model/Profiler.h"
+#include "lib/Profiler.h"
 
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"

@@ -5,7 +5,7 @@
 
 #ifdef _UNI_LIB_DEBUG
 //#include "lib/TimeCounter.h"
-#include "../model/Profiler.h"
+#include "../lib/Profiler.h"
 #include "Poco/Message.h"
 #endif //_UNI_LIB_DEBUG
 

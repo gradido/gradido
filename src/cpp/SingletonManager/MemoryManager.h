@@ -17,6 +17,7 @@
 #include "../lib/MultithreadContainer.h"
 
 #include <list>
+#include <stack>
 
 #define MEMORY_MANAGER_PAGE_SIZE 10
 

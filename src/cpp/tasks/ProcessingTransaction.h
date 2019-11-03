@@ -3,8 +3,8 @@
 
 #include "CPUTask.h"
 
-#include "../model/ErrorList.h"
-#include "../Crypto/DRHash.h"
+#include "../lib/ErrorList.h"
+#include "../lib/DRHash.h"
 #include "../model/TransactionBase.h"
 
 #include "../proto/gradido/TransactionBody.pb.h"

@@ -1,5 +1,5 @@
 #include "PrepareEmailTask.h"
-#include "../model/Profiler.h"
+#include "../lib/Profiler.h"
 #include "../ServerConfig.h"
 #include "../SingletonManager/ErrorManager.h"
 

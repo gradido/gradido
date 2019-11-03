@@ -119,6 +119,7 @@ protected:
 	inline void unlock() { mWorkingMutex.unlock(); }
 
 	MemoryBin* getPrivKey();
+	inline bool hasPrivKey() { lock(); bool result = false; if (mPrivateKey && mCryptoKey) result = true; unlock(); return result; }
 	bool setPrivKey(const MemoryBin* privKey);
 
 private:

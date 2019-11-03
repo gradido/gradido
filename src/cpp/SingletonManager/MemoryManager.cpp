@@ -29,9 +29,10 @@ MemoryPageStack::~MemoryPageStack()
 {
 	lock();
 	while (mMemoryBinStack.size() > 0) {
-		auto memoryBin = mMemoryBinStack.top();
-		delete memoryBin;
+		MemoryBin* memoryBin = mMemoryBinStack.top();
 		mMemoryBinStack.pop();
+		delete memoryBin;
+		
 	}
 	mSize = 0;
 	unlock();
@@ -48,7 +49,7 @@ MemoryBin* MemoryPageStack::getFreeMemory()
 		unlock();
 		return new MemoryBin(mSize);
 	}
-	auto memoryBin = mMemoryBinStack.top();
+	MemoryBin* memoryBin = mMemoryBinStack.top();
 	mMemoryBinStack.pop();
 	unlock();
 	return memoryBin;

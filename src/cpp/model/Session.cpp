@@ -1,5 +1,5 @@
 #include "Session.h"
-#include "Profiler.h"
+#include "../lib/Profiler.h"
 #include "../ServerConfig.h"
 
 #include "Poco/RegularExpression.h"
