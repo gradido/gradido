@@ -141,7 +141,7 @@ std::string KeyPair::getHex(const unsigned char* data, size_t size)
 	//char* hexString = (char*)malloc(hexSize);
 	memset(*hexMem, 0, hexSize);
 	sodium_bin2hex(*hexMem, hexSize, data, size);
-	std::string hex = *hexMem;
+	std::string hex = (char*)*hexMem;
 //	free(hexString);
 	mm->releaseMemory(hexMem);
 
