@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Transactions;
+namespace Model\Transactions;
 
 class TransactionBody extends TransactionBase {
   

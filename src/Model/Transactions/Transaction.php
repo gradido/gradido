@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-namespace App\Model\Transactions;
+namespace Model\Transactions;
 
 //use Model\Messages\Gradido\Transaction;
 //use Model\Messages\Gradido\TransactionBody;
@@ -20,12 +20,13 @@ class Transaction extends TransactionBase {
     public function __construct($base64Data) {
         $transactionBin = base64_decode($base64Data);
         if($transactionBin == FALSE) {
-          $this->addError('base64 decode failed');
+          //$this->addError('base64 decode failed');
+          $this->addError(['data' => $base64Data, 'bin' => $transactionBin, 'msg' => 'base64 decode error']);
         } else {
-          $this->mProtoTransaction = new \Messages\Gradido\Transaction();
+          $this->mProtoTransaction = new \Model\Messages\Gradido\Transaction();
           $this->mProtoTransaction->mergeFromString($transactionBin);
           
-          $this->mProtoTransactionBody = new Messages\Gradido\TransactionBody();
+          $this->mProtoTransactionBody = new \Model\Messages\Gradido\TransactionBody();
           $this->mProtoTransactionBody->mergeFromString($this->mProtoTransaction->getBodyBytes());
           
           $data = $this->mProtoTransactionBody->getData();
