@@ -46,10 +46,22 @@ use Cake\Routing\Route\DashedRoute;
 Router::defaultRouteClass(DashedRoute::class);
 
 Router::scope('/', function (RouteBuilder $routes) {
-    // Register scoped middleware for in scopes.
-    $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
+  
+    $csrf = new CsrfProtectionMiddleware([
         'httpOnly' => true
-    ]));
+    ]);
+
+    // Token check will be skipped when callback returns `true`.
+    $csrf->whitelistCallback(function ($request) {
+        // Skip token check for API URLs.
+      //die($request->getParam('controller'));
+        if($request->getParam('controller') === 'TransactionJsonRequestHandler') {
+            return true;
+        }
+    });
+
+    // Register scoped middleware for in scopes.
+    $routes->registerMiddleware('csrf', $csrf);
 
     /**
      * Apply a middleware to the current route scope.

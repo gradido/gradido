@@ -18,8 +18,11 @@ use Cake\Core\Configure;
 use Cake\Core\Exception\MissingPluginException;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Http\BaseApplication;
+use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Routing\Middleware\AssetMiddleware;
 use Cake\Routing\Middleware\RoutingMiddleware;
+
+
 
 /**
  * Application setup class.
@@ -51,6 +54,8 @@ class Application extends BaseApplication
 
         // Load more plugins here
     }
+    
+
 
     /**
      * Setup the middleware queue your application will use.
@@ -60,7 +65,22 @@ class Application extends BaseApplication
      */
     public function middleware($middlewareQueue)
     {
+        //$csrf = new CsrfProtectionMiddleware();
+
+        // Token check will be skipped when callback returns `true`.
+        /*$csrf->whitelistCallback(function ($request) {
+            // Skip token check for API URLs.
+            //if ($request->getParam('prefix') === 'api') {
+            if($request->getAttribute('base') === 'TransactionJsonRequestHandler') {
+                return true;
+            }
+        });
+*/
+        // Ensure routing middleware is added to the queue before CSRF protection middleware.
+        //$middlewareQueue->;
+        
         $middlewareQueue
+  //          ->add($csrf)
             // Catch any exceptions in the lower layers,
             // and make an error page/response
             ->add(new ErrorHandlerMiddleware(null, Configure::read('Error')))

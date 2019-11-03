@@ -17,7 +17,7 @@ use Cake\Routing\Router;
 $cakeDescription = 'Gradido';
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
-
+//echo "transactions pending: " . $transactionPendings;
 ?>
 <!DOCTYPE html>
 <html>
@@ -40,7 +40,7 @@ $transactionPendings = $session->read('Transactions.pending');
 <body>
     <div class="versionstring dev-info">
       <p class="grd_small">Community Server in Entwicklung</p>
-      <p class="grd_small">Alpha 0.4.3</p>
+      <p class="grd_small">Alpha 0.4.4</p>
     </div>
     <nav class="grd-left-bar expanded" data-topbar role="navigation">
         <div class="grd-left-bar-section">
@@ -49,12 +49,12 @@ $transactionPendings = $session->read('Transactions.pending');
               
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>
-                  <a href="<?= Router::url('/', true) ?>account/checkTransactions" class="grd-nav-bn">
+                  <a href="<?= Router::url('', true) ?>account/checkTransactions" class="grd-nav-bn">
                     <?= __("Transaktionen unterzeichnen") . '&nbsp;(' . intval($transactionPendings) . ')'?>
                   </a>
                 </li>
               <?php else: ?>
-                 <li><a href="<?= Router::url('/', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a></li>
+                 <li><a href="<?= Router::url('', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a></li>
               <?php endif; ?>
             </ul>
         </div>
