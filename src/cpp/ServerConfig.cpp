@@ -39,6 +39,7 @@ namespace ServerConfig {
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;
 	std::string g_php_serverPath;
+	std::string g_php_serverHost;
 	Poco::Mutex g_TimeMutex;
 
 	bool loadMnemonicWordLists()
@@ -93,6 +94,7 @@ namespace ServerConfig {
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
 		g_php_serverPath = cfg.getString("phpServer.url", "");
+		g_php_serverHost = cfg.getString("phpServer.host", "");
 		return true;
 	}
 

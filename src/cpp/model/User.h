@@ -80,7 +80,9 @@ public:
 	inline const char* getLastName() const { return mLastName.data(); }
 	inline int         getDBId() const { return mDBId;  }
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
+	inline const unsigned char* getPublicKey() { return mPublicKey; }
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
+	inline void		   setPublicKey(const unsigned char* key) { lock(); memcpy(mPublicKey, key, crypto_sign_PUBLICKEYBYTES); unlock();}
 
 	UserStates         getUserState();
 
@@ -134,6 +136,7 @@ private:
 	passwordHashed mPasswordHashed;
 	
 	std::string mPublicHex;
+	unsigned char mPublicKey[crypto_sign_PUBLICKEYBYTES];
 	MemoryBin* mPrivateKey;
 	// TODO: insert created if necessary
 

@@ -87,6 +87,25 @@ std::string ProcessingTransaction::getMemo()
 	return "<uninitalized>";
 }
 
+std::string ProcessingTransaction::getBodyBytes()
+{
+	lock();
+	if (mTransactionBody.IsInitialized()) {
+		auto size = mTransactionBody.ByteSize();
+		//auto bodyBytesSize = MemoryManager::getInstance()->getFreeMemory(mProtoCreation.ByteSizeLong());
+		std::string resultString(size, 0);
+		if (!mTransactionBody.SerializeToString(&resultString)) {
+			addError(new Error("TransactionCreation::getBodyBytes", "error serializing string"));
+			unlock();
+			return "";
+		}
+		unlock();
+		return resultString;
+	}
+	unlock();
+	return "<uninitalized>";
+}
+
 TransactionCreation* ProcessingTransaction::getCreationTransaction()
 {
 	return dynamic_cast<TransactionCreation*>(mTransactionSpecific);

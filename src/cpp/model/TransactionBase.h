@@ -11,6 +11,7 @@
 
 #include "../lib/ErrorList.h"
 #include "../proto/gradido/BasicTypes.pb.h"
+#include "../SingletonManager/MemoryManager.h"
 
 class TransactionBase : public ErrorList
 {

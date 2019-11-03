@@ -17,7 +17,7 @@ class TransactionTransfer : public TransactionBase
 public:
 	TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer);
 
-	int prepare();
+	int prepare(); 
 
 protected:
 	const model::messages::gradido::Transfer& mProtoTransfer;

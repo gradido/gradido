@@ -49,6 +49,7 @@ int UserGenerateKeys::run()
 	mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 
 	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
+	mUser->setPublicKey(mKeys.getPublicKey());
 	if (mUser->hasCryptoKey()) {
 		mUser->setPrivKey(mKeys.getPrivateKey());
 	}
@@ -176,7 +177,7 @@ User::User(const char* email, const char* first_name, const char* last_name)
 	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr),
 	 mReferenceCount(1)
 {
-
+	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
 }
 // load from db
 User::User(const char* email)
@@ -186,6 +187,8 @@ User::User(const char* email)
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
 
 	Poco::Nullable<Poco::Data::BLOB> pubkey; 
 	Poco::Nullable<Poco::Data::BLOB> privkey;
@@ -207,6 +210,12 @@ User::User(const char* email)
 
 			if (!pubkey.isNull()) {
 				auto pubkey_value = pubkey.value();
+				if (pubkey_value.size() == crypto_sign_PUBLICKEYBYTES) {
+					memcpy(mPublicKey, pubkey_value.content().data(), crypto_sign_PUBLICKEYBYTES);
+				}
+				else {
+					addError(new Error("User", "pubkey from db has other size as expected"));
+				}
 				size_t hexSize = pubkey_value.size() * 2 + 1;
 				char* hexString = (char*)malloc(hexSize);
 				memset(hexString, 0, hexSize);
@@ -234,6 +243,8 @@ User::User(int user_id)
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
+	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
+
 	Poco::Nullable<Poco::Data::BLOB> pubkey;
 	Poco::Nullable<Poco::Data::BLOB> privkey;
 
@@ -254,6 +265,12 @@ User::User(int user_id)
 
 			if (!pubkey.isNull()) {
 				auto pubkey_value = pubkey.value();
+				if (pubkey_value.size() == crypto_sign_PUBLICKEYBYTES) {
+					memcpy(mPublicKey, pubkey_value.content().data(), crypto_sign_PUBLICKEYBYTES);
+				}
+				else {
+					addError(new Error("User", "pubkey from db has other size as expected"));
+				}
 				size_t hexSize = pubkey_value.size() * 2 + 1;
 				char* hexString = (char*)malloc(hexSize);
 				memset(hexString, 0, hexSize);
@@ -282,6 +299,8 @@ User::User(const unsigned char* pubkey_array)
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+	memcpy(mPublicKey, pubkey_array, crypto_sign_PUBLICKEYBYTES);
 
 	Poco::Data::BLOB pubkey(pubkey_array, 32);
 	Poco::Nullable<Poco::Data::BLOB> privkey;
@@ -769,15 +788,19 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	//auto signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
 	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
 	auto privKey = getPrivKey();
+	size_t actualSignLength = 0;
 
-	crypto_sign_detached(*signBinBuffer, NULL, message, messageSize, *privKey);
+	if (crypto_sign_detached(*signBinBuffer, &actualSignLength, message, messageSize, *privKey)) {
+		addError(new Error("User::sign", "sign failed"));
+		mm->releaseMemory(privKey);
+		mm->releaseMemory(signBinBuffer);
+		return nullptr;
+	}
 
-	if (crypto_sign_verify_detached(*signBinBuffer, message, messageSize, *privKey) != 0) {
+	if (crypto_sign_verify_detached(*signBinBuffer, message, messageSize, mPublicKey) != 0) {
 		// Incorrect signature! 
 		//printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
-		auto em = ErrorManager::getInstance();
-		em->addError(new Error("User::sign", "sign verify failed"));
-		em->sendErrorsAsEmail();
+		addError(new Error("User::sign", "sign verify failed"));
 		mm->releaseMemory(privKey);
 		mm->releaseMemory(signBinBuffer);
 		return nullptr;
