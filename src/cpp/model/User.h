@@ -11,7 +11,8 @@
 #include "Poco/JSON/Object.h"
 #include "../tasks/CPUTask.h"
 
-class NewUser;
+#include "../SingletonManager/MemoryManager.h"
+
 class UserCreateCryptoKey;
 class UserWriteIntoDB;
 class Session;
@@ -41,7 +42,6 @@ enum UserFields
 
 class User : public ErrorList
 {
-	friend NewUser;
 	friend UserCreateCryptoKey;
 	friend UserWriteIntoDB;
 	friend UserWriteCryptoKeyHashIntoDB;
@@ -90,9 +90,9 @@ public:
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	bool validateIdentHash(HASH hash);
 	
-	ObfusArray* encrypt(const ObfusArray* data);
-	ObfusArray* decrypt(const ObfusArray* encryptedData);
-	ObfusArray* sign(const unsigned char* message, size_t messageSize);
+	MemoryBin* encrypt(const MemoryBin* data);
+	MemoryBin* decrypt(const MemoryBin* encryptedData);
+	MemoryBin* sign(const unsigned char* message, size_t messageSize);
 
 	Poco::JSON::Object getJson();
 
@@ -105,8 +105,8 @@ public:
 protected:
 	typedef Poco::UInt64 passwordHashed;
 
-	ObfusArray* createCryptoKey(const std::string& password);
-	inline void setCryptoKey(ObfusArray* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
+	MemoryBin* createCryptoKey(const std::string& password);
+	inline void setCryptoKey(MemoryBin* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
 	//void detectState();
 
@@ -118,8 +118,8 @@ protected:
 	inline void lock() { mWorkingMutex.lock(); }
 	inline void unlock() { mWorkingMutex.unlock(); }
 
-	ObfusArray* getPrivKey();
-	bool setPrivKey(const ObfusArray* privKey);
+	MemoryBin* getPrivKey();
+	bool setPrivKey(const MemoryBin* privKey);
 
 private:
 	UserStates mState;
@@ -133,7 +133,7 @@ private:
 	passwordHashed mPasswordHashed;
 	
 	std::string mPublicHex;
-	ObfusArray* mPrivateKey;
+	MemoryBin* mPrivateKey;
 	// TODO: insert created if necessary
 
 	bool mEmailChecked;
@@ -141,7 +141,7 @@ private:
 	// ************************ DB FIELDS END ******************************
 	// crypto key as obfus array 
 	// only in memory, if user has typed in password
-	ObfusArray* mCryptoKey;
+	MemoryBin* mCryptoKey;
 
 	Poco::Mutex mWorkingMutex;
 	Poco::Mutex mReferenceMutex;

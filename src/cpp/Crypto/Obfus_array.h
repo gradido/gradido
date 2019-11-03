@@ -61,6 +61,7 @@ public:
 	~ObfusArray();
 
 	inline operator const unsigned char*() const {return &m_Data[m_offsetSize];}
+	inline operator unsigned char*() { return &m_Data[m_offsetSize]; }
 
 	inline size_t size() const { return m_dataSize;}
 

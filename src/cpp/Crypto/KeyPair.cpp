@@ -23,13 +23,16 @@ KeyPair::KeyPair()
 
 KeyPair::~KeyPair()
 {
+	auto mm = MemoryManager::getInstance();
 	//printf("[KeyPair::~KeyPair] privkey: %d, soduium privkey: %d \n", mPrivateKey, mSodiumSecret);
 	if (mPrivateKey) {
-		delete mPrivateKey;
+		//delete mPrivateKey;
+		mm->releaseMemory(mPrivateKey);
 		mPrivateKey = nullptr;
 	}
 	if (mSodiumSecret) {
-		delete mSodiumSecret;
+		//delete mSodiumSecret;
+		mm->releaseMemory(mSodiumSecret);
 		mSodiumSecret = nullptr;
 	}
 }
@@ -81,22 +84,29 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	public_key_t pbl_key_t;
 	ed25519_derive_public_key(&prv_key_t, &pbl_key_t);
 
+	auto mm = MemoryManager::getInstance();
 
 	//memcpy(private_key, prv_key_t.data, 32);
-	if (mPrivateKey) {
-		delete mPrivateKey;
+	if (!mPrivateKey) {
+		//delete mPrivateKey;
+		mPrivateKey = mm->getFreeMemory(ed25519_privkey_SIZE);
 	}
-	mPrivateKey = new ObfusArray(ed25519_privkey_SIZE, prv_key_t.data);
+	//mPrivateKey = new ObfusArray(ed25519_privkey_SIZE, prv_key_t.data);
+	
+	memcpy(*mPrivateKey, prv_key_t.data, ed25519_privkey_SIZE);
+
 	memcpy(mPublicKey, pbl_key_t.data, ed25519_pubkey_SIZE);
 
-	unsigned char sodium_secret[crypto_sign_SECRETKEYBYTES];
-
-	crypto_sign_seed_keypair(mSodiumPublic, sodium_secret, *mPrivateKey);
-	
-	if(mSodiumSecret) {
-		delete mSodiumSecret;
+	if (!mSodiumSecret) {
+		//delete mSodiumSecret;
+		//mm->releaseMemory(mSodiumSecret);
+		mSodiumSecret = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
 	}
-	mSodiumSecret = new ObfusArray(crypto_sign_SECRETKEYBYTES, sodium_secret);
+	//unsigned char sodium_secret[crypto_sign_SECRETKEYBYTES];
+
+
+	crypto_sign_seed_keypair(mSodiumPublic, *mSodiumSecret, *mPrivateKey);
+	
 
 	// print hex for all keys for debugging
 /*	printf("// ********** Keys ************* //\n");
@@ -113,24 +123,27 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 
 std::string KeyPair::getPubkeyHex()
 {
-	size_t hexSize = crypto_sign_PUBLICKEYBYTES * 2 + 1;
-	char* hexString = (char*)malloc(hexSize);
+	const size_t hexSize = crypto_sign_PUBLICKEYBYTES * 2 + 1;
+	
+	char hexString[hexSize];
 	memset(hexString, 0, hexSize);
 	sodium_bin2hex(hexString, hexSize, mSodiumPublic, crypto_sign_PUBLICKEYBYTES);
-	std::string pubHex = hexString;
-	free(hexString);
 
-	return pubHex;
+	return std::string(hexString);
 }
 
 std::string KeyPair::getHex(const unsigned char* data, size_t size)
 {
+	auto mm = MemoryManager::getInstance();
+	
 	size_t hexSize = size * 2 + 1;
-	char* hexString = (char*)malloc(hexSize);
-	memset(hexString, 0, hexSize);
-	sodium_bin2hex(hexString, hexSize, data, size);
-	std::string hex = hexString;
-	free(hexString);
+	auto hexMem = mm->getFreeMemory(hexSize);
+	//char* hexString = (char*)malloc(hexSize);
+	memset(*hexMem, 0, hexSize);
+	sodium_bin2hex(*hexMem, hexSize, data, size);
+	std::string hex = *hexMem;
+//	free(hexString);
+	mm->releaseMemory(hexMem);
 
 	return hex;
 }

@@ -34,9 +34,6 @@ von Paul Glinker Rockstar Games Toronto
 #ifndef __DR_CORE2_MEMORY_LIST__
 #define __DR_CORE2_MEMORY_LIST__
 
-#ifndef __CORE_2_MAIN_H__
-#include "Core2Main.h"
-#endif 
 
 template <typename FLDataType> class DRMemoryList
 {
@@ -60,10 +57,10 @@ template <typename FLDataType> class DRMemoryList
 		//Und die Instance freigeben
 		void FreeInstance(FLDataType* pInstance);
                 
-                //liefert die anzahl der noch freien Speicherplätze zurück
-                int getFreeCount() {return m_iTop;}
-                int getObjectCount() {return m_iNumObject;}
-                FLDataType** getDataPointer() {return m_ppFreeObjects;}
+		//liefert die anzahl der noch freien Speicherplätze zurück
+		int getFreeCount() {return m_iTop;}
+		int getObjectCount() {return m_iNumObject;}
+		FLDataType** getDataPointer() {return m_ppFreeObjects;}
 
 	private:
 		FLDataType*		m_pObjectData;		//Zeiger auf den reservieretn Speicher

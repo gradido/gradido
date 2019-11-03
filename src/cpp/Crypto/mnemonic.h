@@ -11,7 +11,7 @@
  * 
  */
 
-#include "DRHashList.h"
+#include "../lib/DRHashList.h"
 #include <string>
 
 #define PHRASE_WORD_COUNT 24

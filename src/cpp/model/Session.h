@@ -10,10 +10,10 @@
 #ifndef DR_LUA_WEB_MODULE_SESSION_SESSION_H
 #define DR_LUA_WEB_MODULE_SESSION_SESSION_H
 
-#include "ErrorList.h"
+#include "../lib/ErrorList.h"
 #include "User.h"
 
-#include "../tasks/MultithreadContainer.h"
+#include "../lib/MultithreadContainer.h"
 #include "../tasks/ProcessingTransaction.h"
 
 #include "Poco/Thread.h"

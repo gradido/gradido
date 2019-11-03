@@ -2,10 +2,13 @@
 #define GRADIDO_LOGIN_SERVER_CRYPTO_KEY_PAIR
 
 #include "Obfus_array.h"
+#include "../SingletonManager/MemoryManager.h"
 #include "mnemonic.h"
 
 #include "ed25519/ed25519.h"
 #include <sodium.h>
+
+
 
 class UserWriteKeysIntoDB;
 class UserGenerateKeys;
@@ -26,14 +29,18 @@ public:
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 
 protected:
-	const ObfusArray* getPrivateKey() const { return mSodiumSecret; }
+	const MemoryBin* getPrivateKey() const { return mSodiumSecret; }
 
 	
 
 private:
-	ObfusArray* mPrivateKey;
-	ObfusArray* mSodiumSecret;
+	// 32 Byte
+	MemoryBin* mPrivateKey;
+	// 64 Byte
+	MemoryBin* mSodiumSecret;
+	// 32 Byte
 	unsigned char mPublicKey[ed25519_pubkey_SIZE];
+	// 32 Byte
 	unsigned char mSodiumPublic[crypto_sign_PUBLICKEYBYTES];
 };
 

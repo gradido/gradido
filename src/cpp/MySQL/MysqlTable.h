@@ -13,7 +13,7 @@
 
 #include <list>
 #include <string.h>
-#include "../model/ErrorList.h"
+#include "../lib/ErrorList.h"
 #include "mysql.h"
 
 #include "Poco/Data/Session.h"

@@ -39,7 +39,7 @@
 
 #include "Poco/AutoPtr.h"
 
-#include "MultithreadQueue.h"
+#include "../lib/MultithreadQueue.h"
 
 namespace UniLib {
     namespace controller {

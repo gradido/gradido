@@ -1,7 +1,7 @@
 #ifndef GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE
 #define GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE
 
-#include "../Crypto/DRHashList.h"
+#include "../lib/DRHashList.h"
 #include <string>
 
 #include "Poco/Util/LayeredConfiguration.h"
@@ -9,7 +9,7 @@
 #include "../MySQL/Poco/Connector.h"
 #include "Poco/Exception.h"
 
-#include "../model/ErrorList.h"
+#include "../lib/ErrorList.h"
 
 enum ConnectionType {
 	CONNECTION_MYSQL_LOGIN_SERVER,

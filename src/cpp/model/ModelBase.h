@@ -3,7 +3,7 @@
 
 #include "Poco/Data/Session.h"
 
-#include "../tasks/MultithreadContainer.h"
+#include "../lib/MultithreadContainer.h"
 #include "../tasks/CPUTask.h"
 
 #include "../MySQL/MysqlTable.h"

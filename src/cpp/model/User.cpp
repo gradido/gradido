@@ -1,5 +1,4 @@
 #include "User.h"
-#include "Profiler.h"
 #include "Session.h"
 #include <sodium.h>
 #include "ed25519/ed25519.h"
@@ -9,6 +8,7 @@
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SessionManager.h"
+
 
 #include "Poco/Data/Binding.h"
 
@@ -44,7 +44,7 @@ int UserCreateCryptoKey::run()
 
 int UserGenerateKeys::run() 
 {
-	Profiler timeUsed;
+	
 	// always return true, cannot fail (only if low on memory)
 	mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 
@@ -52,8 +52,6 @@ int UserGenerateKeys::run()
 	if (mUser->hasCryptoKey()) {
 		mUser->setPrivKey(mKeys.getPrivateKey());
 	}
-
-	//printf("[UserGenerateKeys::run] time: %s\n", timeUsed.string().data());
 
 	return 0;
 }
@@ -98,7 +96,6 @@ UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, Poc
 
 int UserWriteKeysIntoDB::run()
 {
-	Profiler timeUsed;
 	auto cm = ConnectionManager::getInstance();
 	auto em = ErrorManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);	
@@ -154,7 +151,6 @@ int UserWriteKeysIntoDB::run()
 		delete pprivkey_blob;
 	}
 	
-	//printf("UserWritePrivKeyIntoDB time: %s\n", timeUsed.string().data());
 	return 0;
 }
 
@@ -220,10 +216,12 @@ User::User(const char* email)
 			}
 			if (!privkey.isNull()) {
 				auto privkey_value = privkey.value();
-				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				auto privkey_size = privkey_value.size();
+				//mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				mPrivateKey = MemoryManager::getInstance()->getFreeMemory(privkey_size);
+				memcpy(*mPrivateKey, privkey_value.content().data(), privkey_size);
 			}
 			
-
 		}
 	} catch(Poco::Exception& ex) {
 		addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
@@ -265,7 +263,10 @@ User::User(int user_id)
 			}
 			if (!privkey.isNull()) {
 				auto privkey_value = privkey.value();
-				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				auto privkey_size = privkey_value.size();
+				//mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				mPrivateKey = MemoryManager::getInstance()->getFreeMemory(privkey_size);
+				memcpy(*mPrivateKey, privkey_value.content().data(), privkey_size);
 			}
 		}
 	}
@@ -308,7 +309,10 @@ User::User(const unsigned char* pubkey_array)
 			
 			if (!privkey.isNull()) {
 				auto privkey_value = privkey.value();
-				mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				auto privkey_size = privkey_value.size();
+				//mPrivateKey = new ObfusArray(privkey_value.size(), privkey_value.content().data());
+				mPrivateKey = MemoryManager::getInstance()->getFreeMemory(privkey_size);
+				memcpy(*mPrivateKey, privkey_value.content().data(), privkey_size);
 			}
 
 		}
@@ -325,12 +329,15 @@ User::~User()
 #ifdef DEBUG_USER_DELETE_ENV
 	printf("[User::~User]\n");
 #endif
+	auto mm = MemoryManager::getInstance();
 	if (mCryptoKey) {
-		delete mCryptoKey;
+		//delete mCryptoKey;
+		mm->releaseMemory(mCryptoKey);
 		mCryptoKey = nullptr;
 	}
 	if (mPrivateKey) {
-		delete mPrivateKey;
+		//delete mPrivateKey;
+		mm->releaseMemory(mPrivateKey);
 		mPrivateKey = nullptr;
 	}
 }
@@ -483,7 +490,7 @@ void User::setEmailChecked()
 
 bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint)
 {
-	
+	auto mm = MemoryManager::getInstance();
 	auto cmpCryptoKey = createCryptoKey(pwd);
 	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
@@ -496,12 +503,14 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 			mCryptoKey = cmpCryptoKey;
 		}
 		else {
-			delete cmpCryptoKey;
+			//delete cmpCryptoKey;
+			mm->releaseMemory(cmpCryptoKey);
 		}
 		unlock();
 		return true;
 	}
-	delete cmpCryptoKey;
+	//delete cmpCryptoKey;
+	mm->releaseMemory(cmpCryptoKey);
 	
 	unlock();
 	return false;
@@ -588,10 +597,11 @@ void User::release()
 
 }
 
-ObfusArray* User::createCryptoKey(const std::string& password)
+MemoryBin* User::createCryptoKey(const std::string& password)
 {
 
-	Profiler timeUsed;
+	//Profiler timeUsed;
+	auto mm = MemoryManager::getInstance();
 	// TODO: put it in secure location, or use value from server config
 	static const unsigned char app_secret[] = { 0x21, 0xff, 0xbb, 0xc6, 0x16, 0xfe };
 
@@ -611,9 +621,13 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 	sha512_update(&context_sha512, app_secret, 6);
 	sha512_final(&context_sha512, hash512_salt);
 
-	unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
 
-	if (crypto_pwhash(key, crypto_box_SEEDBYTES, password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
+	//unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
+	//ObfusArray* key = new ObfusArray(crypto_box_SEEDBYTES);
+	auto key = mm->getFreeMemory(crypto_box_SEEDBYTES);
+	//Bin32Bytes* key = mm->get32Bytes();
+
+	if (crypto_pwhash(*key, key->size(), password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
 		lock();
 		addError(new ParamError(__FUNCTION__, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
 		unlock();
@@ -622,14 +636,14 @@ ObfusArray* User::createCryptoKey(const std::string& password)
 		return nullptr;
 	}
 	
-	lock();
-	auto cryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
-	unlock();
-	free(key);
+//	lock();
+//	auto cryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
+//	unlock();
+//	free(key);
 
 	// mCryptoKey
 	//printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
-	return cryptoKey;
+	return key;
 }
 
 void User::fakeCreateCryptoKey()
@@ -639,7 +653,7 @@ void User::fakeCreateCryptoKey()
 
 bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session* session)
 {
-	Profiler timeUsed;
+	//Profiler timeUsed;
 	
 	duplicate();
 	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, passphrase));
@@ -671,7 +685,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 
 }
 
-ObfusArray* User::encrypt(const ObfusArray* data)
+MemoryBin* User::encrypt(const MemoryBin* data)
 {
 	if (!hasCryptoKey()) {
 		addError(new Error("User::encrypt", "hasn't crypto key"));
@@ -684,27 +698,30 @@ ObfusArray* User::encrypt(const ObfusArray* data)
 	// we use a hardcoded value for nonce
 	memset(nonce, 31, crypto_secretbox_NONCEBYTES);
 
-	unsigned char* ciphertext = (unsigned char*)malloc(ciphertext_len);
-	memset(ciphertext, 0, ciphertext_len);
-	lock();
-	if (0 != crypto_secretbox_easy(ciphertext, *data, message_len, nonce, *mCryptoKey)) {
+	//unsigned char* ciphertext = (unsigned char*)malloc(ciphertext_len);
+	//ObfusArray* ciphertext = new ObfusArray(ciphertext_len);
+	auto mm = MemoryManager::getInstance();
+	auto ciphertext = mm->getFreeMemory(ciphertext_len);
+	memset(*ciphertext, 0, ciphertext_len);
+
+	if (0 != crypto_secretbox_easy(*ciphertext, *data, message_len, nonce, *mCryptoKey)) {
 		//printf("[%s] error encrypting message \n", __FUNCTION__);
 		addError(new Error("User::encrypt", "encrypting message failed"));
-		free(ciphertext);
-		unlock();
+		//free(ciphertext);
+		mm->releaseMemory(ciphertext);
+
 		return nullptr;
 	}
-	unlock();
 
 	//printf("[User::encrypt] encrypted: %s, ciphertext len: %u\n", KeyPair::getHex(ciphertext, ciphertext_len).data(), ciphertext_len);
 	
-	auto resultObfus = new ObfusArray(ciphertext_len, ciphertext);
-	free(ciphertext);
+	//auto resultObfus = new ObfusArray(ciphertext_len, ciphertext);
+	//free(ciphertext);
 	
-	return resultObfus;
+	return ciphertext;
 }
 
-ObfusArray* User::decrypt(const ObfusArray* encryptedData)
+MemoryBin* User::decrypt(const MemoryBin* encryptedData)
 {
 	if (!hasCryptoKey()) {
 		addError(new Error("User::decrypt", "hasn't crypto key"));
@@ -714,13 +731,16 @@ ObfusArray* User::decrypt(const ObfusArray* encryptedData)
 	//ObfusArray* decrypetData = new ObfusArray(encryptedData->size() - crypto_secretbox_MACBYTES);
 	
 	size_t decryptSize = encryptedData->size() - crypto_secretbox_MACBYTES;
-	unsigned char* decryptBuffer = (unsigned char*)malloc(decryptSize);
+	//unsigned char* decryptBuffer = (unsigned char*)malloc(decryptSize);
+	auto mm = MemoryManager::getInstance();
+	//ObfusArray* decryptedData = new ObfusArray(decryptSize);
+	auto decryptedData = mm->getFreeMemory(decryptSize);
 	unsigned char nonce[crypto_secretbox_NONCEBYTES];
 	// we use a hardcoded value for nonce
 	memset(nonce, 31, crypto_secretbox_NONCEBYTES);
 
-	if (crypto_secretbox_open_easy(decryptBuffer, *encryptedData, encryptedData->size(), nonce, *mCryptoKey)) {
-		free(decryptBuffer);
+	if (crypto_secretbox_open_easy(*decryptedData, *encryptedData, encryptedData->size(), nonce, *mCryptoKey)) {
+		mm->releaseMemory(decryptedData);
 		addError(new Error("User::decrypt", "error decrypting"));
 		return nullptr;
 	}
@@ -728,36 +748,50 @@ ObfusArray* User::decrypt(const ObfusArray* encryptedData)
 		unsigned long long clen, const unsigned char *n,
 		const unsigned char *k);*/
 
-	ObfusArray* decryptedData = new ObfusArray(decryptSize, decryptBuffer);
-	free(decryptBuffer);
 	return decryptedData;	
 }
 
-ObfusArray* User::sign(const unsigned char* message, size_t messageSize)
+MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 {
-	/*
+	
 	if (!message || !messageSize) return nullptr;
 	if (!hasCryptoKey()) {
 		addError(new Error("User::sign", "hasn't crypto key"));
 		return nullptr;
 	}
-
-	//binArrayObj = new BinaryArray(crypto_sign_BYTES);
-	unsigned char* signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
-
-	crypto_sign_detached(signBinBuffer, NULL, message, messageSize, key->sodium_secret);
-
-	if (crypto_sign_verify_detached(binArrayObj->bytes, binArray, binArraySize, key->sodium_public) != 0) {
-		// Incorrect signature! 
-		printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
+	if (!mPrivateKey) {
+		addError(new Error("User::sign", "hasn't privkey"));
+		return nullptr;
 	}
 
-	size_t hex_sig_size = crypto_sign_BYTES * 2;
-	char sig_hex[crypto_sign_BYTES * 2 + 1];
-	sodium_bin2hex(sig_hex, hex_sig_size + 1, binArrayObj->bytes, crypto_sign_BYTES);
-	printf("c[KeyBuffer::%s] signature hex: %s\n", __FUNCTION__, sig_hex);
-	*/
-	return  nullptr;
+	//binArrayObj = new BinaryArray(crypto_sign_BYTES);
+	auto mm = MemoryManager::getInstance();
+	//auto signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
+	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
+	auto privKey = decrypt(mPrivateKey);
+
+	crypto_sign_detached(*signBinBuffer, NULL, message, messageSize, *privKey);
+
+	if (crypto_sign_verify_detached(*signBinBuffer, message, messageSize, *privKey) != 0) {
+		// Incorrect signature! 
+		//printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
+		auto em = ErrorManager::getInstance();
+		em->addError(new Error("User::sign", "sign verify failed"));
+		em->sendErrorsAsEmail();
+		mm->releaseMemory(privKey);
+		mm->releaseMemory(signBinBuffer);
+		return nullptr;
+	}
+
+	// debug
+	const size_t hex_sig_size = crypto_sign_BYTES * 2 + 1;
+	char sig_hex[hex_sig_size];
+	sodium_bin2hex(sig_hex, hex_sig_size, *signBinBuffer, crypto_sign_BYTES);
+	printf("[User::sign] signature hex: %s\n", sig_hex);
+	
+	mm->releaseMemory(privKey);
+
+	return  signBinBuffer;
 }
 
 Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
@@ -848,7 +882,7 @@ const char* User::userStateToString(UserStates state)
 	return "- unknown -";
 }
 
-ObfusArray* User::getPrivKey()
+MemoryBin* User::getPrivKey()
 {
 	if (!mPrivateKey) {
 		addError(new Error("User::getPrivKey", "no private key saved"));
@@ -861,7 +895,7 @@ ObfusArray* User::getPrivKey()
 	return decrypt(mPrivateKey);
 }
 
-bool User::setPrivKey(const ObfusArray* privKey)
+bool User::setPrivKey(const MemoryBin* privKey)
 {
 	if (!hasCryptoKey()) {
 		lock();

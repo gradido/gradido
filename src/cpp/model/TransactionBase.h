@@ -9,7 +9,7 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_BASE_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_BASE_INCLUDE
 
-#include "ErrorList.h"
+#include "../lib/ErrorList.h"
 #include "../proto/gradido/BasicTypes.pb.h"
 
 class TransactionBase : public ErrorList

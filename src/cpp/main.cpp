@@ -3,6 +3,9 @@
 
 #include "proto/gradido/TransactionBody.pb.h"
 
+#include "model/User.h"
+#include "model/Session.h"
+
 int main(int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -11,6 +14,7 @@ int main(int argc, char** argv)
 		printf("error initing sodium, early exit\n");
 		return -1;
 	}
+	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 
 	Gradido_LoginServer app;
 	return app.run(argc, argv);

@@ -2,8 +2,8 @@
 #define PAGE_REQUEST_MESSAGE_HANDLER_INCLUDED
 
 //#include "../model/Session.h"
-#include "../model/ErrorList.h"
-#include "../model/Profiler.h"
+#include "../lib/ErrorList.h"
+#include "../lib/Profiler.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 
 

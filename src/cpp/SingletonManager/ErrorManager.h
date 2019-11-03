@@ -15,8 +15,8 @@
 #include <list>
 #include <map>
 #include <cstring>
-#include "../model/ErrorList.h"
-#include "../Crypto/DRHash.h"
+#include "../lib/ErrorList.h"
+#include "../lib/DRHash.h"
 #include "../tasks/CPUTask.h"
 
 #include "Poco/Mutex.h"

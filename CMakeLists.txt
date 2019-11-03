@@ -22,6 +22,7 @@ FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp
 FILE(GLOB JSONInterface "src/cpp/JSONInterface/*.h" "src/cpp/JSONInterface/*.cpp")
 FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
 FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
+FILE(GLOB LIB_SRC "src/cpp/lib/*.h" "src/cpp/lib/*.cpp")
 FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
@@ -30,7 +31,7 @@ FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h"
 SET(LOCAL_SRCS 
 	${TINF} ${MAIN} ${HTTPInterface} 
 	${JSONInterface} ${CRYPTO} ${MODEL} 
-	${SINGLETON_MANAGER} ${MYSQL} ${TASKS}
+	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
 	${PROTO_GRADIDO}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
@@ -44,6 +45,7 @@ source_group("tasks" FILES ${TASKS})
 source_group("model" FILES ${MODEL})
 source_group("mysql" FILES ${MYSQL})
 source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
+source_group("lib" FILES ${LIB_SRC})
 source_group("HTTP-Interface" FILES ${HTTPInterface})
 source_group("Json-Interface" FILES ${JSONInterface})
 
