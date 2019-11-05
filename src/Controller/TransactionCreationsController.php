@@ -13,6 +13,7 @@ use App\Form\CreationForm;
 use Model\Messages\Gradido\TransactionCreation;
 use Model\Messages\Gradido\TransactionBody;
 use Model\Messages\Gradido\ReceiverAmount;
+use Model\Messages\Gradido\TimestampSeconds;
 /**
  * TransactionCreations Controller
  *
@@ -120,9 +121,14 @@ class TransactionCreationsController extends AppController
             if($pubKeyHex != '') {
               $receiver->setEd25519ReceiverPubkey(hex2bin($pubKeyHex));
               //var_dump($requestData);
+              
+              $creationDate = new TimestampSeconds();
+              $creationDate->setSeconds(time());
+              
               $transactionBody = new TransactionBody();
               $transactionBody->setMemo($requestData['memo']);
-
+              $transactionBody->setCreated($creationDate);
+              
               $transaction = new TransactionCreation();
               $transaction->setReceiverAmount($receiver);
               $transaction->setIdentHash($user['ident_hash']);
