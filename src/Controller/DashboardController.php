@@ -79,6 +79,14 @@ class DashboardController extends AppController
                     $stateUserQuery = $stateUserTable->find('all')->where(['public_key' => $public_key_bin]);
                     if($stateUserQuery->count() == 1) {
                       $stateUser = $stateUserQuery->first();
+                      if($stateUser->first_name != $json['user']['first_name'] ||
+                         $stateUser->last_name  != $json['user']['last_name']) {
+                        $stateUser->first_name = $json['user']['first_name'];
+                        $stateUser->last_name = $json['user']['last_name'];
+                        if(!$stateUserTable->save($stateUser)) {
+                          $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
+                        }
+                      }
                       $session->write('StateUser.id', $stateUser['id']);
                       //echo $stateUser['id'];
                     } else {
@@ -86,7 +94,9 @@ class DashboardController extends AppController
                       $newStateUser->public_key = $public_key_bin;
                       $newStateUser->first_name = $json['user']['first_name'];
                       $newStateUser->last_name = $json['user']['last_name'];
-                      $stateUserTable->save($newStateUser);
+                      if(!$stateUserTable->save($newStateUser)) {
+                        $this->Flash->error(__('error saving state user ' . json_encode($newStateUser->errors())));
+                      }
                       $session->write('StateUser.id', $newStateUser->id);
                       //echo $newStateUser->id;
                     }

@@ -87,8 +87,11 @@ class TransactionsTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->requirePresence('tx_hash', 'create')
-            ->notEmptyString('tx_hash');
+            //->requirePresence('tx_hash', 'create')
+            ->allowEmptyString('tx_hash', null, 'create');
+        
+        $validator
+            ->allowEmptyString('memo', null, 'create');
 
         $validator
             ->dateTime('received')

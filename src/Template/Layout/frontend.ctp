@@ -40,7 +40,7 @@ $transactionPendings = $session->read('Transactions.pending');
 <body>
     <div class="versionstring dev-info">
       <p class="grd_small">Community Server in Entwicklung</p>
-      <p class="grd_small">Alpha 0.4.4</p>
+      <p class="grd_small">Alpha 0.5.0</p>
     </div>
     <nav class="grd-left-bar expanded" data-topbar role="navigation">
         <div class="grd-left-bar-section">
