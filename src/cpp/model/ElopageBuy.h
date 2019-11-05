@@ -43,6 +43,7 @@ public:
 protected:
 	Poco::Int32 mIDs[ELOPAGE_BUY_MAX];
 	std::string mPayerEmail;
+	std::string mPublisherEmail;
 	bool mPayed;
 	Poco::DateTime mSuccessDate;
 	std::string mEvent;

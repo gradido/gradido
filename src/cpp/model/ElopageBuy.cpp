@@ -4,7 +4,7 @@ using namespace Poco::Data::Keywords;
 
 const static std::string g_requestFieldsNames[] = { 
 	"product[affiliate_program_id]", "publisher[id]", "order_id", "product_id", 
-	"product[price]", "payer[email]", "payment_state", "success_date", "event" };
+	"product[price]", "payer[email]", "publisher[email]", "payment_state", "success_date", "event" };
 
 ElopageBuy::ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData)
 	: mPayed(false)
@@ -27,12 +27,13 @@ ElopageBuy::ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_req
 		catch (...) {addError(new Error("ElopageBuy", "parse string to number, unknown error"));}
 	}
 	mPayerEmail = elopage_webhook_requestData.get(g_requestFieldsNames[5], "");
-	std::string payed = elopage_webhook_requestData.get(g_requestFieldsNames[6], "");
+	mPublisherEmail = elopage_webhook_requestData.get(g_requestFieldsNames[6], "");
+	std::string payed = elopage_webhook_requestData.get(g_requestFieldsNames[7], "");
 	// payment_state = paid
 	if (payed == "paid") mPayed = true;
 	
-	mSuccessDate = parseElopageDate(elopage_webhook_requestData.get(g_requestFieldsNames[7], ""));
-	mEvent = elopage_webhook_requestData.get(g_requestFieldsNames[8], "");
+	mSuccessDate = parseElopageDate(elopage_webhook_requestData.get(g_requestFieldsNames[8], ""));
+	mEvent = elopage_webhook_requestData.get(g_requestFieldsNames[9], "");
 }
 
 ElopageBuy::~ElopageBuy()
@@ -54,11 +55,11 @@ Poco::Data::Statement ElopageBuy::insertIntoDB(Poco::Data::Session session)
 
 	lock();
 	insert << "INSERT INTO " << getTableName()
-		<< " (affiliate_program_id, publisher_id, order_id, product_id, product_price, payer_email, payed, success_date, event) "
-		<< " VALUES(?,?,?,?,?,?,?,?,?)"
+		<< " (affiliate_program_id, publisher_id, order_id, product_id, product_price, payer_email, publisher_email, payed, success_date, event) "
+		<< " VALUES(?,?,?,?,?,?,?,?,?,?)"
 		, bind(mIDs[ELOPAGE_BUY_AFFILIATE_PROGRAM_ID]), bind(mIDs[ELOPAGE_BUY_PUBLISHER_ID])
 		, bind(mIDs[ELOPAGE_BUY_ORDER_ID]), bind(mIDs[ELOPAGE_BUY_PRODUCT_ID]), bind(mIDs[ELOPAGE_BUY_PRODUCT_PRICE])
-		, bind(mPayerEmail), bind(mPayed), bind(mSuccessDate), bind(mEvent);
+		, bind(mPayerEmail), bind(mPublisherEmail), bind(mPayed), bind(mSuccessDate), bind(mEvent);
 	unlock();
 	return insert;
 
