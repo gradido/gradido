@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 
 namespace Model\Transactions;
@@ -9,7 +8,7 @@ class TransactionBase {
     private $errors = [];
   
     public function getErrors() {
-      return errors;
+      return $this->errors;
     }
 
     public function addError($functionName, $errorName) {
@@ -41,12 +40,4 @@ class TransactionBase {
       
       return NULL;
     }
-=======
-<?php
-
-namespace Model\Transactions;
-
-class TransactionBase {
-  
->>>>>>> bcb8f1761e3eb94f89e9d2c4e70ab096e528e6c6
 }
