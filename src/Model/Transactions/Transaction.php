@@ -19,11 +19,19 @@ class Transaction extends TransactionBase {
     private $mTransactionBody = null;
   
     public function __construct($base64Data) {
-        $transactionBin = base64_decode($base64Data, true);
-        
+        //$transactionBin = base64_decode($base64Data, true);
+        //if($transactionBin == false)
+      //sodium_base64_VARIANT_URLSAFE_NO_PADDING
+        try {
+          $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        } catch(\SodiumException $e) {
+          $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+          return;
+        }
+        //*/
         if($transactionBin == false) {
           //$this->addError('base64 decode failed');
-          $this->addError('Transaction', 'base64 decode error');
+          $this->addError('Transaction', 'base64 decode error: ' . $base64Data);
         } else {
           $this->mProtoTransaction = new \Model\Messages\Gradido\Transaction();
           try {
@@ -52,7 +60,14 @@ class Transaction extends TransactionBase {
     }
     
     public function validate() {
-        $sigPairs = $this->mProtoTransaction->getSigMap()->getSigPair();
+        $sigMap = $this->mProtoTransaction->getSigMap();
+        if(!$sigMap) {
+          $this->addError('Transaction', 'signature map is zero');
+          return false;
+        }
+        //var_dump($sigMap);
+        //die();
+        $sigPairs = $sigMap->getSigPair();
         $bodyBytes = $this->mProtoTransaction->getBodyBytes();
         
         
@@ -98,7 +113,7 @@ class Transaction extends TransactionBase {
       //signature     pubkey
       
       $sigPairs = $this->mProtoTransaction->getSigMap()->getSigPair();
-      echo "sigPairs: "; var_dump($sigPairs);
+      //echo "sigPairs: "; var_dump($sigPairs);
       $signatureEntitys = [];
       foreach($sigPairs as $sigPair) {
           $signatureEntity = $transactionsSignaturesTable->newEntity();

@@ -11,7 +11,15 @@ class TransactionBody extends TransactionBase {
   
   public function __construct($bodyBytes) {
     $this->mProtoTransactionBody = new \Model\Messages\Gradido\TransactionBody();
-    $this->mProtoTransactionBody->mergeFromString($bodyBytes);
+    try {
+      $this->mProtoTransactionBody->mergeFromString($bodyBytes);
+      // cannot catch Exception with cakePHP, I don't know why
+    } catch(\Google\Protobuf\Internal\GPBDecodeException $e) {
+      //var_dump($e);
+      $this->addError('TransactionBody', $e->getMessage());
+      return;
+    }
+    
     switch($this->mProtoTransactionBody->getData()) {
       case 'creation' : $this->mSpecificTransaction = new TransactionCreation($this->mProtoTransactionBody->getCreation()); break;
       case 'transfer' : $this->mSpecificTransaction = new TransactionTransfer($this->mProtoTransactionBody->getTransfer()); break;
@@ -20,7 +28,7 @@ class TransactionBody extends TransactionBase {
   
   public function validate($sigPairs) {
     // check if creation time is in the past
-    if($this->mProtoTransactionBody->getCreated() > time()) {
+    if($this->mProtoTransactionBody->getCreated()->getSeconds() > time()) {
       $this->addError('TransactionBody::validate', 'Transaction were created in the past!');
       return false;
     }

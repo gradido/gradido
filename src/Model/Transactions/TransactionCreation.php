@@ -40,22 +40,36 @@ class TransactionCreation extends TransactionBase {
       }
       
       // check if creation threshold for this month isn't reached
+      
+      //$identHashBin = sprintf("%0d", $this->getIdentHash());
+      // padding with zero in case hash is smaller than 32 bytes, static length binary field in db
+      $identHashBin = pack('a32', $this->getIdentHash());
+      
       $existingCreations = $this->transactionCreationsTable
               ->find('all')
               ->group('ident_hash')
-              ->where(['ident_hash' => $this->getIdentHash()]);
+              ->where(['ident_hash' => $identHashBin]);
       $existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
-      debug($existingCreations);
+      $existingCreations->matching('Transactions', function ($q) {
+          return $q->where(['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())']);
+      });
+      //debug($existingCreations);
       if($existingCreations->count() > 0) {
-        var_dump($existingCreations->toArray());
-      }
+        //var_dump($existingCreations->toArray());
+        //echo "amount sum: " . $existingCreations->first()->amount_sum . "\n"; 
+        if($this->getAmount() + $existingCreations->first()->amount_sum > 10000000) {
+          $this->addError('TransactionCreation::validate', 'Creation more than 1000 gr per Month not allowed');
+          return false;
+        }
+      } 
+      //die("\n");
       return true;
     }
     
-    public function save($transaction_id, $firstPublic) {
+    public function save($transaction_id, $firstPublic) 
+    {
       
       $transactionCreationEntity = $this->transactionCreationsTable->newEntity();
-      
       $transactionCreationEntity->transaction_id = $transaction_id;
       
       // state user id
@@ -72,7 +86,12 @@ class TransactionCreation extends TransactionBase {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
         return false;
       }
-            
+      $receiverUser = $this->getStateUserId($this->getReceiverPublic());
+      // update state balance
+      if(!$this->updateStateBalance($receiverUser, $this->getAmount())) {
+        return false;
+      }
+      
       return true;
     }
             

@@ -21,7 +21,7 @@ class DashboardController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow('index');
+        $this->Auth->allow(['index', 'errorHttpRequest']);
     }
     /**
      * Index method
@@ -58,8 +58,11 @@ class DashboardController extends AppController
               $loginServer = Configure::read('LoginServer');
               $url = $loginServer['host'] . ':' . $loginServer['port'];
               //$url = 'http://***REMOVED***';
+              $requestStart = microtime(true);
               $response = $http->get($url . '/login', ['session_id' => $session_id]);
               $json = $response->getJson();
+              $requestEnd = microtime(true);
+              
 
               if(isset($json) && count($json) > 0) {
 
@@ -70,13 +73,18 @@ class DashboardController extends AppController
                     if($key === 'state') { continue; }
                     $session->write('StateUser.' . $key, $value );
                   }
+                  
                   $transactionPendings = $json['Transaction.pending'];
-                  $session->write('Transaction.pending', $transactionPendings);
+                  //echo "read transaction pending: $transactionPendings<br>";
+                  $session->write('Transactions.pending', $transactionPendings);
                   $session->write('session_id', $session_id);
                   $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
                   if($json['user']['public_hex'] != '') {
                     $public_key_bin = hex2bin($json['user']['public_hex']);
-                    $stateUserQuery = $stateUserTable->find('all')->where(['public_key' => $public_key_bin]);
+                    $stateUserQuery = $stateUserTable
+                            ->find('all')
+                            ->where(['public_key' => $public_key_bin])
+                            ->contain(['StateBalances']);
                     if($stateUserQuery->count() == 1) {
                       $stateUser = $stateUserQuery->first();
                       if($stateUser->first_name != $json['user']['first_name'] ||
@@ -87,7 +95,11 @@ class DashboardController extends AppController
                           $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
                         }
                       }
-                      $session->write('StateUser.id', $stateUser['id']);
+                      //var_dump($stateUser);
+                      if(count($stateUser->state_balances) > 0) {
+                        $session->write('StateUser.balance', $stateUser->state_balances[0]->amount);
+                      }
+                      $session->write('StateUser.id', $stateUser->id);
                       //echo $stateUser['id'];
                     } else {
                       $newStateUser = $stateUserTable->newEntity();
@@ -109,6 +121,7 @@ class DashboardController extends AppController
                 $this->set('user', $json['user']);
                 //$this->set('json', $json);
                 $this->set('timeUsed', microtime(true) - $startTime);
+                $this->set('requestTime', $requestEnd - $requestStart);
                 
                 } else {
                   if($json['state'] === 'not found' ) {
@@ -124,7 +137,7 @@ class DashboardController extends AppController
             } catch(\Exception $e) {
               $msg = $e->getMessage();
               $this->Flash->error(__('error http request: ') . $msg);
-
+              return $this->redirect(['controller' => 'Dashboard', 'action' => 'errorHttpRequest']);
               //continue;
             }
           } else {
@@ -138,6 +151,13 @@ class DashboardController extends AppController
           // no login
           return $this->redirect(Router::url('/', true) . 'account/', 303);
         }
+    }
+    
+    public function errorHttpRequest()
+    {
+      $startTime = microtime(true);
+      $this->viewBuilder()->setLayout('frontend');
+      $this->set('timeUsed', microtime(true) - $startTime);
     }
 
     

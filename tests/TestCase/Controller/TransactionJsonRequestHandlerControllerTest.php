@@ -30,7 +30,9 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
     ];
     
     public $transactions = [
-        'valid' => 'CgpIYWxsbyBXZWx0EgYIyfSG7gVKLwonCiCboKikqwjZfes9xuqgthFH3',
+        'validCreation' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQJ8wF12eZo3hcMAlAKKJ9WLT-zuSkNmGh7D98UEqH4KoIysnCkXqEya9EBZl9o11_nJ8xmm_nOevuVjR-GfLMQ8qSQoOSGFsbG8gV2VsdCAxMjMSBgiZm4ruBUovCicKIJSuE1uTzZ8zdStOVcQZA6P6oTp1u5C_1BHqHUoaXnEfEKDakwEQtYntlgo',
+        'validCreation900' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQNVZ8Ae3Zbg3G0wZ840fzKan6N4KtTcSe0KYi17kQwFmsl18oFxXv8_s6j1xXFrIKjy1_1Olq0a7xYLErDMkjwYqORIGCNb5iu4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgNHKCBC1ie2WCg',
+        'validCreation1200' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQEEey5QMAdldoOTP_jTETHgOQriGsixEY0cziQeRfT_J5YtbI_A6AizEYD-JcxmRmXzv1xjjTgsV39Y32ta2CQkqORIGCIeGi-4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgOy4CxC1ie2WCg',
         'notBase64' => 'CgpIYWxsbyBXZW-0EgYIyfSG7gV_LwonCiCboKikqwjZfes9xuqgthFH3'
     ];
     
@@ -72,7 +74,7 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
     public function testNotSetMethod()
     {
       $this->postAndParse(
-              ['transaction' => $this->transactions['valid']],
+              ['transaction' => $this->transactions['validCreation']],
               ['state' => 'error', 'msg' => 'parameter error']
       );
     }
@@ -81,7 +83,7 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
     {
         //$this->post('/TransactionJsonRequestHandler', ['method' => 'putTransaction', 'transaction' => 'CgpIYWxsbyBXZWx0EgYIyfSG7gVKLwonCiCboKikqwjZfes9xuqgthFH3/cHHaWchkUhWiGhQjB23xCg2pMBELWJ7ZYK']);
       $this->postAndParse(
-              ['method' => 'foobar', 'transaction' => $this->transactions['valid']], 
+              ['method' => 'foobar', 'transaction' => $this->transactions['validCreation']], 
               ['state' => 'error', 'msg' => 'unknown method', 'details' => 'foobar']
       );
       
@@ -92,7 +94,7 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
       $this->postAndParse(
               ['method' => 'putTransaction', 'transaction' => $this->transactions['notBase64']],
               ['state' => 'error', 'msg' => 'error parsing transaction', 'details' => [
-                  ['Transaction' => 'base64 decode error']
+                  ['Transaction' => 'invalid base64 string']
               ]]
       );
     }
@@ -107,17 +109,26 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
       );
     }
     
-
-    /**
-     * Test index method
-     *
-     * @return void
-     */
-    public function testIndex()
+    public function testToLargeCreationSum()
     {
-
-        $this->postAndParse(
-                ['method' => 'putTransaction', 'transaction' => $this->transactions['valid']],
+      $this->postAndParse(
+                ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation900']],
+                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1000 gr per Month not allowed"}]}'
+        );
+    }
+    
+    public function testToLargeCreation()
+    {
+      $this->postAndParse(
+                ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation1200']],
+                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1000 gr per Month not allowed"}]}'
+        );
+    }
+    
+    public function testValidTransaction() 
+    {
+      $this->postAndParse(
+                ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation']],
                 ['state' => 'success']
         );
     }
@@ -139,7 +150,9 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
         $json = json_decode($responseBodyString);
         $this->assertNotFalse($json);
         
-        $expected = json_encode($expected);
+        if(is_array($expected)) {
+          $expected = json_encode($expected);
+        }
         $this->assertEquals($expected, $responseBodyString);
     }
 }

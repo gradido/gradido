@@ -12,6 +12,13 @@ use App\Controller\AppController;
  */
 class StateBalancesController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        //$this->Auth->allow(['add', 'edit']);
+        $this->Auth->allow(['overview']);
+    }
     /**
      * Index method
      *
@@ -25,6 +32,11 @@ class StateBalancesController extends AppController
         $stateBalances = $this->paginate($this->StateBalances);
 
         $this->set(compact('stateBalances'));
+    }
+    
+    public function overview() 
+    {
+        $this->viewBuilder()->setLayout('frontend');
     }
 
     /**

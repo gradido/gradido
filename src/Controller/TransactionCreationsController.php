@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
-use Cake\I18n\Number;
+//use Cake\I18n\Number;
 use Cake\Http\Client;
 use Cake\Core\Configure;
 
@@ -27,6 +27,7 @@ class TransactionCreationsController extends AppController
     public function initialize()
     {
         parent::initialize();
+        $this->loadComponent('GradidoNumber');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('create');
     }
@@ -99,12 +100,9 @@ class TransactionCreationsController extends AppController
           
             $pubKeyHex = '';
             $receiver = new ReceiverAmount();
-            //echo 'amount: ' . $requestData['amount'] . '<br>';
-            $floatAmount = floatval(Number::format($requestData['amount'], ['places' => 4, 'locale' => 'en_GB']));
-            //echo 'set for receiver: ' . round($floatAmount * 10000) . '<br>';
-            $receiver->setAmount(round($floatAmount * 10000));
-            //echo 'after receiver amount set<br>';
-            
+
+            $receiver->setAmount($this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']));
+
             if(intval($requestData['receiver']) == 0) {
               if(strlen($requestData['receiver_pubkey_hex']) != 64) {
                 $this->Flash->error(__('Invalid public Key, must contain 64 Character'));
@@ -119,7 +117,9 @@ class TransactionCreationsController extends AppController
               }
             }
             if($pubKeyHex != '') {
-              $receiver->setEd25519ReceiverPubkey(hex2bin($pubKeyHex));
+              $pubKeyBin = hex2bin($pubKeyHex);
+
+              $receiver->setEd25519ReceiverPubkey($pubKeyBin);
               //var_dump($requestData);
               
               $creationDate = new TimestampSeconds();

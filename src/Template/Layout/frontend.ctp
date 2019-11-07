@@ -1,5 +1,6 @@
 <?php
 use Cake\Routing\Router;
+use App\Controller\Component\GradidoNumberComponent;
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -14,9 +15,17 @@ use Cake\Routing\Router;
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
+
+
 $cakeDescription = 'Gradido';
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
+$balance = $session->read('StateUser.balance');
+//echo "balance: $balance<br>";
+if(!isset($balance)) {
+  $balance = 0;
+}
+//echo "balance: $balance<br>";
 //echo "transactions pending: " . $transactionPendings;
 ?>
 <!DOCTYPE html>
@@ -45,16 +54,22 @@ $transactionPendings = $session->read('Transactions.pending');
     <nav class="grd-left-bar expanded" data-topbar role="navigation">
         <div class="grd-left-bar-section">
             <ul class="grd-no-style">
+              <?php if(isset($balance)) : ?>
+                <li><?= $this->Html->link($this->element('printGradido', ['number' => $balance]), 
+                        ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn grd-nav-without-border', 'escape' => false])
+                    ?>
+                </li>
+              <?php endif; ?>
               <li><?= $this->Html->link(__('Startseite'), ['controller' => 'dashboard'], ['class' => 'grd-nav-bn'])?>
-              
+              <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>
-                  <a href="<?= Router::url('', true) ?>account/checkTransactions" class="grd-nav-bn">
+                  <a href="<?= Router::url('./', true) ?>account/checkTransactions" class="grd-nav-bn">
                     <?= __("Transaktionen unterzeichnen") . '&nbsp;(' . intval($transactionPendings) . ')'?>
                   </a>
                 </li>
               <?php else: ?>
-                 <li><a href="<?= Router::url('', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a></li>
+                 <li><a href="<?= Router::url('./', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a></li>
               <?php endif; ?>
             </ul>
         </div>

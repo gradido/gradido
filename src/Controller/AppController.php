@@ -15,7 +15,8 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
-use Cake\Event\Event;
+//use Cake\Event\Event;
+use Cake\ORM\TableRegistry;
 
 /**
  * Application Controller
@@ -75,6 +76,25 @@ class AppController extends Controller
          * see https://book.cakephp.org/3.0/en/controllers/components/security.html
          */
         //$this->loadComponent('Security');
+        
+        
+        // load current balance
+        $session = $this->getRequest()->getSession();
+        $state_user_id = $session->read('StateUser.id');
+        if($state_user_id) {
+          $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
+          $stateBalanceEntry = $stateBalancesTable
+                  ->find('all')
+                  ->select('amount')
+                  ->contain(false)
+                  ->where(['state_user_id' => $state_user_id]);
+          if($stateBalanceEntry->count() == 1) {
+            //var_dump($stateBalanceEntry->first());
+            $session->write('StateUser.balance', $stateBalanceEntry->first()->amount);
+            //echo "stateUser.balance: " . $session->read('StateUser.balance');
+          }
+        }
+        //echo "initialize";
     }
     /*
     public function beforeFilter(Event $event)

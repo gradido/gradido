@@ -40,4 +40,30 @@ class TransactionBase {
       
       return NULL;
     }
+    
+    protected function updateStateBalance($stateUserId, $newAmountCent) {
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
+        $stateBalanceQuery = $stateBalancesTable
+                ->find('all')
+                ->select(['amount'])
+                ->contain(false)
+                ->where(['state_user_id' => $stateUserId]);//->first();
+        //debug($stateBalanceQuery);
+        
+        if($stateBalanceQuery->count() > 0) {
+          $stateBalanceEntry = $stateBalanceEntry->first();
+          $stateBalanceEntry->amount += $newAmountCent;
+        } else {
+          $stateBalanceEntry = $stateBalancesTable->newEntity();
+          $stateBalanceEntry->state_user_id = $stateUserId;
+          $stateBalanceEntry->amount = $newAmountCent;
+        }
+        
+        if(!$stateBalancesTable->save($stateBalanceEntry)) {
+          $errors = $stateBalanceEntry->getErrors();
+          $this->addError('TransactionBase::updateStateBalance', 'error saving state balance with: ' . json_encode($errors));
+          return false;
+        }
+        return true;
+    }
 }

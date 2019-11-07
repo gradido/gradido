@@ -42,12 +42,21 @@ class StateUsersFixture extends TestFixture
         $this->records = [
             [
                 'id' => 1,
-                'index_id' => 1,
-                'group_id' => 1,
-                'public_key' => 'Lorem ipsum dolor sit amet',
-                'email' => 'Lorem ipsum dolor sit amet',
-                'first_name' => 'Lorem ipsum dolor sit amet',
-                'last_name' => 'Lorem ipsum dolor sit amet'
+                'index_id' => 0,
+                'group_id' => 0,
+                'public_key' => '0x94ae135b93cd9f33752b4e55c41903a3faa13a75bb90bfd411ea1d4a1a5e711f',
+                'email' => NULL,
+                'first_name' => 'Dario',
+                'last_name' => 'Rekowski'
+            ],
+            [
+                'id' => 11,
+                'index_id' => 0,
+                'group_id' => 0,
+                'public_key' => '0x61b923c218cb63a64a8c62f3860121283b9577f374d0a31590ba02cdc2912999',
+                'email' => NULL,
+                'first_name' => 'Dario',
+                'last_name' => 'Rekowski'
             ],
         ];
         parent::init();
