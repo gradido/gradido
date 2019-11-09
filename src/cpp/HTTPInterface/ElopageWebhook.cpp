@@ -241,6 +241,13 @@ int HandleElopageRequestTask::run()
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
 
+		printf("LastName: %s\n", mLastName.data());
+		for (int i = 0; i < mLastName.size(); i++) {
+			char c = mLastName.data()[i];
+			printf("%d ", c);
+		}
+		printf("\n\n");
+
 		// validate input
 		if (!validateInput()) {
 			// if input is invalid we can stop now
@@ -301,7 +308,8 @@ int HandleElopageRequestTask::run()
 		//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
 		ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
 		ss << std::endl;
-		ss << "Mit freundlichen Grüße" << std::endl;
+		
+		ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
 		ss << "Dario, Gradido Server Admin" << std::endl;
 
 		message->addContent(new Poco::Net::StringPartSource(ss.str()));

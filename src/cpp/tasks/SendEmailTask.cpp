@@ -4,6 +4,8 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../ServerConfig.h"
 
+#include "Poco/Net/MediaType.h"
+
 SendEmailTask::SendEmailTask(Poco::Net::MailMessage* mailMessage, UniLib::controller::CPUSheduler* cpuScheduler, size_t additionalTaskDependenceCount/* = 0*/)
 	: UniLib::controller::CPUTask(cpuScheduler, additionalTaskDependenceCount+1), mMailMessage(mailMessage)
 {
@@ -25,11 +27,14 @@ int SendEmailTask::run()
 
 	if (strcmp(parent->getResourceType(), "PrepareEmailTask") != 0) {
 		er->addError(new Error("SendEmailTask", "first parent isn't PrepareEmailTask"));
+		er->sendErrorsAsEmail();
 		return -1;
 	}
 	PrepareEmailTask* prepare = (PrepareEmailTask*)&(*parent);
 	mMailMessage->setSender(ServerConfig::g_EmailAccount.sender);
+	
 	if (prepare->send(mMailMessage)) {
+		er->sendErrorsAsEmail();
 		return -1;
 	}
 	//printf("[SendEmailTask] time: %s\n", timeUsed.string().data());

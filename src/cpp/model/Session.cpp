@@ -4,6 +4,7 @@
 
 #include "Poco/RegularExpression.h"
 #include "Poco/Net/StringPartSource.h"
+#include "Poco/Net/MediaType.h"
 
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/ConnectionManager.h"
@@ -191,8 +192,18 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	writeEmailVerification->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN, this));
 	writeEmailVerification->scheduleTask(writeEmailVerification);
 
+	printf("LastName: %s\n", last_name.data());
+	for (int i = 0; i < last_name.size(); i++) {
+		char c = last_name.data()[i];
+		printf("%d ", c);
+	}
+	printf("\n\n");
+
 	// depends on writeUser because need user_id, write email verification into db
 	auto message = new Poco::Net::MailMessage;
+	Poco::Net::MediaType mt("text", "plain");
+	mt.setParameter("charset", "utf-8");
+	message->setContentType(mt);
 
 	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, email));
 	message->setSubject("Gradido: E-Mail Verification");
@@ -203,7 +214,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
 	ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
 	ss << std::endl;
-	ss << "Mit freundlichen Grüße" << std::endl;
+	ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
 	ss << "Dario, Gradido Server Admin" << std::endl;
 	
 
