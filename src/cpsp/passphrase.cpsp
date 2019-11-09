@@ -71,7 +71,8 @@ enum PageState
 	<form method="POST" action="<%= uri_start %>/passphrase">
 		<fieldset class="grd_container_small">
 			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
-			<p>Hast du schonmal ein Gradido Konto besessen?</p>
+			<p>Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues anlegen?</p>
+			<p>*Das Konto muss nach dem 01.09.2019 angelegt worden sein.</p>
 			<p class="grd_small">
 				<input id="passphrase-new-yes" type="radio" name="passphrase" value="yes" checked/>
 				<label class="grd_radio_label" for="passphrase-new-yes">Nein, bitte ein neues erstellen!</label>

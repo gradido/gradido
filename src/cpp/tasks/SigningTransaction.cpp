@@ -91,6 +91,7 @@ int SigningTransaction::run() {
 	
 
 	// finalize
+	printf("sigpair size: %d\n", transaction.sigmap().sigpair_size());
 	std::string finalTransactionBin = transaction.SerializeAsString();
 	if (finalTransactionBin == "") {
 		addError(new Error("SigningTransaction", "error serializing final transaction"));
@@ -99,9 +100,9 @@ int SigningTransaction::run() {
 	}
 
 	// finale to base64
-	auto finalBase64Size = sodium_base64_encoded_len(finalTransactionBin.size(), sodium_base64_VARIANT_ORIGINAL);
+	auto finalBase64Size = sodium_base64_encoded_len(finalTransactionBin.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
 	auto finalBase64Bin = mm->getFreeMemory(finalBase64Size);
-	if (!sodium_bin2base64(*finalBase64Bin, finalBase64Size, (const unsigned char*)finalTransactionBin.data(), finalTransactionBin.size(), sodium_base64_VARIANT_ORIGINAL)) {
+	if (!sodium_bin2base64(*finalBase64Bin, finalBase64Size, (const unsigned char*)finalTransactionBin.data(), finalTransactionBin.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
 		addError(new Error("SigningTransaction", "error convert final transaction to base64"));
 		sendErrorsAsEmail();
 		mm->releaseMemory(finalBase64Bin);
@@ -112,8 +113,8 @@ int SigningTransaction::run() {
 
 	Poco::JSON::Object requestJson;
 	requestJson.set("method", "putTransaction");
-	requestJson.set("transaction", std::string((char*)*finalBase64Bin, finalBase64Size));
-	printf("base64 transaction: %s\n", (char*)*finalBase64Bin);
+	requestJson.set("transaction", std::string((char*)*finalBase64Bin));
+	printf("\nbase64 transaction: \n%s\n\n", (char*)*finalBase64Bin);
 	mm->releaseMemory(finalBase64Bin);
 
 	
@@ -134,32 +135,46 @@ int SigningTransaction::run() {
 		std::istream& request_stream = httpsClientSession.receiveResponse(response);
 		
 		// debugging answer
+		
 		std::stringstream responseStringStream;
 		for (std::string line; std::getline(request_stream, line); ) {
 			responseStringStream << line << std::endl;
 		}
-		//printf("server response: %s\n", responseStringStream.str().data());
-		FILE* f = fopen("response.html", "wt");
-		std::string responseString = responseStringStream.str();
-		fwrite(responseString.data(), 1, responseString.size(), f);
-		fclose(f);
-
+		
 		// extract parameter from request
 		Poco::JSON::Parser jsonParser;
 		Poco::Dynamic::Var parsedJson;
 		try {
-			parsedJson = jsonParser.parse(request_stream);
+			parsedJson = jsonParser.parse(responseStringStream.str());
 		}
 		catch (Poco::Exception& ex) {
 			//printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
 			addError(new ParamError("SigningTransaction", "error parsing request answer", ex.displayText().data()));
-			sendErrorsAsEmail();
+
+			FILE* f = fopen("response.html", "wt");
+			std::string responseString = responseStringStream.str();
+			fwrite(responseString.data(), 1, responseString.size(), f);
+			fclose(f);
+		//	*/
+			sendErrorsAsEmail(responseStringStream.str());
 			return -9;
 		}
 
-		if (parsedJson.isStruct()) {
-
+		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
+		auto state = object.get("state");
+		std::string stateString = state.convert<std::string>();
+		if (stateString == "error") {
+			addError(new Error("SigningTransaction", "php server return error"));
+			if (!object.isNull("msg")) {
+				addError(new ParamError("SigningTransaction", "msg:", object.get("msg").convert<std::string>().data()));
+			}
+			if (!object.isNull("details")) {
+				addError(new ParamError("SigningTransaction", "details:", object.get("details").convert<std::string>().data()));
+			}
+			sendErrorsAsEmail();
+			return -10;
 		}
+		printf("state: %s\n", stateString.data());
 		int zahl = 1;
 	}
 	catch (Poco::Exception& e) {

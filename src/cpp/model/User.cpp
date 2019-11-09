@@ -786,8 +786,14 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	//binArrayObj = new BinaryArray(crypto_sign_BYTES);
 	auto mm = MemoryManager::getInstance();
 	//auto signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
-	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
 	auto privKey = getPrivKey();
+	if (!privKey) {
+		addError(new Error("User::sign", "decrypt privkey failed"));
+		return nullptr;
+	}
+
+	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
+	
 	size_t actualSignLength = 0;
 
 	if (crypto_sign_detached(*signBinBuffer, &actualSignLength, message, messageSize, *privKey)) {

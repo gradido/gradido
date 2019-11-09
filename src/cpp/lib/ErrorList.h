@@ -43,7 +43,7 @@ public:
 	void printErrors();
 	std::string getErrorsHtml();
 
-	void sendErrorsAsEmail();
+	void sendErrorsAsEmail(std::string rawHtml = "");
 
 protected:
 	std::stack<Error*> mErrorStack;

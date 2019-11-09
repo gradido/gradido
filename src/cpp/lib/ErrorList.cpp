@@ -119,7 +119,7 @@ std::string ErrorList::getErrorsHtml()
 }
 
 
-void ErrorList::sendErrorsAsEmail()
+void ErrorList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 {
 	auto message = new Poco::Net::MailMessage();
 	message->setSender("gradido_loginServer@gradido.net");
@@ -135,6 +135,9 @@ void ErrorList::sendErrorsAsEmail()
 	}
 	
 	message->addContent(new Poco::Net::StringPartSource(content));
+	if (rawHtml != "") {
+		message->addContent(new Poco::Net::StringPartSource(rawHtml));
+	}
 	UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
 	sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
 
