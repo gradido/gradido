@@ -794,7 +794,7 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 
 	auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
 	
-	size_t actualSignLength = 0;
+	unsigned long long actualSignLength = 0;
 
 	if (crypto_sign_detached(*signBinBuffer, &actualSignLength, message, messageSize, *privKey)) {
 		addError(new Error("User::sign", "sign failed"));
