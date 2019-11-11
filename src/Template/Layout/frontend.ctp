@@ -20,6 +20,7 @@ use App\Controller\Component\GradidoNumberComponent;
 $cakeDescription = 'Gradido';
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
+$errorCount = intval($session->read('StateUser.errorCount'));
 $balance = $session->read('StateUser.balance');
 //echo "balance: $balance<br>";
 if(!isset($balance)) {
@@ -60,8 +61,13 @@ if(!isset($balance)) {
                     ?>
                 </li>
               <?php endif; ?>
-              <li><?= $this->Html->link(__('Startseite'), ['controller' => 'dashboard'], ['class' => 'grd-nav-bn'])?>
+              <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard'], ['class' => 'grd-nav-bn'])?>
               <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
+              <?php if($errorCount > 0) : ?>
+              <li>
+                <?= $this->Html->Link(__('Fehler '). "($errorCount)", ['controller' => 'StateErrors', 'action' => 'showForUser'], ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
+              </li>
+              <?php endif; ?>
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>
                   <a href="<?= Router::url('./', true) ?>account/checkTransactions" class="grd-nav-bn">
@@ -79,8 +85,10 @@ if(!isset($balance)) {
       <div class="flash-messages"><?= $this->Flash->render() ?></div>
       <?= $this->fetch('content') ?>
     </div>
-    <div class="grd-time-used dev-info">
-      <?=  round($timeUsed * 1000.0, 4) ?> ms
-    </div>
+    <?php if(isset($timeUsed)) : ?>
+      <div class="grd-time-used dev-info">
+        <?=  round($timeUsed * 1000.0, 4) ?> ms
+      </div>
+    <?php endif; ?>
 </body>
 </html>

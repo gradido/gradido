@@ -12,7 +12,7 @@ use Cake\Controller\Component;
 class GradidoNumberComponent extends Component
 {
   // input can be from 0,01 or 0.01 up to big number be anything
-    static public function parseInputNumberToCentNumber($inputNumber) 
+    public function parseInputNumberToCentNumber($inputNumber) 
     {
         //$filteredInputNumber = preg_replace('/,/', '.', $inputNumber);
         $parts = preg_split('/(,|\.)/', (string)$inputNumber);
@@ -25,7 +25,7 @@ class GradidoNumberComponent extends Component
         return $result;
     }
     
-    static public function centToPrint($centAmount) 
+    public function centToPrint($centAmount) 
     {
       
     }

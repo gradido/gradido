@@ -12,6 +12,13 @@ use App\Controller\AppController;
  */
 class StateErrorsController extends AppController
 {
+  
+   public function initialize()
+    {
+        parent::initialize();
+        $this->Auth->allow(['showForUser', 'deleteForUser']);
+    }
+    
     /**
      * Index method
      *
@@ -26,6 +33,50 @@ class StateErrorsController extends AppController
 
         $this->set(compact('stateErrors'));
     }
+    
+    public function showForUser() 
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend');
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        if(!$user) {
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
+        }
+        
+        $errors = $this->StateErrors->find('all')->where(['state_user_id' => $user['id']])->contain(false);
+        $transactionTypes = $this->StateErrors->TransactionTypes->find('all')->select(['id', 'name', 'text']);
+        
+        $this->set('errors', $errors);
+        $this->set('transactionTypes', $transactionTypes->toList());
+        $this->set('timeUsed', microtime(true) - $startTime);
+    }
+    
+    public function deleteForUser($id = null)
+    {
+        $this->request->allowMethod(['post', 'delete', 'get']);
+        $stateError = $this->StateErrors->get($id);
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        if($user['id'] != $stateError->state_user_id) {
+            $this->Flash->error(__('Error belongs to another User, cannot delete'));
+        }
+        else if ($this->StateErrors->delete($stateError)) {
+            $this->Flash->success(__('The state error has been deleted.'));
+        } else {
+            $this->Flash->error(__('The state error could not be deleted. Please, try again.'));
+        }
+        $errors = $this->StateErrors->find('all')->where(['state_user_id' => $user['id']])->contain(false);
+        if($errors->count() == 0) {
+          return $this->redirect(['controller' => 'Dashboard']);
+        }
+        return $this->redirect(['action' => 'showForUser']);
+    }
+            
 
     /**
      * View method

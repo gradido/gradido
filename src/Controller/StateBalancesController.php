@@ -36,7 +36,10 @@ class StateBalancesController extends AppController
     
     public function overview() 
     {
+        $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
+        
+        $this->set('timeUsed', microtime(true) - $startTime);
     }
 
     /**

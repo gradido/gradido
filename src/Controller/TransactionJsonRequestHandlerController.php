@@ -47,14 +47,14 @@ class TransactionJsonRequestHandlerController extends AppController {
         return $this->returnJson(['state' => 'error', 'msg' => 'error parsing transaction', 'details' => $transaction->getErrors()]);
       }
       if(!$transaction->validate()) {
-        return $this->returnJson(['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
+        return $this->returnJsonSaveError($transaction, ['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
       }
       
       if ($transaction->save()) {
         // success
         return $this->returnJson(['state' => 'success']);
       } else {
-        return $this->returnJson([
+        return $this->returnJsonSaveError($transaction, [
             'state' => 'error', 
             'msg' => 'error saving transaction in db', 
             'details' => json_encode($transaction->getErrors())
@@ -64,5 +64,24 @@ class TransactionJsonRequestHandlerController extends AppController {
       return $this->returnJson(['state' => 'success']);
     }
     
+    
+    private function returnJsonSaveError($transaction, $errorArray) {
+      $json = json_encode($errorArray);
+      $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+      $pub = $transaction->getFirstPublic();
+      $stateUserQuery = $stateUserTable
+                            ->find('all')
+                            ->where(['public_key' => $pub])
+                            ->contain(false);
+      if($stateUserQuery->count() == 1) {
+        $stateErrorsTable = TableRegistry::getTableLocator()->get('StateErrors');
+        $stateErrorEntity = $stateErrorsTable->newEntity();
+        $stateErrorEntity->state_user_id = $stateUserQuery->first()->id;
+        $stateErrorEntity->transaction_type_id = $transaction->getTransactionBody()->getTransactionTypeId();
+        $stateErrorEntity->message_json = $json;
+        $stateErrorsTable->save($stateErrorEntity);
+      }
+      return $this->returnJsonEncoded($json);
+    }
     
 }

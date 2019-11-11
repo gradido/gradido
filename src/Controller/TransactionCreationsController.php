@@ -70,7 +70,12 @@ class TransactionCreationsController extends AppController
         $user = $session->read('StateUser');
 //        var_dump($user);
         if(!$user) {
-          return $this->redirect(Router::url('/', true) . 'account/', 303);
+          //return $this->redirect(Router::url('/', true) . 'account/', 303);
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
         }
         $creationForm = new CreationForm();
         $transactionCreation = $this->TransactionCreations->newEntity();

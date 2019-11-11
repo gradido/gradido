@@ -8,6 +8,7 @@ class TransactionBody extends TransactionBase {
   private $mProtoTransactionBody = null;
   private $mSpecificTransaction = null;
   private $mTransactionID = 0;
+  private $transactionTypeId = 0;
   
   public function __construct($bodyBytes) {
     $this->mProtoTransactionBody = new \Model\Messages\Gradido\TransactionBody();
@@ -27,6 +28,18 @@ class TransactionBody extends TransactionBase {
   }
   
   public function validate($sigPairs) {
+    
+    // transaction type id
+    $transactionTypesTable = TableRegistry::getTableLocator()->get('transaction_types');
+
+    $typeName = $this->getTransactionTypeName();
+    $transactionType = $transactionTypesTable->find('all')->where(['name' => $typeName])->select(['id'])->first();
+    if($transactionType == NULL) {
+      $this->addError('TransactionBody::validate', 'zero type id for type: ' . $typeName);
+      return false;
+    }
+    $this->transactionTypeId = $transactionType->id;
+      
     // check if creation time is in the past
     if($this->mProtoTransactionBody->getCreated()->getSeconds() > time()) {
       $this->addError('TransactionBody::validate', 'Transaction were created in the past!');
@@ -36,6 +49,9 @@ class TransactionBody extends TransactionBase {
       $this->addErrors($this->mSpecificTransaction->getErrors());
       return false;
     }
+    
+    
+      
     return true;
   }
   
@@ -56,16 +72,8 @@ class TransactionBody extends TransactionBase {
       $transactionsTable = TableRegistry::getTableLocator()->get('transactions');
       $transactionEntity = $transactionsTable->newEntity();
       
-      // transaction type id
-      $transactionTypesTable = TableRegistry::getTableLocator()->get('transaction_types');
       
-      $typeName = $this->getTransactionTypeName();
-      $transactionType = $transactionTypesTable->find('all')->where(['name' => $typeName])->select(['id'])->first();
-      if($transactionType == NULL) {
-        $this->addError('TransactionBody::save', 'zero type id for type: ' . $typeName);
-        return false;
-      }
-      $transactionEntity->transaction_type_id = $transactionType->id;
+      $transactionEntity->transaction_type_id = $this->transactionTypeId;
       $transactionEntity->memo = $this->getMemo();
       
       if ($transactionsTable->save($transactionEntity)) {
@@ -86,5 +94,8 @@ class TransactionBody extends TransactionBase {
     return $this->mTransactionID;
   }
   
+  public function getTransactionTypeId() {
+    return $this->transactionTypeId;
+  }
   
 }
