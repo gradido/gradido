@@ -68,7 +68,7 @@ void Gradido_LoginServer::displayHelp()
 	Poco::Util::HelpFormatter helpFormatter(options());
 	helpFormatter.setCommand(commandName());
 	helpFormatter.setUsage("OPTIONS");
-	helpFormatter.setHeader("A web server that shows how to work with HTML forms.");
+	helpFormatter.setHeader("Gradido Login Server");
 	helpFormatter.format(std::cout);
 }
 

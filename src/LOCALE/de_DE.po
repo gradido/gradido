@@ -1,0 +1,60 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-12 15:55+0100\n"
+"PO-Revision-Date: 2019-11-12 15:57+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de_DE\n"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:46
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:62
+msgid "Login"
+msgstr "Anmeldung"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:46
+msgid "E-Mail or password isn't right, please try again!"
+msgstr "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:49
+msgid "Account"
+msgstr "Konto"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:49
+msgid "E-Mail Address not checked, do you already get one?"
+msgstr "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:62
+msgid "Username and password are needed!"
+msgstr "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:78
+msgid "Please give you email and password for login."
+msgstr "Bitte gebe deine Zugangsdaten ein um dich einzuloggen."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:80
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:84
+msgid "Password"
+msgstr "Passwort"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:90
+msgid "You haven't any account yet? Please follow the link to create one."
+msgstr "Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:91
+msgid "Create New Account"
+msgstr "Neuen Account anlegen"

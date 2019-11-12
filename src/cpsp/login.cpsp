@@ -4,11 +4,11 @@
 <%@ header include="PageRequestMessagedHandler.h" %>
 <%@	page compressed="true" %>
 <%! 
+#include "gettext.h"
 
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Logger.h"
-
 #include "../SingletonManager/SessionManager.h"
 	
 %>
@@ -43,10 +43,10 @@
 			switch(userState) {
 			case USER_EMPTY: 
 			case USER_PASSWORD_INCORRECT:
-				addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
+				addError(new Error(gettext("Login"), gettext("E-Mail or password isn't right, please try again!")));
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				session->addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
+				session->addError(new Error(gettext("Account"), gettext("E-Mail Address not checked, do you already get one?")));
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
@@ -59,7 +59,7 @@
 			}
 			
 		} else {
-			addError(new Error("Login", "Benutzernamen und Passwort m&uuml;ssen angegeben werden!"));
+			addError(new Error(gettext("Login"), gettext("Username and password are needed!")));
 		}
 		
 	} else {
@@ -75,20 +75,20 @@
 		<%= getErrorsHtml() %>
 		<fieldset class="grd_container_small">
 			<legend>Login</legend>
-			<p>Bitte gebe deine Zugangsdaten ein um dich einzuloggen.</p>
+			<p><%= gettext("Please give you email and password for login.") %></p>
 			<p class="grd_small">
-				<label for="login-email">E-Mail</label>
+				<label for="login-email"><%= gettext("E-Mail") %></label>
 				<input id="login-email" type="text" name="login-email"/>
 			</p>
 			<p class="grd_small">
-				<label for="login-password">Passwort</label>
+				<label for="login-password"><%= gettext("Password") %></label>
 				<input id="login-password" type="password" name="login-password"/>
 			</p>
 			
 		</fieldset>
 		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Einloggen">
-		<p>Du hast noch keinen Account? Dann folge dem Link um dir einen anzulegen</p>
-		<a href="https://gradido.com">Neuen Account anlegen</a>
+		<p><%= gettext("You haven't any account yet? Please follow the link to create one.") %></p>
+		<a href="https://gradido.com"><%= gettext("Create New Account") %></a>
 	</div>
 	
 </form>

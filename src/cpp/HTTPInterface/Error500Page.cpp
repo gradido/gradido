@@ -5,11 +5,11 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 6 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  
 #include <Poco/Net/HTTPResponse.h>
 	
-#line 1 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
  
 #include "../ServerConfig.h"	
 
@@ -32,7 +32,7 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
-#line 10 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
 
 	const char* pageName = "Error";
 	response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
@@ -48,12 +48,12 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -103,7 +103,7 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
-#line 58 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\header.cpsp"
+#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
 	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
@@ -114,24 +114,24 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\n";
 	responseStream << "\t<h1>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h1>\n";
 	responseStream << "\t";
-#line 19 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 19 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  if(mSession) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 20 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 21 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 22 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  if(!user.isNull()) {	responseStream << "\n";
 	responseStream << "\t\t";
-#line 23 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
 	responseStream << ( user->getErrorsHtml() );
 	responseStream << " \n";
 	responseStream << "\t";
-#line 24 "I:\\Code\\C++\\Eigene_Projekte\\Gradido_LoginServer\\src\\cpsp\\Error500.cpsp"
+#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</body>\n";
 	responseStream << "</html>\n";
