@@ -4,7 +4,7 @@
 <%@ header include="PageRequestMessagedHandler.h" %>
 <%@	page compressed="true" %>
 <%! 
-#include "gettext.h"
+#include "../gettext.h"
 
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"

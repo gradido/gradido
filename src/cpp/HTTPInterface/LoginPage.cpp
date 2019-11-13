@@ -7,7 +7,7 @@
 
 #line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
  
-#include "gettext.h"
+#include "../gettext.h"
 
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
