@@ -10,3 +10,6 @@
 [submodule "dependencies/iroha-ed25519"]
 	path = dependencies/iroha-ed25519
 	url = ssh://git@***REMOVED***/~/Forks/iroha-ed25519.git
+[submodule "dependencies/spirit-po"]
+	path = dependencies/spirit-po
+	url = https://github.com/cbeck88/spirit-po.git

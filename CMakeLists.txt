@@ -10,6 +10,7 @@ include_directories(
 	"dependencies/iroha-ed25519/include"
 	"dependencies/mariadb-connector-c/include"
 	"dependencies/mariadb-connector-c/build/include"
+	"dependencies/spirit-po/include"
 	#"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/include"
 	#"import/mariadb/include"

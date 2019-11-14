@@ -14,6 +14,7 @@ ErrorManager* ErrorManager::getInstance()
 }
 
 ErrorManager::ErrorManager()
+	: mLogging(Poco::Logger::get("errorLog"))
 {
 
 }
@@ -36,7 +37,10 @@ void ErrorManager::addError(Error* error)
 	auto it = mErrorsMap.find(id);
 	std::list<Error*>* list = nullptr;
 
-	printf("[ErrorManager::addError] error with function: %s, %s\n", error->getFunctionName(), error->getMessage());
+	//printf("[ErrorManager::addError] error with function: %s, %s\n", error->getFunctionName(), error->getMessage());
+	mLogging.error("[ErrorManager::addError] error with function: %s, %s", 
+		std::string(error->getFunctionName()), std::string(error->getMessage())
+	);
 
 	if (it == mErrorsMap.end()) {
 		list = new std::list<Error *>;

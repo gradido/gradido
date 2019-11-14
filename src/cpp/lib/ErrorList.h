@@ -17,6 +17,7 @@
 
 #include "Poco/Net/SecureSMTPClientSession.h"
 #include "Poco/Net/StringPartSource.h"
+#include "Poco/Logger.h"
 
 class ErrorList : public IErrorCollection
 {
@@ -47,6 +48,8 @@ public:
 
 protected:
 	std::stack<Error*> mErrorStack;
+	// poco logging
+	Poco::Logger& mLogging;
 };
 
 class SendErrorMessage : public UniLib::controller::CPUTask

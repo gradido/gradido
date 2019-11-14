@@ -42,6 +42,8 @@ namespace ServerConfig {
 	std::string g_php_serverHost;
 	Poco::Mutex g_TimeMutex;
 
+
+
 	bool loadMnemonicWordLists()
 	{
 		for (int i = 0; i < MNEMONIC_MAX; i++) {

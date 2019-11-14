@@ -16,6 +16,8 @@ int main(int argc, char** argv)
 	}
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 
+	
+	
 	Gradido_LoginServer app;
 	return app.run(argc, argv);
 }

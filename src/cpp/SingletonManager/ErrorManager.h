@@ -20,6 +20,7 @@
 #include "../tasks/CPUTask.h"
 
 #include "Poco/Mutex.h"
+#include "Poco/Logger.h"
 #include "Poco/Net/MailMessage.h"
 
 
@@ -45,6 +46,8 @@ protected:
 	std::map<DHASH, std::list<Error*>*> mErrorsMap;
 	// how many errors should be stored
 
+	// poco logging
+	Poco::Logger& mLogging;
 };
 
 

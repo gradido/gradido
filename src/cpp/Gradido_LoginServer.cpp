@@ -15,6 +15,7 @@
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Environment.h"
 #include "Poco/Logger.h"
+#include "Poco/Path.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/ConsoleChannel.h"
@@ -72,6 +73,22 @@ void Gradido_LoginServer::displayHelp()
 	helpFormatter.format(std::cout);
 }
 
+void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::string filePath)
+{
+	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
+	Poco::AutoPtr<Poco::SimpleFileChannel> logFileChannel(new Poco::SimpleFileChannel(filePath));
+	logFileChannel->setProperty("rotation", "500 K");
+	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
+	logSplitter->addChannel(logConsoleChannel);
+	logSplitter->addChannel(logFileChannel);
+
+	Poco::AutoPtr<Poco::AsyncChannel> logAsyncChannel(new Poco::AsyncChannel(logSplitter));
+
+	Poco::Logger& log = Poco::Logger::get(name);
+	log.setChannel(logAsyncChannel);
+	log.setLevel("information");
+}
+
 int Gradido_LoginServer::main(const std::vector<std::string>& args)
 {
 	Profiler usedTime;
@@ -81,16 +98,53 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	}
 	else
 	{
+		// ********** logging ************************************
+		std::string log_Path = "/var/log/grd_login/";
+#ifdef _WIN32 || _WIN64
+		log_Path = "./";
+#endif
+
+		// init speed logger
+		Poco::AutoPtr<Poco::SimpleFileChannel> speedLogFileChannel(new Poco::SimpleFileChannel(log_Path + "speedLog.txt"));
+		/*
+		The optional log file rotation mode:
+		never:      no rotation (default)
+		<n>:  rotate if file size exceeds <n> bytes
+		<n> K:     rotate if file size exceeds <n> Kilobytes
+		<n> M:    rotate if file size exceeds <n> Megabytes
+		*/
+		speedLogFileChannel->setProperty("rotation", "500 K");
+		Poco::AutoPtr<Poco::AsyncChannel> speedLogAsyncChannel(new Poco::AsyncChannel(speedLogFileChannel));
+
+		Poco::Logger& speedLogger = Poco::Logger::get("SpeedLog");
+		speedLogger.setChannel(speedLogAsyncChannel);
+		speedLogger.setLevel("information");
+
+		// logging for request handling
+		createConsoleFileAsyncLogger("requestLog", log_Path + "requestLog.txt");
+
+		// error logging
+		createConsoleFileAsyncLogger("errorLog", log_Path + "errorLog.txt");
+		Poco::Logger& errorLog = Poco::Logger::get("errorLog");
+
+		// *************** load from config ********************************************
+
+		std::string cfg_Path = Poco::Path::config() + "grd_login/";
+		loadConfiguration(cfg_Path + "grd_login.properties");
+
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
 		unsigned short json_port = (unsigned short)config().getInt("JSONServer.port", 1201);
+
 	
 		// load word lists
 		if (!ServerConfig::loadMnemonicWordLists()) {
-			printf("[Gradido_LoginServer::%s] error loading mnemonic Word List\n", __FUNCTION__);
+			//printf("[Gradido_LoginServer::%s] error loading mnemonic Word List\n", __FUNCTION__);
+			errorLog.error("[Gradido_LoginServer::main] error loading mnemonic Word List");
 			return Application::EXIT_CONFIG;
 		}
 		if (!ServerConfig::initServerCrypto(config())) {
-			printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
+			//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
+			errorLog.error("[Gradido_LoginServer::main] error init server crypto");
 			return Application::EXIT_CONFIG;
 		}
 
@@ -102,22 +156,6 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// start cpu scheduler
 		uint8_t worker_count = Poco::Environment::processorCount() * 2;
-
-		// init speed logger
-		Poco::AutoPtr<Poco::SimpleFileChannel> speedLogFileChannel(new Poco::SimpleFileChannel("speedLog.txt"));
-		/*
-			The optional log file rotation mode:
-			never:      no rotation (default)
-			<n>:  rotate if file size exceeds <n> bytes
-			<n> K:     rotate if file size exceeds <n> Kilobytes
-			<n> M:    rotate if file size exceeds <n> Megabytes
-		*/
-		speedLogFileChannel->setProperty("rotation", "500 K");
-		Poco::AutoPtr<Poco::AsyncChannel> speedLogAsyncChannel(new Poco::AsyncChannel(speedLogFileChannel));
-
-		Poco::Logger& speedLogger = Poco::Logger::get("SpeedLog");
-		speedLogger.setChannel(speedLogAsyncChannel);
-		speedLogger.setLevel("information");
 
 		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
@@ -139,23 +177,12 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		Poco::Net::initializeSSL();
 		if(!ServerConfig::initSSLClientContext()) {
-			printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
+			//printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
+			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client\n");
 			return Application::EXIT_CONFIG;
 		}
 
-		// logging for request handling
-		Poco::AutoPtr<Poco::ConsoleChannel> requestLogConsoleChannel(new Poco::ConsoleChannel);
-		Poco::AutoPtr<Poco::SimpleFileChannel> requestLogFileChannel(new Poco::SimpleFileChannel("requestLog.txt"));
-		requestLogFileChannel->setProperty("rotation", "500 K");
-		Poco::AutoPtr<Poco::SplitterChannel> requestLogSplitter(new Poco::SplitterChannel);
-		requestLogSplitter->addChannel(requestLogConsoleChannel);
-		requestLogSplitter->addChannel(requestLogFileChannel);
-
-		Poco::AutoPtr<Poco::AsyncChannel> requestLogAsyncChannel(new Poco::AsyncChannel(requestLogSplitter));
 		
-		Poco::Logger& requestLog = Poco::Logger::get("requestLog");
-		requestLog.setChannel(requestLogAsyncChannel);
-		requestLog.setLevel("information");
 
 		// HTTP Interface Server
 		// set-up a server socket

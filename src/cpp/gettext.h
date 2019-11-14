@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-static inline char *gettext (const char *__msgid)
+static inline const char *gettext (const char *__msgid)
 {
   return __msgid;
 }

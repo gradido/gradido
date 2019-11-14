@@ -38,6 +38,7 @@ int SendErrorMessage::run()
 
 
 ErrorList::ErrorList()
+	: mLogging(Poco::Logger::get("errorLog"))
 {
 
 }
@@ -52,6 +53,9 @@ ErrorList::~ErrorList()
 
 void ErrorList::addError(Error* error)
 {
+	mLogging.error("[ErrorList::addError] error with function: %s, %s",
+		std::string(error->getFunctionName()), std::string(error->getMessage())
+	);
 	mErrorStack.push(error);
 }
 

@@ -41,7 +41,6 @@ namespace ServerConfig {
 	extern std::string g_php_serverHost;
 	extern Poco::Mutex g_TimeMutex;
 
-
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
