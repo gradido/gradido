@@ -10,7 +10,7 @@
 Mnemonic::Mnemonic()
 {
 	memset(mWords, 0, 2048);
-	mWordHashIndices.resize(2048);
+//	mWordHashIndices.resize(2048);
 }
 
 Mnemonic::~Mnemonic()
@@ -21,7 +21,7 @@ Mnemonic::~Mnemonic()
 		}
 	}
 	memset(mWords, 0, 2048);
-	mWordHashIndices.clear(true);
+	mWordHashIndices.clear();
 }
 
 
@@ -54,7 +54,7 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 
 		//printf("c[Mnemonic::%s] uncompressing success\n", __FUNCTION__);
 		// fill words in array and hashList
-		int cursor = 0;
+		unsigned short cursor = 0;
 		u32 word_begin = 0, word_end = 0;
 
 		for (unsigned int i = 0; i < original_size; i++) {
@@ -87,7 +87,8 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 				//printf("word (%d): %s\n", cursor, bu);
 
 				DHASH word_hash = DRMakeStringHash(mWords[cursor]);
-				mWordHashIndices.addByHash(word_hash, (void*)cursor);
+				//mWordHashIndices.addByHash(word_hash, (void*)cursor);
+				mWordHashIndices.insert(WordHashEntry(word_hash, cursor));
 
 				word_begin = i + 1;
 				cursor++;

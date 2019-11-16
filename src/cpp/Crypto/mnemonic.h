@@ -13,6 +13,7 @@
 
 #include "../lib/DRHashList.h"
 #include <string>
+#include <map>
 
 #define PHRASE_WORD_COUNT 24
 
@@ -26,12 +27,14 @@ public:
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
 	inline const char* getWord(unsigned int index) { if (index < 2048) return mWords[index]; return nullptr; }
-	inline unsigned long getWordIndex(const char* word) { DHASH word_hash = DRMakeStringHash(word); return (long)mWordHashIndices.findByHash(word_hash); }
-	inline bool isWordExist(const std::string& word) { DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.itemExists(word_hash); }
+	inline unsigned short getWordIndex(const char* word) { DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
+	inline bool isWordExist(const std::string& word) { DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
 
 protected:
 	char* mWords[2048];
-	DRHashList mWordHashIndices;
+	//DRHashList mWordHashIndices;
+	typedef std::pair<DHASH, unsigned short> WordHashEntry;
+	std::map<DHASH, unsigned short> mWordHashIndices;
 };
 
 #endif //DR_MNEMONIC_H

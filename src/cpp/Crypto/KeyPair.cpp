@@ -132,11 +132,11 @@ std::string KeyPair::getPubkeyHex()
 	return std::string(hexString);
 }
 
-std::string KeyPair::getHex(const unsigned char* data, size_t size)
+std::string KeyPair::getHex(const unsigned char* data, Poco::UInt32 size)
 {
 	auto mm = MemoryManager::getInstance();
 	
-	size_t hexSize = size * 2 + 1;
+	Poco::UInt32 hexSize = size * 2 + 1;
 	auto hexMem = mm->getFreeMemory(hexSize);
 	//char* hexString = (char*)malloc(hexSize);
 	memset(*hexMem, 0, hexSize);

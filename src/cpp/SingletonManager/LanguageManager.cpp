@@ -5,6 +5,8 @@
 
 #include "../ServerConfig.h"
 
+#include <spirit_po/spirit_po.hpp>
+
 #include <fstream>
 
 LanguageCatalog::LanguageCatalog(Languages lang) 
@@ -51,6 +53,72 @@ void LanguageCatalog::release()
 	}
 }
 
+
+void LanguageCatalog::duplicate()
+{
+	lock();
+	mReferenceCount++;
+	unlock();
+}
+
+const char * LanguageCatalog::gettext(const char * msgid)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->gettext(msgid);
+}
+
+const char * LanguageCatalog::ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->ngettext(msgid, msgid_plural, plural);
+}
+const char * LanguageCatalog::pgettext(const char * msgctxt, const char * msgid)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->pgettext(msgctxt, msgid);
+}
+inline const char * LanguageCatalog::npgettext(const char * msgctxt, const char * msgid, const char * msgid_plural, spirit_po::uint plural)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->npgettext(msgctxt, msgid, msgid_plural, plural);
+}
+
+std::string LanguageCatalog::gettext_str(const std::string & msgid)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->gettext_str(msgid);
+}
+std::string LanguageCatalog::ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->ngettext_str(msgid, msgid_plural, plural);
+}
+std::string LanguageCatalog::pgettext_str(const std::string & msgctxt, const std::string & msgid)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->pgettext_str(msgctxt, msgid);
+}
+std::string LanguageCatalog::npgettext_str(const std::string & msgctxt, const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural)
+{
+	if (!mCatalog) {
+		return msgid;
+	}
+	return ((spirit_po::default_catalog*)(mCatalog))->npgettext_str(msgctxt, msgid, msgid_plural, plural);
+}
 
 // ******************************************************
 

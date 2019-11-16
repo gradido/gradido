@@ -14,7 +14,7 @@
 #include "Poco/Logger.h"
 
 #include "../lib/MultithreadContainer.h"
-#include <spirit_po/spirit_po.hpp>
+//#include <spirit_po/spirit_po.hpp>
 #include <list>
 
 
@@ -25,46 +25,42 @@ enum Languages {
 	LANG_NULL
 };
 
+//spirit_po::default_catalog
+namespace spirit_po {
+	//class default_catalog;
+	//using default_catalog = catalog<>;
+	typedef unsigned int uint;
+
+}
+
 class LanguageCatalog : protected UniLib::lib::MultithreadContainer
 {
-	
+
 public:
 	LanguageCatalog(Languages lang);
 	~LanguageCatalog();
 
 	// for poco auto ptr
-	void duplicate() { lock(); mReferenceCount++; unlock(); };
+	void duplicate();
 	void release();
 
 	// catalog overload api
 
-	inline const char * gettext(const char * msgid) { if (!mCatalog) return msgid; return mCatalog->gettext(msgid); }
-	inline const char * ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural) { 
-		return mCatalog->ngettext(msgid, msgid_plural, plural); 
-	}
-	inline const char * pgettext(const char * msgctxt, const char * msgid) {
-		return mCatalog->pgettext(msgctxt, msgid);
-	}
-	inline const char * npgettext(const char * msgctxt, const char * msgid, const char * msgid_plural, spirit_po::uint plural) {
-		return mCatalog->npgettext(msgctxt, msgid, msgid_plural, plural);
-	}
+	const char * LanguageCatalog::gettext(const char * msgid);
+	const char * LanguageCatalog::ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural);
+	const char * LanguageCatalog::pgettext(const char * msgctxt, const char * msgid);
+	const char * LanguageCatalog::npgettext(const char * msgctxt, const char * msgid, const char * msgid_plural, spirit_po::uint plural);
 
-	inline std::string gettext_str(const std::string & msgid) { if (!mCatalog) return msgid; return mCatalog->gettext_str(msgid); }
-	inline std::string ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural) {
-		return mCatalog->ngettext_str(msgid, msgid_plural, plural);
-	}
-	inline std::string pgettext_str(const std::string & msgctxt, const std::string & msgid) {
-		return mCatalog->pgettext_str(msgctxt, msgid);
-	}
-	inline std::string npgettext_str(const std::string & msgctxt, const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural) {
-		return mCatalog->npgettext_str(msgctxt, msgid, msgid_plural, plural);
-	}
+	std::string LanguageCatalog::gettext_str(const std::string & msgid);
+	std::string LanguageCatalog::ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
+	std::string LanguageCatalog::pgettext_str(const std::string & msgctxt, const std::string & msgid);
+	std::string LanguageCatalog::npgettext_str(const std::string & msgctxt, const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
 
 	inline Languages getLanguage() { return mThisLanguage; }
 
 protected:
 	int mReferenceCount;
-	spirit_po::default_catalog* mCatalog;
+	void* mCatalog;
 	Languages mThisLanguage;
 };
 
