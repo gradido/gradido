@@ -65,7 +65,7 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
-	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
 	responseStream << "<title>Gradido Login Server: ";
 #line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
@@ -116,7 +116,7 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.5.1</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.6.0</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-11-16 09:16+0100\n"
-"PO-Revision-Date: 2019-11-16 09:52+0100\n"
+"PO-Revision-Date: 2019-11-16 09:51+0100\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "Last-Translator: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: de_DE\n"
+"Language: en_GB\n"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:53
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:69
@@ -26,21 +26,18 @@ msgstr ""
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:53
 msgid "E-Mail or password isn't right, please try again!"
 msgstr ""
-"E-Mail und Passwort Kombination stimmen nicht, bitte versuche es erneut. "
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:56
 msgid "Account"
-msgstr "Konto"
+msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:56
 msgid "E-Mail Address not checked, do you already get one?"
 msgstr ""
-"E-Mail Adresse wurde noch nicht überprüft. Hast du schon in deine E-Mails "
-"geschaut? Bitte schau auch in dein Spam-Verzeichnis nach."
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:69
 msgid "Username and password are needed!"
-msgstr "E-Mail und Passwort werden benötigt!"
+msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:112
 #: model/Session.cpp:138 model/Session.cpp:162
@@ -49,7 +46,7 @@ msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:115
 msgid "Password"
-msgstr "Passwort"
+msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:117
 msgid " Login "
@@ -57,33 +54,33 @@ msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:119
 msgid "You haven't any account yet? Please follow the link to create one."
-msgstr "Du hast noch kein Konto?"
+msgstr "Don't have an account yet?"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:120
 msgid "Create New Account"
-msgstr "Anmelden"
+msgstr "Sign Up"
 
 #: model/Session.cpp:130
 msgid "Vorname"
-msgstr ""
+msgstr "Firstname"
 
 #: model/Session.cpp:130 model/Session.cpp:134
 msgid ""
 "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen "
 "<>&;"
-msgstr ""
+msgstr "Please enter your Name. At least 3 Character, without <>& and ;"
 
 #: model/Session.cpp:134
 msgid "Nachname"
-msgstr ""
+msgstr "Lastname"
 
 #: model/Session.cpp:138
 msgid "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."
-msgstr ""
+msgstr "Please enter a valid email."
 
 #: model/Session.cpp:162
 msgid "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"
-msgstr ""
+msgstr "This email has an account already."
 
 #: model/Session.cpp:210
 msgid "Gradido: E-Mail Verification"
@@ -98,25 +95,27 @@ msgid ""
 "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "
 "registriere dich erneut oder wende dich an den Server-Admin"
 msgstr ""
+"The email verification code isn't correct. Please check at spell errors "
+"and try again or ask the server admin."
 
 #: model/Session.cpp:287
 msgid "Falscher Code f&uuml;r aktiven Login"
-msgstr ""
+msgstr "Wrong Code for active Login."
 
 #: model/Session.cpp:420 model/Session.cpp:671
 msgid "Benutzer"
-msgstr ""
+msgstr "User"
 
 #: model/Session.cpp:420
 msgid ""
 "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und "
 "versuche es nochmal."
-msgstr ""
+msgstr "Error by deleting the account. Please re-login and try again."
 
 #: model/Session.cpp:558
 msgid "Konnte keinen passenden Account finden."
-msgstr ""
+msgstr "This Account didn't seem to exist."
 
 #: model/Session.cpp:671
 msgid "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."
-msgstr ""
+msgstr "Invalid User, please re-login."

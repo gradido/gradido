@@ -10,11 +10,16 @@
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Logger.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
 	
 %>
 <%% 
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
+	auto lm = LanguageManager::getInstance();
+	
+	auto lang = chooseLanguage(request);
+	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	if(!form.empty()) {
 		auto email = form.get("login-email", "");
@@ -24,7 +29,9 @@
 			auto session = sm->getSession(request);
 			if(!session) {
 				session = sm->getNewSession();		
-				
+				session->setLanguageCatalog(langCatalog);
+				// get language
+				// first check url, second check language header
 				// for debugging client ip
 				auto client_ip = request.clientAddress();
 				std::string clientIpString = "client ip: ";
@@ -43,10 +50,10 @@
 			switch(userState) {
 			case USER_EMPTY: 
 			case USER_PASSWORD_INCORRECT:
-				addError(new Error(gettext("Login"), gettext("E-Mail or password isn't right, please try again!")));
+				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")));
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				session->addError(new Error(gettext("Account"), gettext("E-Mail Address not checked, do you already get one?")));
+				session->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")));
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
@@ -59,7 +66,7 @@
 			}
 			
 		} else {
-			addError(new Error(gettext("Login"), gettext("Username and password are needed!")));
+			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")));
 		}
 		
 	} else {
@@ -69,27 +76,58 @@
 	}	
 	
 %><%@ include file="header.cpsp" %>
-<form method="POST">
-	<div class="grd_container">
-		<h1>Login</h1>
-		<%= getErrorsHtml() %>
-		<fieldset class="grd_container_small">
-			<legend>Login</legend>
-			<p><%= gettext("Please give you email and password for login.") %></p>
-			<p class="grd_small">
-				<label for="login-email"><%= gettext("E-Mail") %></label>
-				<input id="login-email" type="text" name="login-email"/>
-			</p>
-			<p class="grd_small">
-				<label for="login-password"><%= gettext("Password") %></label>
-				<input id="login-password" type="password" name="login-password"/>
-			</p>
-			
-		</fieldset>
-		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Einloggen">
-		<p><%= gettext("You haven't any account yet? Please follow the link to create one.") %></p>
-		<a href="https://gradido.com"><%= gettext("Create New Account") %></a>
-	</div>
-	
-</form>
+<div class="authentication-theme auth-style_1">
+      <div class="row">
+        <div class="col-12 logo-section">
+          <a href="../../index.html" class="logo">
+            <img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-5 col-md-7 col-sm-9 col-11 mx-auto">
+          <div class="grid">
+		    <%= getErrorsHtml() %>
+            <div class="grid-body">
+              <form action="" method="POST">
+                <div class="row pull-right-row">
+                  <div class="equel-grid pull-right">
+                    <div class="grid-body-small text-center">
+                        <button id="flag-england" name="lang" value="en" title="English" type="submit" class="btn btn-outline-secondary flag-btn">
+                          <span class="flag-england"></span>
+                        </button>
+                    </div>
+                  </div>
+                  <div class="equel-grid pull-right">
+                    <div class="grid-body-small text-center">
+                        <button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" class="btn btn-secondary disabled flag-btn" disabled>
+                          <span class="flag-germany"></span>
+                        </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="row display-block">
+                  <div class="col-lg-7 col-md-8 col-sm-9 col-12 mx-auto form-wrapper">
+                    <div class="form-group input-rounded">
+                      <input type="text" class="form-control" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" />
+                    </div>
+                    <div class="form-group input-rounded">
+                      <input type="password" class="form-control" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />
+                    </div>
+                    <button type="submit" name="submit" class="btn btn-primary btn-block"><%= langCatalog->gettext(" Login ") %></button>
+                    <div class="signup-link">
+                      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
+                      <a href="https://gradido.com"><%= langCatalog->gettext("Create New Account") %></a>
+                    </div>
+                  </div>
+                </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth_footer">
+        <p class="text-muted text-center">© Ripple Inc 2019</p>
+      </div>
+    </div>
 <%@ include file="footer.cpsp" %>

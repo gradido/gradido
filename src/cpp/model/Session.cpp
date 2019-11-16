@@ -127,15 +127,15 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	Profiler usedTime;
 	auto sm = SessionManager::getInstance();
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
-		addError(new Error("Vorname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;"));
+		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
 		return false;
 	}
 	if (!sm->isValid(last_name, VALIDATE_NAME)) {
-		addError(new Error("Nachname", "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;"));
+		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
 		return false;
 	}
 	if (!sm->isValid(email, VALIDATE_EMAIL)) {
-		addError(new Error("E-Mail", "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."));
+		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")));
 		return false;
 	}
 	if (!sm->checkPwdValidation(password, this)) {
@@ -159,7 +159,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	select << "SELECT email from users where email = ?;", useRef(email);
 	try {
 		if (select.execute() > 0) {
-			addError(new Error("E-Mail", "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"));
+			addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")));
 			return false;
 		}
 	}
@@ -192,12 +192,13 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	writeEmailVerification->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN, this));
 	writeEmailVerification->scheduleTask(writeEmailVerification);
 
-	printf("LastName: %s\n", last_name.data());
+	/*printf("LastName: %s\n", last_name.data());
 	for (int i = 0; i < last_name.size(); i++) {
 		char c = last_name.data()[i];
-		printf("%d ", c);
+		//printf("%d ", c);
 	}
-	printf("\n\n");
+	//printf("\n\n");
+	*/
 
 	// depends on writeUser because need user_id, write email verification into db
 	auto message = new Poco::Net::MailMessage;
@@ -206,7 +207,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	message->setContentType(mt);
 
 	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, email));
-	message->setSubject("Gradido: E-Mail Verification");
+	message->setSubject(gettext("Gradido: E-Mail Verification"));
 	std::stringstream ss;
 	ss << "Hallo " << first_name << " " << last_name << "," << std::endl << std::endl;
 	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
@@ -276,14 +277,14 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			em->sendErrorsAsEmail();
 		}
 		if (!updated_rows) {
-			addError(new Error("E-Mail Verification", "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin"));
+			addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
 			printf("[%s] time: %s\n", funcName, usedTime.string().data());
 			return false;
 		}
 		
 	}
 	else {
-		addError(new Error("E-Mail Verification", "Falscher Code f&uuml;r aktiven Login"));
+		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
 		printf("[%s] time: %s\n", funcName, usedTime.string().data());
 		return false;
 	}
@@ -416,11 +417,33 @@ bool Session::deleteUser()
 		bResult = mSessionUser->deleteFromDB();
 	}
 	if(!bResult) {
-		addError(new Error("Benutzer", "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal."));
+		addError(new Error(gettext("Benutzer"), gettext("Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal.")));
 	}
 	
 	return bResult;
 }
+
+void Session::setLanguage(Languages lang)
+{
+	lock();
+	if (mLanguageCatalog.isNull() || mLanguageCatalog->getLanguage() != lang) {
+		auto lm = LanguageManager::getInstance();
+		mLanguageCatalog = lm->getFreeCatalog(lang);
+	}
+	unlock();
+}
+
+Languages Session::getLanguage()
+{
+	Languages lang = LANG_NULL;
+	lock();
+	if (!mLanguageCatalog.isNull()) {
+		lang = mLanguageCatalog->getLanguage();
+	}
+	unlock();
+	return lang;
+}
+
 
 /*
 SESSION_STATE_CRYPTO_KEY_GENERATED,
@@ -532,7 +555,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 			em->sendErrorsAsEmail();
 		}
 		if (rowCount < 1) {
-			addError(new Error("E-Mail Verification", "Konnte keinen passenden Account finden."));
+			addError(new Error(gettext("E-Mail Verification"), gettext("Konnte keinen passenden Account finden.")));
 			return false;
 		}
 
@@ -645,7 +668,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		validUser = false;
 	}
 	if (!validUser) {
-		addError(new Error("Benutzer", "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."));
+		addError(new Error(gettext("Benutzer"), gettext("Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein.")));
 		return false;
 	}
 	// delete passphrase after all went well

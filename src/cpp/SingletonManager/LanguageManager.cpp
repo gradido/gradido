@@ -1,9 +1,24 @@
 #include "LanguageManager.h"
 
+#include "Poco/Path.h"
+#include "Poco/File.h"
+
+#include <fstream>
+
 LanguageCatalog::LanguageCatalog(Languages lang) 
 	: mReferenceCount(1), mCatalog(nullptr), mThisLanguage(lang) 
 {
 	// TODO: Catalog init code
+	std::string path = Poco::Path::config() + "grd_login/LOCALE/" + LanguageManager::filenameForLanguage(lang) + ".po";
+	auto file = Poco::File(path);
+	if (file.exists()) {
+
+		std::ifstream ifs(path + LanguageManager::filenameForLanguage(lang) + ".po");
+		std::string po_file{ std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>() };
+
+		mCatalog = new spirit_po::default_catalog(spirit_po::default_catalog::from_range(po_file));
+	}
+	//spirit_po::default_catalog cat{ spirit_po::default_catalog::from_range(po_file) };
 }
 
 LanguageCatalog::~LanguageCatalog()
@@ -71,13 +86,34 @@ void LanguageManager::returnCatalog(LanguageCatalog* catalog)
 	unlock();
 }
 
+std::string LanguageManager::filenameForLanguage(Languages lang)
+{
+	switch (lang) {
+	case LANG_DE: return "de_DE";
+	case LANG_EN: return "en_GB";
+	}
+	return "en_GB";
+}
+
+Languages LanguageManager::languageFromString(const std::string& language_key)
+{
+	if (language_key == "de") {
+		return LANG_DE;
+	}
+	if (language_key == "en") {
+		return LANG_EN;
+	}
+	return LANG_NULL;
+}
+
 Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
 {
 	
 	if (lang >= LANG_COUNT) {
 		//printf("[LanguageManager::getFreeCatalog] invalid language: %d\n", lang);
-		mLogging.error("[LanguageManager::getFreeCatalog] invalid language: %d", lang);
-		return nullptr;
+		mLogging.information("[LanguageManager::getFreeCatalog] invalid language: %d, set to default (en_GB)", (int)lang);
+		//return nullptr;
+		lang = LANG_EN;
 	}
 	lock();
 	if (mFreeCatalogs[lang].size() > 0) {

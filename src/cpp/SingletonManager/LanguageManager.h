@@ -21,7 +21,8 @@
 enum Languages {
 	LANG_DE,
 	LANG_EN,
-	LANG_COUNT
+	LANG_COUNT,
+	LANG_NULL
 };
 
 class LanguageCatalog : protected UniLib::lib::MultithreadContainer
@@ -37,7 +38,7 @@ public:
 
 	// catalog overload api
 
-	inline const char * gettext(const char * msgid) { return mCatalog->gettext(msgid); }
+	inline const char * gettext(const char * msgid) { if (!mCatalog) return msgid; return mCatalog->gettext(msgid); }
 	inline const char * ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural) { 
 		return mCatalog->ngettext(msgid, msgid_plural, plural); 
 	}
@@ -48,7 +49,7 @@ public:
 		return mCatalog->npgettext(msgctxt, msgid, msgid_plural, plural);
 	}
 
-	inline std::string gettext_str(const std::string & msgid) { return mCatalog->gettext_str(msgid); }
+	inline std::string gettext_str(const std::string & msgid) { if (!mCatalog) return msgid; return mCatalog->gettext_str(msgid); }
 	inline std::string ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural) {
 		return mCatalog->ngettext_str(msgid, msgid_plural, plural);
 	}
@@ -77,6 +78,8 @@ public:
 
 	Poco::AutoPtr<LanguageCatalog> getFreeCatalog(Languages lang);
 	
+	static std::string filenameForLanguage(Languages lang);
+	static Languages languageFromString(const std::string& language_key);
 
 protected:
 	LanguageManager();

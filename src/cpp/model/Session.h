@@ -16,6 +16,8 @@
 #include "../lib/MultithreadContainer.h"
 #include "../tasks/ProcessingTransaction.h"
 
+#include "../SingletonManager/LanguageManager.h"
+
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
 #include "Poco/DateTime.h"
@@ -105,6 +107,12 @@ public:
 	void finalizeTransaction(bool sign, bool reject);
 	inline size_t getProcessingTransactionCount() { lock(); auto ret = mProcessingTransactions.size(); unlock(); return ret; }
 
+	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }
+	void setLanguage(Languages lang);
+	inline void setLanguageCatalog(Poco::AutoPtr<LanguageCatalog> languageCatalog) { mLanguageCatalog = languageCatalog; }
+	Languages getLanguage();
+	inline const char* gettext(const char* text) { if (mLanguageCatalog.isNull()) return text; return mLanguageCatalog->gettext(text); }
+
 protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
@@ -129,6 +137,8 @@ private:
 	bool mActive;
 	std::list<Poco::AutoPtr<ProcessingTransaction>> mProcessingTransactions;
 	Poco::AutoPtr<ProcessingTransaction> mCurrentActiveProcessingTransaction;
+
+	Poco::AutoPtr<LanguageCatalog> mLanguageCatalog;
 };
 
 

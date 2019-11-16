@@ -100,7 +100,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	{
 		// ********** logging ************************************
 		std::string log_Path = "/var/log/grd_login/";
-#ifdef _WIN32 || _WIN64
+//#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 		log_Path = "./";
 #endif
 
@@ -130,7 +131,12 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// *************** load from config ********************************************
 
 		std::string cfg_Path = Poco::Path::config() + "grd_login/";
-		loadConfiguration(cfg_Path + "grd_login.properties");
+		try {
+			loadConfiguration(cfg_Path + "grd_login.properties");
+		}
+		catch (Poco::Exception& ex) {
+			errorLog.error("error loading config: %s", ex.displayText());
+		}
 
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
 		unsigned short json_port = (unsigned short)config().getInt("JSONServer.port", 1201);
