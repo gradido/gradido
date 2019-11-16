@@ -2,7 +2,9 @@
 
 #include "Poco/Net/HTTPServerRequest.h"
 
-const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^/(?:[a-zA-Z0-9_-]*)/(en|de)");
+#include "../ServerConfig.h"
+
+const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?/(en|de)");
 
 Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string post_lang /* =  std::string("") */)
 {
@@ -12,10 +14,11 @@ Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerReques
 	if (lang == LANG_NULL) {
 		// from URL
 		std::string uri = request.getURI();
-		std::string lang_str;
-		mDetectLanguageGET.extract(uri, lang_str);
-		if (lang_str.size() > 0) {
-			lang = LanguageManager::languageFromString(lang_str);
+		std::vector<std::string> matches;
+		//std::string lang_str;
+		mDetectLanguageGET.split(uri, matches);
+		if (matches.size() > 0) {
+			lang = LanguageManager::languageFromString(matches[matches.size()-1]);
 		}
 		else {
 			// from Header
@@ -27,6 +30,10 @@ Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerReques
 			std::string accept_languages = request.get("HTTP_ACCEPT_LANGUAGE", "");
 			printf("accept header: %s\n", accept_languages.data());
 		}
+	}
+
+	if (lang == LANG_NULL) {
+		//lang = ServerConfig::g_default_locale;
 	}
 
 	return lang;

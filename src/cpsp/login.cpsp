@@ -22,6 +22,16 @@
 	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	if(!form.empty()) {
+		auto langBtn = form.get("lang", "");
+		bool langUpdated = false;
+		if(langBtn != "") {
+			auto updatedLang = chooseLanguage(request, langBtn);
+			if(updatedLang != lang) {
+				lang = updatedLang;
+				langCatalog = lm->getFreeCatalog(lang);
+				langUpdated = true;
+			}
+		} 
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
 		
@@ -65,7 +75,7 @@
 				return;
 			}
 			
-		} else {
+		} else if(!langUpdated) {
 			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")));
 		}
 		
@@ -89,18 +99,21 @@
           <div class="grid">
 		    <%= getErrorsHtml() %>
             <div class="grid-body">
-              <form action="" method="POST">
+              <form action="<%= ServerConfig::g_serverPath %>/" method="POST">
+			  <input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">
                 <div class="row pull-right-row">
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-england" name="lang" value="en" title="English" type="submit" class="btn btn-outline-secondary flag-btn">
+                        <button id="flag-england" name="lang" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
+						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-england"></span>
                         </button>
                     </div>
                   </div>
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" class="btn btn-secondary disabled flag-btn" disabled>
+                        <button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
+						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-germany"></span>
                         </button>
                     </div>

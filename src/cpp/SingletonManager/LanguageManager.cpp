@@ -3,17 +3,23 @@
 #include "Poco/Path.h"
 #include "Poco/File.h"
 
+#include "../ServerConfig.h"
+
 #include <fstream>
 
 LanguageCatalog::LanguageCatalog(Languages lang) 
 	: mReferenceCount(1), mCatalog(nullptr), mThisLanguage(lang) 
 {
 	// TODO: Catalog init code
-	std::string path = Poco::Path::config() + "grd_login/LOCALE/" + LanguageManager::filenameForLanguage(lang) + ".po";
+	std::string path = Poco::Path::config() + "grd_login/LOCALE/";
+#if defined(_WIN32) || defined(_WIN64)
+	path = "./LOCALE/";
+#endif
+	path += LanguageManager::filenameForLanguage(lang) + ".po";
 	auto file = Poco::File(path);
 	if (file.exists()) {
 
-		std::ifstream ifs(path + LanguageManager::filenameForLanguage(lang) + ".po");
+		std::ifstream ifs(path);
 		std::string po_file{ std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>() };
 
 		mCatalog = new spirit_po::default_catalog(spirit_po::default_catalog::from_range(po_file));
@@ -105,15 +111,24 @@ Languages LanguageManager::languageFromString(const std::string& language_key)
 	}
 	return LANG_NULL;
 }
+ std::string LanguageManager::keyForLanguage(Languages lang)
+{
+	 switch(lang) {
+	 case LANG_DE: return "de";
+	 case LANG_EN: return "en";
+	 }
+	 return "";
+}
+
 
 Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
 {
 	
 	if (lang >= LANG_COUNT) {
 		//printf("[LanguageManager::getFreeCatalog] invalid language: %d\n", lang);
-		mLogging.information("[LanguageManager::getFreeCatalog] invalid language: %d, set to default (en_GB)", (int)lang);
+		mLogging.information("[LanguageManager::getFreeCatalog] invalid language: %d, set to default (%s)", (int)lang, filenameForLanguage(ServerConfig::g_default_locale));
 		//return nullptr;
-		lang = LANG_EN;
+		lang = ServerConfig::g_default_locale;
 	}
 	lock();
 	if (mFreeCatalogs[lang].size() > 0) {
@@ -123,6 +138,7 @@ Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
 		unlock();
 		return result;
 	}
+	unlock();
 	Poco::AutoPtr<LanguageCatalog> result = new LanguageCatalog(lang);
 	return result;
 }

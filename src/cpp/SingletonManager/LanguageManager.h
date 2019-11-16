@@ -79,6 +79,8 @@ public:
 	Poco::AutoPtr<LanguageCatalog> getFreeCatalog(Languages lang);
 	
 	static std::string filenameForLanguage(Languages lang);
+	// return empty for null
+	static std::string keyForLanguage(Languages lang);
 	static Languages languageFromString(const std::string& language_key);
 
 protected:

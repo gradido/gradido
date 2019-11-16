@@ -38,6 +38,7 @@ namespace ServerConfig {
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;
+	Languages g_default_locale;
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
 	Poco::Mutex g_TimeMutex;
@@ -95,6 +96,7 @@ namespace ServerConfig {
 		DISASM_FALSERET;
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
+		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
 		g_php_serverPath = cfg.getString("phpServer.url", "");
 		g_php_serverHost = cfg.getString("phpServer.host", "");
 		return true;

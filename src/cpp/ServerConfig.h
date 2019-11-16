@@ -9,6 +9,8 @@
 
 #include "tasks/CPUSheduler.h"
 
+#include "SingletonManager/LanguageManager.h"
+
 namespace ServerConfig {
 
 	enum Mnemonic_Types {
@@ -37,6 +39,7 @@ namespace ServerConfig {
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
 	extern std::string g_serverPath;
+	extern Languages g_default_locale;
 	extern std::string g_php_serverPath;
 	extern std::string g_php_serverHost;
 	extern Poco::Mutex g_TimeMutex;
