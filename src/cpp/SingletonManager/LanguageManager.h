@@ -64,6 +64,7 @@ protected:
 	Languages mThisLanguage;
 };
 
+
 class LanguageManager : protected UniLib::lib::MultithreadContainer
 {
 	friend class LanguageCatalog;

@@ -6,11 +6,11 @@
 
 const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?/(en|de)");
 
-Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string post_lang /* =  std::string("") */)
+Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn /*= ""*/)
 {
 
 	// from Form
-	Languages lang = LanguageManager::languageFromString(post_lang);
+	Languages lang = LanguageManager::languageFromString(lang_btn);
 	if (lang == LANG_NULL) {
 		// from URL
 		std::string uri = request.getURI();

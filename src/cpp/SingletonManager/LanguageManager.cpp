@@ -122,6 +122,7 @@ std::string LanguageCatalog::npgettext_str(const std::string & msgctxt, const st
 
 // ******************************************************
 
+
 LanguageManager* LanguageManager::getInstance()
 {
 	static LanguageManager only;
@@ -187,7 +188,6 @@ Languages LanguageManager::languageFromString(const std::string& language_key)
 	 }
 	 return "";
 }
-
 
 Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
 {

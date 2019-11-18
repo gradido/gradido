@@ -22,16 +22,22 @@
 	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	if(!form.empty()) {
-		auto langBtn = form.get("lang", "");
-		bool langUpdated = false;
+		bool langUpdatedByBtn = false;
+		auto langBtn = form.get("lang-btn", "");
+		auto langInput = form.get("lang", "");
+		auto updatedLang = LANG_NULL;
 		if(langBtn != "") {
-			auto updatedLang = chooseLanguage(request, langBtn);
-			if(updatedLang != lang) {
-				lang = updatedLang;
-				langCatalog = lm->getFreeCatalog(lang);
-				langUpdated = true;
-			}
-		} 
+			updatedLang = chooseLanguage(request, langBtn);
+			langUpdatedByBtn = true;
+		} else if(langInput != "") {
+			updatedLang = chooseLanguage(request, langInput);
+		}
+		
+		if(updatedLang != LANG_NULL && updatedLang != lang) {
+			lang = updatedLang;
+			langCatalog = lm->getFreeCatalog(lang);
+		}
+		 
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
 		
@@ -51,6 +57,8 @@
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
+			} else {
+				langCatalog = session->getLanguageCatalog();
 			}
 			auto userState = session->loadUser(email, password);
 			getErrors(session);
@@ -75,13 +83,17 @@
 				return;
 			}
 			
-		} else if(!langUpdated) {
+		} else if(!langUpdatedByBtn) {
 			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")));
 		}
 		
 	} else {
 		// on enter login page with empty form
-		// remove old cookies if exist
+		auto session = sm->getSession(request);
+		// remove old cookies and session if exist
+		if(session) {
+			sm->releaseSession(session);
+		}
 		sm->deleteLoginCookies(request, response);
 	}	
 	
@@ -97,14 +109,16 @@
       <div class="row">
         <div class="col-lg-5 col-md-7 col-sm-9 col-11 mx-auto">
           <div class="grid">
-		    <%= getErrorsHtml() %>
+			<div class="center-ul-container">
+				<%= getErrorsHtml() %>	  
+			</div>
             <div class="grid-body">
               <form action="<%= ServerConfig::g_serverPath %>/" method="POST">
 			  <input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">
                 <div class="row pull-right-row">
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-england" name="lang" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
+                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
 						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-england"></span>
                         </button>
@@ -112,7 +126,7 @@
                   </div>
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
+                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
 						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-germany"></span>
                         </button>
@@ -140,7 +154,7 @@
         </div>
       </div>
       <div class="auth_footer">
-        <p class="text-muted text-center">© Ripple Inc 2019</p>
+        <p class="text-muted text-center">© Gradido 2019</p>
       </div>
     </div>
 <%@ include file="footer.cpsp" %>
