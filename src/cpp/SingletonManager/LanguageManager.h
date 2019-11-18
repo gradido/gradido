@@ -46,15 +46,15 @@ public:
 
 	// catalog overload api
 
-	const char * LanguageCatalog::gettext(const char * msgid);
-	const char * LanguageCatalog::ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural);
-	const char * LanguageCatalog::pgettext(const char * msgctxt, const char * msgid);
-	const char * LanguageCatalog::npgettext(const char * msgctxt, const char * msgid, const char * msgid_plural, spirit_po::uint plural);
+	const char * gettext(const char * msgid);
+	const char * ngettext(const char * msgid, const char * msgid_plural, spirit_po::uint plural);
+	const char * pgettext(const char * msgctxt, const char * msgid);
+	const char * npgettext(const char * msgctxt, const char * msgid, const char * msgid_plural, spirit_po::uint plural);
 
-	std::string LanguageCatalog::gettext_str(const std::string & msgid);
-	std::string LanguageCatalog::ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
-	std::string LanguageCatalog::pgettext_str(const std::string & msgctxt, const std::string & msgid);
-	std::string LanguageCatalog::npgettext_str(const std::string & msgctxt, const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
+	std::string gettext_str(const std::string & msgid);
+	std::string ngettext_str(const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
+	std::string pgettext_str(const std::string & msgctxt, const std::string & msgid);
+	std::string npgettext_str(const std::string & msgctxt, const std::string & msgid, const std::string & msgid_plural, spirit_po::uint plural);
 
 	inline Languages getLanguage() { return mThisLanguage; }
 

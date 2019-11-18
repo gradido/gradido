@@ -6,6 +6,7 @@
 #include "model/User.h"
 #include "model/Session.h"
 
+#ifndef _TEST_BUILD
 int main(int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -21,3 +22,4 @@ int main(int argc, char** argv)
 	Gradido_LoginServer app;
 	return app.run(argc, argv);
 }
+#endif
