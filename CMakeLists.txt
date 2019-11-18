@@ -129,19 +129,8 @@ target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
-	set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
-	set(INSTALL_BINDIR "bin")
-	set(INSTALL_PLUGINDIR "bin")
-	add_subdirectory("dependencies/mariadb-connector-c")
-
-
-	include_directories(
-		"dependencies/mariadb-connector-c/include"
-		"build/dependencies/mariadb-connector-c/include"
-	)
-	
 	target_link_libraries(Gradido_LoginServer_Test libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
 endif(WIN32)
