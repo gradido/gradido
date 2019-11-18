@@ -29,6 +29,9 @@ FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
 FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h")
+# used only for test project 
+FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
+
 SET(LOCAL_SRCS 
 	${TINF} ${MAIN} ${HTTPInterface} 
 	${JSONInterface} ${CRYPTO} ${MODEL} 
@@ -49,7 +52,7 @@ source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
 source_group("lib" FILES ${LIB_SRC})
 source_group("HTTP-Interface" FILES ${HTTPInterface})
 source_group("Json-Interface" FILES ${JSONInterface})
-
+source_group("Test" FILES ${TEST})
 endif(MSVC)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -106,11 +109,39 @@ include_directories(
 
 endif(WIN32)
 
-
 target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
 target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
+endif(WIN32)
+
+enable_testing()
+
+#  ----------------------    Test -----------------------------------------
+#project(Gradido_LoginServer_Test C CXX)
+#_TEST_BUILD
+
+
+add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${TEST})
+target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
+
+target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})
+if(WIN32)
+	set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+else(WIN32)
+	set(INSTALL_BINDIR "bin")
+	set(INSTALL_PLUGINDIR "bin")
+	add_subdirectory("dependencies/mariadb-connector-c")
+
+
+	include_directories(
+		"dependencies/mariadb-connector-c/include"
+		"build/dependencies/mariadb-connector-c/include"
+	)
+	
+	target_link_libraries(Gradido_LoginServer_Test libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
 endif(WIN32)
