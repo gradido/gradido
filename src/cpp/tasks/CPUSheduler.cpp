@@ -17,7 +17,9 @@ namespace UniLib {
 			if(len > 7) len = 7;
 			memcpy(nameBuffer, name, len);
 			int i = 0;
-			ServerConfig::g_ServerKeySeed->put(threadCount, 1726199827);
+			if (ServerConfig::g_ServerKeySeed) {
+				ServerConfig::g_ServerKeySeed->put(threadCount, 1726199827);
+			}
 			for(int i = 0; i < threadCount; i++) {
 				sprintf(&nameBuffer[len], "%.2d", i); 
 				mThreads[i] = new CPUShedulerThread(this, nameBuffer);

@@ -289,7 +289,8 @@ void SessionManager::checkTimeoutSession()
 	mWorkingMutex.lock();
 	auto now = Poco::DateTime();
 	// random variance within 10 seconds for timeout to make it harder to get information and hack the server
-	auto timeout = Poco::Timespan(ServerConfig::g_SessionTimeout * 60, randombytes_random() % 10000000);
+	//auto timeout = Poco::Timespan(ServerConfig::g_SessionTimeout * 60, randombytes_random() % 10000000);
+	auto timeout = Poco::Timespan(1, 0);
 	std::stack<int> toRemove;
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		if (!it->second->isActive()) continue;

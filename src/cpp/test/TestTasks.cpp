@@ -2,6 +2,7 @@
 #include "TestTasks.h"
 #include "Poco/Environment.h"
 #include <sodium.h>
+#include <math.h>
 
 #include "Poco/Logger.h"
 #include "Poco/Path.h"

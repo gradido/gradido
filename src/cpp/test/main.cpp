@@ -11,6 +11,7 @@ void fillTests()
 }
 
 int load() {
+	// init server config, init seed array
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
