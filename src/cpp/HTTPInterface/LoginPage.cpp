@@ -136,7 +136,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.7.0</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.0</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -256,10 +256,6 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "\t</div>\n";
-	responseStream << "\t<script src=\"";
-#line 4 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "js/core.js\"></script>\n";
 	responseStream << "</body>\n";
 	responseStream << "</html>";
 	// end include footer.cpsp

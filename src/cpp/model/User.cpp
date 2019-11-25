@@ -174,14 +174,14 @@ int UserWriteCryptoKeyHashIntoDB::run()
 // *******************************************************************************
 // new user
 User::User(const char* email, const char* first_name, const char* last_name)
-	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr),
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr),
 	 mReferenceCount(1)
 {
 	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
 }
 // load from db
 User::User(const char* email)
-	: mState(USER_EMPTY), mDBId(0), mEmail(email), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -195,12 +195,15 @@ User::User(const char* email)
 
 	Poco::Data::Statement select(session);
 	int email_checked = 0;
-	select << "SELECT id, first_name, last_name, password, pubkey, privkey, email_checked from users where email = ?",
-		into(mDBId), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), use(mEmail);
+	std::string language_key;
+	select << "SELECT id, first_name, last_name, password, pubkey, privkey, email_checked, language from users where email = ?",
+		into(mDBId), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), into(language_key),
+		use(mEmail);
 	try {
 		auto result = select.execute();
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
+			mLanguage = LanguageManager::languageFromString(language_key);
 			if (email_checked == 0) {    mState = USER_EMAIL_NOT_ACTIVATED;}
 			else if (pubkey.isNull()) {  mState = USER_NO_KEYS;}
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
@@ -238,7 +241,7 @@ User::User(const char* email)
 }
 
 User::User(int user_id)
-: mState(USER_EMPTY), mDBId(user_id), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+: mState(USER_EMPTY), mDBId(user_id), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -250,12 +253,15 @@ User::User(int user_id)
 
 	Poco::Data::Statement select(session);
 	int email_checked = 0;
-	select << "SELECT email, first_name, last_name, password, pubkey, privkey, email_checked from users where id = ?",
-		into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), use(user_id);
+	std::string language_key;
+	select << "SELECT email, first_name, last_name, password, pubkey, privkey, email_checked, language from users where id = ?",
+		into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(pubkey), into(privkey), into(email_checked), into(language_key),
+		use(user_id);
 	try {
 		auto result = select.execute();
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
+			mLanguage = LanguageManager::languageFromString(language_key);
 			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
 			else if (pubkey.isNull()) { mState = USER_NO_KEYS; }
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
@@ -293,7 +299,7 @@ User::User(int user_id)
 }
 
 User::User(const unsigned char* pubkey_array)
-	: mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -306,13 +312,16 @@ User::User(const unsigned char* pubkey_array)
 	Poco::Nullable<Poco::Data::BLOB> privkey;
 
 	Poco::Data::Statement select(session);
-	int email_checked = 0;
-	select << "SELECT id, email, first_name, last_name, password, privkey, email_checked from users where pubkey = ?",
-		into(mDBId), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(privkey), into(email_checked), use(pubkey);
+	int email_checked = 0; 
+	std::string language_key;
+	select << "SELECT id, email, first_name, last_name, password, privkey, email_checked, language from users where pubkey = ?",
+		into(mDBId), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(privkey), into(email_checked), into(language_key),
+		use(pubkey);
 	try {
 		auto result = select.execute();
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
+			mLanguage = LanguageManager::languageFromString(language_key);
 			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
 			else { mState = USER_COMPLETE; }
@@ -831,13 +840,14 @@ Poco::Data::Statement User::insertIntoDB(Poco::Data::Session session)
 	//Poco::Data::BLOB pwd(&mPasswordHashed[0], crypto_shorthash_BYTES);
 
 	//printf("[User::insertIntoDB] password hashed: %llu\n", mPasswordHashed);
+	std::string languageKey = LanguageManager::keyForLanguage(mLanguage);
 	if (mPasswordHashed) {
-		insert << "INSERT INTO users (email, first_name, last_name, password) VALUES(?, ?, ?, ?);",
-			use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed);
+		insert << "INSERT INTO users (email, first_name, last_name, password, language) VALUES(?, ?, ?, ?, ?);",
+			use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed), bind(languageKey);
 	}
 	else {
-		insert << "INSERT INTO users (email, first_name, last_name) VALUES(?, ?, ?);",
-			use(mEmail), use(mFirstName), use(mLastName);
+		insert << "INSERT INTO users (email, first_name, last_name, language) VALUES(?, ?, ?, ?);",
+			use(mEmail), use(mFirstName), use(mLastName), bind(languageKey);
 	}
 
 
@@ -861,6 +871,11 @@ bool User::updateIntoDB(UserFields fieldType)
 		else if (USER_FIELDS_EMAIL_CHECKED == fieldType) {
 			update << "UPDATE users SET email_checked = ? where id = ?",
 				use(mEmailChecked), use(mDBId);
+		}
+		else if (USER_FIELDS_LANGUAGE == fieldType) {
+			std::string languageKey = LanguageManager::keyForLanguage(mLanguage);
+			update << "UPDATE users SET language = ? where id = ?",
+				bind(languageKey), use(mDBId);
 		}
 		try {
 			if (update.execute() == 1) return true;

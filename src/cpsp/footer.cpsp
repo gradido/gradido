@@ -1,6 +1,5 @@
 	<div class="grd-time-used dev-info">
 			<%= mTimeProfiler.string() %>
 	</div>
-	<script src="<%= ServerConfig::g_php_serverPath %>js/core.js"></script>
 </body>
 </html>

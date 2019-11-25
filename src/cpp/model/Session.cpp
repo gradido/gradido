@@ -266,6 +266,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			}
 			if (mSessionUser) {
 				mSessionUser->setEmailChecked();
+				mSessionUser->setLanguage(getLanguage());
 			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
@@ -552,6 +553,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 		size_t rowCount = select.execute();
 		if (rowCount != 1) {
 			em->addError(new ParamError(funcName, "select user by email verification code work not like expected, selected row count", rowCount));
+			em->addError(new ParamError(funcName, "emailVerficiation Code: ", std::to_string(emailVerificationCode)));
 			em->sendErrorsAsEmail();
 		}
 		if (rowCount < 1) {
@@ -560,6 +562,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 		}
 
 		mSessionUser = new User(user_id);
+		mSessionUser->setLanguage(getLanguage());
 
 		mEmailVerificationCode = emailVerificationCode;
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
@@ -567,7 +570,8 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 		return true;
 	}
 	catch (const Poco::Exception& ex) {
-		em->addError(new ParamError(funcName, "error selecting user from verification code", ex.displayText().data()));
+		em->addError(new ParamError(funcName, "exception selecting user from verification code", ex.displayText().data()));
+		em->addError(new ParamError(funcName, "emailVerficiation Code: ", std::to_string(emailVerificationCode)));
 		em->sendErrorsAsEmail();
 	}
 

@@ -14,6 +14,8 @@ SendErrorMessage::~SendErrorMessage()
 
 int SendErrorMessage::run()
 {
+	//return 0;
+	
 	auto mailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
 	mailClientSession->login();
 	mailClientSession->startTLS(ServerConfig::g_SSL_CLient_Context);

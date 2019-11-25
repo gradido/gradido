@@ -13,12 +13,14 @@
 
 #include "../SingletonManager/MemoryManager.h"
 
+
 class UserCreateCryptoKey;
 class UserWriteIntoDB;
 class Session;
 class UserWriteCryptoKeyHashIntoDB;
 class SigningTransaction;
 class UserGenerateKeys;
+enum Languages;
 
 enum UserStates
 {
@@ -37,7 +39,8 @@ enum UserFields
 	USER_FIELDS_FIRST_NAME,
 	USER_FIELDS_LAST_NAME,
 	USER_FIELDS_PASSWORD,
-	USER_FIELDS_EMAIL_CHECKED
+	USER_FIELDS_EMAIL_CHECKED,
+	USER_FIELDS_LANGUAGE
 };
 
 class User : public ErrorList
@@ -81,11 +84,14 @@ public:
 	inline int         getDBId() const { return mDBId;  }
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
 	inline const unsigned char* getPublicKey() { return mPublicKey; }
+	inline Languages   getLanguage() { lock(); Languages lang = mLanguage; unlock(); return lang; }
+
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
 	inline void		   setPublicKey(const unsigned char* key) { lock(); memcpy(mPublicKey, key, crypto_sign_PUBLICKEYBYTES); unlock();}
 
 	UserStates         getUserState();
 
+	void setLanguage(Languages lang) { lock(); mLanguage = lang; unlock(); }
 	void setEmailChecked();
 	bool isEmptyPassword();
 	bool setNewPassword(const std::string& newPassword);
@@ -141,6 +147,7 @@ private:
 	// TODO: insert created if necessary
 
 	bool mEmailChecked;
+	Languages mLanguage;
 
 	// ************************ DB FIELDS END ******************************
 	// crypto key as obfus array 

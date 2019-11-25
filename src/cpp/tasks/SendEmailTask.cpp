@@ -21,6 +21,7 @@ SendEmailTask::~SendEmailTask()
 
 int SendEmailTask::run() 
 {
+	//return 0;
 	Profiler timeUsed;
 	auto er = ErrorManager::getInstance();
 	auto parent = getParent(0);

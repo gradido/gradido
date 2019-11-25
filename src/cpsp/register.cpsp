@@ -14,7 +14,7 @@
 	bool userReturned = false;
 	
 	if(!form.empty()) {
-		if(form.get("register-password2") != form.get("register-password")) {
+		if(form.get("register-password2", "") != form.get("register-password", "")) {
 			addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
 		} else {
 			auto session = sm->getSession(request);
@@ -26,10 +26,10 @@
 			}
 			
 			userReturned = session->createUser(
-				form.get("register-first-name"),
-				form.get("register-last-name"),
-				form.get("register-email"),
-				form.get("register-password")
+				form.get("register-first-name", ""),
+				form.get("register-last-name", ""),
+				form.get("register-email", ""),
+				form.get("register-password", "")
 			);
 			getErrors(session);
 		}

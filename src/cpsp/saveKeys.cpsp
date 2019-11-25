@@ -23,12 +23,12 @@ enum PageState
 	PageState state = PAGE_ASK;
 	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
 	
-	// skip asking user if he like to save keys and passphrase on server
+	// skip asking user if he like to save keys and passphrase on server for now!
 	state = PAGE_SHOW_PUBKEY;
 	if(!mSession->generateKeys(true, true)) {
 		getErrors(mSession);
 	}
-	
+	/*
 	if(!form.empty()) {
 		// privkey
 		auto savePrivkeyChoice = form.get("save-privkey");
@@ -67,7 +67,7 @@ enum PageState
 		}
 		//printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
 			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
-	}
+	}*/
 	getErrors(mSession);
 %><%@ include file="header.cpsp" %>
 <div class="grd_container">

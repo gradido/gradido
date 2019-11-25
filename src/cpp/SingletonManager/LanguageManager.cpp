@@ -194,7 +194,7 @@ Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
 	
 	if (lang >= LANG_COUNT) {
 		//printf("[LanguageManager::getFreeCatalog] invalid language: %d\n", lang);
-		mLogging.information("[LanguageManager::getFreeCatalog] invalid language: %d, set to default (%s)", (int)lang, filenameForLanguage(ServerConfig::g_default_locale));
+		//mLogging.information("[LanguageManager::getFreeCatalog] invalid language: %d, set to default (%s)", (int)lang, filenameForLanguage(ServerConfig::g_default_locale));
 		//return nullptr;
 		lang = ServerConfig::g_default_locale;
 	}

@@ -2,6 +2,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/URI.h"
+#include "Poco/Logger.h"
 #include "Poco/Data/Binding.h"
 
 using namespace Poco::Data::Keywords;
@@ -102,7 +103,6 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 		return;
 	}
 	
-	
 
 	// write stream result also to file
 	static Poco::Mutex mutex;
@@ -112,7 +112,9 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	Poco::FileOutputStream file("elopage_webhook_requests.txt", std::ios::out | std::ios::app);
 
 	if (!file.good()) {
-		printf("[ElopageWebhook::handleRequest] error creating file with name: elopage_webhook_requests.txt\n");
+		Poco::Logger& logging(Poco::Logger::get("errorLog"));
+		logging.error("[ElopageWebhook::handleRequest] error creating file with name: elopage_webhook_requests.txt");
+		//printf("[ElopageWebhook::handleRequest] error creating file with name: elopage_webhook_requests.txt\n");
 		mutex.unlock();
 		return;
 	}
@@ -172,6 +174,7 @@ void HandleElopageRequestTask::writeUserIntoDB()
 		use(mEmail), use(mFirstName), use(mLastName);
 	try {
 		insert.execute();
+		//printf("user written into db\n");
 	}
 	catch (Poco::Exception& ex) {
 		addError(new ParamError(__FUNCTION__, "mysql error", ex.displayText().data()));
@@ -233,7 +236,7 @@ int HandleElopageRequestTask::run()
 		std::cerr << __FUNCTION__ << "Unknown error" << '\n';
 	}
 	std::string order_id = mRequestData.get("order_id", "");
-	addError(new ParamError("HandleElopageRequestTask", "order_id", order_id.data()));
+	auto param_error_order_id = new ParamError("HandleElopageRequestTask", "order_id", order_id.data());
 
 	// only for product 36001 and 43741 create user accounts and send emails
 	if (product_id == 36001 || product_id == 43741) {
@@ -241,22 +244,25 @@ int HandleElopageRequestTask::run()
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
 
-		printf("LastName: %s\n", mLastName.data());
+		/* printf("LastName: %s\n", mLastName.data());
 		for (int i = 0; i < mLastName.size(); i++) {
 			char c = mLastName.data()[i];
 			printf("%d ", c);
 		}
 		printf("\n\n");
+		*/
 
 		// validate input
 		if (!validateInput()) {
 			// if input is invalid we can stop now
+			addError(param_error_order_id);
 			sendErrorsAsEmail();
 			return -1;
 		}
 
 		// if user exist we can stop now
 		if (getUserIdFromDB()) {
+			addError(param_error_order_id);
 			sendErrorsAsEmail();
 			return -2;
 		}
@@ -277,6 +283,7 @@ int HandleElopageRequestTask::run()
 		// we didn't get a user_id, something went wrong
 		if (!user_id) {
 			addError(new Error("User loadEntryDBId", "user_id is zero"));
+			addError(param_error_order_id);
 			sendErrorsAsEmail();
 			return -3;
 		}
@@ -288,6 +295,7 @@ int HandleElopageRequestTask::run()
 		if (!emailVerification->getCode()) {
 			// exit if email verification code is empty
 			addError(new Error("Email verification", "code is empty, error in random?"));
+			addError(param_error_order_id);
 			sendErrorsAsEmail();
 			return -4;
 		}
@@ -322,8 +330,10 @@ int HandleElopageRequestTask::run()
 
 		// if errors occured, send via email
 	if (errorCount() > 1) {
+		addError(param_error_order_id);
 		sendErrorsAsEmail();
 	}
+	delete param_error_order_id;
 	
 	return 0;
 }

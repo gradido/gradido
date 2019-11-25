@@ -25,7 +25,10 @@ protected:
 	inline const char* gettext(Session* session, const char* text) { if (!session || !session->getLanguageCatalog()) return text; return session->getLanguageCatalog()->gettext(text); }
 	Languages chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn = "");
 
+	unsigned long long getLastGetAsU64(const std::string& uri);
+
 	Profiler mTimeProfiler;
+	
 };
 
 

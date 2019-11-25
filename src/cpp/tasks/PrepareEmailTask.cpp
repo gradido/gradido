@@ -20,6 +20,7 @@ PrepareEmailTask::~PrepareEmailTask()
 
 int PrepareEmailTask::run()
 {
+	//return 0;
 	Profiler timeUsed;
 	mMailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
 	mMailClientSession->login();

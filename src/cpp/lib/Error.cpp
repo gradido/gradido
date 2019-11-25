@@ -22,7 +22,7 @@ std::string Error::getString()
 std::string Error::getHtmlString()
 {
 	std::stringstream ss;
-	ss << mFunctionName << ": " << mMessage << std::endl;
+	ss << mFunctionName << ": " << mMessage;
 
 	return ss.str();
 }

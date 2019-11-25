@@ -6,6 +6,7 @@
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
 
 enum PageState 
 {
@@ -15,6 +16,26 @@ enum PageState
 %>
 <%%
 	const char* pageName = "Email Verification";
+	auto lm = LanguageManager::getInstance();
+	
+	auto lang = chooseLanguage(request);
+	auto langCatalog = lm->getFreeCatalog(lang);
+	unsigned long long verificationCode = 0;
+	
+	if(!form.empty()) {
+		auto langBtn = form.get("lang-btn", "");
+		auto verficationCodeStr = form.get("email-verification-code", "0");
+		try {
+			verificationCode = stoull(verficationCodeStr);
+		} catch(...) {
+			verificationCode = 0;
+		}
+		auto updatedLang = LANG_NULL;
+		if(langBtn != "") {
+			lang = chooseLanguage(request, langBtn);
+			langCatalog = lm->getFreeCatalog(lang);
+		}
+	}
 	
 	// remove old cookies if exist
 	auto sm = SessionManager::getInstance();
@@ -26,33 +47,69 @@ enum PageState
 			//state = MAIL_NOT_SEND;
 		}
 	}
-
+	auto hasErrors = errorCount() > 0;
+	if(!verificationCode) {
+		verificationCode = getLastGetAsU64(request.getURI());
+	}
 
 %><%@ include file="header.cpsp" %>
-<div class="grd_container">
-	
-	<h1>Einen neuen Account anlegen</h1>
-	<%= getErrorsHtml() %>
-	<% if(state == MAIL_NOT_SEND) { %>
-		<div class="grd_text">
-			<p>Die E-Mail wurde noch nicht verschickt, bitte habe noch etwas Geduld.</p>
-			<p>Versuche es einfach in 1-2 Minuten erneut.</p>
-		</div>
-	<% } else if(state == ASK_VERIFICATION_CODE) { %>
-	<form method="GET">
-		<p>Bitte gebe deinen E-Mail Verification Code ein. </p>
-		<% if(mSession && !mSession->getUser().isNull()) {%>
-			<p>Er wurde an deine E-Mail Adresse: <%= mSession->getUser()->getEmail() %> gesendet.</p>
-		<% } %>
-		<input type="number" name="email-verification-code">
-		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" value="Überprüfe Code">
-		<p>Du hast bisher keinen Code erhalten? </p>
-		<p>E-Mail erneut zuschicken (in Arbeit)</p>
-	</form>
-	<% } else { %>
-	<div class="grd_text">
-			Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. 
-		</div>
-	<% } %>
-</div>
+<div class="authentication-theme auth-style_1">
+      <div class="row">
+        <div class="col-12 logo-section">
+          <a href="../../index.html" class="logo">
+            <img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-5 col-md-7 col-sm-9 col-11 mx-auto">
+          <div class="grid">
+            <div class="center-ul-container">
+              <%= getErrorsHtml() %>
+            </div>
+            <div class="grid-body">
+              <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
+                <div class="row pull-right-row">
+                  <div class="equel-grid pull-right">
+                    <div class="grid-body-small text-center">
+                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
+						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
+                          <span class="flag-england"></span>
+                        </button>
+                    </div>
+                  </div>
+                  <div class="equel-grid pull-right">
+                    <div class="grid-body-small text-center">
+                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
+						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
+                          <span class="flag-germany"></span>
+                        </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="item-wrapper">
+                        <div class="form-group">
+                          <label for="email-verification-code"><%= langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:")%></label>
+                          <input type="text" class="form-control" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary"><%= langCatalog->gettext("&Uuml;berpr&uuml;fe Code")%></button>
+                </div>
+                </form>
+              <!--<p class="margin-top-10">
+				<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br> 
+				<%= langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)")%>
+			  </p>-->
+              <p class="margin-top-10">
+				<%= langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?")%><br>
+				<%= langCatalog->gettext("Schicke mir eine E-Mail und ich kümmere mich darum: ")%><br>
+                <a href="mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: 121121354 funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A">E-Mail</a>
+			  </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth_footer">
+        <p class="text-muted text-center">© Gradido 2019</p>
+      </div>
+    </div>
 <%@ include file="footer.cpsp" %>

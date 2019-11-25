@@ -163,6 +163,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 {
 	Poco::Net::HTMLForm form(request);
 	unsigned long long verificationCode = 0;
+	Languages lang = LANG_DE;
 
 	// if verification code is valid, go to next page, passphrase
 	// login via verification code, if no session is active
@@ -171,6 +172,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		try {
 			verificationCode = stoull(form.get("email-verification-code", "0"));
 		} catch (...) {}
+		lang = LanguageManager::languageFromString(form.get("lang-btn", "de"));
 	}
 	// try to get code from uri parameter
 	if (!verificationCode) {
@@ -179,15 +181,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			auto str = uri.substr(pos + 1);
 			verificationCode = stoull(uri.substr(pos + 1));
 		} catch (const std::invalid_argument& ia) {
-			std::cerr << __FUNCTION__ << "Invalid argument: " << ia.what() << '\n';
+			std::cerr << __FUNCTION__ << " Invalid argument: " << ia.what() << ", str: " << uri.substr(pos + 1) << '\n';
 		} catch (const std::out_of_range& oor) {
-			std::cerr << __FUNCTION__ << "Out of Range error: " << oor.what() << '\n';
+			std::cerr << __FUNCTION__ << " Out of Range error: " << oor.what() << '\n';
 		}
 		catch (const std::logic_error & ler) {
-			std::cerr << __FUNCTION__ << "Logical error: " << ler.what() << '\n';
+			std::cerr << __FUNCTION__ << " Logical error: " << ler.what() << '\n';
 		}
 		catch (...) {
-			std::cerr << __FUNCTION__ << "Unknown error" << '\n';
+			std::cerr << __FUNCTION__ << " Unknown error" << '\n';
 		}
 	}
 
@@ -211,6 +213,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	// no suitable session in memory, try to create one from db data
 	if (!session) {
 		session = sm->getNewSession();
+		session->setLanguage(lang);
 		if (session->loadFromEmailVerificationCode(verificationCode)) {
 			// login not possible in this function, forwarded to PassphrasePage
 			/*auto cookie_id = session->getHandle();

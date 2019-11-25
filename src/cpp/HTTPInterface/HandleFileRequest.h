@@ -9,6 +9,9 @@ class HandleFileRequest : public Poco::Net::HTTPRequestHandler
 {
 public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
+
+protected:
+	
 };
 
 
