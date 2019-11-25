@@ -30,7 +30,7 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	bool userReturned = false;
 	
 	if(!form.empty()) {
-		if(form.get("register-password2") != form.get("register-password")) {
+		if(form.get("register-password2", "") != form.get("register-password", "")) {
 			addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
 		} else {
 			auto session = sm->getSession(request);
@@ -42,10 +42,10 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 			}
 			
 			userReturned = session->createUser(
-				form.get("register-first-name"),
-				form.get("register-last-name"),
-				form.get("register-email"),
-				form.get("register-password")
+				form.get("register-first-name", ""),
+				form.get("register-last-name", ""),
+				form.get("register-email", ""),
+				form.get("register-password", "")
 			);
 			getErrors(session);
 		}
@@ -70,59 +70,21 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 #line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
-	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "/css/styles.css\">\n";
-	responseStream << "<style type=\"text/css\" >\n";
-	responseStream << ".grd_container\n";
-	responseStream << "{\n";
-	responseStream << "  max-width:820px;\n";
-	responseStream << "  margin-left:auto;\n";
-	responseStream << "  margin-right:auto;\n";
-	responseStream << "}\n";
-	responseStream << "\n";
-	responseStream << "input:not([type='radio']) {\n";
-	responseStream << "\twidth:200px;\n";
-	responseStream << "}\n";
-	responseStream << "label:not(.grd_radio_label) {\n";
-	responseStream << "\twidth:80px;\n";
-	responseStream << "\tdisplay:inline-block;\n";
-	responseStream << "}\n";
-	responseStream << ".grd_container_small\n";
-	responseStream << "{\n";
-	responseStream << "  max-width:500px;\n";
-	responseStream << "}\n";
-	responseStream << ".grd_text {\n";
-	responseStream << "  max-width:550px;\n";
-	responseStream << "  margin-bottom: 5px;\n";
-	responseStream << "}\n";
-	responseStream << ".dev-info {\n";
-	responseStream << "\tposition: fixed;\n";
-	responseStream << "\tcolor:grey;\n";
-	responseStream << "\tfont-size: smaller;\n";
-	responseStream << "\tleft:8px;\n";
-	responseStream << "}\n";
-	responseStream << ".grd-time-used {  \n";
-	responseStream << "  bottom:0;\n";
-	responseStream << "} \n";
-	responseStream << "\n";
-	responseStream << ".versionstring {\n";
-	responseStream << "\ttop:0;\n";
-	responseStream << "}\n";
-	responseStream << "</style>\n";
+	responseStream << "css/loginServer/style.css\">\n";
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.6.0</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.0</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
-#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
 	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
