@@ -32,7 +32,7 @@ LanguageCatalog::LanguageCatalog(Languages lang)
 LanguageCatalog::~LanguageCatalog()
 {
 	if (mCatalog) {
-		delete mCatalog;
+		delete (spirit_po::default_catalog*)mCatalog;
 		mCatalog = nullptr;
 	}
 }

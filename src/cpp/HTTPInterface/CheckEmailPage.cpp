@@ -96,7 +96,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.0</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
@@ -207,7 +207,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<br>\n";
 	responseStream << "\t\t\t\t";
 #line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( langCatalog->gettext("Schicke mir eine E-Mail und ich kümmere mich darum: "));
+	responseStream << ( langCatalog->gettext("Schicke mir eine E-Mail und ich k&uuml;mmere mich darum: "));
 	responseStream << "<br>\n";
 	responseStream << "                <a href=\"mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: 121121354 funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">E-Mail</a>\n";
 	responseStream << "\t\t\t  </p>\n";

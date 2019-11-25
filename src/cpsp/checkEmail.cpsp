@@ -101,7 +101,7 @@ enum PageState
 			  </p>-->
               <p class="margin-top-10">
 				<%= langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?")%><br>
-				<%= langCatalog->gettext("Schicke mir eine E-Mail und ich kümmere mich darum: ")%><br>
+				<%= langCatalog->gettext("Schicke mir eine E-Mail und ich k&uuml;mmere mich darum: ")%><br>
                 <a href="mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: 121121354 funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A">E-Mail</a>
 			  </p>
             </div>
