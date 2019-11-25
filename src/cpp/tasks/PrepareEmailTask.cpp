@@ -20,7 +20,9 @@ PrepareEmailTask::~PrepareEmailTask()
 
 int PrepareEmailTask::run()
 {
-	//return 0;
+#ifdef DISABLE_EMAIL
+	return 0;
+#endif
 	Profiler timeUsed;
 	mMailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
 	mMailClientSession->login();
@@ -49,6 +51,9 @@ int PrepareEmailTask::run()
 
 int PrepareEmailTask::send(Poco::Net::MailMessage* message)
 {
+#ifdef DISABLE_EMAIL
+	return 0;
+#endif
 	auto er = ErrorManager::getInstance();
 	try {
 		mMailClientSession->sendMessage(*message);

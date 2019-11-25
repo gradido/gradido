@@ -12,7 +12,7 @@
 #include "../tasks/CPUTask.h"
 
 #include "../SingletonManager/MemoryManager.h"
-
+#include "../SingletonManager/LanguageManager.h"
 
 class UserCreateCryptoKey;
 class UserWriteIntoDB;
@@ -20,7 +20,7 @@ class Session;
 class UserWriteCryptoKeyHashIntoDB;
 class SigningTransaction;
 class UserGenerateKeys;
-enum Languages;
+
 
 enum UserStates
 {

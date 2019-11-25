@@ -12,7 +12,7 @@
 <body>
 <div class="versionstring dev-info">
 	<p class="grd_small">Login Server in Entwicklung</p>
-	<p class="grd_small">Alpha 0.8.0</p>
+	<p class="grd_small">Alpha 0.8.1</p>
 </div>
 <!--<nav class="grd-left-bar expanded" data-topbar role="navigation">
 	<div class="grd-left-bar-section">
