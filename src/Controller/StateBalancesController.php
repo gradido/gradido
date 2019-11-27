@@ -63,11 +63,69 @@ class StateBalancesController extends AppController
                 ->where(['OR' => ['state_user_id' => $user['id'], 'receiver_user_id' => $user['id']]])
                 ->contain(['Transactions']);
         
-        $transactions = [];
-        foreach($creationTransactions as $creation) {
-          
+        $involvedUserIds = [];
+        foreach($transferTransactions as $sendCoins) {
+          if($sendCoins->state_user_id != $user['id']) {
+              array_push($involvedUserIds, intval($sendCoins->state_user_id));
+          } else if($sendCoins->receiver_user_id != $user['id']) {
+              array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
+          }
+        }
+        // exchange key with values and drop duplicates
+        $involvedUser_temp = array_flip($involvedUserIds);
+        // exchange back
+        $involvedUserIds = array_flip($involvedUser_temp);
+        $userTable = TableRegistry::getTableLocator()->get('StateUsers');
+        $involvedUser = $userTable->find('all', [
+            'contain' => false, 
+            'where' => ['id IN' => $involvedUserIds],
+            'fields' => ['id', 'first_name', 'last_name', 'email']
+          ]);
+        $involvedUserIndices = [];
+        foreach($involvedUser as $involvedUser) {
+          $involvedUserIndices[$involvedUser->id] = $involvedUser;
         }
         
+        // sender or receiver when user has sended money
+        // group name if creation
+        // type: gesendet / empfangen / geschöpft
+        // transaktion nr / id
+        // date
+        // balance
+        
+        $transactions = [];
+        foreach($creationTransactions as $creation) {
+          //var_dump($creation);
+          array_push($transactions, [
+              'name' => 'Gradido Akademie', 
+              'type' => 'creation', 
+              'transaction_id' => $creation->transaction_id, 
+              'date' => $creation->transaction->received, 
+              'balance' => $creation->amount
+          ]);
+        }
+        
+        foreach($transferTransactions as $sendCoins) {
+          $type = '';
+          $otherUser = null;
+          if($sendCoins->state_user_id == $user['id']) {
+            $type = 'send';
+            $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
+          } else if($sendCoins->receiver_user_id == $user['id']) {
+            $type = 'receive';
+            $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+          }
+          array_push($transactions, [
+             'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
+             'email' => $otherUser->email,
+             'type' => $type,
+             'transaction_id' => $sendCoins->transaction_id,
+             'date' => $sendCoins->transaction->received,
+             'balance' => $sendCoins->amount
+          ]);
+        }
+        $this->set('transactions', $transactions);
+        $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
     }
 

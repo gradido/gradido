@@ -55,6 +55,11 @@ if(!isset($balance)) {
     <nav class="grd-left-bar expanded" data-topbar role="navigation">
         <div class="grd-left-bar-section">
             <ul class="grd-no-style">
+              <?php if($errorCount > 0) : ?>
+              <li>
+                <?= $this->Html->Link(__('Fehler '). "($errorCount)", ['controller' => 'StateErrors', 'action' => 'showForUser'], ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
+              </li>
+              <?php endif; ?>
               <?php if(isset($balance)) : ?>
                 <li><?= $this->Html->link($this->element('printGradido', ['number' => $balance]), 
                         ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn grd-nav-without-border', 'escape' => false])
@@ -63,11 +68,6 @@ if(!isset($balance)) {
               <?php endif; ?>
               <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard'], ['class' => 'grd-nav-bn'])?>
               <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
-              <?php if($errorCount > 0) : ?>
-              <li>
-                <?= $this->Html->Link(__('Fehler '). "($errorCount)", ['controller' => 'StateErrors', 'action' => 'showForUser'], ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
-              </li>
-              <?php endif; ?>
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>
                   <a href="<?= Router::url('./', true) ?>account/checkTransactions" class="grd-nav-bn">
