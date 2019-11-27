@@ -125,6 +125,11 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
         );
     }
     
+    /*public function testMissingPreviousTransaction() 
+    {
+      
+    }*/
+    
     public function testValidTransaction() 
     {
       $this->postAndParse(

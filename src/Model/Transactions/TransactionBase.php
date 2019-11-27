@@ -51,7 +51,7 @@ class TransactionBase {
         //debug($stateBalanceQuery);
         
         if($stateBalanceQuery->count() > 0) {
-          $stateBalanceEntry = $stateBalanceEntry->first();
+          $stateBalanceEntry = $stateBalanceQuery->first();
           $stateBalanceEntry->amount += $newAmountCent;
         } else {
           $stateBalanceEntry = $stateBalancesTable->newEntity();

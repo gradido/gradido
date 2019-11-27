@@ -101,7 +101,7 @@ class Transaction extends TransactionBase {
       $connection->begin();
       //id transaction_id signature     pubkey 
       
-       if (!$this->mTransactionBody->save($this->getFirstPublic())) {
+       if (!$this->mTransactionBody->save($this->getFirstPublic(), $this->mProtoTransaction->getSigMap())) {
           $this->addErrors($this->mTransactionBody->getErrors());
           $connection->rollback();
           return false;
@@ -117,7 +117,6 @@ class Transaction extends TransactionBase {
       $signatureEntitys = [];
       foreach($sigPairs as $sigPair) {
           $signatureEntity = $transactionsSignaturesTable->newEntity();
-          
           $signatureEntity->transaction_id = $transactionId;
           $signatureEntity->signature = $sigPair->getEd25519();
           $signatureEntity->pubkey = $sigPair->getPubKey();
@@ -135,6 +134,8 @@ class Transaction extends TransactionBase {
         $connection->rollback();
         return false;
       }
+      
+      
       
       $connection->commit();
       return true;

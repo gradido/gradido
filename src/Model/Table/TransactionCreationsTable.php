@@ -45,6 +45,10 @@ class TransactionCreationsTable extends Table
             'foreignKey' => 'state_user_id',
             'joinType' => 'INNER'
         ]);
+        $this->belongsTo('StateUsers', [
+            'foreignKey' => 'receiver_user_id',
+            'joinType' => 'INNER'
+        ]);
     }
 
     /**
@@ -82,6 +86,7 @@ class TransactionCreationsTable extends Table
     {
         $rules->add($rules->existsIn(['transaction_id'], 'Transactions'));
         $rules->add($rules->existsIn(['state_user_id'], 'StateUsers'));
+        $rules->add($rules->existsIn(['receiver_user_id'], 'StateUsers'));
 
         return $rules;
     }

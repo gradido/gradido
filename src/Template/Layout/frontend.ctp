@@ -1,6 +1,6 @@
 <?php
 use Cake\Routing\Router;
-use App\Controller\Component\GradidoNumberComponent;
+
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -50,7 +50,7 @@ if(!isset($balance)) {
 <body>
     <div class="versionstring dev-info">
       <p class="grd_small">Community Server in Entwicklung</p>
-      <p class="grd_small">Alpha 0.5.0</p>
+      <p class="grd_small">Alpha 0.6.0</p>
     </div>
     <nav class="grd-left-bar expanded" data-topbar role="navigation">
         <div class="grd-left-bar-section">

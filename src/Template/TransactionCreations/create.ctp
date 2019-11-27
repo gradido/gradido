@@ -17,6 +17,7 @@ foreach($receiverProposal as $i => $receiver) {
 $this->assign('title', __('Schöpfungstransaktion'));
 ?>
 <div class="grd_container_small">
+  Funktioniert im Augenblick noch nicht. 
   <?= $this->Form->create($creationForm) ?>
   <fieldset>
     <?= $this->Form->control('memo'); ?>

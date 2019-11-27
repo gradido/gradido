@@ -92,6 +92,11 @@ class TransactionSendCoinsController extends AppController
         $receiverUsers = $this->TransactionSendCoins->ReceiverUsers->find('list', ['limit' => 200]);
         $this->set(compact('transactionSendCoin', 'transactions', 'stateUsers', 'receiverUsers'));
     }
+    
+    public function create()
+    {
+      
+    }
 
     /**
      * Delete method

@@ -68,7 +68,7 @@ class TransactionBody extends TransactionBase {
     return $this->mProtoTransactionBody->getData(); 
   }
   
-  public function save($firstPublic) {
+  public function save($firstPublic, $sigMap) {
       $transactionsTable = TableRegistry::getTableLocator()->get('transactions');
       $transactionEntity = $transactionsTable->newEntity();
       
@@ -87,7 +87,45 @@ class TransactionBody extends TransactionBase {
         $this->addError('TransactionBody::save', 'error saving transaction with: ' . json_encode($transactionEntity->getError()));
         return false;
       }
-      return true;
+      $previousTxHash = null;
+      if($this->mTransactionID > 1) {
+        try {
+          $previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
+              'contain' => false, 
+              'fields' => ['tx_hash']
+          ]);
+        } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+          $this->addError('TransactionBody::save', 'previous transaction (with id ' . ($this->mTransactionID-1) . ' not found');
+          return false;
+        }
+        if(!$previousTransaction) {
+          // shouldn't occur
+          $this->addError('TransactionBody::save', 'previous transaction (with id ' . ($this->mTransactionID-1) . ' not found');
+          return false;
+        }
+        $previousTxHash = $previousTransaction->tx_hash;
+      }
+      $transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
+      
+      // calculate tx hash
+      // previous tx hash + id + received + sigMap as string
+      // Sodium use for the generichash function BLAKE2b today (11.11.2019), mabye change in the future
+      $state = \Sodium\crypto_generichash_init();
+      //echo "prev hash: $previousTxHash\n";
+      if($previousTxHash != null) {
+        \Sodium\crypto_generichash_update($state, stream_get_contents($previousTxHash));
+      }
+      //echo "id: " . $transactionEntity->id . "\n";
+      \Sodium\crypto_generichash_update($state, strval($transactionEntity->id));
+      //echo "received: " . $transactionEntity->received;
+      \Sodium\crypto_generichash_update($state, $transactionEntity->received->i18nFormat('yyyy-MM-dd HH:mm:ss'));
+      \Sodium\crypto_generichash_update($state, $sigMap->serializeToString());
+      $transactionEntity->tx_hash = \Sodium\crypto_generichash_final($state);
+      if ($transactionsTable->save($transactionEntity)) {
+        return true;
+      }
+      $this->addError('TransactionBody::save', 'error saving transaction with: ' . json_encode($transactionEntity->getError()));
+        return false;
   }
   
   public function getTransactionID() {

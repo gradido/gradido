@@ -2,8 +2,8 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
-use Cake\Routing\Router;
-use Cake\ORM\TableRegistry;
+//use Cake\Routing\Router;
+//use Cake\ORM\TableRegistry;
 
 /**
  * StateUsers Controller

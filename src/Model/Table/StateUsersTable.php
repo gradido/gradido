@@ -61,6 +61,10 @@ class StateUsersTable extends Table
         $this->hasMany('TransactionSendCoins', [
             'foreignKey' => 'state_user_id'
         ]);
+        $this->hasMany('TransactionReceiveCoins', [
+            'className' => 'TransactionSendCoins',
+            'foreignKey' => 'receiver_user_id'
+        ]);
     }
 
     /**
@@ -95,5 +99,20 @@ class StateUsersTable extends Table
         //$rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
 
         return $rules;
+    }
+    
+    public function getReceiverProposal() {
+      $stateUsers = $this->find('all');
+      $receiverProposal = [];
+      foreach($stateUsers as $stateUser) {
+        $name = $stateUser->email;
+        $keyHex = bin2hex(stream_get_contents($stateUser->public_key));
+        if($name === NULL) {
+          $name = $stateUser->first_name . ' ' . $stateUser->last_name;
+        }
+        array_push($receiverProposal, ['name' => $name, 'key' => $keyHex]);
+        //$stateUser->public_key
+      }
+      return $receiverProposal;
     }
 }

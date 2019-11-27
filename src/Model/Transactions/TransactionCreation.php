@@ -73,12 +73,13 @@ class TransactionCreation extends TransactionBase {
       $transactionCreationEntity->transaction_id = $transaction_id;
       
       // state user id
-      $state_user_id = $this->getStateUserId($firstPublic);
-      if(!$state_user_id) {
+      //$state_user_id = $this->getStateUserId($firstPublic);
+      $receiverUser = $this->getStateUserId($this->getReceiverPublic());
+      if(!$receiverUser) {
         $this->addError('TransactionCreation::save', 'couldn\'t get state user id');
         return false;
       }
-      $transactionCreationEntity->state_user_id = $state_user_id;
+      $transactionCreationEntity->state_user_id = $receiverUser;
       $transactionCreationEntity->amount = $this->getAmount();
       $transactionCreationEntity->ident_hash = $this->getIdentHash();
       
@@ -86,7 +87,7 @@ class TransactionCreation extends TransactionBase {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
         return false;
       }
-      $receiverUser = $this->getStateUserId($this->getReceiverPublic());
+      
       // update state balance
       if(!$this->updateStateBalance($receiverUser, $this->getAmount())) {
         return false;

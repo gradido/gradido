@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use Cake\ORM\TableRegistry;
 use App\Controller\AppController;
 
 /**
@@ -37,7 +38,35 @@ class StateBalancesController extends AppController
     public function overview() 
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend');
+        $this->viewBuilder()->setLayout('frontend_ripple');
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+//        var_dump($user);
+        if(!$user) {
+          //return $this->redirect(Router::url('/', true) . 'account/', 303);
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
+        }
+        
+        $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
+        $creationTransactions = $creationsTable
+                ->find('all')
+                ->where(['state_user_id' => $user['id']])
+                ->contain(['Transactions']);
+        
+        $transferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+        $transferTransactions = $transferTable
+                ->find('all')
+                ->where(['OR' => ['state_user_id' => $user['id'], 'receiver_user_id' => $user['id']]])
+                ->contain(['Transactions']);
+        
+        $transactions = [];
+        foreach($creationTransactions as $creation) {
+          
+        }
         
         $this->set('timeUsed', microtime(true) - $startTime);
     }
