@@ -16,6 +16,7 @@
 		//form.get("email-verification-code")
 	}
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
+	response.redirect(ServerConfig::g_php_serverPath + "/");
 %><%@ include file="header.cpsp" %>
 <div class="grd_container">
 	<h1>Willkommen <%= mSession->getUser()->getFirstName() %>&nbsp;<%= mSession->getUser()->getLastName() %></h1>
@@ -38,4 +39,12 @@
 	<a class="grd-form-bn" href="<%= uri_start %>/logout">Abmelden</a>
 	<a class="grd-form-bn" href="<%= uri_start %>/user_delete">Account l&ouml;schen</a>
 </div>
+<nav class="grd-left-bar expanded" data-topbar role="navigation">
+	<div class="grd-left-bar-section">
+		<ul class="grd-no-style">
+		  <li><a href="<%= ServerConfig::g_php_serverPath %>" class="grd-nav-bn">Startseite</a>
+		  <li><a href="./account/logout" class="grd-nav-bn">Logout</a></li>
+		</ul>
+	</div>
+</nav>
 <%@ include file="footer.cpsp" %>
