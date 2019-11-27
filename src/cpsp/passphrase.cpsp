@@ -51,17 +51,22 @@ enum PageState
 		mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 	}
 	getErrors(mSession);
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
 	<h1>Einen neuen Account anlegen</h1>
 	<%= getErrorsHtml() %>
 	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
 		<div class="grd_text-max-width">
 			<div class="grd_text">
-				Schreibe dir die Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du ihn verlierst, sind auch deine Gradidos verloren.
+				Schreibe dir die Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.
 			</div>
-			<div class="grd_textarea">
+			<div class="grd_textarea" style="width:220px;text-align:center;">
 				<%= mSession->getPassphrase() %>
+			</div>
+			<div class="grd_text">
+				<h3>Was ist eine Passphrase?</h3>
+				<p>Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen. </p>
+				<p>Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.</p>
 			</div>
 			<div class="grd-margin-top-10"></div>
 			<a href="saveKeys" class="grd-form-bn grd-form-bn-succeed grd_clickable">Weiter</a>

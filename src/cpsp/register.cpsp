@@ -39,7 +39,7 @@
 		// remove old cookies if exist
 		sm->deleteLoginCookies(request, response);
 	}
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
 	<h1>Einen neuen Account anlegen</h1>
 	<%= getErrorsHtml() %>
