@@ -34,7 +34,11 @@ $this->assign('title', __('Schöpfungstransaktion'));
 </style>
 <div class="grd_container_small">
   
+  <button type="button" onclick="checkAll()" >Alle auswählen</button>
+  <button type="button" onclick="uncheckAll()">Alle abwählen</button>
+  <div style="margin-bottom:5px"></div>
   <?= $this->Form->create($creationForm) ?>
+  
   <fieldset>
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount'); ?>
@@ -58,3 +62,24 @@ $this->assign('title', __('Schöpfungstransaktion'));
   <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'grd-form-bn grd_clickable  grd-width-200']) ?>
   <?= $this->Form->end() ?>
 </div>
+<script type="text/javascript">
+  function checkAll()
+  {
+    var inputs = document.getElementsByTagName("input");
+    for(var i = 0; i < inputs.length; i++) {
+      if(inputs[i].type == "checkbox") {
+          inputs[i].checked = true; 
+      }  
+    } 
+  }
+  
+  function uncheckAll()
+  {
+    var inputs = document.getElementsByTagName("input");
+    for(var i = 0; i < inputs.length; i++) {
+      if(inputs[i].type == "checkbox") {
+          inputs[i].checked = false; 
+      }  
+    }
+  }
+</script>
