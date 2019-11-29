@@ -17,6 +17,7 @@ use Cake\Routing\Router;
 
 
 $cakeDescription = 'Gradido';
+$GLOBALS["self"] = $this;
 
 //echo "balance: $balance<br>";
 //echo "transactions pending: " . $transactionPendings;
@@ -78,6 +79,7 @@ $cakeDescription = 'Gradido';
           <div class="flash-messages" style="margin-left:20px; margin-top:30px;">
             <?= $this->Flash->render() ?>
           </div>
+          <?= $this->element('navi_header'); ?>
         </div>
       </div>
     </nav>
@@ -92,7 +94,7 @@ $cakeDescription = 'Gradido';
             <nav aria-label="breadcrumb">
               <ol class="breadcrumb has-arrow">
                 <li class="breadcrumb-item">
-                  <a href="index.html">Startseite</a>
+                  <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page"><?= $this->fetch('title') ?></li>
               </ol>

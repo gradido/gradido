@@ -29,7 +29,7 @@ class TransactionCreationsController extends AppController
         parent::initialize();
         $this->loadComponent('GradidoNumber');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow('create');
+        //$this->Auth->allow('create');
     }
     /**
      * Index method

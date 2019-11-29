@@ -109,6 +109,20 @@ class AppController extends Controller
           $session->write('StateUser.errorCount', $stateErrorQuery->count());
         }
         //echo "initialize";
+        
+        
+        // put current page into global for navi
+        $GLOBALS["passed"] = null;
+        $side = $this->request->getParam('controller');
+        $GLOBALS["side"] = $side;
+        $subside = $this->request->getParam('action');
+        $passedArguments = $this->request->getParam('pass');
+        if($passedArguments) {
+            $GLOBALS["passed"] = $passedArguments[0];
+        }
+        $GLOBALS["subside"] = $subside;
+
+
     }
     
     protected function requestLogin()
@@ -162,9 +176,11 @@ class AppController extends Controller
                     if($stateUserQuery->count() == 1) {
                       $stateUser = $stateUserQuery->first();
                       if($stateUser->first_name != $json['user']['first_name'] ||
-                         $stateUser->last_name  != $json['user']['last_name']) {
+                         $stateUser->last_name  != $json['user']['last_name'] ||
+                         $stateUser->email      != $json['user']['email']) {
                         $stateUser->first_name = $json['user']['first_name'];
                         $stateUser->last_name = $json['user']['last_name'];
+                        $stateUser->email = $json['user']['email'];
                         if(!$stateUserTable->save($stateUser)) {
                           $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
                         }

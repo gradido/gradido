@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use App\Form\CreationForm;
 
 /**
  * TransactionSendCoins Controller
@@ -12,6 +13,15 @@ use App\Controller\AppController;
  */
 class TransactionSendCoinsController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('GradidoNumber');
+        //$this->Auth->allow(['add', 'edit']);
+        $this->Auth->allow('create');
+    }
+    
     /**
      * Index method
      *
@@ -95,7 +105,26 @@ class TransactionSendCoinsController extends AppController
     
     public function create()
     {
-      
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend_ripple');
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+//        var_dump($user);
+        if(!$user) {
+          //return $this->redirect(Router::url('/', true) . 'account/', 303);
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
+        }
+        if ($this->request->is('post')) {
+          $this->Flash->error(__('Wird zurzeit noch entwickelt!'));
+        }
+        
+        $creationForm = new CreationForm();
+        $this->set('creationForm', $creationForm);
+        $this->set('timeUsed', microtime(true) - $startTime);
     }
 
     /**
