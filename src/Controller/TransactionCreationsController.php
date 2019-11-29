@@ -7,6 +7,7 @@ use Cake\Routing\Router;
 //use Cake\I18n\Number;
 use Cake\Http\Client;
 use Cake\Core\Configure;
+use Cake\Datasource\ConnectionManager;
 
 use App\Form\CreationForm;
 // protobuf transactions
@@ -187,6 +188,84 @@ class TransactionCreationsController extends AppController
             $this->Flash->error(__('Something was invalid, please try again!'));
           }
         }
+    }
+    
+    public function createMulti()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend');
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+//        var_dump($user);
+        if(!$user) {
+          //return $this->redirect(Router::url('/', true) . 'account/', 303);
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
+        }
+        $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+        
+        $connection = ConnectionManager::get('default');
+        $transactionActiveMonth = $connection->execute(
+                'SELECT id, received FROM transactions '
+                . 'where received >= date_add(curdate(), interval 1 - day(curdate()) day) '
+                . 'AND '
+                . 'received < date_add(date_add(curdate(), interval 1 - day(curdate()) day), interval 1 month) '
+                . 'AND '
+                . 'transaction_type_id = 1'
+        )->fetchAll('assoc');
+        $transactionActiveMonthSortedById = [];
+        foreach($transactionActiveMonth as $t) {
+          $transactionActiveMonthSortedById[$t['id']] = $t['received'];
+        }
+        
+        $stateUsers = $stateUserTable
+                ->find('all')
+                ->select(['id', 'first_name', 'last_name', 'email'])
+                ->contain(['TransactionCreations' => [
+                    'fields' => [
+                        'TransactionCreations.amount',
+                        'TransactionCreations.transaction_id',
+                        'TransactionCreations.state_user_id'
+                    ]
+                ]]);
+        
+        //var_dump($stateUsers->toArray());
+        $possibleReceiver = [];
+        foreach($stateUsers as $stateUser) {
+          $sumAmount = 0;
+          foreach($stateUser->transaction_creations as $transactionCreation) {
+            //var_dump($transactionCreation);
+            if(isset($transactionActiveMonthSortedById[$transactionCreation->transaction_id])) {
+              $sumAmount += $transactionCreation->amount;
+            }
+          }
+          if($sumAmount < 10000000) {
+            array_push($possibleReceiver, [
+                'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
+                'id' => $stateUser->id,
+                'email' => $stateUser->email,
+                'amount' => $sumAmount
+                ]);
+          }
+        }
+        //var_dump($possibleReceiver);
+        $creationForm = new CreationForm();
+        
+        $timeUsed = microtime(true) - $startTime;
+        $this->set(compact('timeUsed', 'stateUsers', 'creationForm', 'possibleReceiver'));
+        
+        $this->set('creationForm', $creationForm);
+        $this->set('timeUsed', microtime(true) - $startTime);
+        
+        if ($this->request->is('post')) {
+          $requestData = $this->request->getData();
+          var_dump($requestData);
+        }
+        
+        
     }
 
     /**

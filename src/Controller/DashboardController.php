@@ -45,6 +45,15 @@ class DashboardController extends AppController
          
     }
     
+    public function serverIndex()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend');
+        
+        
+        $this->set('timeUsed', microtime(true) - $startTime);
+    }
+    
     public function errorHttpRequest()
     {
       $startTime = microtime(true);
