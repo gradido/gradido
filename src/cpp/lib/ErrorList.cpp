@@ -57,9 +57,7 @@ ErrorList::~ErrorList()
 
 void ErrorList::addError(Error* error)
 {
-	mLogging.error("[ErrorList::addError] error with function: %s, %s",
-		std::string(error->getFunctionName()), std::string(error->getMessage())
-	);
+	mLogging.error("[ErrorList::addError] %s", error->getString());
 	mErrorStack.push(error);
 }
 

@@ -38,9 +38,7 @@ void ErrorManager::addError(Error* error)
 	std::list<Error*>* list = nullptr;
 
 	//printf("[ErrorManager::addError] error with function: %s, %s\n", error->getFunctionName(), error->getMessage());
-	mLogging.error("[ErrorManager::addError] error with function: %s, %s", 
-		std::string(error->getFunctionName()), std::string(error->getMessage())
-	);
+	mLogging.error("[ErrorManager::addError] %s", error->getString());
 
 	if (it == mErrorsMap.end()) {
 		list = new std::list<Error *>;
