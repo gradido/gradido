@@ -2,6 +2,8 @@
 
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTMLForm.h"
+#include "Poco/DateTime.h"
+#include "Poco/DateTimeFormatter.h"
 
 #include "ConfigPage.h"
 #include "LoginPage.h"
@@ -36,6 +38,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	Profiler timeUsed;
 	std::string uri = request.getURI();
 	std::string url_first_part;
+	std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
 	mRemoveGETParameters.extract(uri, url_first_part);
 
 	if (uri != "/favicon.ico") {
@@ -47,7 +50,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 
 	if (url_first_part == "/elopage_webhook_261") {
-		printf("call from elopage\n");
+		mLogging.information(dateTimeString + " call from elopage");
+		//printf("call from elopage\n");
 		auto pageRequestHandler = new ElopageWebhook;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
@@ -68,7 +72,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	// for debugging
 	std::stringstream logStream;
 	auto referer = request.find("Referer");
-	logStream << "call " << uri;
+	logStream << dateTimeString  << " call " << uri;
 	if (s) {logStream << ", with session: " << std::to_string(s->getHandle()); }
 	if (referer != request.end()) { logStream << ", from: " << referer->second;}
 	mLogging.information(logStream.str());
