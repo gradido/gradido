@@ -37,9 +37,14 @@ class TransactionTypesFixture extends TestFixture
         $this->records = [
             [
                 'id' => 1,
-                'name' => 'Lorem ipsum dolor sit ',
-                'text' => 'Lorem ipsum dolor sit amet'
+                'name' => 'creation',
+                'text' => 'Aktives oder Bedingsungsloses Grundeinkommen'
             ],
+            [
+                'id' => 2,
+                'name' => 'transfer',
+                'text' => 'Einfache Überweisung'
+			]
         ];
         parent::init();
     }

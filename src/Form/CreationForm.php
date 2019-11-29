@@ -35,7 +35,12 @@ class CreationForm extends Form
             'rule' => ['maxLength', 150],
             'message' => 'max 150 character'
         ])
-        ->ascii('memo', __('Only Ascii Character allowed'))
+        //->alphaNumeric('memo', __('Only Alpha Numeric Character allowed'))
+        ->add('memo', 'custom', [
+            'rule' => 'alphaNumeric',
+            'provider' => 'custom',
+            'message' => __('Only Alpha Numeric Character allowed')
+        ])
         ->allowEmptyString('memo', null, 'create')
         /*->add('receiver_pubkey_hex', 'custom', [
             'rule' => 'hexKey64',

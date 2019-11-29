@@ -30,4 +30,11 @@ class TransactionValidation
     }
     return false;
   }
+  
+  public static function alphaNumeric($value, array $context) {
+    if(preg_match('/^[a-zA-Z0-9äöüÄÖÜß _-]*$/', $value)) {
+      return true;
+    }
+    return false;
+  }
 }

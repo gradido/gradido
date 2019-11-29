@@ -15,7 +15,11 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
-use Cake\Event\Event;
+//use Cake\Event\Event;
+use Cake\Http\Client;
+use Cake\Routing\Router;
+use Cake\ORM\TableRegistry;
+use Cake\Core\Configure;
 
 /**
  * Application Controller
@@ -75,13 +79,163 @@ class AppController extends Controller
          * see https://book.cakephp.org/3.0/en/controllers/components/security.html
          */
         //$this->loadComponent('Security');
+        
+        
+        // load current balance
+        $session = $this->getRequest()->getSession();
+        $state_user_id = $session->read('StateUser.id');
+        if($state_user_id) {
+          $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
+          $stateBalanceQuery = $stateBalancesTable
+                  ->find('all')
+                  ->select('amount')
+                  ->contain(false)
+                  ->where(['state_user_id' => $state_user_id]);
+          if($stateBalanceQuery->count() == 1) {
+            //var_dump($stateBalanceEntry->first());
+            $session->write('StateUser.balance', $stateBalanceQuery->first()->amount);
+            //echo "stateUser.balance: " . $session->read('StateUser.balance');
+          }
+        }
+        
+        // load error count
+        if($state_user_id) {
+          $stateErrorsTable = TableRegistry::getTableLocator()->get('stateErrors');
+          $stateErrorQuery = $stateErrorsTable
+                  ->find('all')
+                  ->select('id')
+                  ->contain(false)
+                  ->where(['state_user_id' => $state_user_id]);
+          $session->write('StateUser.errorCount', $stateErrorQuery->count());
+        }
+        //echo "initialize";
+        
+        
+        // put current page into global for navi
+        $GLOBALS["passed"] = null;
+        $side = $this->request->getParam('controller');
+        $GLOBALS["side"] = $side;
+        $subside = $this->request->getParam('action');
+        $passedArguments = $this->request->getParam('pass');
+        if($passedArguments) {
+            $GLOBALS["passed"] = $passedArguments[0];
+        }
+        $GLOBALS["subside"] = $subside;
+
+
     }
+    
+    protected function requestLogin()
+    {
+        $session = $this->getRequest()->getSession();
+        // check login
+        // disable encryption for cookies
+        //$this->Cookie->configKey('User', 'encryption', false);
+        $session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
+        $ip = $this->request->clientIp();
+        if(!$session->check('client_ip')) {
+          $session->write('client_ip', $ip);
+        }
+        // login server cannot detect host ip
+        // TODO: update login server, recognize nginx real ip header
+        
+        if($session_id != 0) {
+          $userStored = $session->read('StateUser');
+          $transactionPendings = $session->read('Transactions.pending');
+          if($session->read('session_id') != $session_id || 
+             ( $userStored && !isset($userStored['id'])) ||
+              intval($transactionPendings) > 0) {
+            $http = new Client();
+            try {
+              $loginServer = Configure::read('LoginServer');
+              $url = $loginServer['host'] . ':' . $loginServer['port'];
+              
+              $response = $http->get($url . '/login', ['session_id' => $session_id]);
+              $json = $response->getJson();
+
+              if(isset($json) && count($json) > 0) {
+
+                if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
+                  //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
+                  $session->destroy();
+                  foreach($json['user'] as $key => $value) {
+                    $session->write('StateUser.' . $key, $value );
+                  }
+                  
+                  $transactionPendings = $json['Transaction.pending'];
+                  //echo "read transaction pending: $transactionPendings<br>";
+                  $session->write('Transactions.pending', $transactionPendings);
+                  $session->write('session_id', $session_id);
+                  $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+                  if($json['user']['public_hex'] != '') {
+                    $public_key_bin = hex2bin($json['user']['public_hex']);
+                    $stateUserQuery = $stateUserTable
+                            ->find('all')
+                            ->where(['public_key' => $public_key_bin])
+                            ->contain(['StateBalances']);
+                    if($stateUserQuery->count() == 1) {
+                      $stateUser = $stateUserQuery->first();
+                      if($stateUser->first_name != $json['user']['first_name'] ||
+                         $stateUser->last_name  != $json['user']['last_name'] ||
+                         $stateUser->email      != $json['user']['email']) {
+                        $stateUser->first_name = $json['user']['first_name'];
+                        $stateUser->last_name = $json['user']['last_name'];
+                        $stateUser->email = $json['user']['email'];
+                        if(!$stateUserTable->save($stateUser)) {
+                          $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
+                        }
+                      }
+                      //var_dump($stateUser);
+                      if(count($stateUser->state_balances) > 0) {
+                        $session->write('StateUser.balance', $stateUser->state_balances[0]->amount);
+                      }
+                      $session->write('StateUser.id', $stateUser->id);
+                      //echo $stateUser['id'];
+                    } else {
+                      $newStateUser = $stateUserTable->newEntity();
+                      $newStateUser->public_key = $public_key_bin;
+                      $newStateUser->first_name = $json['user']['first_name'];
+                      $newStateUser->last_name = $json['user']['last_name'];
+                      if(!$stateUserTable->save($newStateUser)) {
+                        $this->Flash->error(__('error saving state user ' . json_encode($newStateUser->errors())));
+                      }
+                      $session->write('StateUser.id', $newStateUser->id);
+                      //echo $newStateUser->id;
+                    }
+                  }
+                } else {
+                  if($json['state'] === 'not found' ) {
+                    $this->Flash->error(__('invalid session'));
+                    return $this->redirect(Router::url('/', true) . 'account/', 303);
+                  }
+                }
+              }
+            } catch(\Exception $e) {
+              $msg = $e->getMessage();
+              $this->Flash->error(__('error http request: ') . $msg);
+              return $this->redirect(['controller' => 'Dashboard', 'action' => 'errorHttpRequest']);
+              //continue;
+            }
+          }
+        } else {
+          // no login
+          return $this->redirect(Router::url('/', true) . 'account/', 303);
+        }
+        return true;
+    }
+    
     /*
     public function beforeFilter(Event $event)
     {
       //$this->Auth->allow(['display']);
     }
      */
+    
+    public function returnJsonEncoded($json) {
+      $this->autoRender = false;
+      $response = $this->response->withType('application/json');
+      return $response->withStringBody($json);
+    }
     
     public function returnJson($array) {
       $this->autoRender = false;

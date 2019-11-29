@@ -35,9 +35,9 @@ class PagesControllerTest extends IntegrationTestCase
     public function testMultipleGet()
     {
         $this->get('/');
-        $this->assertResponseOk();
+        $this->assertRedirect('account/');
         $this->get('/');
-        $this->assertResponseOk();
+        $this->assertRedirect('account/');
     }
 
     /**

@@ -11,15 +11,22 @@ if(isset($user)) {
 }
 $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']);
 ?>
+<?php if(isset($requestTime)) : ?>
+  <span class='grd-second-timer'><?= round($requestTime * 1000.0) ?> ms</span>
+<?php endif; ?>
   <div class="grd_container_small">
     <fieldset>
       <h3>Gradido ...</h3>
       <?= $this->Html->link(
-              __('schöpfen'), 
-              ['controller' => 'TransactionCreations', 'action' => 'create'], 
+              __('übersicht'),
+              ['controller' => 'StateBalances', 'action' => 'overview'],
+              ['class' => 'grd-nav-bn grd-nav-bn-large']
+          );?>
+      <?= $this->Html->link(
+              __('überweisen'), 
+              ['controller' => 'TransactionSendCoins', 'action' => 'create'], 
               ['class' => 'grd-nav-bn grd-nav-bn-large']
           ); ?>
-      <a class="grd-nav-bn grd-nav-bn-large">überweisen</a>
     </fieldset>
     <fieldset class="grd-margin-top-10">
       <h3>Account ...</h3>

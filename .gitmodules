@@ -3,4 +3,4 @@
 	url = ssh://git@***REMOVED***/~/_mithril/gradido_mithrilJS_client
 [submodule "src/protobuf"]
 	path = src/protobuf
-	url = git@***REMOVED***:~/_protobuf/gradido_protobuf
+	url = ssh://git@***REMOVED***/~/_protobuf/gradido_protobuf

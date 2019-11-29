@@ -19,6 +19,10 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string memo = 1;</code>
      */
     private $memo = '';
+    /**
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds created = 2;</code>
+     */
+    private $created = null;
     protected $data;
 
     /**
@@ -29,6 +33,7 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      *
      *     @type string $memo
      *           max 150 chars
+     *     @type \Model\Messages\Gradido\TimestampSeconds $created
      *     @type \Model\Messages\Gradido\StateCreateGroup $createGroup
      *     @type \Model\Messages\Gradido\StateGroupChangeParent $groupChangeParent
      *     @type \Model\Messages\Gradido\Transfer $transfer
@@ -67,89 +72,111 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.StateCreateGroup createGroup = 2;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds created = 2;</code>
+     * @return \Model\Messages\Gradido\TimestampSeconds
+     */
+    public function getCreated()
+    {
+        return $this->created;
+    }
+
+    /**
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds created = 2;</code>
+     * @param \Model\Messages\Gradido\TimestampSeconds $var
+     * @return $this
+     */
+    public function setCreated($var)
+    {
+        GPBUtil::checkMessage($var, \Model\Messages\Gradido\TimestampSeconds::class);
+        $this->created = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>.model.messages.gradido.StateCreateGroup createGroup = 6;</code>
      * @return \Model\Messages\Gradido\StateCreateGroup
      */
     public function getCreateGroup()
     {
-        return $this->readOneof(2);
+        return $this->readOneof(6);
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.StateCreateGroup createGroup = 2;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.StateCreateGroup createGroup = 6;</code>
      * @param \Model\Messages\Gradido\StateCreateGroup $var
      * @return $this
      */
     public function setCreateGroup($var)
     {
         GPBUtil::checkMessage($var, \Model\Messages\Gradido\StateCreateGroup::class);
-        $this->writeOneof(2, $var);
+        $this->writeOneof(6, $var);
 
         return $this;
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.StateGroupChangeParent groupChangeParent = 3;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.StateGroupChangeParent groupChangeParent = 7;</code>
      * @return \Model\Messages\Gradido\StateGroupChangeParent
      */
     public function getGroupChangeParent()
     {
-        return $this->readOneof(3);
+        return $this->readOneof(7);
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.StateGroupChangeParent groupChangeParent = 3;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.StateGroupChangeParent groupChangeParent = 7;</code>
      * @param \Model\Messages\Gradido\StateGroupChangeParent $var
      * @return $this
      */
     public function setGroupChangeParent($var)
     {
         GPBUtil::checkMessage($var, \Model\Messages\Gradido\StateGroupChangeParent::class);
-        $this->writeOneof(3, $var);
+        $this->writeOneof(7, $var);
 
         return $this;
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.Transfer transfer = 4;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.Transfer transfer = 8;</code>
      * @return \Model\Messages\Gradido\Transfer
      */
     public function getTransfer()
     {
-        return $this->readOneof(4);
+        return $this->readOneof(8);
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.Transfer transfer = 4;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.Transfer transfer = 8;</code>
      * @param \Model\Messages\Gradido\Transfer $var
      * @return $this
      */
     public function setTransfer($var)
     {
         GPBUtil::checkMessage($var, \Model\Messages\Gradido\Transfer::class);
-        $this->writeOneof(4, $var);
+        $this->writeOneof(8, $var);
 
         return $this;
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.TransactionCreation creation = 5;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.TransactionCreation creation = 9;</code>
      * @return \Model\Messages\Gradido\TransactionCreation
      */
     public function getCreation()
     {
-        return $this->readOneof(5);
+        return $this->readOneof(9);
     }
 
     /**
-     * Generated from protobuf field <code>.model.messages.gradido.TransactionCreation creation = 5;</code>
+     * Generated from protobuf field <code>.model.messages.gradido.TransactionCreation creation = 9;</code>
      * @param \Model\Messages\Gradido\TransactionCreation $var
      * @return $this
      */
     public function setCreation($var)
     {
         GPBUtil::checkMessage($var, \Model\Messages\Gradido\TransactionCreation::class);
-        $this->writeOneof(5, $var);
+        $this->writeOneof(9, $var);
 
         return $this;
     }

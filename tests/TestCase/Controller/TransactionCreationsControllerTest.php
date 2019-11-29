@@ -26,6 +26,16 @@ class TransactionCreationsControllerTest extends TestCase
     ];
 
     /**
+     * Test initialize method
+     *
+     * @return void
+     */
+    public function testInitialize()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
      * Test index method
      *
      * @return void
@@ -41,6 +51,16 @@ class TransactionCreationsControllerTest extends TestCase
      * @return void
      */
     public function testView()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test create method
+     *
+     * @return void
+     */
+    public function testCreate()
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

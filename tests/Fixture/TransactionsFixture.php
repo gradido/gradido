@@ -36,13 +36,23 @@ class TransactionsFixture extends TestFixture
      */
     public function init()
     {
+      //(17, 0, 1, 0x0000000000000000000000000000000000000000000000000000000000000000, '', '2019-11-05 15:13:27');
         $this->records = [
             [
                 'id' => 1,
-                'state_group_id' => 1,
+                'group_id' => 0,
                 'transaction_type_id' => 1,
-                'tx_hash' => 'Lorem ipsum dolor sit amet',
-                'received' => 1568286900
+                'tx_hash' => '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'memo' => '',
+                'received' => 1571314633
+            ],
+            [
+                'id' => 17,
+                'group_id' => 0,
+                'transaction_type_id' => 1,
+                'tx_hash' => '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'memo' => '',
+                'received' => 1572966807
             ],
         ];
         parent::init();

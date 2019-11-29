@@ -37,6 +37,7 @@ class Transaction extends Entity
         'state_group_id' => true,
         'transaction_type_id' => true,
         'tx_hash' => true,
+        'memo' => true,
         'received' => true,
         'state_group' => true,
         'transaction_type' => true,

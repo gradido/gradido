@@ -39,8 +39,8 @@ class StateBalancesFixture extends TestFixture
             [
                 'id' => 1,
                 'state_user_id' => 1,
-                'modified' => '2019-09-12 11:14:50',
-                'amount' => 1
+                'modified' => '2019-11-05 18:02:28',
+                'amount' => 1200
             ],
         ];
         parent::init();

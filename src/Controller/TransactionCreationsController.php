@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
-use Cake\I18n\Number;
+//use Cake\I18n\Number;
 use Cake\Http\Client;
 use Cake\Core\Configure;
 
@@ -13,6 +13,7 @@ use App\Form\CreationForm;
 use Model\Messages\Gradido\TransactionCreation;
 use Model\Messages\Gradido\TransactionBody;
 use Model\Messages\Gradido\ReceiverAmount;
+use Model\Messages\Gradido\TimestampSeconds;
 /**
  * TransactionCreations Controller
  *
@@ -26,8 +27,9 @@ class TransactionCreationsController extends AppController
     public function initialize()
     {
         parent::initialize();
+        $this->loadComponent('GradidoNumber');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow('create');
+        //$this->Auth->allow('create');
     }
     /**
      * Index method
@@ -68,7 +70,12 @@ class TransactionCreationsController extends AppController
         $user = $session->read('StateUser');
 //        var_dump($user);
         if(!$user) {
-          return $this->redirect(Router::url('/', true) . 'account/', 303);
+          //return $this->redirect(Router::url('/', true) . 'account/', 303);
+          $result = $this->requestLogin();
+          if($result !== true) {
+            return $result;
+          }
+          $user = $session->read('StateUser');
         }
         $creationForm = new CreationForm();
         $transactionCreation = $this->TransactionCreations->newEntity();
@@ -98,12 +105,9 @@ class TransactionCreationsController extends AppController
           
             $pubKeyHex = '';
             $receiver = new ReceiverAmount();
-            //echo 'amount: ' . $requestData['amount'] . '<br>';
-            $floatAmount = floatval(Number::format($requestData['amount'], ['places' => 4, 'locale' => 'en_GB']));
-            //echo 'set for receiver: ' . round($floatAmount * 10000) . '<br>';
-            $receiver->setAmount(round($floatAmount * 10000));
-            //echo 'after receiver amount set<br>';
-            
+
+            $receiver->setAmount($this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']));
+
             if(intval($requestData['receiver']) == 0) {
               if(strlen($requestData['receiver_pubkey_hex']) != 64) {
                 $this->Flash->error(__('Invalid public Key, must contain 64 Character'));
@@ -118,11 +122,18 @@ class TransactionCreationsController extends AppController
               }
             }
             if($pubKeyHex != '') {
-              $receiver->setEd25519ReceiverPubkey(hex2bin($pubKeyHex));
+              $pubKeyBin = hex2bin($pubKeyHex);
+
+              $receiver->setEd25519ReceiverPubkey($pubKeyBin);
               //var_dump($requestData);
+              
+              $creationDate = new TimestampSeconds();
+              $creationDate->setSeconds(time());
+              
               $transactionBody = new TransactionBody();
               $transactionBody->setMemo($requestData['memo']);
-
+              $transactionBody->setCreated($creationDate);
+              
               $transaction = new TransactionCreation();
               $transaction->setReceiverAmount($receiver);
               $transaction->setIdentHash($user['ident_hash']);
