@@ -17,6 +17,7 @@
 	}
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
 	response.redirect(ServerConfig::g_php_serverPath + "/");
+	return;
 %><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
 	<h1>Willkommen <%= mSession->getUser()->getFirstName() %>&nbsp;<%= mSession->getUser()->getLastName() %></h1>

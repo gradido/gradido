@@ -25,7 +25,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
 	Poco::JSON::Object* json_result = nullptr;
-	if (method == "POST") {
+	if (method == "POST" || method == "PUT") {
 		// extract parameter from request
 		Poco::JSON::Parser jsonParser;
 		try {
@@ -42,6 +42,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		auto queryParameters = uri.getQueryParameters();
 		json_result = handle(queryParameters);
 	}
+
 	if (json_result) {
 		json_result->stringify(responseStream);
 		delete json_result;
