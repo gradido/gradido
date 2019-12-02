@@ -117,6 +117,15 @@ else(WIN32)
 target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
 endif(WIN32)
 
+# install 
+if(UNIX)
+install(TARGETS Gradido_LoginServer /usr/local/bin)
+install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
+        FILES_MATCHING PATTERN "*.po(t)")
+
+
+endif(UNIX)
+
 enable_testing()
 
 #  ----------------------    Test -----------------------------------------

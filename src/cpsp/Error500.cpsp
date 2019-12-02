@@ -14,13 +14,14 @@
 	if(mSession) {
 		auto user = mSession->getUser();
 	}
-%><%@ include file="header.cpsp" %>
-	<h1>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h1>
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h2>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h2>
 	<% if(mSession) { %>
 		<%= mSession->getErrorsHtml() %>
 	<% } %>
 	<% if(!user.isNull()) {%>
 		<%= user->getErrorsHtml() %> 
 	<% } %>
-</body>
-</html>
+</div>
+<%@ include file="footer.cpsp" %>

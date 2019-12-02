@@ -9,7 +9,7 @@
  
 #include <Poco/Net/HTTPResponse.h>
 	
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
  
 #include "../ServerConfig.h"	
 
@@ -40,20 +40,20 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	if(mSession) {
 		auto user = mSession->getUser();
 	}
-	// begin include header.cpsp
+	// begin include header_old.cpsp
 	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
-	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
+	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -97,43 +97,54 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.6.0</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
-#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
 	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
 	responseStream << "\t\t</ul>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</nav>-->";
-	// end include header.cpsp
+	// end include header_old.cpsp
 	responseStream << "\n";
-	responseStream << "\t<h1>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h1>\n";
+	responseStream << "<div class=\"grd_container\">\n";
+	responseStream << "\t<h2>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h2>\n";
 	responseStream << "\t";
-#line 19 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  if(mSession) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  if(!user.isNull()) {	responseStream << "\n";
 	responseStream << "\t\t";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
 	responseStream << ( user->getErrorsHtml() );
 	responseStream << " \n";
 	responseStream << "\t";
-#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
  } 	responseStream << "\n";
+	responseStream << "</div>\n";
+	// begin include footer.cpsp
+	responseStream << "\t<div class=\"grd-time-used dev-info\">\n";
+	responseStream << "\t\t\t";
+#line 2 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+	responseStream << ( mTimeProfiler.string() );
+	responseStream << "\n";
+	responseStream << "\t</div>\n";
 	responseStream << "</body>\n";
-	responseStream << "</html>\n";
+	responseStream << "</html>";
+	// end include footer.cpsp
+	responseStream << "\n";
 	if (_compressResponse) _gzipStream.close();
 }
