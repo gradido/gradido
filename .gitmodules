@@ -6,7 +6,7 @@
 	url = https://github.com/MariaDB/mariadb-connector-c.git
 [submodule "src/proto"]
 	path = src/proto
-	url = git@***REMOVED***:~/_protobuf/gradido_protobuf
+	url = ssh://git@***REMOVED***/~/_protobuf/gradido_protobuf
 [submodule "dependencies/iroha-ed25519"]
 	path = dependencies/iroha-ed25519
 	url = ssh://git@***REMOVED***/~/Forks/iroha-ed25519.git

@@ -1,0 +1,30 @@
+# get dependencies
+git submodule update --init --recursive
+
+# build dependencies ed25519
+cd dependencies/iroha-ed25519
+mkdir build
+cd build
+# for windows with visual studio 14 2015
+# cmake .. -G"Visual Studio 14 2015 Win64" -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC
+# for linux
+cmake .. -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC
+make 
+
+cd ../../../
+
+cd dependencies/mariadb-connector-c
+mkdir build 
+cd build
+cmake ..
+cd ../../../
+
+
+# get more dependencies with conan (need conan from https://conan.io/)
+mkdir build && cd build
+# conan install .. -s build_type=Debug
+conan install ..
+
+# build Makefile with cmake
+cmake ..
+
