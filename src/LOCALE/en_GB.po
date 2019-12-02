@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-25 16:36+0100\n"
-"PO-Revision-Date: 2019-11-25 16:39+0100\n"
+"POT-Creation-Date: 2019-12-02 10:53+0100\n"
+"PO-Revision-Date: 2019-12-02 10:54+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
@@ -85,8 +85,12 @@ msgid "Funktioniert dein E-Mail Verification Code nicht?"
 msgstr "Your E-Mail Verfication Code doesn't work?"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:104
-msgid "Schicke mir eine E-Mail und ich k&uuml;mmere mich darum: "
-msgstr "Send me a E-Mail and I take care of it:"
+msgid "Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: "
+msgstr "Send us a E-Mail and we take care of it:"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:105
+msgid "E-Mail an Support schicken"
+msgstr "Send E-Mail to support"
 
 #: model/Session.cpp:130
 msgid "Vorname"

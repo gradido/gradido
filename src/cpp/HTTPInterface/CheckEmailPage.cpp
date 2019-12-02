@@ -207,12 +207,15 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "<br>\n";
 	responseStream << "\t\t\t\t";
 #line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( langCatalog->gettext("Schicke mir eine E-Mail und ich k&uuml;mmere mich darum: "));
+	responseStream << ( langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: "));
 	responseStream << "<br>\n";
-	responseStream << "                <a href=\"mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: ";
+	responseStream << "                <b><a href=\"mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: ";
 #line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( verificationCode );
-	responseStream << " funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">E-Mail</a>\n";
+	responseStream << " funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">";
+#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+	responseStream << ( langCatalog->gettext("E-Mail an Support schicken"));
+	responseStream << "</a></b>\n";
 	responseStream << "\t\t\t  </p>\n";
 	responseStream << "            </div>\n";
 	responseStream << "          </div>\n";
