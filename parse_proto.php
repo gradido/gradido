@@ -12,6 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PHP_PLUGIN="$(which grpc_php_plugin)"
-protoc --proto_path=./src/protobuf/gradido  --php_out=./src/  --grpc_out=./src/ --plugin=protoc-gen-grpc=$PHP_PLUGIN ./src/protobuf/gradido/*.proto
+# need grpc only for hedera hashgraph
+#PHP_PLUGIN="$(which grpc_php_plugin)"
+#protoc --proto_path=./src/protobuf/gradido  --php_out=./src/  --grpc_out=./src/ --plugin=protoc-gen-grpc=$PHP_PLUGIN ./src/protobuf/gradido/*.proto
+
+protoc --proto_path=./src/protobuf/gradido  --php_out=./src/  ./src/protobuf/gradido/*.proto
 
