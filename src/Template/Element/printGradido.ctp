@@ -14,5 +14,5 @@ else if($number > 0) $class = "grd-positive-currency";*/
 
 ?>
 <span class="<?php echo $class;?>">
-  <?= $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' grd';?>
+  <?= $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' GDD';?>
 </span>

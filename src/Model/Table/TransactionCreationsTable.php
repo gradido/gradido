@@ -45,10 +45,6 @@ class TransactionCreationsTable extends Table
             'foreignKey' => 'state_user_id',
             'joinType' => 'INNER'
         ]);
-        $this->belongsTo('StateUsers', [
-            'foreignKey' => 'receiver_user_id',
-            'joinType' => 'INNER'
-        ]);
     }
 
     /**

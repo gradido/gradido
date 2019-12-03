@@ -44,7 +44,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?= $this->Form->control('amount'); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) : ?>
     <div class="grd_big_checkbox">
-      <?= $this->Form->checkbox('user[' .$possibleReceiver['id'] . ']',  ['hiddenField' => false]); ?>
+      <?= $this->Form->checkbox('user[' .$possibleReceiver['id'] . ']',  ['value' => $possibleReceiver['id'], 'hiddenField' => false]); ?>
       <?= $possibleReceiver['name'] ?>   
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;

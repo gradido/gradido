@@ -45,7 +45,7 @@ class TransactionBase {
         $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
         $stateBalanceQuery = $stateBalancesTable
                 ->find('all')
-                ->select(['amount'])
+                ->select(['amount', 'id'])
                 ->contain(false)
                 ->where(['state_user_id' => $stateUserId]);//->first();
         //debug($stateBalanceQuery);
@@ -58,7 +58,7 @@ class TransactionBase {
           $stateBalanceEntry->state_user_id = $stateUserId;
           $stateBalanceEntry->amount = $newAmountCent;
         }
-        
+        //echo "\ntry to save: "; var_dump($stateBalanceEntry); echo "\n";
         if(!$stateBalancesTable->save($stateBalanceEntry)) {
           $errors = $stateBalanceEntry->getErrors();
           $this->addError('TransactionBase::updateStateBalance', 'error saving state balance with: ' . json_encode($errors));

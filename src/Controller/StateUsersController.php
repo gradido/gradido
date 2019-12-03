@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 
+use Model\Transactions\TransactionCreation;
+
 /**
  * StateUsers Controller
  *
@@ -25,6 +27,15 @@ class StateUsersController extends AppController
         $stateUsers = $this->paginate($this->StateUsers);
 
         $this->set(compact('stateUsers'));
+    }
+    
+    public function listIdentHashes()
+    {
+        $stateUsers = $this->StateUsers->find('all')->toArray();
+        foreach($stateUsers as $i => $user) {
+          $stateUsers[$i]->identHash = TransactionCreation::DRMakeStringHash($user->email);
+        }
+        $this->set('stateUsers', $stateUsers);
     }
 
     /**

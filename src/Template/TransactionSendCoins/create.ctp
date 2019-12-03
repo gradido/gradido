@@ -20,7 +20,7 @@ $this->assign('title', __('Überweisung'));
               <?= $this->Form->create($creationForm) ?>
                 <div class="form-group row showcase_row_area">
                   <div class="col-md-3 showcase_text_area">
-                    <label for="inputAmount">Betrag in grd</label>
+                    <label for="inputAmount">Betrag in GDD</label>
                   </div>
                   <div class="col-md-9 showcase_content_area">
                     <input type="number" step="0.01" class="form-control" id="inputAmount" name="inputAmount" >

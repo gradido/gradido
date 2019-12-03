@@ -11,10 +11,9 @@ use Cake\Datasource\ConnectionManager;
 
 use App\Form\CreationForm;
 // protobuf transactions
-use Model\Messages\Gradido\TransactionCreation;
-use Model\Messages\Gradido\TransactionBody;
-use Model\Messages\Gradido\ReceiverAmount;
-use Model\Messages\Gradido\TimestampSeconds;
+//use Model\Messages\Gradido\TransactionCreation;
+use Model\Transactions\TransactionCreation;
+
 /**
  * TransactionCreations Controller
  *
@@ -92,7 +91,7 @@ class TransactionCreationsController extends AppController
           if($name === NULL) {
             $name = $stateUser->first_name . ' ' . $stateUser->last_name;
           }
-          array_push($receiverProposal, ['name' => $name, 'key' => $keyHex]);
+          array_push($receiverProposal, ['name' => $name, 'key' => $keyHex, 'email' => $stateUser->email]);
           //$stateUser->public_key
         }
         $timeUsed = microtime(true) - $startTime;
@@ -103,42 +102,23 @@ class TransactionCreationsController extends AppController
           $mode = 'next';
           if(isset($requestData['add'])) {$mode = 'add'; }
           if($creationForm->validate($requestData)) {
-          
+            
             $pubKeyHex = '';
-            $receiver = new ReceiverAmount();
+            $identHash = '';
+            $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+            $receiverIndex = intval($requestData['receiver'])-1;
 
-            $receiver->setAmount($this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']));
-
-            if(intval($requestData['receiver']) == 0) {
-              if(strlen($requestData['receiver_pubkey_hex']) != 64) {
-                $this->Flash->error(__('Invalid public Key, must contain 64 Character'));
-              } else {
-                $pubKeyHex = $requestData['receiver_pubkey_hex'];
-              }
-            } else {
-              $receiverIndex = intval($requestData['receiver'])-1;
-              
-              if(count($receiverProposal) > $receiverIndex) {
-                $pubKeyHex = $receiverProposal[$receiverIndex]['key'];
-              }
+            if(count($receiverProposal) > $receiverIndex) {
+              $pubKeyHex = $receiverProposal[$receiverIndex]['key'];
+              $identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
             }
-            if($pubKeyHex != '') {
-              $pubKeyBin = hex2bin($pubKeyHex);
-
-              $receiver->setEd25519ReceiverPubkey($pubKeyBin);
-              //var_dump($requestData);
-              
-              $creationDate = new TimestampSeconds();
-              $creationDate->setSeconds(time());
-              
-              $transactionBody = new TransactionBody();
-              $transactionBody->setMemo($requestData['memo']);
-              $transactionBody->setCreated($creationDate);
-              
-              $transaction = new TransactionCreation();
-              $transaction->setReceiverAmount($receiver);
-              $transaction->setIdentHash($user['ident_hash']);
-              $transactionBody->setCreation($transaction);
+            $builderResult = TransactionCreation::build(
+                    $amountCent, 
+                    $requestData['memo'], 
+                    $pubKeyHex,
+                    $identHash
+            );
+            if($builderResult['state'] == 'success') {
               
               $http = new Client();
               try {
@@ -147,7 +127,7 @@ class TransactionCreationsController extends AppController
                 $session_id = $session->read('session_id');
                 $response = $http->get($url . '/checkTransaction', [
                     'session_id' => $session_id,
-                    'transaction_base64' => base64_encode($transactionBody->serializeToString())
+                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString())
                 ]);
                 $json = $response->getJson();
                 if($json['state'] != 'success') {
@@ -262,7 +242,23 @@ class TransactionCreationsController extends AppController
         
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
-          var_dump($requestData);
+          // memo
+          // amount
+          $memo = $requestData['memo'];
+          $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+          if(!isset($requestData['user']) || count($requestData['user']) == 0) {
+            $this->Flash->error(__('no user choosen'));
+          } else {
+            $users = $requestData['user'];
+            var_dump($users);
+            $receiverUsers = $stateUserTable
+                    ->find('all')
+                    ->where(['id' => array_keys($users)])
+                    ->select(['public_key', 'email']);
+            //$identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
+            
+          }
+          
         }
         
         
