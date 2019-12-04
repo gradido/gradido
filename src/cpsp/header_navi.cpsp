@@ -1,0 +1,91 @@
+<%! 
+#include "../ServerConfig.h"
+#include "../model/TransactionBase.h"	
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Gradido Login Server: <%= pageName %></title>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/rippleUI/style.css">
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/materialdesignicons.min.css">
+</head>
+<body class="header-fixed">
+<div class="versionstring dev-info">
+	<p class="grd_small">Login Server in Entwicklung</p>
+	<p class="grd_small">Alpha <%= ServerConfig::g_versionString %></p>
+</div>
+<nav class="t-header">
+      <div class="t-header-brand-wrapper">
+        <a href="<%= ServerConfig::g_php_serverPath %>">
+          <img class="logo" src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift_half.webp" alt="Logo">
+          <img class="logo-mini" src="<%= ServerConfig::g_php_serverPath %>img/logo_half.webp" alt="Logo">
+        </a>
+        <button class="t-header-toggler t-header-desk-toggler d-none d-lg-block">
+          <svg class="logo" viewBox="0 0 200 200">
+            <path class="top" d="
+                M 40, 80
+                C 40, 80 120, 80 140, 80
+                C180, 80 180, 20  90, 80
+                C 60,100  30,120  30,120
+              "></path>
+            <path class="middle" d="
+                M 40,100
+                L140,100
+              "></path>
+            <path class="bottom" d="
+                M 40,120
+                C 40,120 120,120 140,120
+                C180,120 180,180  90,120
+                C 60,100  30, 80  30, 80
+              "></path>
+          </svg>
+        </button>
+      </div>
+      <div class="t-header-content-wrapper">
+        <div class="t-header-content">
+          <button class="t-header-toggler t-header-mobile-toggler d-block d-lg-none">
+            <i class="mdi mdi-menu"></i>
+          </button>
+          <div class="flash-messages" style="margin-left:20px; margin-top:30px;"><%= getErrorsHtml() %></div>
+        </div>
+      </div>
+    </nav>
+    <div class="page-body">
+      <!-- partial:partials/_sidebar.html -->
+      <div class="sidebar">
+        <ul class="navigation-menu">
+          <li>
+            <a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" title="Kontoübersicht">
+              <span class="link-title"><%= TransactionBase::amountToString(userBalance) %> GDD</span>
+              <i class="mdi mdi-wallet-outline link-icon"></i>
+            </a>
+          </li>
+          <li>
+            <a href="<%= ServerConfig::g_php_serverPath %>">
+              <span class="link-title">Startseite</span>
+              <i class="mdi mdi-gauge link-icon"></i>
+            </a>
+          </li>
+          <li>
+            <a href="<%= ServerConfig::g_php_serverPath %>transaction-send-coins/create">
+              <span class="link-title">Überweisen</span>
+              <i class="mdi mdi-bank-transfer-out link-icon"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="page-content-wrapper">
+        <div class="page-content-wrapper-inner">
+          <div class="viewport-header">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb has-arrow">
+                <li class="breadcrumb-item">
+                  <a href="<%= ServerConfig::g_php_serverPath %>">Startseite</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page"><%= pageName %></li>
+              </ol>
+            </nav>
+          </div>
+          <div class="content-viewport">

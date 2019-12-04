@@ -238,8 +238,20 @@ int HandleElopageRequestTask::run()
 	std::string order_id = mRequestData.get("order_id", "");
 	auto param_error_order_id = new ParamError("HandleElopageRequestTask", "order_id", order_id.data());
 
+	/*!
+	 *
+
+	Registrierung – Schritt 1 von 3, 36001
+	Gradido-Basis, 43741
+	Premium-Mitgliedschaft, 43870
+	Gold-Mitgliedschaft, 43944
+	Business-Mitgliedschaft, 43960
+
+ 
+	 *
+	*/
 	// only for product 36001 and 43741 create user accounts and send emails
-	if (product_id == 36001 || product_id == 43741) {
+	if (product_id == 36001 || product_id == 43741 || product_id == 43870 || product_id == 43944 || product_id == 43960) {
 		mEmail = mRequestData.get("payer[email]", "");
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");

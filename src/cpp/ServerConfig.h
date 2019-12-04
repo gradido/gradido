@@ -43,6 +43,8 @@ namespace ServerConfig {
 	extern std::string g_php_serverPath;
 	extern std::string g_php_serverHost;
 	extern Poco::Mutex g_TimeMutex;
+	extern int         g_FakeLoginSleepTime;
+	extern std::string g_versionString;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

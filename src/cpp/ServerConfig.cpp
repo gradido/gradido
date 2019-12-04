@@ -43,8 +43,8 @@ namespace ServerConfig {
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
 	Poco::Mutex g_TimeMutex;
-
-
+	int         g_FakeLoginSleepTime = 820;
+	std::string g_versionString = "";
 
 	bool loadMnemonicWordLists()
 	{
@@ -100,6 +100,7 @@ namespace ServerConfig {
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
 		g_php_serverPath = cfg.getString("phpServer.url", "");
 		g_php_serverHost = cfg.getString("phpServer.host", "");
+		//g_FakeLoginSleepTime = cfg.getInt("crypto.fake_login_sleep_time", g_FakeLoginSleepTime);
 		return true;
 	}
 

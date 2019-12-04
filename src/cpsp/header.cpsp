@@ -9,10 +9,10 @@
 <title>Gradido Login Server: <%= pageName %></title>
 <link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/loginServer/style.css">
 </head>
-<body>
+<body class="header-fixed">
 <div class="versionstring dev-info">
 	<p class="grd_small">Login Server in Entwicklung</p>
-	<p class="grd_small">Alpha 0.8.1</p>
+	<p class="grd_small">Alpha <%= ServerConfig::g_versionString %></p>
 </div>
 <!--<nav class="grd-left-bar expanded" data-topbar role="navigation">
 	<div class="grd-left-bar-section">

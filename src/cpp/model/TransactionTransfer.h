@@ -12,15 +12,35 @@
 #include "TransactionBase.h"
 #include "../proto/gradido/Transfer.pb.h"
 
+#include "User.h"
+
 class TransactionTransfer : public TransactionBase
 {
 public:
 	TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer);
+	~TransactionTransfer();
 
 	int prepare(); 
 
+	inline size_t getKontoTableSize() { lock(); size_t s = mKontoTable.size(); unlock(); return s; }
+	const std::string& getKontoNameCell(int index);
+	const std::string& getAmountCell(int index);
+
 protected:
+	struct KontoTableEntry {
+	public:
+		KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount = false);
+		KontoTableEntry(const std::string& pubkeyHex, google::protobuf::int64 amount, bool negativeAmount = false);
+		// first name, last name and email or pubkey hex if no user in db found
+		std::string kontoNameCell;
+		std::string amountCell;
+
+	protected:
+		void composeAmountCellString(google::protobuf::int64 amount, bool negativeAmount);
+	};
+
 	const model::messages::gradido::Transfer& mProtoTransfer;
+	std::vector<KontoTableEntry> mKontoTable;
 };
 
 #endif //GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_TRANSFER_INCLUDE

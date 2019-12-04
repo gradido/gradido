@@ -13,7 +13,7 @@
 #include "../proto/gradido/BasicTypes.pb.h"
 #include "../SingletonManager/MemoryManager.h"
 
-class TransactionBase : public ErrorList
+class TransactionBase : public ErrorList, public UniLib::lib::MultithreadContainer
 {
 public:
 	TransactionBase(const std::string& memo);

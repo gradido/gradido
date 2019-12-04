@@ -82,6 +82,7 @@ public:
 	inline const char* getFirstName() const { return mFirstName.data(); }
 	inline const char* getLastName() const { return mLastName.data(); }
 	inline int         getDBId() const { return mDBId;  }
+	inline int         getBalance() { lock(); int balance = mGradidoCurrentBalance; unlock(); return balance; }
 	inline std::string getPublicKeyHex() { lock(); std::string pubkeyHex = mPublicHex; unlock(); return pubkeyHex; }
 	inline const unsigned char* getPublicKey() { return mPublicKey; }
 	inline Languages   getLanguage() { lock(); Languages lang = mLanguage; unlock(); return lang; }
@@ -92,6 +93,7 @@ public:
 	UserStates         getUserState();
 
 	void setLanguage(Languages lang) { lock(); mLanguage = lang; unlock(); }
+	inline void setBalance(int balance) { lock(); mGradidoCurrentBalance = balance; unlock(); }
 	void setEmailChecked();
 	bool isEmptyPassword();
 	bool setNewPassword(const std::string& newPassword);
@@ -150,6 +152,9 @@ private:
 	Languages mLanguage;
 
 	// ************************ DB FIELDS END ******************************
+	
+	int mGradidoCurrentBalance;
+
 	// crypto key as obfus array 
 	// only in memory, if user has typed in password
 	MemoryBin* mCryptoKey;

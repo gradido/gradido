@@ -93,10 +93,13 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/loginServer/style.css\">\n";
 	responseStream << "</head>\n";
-	responseStream << "<body>\n";
+	responseStream << "<body class=\"header-fixed\">\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha ";
+#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";

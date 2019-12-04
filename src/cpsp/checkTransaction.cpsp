@@ -17,8 +17,10 @@ enum PageState {
 
 %>
 <%% 
-	const char* pageName = "&Uuml;berpr&uuml;fe Transaktion";
+	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
 	auto accountUser = mSession->getUser();
+	auto userBalance = accountUser->getBalance();
+	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
 	
@@ -31,7 +33,7 @@ enum PageState {
 			if(!accountUser->hasCryptoKey()) {
 				auto pwd = form.get("sign-password", "");
 				if(!mSession->isPwdValid(pwd)) {
-					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
 					hasErrors = true;
 				}
 			}
@@ -62,60 +64,115 @@ enum PageState {
 	
 	
 
-%><%@ include file="header.cpsp" %><%@ include file="navi.cpsp" %>
-<div class="grd_container">
-	<h1>Eine Transaktion pr&uuml;fen</h1>
-	<%= getErrorsHtml() %>
+%><%@ include file="header_navi.cpsp" %>
+<div class="col-md-10 equel-grid mb-3">
+	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
 		<% if(notReadyTransactions > 0) { %> 
-			<pre><%= sumTransactions - notReadyTransactions %> von <%= sumTransactions %> Transaktionen sind bereit zum pr&uuml;fen</pre>
+			<%= sumTransactions - notReadyTransactions %> <%= gettext("von") %> <%= sumTransactions %> <%= gettext("Transaktionen sind bereit zum best&auml;tigen") %>
 		<% } else { %>
-			<pre><%= sumTransactions %> Transaktionen warten darauf &uuml;berpr&uuml;ft zu werden.</pre>
+			<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
 		<% } %>
 	<% } %>
 	<% if(state == PAGE_NO_TRANSACTIONS) { %>
-	<div class="grd_text-max-width">
 		<% if(sumTransactions == 0) { %>
-			<div class="grd_text">Es gibt zurzeit keine Transaktionen zum &uuml;berpr&uuml;fen</div>
+			<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
 		<% } else { %>
-			<div class="grd_text">Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.</div>
+			<%= gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") %>
 		<% } %>
-	</div>
-	
-	<% } else if(state == PAGE_TRANSACTION_CREATION) { 
-		auto creationTransaction = processingTransaction->getCreationTransaction();
-		auto transactionUser = creationTransaction->getUser();
-		
-	%>
-	<div class="grd_text-max-width">
-		<h2>Sch&ouml;pfungstransaktion</h2>
-		<b>Memo: </b>
-		<p><%= creationTransaction->getMemo() %></p>
-		<b>Empf&auml;nger: </b>
-		<% if(transactionUser) { %>
-			<p class="grd_small"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %></p>
-			<p class="grd_small"><%= transactionUser->getEmail() %></p>
-		<% } else { %>
-			<p class="grd_small"><%= creationTransaction->getPublicHex() %></p>
-		<% } %>
-		<b>Summe: </b>
-		<%= creationTransaction->getAmountString() %>&nbsp;Gradido
-		<form >
-			Unterschreiben mit aktuellem Account?<br>
-			<p class="grd_small"><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %></p>
-			<p class="grd_small"><%= accountUser->getEmail() %></p>
-			<% // TODO: additional password check %>
-			<% if(!accountUser->hasCryptoKey()) {%>
-			<p>Ich brauche nochmal dein Passwort</p>
-				<p class="grd_small">
-					<label for="sign-password">Passwort</label>
-					<input id="sign-password" type="password" name="sign-password"/>
-				</p>
-			<% } %>
-			<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="ok" value="Transaktion unterzeichnen">
-			<input class="grd-form-bn grd-form-bn-discard grd_clickable" type="submit" name="abort" value="Transaktion verwerfen">
-		</form>
-	</div>	
-	<% } %>
+    <% } %>
+	</small>
 </div>
-<%@ include file="footer.cpsp" %>
+<% if(state != PAGE_NO_TRANSACTIONS) { %>
+<div class="col-md-10 equel-grid">
+	<div class="grid">
+	  <p class="grid-header"><%= gettext("Transaktion Unterzeichnen") %></p>
+	  <div class="grid-body">
+		<div class="item-wrapper">
+		  <div class="row mb-3">
+			<div class="col-md-10 mx-auto">
+			<% if(state == PAGE_TRANSACTION_TRANSFER) { 
+				auto transferTransaction = processingTransaction->getTransferTransaction();
+				memo = transferTransaction->getMemo();
+			%>
+			  <p class="card-title ml-n1 mb-3"><%= gettext("&Uuml;berweisung") %></p>
+			  <div class="table-responsive mb-4">
+				<table class="table info-table table-striped table-bordered">
+				  <thead>
+					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Gradido") %></th></tr>
+				  </thead>
+				  <tbody>
+				  <% for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { %>
+					<tr>
+						<%= transferTransaction->getKontoNameCell(i) %>
+						<%= transferTransaction->getAmountCell(i) %>
+					</tr>
+					<% } %>
+				  </tbody>
+				</table>
+			  </div>
+			  
+			  <% } else if(state == PAGE_TRANSACTION_CREATION) { 
+					auto creationTransaction = processingTransaction->getCreationTransaction();
+					auto transactionUser = creationTransaction->getUser();
+					memo = creationTransaction->getMemo();
+			  %>
+			  <p class="card-title ml-n1 mb-3"><%= gettext("Sch&ouml;pfung") %></p>
+			  <div class="table-responsive mb-4">
+				<table class="table info-table table-striped table-bordered">
+				  <thead>
+					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Gradido") %></th></tr>
+				  </thead>
+				  <tbody>
+					<tr>
+						<% if(transactionUser) { %>
+							<td><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</td>
+						<% } else { %>
+							<td class="small">0x<%= creationTransaction->getPublicHex() %></td>
+						<% } %>
+						<td class="grd-success-color"><%= creationTransaction->getAmountString() %> GDD</td>
+					</tr>
+				  </tbody>
+				</table>
+			  </div>
+			  <% } %>
+			  <div class="table-responsive mb-4">
+				<table class="table info-table table-bordered table-auto-break">
+				  <thead><tr><th><%= gettext("Aktives Konto") %></th></tr></thead>
+				  <tbody><tr><td><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %> &lt;<%= accountUser->getEmail() %>&gt;</td></tr></tbody>
+				</table>
+			  </div>
+			  <div class="table-responsive mb-4">
+				<table class="table info-table table-bordered table-auto-break tab-container">
+				  <thead><tr><th><%= gettext("Verwendungszweck") %></th></tr></thead>
+				  <tbody><tr>
+					  <td class="tab-content"><%= memo %></td></tr></tbody>
+				</table>
+			  </div>
+			</div>
+		  </div>
+			<form>
+			  <div class="row mb-3">
+				<div class="col-md-10 mx-auto">
+				 <% if(!accountUser->hasCryptoKey()) {%>
+				 <div class="form-group">
+					  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
+					  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
+				 </div>
+				<% } %>
+				  <button type="submit" class="btn btn-sm btn-primary" name="ok" value="ok">
+					<i class="mdi mdi-signature-freehand"></i>
+					<%= gettext("Transaktion unterzeichnen") %>
+				  </button>
+				  <button type="submit" class="btn btn-sm btn-warning" name="abort" value="abort">
+					<i class="mdi mdi-delete"></i>
+					<%= gettext("Transaktion verwerfen") %>
+				  </button>
+				</div>
+			  </div>
+			</form>
+		</div>
+	  </div>
+	</div>
+</div>
+<% } %><%@ include file="footer_ripple.cpsp" %>

@@ -27,14 +27,19 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	Poco::JSON::Object* json_result = nullptr;
 	if (method == "POST" || method == "PUT") {
 		// extract parameter from request
-		Poco::JSON::Parser jsonParser;
-		try {
+		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream);
+		//Poco::JSON::Parser jsonParser;
+
+		/*try {
 			auto params = jsonParser.parse(request_stream);
 			// call logic
 			json_result = handle(params);
 		}
 		catch (Poco::Exception& ex) {
 			printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
+		}*/
+		if (parsedResult.size() != 0) {
+			json_result = handle(parsedResult);
 		}
 	}
 	else if(method == "GET") {		
@@ -49,4 +54,38 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 
 	//if (_compressResponse) _gzipStream.close();
+}
+
+
+Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, ErrorList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
+{
+	// debugging answer
+
+	std::stringstream responseStringStream;
+	for (std::string line; std::getline(request_stream, line); ) {
+		responseStringStream << line << std::endl;
+	}
+
+	// extract parameter from request
+	Poco::JSON::Parser jsonParser;
+	Poco::Dynamic::Var parsedJson;
+	try {
+		parsedJson = jsonParser.parse(responseStringStream.str());
+
+		return parsedJson;
+	}
+	catch (Poco::Exception& ex) {
+		if (errorHandler) {
+			errorHandler->addError(new ParamError(functionName, "error parsing request answer", ex.displayText().data()));
+			errorHandler->sendErrorsAsEmail(responseStringStream.str());
+		} 
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		std::string filename = dateTimeString + "_response.html";
+		FILE* f = fopen(filename.data(), "wt");
+		std::string responseString = responseStringStream.str();
+		fwrite(responseString.data(), 1, responseString.size(), f);
+		fclose(f);
+		return Poco::Dynamic::Var();
+	}
+	return Poco::Dynamic::Var();
 }

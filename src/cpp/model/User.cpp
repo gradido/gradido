@@ -174,14 +174,15 @@ int UserWriteCryptoKeyHashIntoDB::run()
 // *******************************************************************************
 // new user
 User::User(const char* email, const char* first_name, const char* last_name)
-	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr),
-	 mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false),
+	mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
 }
 // load from db
 User::User(const char* email)
-	: mState(USER_EMPTY), mDBId(0), mEmail(email), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mEmail(email), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), 
+	mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -241,7 +242,8 @@ User::User(const char* email)
 }
 
 User::User(int user_id)
-: mState(USER_EMPTY), mDBId(user_id), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(user_id), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), 
+    mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -299,7 +301,8 @@ User::User(int user_id)
 }
 
 User::User(const unsigned char* pubkey_array)
-	: mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), mLanguage(LANG_DE), mCryptoKey(nullptr), mReferenceCount(1)
+	: mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false), 
+	mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	//crypto_shorthash(mPasswordHashed, (const unsigned char*)password, strlen(password), *ServerConfig::g_ServerCryptoKey);
 	//memset(mPasswordHashed, 0, crypto_shorthash_BYTES);
@@ -524,6 +527,13 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
 	}
 	User::passwordHashed pwdHashed;
+	if (!ServerConfig::g_ServerCryptoKey) {
+		if (validationErrorsToPrint) {
+			validationErrorsToPrint->addError(new Error("User::validatePwd", "server crypto key not set"));
+		}
+		mm->releaseMemory(cmpCryptoKey);
+		return false;
+	}
 	crypto_shorthash((unsigned char*)&pwdHashed, *cmpCryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 	lock();
 	if (pwdHashed == mPasswordHashed) {
@@ -676,7 +686,7 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 
 void User::fakeCreateCryptoKey()
 {
-	Poco::Thread::sleep(820);
+	Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 }
 
 bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session* session)

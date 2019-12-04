@@ -5,8 +5,12 @@
 
 #include "model/User.h"
 #include "model/Session.h"
+#include "lib/Profiler.h"
+#include "ServerConfig.h"
 
 #ifndef _TEST_BUILD
+
+
 int main(int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -15,8 +19,15 @@ int main(int argc, char** argv)
 		printf("error initing sodium, early exit\n");
 		return -1;
 	}
+	ServerConfig::g_versionString = "0.9.0";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 
+	// first check time for crypto 
+	auto testUser = new User("email@google.de", "Max", "Mustermann");
+	Profiler timeUsed;
+	testUser->validatePwd("haz27Newpassword", nullptr);
+	ServerConfig::g_FakeLoginSleepTime = (int)std::round(timeUsed.millis());
+	delete testUser;
 	
 	
 	Gradido_LoginServer app;
