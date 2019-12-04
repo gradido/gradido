@@ -2,8 +2,14 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
-use App\Form\CreationForm;
+use Cake\ORM\TableRegistry;
+use Cake\Http\Client;
+use Cake\Core\Configure;
+use Cake\Routing\Router;
 
+use App\Form\TransferForm;
+
+use Model\Transactions\TransactionTransfer;
 /**
  * TransactionSendCoins Controller
  *
@@ -118,12 +124,114 @@ class TransactionSendCoinsController extends AppController
           }
           $user = $session->read('StateUser');
         }
+        
+        $transferForm = new TransferForm();
+        $this->set('transferForm', $transferForm);
+        $this->set('timeUsed', microtime(true) - $startTime);
+        
         if ($this->request->is('post')) {
-          $this->Flash->error(__('Wird zurzeit noch entwickelt!'));
+          //$this->Flash->error(__('Wird zurzeit noch entwickelt!'));          
+          
+          $requestData = $this->request->getData();
+          $mode = 'next';
+          if(isset($requestData['add'])) {$mode = 'add'; }
+          if($transferForm->validate($requestData)) {
+            
+            $receiverPubKeyHex = '';
+            $senderPubKeyHex = $user['public_hex'];
+            $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+            
+            if(!isset($user['balance']) || $amountCent > $user['balance']) {
+              $this->Flash->error(__('Du hast nicht genug Geld!'));
+              return;
+            }
+            
+            $receiverEmail = $requestData['email'];
+            if($receiverEmail === $user['email']) {
+              $this->Flash->error(__('Du kannst dir leider nicht selbst Geld schicken!'));
+              return;
+            }
+            
+            $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+            $receiverUser = $stateUserTable
+                     ->find('all')
+                     ->select(['public_key'])
+                     ->contain(false)
+                     ->where(['email' => $receiverEmail])->first();
+            //var_dump($receiverUser);
+            if(!$receiverUser) {
+              $this->Flash->error(__('Diese E-Mail ist mir nicht bekannt, hat dein Empfänger denn schon ein Gradido-Konto?'));
+              return;
+            }
+             $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+            //var_dump($sessionStateUser);
+            
+            $builderResult = TransactionTransfer::build(
+                    $amountCent, 
+                    $requestData['memo'], 
+                    $receiverPubKeyHex,
+                    $senderPubKeyHex
+            );
+            if($builderResult['state'] === 'success') {
+              
+              $http = new Client();
+              try {
+                $loginServer = Configure::read('LoginServer');
+                $url = $loginServer['host'] . ':' . $loginServer['port'];
+                $session_id = $session->read('session_id');
+                /*
+                 * 
+                 *  $response = $http->post(
+                 *    'http://example.com/tasks',
+                 *    json_encode($data),
+                 *    ['type' => 'json']
+                 *  ); 
+                 */
+                $response = $http->post($url . '/checkTransaction', json_encode([
+                    'session_id' => $session_id,
+                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+                    'balance' => $user['balance']
+                ]), ['type' => 'json']);
+                $json = $response->getJson();
+                if($json['state'] != 'success') {
+                  if($json['msg'] == 'session not found') {
+                    $session->destroy();
+                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    //$this->Flash->error(__('session not found, please login again'));
+                  } else {
+                    $this->Flash->error(__('login server return error: ' . json_encode($json)));
+                  }
+                } else {
+                  $pendingTransactionCount = $session->read('Transactions.pending');
+                  if($pendingTransactionCount == null) {
+                    $pendingTransactionCount = 1;
+                  } else {
+                    $pendingTransactionCount++;
+                  }
+                  $session->write('Transactions.pending', $pendingTransactionCount);
+                  //echo "pending: " . $pendingTransactionCount;
+                  if($mode === 'next') {
+                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                  } else {
+                    $this->Flash->success(__('Transaction submitted for review.'));
+                  }
+                }
+                
+              } catch(\Exception $e) {
+                  $msg = $e->getMessage();
+                  $this->Flash->error(__('error http request: ') . $msg);
+              }
+              
+            } else {
+              $this->Flash->error(__('No Valid Receiver Public given'));
+            }
+           
+//           */
+          } else {
+            $this->Flash->error(__('Something was invalid, please try again!'));
+          }
         }
         
-        $creationForm = new CreationForm();
-        $this->set('creationForm', $creationForm);
         $this->set('timeUsed', microtime(true) - $startTime);
     }
 

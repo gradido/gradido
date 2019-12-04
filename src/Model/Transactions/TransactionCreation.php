@@ -22,7 +22,7 @@ class TransactionCreation extends TransactionBase {
     {    
         $receiver = new \Model\Messages\Gradido\ReceiverAmount();
         $receiver->setAmount($amount);
-        $this->receiver_pubkey_hex = $receiver_public_hex;
+        //$this->receiver_pubkey_hex = $receiver_public_hex;
         if(strlen($receiver_public_hex) != 64) {
           return ['state' => 'error', 'msg' => 'invalid pubkey'];
         }

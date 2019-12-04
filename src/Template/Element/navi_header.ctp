@@ -30,12 +30,12 @@ class NavHeaderEntry
              '<i class="mdi mdi-alert-outline grd-alert-color mdi-1x"></i>'
            . '<span class="notification-indicator notification-indicator-warning notification-indicator-ripple"></span>',
              ['controller' => 'StateErrors', 'action' => 'ShowForUser'],
-             ['class' => 'nav-link', 'escape' => false, 'title' => "($errorCount) " . __('Fehler')]) ?>
+             ['class' => 'nav-link', 'escape' => false, 'title' => "$errorCount " . __('Fehler')]) ?>
   </li>
   <?php endif; ?>
   <?php if($transactionPendings > 0) : ?>
   <li class="nav-item">
-    <a class="nav-link" title="<?= "($transactionPendings) " . __('Transaktionen sind noch zu unterzeichnen')?>" href="<?= Router::url('./', true) ?>account/checkTransactions">
+    <a class="nav-link" title="<?= "$transactionPendings " . __('Transaktionen sind noch zu unterzeichnen')?>" href="<?= Router::url('./', true) ?>account/checkTransactions">
       <i class="mdi mdi-signature-freehand mdi-1x"></i>
       <!--(<?= $transactionPendings ?>)-->
       <span class="notification-indicator notification-indicator-primary notification-indicator-ripple"></span>

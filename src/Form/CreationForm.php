@@ -39,7 +39,8 @@ class CreationForm extends Form
         ->add('memo', 'custom', [
             'rule' => 'alphaNumeric',
             'provider' => 'custom',
-            'message' => __('Only Alpha Numeric Character allowed')
+            //'message' => __('Only Alpha Numeric Character allowed')
+            'message' => __('No HTML Tags like &gt; or &lt; please.')
         ])
         ->allowEmptyString('memo', null, 'create')
         /*->add('receiver_pubkey_hex', 'custom', [

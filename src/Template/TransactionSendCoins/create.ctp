@@ -7,8 +7,16 @@
  */
 
 $this->assign('title', __('Überweisung'));
-
+// In a View class
+$this->loadHelper('Form', [
+    'templates' => 'ripple_horizontal_form',
+]);
 ?>
+<style type="text/css">
+  .showcase_content_area .invalid-feedback {
+    display:block;
+  }
+</style>
 <div class="row">
   <div class="col-md-10 equel-grid">
     <div class="grid">
@@ -17,33 +25,12 @@ $this->assign('title', __('Überweisung'));
         <div class="item-wrapper">
           <div class="row mb-3">
             <div class="col-md-10 mx-auto">
-              <?= $this->Form->create($creationForm) ?>
-                <div class="form-group row showcase_row_area">
-                  <div class="col-md-3 showcase_text_area">
-                    <label for="inputAmount">Betrag in GDD</label>
-                  </div>
-                  <div class="col-md-9 showcase_content_area">
-                    <input type="number" step="0.01" class="form-control" id="inputAmount" name="inputAmount" >
-                  </div>
-                </div>
-                <div class="form-group row showcase_row_area">
-                  <div class="col-md-3 showcase_text_area">
-                    <label for="inputMemo">Verwendungszweck</label>
-                  </div>
-                  <div class="col-md-9 showcase_content_area">
-                    <textarea class="form-control" id="inputMemo" name="inputMemo" cols="12" rows="5"></textarea>
-                  </div>
-                </div>
-                <div class="form-group row showcase_row_area">
-                  <div class="col-md-3 showcase_text_area">
-                    <label for="inputReceiver">Empfänger</label>
-                  </div>
-                  <div class="col-md-9 showcase_content_area">
-                    <input type="email" class="form-control" id="inputReceiver" name="inputReceiver" placeholder="E-Mail">
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-sm btn-primary" name="next">Transaktion(n) abschließen</button>
-                <button type="submit" class="btn btn-sm" name="add">Weitere Transaktion erstellen</button>
+              <?= $this->Form->create($transferForm) ?>
+                <?= $this->Form->control('amount', ['label' => __('Betrag in GDD')]) ?>
+                <?= $this->Form->control('memo', ['label' => __('Verwendungszweck')]) ?>
+                <?= $this->Form->control('email', ['label' => __('Empfänger'), 'placeholder' => 'E-Mail']) ?>
+                <?= $this->Form->button(__('Transaktion(n) abschließen'), ['name' => 'next', 'class' => 'btn btn-sm btn-primary']) ?>
+                <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'btn btn-sm']) ?>
               <?= $this->Form->end() ?>
             </div>
           </div>
@@ -52,3 +39,16 @@ $this->assign('title', __('Überweisung'));
     </div>
   </div>
 </div>
+<?php // adding scripts vendor and core from ripple ui for validation effect ?>
+<?= $this->Html->script(['core', 'vendor.addons']); ?>
+<script type="text/javascript">
+  (function ($) {
+    'use strict';
+
+    $('textarea').maxlength({
+        alwaysShow: true,
+        warningClass: "badge mt-1 badge-success",
+        limitReachedClass: "badge mt-1 badge-danger"
+    });
+})(jQuery);
+</script>

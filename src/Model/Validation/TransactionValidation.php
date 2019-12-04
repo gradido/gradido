@@ -20,7 +20,7 @@ class TransactionValidation
     
     $floatVal = floatval(Number::format($value, ['places' => 4, 'locale' => 'en_GB']));
     //echo "floatVal: $floatVal<br>";
-    return $floatVal != 0.0;
+    return $floatVal >= 0.0;
   }
   
   public static function hexKey64($value, array $context) {
@@ -32,9 +32,10 @@ class TransactionValidation
   }
   
   public static function alphaNumeric($value, array $context) {
-    if(preg_match('/^[a-zA-Z0-9äöüÄÖÜß _-]*$/', $value)) {
-      return true;
+    //if(preg_match('/^[a-zA-Z0-9äöüÄÖÜß _;:()-]\n\r*$/', $value)) {
+    if(preg_match('/([<>]|&gt;|&lt;|javascript:){1,}/', $value)) {
+      return false;
     }
-    return false;
+    return true;
   }
 }
