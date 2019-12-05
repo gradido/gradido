@@ -3,11 +3,10 @@
 namespace Model\Transactions;
 
 //use App\Model\Transactions\TransactionBase;
+use Cake\ORM\TableRegistry;
 
 class TransactionTransfer extends TransactionBase {
     private $protoTransactionTransfer;
-    private $receiver_pubkey_hex;
-    private $sender_pubkey_hex;
     
     public function __construct($protoTransactionTransfer) {
       $this->protoTransactionTransfer = $protoTransactionTransfer;
@@ -50,9 +49,107 @@ class TransactionTransfer extends TransactionBase {
     }
     
     public function validate($sigPairs) {
-      $this->addError('TransactionTransfer::validate', 'not implemented yet');
-      return false;
-      //return true;
+      //$this->addError('TransactionTransfer::validate', 'not implemented yet');
+      //return false;
+      //$time = microtime(true);
+      static $functionName = 'TransactionCreation::validate';
+      /*
+       * // check signature(s)
+        foreach($sigPairs as $sigPair) {
+          //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
+          $pubkey = $sigPair->getPubKey();
+          $signature = $sigPair->getEd25519();
+          if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
+              $this->addError('Transaction::validate', 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid ' );
+              return false;
+          } 
+        }
+       */
+      $sigPubHexs = [];
+      foreach($sigPairs as $sigPair) {
+          //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
+          $pubkey = bin2hex($sigPair->getPubKey());
+          $hash = TransactionCreation::DRMakeStringHash($pubkey);
+          if(!isset($sigPubHexs[$hash])) {
+            $sigPubHexs[$hash] = [$pubkey];
+          } else {
+            array_push($sigPubHexs[$hash], $pubkey);
+          }
+          //array_push($sigPubHexs, $pubkey);    
+      }
+      
+      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      $senderAmounts = $this->protoTransactionTransfer->getSenderAmounts();
+      $senderSum = 0;
+      $receiverSum = 0;
+      
+      $senderPublics = [];
+      foreach($senderAmounts as $i => $senderAmount) {
+        $senderPublic = $senderAmount->getEd25519SenderPubkey();
+        $senderPublicHex = bin2hex($senderPublic);
+        array_push($senderPublics, $senderPublic);
+        
+        if(strlen($senderPublicHex) != 64) {
+          $this->addError($functionName, 'invalid sender public key');
+          return false;
+        }
+        // check if signature exist for sender
+        $hash = TransactionCreation::DRMakeStringHash($senderPublicHex);
+        if(!isset($sigPubHexs[$hash]) || in_array($senderPublicHex, $sigPubHexs[$hash]) === FALSE) {
+          $this->addError($functionName, 'missing signature for sender');
+          return false;
+        }
+        // check if sender has enough Gradido
+        $amount = $senderAmount->getAmount();
+        $user = $stateUsersTable
+                  ->find('all')
+                  ->select(['id'])
+                  ->where(['public_key' => $senderPublic])
+                  ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
+        if(!$user) {
+          $this->addError($functionName, 'couldn\'t find sender ' . $i .' in db' );
+          return false;
+        }
+        //var_dump($user);
+        if(intval($user->state_balances[0]->amount) < intval($amount)) {
+          $this->addError($functionName, 'sender ' . $i . ' hasn\t enough GDD');
+          return false;
+        }
+        $senderSum += $amount;
+      }
+      $uniqueSenderPublics = array_unique($senderPublics);
+      if(count($senderPublics) !== count($uniqueSenderPublics)) {
+        $this->addError($functionName, 'duplicate sender public key');
+        return false;
+      }
+      
+      $receiverAmounts = $this->protoTransactionTransfer->getReceiverAmounts();
+      $receiverPublics = [];
+      foreach($receiverAmounts as $reveiverAmount) {
+        if(strlen($reveiverAmount->getEd25519ReceiverPubkey()) != 32) {
+          $this->addError($functionName, 'invalid receiver public key');
+          return false;
+        }
+        array_push($receiverPublics, $reveiverAmount->getEd25519ReceiverPubkey());
+        $receiverSum += $reveiverAmount->getAmount();
+      }
+      $uniqueReceiverPublic = array_unique($receiverPublics);
+      if(count($uniqueReceiverPublic) !== count($receiverPublics)) {
+        $this->addError($functionName, 'duplicate receiver public key');
+        return false;
+      }
+      $uniquePublics = array_unique(array_merge($receiverPublics, $senderPublics));
+      if(count($uniquePublics) !== count($senderPublics) + count($receiverPublics)) {
+        // means at least one sender is the same as one receiver
+        $this->addError($functionName, 'duplicate public in sender and receiver');
+        return false;
+      }
+      if($senderSum !== $receiverSum) {
+        $this->addError($functionName, 'sender amount doesn\'t match receiver amount');
+        return false;
+      }
+      //die("\n");
+      return true;
     }
     
     public function save($transaction_id, $firstPublic) {

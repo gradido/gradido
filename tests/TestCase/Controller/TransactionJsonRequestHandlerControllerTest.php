@@ -23,6 +23,7 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
         'app.TransactionCreations',
         'app.Transactions',
         'app.StateUsers',
+        'app.StateErrors',
         'app.TransactionSignatures',
         'app.TransactionSendCoins',
         'app.StateBalances',
@@ -33,7 +34,8 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
         'validCreation' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQJ8wF12eZo3hcMAlAKKJ9WLT-zuSkNmGh7D98UEqH4KoIysnCkXqEya9EBZl9o11_nJ8xmm_nOevuVjR-GfLMQ8qSQoOSGFsbG8gV2VsdCAxMjMSBgiZm4ruBUovCicKIJSuE1uTzZ8zdStOVcQZA6P6oTp1u5C_1BHqHUoaXnEfEKDakwEQtYntlgo',
         'validCreation900' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQNVZ8Ae3Zbg3G0wZ840fzKan6N4KtTcSe0KYi17kQwFmsl18oFxXv8_s6j1xXFrIKjy1_1Olq0a7xYLErDMkjwYqORIGCNb5iu4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgNHKCBC1ie2WCg',
         'validCreation1200' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQEEey5QMAdldoOTP_jTETHgOQriGsixEY0cziQeRfT_J5YtbI_A6AizEYD-JcxmRmXzv1xjjTgsV39Y32ta2CQkqORIGCIeGi-4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgOy4CxC1ie2WCg',
-        'notBase64' => 'CgpIYWxsbyBXZW-0EgYIyfSG7gV_LwonCiCboKikqwjZfes9xuqgthFH3'
+        'notBase64' => 'CgpIYWxsbyBXZW-0EgYIyfSG7gV_LwonCiCboKikqwjZfes9xuqgthFH3',
+        'validTransfer' => 'GmYKZAoggZC9pYXuXx2fv30G6B5p7BjhM3YQTP9Ut0V-t9PvcQ0SQDddHyKzAX3LBV0PuDiPc6lxkUipss5tyuLRpMtFJQnT30tsbYIkA1FXimjMKOoiuLswf4OLLV3bAIYehW-b9AgqYQoFSGFsbG8SBgiJlaPvBUJQCiYKIIGQvaWF7l8dn799BugeaewY4TN2EEz_VLdFfrfT73ENEICfSRImCiDtdleSLxhUgEbMW9DpqIwsykFj3-z_enKEOuGnXrmW8xCAn0k'
     ];
     
     /*public function setUp() {
@@ -123,6 +125,14 @@ class TransactionJsonRequestHandlerControllerTest extends TestCase
                 ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation1200']],
                 '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1000 gr per Month not allowed"}]}'
         );
+    }
+    
+    public function testValidTransfer()
+    {
+      $this->postAndParse(
+        ['method' => 'putTransaction', 'transaction' => $this->transactions['validTransfer']],
+        ['state' => 'success']      
+      );
     }
     
     /*public function testMissingPreviousTransaction() 

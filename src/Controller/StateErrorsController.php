@@ -49,7 +49,7 @@ class StateErrorsController extends AppController
         }
         
         $errors = $this->StateErrors->find('all')->where(['state_user_id' => $user['id']])->contain(false);
-        $transactionTypes = $this->StateErrors->TransactionTypes->find('all')->select(['id', 'name', 'text']);
+        $transactionTypes = $this->StateErrors->TransactionTypes->find('all')->select(['id', 'name', 'text'])->order(['id']);
         
         $this->set('errors', $errors);
         $this->set('transactionTypes', $transactionTypes->toList());

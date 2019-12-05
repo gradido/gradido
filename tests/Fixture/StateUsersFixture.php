@@ -50,6 +50,15 @@ class StateUsersFixture extends TestFixture
                 'last_name' => 'Rekowski'
             ],
             [
+                'id' => 4,
+                'index_id' => 0,
+                'group_id' => 0,
+                'public_key' => hex2bin('8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'),
+                'email' => 'dariofrodo@gmx.de',
+                'first_name' => 'Dario',
+                'last_name' => 'Frodo'
+            ],
+            [
                 'id' => 11,
                 'index_id' => 0,
                 'group_id' => 0,
