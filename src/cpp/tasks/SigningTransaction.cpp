@@ -3,6 +3,8 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/MemoryManager.h"
 
+#include "../lib/Profiler.h"
+
 #include "../proto/gradido/Transaction.pb.h"
 
 #include "sodium.h"
@@ -124,6 +126,7 @@ int SigningTransaction::run() {
 	// 443 = HTTPS Default
 	// TODO: adding port into ServerConfig
 	try {
+		Profiler phpRequestTime;
 		Poco::Net::HTTPSClientSession httpsClientSession(ServerConfig::g_php_serverHost, 443);
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/TransactionJsonRequestHandler");
 
@@ -140,6 +143,8 @@ int SigningTransaction::run() {
 		for (std::string line; std::getline(request_stream, line); ) {
 			responseStringStream << line << std::endl;
 		}
+		Poco::Logger& speedLog= Poco::Logger::get("SpeedLog");
+		speedLog.information("[putTransaction] php server time: %s", phpRequestTime.string());
 		
 		// extract parameter from request
 		Poco::JSON::Parser jsonParser;

@@ -105,7 +105,7 @@ public:
 	//! \param working if set will filled with transaction running
 	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
 	void finalizeTransaction(bool sign, bool reject);
-	inline size_t getProcessingTransactionCount() { lock(); auto ret = mProcessingTransactions.size(); unlock(); return ret; }
+	size_t getProcessingTransactionCount();
 
 	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }
 	void setLanguage(Languages lang);

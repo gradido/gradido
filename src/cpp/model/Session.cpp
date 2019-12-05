@@ -367,6 +367,30 @@ void Session::finalizeTransaction(bool sign, bool reject)
 	unlock();
 }
 
+size_t Session::getProcessingTransactionCount() 
+{ 
+	size_t count = 0;
+	lock(); 
+
+	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
+
+		(*it)->lock();
+		if ((*it)->errorCount() > 0) {
+			(*it)->sendErrorsAsEmail();
+			(*it)->unlock();
+			it = mProcessingTransactions.erase(it);
+			if (it == mProcessingTransactions.end()) break;
+		}
+		else {
+			(*it)->unlock();
+		}
+
+	}
+	count = mProcessingTransactions.size();
+	unlock(); 
+	return count; 
+}
+
 bool Session::isPwdValid(const std::string& pwd)
 {
 	if (mSessionUser) {

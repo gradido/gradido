@@ -1,5 +1,6 @@
 #include "JsonTransaction.h"
 #include "Poco/URI.h"
+#include "Poco/Dynamic/Struct.h"
 
 #include "../SingletonManager/SessionManager.h"
 
@@ -29,24 +30,49 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				}
 
 				int balance = 0;
-				paramJsonObject->get("balance").convert(balance);
-				if (balance) {
-					auto u = session->getUser();
-					if (u) {
-						u->setBalance(balance);
+				if (!paramJsonObject->isNull("balance")) {
+					paramJsonObject->get("balance").convert(balance);
+					if (balance) {
+						auto u = session->getUser();
+						if (u) {
+							u->setBalance(balance);
+						}
 					}
 				}
 
 				std::string transactionBase64String;
-				paramJsonObject->get("transaction_base64").convert(transactionBase64String);
+				Poco::Dynamic::Var transaction_base64 = paramJsonObject->get("transaction_base64");
+				int alreadyEnlisted = 0;
+				if (transaction_base64.isString()) {
+					paramJsonObject->get("transaction_base64").convert(transactionBase64String);
 
-				if (!session->startProcessingTransaction(transactionBase64String)) {
-					auto lastError = session->getLastError();
-					if (lastError) delete lastError;
-					result->set("state", "error");
-					result->set("msg", "already enlisted");
-					return result;
+					if (!session->startProcessingTransaction(transactionBase64String)) {
+						auto lastError = session->getLastError();
+						if (lastError) delete lastError;
+						result->set("state", "error");
+						result->set("msg", "already enlisted");
+						return result;
+					}
+
+				} else {
+					Poco::DynamicStruct ds = *paramJsonObject;
+					for (int i = 0; i < ds["transaction_base64"].size(); i++) {
+						ds["transaction_base64"][i].convert(transactionBase64String);
+						if (!session->startProcessingTransaction(transactionBase64String)) {
+							auto lastError = session->getLastError();
+							if (lastError) delete lastError;
+							alreadyEnlisted++;
+						}
+					}
+					
+					if (alreadyEnlisted > 0) {
+						result->set("state", "warning");
+						result->set("msg", std::to_string(alreadyEnlisted) + " already enlisted");
+						return result;
+					}
 				}
+
+				
 
 				result->set("state", "success");
 				return result;
@@ -55,6 +81,10 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 		}
 		catch (Poco::Exception& ex) {
 			printf("[JsonTransaction::handle] try to use params as jsonObject: %s\n", ex.displayText().data());
+			result->set("state", "error");
+			result->set("msg", "json exception");
+			result->set("details", ex.displayText());
+			return result;
 		}
 	}
 	else if (params.isVector()) {
