@@ -47,6 +47,7 @@ class TransactionSendCoinsTable extends Table
             'joinType' => 'INNER'
         ]);
         $this->belongsTo('ReceiverUsers', [
+            'className' => 'StateUsers',
             'foreignKey' => 'receiver_user_id',
             'joinType' => 'INNER'
         ]);

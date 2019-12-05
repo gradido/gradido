@@ -176,11 +176,11 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->amount());
+      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount());
       if(false === $finalSenderBalance) {
         return false;
       }
-      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->amount())) {
+      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount())) {
         return false;
       }
       
@@ -189,7 +189,7 @@ class TransactionTransfer extends TransactionBase {
       $transactionTransferEntity->state_user_id  = $senderUserId;
       $transactionTransferEntity->receiver_public_key = $receiverAmount->getEd25519ReceiverPubkey();
       $transactionTransferEntity->receiver_user_id = $receiverUserId;
-      $transactionTransferEntity->amount = $senderAmount->amount();
+      $transactionTransferEntity->amount = $senderAmount->getAmount();
       $transactionTransferEntity->sender_final_balance = $finalSenderBalance;
       
       if(!$transactionTransferTable->save($transactionTransferEntity)) {
