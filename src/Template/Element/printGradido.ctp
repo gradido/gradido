@@ -11,6 +11,9 @@ $class = '';
 //$title = '' . $number;
 /*if($number == 0) $class = "grd-default-currency";
 else if($number > 0) $class = "grd-positive-currency";*/
+if($number < 0) {
+  $class = 'grd-negative-currency';  
+}
 
 ?>
 <span class="<?php echo $class;?>">

@@ -42,7 +42,7 @@ $GLOBALS["self"] = $this;
 <body class="header-fixed">
     <div class="versionstring dev-info">
         <p class="grd_small"><?= __("Community Server in Entwicklung") ?></p>
-        <p class="grd_small">Alpha 0.8.0</p>
+        <p class="grd_small">Alpha 0.9.0</p>
     </div>
     <nav class="t-header">
       <div class="t-header-brand-wrapper">

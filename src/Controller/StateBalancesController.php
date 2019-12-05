@@ -64,13 +64,21 @@ class StateBalancesController extends AppController
                 ->contain(['Transactions']);
         
         $involvedUserIds = [];
+        
         foreach($transferTransactions as $sendCoins) {
+          //var_dump($sendCoins);
           if($sendCoins->state_user_id != $user['id']) {
               array_push($involvedUserIds, intval($sendCoins->state_user_id));
           } else if($sendCoins->receiver_user_id != $user['id']) {
               array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
           }
         }
+        
+        /*echo "state user from sendCoins: $sendCoins->state_user_id<br>";
+        echo "receiver user from sendCoins: $sendCoins->receiver_user_id<br>";
+        echo "user id from logged in user: ".$user['id']. '<br>';
+        */
+        //var_dump($involvedUserIds);
         // exchange key with values and drop duplicates
         $involvedUser_temp = array_flip($involvedUserIds);
         // exchange back
@@ -81,6 +89,7 @@ class StateBalancesController extends AppController
             'where' => ['id IN' => $involvedUserIds],
             'fields' => ['id', 'first_name', 'last_name', 'email']
           ]);
+        //var_dump($involvedUser->toArray());
         $involvedUserIndices = [];
         foreach($involvedUser as $involvedUser) {
           $involvedUserIndices[$involvedUser->id] = $involvedUser;
@@ -101,7 +110,8 @@ class StateBalancesController extends AppController
               'type' => 'creation', 
               'transaction_id' => $creation->transaction_id, 
               'date' => $creation->transaction->received, 
-              'balance' => $creation->amount
+              'balance' => $creation->amount,
+              'memo' => $creation->transaction->memo
           ]);
         }
         
@@ -121,7 +131,8 @@ class StateBalancesController extends AppController
              'type' => $type,
              'transaction_id' => $sendCoins->transaction_id,
              'date' => $sendCoins->transaction->received,
-             'balance' => $sendCoins->amount
+             'balance' => $sendCoins->amount,
+             'memo' => $sendCoins->transaction->memo
           ]);
         }
         $this->set('transactions', $transactions);

@@ -29,13 +29,28 @@ $this->assign('title', __('Kontoübersicht'));
           <thead>
             <tr class="solid-header">
               <th colspan="2" class="pl-4"><?= __('Absender') . ' / ' . ('Empfänger') ?></th>
-              <th><?= __('Transaktions Nr.') ?></th>
+              <th><?= __('Verwendungszweck') ?></th>
               <th><?= __('Datum') ?></th>
               <th><?= __('Betrag') ?></th>
+              <th title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></th>
             </tr>
           </thead>
           <tbody>
-            <?php foreach($transactions as $transaction):  ?>
+            <?php foreach($transactions as $transaction): 
+              $send = $transaction['type'] == 'send'; 
+              $balance = $transaction['balance'];
+              $memoShort = $transaction['memo'];
+              if(strlen($memoShort) > 30) {
+                $memoShort = substr($memoShort, 0, 30) . '...';
+              }
+              $cellColorClass = 'grd-success-color';
+              if($send) {
+                $balance = -$balance;
+                $cellColorClass = 'grd-alert-color';
+              } else if($transaction['type'] == 'creation') {
+                $cellColorClass = 'grd-orange-color';
+              }
+            ?>
             <tr>
               <td class="pr-0 pl-4">
                 <?= $this->Html->image('50x50.png', ['class' => 'profile-img img-sm', 'alt' => 'profile image']) ?>
@@ -48,7 +63,7 @@ $this->assign('title', __('Kontoübersicht'));
                 <?php else : ?>
                 <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
                 <?php endif; ?>
-                <span>
+                <span class=" <?= $cellColorClass ?>">
                   <?php if($transaction['type'] == 'creation') : ?>
                   <i class="mdi mdi-creation grd-orange-color"></i>&nbsp;<?= __('Geschöpft')?>
                   <?php elseif($transaction['type'] == 'send') : ?>
@@ -58,11 +73,17 @@ $this->assign('title', __('Kontoübersicht'));
                   <?php endif; ?>
                 </span>
               </td>
+              <td><?php if(strlen($transaction['memo']) > 30): ?>
+                <span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>"><?= substr($memoShort, 0, 30) . '...' ?></span>
+              <?php else : ?>
+                  <?= $transaction['memo'] ?>
+              <?php endif;?>
+              </td>
+              <td> <?= $transaction['date']->nice() ?> </td>  
+              <td><?= $this->element('printGradido', ['number' => $balance]) ?></td>
               <td>
                 <small><?= $transaction['transaction_id'] ?></small>
               </td>
-              <td> <?= $transaction['date']->nice() ?> </td>
-              <td><?= $this->element('printGradido', ['number' => $transaction['balance']]) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>

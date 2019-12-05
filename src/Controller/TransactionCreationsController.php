@@ -127,7 +127,8 @@ class TransactionCreationsController extends AppController
                 $session_id = $session->read('session_id');
                 $response = $http->get($url . '/checkTransaction', [
                     'session_id' => $session_id,
-                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString())
+                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+                    'balance' => $user['balance']
                 ]);
                 $json = $response->getJson();
                 if($json['state'] != 'success') {
@@ -160,7 +161,7 @@ class TransactionCreationsController extends AppController
               }
               
             } else {
-              $this->Flash->error(__('No Valid Receiver Public given'));
+              $this->Flash->error(__('Building transaction failed'));
             }
            
 //           */
@@ -246,16 +247,86 @@ class TransactionCreationsController extends AppController
           // amount
           $memo = $requestData['memo'];
           $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+          $mode = 'next';
+          if(isset($requestData['add'])) {$mode = 'add'; }
+          
           if(!isset($requestData['user']) || count($requestData['user']) == 0) {
             $this->Flash->error(__('no user choosen'));
           } else {
             $users = $requestData['user'];
-            var_dump($users);
+            //var_dump(array_keys($users));
             $receiverUsers = $stateUserTable
                     ->find('all')
-                    ->where(['id' => array_keys($users)])
-                    ->select(['public_key', 'email']);
-            //$identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
+                    ->where(['id IN' => array_keys($users)])
+                    ->select(['public_key', 'email'])
+                    ->contain(false);
+            $transactions  = [];
+            //var_dump($receiverUsers);
+            foreach($receiverUsers as $receiverUser) {
+              $pubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+              $identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
+              $builderResult = TransactionCreation::build(
+                    $amountCent, 
+                    $memo, 
+                    $pubKeyHex,
+                    $identHash
+              );
+              if($builderResult['state'] == 'success') {
+                  array_push($transactions, base64_encode($builderResult['transactionBody']->serializeToString()));
+              }
+            }
+            $creationTransactionCount = count($transactions);
+            if($creationTransactionCount > 0) {
+              $http = new Client();
+              try {
+                $loginServer = Configure::read('LoginServer');
+                $url = $loginServer['host'] . ':' . $loginServer['port'];
+                $session_id = $session->read('session_id');
+                /*
+                 *  $response = $http->post($url . '/checkTransaction', json_encode([
+                    'session_id' => $session_id,
+                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+                    'balance' => $user['balance']
+                ]), ['type' => 'json']);
+                 */
+                $transactionbody = json_encode([
+                    'session_id' => $session_id,
+                    'transaction_base64' => $transactions,
+                    'balance' => $user['balance']
+                ]);
+                //die($transactionbody);
+                $response = $http->post($url . '/checkTransaction', $transactionbody, ['type' => 'json']);
+                //var_dump($response->getStringBody());
+                $json = $response->getJson();
+                if($json['state'] != 'success') {
+                  if($json['msg'] == 'session not found') {
+                    $session->destroy();
+                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    //$this->Flash->error(__('session not found, please login again'));
+                  } else {
+                    $this->Flash->error(__('login server return error: ' . json_encode($json)));
+                  }
+                } else {
+                  $pendingTransactionCount = $session->read('Transactions.pending');
+                  if($pendingTransactionCount == null) {
+                    $pendingTransactionCount = $creationTransactionCount;
+                  } else {
+                    $pendingTransactionCount += $creationTransactionCount;
+                  }
+                  $session->write('Transactions.pending', $pendingTransactionCount);
+                  echo "pending: " . $pendingTransactionCount;
+                  if($mode === 'next') {
+                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                  } else {
+                    $this->Flash->success(__('Transaction submitted for review.'));
+                  }
+                }
+                
+              } catch(\Exception $e) {
+                  $msg = $e->getMessage();
+                  $this->Flash->error(__('error http request: ') . $msg);
+              }
+            }
             
           }
           
