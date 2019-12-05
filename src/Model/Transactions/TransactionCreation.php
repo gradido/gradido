@@ -145,7 +145,7 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      if(!$this->updateStateBalance($receiverUser, $this->getAmount())) {
+      if(false === $this->updateStateBalance($receiverUser, $this->getAmount())) {
         return false;
       }
       

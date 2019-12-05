@@ -41,7 +41,8 @@ class TransactionBase {
       return NULL;
     }
     
-    protected function updateStateBalance($stateUserId, $newAmountCent) {
+    protected function updateStateBalance($stateUserId, $addAmountCent) {
+        $finalBalance = 0;
         $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
         $stateBalanceQuery = $stateBalancesTable
                 ->find('all')
@@ -52,18 +53,19 @@ class TransactionBase {
         
         if($stateBalanceQuery->count() > 0) {
           $stateBalanceEntry = $stateBalanceQuery->first();
-          $stateBalanceEntry->amount += $newAmountCent;
+          $stateBalanceEntry->amount += $addAmountCent;
         } else {
           $stateBalanceEntry = $stateBalancesTable->newEntity();
           $stateBalanceEntry->state_user_id = $stateUserId;
-          $stateBalanceEntry->amount = $newAmountCent;
+          $stateBalanceEntry->amount = $addAmountCent;
         }
+        $finalBalance = $stateBalanceEntry->amount;
         //echo "\ntry to save: "; var_dump($stateBalanceEntry); echo "\n";
         if(!$stateBalancesTable->save($stateBalanceEntry)) {
           $errors = $stateBalanceEntry->getErrors();
           $this->addError('TransactionBase::updateStateBalance', 'error saving state balance with: ' . json_encode($errors));
           return false;
         }
-        return true;
+        return $finalBalance;
     }
 }

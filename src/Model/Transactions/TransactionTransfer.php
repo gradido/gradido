@@ -153,9 +153,53 @@ class TransactionTransfer extends TransactionBase {
     }
     
     public function save($transaction_id, $firstPublic) {
-      $this->addError('TransactionTransfer::save', 'not implemented yet');
-      return false;
-      //return true;
+      
+      static $functionName = 'TransactionCreation::save';
+      
+      if(count($this->protoTransactionTransfer->getSenderAmounts()) !== 1) {
+        $this->addError($functionName, 'not more than one sender currently supported');
+        return false;
+      }
+      $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
+      
+      if(count($this->protoTransactionTransfer->getReceiverAmounts()) !== 1) {
+        $this->addError($functionName, 'not more tahn one receiver currently supported');
+        return false;
+      }
+      $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
+      $transactionTransferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+      
+      $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());
+      $receiverUserId = $this->getStateUserId($receiverAmount->getEd25519ReceiverPubkey());
+      
+      if($senderUserId === NULL || $receiverUserId === NULL) {
+        return false;
+      }
+      
+      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->amount());
+      if(false === $finalSenderBalance) {
+        return false;
+      }
+      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->amount())) {
+        return false;
+      }
+      
+      $transactionTransferEntity = $transactionTransferTable->newEntity();
+      $transactionTransferEntity->transaction_id = $transaction_id;
+      $transactionTransferEntity->state_user_id  = $senderUserId;
+      $transactionTransferEntity->receiver_public_key = $receiverAmount->getEd25519ReceiverPubkey();
+      $transactionTransferEntity->receiver_user_id = $receiverUserId;
+      $transactionTransferEntity->amount = $senderAmount->amount();
+      $transactionTransferEntity->sender_final_balance = $finalSenderBalance;
+      
+      if(!$transactionTransferTable->save($transactionTransferEntity)) {
+        $this->addError($functionName, 'error saving transactionSendCoins with errors: ' . json_encode($transactionTransferEntity->getErrors()));
+        return false;
+      }
+      
+      //$this->addError('TransactionTransfer::save', 'not implemented yet');
+      //return false;
+      return true;
     }
 }
 
