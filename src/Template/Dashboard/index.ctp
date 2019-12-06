@@ -28,8 +28,8 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
               ['class' => 'grd-nav-bn grd-nav-bn-large']
           ); ?>
     </fieldset>
-    <fieldset class="grd-margin-top-10">
+    <!--<fieldset class="grd-margin-top-10">
       <h3>Account ...</h3>
-      <!--<a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>-->
-    </fieldset>
+      <a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>
+    </fieldset>-->
   </div>
