@@ -30,6 +30,6 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
     </fieldset>
     <fieldset class="grd-margin-top-10">
       <h3>Account ...</h3>
-      <a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>
+      <!--<a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>-->
     </fieldset>
   </div>
