@@ -130,7 +130,12 @@ class TransactionCreationsController extends AppController
                     'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
                     'balance' => $user['balance']
                 ]);
-                $json = $response->getJson();
+                //$json = $response->getJson();
+                try {
+                    $json = $response->getJson();
+                } catch(Exception $ex) {
+                    $this->Flash->error(__('result isn\'t json ') . $ex->getMessage());
+                }
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
@@ -297,7 +302,11 @@ class TransactionCreationsController extends AppController
                 //die($transactionbody);
                 $response = $http->post($url . '/checkTransaction', $transactionbody, ['type' => 'json']);
                 //var_dump($response->getStringBody());
-                $json = $response->getJson();
+                try {
+                  $json = $response->getJson();
+                } catch(Exception $ex) {
+                    $this->Flash->error(__('result isn\'t json ') . $ex->getMessage());
+                }
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
