@@ -73,7 +73,7 @@ namespace UniLib {
 
 			
 
-			inline void lock() {mWorkingMutex.lock();}
+			void lock();
 			inline void unlock() {mWorkingMutex.unlock();}
 
             inline void setParentTaskPtrInArray(TaskPtr task, size_t index)

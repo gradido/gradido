@@ -42,7 +42,8 @@ namespace UniLib {
 		{
 		public:
 
-			inline void lock() { mWorkMutex.lock(); }
+			void lock(const char* stackDetails = nullptr);
+
 			inline void unlock() {mWorkMutex.unlock();}
 		protected:
 		private:

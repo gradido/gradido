@@ -1,5 +1,5 @@
 #include "Task.h"
-
+#include "../lib/ErrorList.h"
 
 namespace UniLib {
 	namespace controller {
@@ -59,24 +59,38 @@ namespace UniLib {
 
 		void Task::duplicate()
 		{
-			mReferenceMutex.lock();
+			Poco::Mutex::ScopedLock _lock(mReferenceMutex);
+			//mReferenceMutex.lock();
 			mReferenceCount++;
 			//printf("[Task::duplicate] new value: %d\n", mReferenceCount);
-			mReferenceMutex.unlock();
+			//mReferenceMutex.unlock();
 		}
 
 		void Task::release()
 		{
-			mReferenceMutex.lock();
+			//mReferenceMutex.lock();
+			Poco::Mutex::ScopedLock _lock(mReferenceMutex);
 			mReferenceCount--;
 			//printf("[Task::release] new value: %d\n", mReferenceCount);
 			if (0 == mReferenceCount) {
-				mReferenceMutex.unlock();
+				//mReferenceMutex.unlock();
 				delete this;
 				return;
 			}
-			mReferenceMutex.unlock();
+			//mReferenceMutex.unlock();
 
+		}
+
+		void Task::lock()
+		{
+			try {
+				mWorkingMutex.lock(500);
+			}
+			catch (Poco::TimeoutException& ex) {
+				ErrorList errors;
+				errors.addError(new ParamError("Task::lock", getResourceType(), ex.displayText()));
+				errors.sendErrorsAsEmail();
+			}
 		}
 
 		void Task::setTaskFinished() {

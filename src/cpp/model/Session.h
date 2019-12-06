@@ -26,6 +26,7 @@
 
 
 
+
 class WriteEmailVerification;
 
 enum SessionStates {
@@ -91,12 +92,12 @@ public:
 
 	void updateState(SessionStates newState);
 	const char* getSessionStateString();
-	inline SessionStates getSessionState() { SessionStates s; lock(); s = mState; unlock(); return s; }
+	inline SessionStates getSessionState() { SessionStates s; lock("Session::getSessionState"); s = mState; unlock(); return s; }
 
 	inline Poco::UInt64 getEmailVerificationCode() { return mEmailVerificationCode; }
 
-	inline bool isActive() { bool bret = false; lock(); bret = mActive; unlock(); return bret; }
-	inline void setActive(bool active) { lock();  mActive = active; unlock(); }
+	inline bool isActive() { bool bret = false; lock("Session::isActive"); bret = mActive; unlock(); return bret; }
+	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 

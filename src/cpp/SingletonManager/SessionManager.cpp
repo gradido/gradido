@@ -28,7 +28,14 @@ SessionManager::~SessionManager()
 
 bool SessionManager::init()
 {
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::init] exception timout mutex: %s\n", ex.displayText().data());
+		return false;
+	}
+	//mWorkingMutex.lock();
 	int i;
 	DISASM_MISALIGN;
 	for (i = 0; i < VALIDATE_MAX; i++) {
@@ -51,14 +58,20 @@ bool SessionManager::init()
 	
 
 	mInitalized = true; 
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 	return true;
 }
 
 void SessionManager::deinitalize()
 {
-	
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::deinitalize] exception timout mutex: %s\n", ex.displayText().data());
+		return;
+	}
+	//mWorkingMutex.lock();
 
 	while (mEmptyRequestStack.size()) {
 		mEmptyRequestStack.pop();
@@ -75,7 +88,7 @@ void SessionManager::deinitalize()
 
 	
 	mInitalized = false;
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 }
 
 bool SessionManager::isValid(const std::string& subject, SessionValidationTypes validationType)
@@ -117,7 +130,14 @@ Session* SessionManager::getNewSession(int* handle)
 	checkTimeoutSession();
 
 	// lock 
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::getNewSession] exception timout mutex: %s\n", ex.displayText().data());
+		return false;
+	}
+	//mWorkingMutex.lock();
 
 	//UniLib::controller::TaskPtr checkSessionTimeout(new CheckSessionTimeouted);
 	//checkSessionTimeout->scheduleTask(checkSessionTimeout);
@@ -130,7 +150,7 @@ Session* SessionManager::getNewSession(int* handle)
 		if (resultIt != mRequestSessionMap.end() && !resultIt->second->isActive()) {
 			Session* result = resultIt->second;
 			result->reset();
-			mWorkingMutex.unlock();
+			//mWorkingMutex.unlock();
 
 			if (handle) {
 				*handle = local_handle;
@@ -145,7 +165,7 @@ Session* SessionManager::getNewSession(int* handle)
 	// check if already exist, if get new
 	int newHandle = generateNewUnusedHandle();
 	if (!newHandle) {
-		mWorkingMutex.unlock();
+		//mWorkingMutex.unlock();
 		return nullptr;
 	}
 
@@ -153,7 +173,7 @@ Session* SessionManager::getNewSession(int* handle)
 	mRequestSessionMap.insert(std::pair<int, Session*>(newHandle, requestSession));
 
 	requestSession->setActive(true);
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 
 	if (handle) {
 		*handle = newHandle;
@@ -171,12 +191,19 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return false;
 	}
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::releaseSession] exception timout mutex: %s\n", ex.displayText().data());
+		return false;
+	}
+	//mWorkingMutex.lock();
 	
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it == mRequestSessionMap.end()) {
 		//printf("[SessionManager::releaseRequestSession] requestSession with handle: %d not found\n", requestHandleSession);
-		mWorkingMutex.unlock();
+		//mWorkingMutex.unlock();
 		return false;
 	}
 	Session* session = it->second;
@@ -191,7 +218,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 
 	if (!newHandle) {
 		delete session;
-		mWorkingMutex.unlock();
+		//mWorkingMutex.unlock();
 		return true;
 	}
 	
@@ -199,7 +226,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 	mRequestSessionMap.insert(std::pair<int, Session*>(newHandle, session));
 	mEmptyRequestStack.push(newHandle);
 	
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 
 	return true;
 }
@@ -211,7 +238,14 @@ bool SessionManager::isExist(int requestHandleSession)
 		return false;
 	}
 	bool result = false;
-	mWorkingMutex.lock();
+	//mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::isExist] exception timout mutex: %s\n", ex.displayText().data());
+		return false;
+	}
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it != mRequestSessionMap.end()) {
 		result = true;
@@ -219,7 +253,7 @@ bool SessionManager::isExist(int requestHandleSession)
 			printf("[SessionManager::isExist] session isn't active\n");
 		}
 	}
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 	return result;
 }
 
@@ -248,27 +282,41 @@ Session* SessionManager::getSession(int handle)
 	}
 	if (0 == handle) return nullptr;
 	Session* result = nullptr;
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::getSession] exception timout mutex: %s\n", ex.displayText().data());
+		return result;
+	}
+	//mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
 		result = it->second;
 		if (!result->isActive()) {
 			//printf("[SessionManager::getSession] session isn't active\n");
-			mWorkingMutex.unlock();
+			//mWorkingMutex.unlock();
 			return nullptr;
 		}
 		//result->setActive(true);
 		result->updateTimeout();
 	}
 	//printf("[SessionManager::getSession] handle: %ld\n", handle);
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 	return result;
 }
 
 Session* SessionManager::findByEmailVerificationCode(long long emailVerificationCode)
 {
 	Session* result = nullptr;
-	mWorkingMutex.lock();
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::findByEmailVerificationCode] exception timout mutex: %s\n", ex.displayText().data());
+		return result;
+	}
+	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		if (it->second->getEmailVerificationCode() == emailVerificationCode) {
 			result = it->second;
@@ -279,14 +327,22 @@ Session* SessionManager::findByEmailVerificationCode(long long emailVerification
 			break;
 		}
 	}
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 
 	return result;
 }
 
 void SessionManager::checkTimeoutSession()
 {
-	mWorkingMutex.lock();
+	
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::checkTimeoutSession] exception timout mutex: %s\n", ex.displayText().data());
+		return;
+	}
+	//mWorkingMutex.lock();
 	auto now = Poco::DateTime();
 	// random variance within 10 seconds for timeout to make it harder to get information and hack the server
 	auto timeout = Poco::Timespan(ServerConfig::g_SessionTimeout * 60, randombytes_random() % 10000000);
@@ -299,7 +355,7 @@ void SessionManager::checkTimeoutSession()
 			toRemove.push(it->first);
 		}
 	}
-	mWorkingMutex.unlock();
+	//mWorkingMutex.unlock();
 
 	while (toRemove.size() > 0) {
 		int handle = toRemove.top();

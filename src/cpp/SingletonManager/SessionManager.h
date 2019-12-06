@@ -16,6 +16,7 @@
 #include "Poco/RegularExpression.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Mutex.h"
 
 #include <mutex>
 #include <map>
@@ -66,7 +67,7 @@ public:
 	void checkTimeoutSession();
 
 	// delete all current active login cookies
-	void deleteLoginCookies(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Session* activeSession = nullptr);
+	static void deleteLoginCookies(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Session* activeSession = nullptr);
 
 protected:
 	SessionManager();
@@ -74,7 +75,7 @@ protected:
 	int generateNewUnusedHandle();
 
 	// access mutex
-	std::mutex mWorkingMutex;
+	Poco::Mutex mWorkingMutex;
 	
 	// sessions storage
 	std::map<int, Session*> mRequestSessionMap;

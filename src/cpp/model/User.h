@@ -125,7 +125,7 @@ protected:
 	inline passwordHashed getPwdHashed() { lock(); auto ret = mPasswordHashed; unlock(); return ret; }
 	inline void setPwdHashed(passwordHashed pwdHashed) { lock(); mPasswordHashed = pwdHashed; unlock(); }
 
-	inline void lock() { mWorkingMutex.lock(); }
+	void lock(const char* stateInfos = nullptr);
 	inline void unlock() { mWorkingMutex.unlock(); }
 
 	MemoryBin* getPrivKey();

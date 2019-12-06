@@ -98,7 +98,7 @@ Session::~Session()
 void Session::reset()
 {
 	//printf("[Session::reset]\n");
-	lock();
+	lock("Session::reset");
 	
 	mSessionUser = nullptr;
 
@@ -117,7 +117,7 @@ void Session::reset()
 
 void Session::updateTimeout()
 {
-	lock();
+	lock("Session::updateTimeout");
 	mLastActivity = Poco::DateTime();
 	unlock();
 }
@@ -295,7 +295,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 
 bool Session::startProcessingTransaction(const std::string& proto_message_base64)
 {
-	lock();
+	lock("Session::startProcessingTransaction");
 	HASH hs = ProcessingTransaction::calculateHash(proto_message_base64);
 	// check if it is already running or waiting
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
@@ -318,7 +318,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 
 Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* working/* = nullptr*/)
 {
-	lock();
+	lock("Session::getNextReadyTransaction");
 	if (working) {
 		*working = 0;
 	}
@@ -350,7 +350,7 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 
 void Session::finalizeTransaction(bool sign, bool reject)
 {
-	lock();
+	lock("Session::finalizeTransaction");
 	if (mCurrentActiveProcessingTransaction.isNull()) {
 		unlock();
 		return;
@@ -370,7 +370,7 @@ void Session::finalizeTransaction(bool sign, bool reject)
 size_t Session::getProcessingTransactionCount() 
 { 
 	size_t count = 0;
-	lock(); 
+	lock("Session::getProcessingTransactionCount"); 
 
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
 
@@ -402,7 +402,7 @@ bool Session::isPwdValid(const std::string& pwd)
 UserStates Session::loadUser(const std::string& email, const std::string& password)
 {
 	//Profiler usedTime;
-	lock();
+	lock("Session::loadUser");
 	if (mSessionUser && mSessionUser->getEmail() != email) {
 		mSessionUser = nullptr;
 	}
@@ -437,6 +437,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 
 bool Session::deleteUser()
 {
+	lock("Session::deleteUser");
 	bool bResult = false;
 	if(mSessionUser) {
 		bResult = mSessionUser->deleteFromDB();
@@ -444,13 +445,13 @@ bool Session::deleteUser()
 	if(!bResult) {
 		addError(new Error(gettext("Benutzer"), gettext("Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal.")));
 	}
-	
+	unlock();
 	return bResult;
 }
 
 void Session::setLanguage(Languages lang)
 {
-	lock();
+	lock("Session::setLanguage");
 	if (mLanguageCatalog.isNull() || mLanguageCatalog->getLanguage() != lang) {
 		auto lm = LanguageManager::getInstance();
 		mLanguageCatalog = lm->getFreeCatalog(lang);
@@ -461,7 +462,7 @@ void Session::setLanguage(Languages lang)
 Languages Session::getLanguage()
 {
 	Languages lang = LANG_NULL;
-	lock();
+	lock("Session::getLanguage");
 	if (!mLanguageCatalog.isNull()) {
 		lang = mLanguageCatalog->getLanguage();
 	}
@@ -489,6 +490,7 @@ void Session::detectSessionState()
 		return;
 	}
 	UserStates userState = mSessionUser->getUserState();
+
 	/*
 	if (mSessionUser->getDBId() == 0) {
 		updateState(SESSION_STATE_CRYPTO_KEY_GENERATED);
@@ -604,7 +606,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 
 void Session::updateState(SessionStates newState)
 {
-	lock();
+	lock("Session::updateState");
 	if (!mActive) return;
 	updateTimeout();
 	//printf("[%s] newState: %s\n", __FUNCTION__, translateSessionStateToString(newState));
@@ -618,7 +620,7 @@ void Session::updateState(SessionStates newState)
 const char* Session::getSessionStateString()
 {
 	SessionStates state;
-	lock();
+	lock(" Session::getSessionStateString");
 	state = mState;
 	unlock();
 	return translateSessionStateToString(state);
