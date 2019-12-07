@@ -339,7 +339,7 @@ void SessionManager::checkTimeoutSession()
 		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 	}
 	catch (Poco::TimeoutException &ex) {
-		printf("[SessionManager::checkTimeoutSession] exception timout mutex: %s\n", ex.displayText().data());
+		printf("[SessionManager::checkTimeoutSession] exception timeout mutex: %s\n", ex.displayText().data());
 		return;
 	}
 	//mWorkingMutex.lock();

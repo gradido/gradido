@@ -239,7 +239,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 
 bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
-
+	lock("Session::updateEmailVerification");
 	Profiler usedTime;
 	const static char* funcName = "Session::updateEmailVerification";
 	auto em = ErrorManager::getInstance();
@@ -270,7 +270,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			}
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-			
+			unlock();
 			return true;
 		}
 		else {
@@ -280,6 +280,7 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		if (!updated_rows) {
 			addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
 			printf("[%s] time: %s\n", funcName, usedTime.string().data());
+			unlock();
 			return false;
 		}
 		
@@ -287,9 +288,11 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
 		printf("[%s] time: %s\n", funcName, usedTime.string().data());
+		unlock();
 		return false;
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
+	unlock();
 	return false;
 }
 
@@ -412,6 +415,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		if (!mSessionUser->validatePwd(password, this)) {
+			unlock();
 			return USER_PASSWORD_INCORRECT;
 		}
 	}
@@ -620,7 +624,7 @@ void Session::updateState(SessionStates newState)
 const char* Session::getSessionStateString()
 {
 	SessionStates state;
-	lock(" Session::getSessionStateString");
+	lock("Session::getSessionStateString");
 	state = mState;
 	unlock();
 	return translateSessionStateToString(state);
