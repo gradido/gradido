@@ -44,10 +44,11 @@ namespace UniLib {
 
 			void lock(const char* stackDetails = nullptr);
 
-			inline void unlock() {mWorkMutex.unlock();}
+			inline void unlock() { mLastSucceededLock = ""; mWorkMutex.unlock(); }
 		protected:
 		private:
 			Poco::Mutex mWorkMutex;
+			std::string mLastSucceededLock;
 		};
 	}
 }

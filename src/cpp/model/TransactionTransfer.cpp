@@ -1,6 +1,6 @@
 #include "TransactionTransfer.h"
 
-
+const std::string TransactionTransfer::mInvalidIndexMessage("invalid index");
 
 TransactionTransfer::KontoTableEntry::KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount/* = false*/)
 {
@@ -133,10 +133,11 @@ int TransactionTransfer::prepare()
 
 const std::string& TransactionTransfer::getKontoNameCell(int index)
 {
+	
 	lock();
 	if (index >= mKontoTable.size()) {
 		unlock();
-		return "invalid index";
+		return mInvalidIndexMessage;
 	}
 	unlock();
 
@@ -147,7 +148,7 @@ const std::string& TransactionTransfer::getAmountCell(int index)
 	lock();
 	if (index >= mKontoTable.size()) {
 		unlock();
-		return "invalid index";
+		return mInvalidIndexMessage;
 	}
 	unlock();
 

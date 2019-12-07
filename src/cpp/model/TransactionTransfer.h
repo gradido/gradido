@@ -27,6 +27,7 @@ public:
 	const std::string& getAmountCell(int index);
 
 protected:
+	const static std::string mInvalidIndexMessage;
 	struct KontoTableEntry {
 	public:
 		KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount = false);

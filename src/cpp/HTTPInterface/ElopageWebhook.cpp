@@ -274,8 +274,8 @@ int HandleElopageRequestTask::run()
 
 		// if user exist we can stop now
 		if (getUserIdFromDB()) {
-			addError(param_error_order_id);
-			sendErrorsAsEmail();
+			//addError(param_error_order_id);
+			//sendErrorsAsEmail();
 			return -2;
 		}
 
