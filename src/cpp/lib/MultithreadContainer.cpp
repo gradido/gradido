@@ -26,5 +26,10 @@ namespace UniLib {
 				errors.sendErrorsAsEmail();
 			}
 		}
+
+		bool MultithreadContainer::tryLock()
+		{
+			return mWorkMutex.tryLock();
+		}
 	}
 }

@@ -43,6 +43,8 @@ namespace UniLib {
 		public:
 
 			void lock(const char* stackDetails = nullptr);
+			// \return false if mutex was locked from another thread
+			bool tryLock();
 
 			inline void unlock() { mLastSucceededLock = ""; mWorkMutex.unlock(); }
 		protected:

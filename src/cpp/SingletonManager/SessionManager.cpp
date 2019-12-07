@@ -147,16 +147,30 @@ Session* SessionManager::getNewSession(int* handle)
 		int local_handle = mEmptyRequestStack.top();
 		mEmptyRequestStack.pop();
 		auto resultIt = mRequestSessionMap.find(local_handle);
-		if (resultIt != mRequestSessionMap.end() && !resultIt->second->isActive()) {
+		if (resultIt != mRequestSessionMap.end()) {
 			Session* result = resultIt->second;
-			result->reset();
-			//mWorkingMutex.unlock();
+			// check if dead locked
+			if (result->tryLock()) {
+				result->unlock();
+				if (!result->isActive()) {
+					result->reset();
+					//mWorkingMutex.unlock();
 
-			if (handle) {
-				*handle = local_handle;
+					if (handle) {
+						*handle = local_handle;
+					}
+					result->setActive(true);
+					return result;
+				}
 			}
-			result->setActive(true);
-			return result;
+			else {
+				ErrorList errors;
+				errors.addError(new Error("SessionManager::getNewSession", "found dead locked session, keeping in memory without reference"));
+				errors.sendErrorsAsEmail();
+
+				mRequestSessionMap.erase(local_handle);
+			}
+			
 		}
 	}
 	
@@ -207,10 +221,30 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		return false;
 	}
 	Session* session = it->second;
-	session->reset();
-	session->setActive(false);
+	// check if dead locked
+	if (session->tryLock()) {
+		session->unlock();
+		session->reset();
+		session->setActive(false);
+	}
+	else {
+		ErrorList errors;
+		errors.addError(new Error("SessionManager::releaseSession", "found dead locked session, keeping in memory without reference"));
+		errors.sendErrorsAsEmail();
+
+		mRequestSessionMap.erase(requestHandleSession);
+		return true;
+	}
+	
 	// change request handle we don't want session hijacking
 	
+	// hardcoded disabled session max
+	if (mEmptyRequestStack.size() > 100) {
+		mRequestSessionMap.erase(requestHandleSession);
+		delete session;
+		return true;
+	}
+
 	int newHandle = generateNewUnusedHandle();
 	//printf("[SessionManager::releseSession] oldHandle: %ld, newHandle: %ld\n", requestHandleSession, newHandle);
 	// erase after generating new number to prevent to getting the same number again
@@ -349,7 +383,17 @@ void SessionManager::checkTimeoutSession()
 	//auto timeout = Poco::Timespan(1, 0);
 	std::stack<int> toRemove;
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-		if (!it->second->isActive()) continue;
+		
+		if (it->second->tryLock()) {
+			it->second->unlock();
+			// skip already disabled sessions
+			if (!it->second->isActive()) continue;
+		}
+		else {
+			// skip dead locked sessions
+			continue;
+		}
+		
 		Poco::Timespan timeElapsed(now - it->second->getLastActivity());
 		if (timeElapsed > timeout) {
 			toRemove.push(it->first);
