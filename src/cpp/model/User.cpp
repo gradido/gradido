@@ -3,11 +3,13 @@
 #include <sodium.h>
 #include "ed25519/ed25519.h"
 #include "Poco/Util/Application.h"
+#include "Poco/RegularExpression.h"
 #include "../ServerConfig.h"
 
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
 
 
 #include "Poco/Data/Binding.h"
@@ -46,7 +48,11 @@ int UserGenerateKeys::run()
 {
 	
 	// always return true, cannot fail (only if low on memory)
-	mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+	// !!! update: can no fail, if passphrase is invalid, for example if memory is corrupted
+	if (!mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER])) {
+		mUser->addError(new Error(mUser->gettext("User generate Keys"), mUser->gettext("invalid passphrase, please notice the server admin coin@gradido.net")));
+		return -1;
+	}
 
 	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
 	mUser->setPublicKey(mKeys.getPublicKey());
@@ -183,6 +189,7 @@ User::User(const char* email, const char* first_name, const char* last_name)
 	mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
 {
 	memset(mPublicKey, 0, crypto_sign_PUBLICKEYBYTES);
+	mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
 }
 // load from db
 User::User(const char* email)
@@ -210,6 +217,8 @@ User::User(const char* email)
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
 			mLanguage = LanguageManager::languageFromString(language_key);
+			mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
+
 			if (email_checked == 0) {    mState = USER_EMAIL_NOT_ACTIVATED;}
 			else if (pubkey.isNull()) {  mState = USER_NO_KEYS;}
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
@@ -269,6 +278,8 @@ User::User(int user_id)
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
 			mLanguage = LanguageManager::languageFromString(language_key);
+			mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
+
 			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
 			else if (pubkey.isNull()) { mState = USER_NO_KEYS; }
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
@@ -330,6 +341,8 @@ User::User(const unsigned char* pubkey_array)
 		if (result == 1) {
 			mState = USER_LOADED_FROM_DB;
 			mLanguage = LanguageManager::languageFromString(language_key);
+			mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
+
 			if (email_checked == 0) { mState = USER_EMAIL_NOT_ACTIVATED; }
 			else if (privkey.isNull()) { mState = USER_NO_PRIVATE_KEY; }
 			else { mState = USER_COMPLETE; }
@@ -378,25 +391,59 @@ User::~User()
 	}
 }
 
+void User::setLanguage(Languages lang)
+{ 
+	lock("User::setLanguage"); 
+	if (mLanguage != lang) {
+		mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(lang);
+	}
+	mLanguage = lang; 
+	unlock(); 
+}
+
 
 std::string User::generateNewPassphrase(Mnemonic* word_source)
 {
 	auto em = ErrorManager::getInstance();
+	static const char* errorMessageForUser = "Ein Fehler, bitte wende dich an den Server-Admin (coin@gradido.net). | An error occured, please ask the server admin (coin@gradido.net).";
 	unsigned int random_indices[PHRASE_WORD_COUNT];
 	unsigned int str_sizes[PHRASE_WORD_COUNT];
 	unsigned int phrase_buffer_size = 0;
+	bool errorReloadingMnemonicWordList = false;
+	int loopTrys = 0;
+	Poco::RegularExpression checkValidWord("^[a-zäöüß]*$");
 
 	// TODO: make sure words didn't double
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 		random_indices[i] = randombytes_random() % 2048;
 		auto word = word_source->getWord(random_indices[i]);
+		if (loopTrys > 10 || errorReloadingMnemonicWordList) {
+			return errorMessageForUser;
+		}
 		if (!word) {
 			em->addError(new ParamError("User::generateNewPassphrase", "empty word get for index", random_indices[i]));
 			em->sendErrorsAsEmail();
 
 			random_indices[i] = randombytes_random() % 2048;
 			word = word_source->getWord(random_indices[i]);
-			if (!word) return "Ein Fehler, bitte wende dich an den Server-Admin.";
+			if (!word) return errorMessageForUser;
+
+		}
+		else {
+			if (!checkValidWord.match(word, 0, Poco::RegularExpression::RE_NOTEMPTY)) {
+				em->addError(new ParamError("User::generateNewPassphrase", "invalid word", word));
+				em->addError(new Error("User::generateNewPassphrase", "try to reload mnemonic word list, but this error is maybe evidence for a serious memory problem!!!"));
+				if (!ServerConfig::loadMnemonicWordLists()) {
+					em->addError(new Error("User::generateNewPassphrase", "error reloading mnemonic word lists"));
+					errorReloadingMnemonicWordList = true;
+				}
+				else {
+					i = 0;
+					loopTrys++;
+				}
+				em->sendErrorsAsEmail();
+				//return "Server Fehler, bitte frage den Admin coin@gradido.net | Server error, please ask the admin coin@gradido.net";
+			}
 		}
 		str_sizes[i] = strlen(word);
 		phrase_buffer_size += str_sizes[i];
@@ -423,7 +470,7 @@ bool User::validatePassphrase(const std::string& passphrase)
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
 								     std::istream_iterator<std::string>());
 	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
-		auto m = ServerConfig::g_Mnemonic_WordLists[i];
+		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
 		bool existAll = true;
 		for (auto it = results.begin(); it != results.end(); it++) {
 			if (!m.isWordExist(*it)) {

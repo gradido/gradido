@@ -12,6 +12,7 @@
  */
 
 #include "../lib/DRHashList.h"
+#include "Poco/Mutex.h"
 #include <string>
 #include <map>
 
@@ -26,15 +27,22 @@ public:
 
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
-	inline const char* getWord(unsigned int index) { if (index < 2048) return mWords[index]; return nullptr; }
-	inline unsigned short getWordIndex(const char* word) { DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
-	inline bool isWordExist(const std::string& word) { DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
+	inline const char* getWord(unsigned int index) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500); if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
+	inline unsigned short getWordIndex(const char* word) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);  DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
+	inline bool isWordExist(const std::string& word) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);  DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
+	// using only for debugging
+	std::string getCompleteWordList();
 
 protected:
+
+	void clear();
+
 	char* mWords[2048];
 	//DRHashList mWordHashIndices;
 	typedef std::pair<DHASH, unsigned short> WordHashEntry;
 	std::map<DHASH, unsigned short> mWordHashIndices;
+	Poco::Mutex mWorkingMutex;
+
 };
 
 #endif //DR_MNEMONIC_H

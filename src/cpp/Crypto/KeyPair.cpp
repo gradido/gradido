@@ -39,7 +39,7 @@ KeyPair::~KeyPair()
 
 bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_source)
 {
-
+	auto er = ErrorManager::getInstance();
 	// libsodium doc: https://libsodium.gitbook.io/doc/advanced/hmac-sha2
 	// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 	//crypto_auth_hmacsha512_keygen
@@ -53,7 +53,14 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	unsigned char word_cursor = 0;
 	for (size_t i = 0; i < pass_phrase_size; i++) {
 		if (passphrase[i] == ' ') {
-			word_indices[word_cursor] = word_source->getWordIndex(acBuffer);
+			if (word_source->isWordExist(acBuffer)) {
+				word_indices[word_cursor] = word_source->getWordIndex(acBuffer);
+			}
+			else {
+				er->addError(new ParamError("KeyPair::generateFromPassphrase", "word didn't exist", acBuffer));
+				er->sendErrorsAsEmail();
+				return false;
+			}
 
 			word_cursor++;
 			memset(acBuffer, 0, STR_BUFFER_SIZE);
@@ -90,6 +97,9 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	if (!mPrivateKey) {
 		//delete mPrivateKey;
 		mPrivateKey = mm->getFreeMemory(ed25519_privkey_SIZE);
+		if (!mPrivateKey) {
+			return false;
+		}
 	}
 	//mPrivateKey = new ObfusArray(ed25519_privkey_SIZE, prv_key_t.data);
 	

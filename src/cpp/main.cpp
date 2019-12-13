@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 	testUser->validatePwd("haz27Newpassword", nullptr);
 	ServerConfig::g_FakeLoginSleepTime = (int)std::round(timeUsed.millis());
 	delete testUser;
-	
+
 	
 	Gradido_LoginServer app;
 	return app.run(argc, argv);

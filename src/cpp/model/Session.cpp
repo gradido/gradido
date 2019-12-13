@@ -740,6 +740,7 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 bool Session::generatePassphrase()
 {
 	mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+
 	updateState(SESSION_STATE_PASSPHRASE_GENERATED);
 	return true;
 }

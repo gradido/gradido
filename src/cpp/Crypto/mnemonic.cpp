@@ -15,19 +15,16 @@ Mnemonic::Mnemonic()
 
 Mnemonic::~Mnemonic()
 {
-	for (int i = 0; i < 2048; i++) {
-		if (mWords[i]) {
-			free(mWords[i]);
-		}
-	}
-	memset(mWords, 0, 2048);
-	mWordHashIndices.clear();
+	clear();
 }
 
 
 
 int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size)
 {
+	Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	clear();
+
 	unsigned char* buffer = (unsigned char*)malloc(compressed_size);
 	unsigned char* uncompressed_buffer = (unsigned char*)malloc(original_size + 1);
 	memset(uncompressed_buffer, 0, original_size + 1);
@@ -102,3 +99,29 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 	free(buffer);
 }
 
+
+void Mnemonic::clear()
+{
+	//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	for (int i = 0; i < 2048; i++) {
+		if (mWords[i]) {
+			free(mWords[i]);
+		}
+	}
+	memset(mWords, 0, 2048);
+	mWordHashIndices.clear();
+}
+
+std::string Mnemonic::getCompleteWordList()
+{
+	std::string result("");
+	for (int i = 0; i < 2048; i++) {
+		if (mWords[i]) {
+			result += std::to_string(i) + ": " + mWords[i] + "\n";
+		}
+		else {
+			result += std::to_string(i) + ": <word empty>\n";
+		}
+	}
+	return result;
+}

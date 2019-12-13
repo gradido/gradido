@@ -148,6 +148,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			errorLog.error("[Gradido_LoginServer::main] error loading mnemonic Word List");
 			return Application::EXIT_CONFIG;
 		}
+		//printf("show mnemonic list: \n");
+		//printf(ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER].getCompleteWordList().data());
 		if (!ServerConfig::initServerCrypto(config())) {
 			//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
 			errorLog.error("[Gradido_LoginServer::main] error init server crypto");

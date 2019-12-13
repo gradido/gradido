@@ -90,9 +90,11 @@ public:
 	inline void        setPublicKeyHex(const std::string& publicKeyHex) { lock(); mPublicHex = publicKeyHex; unlock(); }
 	inline void		   setPublicKey(const unsigned char* key) { lock(); memcpy(mPublicKey, key, crypto_sign_PUBLICKEYBYTES); unlock();}
 
+	inline const char* gettext(const char* text) { if (mLanguageCatalog.isNull()) return text; return mLanguageCatalog->gettext(text); }
+
 	UserStates         getUserState();
 
-	void setLanguage(Languages lang) { lock(); mLanguage = lang; unlock(); }
+	void setLanguage(Languages lang);
 	inline void setBalance(int balance) { lock(); mGradidoCurrentBalance = balance; unlock(); }
 	void setEmailChecked();
 	bool isEmptyPassword();
@@ -154,6 +156,7 @@ private:
 	// ************************ DB FIELDS END ******************************
 	
 	int mGradidoCurrentBalance;
+	Poco::AutoPtr<LanguageCatalog> mLanguageCatalog;
 
 	// crypto key as obfus array 
 	// only in memory, if user has typed in password
