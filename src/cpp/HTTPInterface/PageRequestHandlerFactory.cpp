@@ -100,25 +100,31 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
+		if (url_first_part == "/error500") {
+			auto pageRequestHandler = new Error500Page(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
 
 		if(url_first_part == "/logout") {
 			sm->releaseSession(s);
-			// remove cookie
+			// remove cookie(s)
 			
 			//printf("session released\n");
-			auto pageRequestHandler = new LoginPage;
+			auto pageRequestHandler = new LoginPage(nullptr);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
 		if(url_first_part == "/user_delete") {
 			if(s->deleteUser()) {
 				sm->releaseSession(s);
-				auto pageRequestHandler = new LoginPage;
+				auto pageRequestHandler = new LoginPage(nullptr);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}			
 		}
 		auto sessionState = s->getSessionState();
+		printf("session state: %s\n", s->getSessionStateString());
 		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
 		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED) {
 		//if (url_first_part == "/passphrase") {
@@ -152,12 +158,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return new ConfigPage;
 		}
 		else if (url_first_part == "/login") {
-			auto pageRequestHandler = new LoginPage;
+			auto pageRequestHandler = new LoginPage(nullptr);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
 	}
-	auto pageRequestHandler = new LoginPage;
+	auto pageRequestHandler = new LoginPage(nullptr);
 	pageRequestHandler->setProfiler(timeUsed);
 	return pageRequestHandler;
 	//return new HandleFileRequest;
@@ -245,13 +251,38 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
-
+		/*
+		//! \return 1 = konto already exist
+		//!        -1 = invalid code
+		//!        -2 = critical error
+		//!         0 = ok
+		*/
 		// update session, mark as verified 
-		if (session->updateEmailVerification(verificationCode)) {
+		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
+
+		if (0 == retUpdateEmailVerification) {
 			printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
 			auto pageRequestHandler = new PassphrasePage(session);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
+		}
+		else if (1 == retUpdateEmailVerification) {
+			auto user = session->getUser();
+			LoginPage* loginPage = new LoginPage(session);
+			loginPage->setProfiler(timeUsed);
+			return loginPage;
+		}
+		else if (-1 == retUpdateEmailVerification) {
+			auto checkEmail = new CheckEmailPage(session);
+			checkEmail->setProfiler(timeUsed);
+			checkEmail->getErrors(session);
+			sm->releaseSession(session);
+			return checkEmail;
+		}
+		else if (-2 == retUpdateEmailVerification) {
+			auto errorPage = new Error500Page(session);
+			errorPage->setProfiler(timeUsed);
+			return errorPage;
 		}
 		
 	}

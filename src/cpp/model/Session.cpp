@@ -14,6 +14,8 @@
 #include "../tasks/SendEmailTask.h"
 #include "../tasks/SigningTransaction.h"
 
+#include "../lib/JsonRequest.h"
+
 
 #include "sodium.h"
 
@@ -90,7 +92,10 @@ Session::Session(int handle)
 Session::~Session()
 {
 	//printf("[Session::~Session] \n");
-	reset();
+	if (tryLock()) {
+		unlock();
+		reset();
+	}
 	//printf("[Session::~Session] finished \n");
 }
 
@@ -237,11 +242,12 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	return true;
 }
 
-bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
+int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
-	lock("Session::updateEmailVerification");
-	Profiler usedTime;
 	const static char* funcName = "Session::updateEmailVerification";
+	lock(funcName);
+	Profiler usedTime;
+	
 	auto em = ErrorManager::getInstance();
 	if(mEmailVerificationCode == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
@@ -253,11 +259,55 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		
 		// load correct user from db
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-		Poco::Data::Statement update(dbConnection);
+		Poco::Data::Statement select(dbConnection);
+		bool emailChecked = false;
+		int userId = 0;
+		select << "SELECT email_checked, id from users where id = (SELECT user_id FROM email_opt_in where verification_code=?)",
+			into(emailChecked), into(userId), use(emailVerificationCode);
 
-		update << "UPDATE users SET email_checked=1 where id = (SELECT user_id FROM email_opt_in where verification_code=?)", use(emailVerificationCode);
-		auto updated_rows = update.execute();
-		if (updated_rows == 1) {
+		try {
+			select.execute();
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError(funcName, "select user from email verification code mysql error ", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+		}
+		if (userId != 0 && emailChecked) {
+			mSessionUser = new User(userId);
+			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")));
+			unlock();
+			return 1;
+		}
+		if (userId == 0) {
+			addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
+			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
+			unlock();
+			return -1;
+		}
+
+		Poco::Data::Statement update(dbConnection);
+		update << "UPDATE users SET email_checked=1 where id = ?", use(userId);
+
+		try {
+			auto updated_rows = update.execute();
+			if (!updated_rows) {
+				//addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
+				//printf("[%s] time: %s\n", funcName, usedTime.string().data());
+				em->addError(new Error(funcName, "impossible error, update users failed with shortly before acquired user id "));
+				em->sendErrorsAsEmail();
+
+				unlock();
+				return -2;
+			}
+			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError(funcName, "update user from email verification code mysql error ", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+			unlock();
+			return -2;
+		}
+		/*if (updated_rows == 1) {
 			Poco::Data::Statement delete_row(dbConnection);
 			delete_row << "DELETE FROM email_opt_in where verification_code = ?", use(emailVerificationCode);
 			if (delete_row.execute() != 1) {
@@ -276,24 +326,19 @@ bool Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		else {
 			em->addError(new ParamError(funcName, "update user work not like expected, updated row count", updated_rows));
 			em->sendErrorsAsEmail();
-		}
-		if (!updated_rows) {
-			addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
-			printf("[%s] time: %s\n", funcName, usedTime.string().data());
-			unlock();
-			return false;
-		}
+		}*/
+		
 		
 	}
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
-		printf("[%s] time: %s\n", funcName, usedTime.string().data());
+		//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 		unlock();
-		return false;
+		return -1;
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 	unlock();
-	return false;
+	return 0;
 }
 
 bool Session::startProcessingTransaction(const std::string& proto_message_base64)
@@ -444,7 +489,24 @@ bool Session::deleteUser()
 	lock("Session::deleteUser");
 	bool bResult = false;
 	if(mSessionUser) {
-		bResult = mSessionUser->deleteFromDB();
+		JsonRequest phpServerRequest(ServerConfig::g_php_serverHost, 443);
+		Poco::Net::NameValueCollection payload;
+		payload.add("user", std::string(mSessionUser->getPublicKeyHex()));
+		//auto ret = phpServerRequest.request("userDelete", payload);
+		JsonRequestReturn ret = JSON_REQUEST_RETURN_OK;
+		if (ret == JSON_REQUEST_RETURN_ERROR) {
+			addError(new Error("Session::deleteUser", "php server error"));
+			getErrors(&phpServerRequest);
+			sendErrorsAsEmail();
+		}
+		else if (ret == JSON_REQUEST_RETURN_OK) {
+			bResult = mSessionUser->deleteFromDB();
+		}
+		else {
+			addError(new Error(gettext("Benutzer"), gettext("Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus.")));
+			unlock();
+			return false;
+		}
 	}
 	if(!bResult) {
 		addError(new Error(gettext("Benutzer"), gettext("Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal.")));

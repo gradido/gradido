@@ -1,7 +1,8 @@
 <%@ page class="LoginPage" %>
 <%@ page form="true" %>
-<%@ page baseClass="PageRequestMessagedHandler" %>
-<%@ header include="PageRequestMessagedHandler.h" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
 <%@	page compressed="true" %>
 <%! 
 #include "../gettext.h"
@@ -20,6 +21,11 @@
 	
 	auto lang = chooseLanguage(request);
 	auto langCatalog = lm->getFreeCatalog(lang);
+	
+	std::string presetEmail("");
+	if(mSession && mSession->getUser()) {
+		presetEmail = mSession->getUser()->getEmail();
+	}
 	
 	if(!form.empty()) {
 		bool langUpdatedByBtn = false;
@@ -42,10 +48,10 @@
 		auto password = form.get("login-password", "");
 		
 		if(email != "" && password != "") {
-			auto session = sm->getSession(request);
-			if(!session) {
-				session = sm->getNewSession();		
-				session->setLanguageCatalog(langCatalog);
+			//auto session = sm->getSession(request);
+			if(!mSession) {
+				mSession = sm->getNewSession();		
+				mSession->setLanguageCatalog(langCatalog);
 				// get language
 				// first check url, second check language header
 				// for debugging client ip
@@ -55,13 +61,13 @@
 				Poco::Logger::get("requestLog").information(clientIpString);
 				// debugging end
 				auto user_host = request.clientAddress().host();
-				session->setClientIp(user_host);
-				response.addCookie(session->getLoginCookie());
+				mSession->setClientIp(user_host);
+				response.addCookie(mSession->getLoginCookie());
 			} else {
-				langCatalog = session->getLanguageCatalog();
+				langCatalog = mSession->getLanguageCatalog();
 			}
-			auto userState = session->loadUser(email, password);
-			getErrors(session);
+			auto userState = mSession->loadUser(email, password);
+			getErrors(mSession);
 			
 			auto uri_start = request.serverParams().getServerName();
 			
@@ -71,7 +77,7 @@
 				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")));
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				session->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")));
+				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")));
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
@@ -89,10 +95,11 @@
 		
 	} else {
 		// on enter login page with empty form
-		auto session = sm->getSession(request);
+		//auto session = sm->getSession(request);
 		// remove old cookies and session if exist
-		if(session) {
-			sm->releaseSession(session);
+		if(mSession) {
+			getErrors(mSession);
+			sm->releaseSession(mSession);
 		}
 		sm->deleteLoginCookies(request, response);
 	}	
@@ -136,7 +143,7 @@
                 <div class="row display-block">
                   <div class="col-lg-7 col-md-8 col-sm-9 col-12 mx-auto form-wrapper">
                     <div class="form-group input-rounded">
-                      <input type="text" class="form-control" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" />
+                      <input type="text" class="form-control" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" value="<%= presetEmail %>"/>
                     </div>
                     <div class="form-group input-rounded">
                       <input type="password" class="form-control" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />

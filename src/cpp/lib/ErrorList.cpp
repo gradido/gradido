@@ -14,9 +14,7 @@ SendErrorMessage::~SendErrorMessage()
 
 int SendErrorMessage::run()
 {
-#ifdef DISABLE_EMAIL
-	return 0;
-#endif
+	if (ServerConfig::g_disableEmail) return 0;
 	
 	auto mailClientSession = new Poco::Net::SecureSMTPClientSession(ServerConfig::g_EmailAccount.url, ServerConfig::g_EmailAccount.port);
 	mailClientSession->login();

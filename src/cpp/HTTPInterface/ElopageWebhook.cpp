@@ -315,29 +315,50 @@ int HandleElopageRequestTask::run()
 		// write email verification code into db
 		UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask(emailVerification));
 		saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
+		int noEMail = 0;
 
-		// send email to user
-		auto message = new Poco::Net::MailMessage;
+		std::string noEmailString = mRequestData.get("noEmail", "0");
+		try {
+			noEMail = stoi(noEmailString);
+		}
+		catch (const std::invalid_argument& ia) {
+			std::cerr << __FUNCTION__ << " Invalid argument: " << ia.what() << ", str: " << noEmailString << '\n';
+		}
+		catch (const std::out_of_range& oor) {
+			std::cerr << __FUNCTION__ << " Out of Range error: " << oor.what() << '\n';
+		}
+		catch (const std::logic_error & ler) {
+			std::cerr << __FUNCTION__ << " Logical error: " << ler.what() << '\n';
+		}
+		catch (...) {
+			std::cerr << __FUNCTION__ << " Unknown error" << '\n';
+		}
 
-		message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
-		message->setSubject("Gradido: E-Mail Verification");
-		std::stringstream ss;
-		ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
-		ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
-		ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getCode() << std::endl;
-		//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
-		ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
-		ss << std::endl;
-		
-		ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
-		ss << "Dario, Gradido Server Admin" << std::endl;
+		if (noEMail != 1) {
 
-		message->addContent(new Poco::Net::StringPartSource(ss.str()));
+			// send email to user
+			auto message = new Poco::Net::MailMessage;
 
-		UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-		sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-		sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
-		sendEmail->scheduleTask(sendEmail);
+			message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
+			message->setSubject("Gradido: E-Mail Verification");
+			std::stringstream ss;
+			ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
+			ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
+			ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getCode() << std::endl;
+			//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
+			ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
+			ss << std::endl;
+
+			ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
+			ss << "Dario, Gradido Server Admin" << std::endl;
+
+			message->addContent(new Poco::Net::StringPartSource(ss.str()));
+
+			UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
+			sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
+			sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
+			sendEmail->scheduleTask(sendEmail);
+		}
 	}
 
 		// if errors occured, send via email

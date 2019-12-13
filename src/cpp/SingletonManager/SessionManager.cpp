@@ -229,10 +229,10 @@ bool SessionManager::releaseSession(int requestHandleSession)
 	}
 	else {
 		ErrorList errors;
-		errors.addError(new Error("SessionManager::releaseSession", "found dead locked session, keeping in memory without reference"));
+		errors.addError(new Error("SessionManager::releaseSession", "found dead locked session"));
 		errors.sendErrorsAsEmail();
-
 		mRequestSessionMap.erase(requestHandleSession);
+		delete session;
 		return true;
 	}
 	
@@ -432,6 +432,17 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 		keks.setMaxAge(0);
 		response.addCookie(keks);
 	}
+	// delete also cake php session cookie
+	for (auto it = cookies.find("CAKEPHP"); it != cookies.end(); it++) {
+		if (it->first != "CAKEPHP") break;
+		// delete cookie
+		auto keks = Poco::Net::HTTPCookie("CAKEPHP", it->second);
+		keks.setPath("/");
+		// max age of 0 delete cookie
+		keks.setMaxAge(0);
+		response.addCookie(keks);
+	}
+
 
 	//session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 }

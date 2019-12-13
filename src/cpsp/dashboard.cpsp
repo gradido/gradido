@@ -8,7 +8,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "Poco/Net/HTTPServerParams.h"
 %>
-<% 
+<%%
 	const char* pageName = "Dashboard";
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);

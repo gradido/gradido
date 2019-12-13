@@ -13,7 +13,8 @@
 enum PageState 
 {
 	MAIL_NOT_SEND,
-	ASK_VERIFICATION_CODE
+	ASK_VERIFICATION_CODE,
+	KONTO_ALREADY_EXIST
 };
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
  
@@ -34,7 +35,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 17 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 18 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 
 	const char* pageName = "Email Verification";
 	auto lm = LanguageManager::getInstance();
@@ -119,7 +120,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "        <div class=\"col-12 logo-section\">\n";
 	responseStream << "          <a href=\"../../index.html\" class=\"logo\">\n";
 	responseStream << "            <img src=\"";
-#line 60 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.webp\" alt=\"logo\" />\n";
 	responseStream << "          </a>\n";
@@ -130,25 +131,25 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "          <div class=\"grid\">\n";
 	responseStream << "            <div class=\"center-ul-container\">\n";
 	responseStream << "              ";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "            </div>\n";
 	responseStream << "            <div class=\"grid-body\">\n";
 	responseStream << "              <form action=\"";
-#line 71 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 72 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "account/checkEmail\" method=\"GET\">\n";
 	responseStream << "                <div class=\"row pull-right-row\">\n";
 	responseStream << "                  <div class=\"equel-grid pull-right\">\n";
 	responseStream << "                    <div class=\"grid-body-small text-center\">\n";
 	responseStream << "                        <button id=\"flag-england\" name=\"lang-btn\" value=\"en\" title=\"English\" type=\"submit\" ";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  if(lang != LANG_EN) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  } 
 						else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
-#line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "                          <span class=\"flag-england\"></span>\n";
 	responseStream << "                        </button>\n";
@@ -157,12 +158,12 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "                  <div class=\"equel-grid pull-right\">\n";
 	responseStream << "                    <div class=\"grid-body-small text-center\">\n";
 	responseStream << "                        <button id=\"flag-germany\" name=\"lang-btn\" value=\"de\" title=\"Deutsch\" type=\"submit\" ";
-#line 83 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 84 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  if(lang != LANG_DE) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
-#line 83 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 84 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  } 
 						else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
-#line 84 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 85 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "                          <span class=\"flag-germany\"></span>\n";
 	responseStream << "                        </button>\n";
@@ -172,51 +173,51 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "                <div class=\"item-wrapper\">\n";
 	responseStream << "                        <div class=\"form-group\">\n";
 	responseStream << "                          <label for=\"email-verification-code\">";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:"));
 	responseStream << "</label>\n";
 	responseStream << "                          <input type=\"text\" class=\"form-control\" name=\"email-verification-code\" id=\"email-verification-code\" placeholder=\"";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Email Verification Code"));
 	responseStream << "\" ";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  if(verificationCode) { 	responseStream << "value=\"";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( verificationCode );
 	responseStream << "\" ";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "                        </div>\n";
 	responseStream << "                        <button type=\"submit\" class=\"btn btn-sm btn-primary\">";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("&Uuml;berpr&uuml;fe Code"));
 	responseStream << "</button>\n";
 	responseStream << "                </div>\n";
 	responseStream << "                </form>\n";
 	responseStream << "              <!--<p class=\"margin-top-10\">\n";
 	responseStream << "\t\t\t\t";
-#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Du hast bisher keinen Code erhalten?"));
 	responseStream << "<br> \n";
 	responseStream << "\t\t\t\t";
-#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 101 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)"));
 	responseStream << "\n";
 	responseStream << "\t\t\t  </p>-->\n";
 	responseStream << "              <p class=\"margin-top-10\">\n";
 	responseStream << "\t\t\t\t";
-#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?"));
 	responseStream << "<br>\n";
 	responseStream << "\t\t\t\t";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: "));
 	responseStream << "<br>\n";
 	responseStream << "                <b><a href=\"mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: ";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( verificationCode );
 	responseStream << " funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
+#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail an Support schicken"));
 	responseStream << "</a></b>\n";
 	responseStream << "\t\t\t  </p>\n";

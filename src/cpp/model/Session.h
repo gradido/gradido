@@ -66,7 +66,11 @@ public:
 
 	bool loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode);
 
-	bool updateEmailVerification(Poco::UInt64 emailVerificationCode);
+	//! \return 1 = konto already exist
+	//!        -1 = invalid code
+	//!        -2 = critical error
+	//!         0 = ok
+	int updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
 	
 

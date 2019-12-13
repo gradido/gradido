@@ -45,6 +45,7 @@ namespace ServerConfig {
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
+	bool		g_disableEmail = false;
 
 	bool loadMnemonicWordLists()
 	{
@@ -106,6 +107,7 @@ namespace ServerConfig {
 
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg)
 	{
+		g_disableEmail = cfg.getBool("email.disable", false);
 		g_EmailAccount.sender = cfg.getString("email.sender");
 		g_EmailAccount.username = cfg.getString("email.username");
 		g_EmailAccount.password = cfg.getString("email.password");

@@ -28,12 +28,8 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-	std::ostream& _responseStream = response.send();
-	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
-	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
-	responseStream << "\n";
 #line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
- 
+
 	const char* pageName = "Dashboard";
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
@@ -43,6 +39,10 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
 	response.redirect(ServerConfig::g_php_serverPath + "/");
 	return;
+	std::ostream& _responseStream = response.send();
+	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
+	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
+	responseStream << "\n";
 	// begin include header_old.cpsp
 	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
@@ -100,7 +100,10 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha ";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";

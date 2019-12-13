@@ -5,12 +5,14 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 
 
-#include "PageRequestMessagedHandler.h"
+#include "SessionHTTPRequestHandler.h"
 
 
-class LoginPage: public PageRequestMessagedHandler
+class LoginPage: public SessionHTTPRequestHandler
 {
 public:
+	LoginPage(Session*);
+
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 };
 

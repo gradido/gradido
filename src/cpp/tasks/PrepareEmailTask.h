@@ -4,6 +4,8 @@
 #include "CPUTask.h"
 #include "Poco/Net/SecureSMTPClientSession.h"
 
+
+
 class PrepareEmailTask : public UniLib::controller::CPUTask
 {
 public:

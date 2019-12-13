@@ -11,6 +11,8 @@
 
 #include "SingletonManager/LanguageManager.h"
 
+#define DISABLE_EMAIL
+
 namespace ServerConfig {
 
 	enum Mnemonic_Types {
@@ -45,6 +47,7 @@ namespace ServerConfig {
 	extern Poco::Mutex g_TimeMutex;
 	extern int         g_FakeLoginSleepTime;
 	extern std::string g_versionString;
+	extern bool		   g_disableEmail;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

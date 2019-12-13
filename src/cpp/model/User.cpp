@@ -102,6 +102,7 @@ int UserWriteKeysIntoDB::run()
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);	
 	auto keyPairs = getParent(0).cast<UserGenerateKeys>()->getKeyPairs();
 	auto pubKey = keyPairs->getPublicKey();
+	static const char* functionName = "UserWritePrivKeyIntoDB::run";
 	
 	//printf("[UserWriteKeysIntoDB] after init\n");
 	
@@ -115,7 +116,11 @@ int UserWriteKeysIntoDB::run()
 		//printf("[UserWriteKeysIntoDB] privKey hex: %s\n", KeyPair::getHex(*privKey, privKey->size()).data());
 		auto encryptedPrivKey = mUser->encrypt(privKey);
 		//pprivkey_blob = mUser->encrypt(privKey);
-		
+		if (!encryptedPrivKey) {
+			em->addError(new Error(functionName, "no privkey found"));
+			em->sendErrorsAsEmail();
+			return -1;
+		}
 		pprivkey_blob = new Poco::Data::BLOB(*encryptedPrivKey, encryptedPrivKey->size());
 		//printf("[UserWriteKeysIntoDB] privkey encrypted\n");
 		//Poco::Data::BLOB privkey_blob(*privKey, privKey->size());
@@ -130,7 +135,7 @@ int UserWriteKeysIntoDB::run()
 
 	try {
 		if (update.execute() != 1) {
-			em->addError(new ParamError("UserWritePrivKeyIntoDB::run", "error writing keys into db for user", std::to_string(mUser->getDBId())));
+			em->addError(new ParamError(functionName, "error writing keys into db for user", std::to_string(mUser->getDBId())));
 			em->sendErrorsAsEmail();
 			if (pprivkey_blob) {
 				delete pprivkey_blob;
@@ -139,7 +144,7 @@ int UserWriteKeysIntoDB::run()
 		}
 	}
 	catch (Poco::Exception& ex) {
-		em->addError(new ParamError("UserWritePrivKeyIntoDB::run", "mysql error updating", ex.displayText().data()));
+		em->addError(new ParamError(functionName, "mysql error updating", ex.displayText().data()));
 		em->sendErrorsAsEmail();
 		if (pprivkey_blob) {
 			delete pprivkey_blob;

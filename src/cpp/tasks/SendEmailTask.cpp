@@ -21,9 +21,8 @@ SendEmailTask::~SendEmailTask()
 
 int SendEmailTask::run() 
 {
-#ifdef DISABLE_EMAIL
-	return 0;
-#endif
+	if(ServerConfig::g_disableEmail) return 0;
+	
 	Profiler timeUsed;
 	auto er = ErrorManager::getInstance();
 	auto parent = getParent(0);
