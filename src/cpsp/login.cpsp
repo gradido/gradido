@@ -108,7 +108,7 @@
 <div class="authentication-theme auth-style_1">
       <div class="row">
         <div class="col-12 logo-section">
-          <a href="../../index.html" class="logo">
+          <a href="<%= ServerConfig::g_php_serverPath %>" class="logo">
             <img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" alt="logo" />
           </a>
         </div>

@@ -169,7 +169,10 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "<div class=\"authentication-theme auth-style_1\">\n";
 	responseStream << "      <div class=\"row\">\n";
 	responseStream << "        <div class=\"col-12 logo-section\">\n";
-	responseStream << "          <a href=\"../../index.html\" class=\"logo\">\n";
+	responseStream << "          <a href=\"";
+#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "\" class=\"logo\">\n";
 	responseStream << "            <img src=\"";
 #line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
