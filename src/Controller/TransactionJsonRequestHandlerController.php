@@ -35,6 +35,7 @@ class TransactionJsonRequestHandlerController extends AppController {
           $method = $jsonData->method;
           switch($method) {
             case 'putTransaction': return $this->putTransaction($jsonData->transaction);
+            case 'userDelete': return $this->userDelete($jsonData->user);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method', 'details' => $method]);
         }
@@ -62,6 +63,15 @@ class TransactionJsonRequestHandlerController extends AppController {
       }
       
       return $this->returnJson(['state' => 'success']);
+    }
+    
+    private function userDelete($userPubkeyHex) {
+      $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+      $user = $stateUserTable->find('all')->where(['public_key' => hex2bin($userPubkeyHex)]);
+      if(!$user || $user->count == 0) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'user not found']);
+      }
+      
     }
     
     

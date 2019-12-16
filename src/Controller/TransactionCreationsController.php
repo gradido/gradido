@@ -28,6 +28,7 @@ class TransactionCreationsController extends AppController
     {
         parent::initialize();
         $this->loadComponent('GradidoNumber');
+        $this->loadComponent('JsonRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         //$this->Auth->allow('create');
     }
@@ -83,7 +84,7 @@ class TransactionCreationsController extends AppController
         
         // adding possible addresses + input field for copy 
         $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-        $stateUsers = $stateUserTable->find('all');
+        $stateUsers = $stateUserTable->find('all')->contain(false);
         $receiverProposal = [];
         foreach($stateUsers as $stateUser) {
           $name = $stateUser->email;
@@ -111,6 +112,7 @@ class TransactionCreationsController extends AppController
             if(count($receiverProposal) > $receiverIndex) {
               $pubKeyHex = $receiverProposal[$receiverIndex]['key'];
               $identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
+              //echo "identHash: $identHash for " . $receiverProposal[$receiverIndex]['email'];
             }
             $builderResult = TransactionCreation::build(
                     $amountCent, 
@@ -118,31 +120,35 @@ class TransactionCreationsController extends AppController
                     $pubKeyHex,
                     $identHash
             );
+//            echo "builder result state: " . $builderResult['state'] . '<br>';
             if($builderResult['state'] == 'success') {
               
-              $http = new Client();
-              try {
-                $loginServer = Configure::read('LoginServer');
-                $url = $loginServer['host'] . ':' . $loginServer['port'];
-                $session_id = $session->read('session_id');
-                $response = $http->get($url . '/checkTransaction', [
-                    'session_id' => $session_id,
-                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
-                    'balance' => $user['balance']
-                ]);
-                //$json = $response->getJson();
-                try {
-                    $json = $response->getJson();
-                } catch(Exception $ex) {
-                    $this->Flash->error(__('result isn\'t json ') . $ex->getMessage());
+              $user_balance = 0;
+              if(isset($user['balance'])) {
+                $user_balance = $user['balance'];
+              }
+              // $session_id, $base64Message, $user_balance = 0
+              $requestResult = $this->JsonRequestClient->sendTransaction(
+                      $session->read('session_id'),
+                      base64_encode($builderResult['transactionBody']->serializeToString()),
+                      $user_balance
+              );
+              if($requestResult['state'] != 'success') {
+                $this->addAdminError('TransactionCreations', 'create', $requestResult, $user['id']);
+                if($requestResult['type'] == 'request error') {
+                  $this->Flash->error(__('Error by requesting LoginServer, please try again'));
+                } else {
+                  $this->Flash->error(__('Error, please wait for the admin to fix it'));
                 }
+              } else {
+                $json = $requestResult['data'];
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
                     return $this->redirect(Router::url('/', true) . 'account', 303);
-                    //$this->Flash->error(__('session not found, please login again'));
                   } else {
-                    $this->Flash->error(__('login server return error: ' . json_encode($json)));
+                    $this->addAdminError('TransactionCreations', 'create', $json, $user['id']);
+                    $this->Flash->error(__('Login Server Error, please wait for the admin to fix it'));
                   }
                 } else {
                   $pendingTransactionCount = $session->read('Transactions.pending');
@@ -159,16 +165,10 @@ class TransactionCreationsController extends AppController
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }
                 }
-                
-              } catch(\Exception $e) {
-                  $msg = $e->getMessage();
-                  $this->Flash->error(__('error http request: ') . $msg);
               }
-              
             } else {
               $this->Flash->error(__('Building transaction failed'));
             }
-           
 //           */
           } else {
             $this->Flash->error(__('Something was invalid, please try again!'));
@@ -303,6 +303,8 @@ class TransactionCreationsController extends AppController
                 $response = $http->post($url . '/checkTransaction', $transactionbody, ['type' => 'json']);
                 //var_dump($response->getStringBody());
                 try {
+                  //$stringBody = $response->getStringBody();
+                  //var_dump($stringBody);
                   $json = $response->getJson();
                 } catch(Exception $ex) {
                     $this->Flash->error(__('result isn\'t json ') . $ex->getMessage());

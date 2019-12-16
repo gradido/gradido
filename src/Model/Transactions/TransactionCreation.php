@@ -97,8 +97,9 @@ class TransactionCreation extends TransactionBase {
       $existingCreations = $this->transactionCreationsTable
               ->find('all')
               ->select(['amount', 'state_user_id'])
-              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]])
-              ->where(['ident_hash' => $identHashBin]);
+              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]]);
+      // uncomment because ident hash didn't work at the moment
+              //->where(['ident_hash' => $identHashBin]);
       //$existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
       $existingCreations->select(['amount', 'state_user_id']);
       $existingCreations->matching('Transactions', function ($q) {
