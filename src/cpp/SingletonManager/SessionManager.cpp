@@ -135,7 +135,7 @@ Session* SessionManager::getNewSession(int* handle)
 	}
 	catch (Poco::TimeoutException &ex) {
 		printf("[SessionManager::getNewSession] exception timout mutex: %s\n", ex.displayText().data());
-		return false;
+		return nullptr;
 	}
 	//mWorkingMutex.lock();
 

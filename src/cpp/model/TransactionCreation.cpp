@@ -38,10 +38,13 @@ int TransactionCreation::prepare()
 	}
 	else {
 		memcpy(mReceiverPublicHex, mReceiverUser->getPublicKeyHex().data(), 64);
-		if (!mReceiverUser->validateIdentHash(mProtoCreation.ident_hash())) {
+		// uncomment because not correctly working
+		/*if (!mReceiverUser->validateIdentHash(mProtoCreation.ident_hash())) {
 			addError(new Error(functionName, "ident hash isn't the same"));
+			addError(new ParamError(functionName, "hash calculated from email: ", mReceiverUser->getEmail()));
+			addError(new ParamError(functionName, "hash: ", std::to_string(mProtoCreation.ident_hash())));
 			return -3;
-		}
+		}*/
 	}
 	//
 
