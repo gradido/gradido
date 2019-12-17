@@ -231,6 +231,34 @@ class AppController extends Controller
     }
      */
     
+    public function addAdminError($controller, $action, $returnTable, $state_user_id) {
+      if(!is_array($returnTable)) {
+        $this->addAdminError('AppController', 'addAdminError', ['state' => 'error', 'msg' => 'returnTable isn\'t array', 'details' => gettype($returnTable)]);
+        return false;
+      }
+      $adminErrorTable = TableRegistry::getTableLocator()->get('AdminErrors');      
+      $adminErrorEntity = $adminErrorTable->newEntity();
+      $adminErrorEntity->state_user_id = $state_user_id;
+      $adminErrorEntity->controller = $controller;
+      $adminErrorEntity->action = $action;
+      $adminErrorEntity->state = $returnTable->state;
+      if(isset($returnTable['msg'])) {
+        $adminErrorEntity->msg = $returnTable['msg'];
+      }
+      if(isset($returnTable['details'])) {
+        $adminErrorEntity->details = $returnTable['details'];
+      }
+      if(!$adminErrorTable->save($adminErrorEntity)) {
+        $this->Flash->error(__('Serious error, couldn\'t save to db, please write the admin: ' . $this->getAdminEmailLink()));
+      }
+      return true;
+    }
+    
+    public function getAdminEmailLink($text) {
+      $serverAdminEmail = Configure::read('ServerAdminEmail');    
+      return '<a href="mailto:' . $serverAdminEmail . '">'. $serverAdminEmail . '</a>';
+    }
+    
     public function returnJsonEncoded($json) {
       $this->autoRender = false;
       $response = $this->response->withType('application/json');
