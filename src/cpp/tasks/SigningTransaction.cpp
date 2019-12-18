@@ -184,7 +184,7 @@ int SigningTransaction::run() {
 	}
 	catch (Poco::Exception& e) {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));
-		printf("url: %s\n", ServerConfig::g_php_serverHost);
+		printf("url: %s\n", ServerConfig::g_php_serverHost.data());
 		sendErrorsAsEmail();
 		return -8;
 	}

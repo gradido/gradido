@@ -1014,7 +1014,7 @@ bool User::setPrivKey(const MemoryBin* privKey)
 	auto encyrptedPrivKey = encrypt(privKey);
 	lock("User::setPrivKey");
 	mState = USER_COMPLETE;
-	mPrivateKey = encrypt(privKey);
+	mPrivateKey = encyrptedPrivKey;// encrypt(privKey);
 	unlock();
 
 	return true;

@@ -53,6 +53,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	unsigned char word_cursor = 0;
 	for (size_t i = 0; i < pass_phrase_size; i++) {
 		if (passphrase[i] == ' ') {
+			if(buffer_cursor < 3) continue;
 			if (word_source->isWordExist(acBuffer)) {
 				word_indices[word_cursor] = word_source->getWordIndex(acBuffer);
 			}
