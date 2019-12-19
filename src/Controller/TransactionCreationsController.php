@@ -243,6 +243,7 @@ class TransactionCreationsController extends AppController
         $timeUsed = microtime(true) - $startTime;
         $this->set(compact('timeUsed', 'stateUsers', 'creationForm', 'possibleReceiver'));
         
+        $this->set('activeUser', $user);
         $this->set('creationForm', $creationForm);
         $this->set('timeUsed', microtime(true) - $startTime);
         

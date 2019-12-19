@@ -23,4 +23,8 @@ $this->assign('title', __('Willkommen'));
               ['class' => 'grd-nav-bn grd-nav-bn-large']
           );?>
     </fieldset>
+    <?= $this->Html->link(
+              __('Fehler') . ' (' . $adminErrorCount . ')',
+              ['controller' => 'AdminErrors'], ['class' => 'grd-nav-bn']);
+    ?>
 </div>

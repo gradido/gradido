@@ -3,7 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 //use Cake\Routing\Router;
-//use Cake\ORM\TableRegistry;
+use Cake\ORM\TableRegistry;
 
 /**
  * StateUsers Controller
@@ -49,8 +49,10 @@ class DashboardController extends AppController
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
+        $adminErrorsTable = TableRegistry::getTableLocator()->get('AdminErrors');
+        $adminErrorCount = $adminErrorsTable->find('all')->count();
         
-        
+        $this->set('adminErrorCount', $adminErrorCount);
         $this->set('timeUsed', microtime(true) - $startTime);
     }
     

@@ -42,9 +42,17 @@ $this->assign('title', __('Schöpfungstransaktion'));
   <fieldset>
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount'); ?>
-    <?php foreach($possibleReceiver as $possibleReceiver) : ?>
+    <?php foreach($possibleReceiver as $possibleReceiver) :
+      $disable = '';
+      if($activeUser['id'] == $possibleReceiver['id']) {
+        $disable = 'disabled';
+      }
+      ?>
     <div class="grd_big_checkbox">
-      <?= $this->Form->checkbox('user[' .$possibleReceiver['id'] . ']',  ['value' => $possibleReceiver['id'], 'hiddenField' => false]); ?>
+      <?= $this->Form->checkbox('user[' .$possibleReceiver['id'] . ']',  ['value' => $possibleReceiver['id'], 'hiddenField' => false, $disable]); ?>
+      <?php if($disable != '') : ?>
+        <span style="color:grey" title="Du kannst leider nicht für dich selbst schöpfen.">
+      <?php endif; ?>
       <?= $possibleReceiver['name'] ?>   
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;
@@ -52,6 +60,9 @@ $this->assign('title', __('Schöpfungstransaktion'));
         <?php if($possibleReceiver['amount'] != 0) : ?>
           <span class="grd_smaller">
             In diesem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?></span>
+        <?php endif; ?>
+        <?php if($disable != '') : ?>
+          </span>
         <?php endif; ?>
           <br>
     </div>
