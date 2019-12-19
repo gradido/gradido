@@ -282,40 +282,32 @@ class TransactionCreationsController extends AppController
             }
             $creationTransactionCount = count($transactions);
             if($creationTransactionCount > 0) {
-              $http = new Client();
-              try {
-                $loginServer = Configure::read('LoginServer');
-                $url = $loginServer['host'] . ':' . $loginServer['port'];
-                $session_id = $session->read('session_id');
-                /*
-                 *  $response = $http->post($url . '/checkTransaction', json_encode([
-                    'session_id' => $session_id,
-                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
-                    'balance' => $user['balance']
-                ]), ['type' => 'json']);
-                 */
-                $transactionbody = json_encode([
-                    'session_id' => $session_id,
-                    'transaction_base64' => $transactions,
-                    'balance' => $user['balance']
-                ]);
-                //die($transactionbody);
-                $response = $http->post($url . '/checkTransaction', $transactionbody, ['type' => 'json']);
-                //var_dump($response->getStringBody());
-                try {
-                  //$stringBody = $response->getStringBody();
-                  //var_dump($stringBody);
-                  $json = $response->getJson();
-                } catch(Exception $ex) {
-                    $this->Flash->error(__('result isn\'t json ') . $ex->getMessage());
+              $user_balance = 0;
+              if(isset($user['balance'])) {
+                $user_balance = $user['balance'];
+              }
+              // $session_id, $base64Message, $user_balance = 0
+              $requestResult = $this->JsonRequestClient->sendTransaction(
+                      $session->read('session_id'),
+                      $transactions,
+                      $user_balance
+              );
+              if($requestResult['state'] != 'success') {
+                $this->addAdminError('TransactionCreations', 'createMulti', $requestResult, $user['id']);
+                if($requestResult['type'] == 'request error') {
+                  $this->Flash->error(__('Error by requesting LoginServer, please try again'));
+                } else {
+                  $this->Flash->error(__('Error, please wait for the admin to fix it'));
                 }
+              } else {
+                $json = $requestResult['data'];
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
                     return $this->redirect(Router::url('/', true) . 'account', 303);
-                    //$this->Flash->error(__('session not found, please login again'));
                   } else {
-                    $this->Flash->error(__('login server return error: ' . json_encode($json)));
+                    $this->addAdminError('TransactionCreations', 'createMulti', $json, $user['id']);
+                    $this->Flash->error(__('Login Server Error, please wait for the admin to fix it'));
                   }
                 } else {
                   $pendingTransactionCount = $session->read('Transactions.pending');
@@ -325,25 +317,17 @@ class TransactionCreationsController extends AppController
                     $pendingTransactionCount += $creationTransactionCount;
                   }
                   $session->write('Transactions.pending', $pendingTransactionCount);
-                  echo "pending: " . $pendingTransactionCount;
+                  //echo "pending: " . $pendingTransactionCount;
                   if($mode === 'next') {
                     return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
                   } else {
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }
                 }
-                
-              } catch(\Exception $e) {
-                  $msg = $e->getMessage();
-                  $this->Flash->error(__('error http request: ') . $msg);
               }
-            }
-            
+            }           
           }
-          
         }
-        
-        
     }
 
     /**

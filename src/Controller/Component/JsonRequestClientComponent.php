@@ -20,9 +20,16 @@ class JsonRequestClientComponent extends Component
     if(!is_numeric($user_balance) || intval($user_balance) < 0) {
       return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'user_balance invalid'];
     }
-    if(!$this->is_base64($base64Message)) {
+    if(is_array($base64Message)) {
+      foreach($base64Message as $singleMessage) {
+        if(!$this->is_base64($singleMessage)) {
+          return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'at least one base64Message contain invalid base64 characters'];
+        }
+      }
+    } else if(!$this->is_base64($base64Message)) {
       return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'base64Message contain invalid base64 characters'];
     }
+    
     $http = new Client();
     
     $transactionbody = json_encode([
