@@ -69,7 +69,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
-		response.redirect(ServerConfig::g_php_serverPath);
+		response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
 		return;
 	}
 	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
@@ -175,10 +175,10 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 #line 60 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "state-balances/overview\" title=\"Kontoübersicht\">\n";
-	responseStream << "              <span class=\"link-title\">";
+	responseStream << "              <span class=\"link-title\">Kontoübersicht (";
 #line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
 	responseStream << ( TransactionBase::amountToString(userBalance) );
-	responseStream << " GDD</span>\n";
+	responseStream << " GDD)</span>\n";
 	responseStream << "              <i class=\"mdi mdi-wallet-outline link-icon\"></i>\n";
 	responseStream << "            </a>\n";
 	responseStream << "          </li>\n";

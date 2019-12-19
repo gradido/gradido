@@ -58,7 +58,7 @@
         <ul class="navigation-menu">
           <li>
             <a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" title="Kontoübersicht">
-              <span class="link-title"><%= TransactionBase::amountToString(userBalance) %> GDD</span>
+              <span class="link-title">Kontoübersicht (<%= TransactionBase::amountToString(userBalance) %> GDD)</span>
               <i class="mdi mdi-wallet-outline link-icon"></i>
             </a>
           </li>
