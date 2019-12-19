@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		printf("error initing sodium, early exit\n");
 		return -1;
 	}
-	ServerConfig::g_versionString = "0.9.0";
+	ServerConfig::g_versionString = "0.10.0";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 
 	// first check time for crypto 
