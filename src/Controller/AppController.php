@@ -161,7 +161,7 @@ class AppController extends Controller
                   foreach($json['user'] as $key => $value) {
                     $session->write('StateUser.' . $key, $value );
                   }
-                  
+                  //var_dump($json);
                   $transactionPendings = $json['Transaction.pending'];
                   //echo "read transaction pending: $transactionPendings<br>";
                   $session->write('Transactions.pending', $transactionPendings);

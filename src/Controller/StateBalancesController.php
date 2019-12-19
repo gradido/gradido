@@ -40,16 +40,11 @@ class StateBalancesController extends AppController
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend_ripple');
         $session = $this->getRequest()->getSession();
-        $user = $session->read('StateUser');
-//        var_dump($user);
-        if(!$user) {
-          //return $this->redirect(Router::url('/', true) . 'account/', 303);
-          $result = $this->requestLogin();
-          if($result !== true) {
-            return $result;
-          }
-          $user = $session->read('StateUser');
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
         }
+        $user = $session->read('StateUser');
         
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable
@@ -135,9 +130,18 @@ class StateBalancesController extends AppController
              'memo' => $sendCoins->transaction->memo
           ]);
         }
+        uasort($transactions, array($this, 'sortTransactions')); 
         $this->set('transactions', $transactions);
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
+    }
+    
+    public function sortTransactions($a, $b) {
+      if ($a['date'] == $b['date']) {
+        return 0;
+      }
+      return ($a['date'] > $b['date']) ? -1 : 1;
+      
     }
 
     /**

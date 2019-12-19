@@ -73,11 +73,13 @@ $this->assign('title', __('Kontoübersicht'));
                   <?php endif; ?>
                 </span>
               </td>
-              <td><?php if(strlen($transaction['memo']) > 30): ?>
-                <span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>"><?= substr($memoShort, 0, 30) . '...' ?></span>
-              <?php else : ?>
+              <td><span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
+                <?php if(strlen($transaction['memo']) > 30): ?>
+                  <?= substr($memoShort, 0, 30) . '...' ?>
+                <?php else : ?>
                   <?= $transaction['memo'] ?>
-              <?php endif;?>
+                <?php endif;?>
+                </span>
               </td>
               <td> <?= $transaction['date']->nice() ?> </td>  
               <td><?= $this->element('printGradido', ['number' => $balance]) ?></td>

@@ -29,8 +29,8 @@ $this->loadHelper('Form', [
                 <?= $this->Form->control('amount', ['label' => __('Betrag in GDD')]) ?>
                 <?= $this->Form->control('memo', ['label' => __('Verwendungszweck')]) ?>
                 <?= $this->Form->control('email', ['label' => __('Empfänger'), 'placeholder' => 'E-Mail']) ?>
-                <?= $this->Form->button(__('Transaktion(n) abschließen'), ['name' => 'next', 'class' => 'btn btn-sm btn-primary']) ?>
-                <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'btn btn-sm']) ?>
+                <?= $this->Form->button(__('Transaktion abschließen'), ['name' => 'next', 'class' => 'btn btn-sm btn-primary']) ?>
+                <!--<?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'btn btn-sm']) ?>-->
               <?= $this->Form->end() ?>
             </div>
           </div>

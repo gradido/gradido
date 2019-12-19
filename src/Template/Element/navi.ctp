@@ -1,5 +1,6 @@
 <?php 
 use Model\Navigation\NaviEntry;
+use Model\Navigation\NaviEntrySub;
 use Model\Navigation\NaviEntryAbsoluteLink;
 
 $session = $this->getRequest()->getSession();
@@ -20,7 +21,11 @@ $navi = [];
                  ->setIconColor('grd-alert-color');
   array_push($navi, $errorNaviEntry);
 }*/
-$balanceNaviEntry = new NaviEntry($this->element('printGradido', ['number' => $balance]), 'mdi-wallet-outline', 'StateBalances', 'overview');
+$balanceNaviEntry = new NaviEntry(
+        __('Kontoübersicht') . ' (' . $this->element('printGradido', ['number' => $balance]) . ')',
+        //__('Kontoübersicht'),
+        'mdi-wallet-outline', 'StateBalances', 'overview'
+);
 if($balance < 0 ) {
   //$balanceNaviEntry->setIconColor('grd-alert-color');
 } else if($balance > 0) {
