@@ -71,7 +71,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
-		Poco::Thread::sleep(500);
+		Poco::Thread::sleep(1000);
 		response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
 		return;
 	}
