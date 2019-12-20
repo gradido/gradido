@@ -105,6 +105,16 @@
 	}	
 	
 %><%@ include file="header.cpsp" %>
+<style type="text/css">
+@media (max-width: 400px) {
+	.authentication-theme.auth-style_1 .signup-link {
+		position:relative;
+	}
+	.authentication-theme .signup-link {
+		isplay:initial;
+	}
+}	
+</style>
 <div class="authentication-theme auth-style_1">
       <div class="row">
         <div class="col-12 logo-section">
