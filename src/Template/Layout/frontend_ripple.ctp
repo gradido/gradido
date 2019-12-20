@@ -47,8 +47,16 @@ $GLOBALS["self"] = $this;
     <nav class="t-header">
       <div class="t-header-brand-wrapper">
         <a href="/">
-          <?= $this->Html->image('logo_schrift_half.webp', ['alt' => 'Logo', 'class' => 'logo']) ?>
-          <?= $this->Html->image('logo_half.webp', ['alt' => 'Logo', 'class' => 'logo-mini']) ?>
+          <picture class="logo">
+            <source srcset="/img/logo_schrift_half.webp" type="image/webp">
+            <source srcset="/img/logo_schrift_half.png" type="image/png"> 
+            <img src="/img/logo_schrift_half.png" class="logo" alt="Logo">
+          </picture>
+          <picture class="logo-mini">
+            <source srcset="/img/logo_half.webp" type="image/webp">
+            <source srcset="/img/logo_half.png" type="image/png"> 
+            <img src="/img/logo_half.png" class="logo-mini" alt="Logo">
+          </picture>
         </a>
         <button class="t-header-toggler t-header-desk-toggler d-none d-lg-block">
           <svg class="logo" viewBox="0 0 200 200">

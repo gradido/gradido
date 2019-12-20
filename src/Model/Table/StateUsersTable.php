@@ -38,7 +38,7 @@ class StateUsersTable extends Table
         parent::initialize($config);
 
         $this->setTable('state_users');
-        $this->setDisplayField('id');
+        $this->setDisplayField('email');
         $this->setPrimaryKey('id');
 
         /*$this->belongsTo('Indices', [
