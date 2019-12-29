@@ -246,12 +246,12 @@ int HandleElopageRequestTask::run()
 	Premium-Mitgliedschaft, 43870
 	Gold-Mitgliedschaft, 43944
 	Business-Mitgliedschaft, 43960
-
+	Förderbeitrag: 49106
  
 	 *
 	*/
 	// only for product 36001 and 43741 create user accounts and send emails
-	if (product_id == 36001 || product_id == 43741 || product_id == 43870 || product_id == 43944 || product_id == 43960) {
+	if (product_id == 36001 || product_id == 43741 || product_id == 43870 || product_id == 43944 || product_id == 43960 || product_id == 49106) {
 		mEmail = mRequestData.get("payer[email]", "");
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
