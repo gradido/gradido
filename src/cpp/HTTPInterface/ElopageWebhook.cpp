@@ -17,7 +17,7 @@ using namespace Poco::Data::Keywords;
 #include "../tasks/SendEmailTask.h"
 
 #include "../model/EmailVerificationCode.h"
-#include "../model/ElopageBuy.h"
+#include "../model/table/ElopageBuy.h"
 
 
 
@@ -211,11 +211,11 @@ int HandleElopageRequestTask::run()
 	}
 
 	// elopage buy
-	Poco::AutoPtr<ElopageBuy> elopageBuy(new ElopageBuy(mRequestData));
+	Poco::AutoPtr<model::table::ElopageBuy> elopageBuy(new model::table::ElopageBuy(mRequestData));
 	if (elopageBuy->errorCount() > 0) {
 		getErrors(elopageBuy);
 	}
-	UniLib::controller::TaskPtr saveElopageBuy(new ModelInsertTask(elopageBuy));
+	UniLib::controller::TaskPtr saveElopageBuy(new model::table::ModelInsertTask(elopageBuy));
 	saveElopageBuy->scheduleTask(saveElopageBuy);
 
 	// check product id
@@ -301,10 +301,11 @@ int HandleElopageRequestTask::run()
 		}
 
 		// email verification code
-		Poco::AutoPtr<EmailVerificationCode> emailVerification(new EmailVerificationCode(user_id));
+		auto emailVerification = model::EmailVerificationCode::create(user_id);
+		//Poco::AutoPtr<model::table::EmailOptIn> emailVerification(new model::table::EmailOptIn(user_id));
 
 		// create email verification code
-		if (!emailVerification->getCode()) {
+		if (!emailVerification->getModel()->getCode()) {
 			// exit if email verification code is empty
 			addError(new Error("Email verification", "code is empty, error in random?"));
 			addError(param_error_order_id);
@@ -313,7 +314,7 @@ int HandleElopageRequestTask::run()
 		}
 
 		// write email verification code into db
-		UniLib::controller::TaskPtr saveEmailVerificationCode(new ModelInsertTask(emailVerification));
+		UniLib::controller::TaskPtr saveEmailVerificationCode(new model::table::ModelInsertTask(emailVerification->getModel()));
 		saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
 		int noEMail = 0;
 
@@ -344,7 +345,7 @@ int HandleElopageRequestTask::run()
 			std::stringstream ss;
 			ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
 			ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
-			ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getCode() << std::endl;
+			ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getModel()->getCode() << std::endl;
 			//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
 			ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
 			ss << std::endl;

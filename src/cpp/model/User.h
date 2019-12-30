@@ -3,7 +3,8 @@
 
 #include "../Crypto/KeyPair.h"
 #include <string>
-#include "ModelBase.h"
+//#include "ModelBase.h"
+#include "../lib/ErrorList.h"
 
 #include "Poco/Thread.h"
 #include "Poco/Types.h"

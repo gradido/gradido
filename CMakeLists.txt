@@ -25,6 +25,7 @@ FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
 FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
 FILE(GLOB LIB_SRC "src/cpp/lib/*.h" "src/cpp/lib/*.cpp")
 FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
+FILE(GLOB MODEL_TABLE "src/cpp/model/table/*.h" "src/cpp/model/table/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
@@ -34,7 +35,7 @@ FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 
 SET(LOCAL_SRCS 
 	${TINF} ${MAIN} ${HTTPInterface} 
-	${JSONInterface} ${CRYPTO} ${MODEL} 
+	${JSONInterface} ${CRYPTO} ${MODEL} ${MODEL_TABLE} 
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
 	${PROTO_GRADIDO}
 )
@@ -46,6 +47,7 @@ source_group("proto" FILES ${PROTO_GRADIDO})
 source_group("tinf" FILES ${TINF})
 source_group("crypto" FILES ${CRYPTO})
 source_group("tasks" FILES ${TASKS})
+source_group("model\\table" FILES ${MODEL_TABLE})
 source_group("model" FILES ${MODEL})
 source_group("mysql" FILES ${MYSQL})
 source_group("SingletonManager" FILES ${SINGLETON_MANAGER})

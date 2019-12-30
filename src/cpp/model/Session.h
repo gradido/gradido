@@ -59,6 +59,7 @@ public:
 	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	UserStates loadUser(const std::string& email, const std::string& password);
+	bool ifUserExist(const std::string& email);
 
 	inline void setUser(Poco::AutoPtr<User> user) { mSessionUser = user; }
 	
@@ -72,6 +73,7 @@ public:
 	//!         0 = ok
 	int updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
+	
 	
 
 	Poco::Net::HTTPCookie getLoginCookie();

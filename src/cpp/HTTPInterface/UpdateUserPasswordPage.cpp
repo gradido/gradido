@@ -58,6 +58,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 					mSession->getErrors(user);
 					if(-2 == ret || -1 == ret || 1 == ret) {
 						response.redirect(uri_start + "/error500");
+						return;
 					}
 					response.redirect(uri_start + "/passphrase");
 					return;
@@ -150,7 +151,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
 	responseStream << "\t";
-#line 52 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";

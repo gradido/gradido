@@ -242,6 +242,27 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	return true;
 }
 
+bool Session::ifUserExist(const std::string& email)
+{
+	auto em = ErrorManager::getInstance();
+	const char* funcName = "Session::ifUserExist";
+	auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement select(dbConnection);
+	bool emailChecked = false;
+	int userId = 0;
+	select << "SELECT email_checked, id from users where email = ? and email_checked = 1",
+		into(emailChecked), into(userId), useRef(email);
+
+	try {
+		if(select.execute() == 1) return true;
+	}
+	catch (Poco::Exception& ex) {
+		em->addError(new ParamError(funcName, "select user from email verification code mysql error ", ex.displayText().data()));
+		em->sendErrorsAsEmail();
+	}
+	return false;
+}
+
 int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
 	const static char* funcName = "Session::updateEmailVerification";

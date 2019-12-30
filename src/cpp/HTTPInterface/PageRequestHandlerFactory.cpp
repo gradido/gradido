@@ -17,6 +17,7 @@
 #include "UpdateUserPasswordPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
+#include "ResetPassword.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -91,6 +92,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		auto pageRequestHandler = new RegisterPage;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
+	}
+	if (url_first_part == "/resetPassword") {
+		auto resetPassword = new ResetPassword;
+		resetPassword->setProfiler(timeUsed);
+		return resetPassword;
 	}
 	if (s) {
 		auto user = s->getUser();
