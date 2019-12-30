@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-namespace model {
+namespace controller {
 
 	TableControllerBase::TableControllerBase()
 		: mReferenceCount(1)

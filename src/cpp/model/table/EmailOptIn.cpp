@@ -24,7 +24,7 @@ namespace model {
 		}
 
 
-		Poco::Data::Statement EmailOptIn::insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement EmailOptIn::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 
@@ -36,13 +36,8 @@ namespace model {
 			return insert;
 		}
 
-		Poco::Data::Statement EmailOptIn::updateIntoDB(Poco::Data::Session session)
-		{
-			throw Poco::Exception("EmailVerificationCode::updateIntoDB not implemented");
-		}
 
-
-		Poco::Data::Statement EmailOptIn::loadFromDB(Poco::Data::Session session, std::string& fieldName)
+		Poco::Data::Statement EmailOptIn::_loadFromDB(Poco::Data::Session session, std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 

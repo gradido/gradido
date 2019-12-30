@@ -2,9 +2,9 @@
 
 #include "sodium.h"
 
-namespace model {
+namespace controller {
 
-	EmailVerificationCode::EmailVerificationCode(table::EmailOptIn* dbModel)
+	EmailVerificationCode::EmailVerificationCode(model::table::EmailOptIn* dbModel)
 	{
 		mDBModel = dbModel;
 	}
@@ -29,7 +29,7 @@ namespace model {
 	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create(int user_id)
 	{
 		auto code = createEmailVerificationCode();
-		auto db = new table::EmailOptIn(code, user_id);
+		auto db = new model::table::EmailOptIn(code, user_id);
 		auto result = new EmailVerificationCode(db);
 		return Poco::AutoPtr<EmailVerificationCode>(result);
 	}

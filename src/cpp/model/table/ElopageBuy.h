@@ -16,7 +16,7 @@
 
 namespace model {
 	namespace table {
-		enum ElopageBuyId {
+		enum ElopageBuyIDFields {
 			ELOPAGE_BUY_ID,
 			ELOPAGE_BUY_AFFILIATE_PROGRAM_ID,
 			ELOPAGE_BUY_PUBLISHER_ID,
@@ -35,13 +35,12 @@ namespace model {
 
 			// generic db operations
 			const char* getTableName() { return "elopage_buys"; }
-			Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
-			Poco::Data::Statement updateIntoDB(Poco::Data::Session session);
-			Poco::Data::Statement loadFromDB(Poco::Data::Session session, std::string& fieldName);
-
-
-
+			
+			
 		protected:
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName);
+			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
+
 			Poco::Int32 mIDs[ELOPAGE_BUY_MAX];
 			std::string mPayerEmail;
 			std::string mPublisherEmail;

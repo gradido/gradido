@@ -17,7 +17,7 @@ include_directories(
 )
 
 
-
+FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
 FILE(GLOB JSONInterface "src/cpp/JSONInterface/*.h" "src/cpp/JSONInterface/*.cpp")
@@ -34,7 +34,7 @@ FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h"
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 
 SET(LOCAL_SRCS 
-	${TINF} ${MAIN} ${HTTPInterface} 
+	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
 	${JSONInterface} ${CRYPTO} ${MODEL} ${MODEL_TABLE} 
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
 	${PROTO_GRADIDO}
@@ -43,6 +43,7 @@ aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
 # src
+source_group("controller" FILES ${CONTROLLER})
 source_group("proto" FILES ${PROTO_GRADIDO})
 source_group("tinf" FILES ${TINF})
 source_group("crypto" FILES ${CRYPTO})

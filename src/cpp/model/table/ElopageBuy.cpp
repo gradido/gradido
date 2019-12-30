@@ -51,7 +51,7 @@ namespace model {
 		ELOPAGE_BUY_PRODUCT_PRICE
 		*/
 
-		Poco::Data::Statement ElopageBuy::insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement ElopageBuy::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 
@@ -66,11 +66,8 @@ namespace model {
 			return insert;
 
 		}
-		Poco::Data::Statement ElopageBuy::updateIntoDB(Poco::Data::Session session)
-		{
-			throw Poco::Exception("ElopageBuy::updateIntoDB not implemented");
-		}
-		Poco::Data::Statement ElopageBuy::loadFromDB(Poco::Data::Session session, std::string& fieldName)
+		
+		Poco::Data::Statement ElopageBuy::_loadFromDB(Poco::Data::Session session, std::string& fieldName)
 		{
 			//	Poco::Data::Statement select(session);
 

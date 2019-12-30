@@ -3,9 +3,9 @@
 
 #include "../lib/MultithreadContainer.h"
 #include "Poco/AutoPtr.h"
-#include "table/ModelBase.h"
+#include "../model/table/ModelBase.h"
 
-namespace model {
+namespace controller {
 	class TableControllerBase : protected UniLib::lib::MultithreadContainer
 	{
 	public:
@@ -26,7 +26,7 @@ namespace model {
 		int mReferenceCount;
 
 		// 
-		Poco::AutoPtr <table::ModelBase> mDBModel;
+		Poco::AutoPtr <model::table::ModelBase> mDBModel;
 	};
 
 	// ******  template function declarations ***************

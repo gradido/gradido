@@ -21,17 +21,7 @@ namespace model {
 
 		int ModelInsertTask::run()
 		{
-			auto session = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-			auto insert = mModel->insertIntoDB(session);
-
-			try {
-				insert.execute();
-			}
-			catch (Poco::Exception& ex) {
-				mModel->lock();
-				mModel->addError(new ParamError(mModel->getTableName(), "mysql error by inserting", ex.displayText().data()));
-				mModel->unlock();
-			}
+			mModel->insertIntoDB();
 			return 0;
 		}
 
@@ -42,6 +32,23 @@ namespace model {
 			lock("~ModelBase");
 			assert(0 == mReferenceCount);
 			unlock();
+		}
+
+		bool ModelBase::insertIntoDB()
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+
+			size_t resultCount = 0;
+			try {
+				return insert.execute() == 1;
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
+				unlock();
+			}
+			return false;
 		}
 
 		void ModelBase::duplicate()

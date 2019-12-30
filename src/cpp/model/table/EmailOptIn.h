@@ -17,14 +17,11 @@ namespace model {
 
 			// generic db operations
 			const char* getTableName() { return "email_opt_in"; }
-			Poco::Data::Statement insertIntoDB(Poco::Data::Session session);
-			Poco::Data::Statement updateIntoDB(Poco::Data::Session session);
-			Poco::Data::Statement loadFromDB(Poco::Data::Session session, std::string& fieldName);
-
-
+			
 			inline Poco::UInt64 getCode() const { return mEmailVerificationCode; }
 		protected:
-			
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName);
+			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
 			// data type must be a multiple of 4
 			Poco::UInt64 mEmailVerificationCode;

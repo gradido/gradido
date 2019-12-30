@@ -18,6 +18,8 @@
 
 #include "../SingletonManager/LanguageManager.h"
 
+#include "../controller/EmailVerificationCode.h"
+
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
 #include "Poco/DateTime.h"
@@ -54,6 +56,10 @@ public:
 	Session(int handle);
 	~Session();
 
+	// get new model objects
+	controller::EmailVerificationCode* getEmailVerificationCodeObject();
+
+	// ----------------  User functions ----------------------------
 	// TODO: automatic redirect after some time, median profiled time for register
 	// TODO: register state: written into db, mails sended, update state only if new state is higher as old state
 	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
@@ -65,6 +71,12 @@ public:
 	
 	bool deleteUser();
 
+	Poco::AutoPtr<User> getUser() {
+		return mSessionUser;
+	}
+
+	// ------------------------- Email Verification Code functions -------------------------------
+
 	bool loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode);
 
 	//! \return 1 = konto already exist
@@ -73,16 +85,14 @@ public:
 	//!         0 = ok
 	int updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
-	
-	
+	bool createNewEmailVerificationCode();
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
-	Poco::AutoPtr<User> getUser() { 
-		return mSessionUser; 
-	}
-
+	
 	inline int getHandle() { return mHandleId; }
+
+	// ------------------------ Passphrase functions ----------------------------
 	
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
 	inline const std::string& getPassphrase() { return mPassphrase; }
@@ -138,6 +148,8 @@ private:
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
 	Poco::UInt64 mEmailVerificationCode;
+	controller::EmailVerificationCode* mEmailVerificationCodeObject;
+
 
 	SessionStates mState;
 

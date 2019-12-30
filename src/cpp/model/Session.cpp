@@ -84,7 +84,7 @@ int WritePassphraseIntoDB::run()
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mState(SESSION_STATE_EMPTY), mActive(false)
+	: mHandleId(handle), mSessionUser(nullptr), mEmailVerificationCode(0), mEmailVerificationCodeObject(nullptr), mState(SESSION_STATE_EMPTY), mActive(false)
 {
 
 }
@@ -106,6 +106,10 @@ void Session::reset()
 	lock("Session::reset");
 	
 	mSessionUser = nullptr;
+	if (mEmailVerificationCodeObject) {
+		delete mEmailVerificationCodeObject;
+		mEmailVerificationCodeObject = nullptr;
+	}
 
 	// watch out
 	//updateTimeout();
@@ -125,6 +129,14 @@ void Session::updateTimeout()
 	lock("Session::updateTimeout");
 	mLastActivity = Poco::DateTime();
 	unlock();
+}
+
+controller::EmailVerificationCode* Session::getEmailVerificationCodeObject()
+{
+	lock("Session::getEmailVerificationCodeObject");
+	auto ret = mEmailVerificationCodeObject;
+	unlock();
+	return ret;
 }
 
 bool Session::createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
@@ -360,6 +372,11 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
 	unlock();
 	return 0;
+}
+
+bool Session::createNewEmailVerificationCode()
+{
+	return false;
 }
 
 bool Session::startProcessingTransaction(const std::string& proto_message_base64)

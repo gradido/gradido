@@ -1,11 +1,11 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_EMAIL_VERIFICATION_CODE_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_EMAIL_VERIFICATION_CODE_INCLUDE
 
-#include "table/EmailOptIn.h"
+#include "../model/table/EmailOptIn.h"
 
 #include "TableControllerBase.h"
 
-namespace model {
+namespace controller {
 	class EmailVerificationCode : public TableControllerBase
 	{
 	public:
@@ -13,10 +13,10 @@ namespace model {
 		~EmailVerificationCode();
 
 		static Poco::AutoPtr<EmailVerificationCode> create(int user_id);
-		inline Poco::AutoPtr<table::EmailOptIn> getModel() { return _getModel<table::EmailOptIn>(); }
+		inline Poco::AutoPtr<model::table::EmailOptIn> getModel() { return _getModel<model::table::EmailOptIn>(); }
 
 	protected:
-		EmailVerificationCode(table::EmailOptIn* dbModel);
+		EmailVerificationCode(model::table::EmailOptIn* dbModel);
 		static Poco::UInt64 createEmailVerificationCode();
 
 		//table::EmailOptIn* mDBModel;
