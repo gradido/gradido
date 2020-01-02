@@ -7,7 +7,7 @@
 
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"
-
+#include "SingletonManager/EmailManager.h"
 
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
@@ -161,6 +161,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::g_ServerKeySeed->put(1, i1 | (i2 << 8));
 
 		ServerConfig::initEMailAccount(config());
+		EmailManager::getInstance()->init(config());
 
 		// start cpu scheduler
 		uint8_t worker_count = Poco::Environment::processorCount() * 2;

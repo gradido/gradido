@@ -9,6 +9,8 @@
 
 #include "../../MySQL/MysqlTable.h"
 
+//using namespace Poco::Data::Keywords;
+
 namespace model {
 	namespace table {
 
@@ -21,8 +23,8 @@ namespace model {
 
 			virtual const char* getTableName() = 0;
 			
-			template<class T> size_t updateIntoDB(const std::string& fieldName, T fieldValue );
-			template<class T> size_t loadFromDB(const std::string& fieldName, T fieldValue);
+			template<class T> size_t updateIntoDB(const std::string& fieldName, const T& fieldValue );
+			template<class T> size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
 			bool insertIntoDB();
 
 			inline void setID(int id) { lock(); mID = id; unlock(); }
@@ -35,7 +37,7 @@ namespace model {
 			void release();
 		protected:
 
-			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName) = 0;
+			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _insertIntoDB(Poco::Data::Session session) = 0;
 
 			int mID;
@@ -46,11 +48,11 @@ namespace model {
 		};
 
 		template<class T>
-		size_t ModelBase::loadFromDB(const std::string& fieldName, T fieldValue)
+		size_t ModelBase::loadFromDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
 			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldName);
-			select, use(fieldValue);
+			select, Poco::Data::Keywords::useRef(fieldValue);
 
 			size_t resultCount = 0;
 			try {
@@ -66,7 +68,7 @@ namespace model {
 		}
 
 		template<class T>
-		size_t ModelBase::updateIntoDB(const std::string& fieldName, T fieldValue)
+		size_t ModelBase::updateIntoDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
 			Poco::Data::Statement update(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
@@ -77,7 +79,7 @@ namespace model {
 			}
 
 			update << "UPDATE " << getTableName() << " SET " << fieldName << " = ? where id = ?",
-					   use(fieldValue), use(mID);
+				Poco::Data::Keywords::useRef(fieldValue), Poco::Data::Keywords::use(mID);
 
 			size_t resultCount = 0;
 			try {
@@ -107,6 +109,32 @@ namespace model {
 			Poco::AutoPtr<ModelBase> mModel;
 
 		};
+
+
+		template <class T>
+		class ModelUpdateTask : public UniLib::controller::CPUTask
+		{
+		public:
+			ModelUpdateTask(Poco::AutoPtr<ModelBase> model, const std::string& fieldName, const T& fieldValue)
+				: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mFieldName(fieldName), mFieldValue(fieldValue)
+			{
+#ifdef _UNI_LIB_DEBUG
+				setName(model->getTableName());
+#endif
+			}
+
+			int run() {
+				mModel->updateIntoDB(mFieldName, mFieldValue);
+			}
+			const char* getResourceType() const { return "ModelUpdateTask"; };
+
+		protected:
+			Poco::AutoPtr<ModelBase> mModel;
+			std::string mFieldName;
+			T mFieldValue;
+		};
+
+
 	}
 }
 

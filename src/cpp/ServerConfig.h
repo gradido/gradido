@@ -11,6 +11,7 @@
 
 #include "SingletonManager/LanguageManager.h"
 
+
 #define DISABLE_EMAIL
 
 namespace ServerConfig {
@@ -20,9 +21,10 @@ namespace ServerConfig {
 		MNEMONIC_BIP0039_SORTED_ORDER,
 		MNEMONIC_MAX
 	};
-
+	// depracted, moved to email manager
 	struct EmailAccount {
 		std::string sender;
+		std::string admin_receiver;
 		std::string username;
 		std::string password;
 		std::string url;

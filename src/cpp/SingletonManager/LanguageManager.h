@@ -64,6 +64,7 @@ protected:
 	Languages mThisLanguage;
 };
 
+// TODO: max cached catalog count
 
 class LanguageManager : protected UniLib::lib::MultithreadContainer
 {

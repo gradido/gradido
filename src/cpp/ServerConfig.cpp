@@ -114,7 +114,7 @@ namespace ServerConfig {
 		g_EmailAccount.url = cfg.getString("email.smtp.url");
 		g_EmailAccount.port = cfg.getInt("email.smtp.port");
 		DISASM_FALSERET;
-		g_ServerKeySeed->put(3, DRRandom::r64());
+		//g_ServerKeySeed->put(3, DRRandom::r64());
 		return true;
 	}
 

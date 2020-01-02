@@ -14,11 +14,22 @@ namespace controller {
 
 	Poco::AutoPtr<User> User::create()
 	{
-		/*auto code = createEmailVerificationCode();
-		auto db = new model::table::EmailOptIn(code, user_id);
-		auto result = new EmailVerificationCode(db);
-		return Poco::AutoPtr<EmailVerificationCode>(result);
-		*/
+		auto db = new model::table::User();
+		auto user = new User(db);
+		return Poco::AutoPtr<User>(user);
+	}
 
+	Poco::AutoPtr<User> User::create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
+	{
+		auto db = new model::table::User(email, first_name, last_name, passwordHashed, languageKey);
+		auto user = new User(db);
+		return Poco::AutoPtr<User>(user);
+	}
+	
+
+	int User::load(const unsigned char* pubkey_array)
+	{
+		Poco::Data::BLOB pubkey(pubkey_array, 32);
+		return getModel()->loadFromDB("pubkey", pubkey);
 	}
 }

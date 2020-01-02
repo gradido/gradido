@@ -19,8 +19,9 @@ namespace model {
 			const char* getTableName() { return "email_opt_in"; }
 			
 			inline Poco::UInt64 getCode() const { return mEmailVerificationCode; }
+			inline void setCode(Poco::UInt64 code) { mEmailVerificationCode = code; }
 		protected:
-			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName);
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
 			// data type must be a multiple of 4

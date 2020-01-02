@@ -67,7 +67,7 @@ namespace model {
 
 		}
 		
-		Poco::Data::Statement ElopageBuy::_loadFromDB(Poco::Data::Session session, std::string& fieldName)
+		Poco::Data::Statement ElopageBuy::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			//	Poco::Data::Statement select(session);
 

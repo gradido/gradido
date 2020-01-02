@@ -60,7 +60,7 @@ namespace model {
 
 		protected:
 
-			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName);
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			// insert only with email, first_name, last_name, password if exist and language
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 			

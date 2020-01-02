@@ -16,7 +16,7 @@ using namespace Poco::Data::Keywords;
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
 
-#include "../model/EmailVerificationCode.h"
+#include "../controller/EmailVerificationCode.h"
 #include "../model/table/ElopageBuy.h"
 
 
@@ -301,7 +301,7 @@ int HandleElopageRequestTask::run()
 		}
 
 		// email verification code
-		auto emailVerification = model::EmailVerificationCode::create(user_id);
+		auto emailVerification = controller::EmailVerificationCode::create(user_id);
 		//Poco::AutoPtr<model::table::EmailOptIn> emailVerification(new model::table::EmailOptIn(user_id));
 
 		// create email verification code

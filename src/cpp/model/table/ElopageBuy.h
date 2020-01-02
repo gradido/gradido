@@ -38,7 +38,7 @@ namespace model {
 			
 			
 		protected:
-			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, std::string& fieldName);
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
 			Poco::Int32 mIDs[ELOPAGE_BUY_MAX];

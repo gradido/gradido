@@ -37,7 +37,7 @@ namespace model {
 		}
 
 
-		Poco::Data::Statement EmailOptIn::_loadFromDB(Poco::Data::Session session, std::string& fieldName)
+		Poco::Data::Statement EmailOptIn::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 

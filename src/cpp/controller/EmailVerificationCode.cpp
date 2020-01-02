@@ -1,4 +1,5 @@
 #include "EmailVerificationCode.h"
+#include "../ServerConfig.h"
 
 #include "sodium.h"
 
@@ -42,5 +43,13 @@ namespace controller {
 			code_p[i] = randombytes_random();
 		}
 		return resultCode;
+	}
+
+	std::string EmailVerificationCode::getLink()
+	{
+		std::string link = ServerConfig::g_serverPath;
+		link += "/checkEmail/";
+		link += std::to_string(getModel()->getCode());
+		return link;
 	}
 }

@@ -12,6 +12,7 @@
 
 #include "../lib/ErrorList.h"
 #include "User.h"
+#include "../controller/User.h"
 
 #include "../lib/MultithreadContainer.h"
 #include "../tasks/ProcessingTransaction.h"
@@ -57,7 +58,10 @@ public:
 	~Session();
 
 	// get new model objects
-	controller::EmailVerificationCode* getEmailVerificationCodeObject();
+	Poco::AutoPtr<controller::EmailVerificationCode> getEmailVerificationCodeObject();
+
+	// set new model objects
+	inline void setUser(Poco::AutoPtr<controller::User> user) { mNewUser = user; }
 
 	// ----------------  User functions ----------------------------
 	// TODO: automatic redirect after some time, median profiled time for register
@@ -68,6 +72,7 @@ public:
 	bool ifUserExist(const std::string& email);
 
 	inline void setUser(Poco::AutoPtr<User> user) { mSessionUser = user; }
+	
 	
 	bool deleteUser();
 
@@ -144,11 +149,12 @@ protected:
 private: 
 	int mHandleId;
 	Poco::AutoPtr<User> mSessionUser;
+	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
 	Poco::UInt64 mEmailVerificationCode;
-	controller::EmailVerificationCode* mEmailVerificationCodeObject;
+	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 
 
 	SessionStates mState;

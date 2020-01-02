@@ -1,3 +1,4 @@
 HTTPInterface/LoginPage.cpp
 HTTPInterface/CheckEmailPage.cpp
 model/Session.cpp
+model/Email.cpp
