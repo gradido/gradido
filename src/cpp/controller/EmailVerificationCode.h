@@ -13,6 +13,7 @@ namespace controller {
 		~EmailVerificationCode();
 
 		static Poco::AutoPtr<EmailVerificationCode> create(int user_id);
+		static Poco::AutoPtr<EmailVerificationCode> create();
 		inline Poco::AutoPtr<model::table::EmailOptIn> getModel() { return _getModel<model::table::EmailOptIn>(); }
 
 		std::string getLink();

@@ -6,6 +6,10 @@
 
 #include "../lib/ErrorList.h"
 
+#include "../model/Email.h"
+
+#include "EmailManager.h"
+
 
 ErrorManager* ErrorManager::getInstance()
 {
@@ -71,11 +75,11 @@ int ErrorManager::getErrors(ErrorList* send)
 
 void ErrorManager::sendErrorsAsEmail()
 {
-	auto message = new Poco::Net::MailMessage();
+	/*auto message = new Poco::Net::MailMessage();
 	message->setSender("gradido_loginServer@gradido.net");
 	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, "***REMOVED***"));
 	message->setSubject("Error from Gradido Login Server");
-
+	*/
 	std::string content;
 	mWorkingMutex.lock();
 	for (auto it1 = mErrorsMap.begin(); it1 != mErrorsMap.end(); it1++) {
@@ -95,8 +99,12 @@ void ErrorManager::sendErrorsAsEmail()
 	mErrorsMap.clear();
 
 	mWorkingMutex.unlock();
-	message->addContent(new Poco::Net::StringPartSource(content));
-	UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
-	sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
+
+	auto email = new model::Email(content, model::EMAIL_ERROR);
+	EmailManager::getInstance()->addEmail(email);
+
+	//message->addContent(new Poco::Net::StringPartSource(content));
+	//UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
+	//sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
 
 }

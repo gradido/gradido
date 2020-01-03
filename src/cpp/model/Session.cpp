@@ -16,6 +16,8 @@
 
 #include "../lib/JsonRequest.h"
 
+#include "../controller/User.h"
+
 
 #include "sodium.h"
 
@@ -169,6 +171,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	}*/
 
 	// check if user with that email already exist
+
 	auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement select(dbConnection);
 	select << "SELECT email from users where email = ?;", useRef(email);
@@ -183,11 +186,12 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	}
 
 	mSessionUser = new User(email.data(), first_name.data(), last_name.data());
+	mNewUser = controller::User::create(email, first_name, last_name);
 	updateTimeout();
 
 	// Prepare E-Mail
-	UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
-	prepareEmail->scheduleTask(prepareEmail);
+	//UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
+	//prepareEmail->scheduleTask(prepareEmail);
 
 	// create user crypto key
 	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, password, ServerConfig::g_CryptoCPUScheduler));
@@ -201,6 +205,8 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	writeUserIntoDB->scheduleTask(writeUserIntoDB);
 
 	createEmailVerificationCode();
+	auto emailVerificationCodeObject = controller::EmailVerificationCode::create();
+	emailVerificationCodeObject->getModel()->setCode(mEmailVerificationCode);
 
 	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, mEmailVerificationCode, ServerConfig::g_CPUScheduler, 1));
 	writeEmailVerification->setParentTaskPtrInArray(writeUserIntoDB, 0);
@@ -216,7 +222,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	*/
 
 	// depends on writeUser because need user_id, write email verification into db
-	auto message = new Poco::Net::MailMessage;
+	/*auto message = new Poco::Net::MailMessage;
 	Poco::Net::MediaType mt("text", "plain");
 	mt.setParameter("charset", "utf-8");
 	message->setContentType(mt);
@@ -235,13 +241,14 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	
 
 	message->addContent(new Poco::Net::StringPartSource(ss.str()));
-
-	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-	sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-	sendEmail->setParentTaskPtrInArray(writeEmailVerification, 1);
+	*/
+	//UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
+	//Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
+	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(emailVerificationCodeObject, mNewUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
+	//sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
+	sendEmail->setParentTaskPtrInArray(writeEmailVerification, 0);
 	sendEmail->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_SEND, this));
 	sendEmail->scheduleTask(sendEmail);
-
 
 	// write user into db
 	// generate and write email verification into db

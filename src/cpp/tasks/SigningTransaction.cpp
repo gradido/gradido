@@ -165,6 +165,8 @@ int SigningTransaction::run() {
 			return -9;
 		}
 
+		//sendErrorsAsEmail("<html><head><title>Hallo</title></head><body><font color='red'>Rote Test </font></body>");
+
 		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
 		auto state = object.get("state");
 		std::string stateString = state.convert<std::string>();

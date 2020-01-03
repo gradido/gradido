@@ -19,8 +19,8 @@ namespace controller {
 		void release();
 	protected:
 
-		template<class T>
-		Poco::AutoPtr<T> _getModel();
+		template<class T> Poco::AutoPtr<T> _getModel();
+		template<class T> const T* _getModel() const;
 
 		// for poco auto ptr
 		int mReferenceCount;
@@ -34,11 +34,25 @@ namespace controller {
 	template<class T>
 	Poco::AutoPtr<T> TableControllerBase::_getModel() {
 		// TODO: Maybe update name for error search
-		lock("TableControllerBase::getModel");
+		lock("TableControllerBase::_getModel");
 		T* result = static_cast<T*>(mDBModel.get());
 		unlock();
 		return Poco::AutoPtr<T>(result, true);
 	}
+
+	template<class T> 
+	const T* TableControllerBase::_getModel() const {
+		//lock("TableControllerBase::_getModel const");
+		if (mDBModel.isNull()) {
+			//unlock();
+			return nullptr;
+		}
+
+		const T* result = static_cast<const T*>(mDBModel.get());
+		//unlock();
+		return result;
+	}
+
 
 }
 

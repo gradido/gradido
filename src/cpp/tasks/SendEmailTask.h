@@ -4,6 +4,8 @@
 #include "CPUTask.h"
 #include "Poco/Net/MailMessage.h"
 
+#include "../model/Email.h"
+
 /*
  * @author: Dario Rekowski
  *
@@ -17,6 +19,7 @@ class SendEmailTask : public UniLib::controller::CPUTask
 public:
 
 	SendEmailTask(Poco::Net::MailMessage* mailMessage, UniLib::controller::CPUSheduler* cpuScheduler, size_t additionalTaskDependenceCount = 0);
+	SendEmailTask(model::Email*	email, UniLib::controller::CPUSheduler* cpuScheduler, size_t additionalTaskDependenceCount = 0);
 	virtual ~SendEmailTask();
 
 	virtual int run();
@@ -26,7 +29,7 @@ protected:
 
 private:
 	Poco::Net::MailMessage* mMailMessage;
-
+	model::Email*			mEmail;
 };
 
 

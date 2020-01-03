@@ -29,7 +29,7 @@ public:
 
 	inline const std::string& getAdminReceiver() { return mEmailAccount.admin_receiver; }
 
-	inline void addEmail(model::Email* email) { mPendingEmails.push(email); }
+	inline void addEmail(model::Email* email) { mPendingEmails.push(email); condSignal();}
 	
 protected:
 	EmailManager();

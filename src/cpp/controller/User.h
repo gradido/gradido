@@ -20,6 +20,7 @@ namespace controller {
 		int load(const unsigned char* pubkey_array);
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
+		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
 	protected:
 		User(model::table::User* dbModel);

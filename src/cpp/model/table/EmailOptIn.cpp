@@ -12,6 +12,12 @@ namespace model {
 			
 		}
 
+		EmailOptIn::EmailOptIn(const Poco::UInt64& code)
+			: mUserId(0), mEmailVerificationCode(code)
+		{
+
+		}
+
 		EmailOptIn::EmailOptIn()
 			: mUserId(0), mEmailVerificationCode(0)
 		{

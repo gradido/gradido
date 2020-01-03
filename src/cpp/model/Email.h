@@ -37,10 +37,13 @@ namespace model {
 		Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
 		//! \param errors copy errors into own memory
 		Email(const std::string& errorHtml, EmailType type);
+		~Email();
 
 		inline EmailType getType() { return mType; }
+		inline controller::User* getUser() { if (!mUser.isNull()) return mUser.get(); return nullptr; }
 
 		bool draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog);
+		inline void addContent(Poco::Net::StringPartSource* str_content) { mAdditionalStringPartSrcs.push(str_content); }
 
 	protected:
 		std::string replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link);
@@ -50,6 +53,8 @@ namespace model {
 		AutoPtr<controller::User> mUser;
 		std::string mErrorHtml;
 		EmailType mType;
+
+		std::queue<Poco::Net::StringPartSource*> mAdditionalStringPartSrcs;
 	};
 }
 

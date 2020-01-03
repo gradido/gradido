@@ -1,6 +1,8 @@
 #include "Email.h"
 #include "../SingletonManager/EmailManager.h"
 
+#include "Poco/Net/MediaType.h"
+
 namespace model {
 
 const static char EmailText_emailVerification[] = {u8"\
@@ -46,6 +48,14 @@ Gradido Login Server\
 	{
 	}
 
+	Email::~Email()
+	{
+		while (mAdditionalStringPartSrcs.size() > 0) {
+			delete mAdditionalStringPartSrcs.front();
+			mAdditionalStringPartSrcs.pop();
+		}
+	}
+
 
 	bool Email::draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog)
 	{
@@ -58,18 +68,21 @@ Gradido Login Server\
 		static const char* functionName = "Email::draft";
 		std::string content;
 
+		Poco::Net::MediaType mt("text", "plain");
+		mt.setParameter("charset", "utf-8");
+
 		switch (mType) {
 		case EMAIL_DEFAULT: 
 			mailMessage->addRecipient(adminRecipient);
 			mailMessage->setSubject(langCatalog->gettext_str("Default Email Subject"));
-			mailMessage->addContent(new Poco::Net::StringPartSource(langCatalog->gettext_str("Empty Email Content")));
-			return true;
+			mailMessage->addContent(new Poco::Net::StringPartSource(langCatalog->gettext_str("Empty Email Content"), mt.toString()));
+			break;
 
 		case EMAIL_ERROR:
 			mailMessage->addRecipient(adminRecipient);
 			mailMessage->setSubject(langCatalog->gettext_str("Error from Gradido Login Server"));
-			mailMessage->addContent(new Poco::Net::StringPartSource(mErrorHtml));
-			return true;
+			mailMessage->addContent(new Poco::Net::StringPartSource(mErrorHtml, mt.toString()));
+			break;
 		
 		case EMAIL_USER_VERIFICATION_CODE:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
@@ -89,9 +102,9 @@ Gradido Login Server\
 					userTableModel->getFirstName(), 
 					userTableModel->getLastName(),
 					mEmailVerificationCode->getLink()
-				))
+				), mt.toString())
 			);
-			return true;
+			break;
 		case EMAIL_USER_RESET_PASSWORD:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
 				addError(new Error(functionName, "no receiver email set for user reset password email"));
@@ -110,9 +123,9 @@ Gradido Login Server\
 					userTableModel->getFirstName(),
 					userTableModel->getLastName(),
 					mEmailVerificationCode->getLink()
-				))
+				), mt.toString())
 			);
-			return true;
+			break;
 		case EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
 				addError(new Error(functionName, "no user email set for admin reset password email"));
@@ -125,13 +138,18 @@ Gradido Login Server\
 				new Poco::Net::StringPartSource(replaceEmail(
 					EmailText_adminEmailResetPassword,
 					userTableModel->getEmail()
-				))
+				), mt.toString())
 			);
-			return true;
+			break;
 		default: return false;
 		}
 
-		return false;
+		while (mAdditionalStringPartSrcs.size() > 0) {
+			mailMessage->addContent(mAdditionalStringPartSrcs.front());
+			mAdditionalStringPartSrcs.pop();
+		}
+
+		return true;
 	}
 
 	std::string Email::replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link)
@@ -142,7 +160,7 @@ Gradido Login Server\
 
 		int findPos = result.find("[first_name]", findCursor);
 		if (findPos != result.npos) {
-			findCursor = findPos + 13;
+			findCursor = findPos + first_name.size();
 			result.replace(findPos, 12, first_name);
 		}
 		else {
@@ -151,7 +169,7 @@ Gradido Login Server\
 		
 		findPos = result.find("[last_name]", findCursor);
 		if (findPos != result.npos) {
-			findCursor = findPos + 12;
+			findCursor = findPos + last_name.size();
 			result.replace(findPos, 11, last_name);
 		}
 		else {
@@ -160,7 +178,7 @@ Gradido Login Server\
 
 		findPos = result.find("[link]", findCursor);
 		if (findPos != result.npos) {
-			findCursor = findPos + 7;
+			findCursor = findPos + link.size();
 			result.replace(findPos, 6, link);
 		}
 		else {

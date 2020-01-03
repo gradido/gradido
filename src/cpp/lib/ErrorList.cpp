@@ -2,7 +2,10 @@
 
 #include "../ServerConfig.h"
 
-#include "Poco/Net/MailMessage.h"
+//#include "Poco/Net/MailMessage.h"
+#include "Poco/Net/MediaType.h"
+
+#include "../SingletonManager/EmailManager.h"
 
 SendErrorMessage::~SendErrorMessage()
 {
@@ -125,11 +128,12 @@ std::string ErrorList::getErrorsHtml()
 
 void ErrorList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 {
-	auto message = new Poco::Net::MailMessage();
+	auto em = EmailManager::getInstance();
+	/*auto message = new Poco::Net::MailMessage();
 	message->setSender("gradido_loginServer@gradido.net");
 	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, "***REMOVED***"));
 	message->setSubject("Error from Gradido Login Server");
-
+	*/
 	std::string content;
 	while (mErrorStack.size() > 0) {
 		auto error = mErrorStack.top();
@@ -137,12 +141,18 @@ void ErrorList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 		content += error->getString();
 		delete error;
 	}
+	auto email = new model::Email(content, model::EMAIL_ERROR);
 	
-	message->addContent(new Poco::Net::StringPartSource(content));
+	//message->addContent(new Poco::Net::StringPartSource(content));
 	if (rawHtml != "") {
-		message->addContent(new Poco::Net::StringPartSource(rawHtml));
+		Poco::Net::MediaType mt("text", "html");
+		mt.setParameter("charset", "utf-8");
+
+		email->addContent(new Poco::Net::StringPartSource(rawHtml, mt.toString()));
 	}
-	UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
-	sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
+	em->addEmail(email);
+
+	//UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
+	//sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
 
 }

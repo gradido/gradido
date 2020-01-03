@@ -67,7 +67,10 @@ namespace UniLib {
 					//int status = SDL_CondWait(t->condition, t->mutex);
 					try {
 						condition.wait(mutex);
-						if (exitCalled) return;
+						if (exitCalled) {
+							threadUnlock();
+							return;
+						}
 						int ret = ThreadFunction();
 						threadUnlock();
 						if (ret)

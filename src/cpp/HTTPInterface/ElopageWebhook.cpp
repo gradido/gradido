@@ -250,11 +250,20 @@ int HandleElopageRequestTask::run()
  
 	 *
 	*/
+	static const int valid_product_ids[] = { 36001, 43741, 43870, 43944, 43960, 49106 };
+	bool valid_product_id = false;
+	for (int i = 0; i < sizeof(valid_product_ids) / sizeof(int); i++) {
+		if (valid_product_ids[i] == product_id) {
+			valid_product_id = true;
+			break;
+		}
+	}
 	// only for product 36001 and 43741 create user accounts and send emails
-	if (product_id == 36001 || product_id == 43741 || product_id == 43870 || product_id == 43944 || product_id == 43960 || product_id == 49106) {
+	if (valid_product_id) {
 		mEmail = mRequestData.get("payer[email]", "");
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
+		auto newUser = controller::User::create(mEmail, mFirstName, mLastName);
 
 		/* printf("LastName: %s\n", mLastName.data());
 		for (int i = 0; i < mLastName.size(); i++) {
@@ -284,8 +293,8 @@ int HandleElopageRequestTask::run()
 
 		// prepare email in advance
 		// create connection to email server
-		UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
-		prepareEmail->scheduleTask(prepareEmail);
+	//	UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
+//		prepareEmail->scheduleTask(prepareEmail);
 
 		// write user entry into db
 		writeUserIntoDB();
@@ -338,7 +347,7 @@ int HandleElopageRequestTask::run()
 		if (noEMail != 1) {
 
 			// send email to user
-			auto message = new Poco::Net::MailMessage;
+			/*auto message = new Poco::Net::MailMessage;
 
 			message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
 			message->setSubject("Gradido: E-Mail Verification");
@@ -354,10 +363,12 @@ int HandleElopageRequestTask::run()
 			ss << "Dario, Gradido Server Admin" << std::endl;
 
 			message->addContent(new Poco::Net::StringPartSource(ss.str()));
-
-			UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-			sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-			sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 1);
+			*/
+			//UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
+			//Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
+			UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(emailVerification, newUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
+			//sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
+			sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 0);
 			sendEmail->scheduleTask(sendEmail);
 		}
 	}

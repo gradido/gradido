@@ -12,6 +12,7 @@ namespace model {
 		{
 		public:
 			EmailOptIn(const Poco::UInt64& code, int user_id);
+			EmailOptIn(const Poco::UInt64& code);
 			EmailOptIn();
 			~EmailOptIn();
 

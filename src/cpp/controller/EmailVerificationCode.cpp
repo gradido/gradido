@@ -35,6 +35,14 @@ namespace controller {
 		return Poco::AutoPtr<EmailVerificationCode>(result);
 	}
 
+	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create()
+	{
+		auto code = createEmailVerificationCode();
+		auto db = new model::table::EmailOptIn(code);
+		auto result = new EmailVerificationCode(db);
+		return Poco::AutoPtr<EmailVerificationCode>(result);
+	}
+
 	Poco::UInt64 EmailVerificationCode::createEmailVerificationCode()
 	{
 		Poco::UInt64 resultCode;
