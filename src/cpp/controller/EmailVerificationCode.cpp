@@ -27,18 +27,18 @@ namespace controller {
 
 	//  ---------------   static members ----------------------------- 
 
-	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create(int user_id)
+	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create(int user_id, model::table::EmailOptInType type/* = EMAIL_OPT_IN_REGISTER*/)
 	{
 		auto code = createEmailVerificationCode();
-		auto db = new model::table::EmailOptIn(code, user_id);
+		auto db = new model::table::EmailOptIn(code, user_id, type);
 		auto result = new EmailVerificationCode(db);
 		return Poco::AutoPtr<EmailVerificationCode>(result);
 	}
 
-	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create()
+	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::create(model::table::EmailOptInType type/* = EMAIL_OPT_IN_REGISTER*/)
 	{
 		auto code = createEmailVerificationCode();
-		auto db = new model::table::EmailOptIn(code);
+		auto db = new model::table::EmailOptIn(code, type);
 		auto result = new EmailVerificationCode(db);
 		return Poco::AutoPtr<EmailVerificationCode>(result);
 	}

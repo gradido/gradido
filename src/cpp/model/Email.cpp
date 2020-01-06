@@ -48,6 +48,12 @@ Gradido Login Server\
 	{
 	}
 
+	Email::Email(AutoPtr<controller::User> user, EmailType type)
+		: mUser(user), mType(type)
+	{
+
+	}
+
 	Email::~Email()
 	{
 		while (mAdditionalStringPartSrcs.size() > 0) {

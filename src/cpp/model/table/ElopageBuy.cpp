@@ -1,4 +1,5 @@
 #include "ElopageBuy.h"
+#include "Poco/DateTimeFormatter.h"
 
 using namespace Poco::Data::Keywords;
 
@@ -65,6 +66,22 @@ namespace model {
 			unlock();
 			return insert;
 
+		}
+
+		std::string ElopageBuy::toString()
+		{
+			std::stringstream ss;
+			ss << "affiliate program id: " << mIDs[ELOPAGE_BUY_AFFILIATE_PROGRAM_ID] << std::endl;
+			ss << "publisher id: " << mIDs[ELOPAGE_BUY_PUBLISHER_ID] << std::endl;
+			ss << "order id: " << mIDs[ELOPAGE_BUY_ORDER_ID] << std::endl;
+			ss << "product id: " << mIDs[ELOPAGE_BUY_PRODUCT_ID] << std::endl;
+			ss << "product price: " << mIDs[ELOPAGE_BUY_PRODUCT_PRICE] << std::endl;
+			ss << "payer email: " << mPayerEmail << std::endl;
+			ss << "publisher email: " << mPublisherEmail << std::endl;
+			ss << "payed: " << mPayed << std::endl;
+			ss << "success date: " << Poco::DateTimeFormatter::format(mSuccessDate, "%d.%m.%Y %H:%M:%S") << std::endl;
+			ss << "event: " << mEvent << std::endl;
+			return ss.str();
 		}
 		
 		Poco::Data::Statement ElopageBuy::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)

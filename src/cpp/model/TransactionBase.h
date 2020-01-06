@@ -9,6 +9,8 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_BASE_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_BASE_INCLUDE
 
+#pragma warning(disable:4800)
+
 #include "../lib/ErrorList.h"
 #include "../proto/gradido/BasicTypes.pb.h"
 #include "../SingletonManager/MemoryManager.h"

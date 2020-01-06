@@ -76,7 +76,7 @@ protected:
 	Poco::Int8 getMemoryStackIndex(Poco::UInt16 size);
 
 	MemoryManager();
-	MemoryPageStack* mMemoryPageStacks[4];
+	MemoryPageStack* mMemoryPageStacks[5];
 };
 
 

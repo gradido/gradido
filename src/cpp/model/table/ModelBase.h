@@ -22,6 +22,7 @@ namespace model {
 			virtual ~ModelBase();
 
 			virtual const char* getTableName() = 0;
+			virtual std::string toString() = 0;
 			
 			template<class T> size_t updateIntoDB(const std::string& fieldName, const T& fieldValue );
 			template<class T> size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
@@ -100,13 +101,14 @@ namespace model {
 		class ModelInsertTask : public UniLib::controller::CPUTask
 		{
 		public:
-			ModelInsertTask(Poco::AutoPtr<ModelBase> model);
+			ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool emailErrors = false);
 
 			int run();
 			const char* getResourceType() const { return "ModelInsertTask"; };
 
 		protected:
 			Poco::AutoPtr<ModelBase> mModel;
+			bool mEmailErrors;
 
 		};
 
@@ -115,8 +117,8 @@ namespace model {
 		class ModelUpdateTask : public UniLib::controller::CPUTask
 		{
 		public:
-			ModelUpdateTask(Poco::AutoPtr<ModelBase> model, const std::string& fieldName, const T& fieldValue)
-				: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mFieldName(fieldName), mFieldValue(fieldValue)
+			ModelUpdateTask(Poco::AutoPtr<ModelBase> model, const std::string& fieldName, const T& fieldValue, bool emailErrors = false)
+				: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mFieldName(fieldName), mFieldValue(fieldValue), mEmailErrors(emailErrors)
 			{
 #ifdef _UNI_LIB_DEBUG
 				setName(model->getTableName());
@@ -124,7 +126,11 @@ namespace model {
 			}
 
 			int run() {
-				mModel->updateIntoDB(mFieldName, mFieldValue);
+				auto result = mModel->updateIntoDB(mFieldName, mFieldValue);
+				if (mModel->errorCount() > 0 && mEmailErrors) {
+					mModel->sendErrorsAsEmail();
+				}
+				return !(result > 0);
 			}
 			const char* getResourceType() const { return "ModelUpdateTask"; };
 
@@ -132,6 +138,7 @@ namespace model {
 			Poco::AutoPtr<ModelBase> mModel;
 			std::string mFieldName;
 			T mFieldValue;
+			bool mEmailErrors;
 		};
 
 

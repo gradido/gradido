@@ -97,6 +97,10 @@ set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 #  "I:/FremdCode/C++/ssl/include"
 #)
 
+set(CMAKE_CXX_FLAGS         "/MP /EHsc")
+#set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 else(WIN32)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
 # set vars for mariadb cmake files 
@@ -110,7 +114,12 @@ include_directories(
 	"build/dependencies/mariadb-connector-c/include"
 )
 
+
+
 endif(WIN32)
+
+
+
 
 target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
@@ -140,6 +149,7 @@ add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${TEST})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})
+
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)

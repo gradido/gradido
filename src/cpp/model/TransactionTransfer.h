@@ -9,6 +9,8 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_TRANSFER_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_TRANSFER_INCLUDE
 
+#pragma warning(disable:4800)
+
 #include "TransactionBase.h"
 #include "../proto/gradido/Transfer.pb.h"
 

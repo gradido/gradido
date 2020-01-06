@@ -9,6 +9,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/EmailManager.h"
 
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
@@ -17,6 +18,8 @@
 #include "../lib/JsonRequest.h"
 
 #include "../controller/User.h"
+
+#include "table/ModelBase.h"
 
 
 #include "sodium.h"
@@ -379,9 +382,27 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	return 0;
 }
 
-bool Session::createNewEmailVerificationCode()
+
+bool Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
 {
-	mEmailVerificationCodeObject = controller::EmailVerificationCode::create(mNewUser->getModel()->getID());
+	mNewUser = user;
+	if (passphraseMemorized) {
+		mEmailVerificationCodeObject = controller::EmailVerificationCode::create(mNewUser->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+		auto emailVerificationModel = mEmailVerificationCodeObject->getModel();
+		UniLib::controller::TaskPtr insertEmailVerificationCode(
+			new model::table::ModelInsertTask(emailVerificationModel, true)
+		);
+		insertEmailVerificationCode->scheduleTask(insertEmailVerificationCode);
+		UniLib::controller::TaskPtr sendEmail(new SendEmailTask(
+			new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_RESET_PASSWORD),
+			ServerConfig::g_CPUScheduler, 1)
+		);
+		sendEmail->setParentTaskPtrInArray(insertEmailVerificationCode, 0);
+		sendEmail->scheduleTask(sendEmail);
+	}
+	else {
+		EmailManager::getInstance()->addEmail(new model::Email(user, model::EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE));
+	}
 
 	return true;
 }

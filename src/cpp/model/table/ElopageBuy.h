@@ -36,6 +36,7 @@ namespace model {
 			// generic db operations
 			const char* getTableName() { return "elopage_buys"; }
 			
+			std::string toString();
 			
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

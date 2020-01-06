@@ -35,6 +35,7 @@ namespace model {
 	{
 	public:
 		Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
+		Email(AutoPtr<controller::User> user, EmailType type);
 		//! \param errors copy errors into own memory
 		Email(const std::string& errorHtml, EmailType type);
 		~Email();

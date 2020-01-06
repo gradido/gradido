@@ -81,12 +81,13 @@ MemoryManager::MemoryManager()
 	mMemoryPageStacks[1] = new MemoryPageStack(64); // privkey
 	mMemoryPageStacks[2] = new MemoryPageStack(65); // pubkey hex
 	mMemoryPageStacks[3] = new MemoryPageStack(96); // privkey encrypted
+	mMemoryPageStacks[4] = new MemoryPageStack(161); // privkey hex 
 	
 }
 
 MemoryManager::~MemoryManager()
 {
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		delete mMemoryPageStacks[i];
 	}
 }
@@ -98,6 +99,7 @@ Poco::Int8 MemoryManager::getMemoryStackIndex(Poco::UInt16 size)
 	case 64: return 1;
 	case 65: return 2;
 	case 96: return 3;
+	case 161: return 4;
 	default: return -1;
 	}
 	return -1;

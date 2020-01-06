@@ -9,6 +9,8 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_CREATION_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_CREATION_INCLUDE
 
+#pragma warning(disable:4800)
+
 #include "TransactionBase.h"
 #include "../proto/gradido/TransactionCreation.pb.h"
 #include "User.h"

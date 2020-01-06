@@ -34,7 +34,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	Poco::Net::NameValueCollection elopageRequestData;
 	int breakCount = 100;
 	while (stream.good() && breakCount > 0) {
-		char dummy;
+//		char dummy;
 		char keyBuffer[30]; memset(keyBuffer, 0, 30);
 		char valueBuffer[75]; memset(valueBuffer, 0, 75);
 		/*stream.get(keyBuffer, 30, '=').get(dummy)
@@ -195,6 +195,7 @@ int HandleElopageRequestTask::getUserIdFromDB()
 	}
 	catch (Poco::Exception& ex) {
 		addError(new ParamError(__FUNCTION__, "mysql error selecting from db", ex.displayText().data()));
+		addError(new ParamError(__FUNCTION__, "email: ", mEmail.data()));
 	}
 
 	return user_id;
@@ -378,7 +379,9 @@ int HandleElopageRequestTask::run()
 		addError(param_error_order_id);
 		sendErrorsAsEmail();
 	}
-	delete param_error_order_id;
+	else {
+		delete param_error_order_id;
+	}
 	
 	return 0;
 }

@@ -10,8 +10,8 @@
 namespace model {
 	namespace table {
 
-		ModelInsertTask::ModelInsertTask(Poco::AutoPtr<ModelBase> model)
-			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model)
+		ModelInsertTask::ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool emailErrors /* = false */)
+			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mEmailErrors(emailErrors)
 		{
 #ifdef _UNI_LIB_DEBUG
 			setName(model->getTableName());
@@ -21,8 +21,12 @@ namespace model {
 
 		int ModelInsertTask::run()
 		{
-			mModel->insertIntoDB();
-			return 0;
+			auto result = mModel->insertIntoDB();
+			if (mModel->errorCount() > 0 && mEmailErrors) {
+				mModel->sendErrorsAsEmail();
+			}
+			return !result;
+			//return 0;
 		}
 
 		// ---------------------------------------------------------------------------------------------------
@@ -41,13 +45,16 @@ namespace model {
 
 			size_t resultCount = 0;
 			try {
+				
 				return insert.execute() == 1;
 			}
 			catch (Poco::Exception& ex) {
 				lock();
 				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: ", toString().data()));
 				unlock();
 			}
+			//printf("data valid: %s\n", toString().data());
 			return false;
 		}
 
