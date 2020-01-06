@@ -36,8 +36,8 @@ namespace model {
 
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, verification_code, email_opt_in_type_id) VALUES(?,?,?))"
-				, bind(mUserId), bind(mEmailVerificationCode), bind(mType);
+				<< " (user_id, verification_code, email_opt_in_type_id) VALUES(?,?,?)"
+				, use(mUserId), use(mEmailVerificationCode), bind(mType);
 			unlock();
 			return insert;
 		}
@@ -47,12 +47,40 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			int iType = 0;
+			
 			select << "SELECT user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mUserId), into(mEmailVerificationCode), into(iType);
+				, into(mUserId), into(mEmailVerificationCode), into(mType);
 
-			mType = static_cast<EmailOptInType>(iType);
+
+			return select;
+		}
+
+		Poco::Data::Statement EmailOptIn::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			Poco::Data::Statement select(session);
+			if (fieldNames.size() <= 1) {
+				throw Poco::NullValueException("EmailOptIn::_loadFromDB fieldNames empty or contain only one field");
+			}
+
+			select << "SELECT user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+				<< " where " << fieldNames[0] << " = ? ";
+			if (conditionType == MYSQL_CONDITION_AND) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " AND " << fieldNames[i] << " = ? ";
+				}
+			}
+			else if (conditionType == MYSQL_CONDITION_OR) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " OR " << fieldNames[i] << " = ? ";
+				}
+			}
+			else {
+				addError(new ParamError("EmailOptIn::_loadFromDB", "condition type not implemented", conditionType));
+			}
+				//<< " where " << fieldName << " = ?"
+			select , into(mUserId), into(mEmailVerificationCode), into(mType);
+
 
 			return select;
 		}
@@ -62,7 +90,7 @@ namespace model {
 			std::stringstream ss;
 			ss << "code: " << mEmailVerificationCode << std::endl;
 			ss << "user_id: " << mUserId << std::endl;
-			ss << "type: " << typeToString(mType) << std::endl;
+			ss << "type: " << typeToString(static_cast<EmailOptInType>(mType)) << std::endl;
 			return ss.str();
 		}
 

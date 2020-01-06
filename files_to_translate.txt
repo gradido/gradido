@@ -1,4 +1,5 @@
 HTTPInterface/LoginPage.cpp
 HTTPInterface/CheckEmailPage.cpp
+HTTPInterface/ResetPassword.cpp
 model/Session.cpp
 model/Email.cpp

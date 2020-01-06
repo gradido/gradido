@@ -8,6 +8,7 @@ void fillTests()
 {
 	gTests.push_back(new TestTasks());
 	gTests.push_back(new TestHash());
+	gTests.push_back(new TestRegExp());
 	//	gTests.push_back(new LoginTest());
 }
 

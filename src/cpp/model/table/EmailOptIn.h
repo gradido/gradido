@@ -32,12 +32,13 @@ namespace model {
 			static const char* typeToString(EmailOptInType type);
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
+			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
 			// data type must be a multiple of 4
 			Poco::UInt64 mEmailVerificationCode;
 			int			 mUserId;
-			EmailOptInType mType;
+			int			 mType;
 			
 		};
 

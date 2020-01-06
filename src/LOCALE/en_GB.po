@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-02 10:53+0100\n"
-"PO-Revision-Date: 2019-12-02 10:54+0100\n"
+"POT-Creation-Date: 2020-01-06 15:18+0100\n"
+"PO-Revision-Date: 2020-01-06 15:22+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
@@ -18,111 +18,163 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:71
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:87
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:77
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:93
 msgid "Login"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:71
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:77
 msgid "E-Mail or password isn't right, please try again!"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:74
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:80
 msgid "Account"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:74
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:80
 msgid "E-Mail Address not checked, do you already get one?"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:87
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:93
 msgid "Username and password are needed!"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:139
-#: model/Session.cpp:138 model/Session.cpp:162
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:160
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:43
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:47
+#: model/Session.cpp:158 model/Session.cpp:183
 msgid "E-Mail"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:142
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:163
 msgid "Password"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:144
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:165
 msgid " Login "
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:146
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:167
 msgid "You haven't any account yet? Please follow the link to create one."
 msgstr "Don't have an account yet?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:147
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:168
 msgid "Create New Account"
 msgstr "Sign Up"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:92
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:97
 msgid "Bitte gebe deinen E-Mail Verification Code ein:"
 msgstr "Please enter your E-Mail Verification Code:"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:93
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:98
 msgid "Email Verification Code"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:95
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:100
 msgid "&Uuml;berpr&uuml;fe Code"
 msgstr "Check Code"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:99
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:104
 msgid "Du hast bisher keinen Code erhalten?"
 msgstr "You didn't get a code yet?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:100
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:105
 msgid "E-Mail erneut zuschicken (in Arbeit)"
 msgstr "Re-Send E-Mail (work in progress)"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:103
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:108
 msgid "Funktioniert dein E-Mail Verification Code nicht?"
 msgstr "Your E-Mail Verfication Code doesn't work?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:104
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:109
 msgid "Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: "
 msgstr "Send us a E-Mail and we take care of it:"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:105
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:110
 msgid "E-Mail an Support schicken"
 msgstr "Send E-Mail to support"
 
-#: model/Session.cpp:130
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:43
+msgid "E-Mail Adresse nicht gefunden werden oder ist nicht aktiviert."
+msgstr "E-Mail not found or not activated."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:47
+msgid "E-Mail Adresse nicht angegeben."
+msgstr "Please give your E-Mail Address."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:52
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:63
+msgid "Passphrase"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:52
+msgid "Bitte w&auml;hle eine Option aus."
+msgstr "Please choose one Option."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:63
+msgid "Ung&uuml;ltige Option"
+msgstr "Invalid option"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:111
+msgid "Gebe bitte hier deine E-Mail Adresse an:"
+msgstr "Please enter a valid email."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:113
+msgid "Hast du dir deine Passphrase notiert oder gemerkt?"
+msgstr "Do you memorized your passphrase?"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:117
+msgid "Ja"
+msgstr "Yes"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:122
+msgid "Nein"
+msgstr "No"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:127
+msgid "Absenden"
+msgstr "Send"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:131
+msgid "Dir wird eine E-Mail zugeschickt um dein Passwort zur&uuml;ckzusetzen."
+msgstr "You get an E-Mail to reset your password."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:133
+msgid "Der Admin hat eine E-Mail bekommen und wird sich bei dir melden."
+msgstr "The Admin get an E-Mail, wait on his replay."
+
+#: model/Session.cpp:150
 msgid "Vorname"
 msgstr "Firstname"
 
-#: model/Session.cpp:130 model/Session.cpp:134
+#: model/Session.cpp:150 model/Session.cpp:154
 msgid ""
 "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen "
 "<>&;"
 msgstr "Please enter your Name. At least 3 Character, without <>& and ;"
 
-#: model/Session.cpp:134
+#: model/Session.cpp:154
 msgid "Nachname"
 msgstr "Lastname"
 
-#: model/Session.cpp:138
+#: model/Session.cpp:158
 msgid "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."
 msgstr "Please enter a valid email."
 
-#: model/Session.cpp:162
+#: model/Session.cpp:183
 msgid "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"
 msgstr "This email has an account already."
 
-#: model/Session.cpp:210
-msgid "Gradido: E-Mail Verification"
-msgstr ""
-
-#: model/Session.cpp:281 model/Session.cpp:288 model/Session.cpp:560
+#: model/Session.cpp:318 model/Session.cpp:323 model/Session.cpp:375
+#: model/Session.cpp:718
 msgid "E-Mail Verification"
 msgstr ""
 
-#: model/Session.cpp:281
+#: model/Session.cpp:318
+msgid "Du hast dein Konto bereits aktiviert!"
+msgstr "You already activated your account!"
+
+#: model/Session.cpp:323
 msgid ""
 "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "
 "registriere dich erneut oder wende dich an den Server-Admin"
@@ -130,24 +182,28 @@ msgstr ""
 "The email verification code isn't correct. Please check at spell errors and "
 "try again or ask the server admin."
 
-#: model/Session.cpp:288
+#: model/Session.cpp:375
 msgid "Falscher Code f&uuml;r aktiven Login"
 msgstr "Wrong Code for active Login."
 
-#: model/Session.cpp:421 model/Session.cpp:675
+#: model/Session.cpp:572 model/Session.cpp:578 model/Session.cpp:834
 msgid "Benutzer"
 msgstr "User"
 
-#: model/Session.cpp:421
+#: model/Session.cpp:572
+msgid "Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus."
+msgstr "Couldn't connect to the community server, send E-Mail to admin."
+
+#: model/Session.cpp:578
 msgid ""
 "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und "
 "versuche es nochmal."
 msgstr "Error by deleting the account. Please re-login and try again."
 
-#: model/Session.cpp:560
+#: model/Session.cpp:718
 msgid "Konnte keinen passenden Account finden."
 msgstr "This Account didn't seem to exist."
 
-#: model/Session.cpp:675
+#: model/Session.cpp:834
 msgid "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."
 msgstr "Invalid User, please re-login."

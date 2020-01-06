@@ -80,6 +80,13 @@ namespace model {
 
 		}
 
+		Poco::Data::Statement ModelBase::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			std::string message = getTableName();
+			message += "::_loadFromDB with multiple fields not implemented";
+			throw Poco::Exception(message);
+		}
+
 		Poco::DateTime ModelBase::parseElopageDate(std::string dateString)
 		{
 			std::string decodedDateString = "";

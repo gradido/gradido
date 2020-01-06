@@ -91,7 +91,9 @@ public:
 	int updateEmailVerification(Poco::UInt64 emailVerificationCode);
 
 	// called from page with same name
-	bool resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
+	//! \return 1 = reset password email already send
+	//! \return 0 = ok
+	int resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
 
 	Poco::Net::HTTPCookie getLoginCookie();
 

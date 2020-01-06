@@ -4,7 +4,9 @@
 
 #include "../ServerConfig.h"
 
-const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?/(en|de)");
+//const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?/(en|de)");
+// detect also lang field from form get
+const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
 
 Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn /*= ""*/)
 {

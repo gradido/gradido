@@ -14,6 +14,11 @@
 namespace model {
 	namespace table {
 
+		enum MysqlConditionType {
+			MYSQL_CONDITION_AND,
+			MYSQL_CONDITION_OR 
+		};
+
 		class ModelBase : public UniLib::lib::MultithreadContainer, public ErrorList
 		{
 		public:
@@ -26,6 +31,7 @@ namespace model {
 			
 			template<class T> size_t updateIntoDB(const std::string& fieldName, const T& fieldValue );
 			template<class T> size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
+			template<class T1, class T2> size_t loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			bool insertIntoDB();
 
 			inline void setID(int id) { lock(); mID = id; unlock(); }
@@ -39,6 +45,7 @@ namespace model {
 		protected:
 
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
+			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			virtual Poco::Data::Statement _insertIntoDB(Poco::Data::Session session) = 0;
 
 			int mID;
@@ -67,6 +74,31 @@ namespace model {
 			}
 			return resultCount;
 		}
+
+
+		template<class T1, class T2> 
+		size_t ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldNames, conditionType);
+			select, Poco::Data::Keywords::useRef(field1Value), Poco::Data::Keywords::useRef(field2Value);
+
+			size_t resultCount = 0;
+			try {
+				resultCount = select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by selecting", ex.displayText().data()));
+				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
+					addError(new ParamError(getTableName(), "field name for select: ", it->data()));
+				}
+				//addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
+				unlock();
+			}
+			return resultCount;
+		}
+
 
 		template<class T>
 		size_t ModelBase::updateIntoDB(const std::string& fieldName, const T& fieldValue)

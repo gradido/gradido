@@ -383,11 +383,17 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 }
 
 
-bool Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
+int Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
 {
 	mNewUser = user;
 	if (passphraseMemorized) {
+		// first check if already exist		
+
 		mEmailVerificationCodeObject = controller::EmailVerificationCode::create(mNewUser->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+		auto foundCount = mEmailVerificationCodeObject->load(user->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+		if (foundCount) {
+			return 1;
+		}
 		auto emailVerificationModel = mEmailVerificationCodeObject->getModel();
 		UniLib::controller::TaskPtr insertEmailVerificationCode(
 			new model::table::ModelInsertTask(emailVerificationModel, true)
@@ -404,7 +410,7 @@ bool Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphras
 		EmailManager::getInstance()->addEmail(new model::Email(user, model::EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE));
 	}
 
-	return true;
+	return 0;
 }
 
 bool Session::startProcessingTransaction(const std::string& proto_message_base64)
