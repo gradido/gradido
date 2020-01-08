@@ -30,7 +30,7 @@ public:
 	inline void setConnection(std::string connectionString, ConnectionType type) {
 		if (type == CONNECTION_MYSQL_LOGIN_SERVER || CONNECTION_MYSQL_PHP_SERVER) {
 			mSessionPoolNames[type] = Poco::Data::Session::uri(Poco::Data::MySQL::Connector::KEY, connectionString);
-			mSessionPools.add(Poco::Data::MySQL::Connector::KEY, connectionString);
+			mSessionPools.add(Poco::Data::MySQL::Connector::KEY, connectionString, 1, 16);
 			//mConnectionData[type] = connectionString;
 		}
 	}

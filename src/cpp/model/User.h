@@ -15,6 +15,8 @@
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/LanguageManager.h"
 
+#include "../controller/User.h"
+
 class UserCreateCryptoKey;
 class UserWriteIntoDB;
 class Session;
@@ -61,6 +63,10 @@ public:
 	User(const unsigned char* pubkey_array);
 
 	User(int user_id);
+
+	// load from controller user
+	User(Poco::AutoPtr<controller::User> ctrl_user);
+
 	// login
 	//User(const std::string& email, const std::string& password);
 
@@ -136,6 +142,7 @@ protected:
 	bool setPrivKey(const MemoryBin* privKey);
 
 private:
+	Poco::AutoPtr<controller::User> mUserCtrl;
 	UserStates mState;
 
 	// ************************* DB FIELDS ******************************
@@ -232,7 +239,7 @@ private:
 class UserWriteKeysIntoDB : public UniLib::controller::CPUTask
 {
 public:
-	UserWriteKeysIntoDB(UniLib::controller::TaskPtr  parent, Poco::AutoPtr<User> user, bool savePrivKey);
+	UserWriteKeysIntoDB(std::vector<UniLib::controller::TaskPtr> parents, Poco::AutoPtr<User> user, bool savePrivKey);
 
 	virtual int run();
 

@@ -47,6 +47,8 @@ namespace UniLib {
 			bool tryLock();
 
 			inline void unlock() { mLastSucceededLock = ""; mWorkMutex.unlock(); }
+
+			inline const std::string& getLastSucceededLock() { return mLastSucceededLock; }
 		protected:
 		private:
 			Poco::Mutex mWorkMutex;

@@ -8,6 +8,9 @@
 #include "lib/Profiler.h"
 #include "ServerConfig.h"
 
+#include "model/table/User.h"
+#include "model/table/EmailOptIn.h"
+
 #ifndef _TEST_BUILD
 
 
@@ -21,6 +24,7 @@ int main(int argc, char** argv)
 	}
 	ServerConfig::g_versionString = "0.10.1";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
+	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
 
 	// first check time for crypto 
 	auto testUser = new User("email@google.de", "Max", "Mustermann");

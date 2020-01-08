@@ -40,6 +40,7 @@ namespace model {
 
 		bool ModelBase::insertIntoDB()
 		{
+			printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
 			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 
@@ -84,6 +85,13 @@ namespace model {
 		{
 			std::string message = getTableName();
 			message += "::_loadFromDB with multiple fields not implemented";
+			throw Poco::Exception(message);
+		}
+
+		Poco::Data::Statement ModelBase::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		{
+			std::string message = getTableName();
+			message += "::_loadMultipleFromDB not implemented";
 			throw Poco::Exception(message);
 		}
 

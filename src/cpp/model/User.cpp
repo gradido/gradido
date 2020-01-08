@@ -89,16 +89,20 @@ int UserWriteIntoDB::run()
 
 // --------------------------------------------------------------------------------------------------------
 
-UserWriteKeysIntoDB::UserWriteKeysIntoDB(UniLib::controller::TaskPtr parent, Poco::AutoPtr<User> user, bool savePrivKey)
-	: UniLib::controller::CPUTask(1), mUser(user), mSavePrivKey(savePrivKey)
+UserWriteKeysIntoDB::UserWriteKeysIntoDB(std::vector<UniLib::controller::TaskPtr> parents, Poco::AutoPtr<User> user, bool savePrivKey)
+	: UniLib::controller::CPUTask(parents.size()), mUser(user), mSavePrivKey(savePrivKey)
 {
 #ifdef _UNI_LIB_DEBUG
 	setName(user->getEmail());
 #endif
-	if (strcmp(parent->getResourceType(), "UserGenerateKeys") != 0) {
+	if (parents.size() < 1 || strcmp(parents[0]->getResourceType(), "UserGenerateKeys") != 0) {
 		throw Poco::Exception("given TaskPtr isn't UserGenerateKeys");
 	}
-	setParentTaskPtrInArray(parent, 0);
+	for (int i = 0; i < parents.size(); i++) {
+		setParentTaskPtrInArray(parents[i], i);
+	}
+	//setParentTaskPtrInArray(parents[0], 0);
+	
 }
 
 int UserWriteKeysIntoDB::run()
@@ -370,6 +374,42 @@ User::User(const unsigned char* pubkey_array)
 	catch (Poco::Exception& ex) {
 		addError(new ParamError("User::User", "mysql error", ex.displayText().data()));
 	}
+}
+
+User::User(Poco::AutoPtr<controller::User> ctrl_user)
+	: mUserCtrl(ctrl_user), mState(USER_EMPTY), mDBId(0), mPasswordHashed(0), mPrivateKey(nullptr), mEmailChecked(false),
+	mLanguage(LANG_DE), mGradidoCurrentBalance(0), mCryptoKey(nullptr), mReferenceCount(1)
+{
+	assert(!ctrl_user.isNull());
+	auto model = ctrl_user->getModel();
+	assert(model);
+
+	auto mm = MemoryManager::getInstance();
+	mDBId = model->getID();
+	mEmail = model->getEmail();
+	mFirstName = model->getFirstName();
+	mLastName = model->getLastName();
+	mPasswordHashed = model->getPasswordHashed();
+	auto pubkey = model->getPublicKey();
+	if (pubkey) {
+		memcpy(mPublicKey, pubkey, crypto_sign_PUBLICKEYBYTES);
+
+		size_t hexSize = crypto_sign_PUBLICKEYBYTES * 2 + 1;
+		auto hexStringTemp = mm->getFreeMemory(hexSize);
+		//char* hexString = (char*)malloc(hexSize);
+		memset(*hexStringTemp, 0, hexSize);
+		sodium_bin2hex(*hexStringTemp, hexSize, pubkey, crypto_sign_PUBLICKEYBYTES);
+		mPublicHex = *hexStringTemp;
+		mm->releaseMemory(hexStringTemp);
+	}
+	if (model->existPrivateKeyCrypted()) {
+		auto privKeyVetor = model->getPrivateKeyCrypted();
+		mPrivateKey = mm->getFreeMemory(privKeyVetor.size());
+		memcpy(*mPrivateKey, privKeyVetor.data(), privKeyVetor.size());
+	}
+	mEmailChecked = model->isEmailChecked();
+	mLanguage = LanguageManager::languageFromString(model->getLanguageKey());
+	mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
 }
 
 
@@ -767,7 +807,14 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 	}
 
 	duplicate();
-	UniLib::controller::TaskPtr saveKeysTask(new UserWriteKeysIntoDB(generateKeysTask, this, savePrivkey));
+	std::vector<UniLib::controller::TaskPtr> parentsForWriteKeys;
+	parentsForWriteKeys.reserve(2);
+	parentsForWriteKeys.push_back(generateKeysTask);
+	if (!mCreateCryptoKeyTask.isNull() && !mCreateCryptoKeyTask->isTaskFinished()) {
+		parentsForWriteKeys.push_back(mCreateCryptoKeyTask);
+	}
+
+	UniLib::controller::TaskPtr saveKeysTask(new UserWriteKeysIntoDB(parentsForWriteKeys, this, savePrivkey));
 	saveKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_WRITTEN, session));
 	saveKeysTask->scheduleTask(saveKeysTask);
 

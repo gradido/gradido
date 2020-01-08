@@ -116,7 +116,10 @@ void RegisterPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha ";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
 	responseStream << "</div>\n";
 	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";

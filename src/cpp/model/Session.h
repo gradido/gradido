@@ -44,6 +44,7 @@ enum SessionStates {
 	SESSION_STATE_PASSPHRASE_WRITTEN,
 	SESSION_STATE_KEY_PAIR_GENERATED,
 	SESSION_STATE_KEY_PAIR_WRITTEN,
+	SESSION_STATE_RESET_PASSWORD_REQUEST,
 	SESSION_STATE_COUNT
 };
 
@@ -118,7 +119,7 @@ public:
 	const char* getSessionStateString();
 	inline SessionStates getSessionState() { SessionStates s; lock("Session::getSessionState"); s = mState; unlock(); return s; }
 
-	inline Poco::UInt64 getEmailVerificationCode() { return mEmailVerificationCode; }
+	inline Poco::UInt64 getEmailVerificationCode() { if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); }
 
 	inline bool isActive() { bool bret = false; lock("Session::isActive"); bret = mActive; unlock(); return bret; }
 	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }
@@ -142,8 +143,6 @@ protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
 	
-	void createEmailVerificationCode();
-	
 	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
 
@@ -156,7 +155,6 @@ private:
 	std::string mPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
-	Poco::UInt64 mEmailVerificationCode;
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 
 
@@ -173,7 +171,7 @@ private:
 class WriteEmailVerification : public UniLib::controller::CPUTask
 {
 public:
-	WriteEmailVerification(Poco::AutoPtr<User> user, Poco::UInt64 emailVerificationCode, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
+	WriteEmailVerification(Poco::AutoPtr<User> user, Poco::AutoPtr<controller::EmailVerificationCode> emailVerificationCode, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
 		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mEmailVerificationCode(emailVerificationCode) {
 #ifdef _UNI_LIB_DEBUG
 		setName(user->getEmail());
@@ -185,7 +183,7 @@ public:
 
 private:
 	Poco::AutoPtr<User> mUser;
-	Poco::UInt64 mEmailVerificationCode;
+	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCode;
 
 };
 

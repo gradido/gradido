@@ -121,6 +121,7 @@ int SessionManager::generateNewUnusedHandle()
 
 Session* SessionManager::getNewSession(int* handle)
 {
+	const static char* functionName = "SessionManager::getNewSession";
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return nullptr;
@@ -134,7 +135,7 @@ Session* SessionManager::getNewSession(int* handle)
 		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 	}
 	catch (Poco::TimeoutException &ex) {
-		printf("[SessionManager::getNewSession] exception timout mutex: %s\n", ex.displayText().data());
+		printf("[%s] exception timout mutex: %s\n", functionName, ex.displayText().data());
 		return nullptr;
 	}
 	//mWorkingMutex.lock();
@@ -165,7 +166,8 @@ Session* SessionManager::getNewSession(int* handle)
 			}
 			else {
 				ErrorList errors;
-				errors.addError(new Error("SessionManager::getNewSession", "found dead locked session, keeping in memory without reference"));
+				errors.addError(new Error(functionName, "found dead locked session, keeping in memory without reference"));
+				errors.addError(new ParamError(functionName, "last succeeded lock:", result->getLastSucceededLock().data()));
 				errors.sendErrorsAsEmail();
 
 				mRequestSessionMap.erase(local_handle);

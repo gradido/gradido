@@ -8,7 +8,6 @@ namespace controller {
 
 	User::~User()
 	{
-
 	}
 
 

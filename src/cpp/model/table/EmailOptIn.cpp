@@ -24,6 +24,12 @@ namespace model {
 
 		}
 
+		EmailOptIn::EmailOptIn(const EmailOptInTuple& tuple)
+			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mEmailVerificationCode(tuple.get<2>()), mType(tuple.get<3>())
+		{
+
+		}
+		
 		EmailOptIn::~EmailOptIn()
 		{
 
@@ -51,6 +57,17 @@ namespace model {
 			select << "SELECT user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
 				, into(mUserId), into(mEmailVerificationCode), into(mType);
+
+
+			return select;
+		}
+
+		Poco::Data::Statement EmailOptIn::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		{
+			Poco::Data::Statement select(session);
+
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+				<< " where " << fieldName << " = ?";
 
 
 			return select;

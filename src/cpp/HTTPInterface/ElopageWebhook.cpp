@@ -167,6 +167,7 @@ bool HandleElopageRequestTask::validateInput()
 
 void HandleElopageRequestTask::writeUserIntoDB()
 {
+	printf("HandleElopageRequestTask::writeUserIntoDB\n");
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement insert(session);
@@ -187,9 +188,9 @@ int HandleElopageRequestTask::getUserIdFromDB()
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement select(session);
-	int user_id = 0;
+	std::vector<int> user_ids;
 	select << "SELECT id from users where email = ?;",
-		into(user_id), use(mEmail);
+		into(user_ids), use(mEmail);
 	try {
 		select.execute();
 	}
@@ -197,8 +198,25 @@ int HandleElopageRequestTask::getUserIdFromDB()
 		addError(new ParamError(__FUNCTION__, "mysql error selecting from db", ex.displayText().data()));
 		addError(new ParamError(__FUNCTION__, "email: ", mEmail.data()));
 	}
+	if (user_ids.size() > 1) {
+		std::string duplicateIds("duplicate user ids for email: ");
+		duplicateIds += mEmail;
+		duplicateIds += ": ";
+		for (int i = 0; i < user_ids.size(); i++) {
+			if (i > 0) {
+				duplicateIds += ", ";
+			}
+			duplicateIds += std::to_string(user_ids[i]);
+		}
+		addError(new Error("HandleElopageRequestTask::getUserIdFromDB", duplicateIds.data()));
+		sendErrorsAsEmail();
+	}
+	if (user_ids.size() >= 1) {
+		return user_ids[0];
+	}
+	return 0;
 
-	return user_id;
+	
 }
 
 
@@ -207,7 +225,7 @@ int HandleElopageRequestTask::run()
 	// get input data
 	// check event type
 	std::string event = mRequestData.get("event", "");
-	if (event == "lesson.viewed") {
+	if (event == "lesson.viewed" || event == "lesson.completed") {
 		return 0;
 	}
 
