@@ -408,7 +408,7 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 		//char* hexString = (char*)malloc(hexSize);
 		memset(*hexStringTemp, 0, hexSize);
 		sodium_bin2hex((char*)(*hexStringTemp), hexSize, pubkey, crypto_sign_PUBLICKEYBYTES);
-		mPublicHex = *hexStringTemp;
+		mPublicHex = std::string((char*)(*hexStringTemp));
 		mm->releaseMemory(hexStringTemp);
 	}
 	if (model->existPrivateKeyCrypted()) {

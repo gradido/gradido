@@ -84,7 +84,8 @@ namespace model {
 				return false;
 			}
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement deleteStmt(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement deleteStmt(session);
 			deleteStmt << "delete from " << getTableName() << " where id = ?", Poco::Data::Keywords::use(mID);
 
 			try {
