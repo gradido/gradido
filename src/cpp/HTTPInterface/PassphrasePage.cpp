@@ -8,7 +8,7 @@
 #line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 
 #include "../SingletonManager/SessionManager.h"
-#include "../crypto/KeyPair.h"
+#include "../Crypto/KeyPair.h"
 //#include "Poco/Net/HTTPServerParams.h"
 
 enum PageState 

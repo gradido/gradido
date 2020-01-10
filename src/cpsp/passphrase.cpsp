@@ -6,7 +6,7 @@
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
-#include "../crypto/KeyPair.h"
+#include "../Crypto/KeyPair.h"
 //#include "Poco/Net/HTTPServerParams.h"
 
 enum PageState 
