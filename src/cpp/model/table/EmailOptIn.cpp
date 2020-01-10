@@ -53,11 +53,21 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			
-			select << "SELECT user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mUserId), into(mEmailVerificationCode), into(mType);
+				, into(mID), into(mUserId), into(mEmailVerificationCode), into(mType);
 
+
+			return select;
+		}
+
+		Poco::Data::Statement EmailOptIn::_loadIdFromDB(Poco::Data::Session session)
+		{
+			Poco::Data::Statement select(session);
+
+			select << "SELECT id FROM " << getTableName()
+				<< " where verification_code = ?"
+				, into(mID), use(mEmailVerificationCode);
 
 			return select;
 		}

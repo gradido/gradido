@@ -37,7 +37,9 @@ namespace model {
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
 			template<class T1, class T2> 
 			size_t loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
-			bool insertIntoDB();
+			bool insertIntoDB(bool loadId);
+
+			bool deleteFromDB();
 
 			inline void setID(int id) { lock(); mID = id; unlock(); }
 			inline int getID() { lock(); int id = mID; unlock(); return id; }
@@ -48,7 +50,7 @@ namespace model {
 			void duplicate();
 			void release();
 		protected:
-
+			virtual Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			virtual Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
@@ -147,7 +149,7 @@ namespace model {
 
 			size_t resultCount = 0;
 			try {
-				resultCount = select.execute();
+				resultCount = update.execute();
 			}
 			catch (Poco::Exception& ex) {
 				lock();
@@ -164,7 +166,7 @@ namespace model {
 		class ModelInsertTask : public UniLib::controller::CPUTask
 		{
 		public:
-			ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool emailErrors = false);
+			ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool loadId, bool emailErrors = false);
 
 			int run();
 			const char* getResourceType() const { return "ModelInsertTask"; };
@@ -172,6 +174,7 @@ namespace model {
 		protected:
 			Poco::AutoPtr<ModelBase> mModel;
 			bool mEmailErrors;
+			bool mLoadId;
 
 		};
 

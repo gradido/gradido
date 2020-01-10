@@ -10,8 +10,8 @@
 namespace model {
 	namespace table {
 
-		ModelInsertTask::ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool emailErrors /* = false */)
-			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mEmailErrors(emailErrors)
+		ModelInsertTask::ModelInsertTask(Poco::AutoPtr<ModelBase> model, bool loadId, bool emailErrors /* = false */)
+			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mModel(model), mEmailErrors(emailErrors), mLoadId(loadId)
 		{
 #ifdef _UNI_LIB_DEBUG
 			setName(model->getTableName());
@@ -21,7 +21,7 @@ namespace model {
 
 		int ModelInsertTask::run()
 		{
-			auto result = mModel->insertIntoDB();
+			auto result = mModel->insertIntoDB(mLoadId);
 			if (mModel->errorCount() > 0 && mEmailErrors) {
 				mModel->sendErrorsAsEmail();
 			}
@@ -38,24 +38,64 @@ namespace model {
 			unlock();
 		}
 
-		bool ModelBase::insertIntoDB()
+		bool ModelBase::insertIntoDB(bool loadId)
 		{
-			printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
+			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
 			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 
 			size_t resultCount = 0;
 			try {
-				
-				return insert.execute() == 1;
+				if (insert.execute() == 1) {
+					// load id from db
+					if (loadId) {
+						Poco::Data::Statement select = _loadIdFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+						try {
+							return select.execute() == 1;
+						}
+						catch (Poco::Exception& ex) {
+							lock("ModelBase::insertIntoDB");
+							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
+							addError(new ParamError(getTableName(), "data set: ", toString().data()));
+							unlock();
+						}
+					}
+					else {
+						return true;
+					}
+				}
 			}
 			catch (Poco::Exception& ex) {
-				lock();
+				lock("ModelBase::insertIntoDB2");
 				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "data set: ", toString().data()));
 				unlock();
 			}
 			//printf("data valid: %s\n", toString().data());
+			return false;
+		}
+
+		bool ModelBase::deleteFromDB()
+		{
+			if (mID == 0) {
+				lock();
+				addError(new Error(getTableName(), "id is zero, couldn't delete from db"));
+				unlock();
+				return false;
+			}
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement deleteStmt(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			deleteStmt << "delete from " << getTableName() << " where id = ?", Poco::Data::Keywords::use(mID);
+
+			try {
+				return deleteStmt.execute() == 1;
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by delete", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "id: ", mID));
+				unlock();
+			}
 			return false;
 		}
 

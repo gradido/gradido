@@ -22,6 +22,7 @@ public:
 	~KeyPair();
 
 	bool generateFromPassphrase(const char* passphrase, Mnemonic* word_source);
+	static std::string filterPassphrase(const std::string& passphrase);
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);
 	static std::string getHex(const unsigned char* data, Poco::UInt32 size);

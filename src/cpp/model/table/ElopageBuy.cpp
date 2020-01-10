@@ -91,6 +91,18 @@ namespace model {
 			throw Poco::Exception("ElopageBuy::loadFromDB not implemented");
 
 		}
+
+		Poco::Data::Statement ElopageBuy::_loadIdFromDB(Poco::Data::Session session) 
+		{
+
+			Poco::Data::Statement select(session);
+
+			select << "SELECT id FROM " << getTableName()
+				<< " where order_id = ?"
+				, into(mID), use(mIDs[ELOPAGE_BUY_ORDER_ID]);
+
+			return select;
+		}
 	}
 }
 

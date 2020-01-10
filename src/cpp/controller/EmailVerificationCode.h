@@ -19,6 +19,8 @@ namespace controller {
 		static std::vector<Poco::AutoPtr<EmailVerificationCode>>   load(int user_id);
 		static Poco::AutoPtr<EmailVerificationCode> load(int user_id, model::table::EmailOptInType type); 
 
+		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
+
 		inline Poco::AutoPtr<model::table::EmailOptIn> getModel() { return _getModel<model::table::EmailOptIn>(); }
 
 		std::string getLink();

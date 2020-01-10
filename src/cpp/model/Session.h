@@ -45,6 +45,7 @@ enum SessionStates {
 	SESSION_STATE_KEY_PAIR_GENERATED,
 	SESSION_STATE_KEY_PAIR_WRITTEN,
 	SESSION_STATE_RESET_PASSWORD_REQUEST,
+	SESSION_STATE_RESET_PASSWORD_SUCCEED,
 	SESSION_STATE_COUNT
 };
 
@@ -95,6 +96,12 @@ public:
 	//! \return 1 = reset password email already send
 	//! \return 0 = ok
 	int resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
+	// 
+	//! \return 0 = not the same
+	//! \return 1 = same
+	//! \return -1 = error
+	//!  \return -2 = critical error
+	int comparePassphraseWithSavedKeys(const std::string& inputPassphrase, Mnemonic* wordSource);
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
@@ -125,6 +132,8 @@ public:
 	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
+
+	// ------------------------ transactions functions ----------------------------
 
 	//! \return true if succeed
 	bool startProcessingTransaction(const std::string& proto_message_base64);

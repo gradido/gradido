@@ -39,6 +39,7 @@ namespace model {
 			std::string toString();
 			
 		protected:
+			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 

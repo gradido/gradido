@@ -131,8 +131,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		auto sessionState = s->getSessionState();
 		printf("session state: %s\n", s->getSessionStateString());
+		if (url_first_part == "/updateUserPassword" && sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
+			auto pageRequestHandler = new UpdateUserPasswordPage(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+		//printf("session state: %s\n", s->getSessionStateString());
 		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
-		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED) {
+		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED ||
+		   sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
 		//if (url_first_part == "/passphrase") {
 			//return handlePassphrase(s, request);
 			auto pageRequestHandler = new PassphrasePage(s);
@@ -142,6 +149,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		else if(sessionState == SESSION_STATE_PASSPHRASE_SHOWN) {
 		//else if (uri == "/saveKeys") {
 			auto pageRequestHandler = new SaveKeysPage(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+		else if (sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
+			// 
+			auto pageRequestHandler = new UpdateUserPasswordPage(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
@@ -267,10 +280,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
 
 		if (0 == retUpdateEmailVerification) {
-			printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
+			//printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
+			
 			auto pageRequestHandler = new PassphrasePage(session);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
+			
 		}
 		else if (1 == retUpdateEmailVerification) {
 			auto user = session->getUser();

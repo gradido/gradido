@@ -77,6 +77,17 @@ namespace model {
 			return select;
 		}
 
+		Poco::Data::Statement User::_loadIdFromDB(Poco::Data::Session session)
+		{
+			Poco::Data::Statement select(session);
+
+			select << "SELECT id FROM " << getTableName()
+				<< " where email = ?"
+				, into(mID), use(mEmail);
+
+			return select;
+		}
+
 		/*
 		std::string mEmail;
 		std::string mFirstName;

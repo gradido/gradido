@@ -2,6 +2,7 @@
 
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/MemoryManager.h"
+#include "../SingletonManager/SingletonTaskObserver.h"
 
 #include "../lib/Profiler.h"
 
@@ -20,12 +21,18 @@
 SigningTransaction::SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<User> user)
 	: mProcessingeTransaction(processingeTransaction), mUser(user)
 {
-
+	auto ob = SingletonTaskObserver::getInstance();
+	if (!mUser.isNull() && mUser->getEmail() != "") {
+		ob->addTask(mUser->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
+	}
 }
 
 SigningTransaction::~SigningTransaction()
 {
-
+	auto ob = SingletonTaskObserver::getInstance();
+	if (!mUser.isNull() && mUser->getEmail() != "") {
+		ob->removeTask(mUser->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
+	}
 }
 
 int SigningTransaction::run() {

@@ -4,12 +4,19 @@
 #include "../model/TransactionCreation.h"
 #include "../model/TransactionTransfer.h"
 
-ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_base64)
-	: mType(TRANSACTION_NONE), mProtoMessageBase64(proto_message_base64), mTransactionSpecific(nullptr)
+#include "../SingletonManager/SingletonTaskObserver.h"
+
+ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash)
+	: mType(TRANSACTION_NONE), mProtoMessageBase64(proto_message_base64), mTransactionSpecific(nullptr), mUserEmailHash(userEmailHash)
 {
 	mHashMutex.lock();
 	mHash = calculateHash(proto_message_base64);
 	mHashMutex.unlock();
+
+	auto observer = SingletonTaskObserver::getInstance();
+	if (userEmailHash != 0) {
+		observer->addTask(userEmailHash, TASK_OBSERVER_PREPARE_TRANSACTION);
+	}
 }
 
 ProcessingTransaction::~ProcessingTransaction()
@@ -18,6 +25,10 @@ ProcessingTransaction::~ProcessingTransaction()
 	if (mTransactionSpecific) {
 		delete mTransactionSpecific;
 		mTransactionSpecific = nullptr;
+	}
+	auto observer = SingletonTaskObserver::getInstance();
+	if (mUserEmailHash != 0) {
+		observer->addTask(mUserEmailHash, TASK_OBSERVER_PREPARE_TRANSACTION);
 	}
 	unlock();
 }

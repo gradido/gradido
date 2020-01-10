@@ -10,6 +10,7 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
+#include "../SingletonManager/SingletonTaskObserver.h"
 
 
 #include "Poco/Data/Binding.h"
@@ -21,6 +22,14 @@ using namespace Poco::Data::Keywords;
 
 // -------------------------------------------------------------------------------------------------
 
+UserCreateCryptoKey::UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
+	: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password) {
+#ifdef _UNI_LIB_DEBUG
+	setName(user->getEmail());
+#endif
+	
+}
+
 int UserCreateCryptoKey::run() 
 {
 	auto cryptoKey = mUser->createCryptoKey(mPassword);
@@ -30,10 +39,10 @@ int UserCreateCryptoKey::run()
 		printf("[UserCreateCryptoKey] crypto_shorthash_BYTES != sizeof(mPasswordHashed)\n");
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(mPasswordHashed)");
 	}
-	User::passwordHashed pwdHashed;
-	
-	crypto_shorthash((unsigned char*)&pwdHashed, *cryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+
+	auto pwdHashed = mUser->createPasswordHashed(cryptoKey);
 	mUser->setPwdHashed(pwdHashed);
+
 
 	//printf("crypto key created\n");
 	setTaskFinished();
@@ -504,7 +513,7 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 	return phrase_buffer;
 }
 
-bool User::validatePassphrase(const std::string& passphrase)
+bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSource/* = nullptr*/)
 {
 	std::istringstream iss(passphrase);
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
@@ -518,7 +527,12 @@ bool User::validatePassphrase(const std::string& passphrase)
 				continue;
 			}
 		}
-		if (existAll) return true;
+		if (existAll) {
+			if (wordSource) {
+				*wordSource = &m;
+			}
+			return true;
+		}
 	}
 	return false;
 }
@@ -559,6 +573,7 @@ Poco::JSON::Object User::getJson()
 	return userObj;
 }
 
+/*
 // TODO: if a password and privkey already exist, load current private key and re encrypt with new crypto key
 bool User::setNewPassword(const std::string& newPassword)
 {
@@ -571,7 +586,7 @@ bool User::setNewPassword(const std::string& newPassword)
 	}
 	if (!mCreateCryptoKeyTask.isNull() && !mCreateCryptoKeyTask->isTaskFinished()) {
 		lock("User::setNewPassword");
-		addError(new Error("Passwort", "Wird bereits erstellt, bitte in ca. 1 sekunde neuladen."));
+		addError(new Error("Passwort", "Wird bereits erstellt, bitte in ca. 1 minute neuladen."));
 		unlock();
 		return false;
 	}
@@ -588,6 +603,94 @@ bool User::setNewPassword(const std::string& newPassword)
 	savePassword->setParentTaskPtrInArray(mCreateCryptoKeyTask, 0);
 	savePassword->scheduleTask(savePassword);
 
+
+	//printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
+	return true;
+}
+*/
+bool User::updatePassword(const std::string& newPassword, const std::string& passphrase)
+{
+	static const char* functionName("User::updatePassword");
+	if (newPassword == "") {
+		lock(functionName);
+		addError(new Error(gettext("Passwort"), gettext("Ist leer.")));
+		unlock();
+		return false;
+	}
+	if (!mCreateCryptoKeyTask.isNull() && !mCreateCryptoKeyTask->isTaskFinished()) {
+		lock(functionName);
+		addError(new Error(gettext("Passwort"), gettext("Wird bereits erstellt, bitte in ca. 1 minute neuladen.")));
+		unlock();
+		return false;
+	}
+	//duplicate();
+	//lock("User::setNewPassword");
+	//printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
+	//mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
+	//mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
+	//unlock();
+
+	auto mm = MemoryManager::getInstance();
+
+	bool passwordHashedCalculated = false;
+
+	// no previous password set
+	if (!mPasswordHashed) {
+		duplicate();
+		lock(functionName);
+		//printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
+		mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
+		mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
+		unlock();
+	}
+	else {
+		// compare with previous password
+		auto cryptoKey = createCryptoKey(newPassword);
+		auto passwordHash = createPasswordHashed(cryptoKey);
+		lock(functionName);
+		if (mPasswordHashed == passwordHash) {
+			addError(new Error(gettext("Passwort"), gettext("Du hast dasselbe Passwort gew&auml;hlt, bitte w&auml;hle ein anderes.")));
+			unlock();
+			mm->releaseMemory(cryptoKey);
+			return false;
+		}
+		mPasswordHashed = passwordHash;
+		passwordHashedCalculated = true;
+		if (mCryptoKey) {
+			mm->releaseMemory(mCryptoKey);
+		}
+		mCryptoKey = cryptoKey;
+		unlock();
+	}
+
+	duplicate();
+	UniLib::controller::TaskPtr savePassword(nullptr);
+	UserWriteCryptoKeyHashIntoDB* writePWDHashedIntoDB = nullptr;
+	if (passwordHashedCalculated) {
+		savePassword = new UserWriteCryptoKeyHashIntoDB(this, 0);
+	}
+	else {
+		savePassword = new UserWriteCryptoKeyHashIntoDB(this, 1);
+		savePassword->setParentTaskPtrInArray(mCreateCryptoKeyTask, 0);
+	}
+	savePassword->scheduleTask(savePassword);
+
+	if (passphrase != "") {
+		duplicate();
+		UniLib::controller::TaskPtr genKeys(new UserGenerateKeys(this, passphrase));
+		genKeys->scheduleTask(genKeys);
+
+		
+		std::vector<UniLib::controller::TaskPtr> saveKeysParents;
+		saveKeysParents.reserve(2); // to prevent allocating more memory as ever needed
+		saveKeysParents.push_back(genKeys);
+		if (!passwordHashedCalculated) {
+			saveKeysParents.push_back(mCreateCryptoKeyTask);
+		}
+		duplicate();
+		UniLib::controller::TaskPtr saveKeys(new UserWriteKeysIntoDB(saveKeysParents, this, true));
+		saveKeys->scheduleTask(saveKeys);
+	}
 
 	//printf("[User::setNewPassword] timeUsed: %s\n", timeUsed.string().data());
 	return true;
@@ -711,9 +814,7 @@ void User::duplicate()
 
 void User::release()
 {
-	if (!mCreateCryptoKeyTask.isNull() && mCreateCryptoKeyTask->isTaskFinished()) {
-		mCreateCryptoKeyTask = nullptr;
-	}
+	
 	Poco::Mutex::ScopedLock _lock(mReferenceMutex);
 	//mReferenceMutex.lock();
 	mReferenceCount--;
@@ -734,18 +835,30 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 
 	//Profiler timeUsed;
 	auto mm = MemoryManager::getInstance();
+	auto observer = SingletonTaskObserver::getInstance();
+	static const char* funcName = "User::createCryptoKey";
+	if (mEmail == "") {
+		lock(funcName);
+		addError(new Error(funcName, "email is empty"));
+		unlock();
+		return nullptr;
+	}
+	
+	
+
 	// TODO: put it in secure location, or use value from server config
 	static const unsigned char app_secret[] = { 0x21, 0xff, 0xbb, 0xc6, 0x16, 0xfe };
 
 	sha_context context_sha512;
 	//unsigned char* hash512 = (unsigned char*)malloc(SHA_512_SIZE);
 	if (SHA_512_SIZE < crypto_pwhash_SALTBYTES) {
-		lock("User::createCryptoKey");
-		addError(new Error(__FUNCTION__, "sha512 is to small for libsodium pwhash saltbytes"));
+		lock(funcName);
+		addError(new Error(funcName, "sha512 is to small for libsodium pwhash saltbytes"));
 		unlock();
 		return nullptr;
 	}
-	
+
+	observer->addTask(mEmail, TASK_OBSERVER_PASSWORD_CREATION);
 
 	unsigned char hash512_salt[SHA_512_SIZE]; // need at least crypto_pwhash_SALTBYTES 16U
 	sha512_init(&context_sha512);
@@ -760,13 +873,15 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 	//Bin32Bytes* key = mm->get32Bytes();
 
 	if (crypto_pwhash(*key, key->size(), password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
-		lock("User::createCryptoKey");
-		addError(new ParamError(__FUNCTION__, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
+		lock(funcName);
+		addError(new ParamError(funcName, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
 		unlock();
+		observer->removeTask(mEmail, TASK_OBSERVER_PASSWORD_CREATION);
 		//printf("[User::%s] error creating pwd hash, maybe to much memory requestet? error: %s\n", __FUNCTION__, strerror(errno));
 		//printf("pwd: %s\n", pwd);
 		return nullptr;
 	}
+	observer->removeTask(mEmail, TASK_OBSERVER_PASSWORD_CREATION);
 	
 //	lock();
 //	auto cryptoKey = new ObfusArray(crypto_box_SEEDBYTES, key);
@@ -776,6 +891,23 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 	// mCryptoKey
 	//printf("[User::createCryptoKey] time used: %s\n", timeUsed.string().data());
 	return key;
+}
+
+User::passwordHashed User::createPasswordHashed(MemoryBin* cryptoKey, ErrorList* errorReceiver/* = nullptr*/)
+{	
+	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
+		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
+	}
+	User::passwordHashed pwdHashed = 0;
+	if (!ServerConfig::g_ServerCryptoKey) {
+		if (errorReceiver) {
+			errorReceiver->addError(new Error("User::validatePwd", "server crypto key not set"));
+		}
+		return pwdHashed;
+	}
+	crypto_shorthash((unsigned char*)&pwdHashed, *cryptoKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
+	
+	return pwdHashed;
 }
 
 void User::fakeCreateCryptoKey()

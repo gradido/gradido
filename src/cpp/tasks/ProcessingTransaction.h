@@ -30,7 +30,7 @@ class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorLi
 {
 	friend SigningTransaction;
 public:
-	ProcessingTransaction(const std::string& proto_message_base64);
+	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash);
 	virtual ~ProcessingTransaction();
 
 	int run();
@@ -60,6 +60,7 @@ protected:
 	TransactionBase* mTransactionSpecific;
 
 	HASH mHash;
+	DHASH mUserEmailHash;
 
 	Poco::Mutex mHashMutex;
 private:

@@ -73,7 +73,7 @@ public:
 	~User();
 
 	static std::string generateNewPassphrase(Mnemonic* word_source);
-	static bool validatePassphrase(const std::string& passphrase);
+	static bool validatePassphrase(const std::string& passphrase, Mnemonic** wordSource = nullptr);
 	static const char* userStateToString(UserStates state);
 	//static User* login(const std::string& email, const std::string& password, ErrorList* errorContainer = nullptr);
 
@@ -105,7 +105,8 @@ public:
 	inline void setBalance(int balance) { lock(); mGradidoCurrentBalance = balance; unlock(); }
 	void setEmailChecked();
 	bool isEmptyPassword();
-	bool setNewPassword(const std::string& newPassword);
+	//bool setNewPassword(const std::string& newPassword);
+	bool updatePassword(const std::string& newPassword, const std::string& passphrase);
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	bool validateIdentHash(HASH hash);
 	
@@ -125,6 +126,7 @@ protected:
 	typedef Poco::UInt64 passwordHashed;
 
 	MemoryBin* createCryptoKey(const std::string& password);
+	static passwordHashed createPasswordHashed(MemoryBin* cryptoKey, ErrorList* errorReceiver = nullptr);
 	inline void setCryptoKey(MemoryBin* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
 	//void detectState();
@@ -182,12 +184,7 @@ private:
 class UserCreateCryptoKey : public UniLib::controller::CPUTask
 {
 public:
-	UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
-		: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password)  {
-#ifdef _UNI_LIB_DEBUG
-		setName(user->getEmail());
-#endif
-	}
+	UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler);
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserCreateCryptoKey"; };

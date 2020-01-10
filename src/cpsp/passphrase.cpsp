@@ -6,12 +6,14 @@
 <%@	page compressed="true" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+#include "../crypto/KeyPair.h"
 //#include "Poco/Net/HTTPServerParams.h"
 
 enum PageState 
 {
 	PAGE_ASK_PASSPHRASE,
-	PAGE_SHOW_PASSPHRASE
+	PAGE_SHOW_PASSPHRASE,
+	PAGE_FORCE_ASK_PASSPHRASE
 };
 %>
 <%%
@@ -25,17 +27,33 @@ enum PageState
 	// save login cookie, because maybe we've get an new session
 	response.addCookie(mSession->getLoginCookie());
 	
+	if(mSession->getSessionState() == SESSION_STATE_RESET_PASSWORD_REQUEST) {
+		state = PAGE_FORCE_ASK_PASSPHRASE;
+	}
+	
 	if (!form.empty()) {
-		auto registerKeyChoice = form.get("passphrase", "");
+		auto registerKeyChoice = form.get("passphrase", "no");
 		std::string oldPassphrase = "";
 		if (registerKeyChoice == "no") {
-			auto oldPassphrase = form.get("passphrase-existing", "");
-
-			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase)) {
+			auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
+			
+			Mnemonic* wordSource = nullptr;
+			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase, &wordSource)) {
 				// passphrase is valid 
-				mSession->setPassphrase(oldPassphrase);
-				mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
-				state = PAGE_SHOW_PASSPHRASE;
+				if(PAGE_FORCE_ASK_PASSPHRASE == state) {
+					auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
+					if(-2 == compareResult) {
+						response.redirect(ServerConfig::g_serverPath + "/error500");
+						return;
+					} else if(1 == compareResult) {
+						response.redirect(ServerConfig::g_serverPath + "/updateUserPassword");
+						return;
+					}
+				} else {
+					mSession->setPassphrase(oldPassphrase);
+					mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+					state = PAGE_SHOW_PASSPHRASE;
+				}
 			}
 			else {
 				addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
@@ -86,6 +104,17 @@ enum PageState
 				<input id="passphrase-new-no" type="radio" name="passphrase" value="no"/>
 				<label class="grd_radio_label" for="passphrase-new-no">Ja, bitte wiederherstellen!</label>
 			</p>
+			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
+		</fieldset>
+		
+		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Weiter">
+		
+	</form>
+	<% } else if(PAGE_FORCE_ASK_PASSPHRASE == state ) { %>
+		<form method="POST" action="<%= uri_start %>/passphrase">
+		<fieldset class="grd_container_small">
+			<legend>Konto wiederherstellen / Neues Passwort anlegen</legend>
+			<p>Um dein Konto wiederherzustellen, dir ein Neues Passwort ausw&auml;hlen zu können, tippe hier bitte die W&ouml;rter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast</p>
 			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
 		</fieldset>
 		

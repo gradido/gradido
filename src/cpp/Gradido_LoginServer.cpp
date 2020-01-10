@@ -156,6 +156,13 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
+		// first check time for crypto 
+		auto testUser = new User("email@google.de", "Max", "Mustermann");
+		Profiler timeUsed;
+		testUser->validatePwd("haz27Newpassword", nullptr);
+		ServerConfig::g_FakeLoginSleepTime = (int)std::round(timeUsed.millis());
+		delete testUser;
+
 		Poco::Int64 i1 = randombytes_random();
 		Poco::Int64 i2 = randombytes_random();
 		ServerConfig::g_ServerKeySeed->put(1, i1 | (i2 << 8));

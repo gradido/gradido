@@ -34,7 +34,7 @@ int WriteEmailVerification::run()
 	mEmailVerificationCode->getModel()->setUserId(mUser->getDBId());
 	auto emailVerificationModel = mEmailVerificationCode->getModel();
 	emailVerificationModel->setUserId(mUser->getDBId());
-	if (!emailVerificationModel->insertIntoDB() || emailVerificationModel->errorCount() > 0) {
+	if (!emailVerificationModel->insertIntoDB(true) || emailVerificationModel->errorCount() > 0) {
 		emailVerificationModel->sendErrorsAsEmail();
 		return -1;
 	}
@@ -91,6 +91,8 @@ Session::~Session()
 		unlock();
 		reset();
 	}
+	
+	
 	//printf("[Session::~Session] finished \n");
 }
 
@@ -280,64 +282,76 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	Profiler usedTime;
 	
 	auto em = ErrorManager::getInstance();
-	if(getEmailVerificationCode() == emailVerificationCode) {
+	if (mEmailVerificationCodeObject.isNull()) {
+		em->addError(new Error(funcName, "email verification object is zero"));
+		em->sendErrorsAsEmail();
+		unlock();
+		return -2;
+	}
+	auto emailVerificationCodeModel = mEmailVerificationCodeObject->getModel();
+	if(emailVerificationCodeModel->getCode() == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
 			//addError(new Error("E-Mail Verification", "Benutzer wurde nicht richtig gespeichert, bitte wende dich an den Server-Admin"));
 			em->addError(new Error(funcName, "user exist with 0 as id"));
 			em->sendErrorsAsEmail();
+			unlock();
 			//return false;
+			return -2;
 		}
 		
 		// load correct user from db
-		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-		Poco::Data::Statement select(dbConnection);
-		bool emailChecked = false;
-		int userId = 0;
-		select << "SELECT email_checked, id from users where id = (SELECT user_id FROM email_opt_in where verification_code=?)",
-			into(emailChecked), into(userId), use(emailVerificationCode);
+		if (mNewUser.isNull() || mNewUser->getModel()->getID() != emailVerificationCodeModel->getUserId()) {
+			mNewUser = controller::User::create();
+			if (1 != mNewUser->load(emailVerificationCodeModel->getUserId())) {
+				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", emailVerificationCodeModel->getUserId()));
+				em->sendErrorsAsEmail();
+				unlock();
+				return -2;
+			}
+		}
 
-		try {
-			select.execute();
+		auto userModel = mNewUser->getModel();
+		bool firstEmailActivation = false;
+		if (emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_REGISTER || emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_EMPTY) {
+			firstEmailActivation = true;
 		}
-		catch (Poco::Exception& ex) {
-			em->addError(new ParamError(funcName, "select user from email verification code mysql error ", ex.displayText().data()));
-			em->sendErrorsAsEmail();
-		}
-		if (userId != 0 && emailChecked) {
-			mSessionUser = new User(userId);
+		if (firstEmailActivation && userModel->isEmailChecked()) {
+			mSessionUser = new User(mNewUser);
 			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")));
 			unlock();
 			return 1;
 		}
-		if (userId == 0) {
-			addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
-			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
+		if (firstEmailActivation) {
+			userModel->setEmailChecked(true);
+			userModel->updateIntoDB("email_checked", 1);
+			if (userModel->errorCount() > 0) {
+				userModel->sendErrorsAsEmail();
+			}
 			unlock();
-			return -1;
+			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+			return 0;
 		}
 
-		Poco::Data::Statement update(dbConnection);
-		update << "UPDATE users SET email_checked=1 where id = ?", use(userId);
-
-		try {
-			auto updated_rows = update.execute();
-			if (!updated_rows) {
-				//addError(new Error(gettext("E-Mail Verification"), gettext("Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder registriere dich erneut oder wende dich an den Server-Admin")));
-				//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-				em->addError(new Error(funcName, "impossible error, update users failed with shortly before acquired user id "));
+		if (emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
+			unlock();
+			if (mEmailVerificationCodeObject->deleteFromDB()) {
+				mEmailVerificationCodeObject = nullptr;
+			}
+			else {
+				em->getErrors(mEmailVerificationCodeObject->getModel());
+				em->addError(new Error(funcName, "error deleting email verification code"));
 				em->sendErrorsAsEmail();
-
-				unlock();
 				return -2;
 			}
-			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
+			updateState(SESSION_STATE_RESET_PASSWORD_REQUEST);
+			return 0;
 		}
-		catch (Poco::Exception& ex) {
-			em->addError(new ParamError(funcName, "update user from email verification code mysql error ", ex.displayText().data()));
-			em->sendErrorsAsEmail();
-			unlock();
-			return -2;
-		}
+
+		em->addError(new Error(funcName, "invalid code path"));
+		em->sendErrorsAsEmail();
+		unlock();
+		return -2;
+		
 		/*if (updated_rows == 1) {
 			Poco::Data::Statement delete_row(dbConnection);
 			delete_row << "DELETE FROM email_opt_in where verification_code = ?", use(emailVerificationCode);
@@ -376,6 +390,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 int Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
 {
 	mNewUser = user;
+	mSessionUser = new User(user);
 	if (passphraseMemorized) {
 		// first check if already exist		
 
@@ -387,7 +402,7 @@ int Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphrase
 		auto emailVerificationModel = mEmailVerificationCodeObject->getModel();
 
 		UniLib::controller::TaskPtr insertEmailVerificationCode(
-			new model::table::ModelInsertTask(emailVerificationModel, true)
+			new model::table::ModelInsertTask(emailVerificationModel, true, true)
 		);
 		insertEmailVerificationCode->scheduleTask(insertEmailVerificationCode);
 		UniLib::controller::TaskPtr sendEmail(new SendEmailTask(
@@ -401,6 +416,37 @@ int Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphrase
 		EmailManager::getInstance()->addEmail(new model::Email(user, model::EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE));
 	}
 
+	return 0;
+}
+
+int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, Mnemonic* wordSource)
+{
+	KeyPair keys;
+	static const char* functionName = "Session::comparePassphraseWithSavedKeys";
+	if (!wordSource) {
+		addError(new Error(functionName, "wordSource is empty"));
+		sendErrorsAsEmail();
+		return -2;
+	}
+	if (!keys.generateFromPassphrase(inputPassphrase.data(), wordSource)) {
+		addError(new Error(gettext("Passphrase"), gettext("Deine Passphrase ist ung&uuml;tig")));
+		return 0;
+	}
+	auto userModel = mNewUser->getModel();
+	auto existingPublic = userModel->getPublicKey();
+	if (!existingPublic) {
+		userModel->loadFromDB("email", userModel->getEmail());
+		existingPublic = userModel->getPublicKey();
+		if (!existingPublic) {
+			addError(new Error(gettext("Passphrase"), gettext("Ein Fehler trat auf, bitte versuche es erneut")));
+			return -1;
+		}
+	}
+	if (0 == memcmp(userModel->getPublicKey(), keys.getPublicKey(), crypto_sign_PUBLICKEYBYTES)) {
+		mPassphrase = inputPassphrase;
+		return 1;
+	}
+	addError(new Error(gettext("Passphrase"), gettext("Das ist nicht die richtige Passphrase.")));
 	return 0;
 }
 
@@ -419,6 +465,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			return false;
 		}
 	}
+	
 	Poco::AutoPtr<ProcessingTransaction> processorTask(new ProcessingTransaction(proto_message_base64));
 	processorTask->scheduleTask(processorTask);
 	mProcessingTransactions.push_back(processorTask);
@@ -686,7 +733,8 @@ void Session::detectSessionState()
 	updateState(SESSION_STATE_KEY_PAIR_WRITTEN);
 
 	if (resetPasswd != -1) {
-		updateState(SESSION_STATE_RESET_PASSWORD_REQUEST);
+		// don't go to reset password screen after login, only throw checkEmail
+		//updateState(SESSION_STATE_RESET_PASSWORD_REQUEST);
 		return;
 	}
 
@@ -778,6 +826,8 @@ const char* Session::translateSessionStateToString(SessionStates state)
 	case SESSION_STATE_PASSPHRASE_WRITTEN: return "Passphrase written";
 	case SESSION_STATE_KEY_PAIR_GENERATED: return "Gradido Address created";
 	case SESSION_STATE_KEY_PAIR_WRITTEN: return "Gradido Address saved";
+	case SESSION_STATE_RESET_PASSWORD_REQUEST: return "Passwort reset requested";
+	case SESSION_STATE_RESET_PASSWORD_SUCCEED: return "Passwort reset succeeded";
 	default: return "unknown";
 	}
 

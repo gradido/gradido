@@ -47,6 +47,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 
 	//DHASH key = DRMakeStringHash(passphrase);
 	size_t pass_phrase_size = strlen(passphrase);
+	std::string clearPassphrase = "";
 	char acBuffer[STR_BUFFER_SIZE]; memset(acBuffer, 0, STR_BUFFER_SIZE);
 	size_t buffer_cursor = 0;
 	// get word indices for hmac key
@@ -55,6 +56,8 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 		if (passphrase[i] == ' ') {
 			if(buffer_cursor < 3) continue;
 			if (word_source->isWordExist(acBuffer)) {
+				clearPassphrase += acBuffer;
+				clearPassphrase += " ";
 				word_indices[word_cursor] = word_source->getWordIndex(acBuffer);
 			}
 			else {
@@ -80,11 +83,15 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
 	sha512_init(&state);
 	sha512_update(&state, (unsigned char*)word_indices, sizeof(word_indices));
-	sha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
+	sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
 	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
 	sha512_final(&state, hash);
 	//crypto_auth_hmacsha512_final(&state, hash);
 	
+	// debug passphrase
+//	printf("\passsphrase: <%s>\n", passphrase);
+//	printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
+//	printf("passphrase bin: \n%s\n\n", getHex((unsigned char*)passphrase, pass_phrase_size).data());
 
 	//ed25519_create_keypair(public_key, private_key, hash);
 	private_key_t prv_key_t;
@@ -130,6 +137,52 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	//printf("[KeyPair::generateFromPassphrase] finished!\n");
 	// using 
 	return true;
+}
+
+std::string KeyPair::filterPassphrase(const std::string& passphrase)
+{
+	std::string filteredPassphrase;
+	auto passphrase_size = passphrase.size();
+	for (int i = 0; i < passphrase_size; i++) {
+		char c = passphrase.data()[i];
+		// asci 128 even by utf8 (hex)
+		// 0000 0000 – 0000 007F
+		// utf8
+		if (c > 0x0000007F) {
+			int additionalUtfByteCount = 0;
+			filteredPassphrase += c;
+			if ((c & 0x00000080) == 0x00000080) {
+				additionalUtfByteCount = 1;
+			}
+			else if ((c & 0x00000800) == 0x00000800) {
+				additionalUtfByteCount = 2;
+			}
+			else if ((c & 0x00010000) == 0x00010000) {
+				additionalUtfByteCount = 3;
+			}
+			for (int j = 1; j <= additionalUtfByteCount; j++) {
+				filteredPassphrase += passphrase.data()[i + j];
+				i++;
+			}
+		}
+		else {
+			// 32 = Space
+			// 65 = A
+			// 90 = Z
+			// 97 = a
+			// 122 = z
+			if (c == 32 ||
+				(c >= 65 && c <= 90) ||
+				(c >= 97 && c <= 122)) {
+				filteredPassphrase += c;
+			}
+			else if (c == '\n' || c == '\r') {
+				filteredPassphrase += ' ';
+			}
+		}
+
+	}
+	return filteredPassphrase;
 }
 
 std::string KeyPair::getPubkeyHex()

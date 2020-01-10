@@ -28,6 +28,9 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	//ServerConfig::writeToFile(request.stream(), "elopage_webhook_requests.txt");
 
 	// empty response, we didn't need to set anything
+	//response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+	std::ostream& _responseStream = response.send();
+	_responseStream << "200 OK";
 
 	std::istream& stream = request.stream();
 	std::string completeRequest;
@@ -234,7 +237,7 @@ int HandleElopageRequestTask::run()
 	if (elopageBuy->errorCount() > 0) {
 		getErrors(elopageBuy);
 	}
-	UniLib::controller::TaskPtr saveElopageBuy(new model::table::ModelInsertTask(elopageBuy));
+	UniLib::controller::TaskPtr saveElopageBuy(new model::table::ModelInsertTask(elopageBuy, false));
 	saveElopageBuy->scheduleTask(saveElopageBuy);
 
 	// check product id
@@ -342,7 +345,7 @@ int HandleElopageRequestTask::run()
 		}
 
 		// write email verification code into db
-		UniLib::controller::TaskPtr saveEmailVerificationCode(new model::table::ModelInsertTask(emailVerification->getModel()));
+		UniLib::controller::TaskPtr saveEmailVerificationCode(new model::table::ModelInsertTask(emailVerification->getModel(), true));
 		saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
 		int noEMail = 0;
 
