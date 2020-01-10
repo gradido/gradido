@@ -9,6 +9,8 @@
 
 #include "../../MySQL/MysqlTable.h"
 
+#include "../../ServerConfig.h"
+
 //using namespace Poco::Data::Keywords;
 
 namespace model {
