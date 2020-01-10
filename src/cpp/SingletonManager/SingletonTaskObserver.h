@@ -54,15 +54,10 @@ public:
 protected:
 	SingletonTaskObserver();
 
-	
-
 
 	struct UserObserverEntry
 	{
-		UserObserverEntry(const std::string& email, DHASH id)
-			: mEmail(email), mHash(id) {
-			memset(mTasksCount, 0, TASK_OBSERVER_COUNT * sizeof(int));
-		}
+		UserObserverEntry(const std::string& email, DHASH id);
 
 		std::string mEmail;
 		DHASH		mHash;

@@ -1,6 +1,18 @@
 #include "SingletonTaskObserver.h"
 #include "ErrorManager.h"
 
+#include <cstring>
+
+// ********************** Entry Structure *********************************
+
+SingletonTaskObserver::UserObserverEntry::UserObserverEntry(const std::string& email, DHASH id)
+	: mEmail(email), mHash(id) {
+	memset(mTasksCount, 0, TASK_OBSERVER_COUNT * sizeof(int));
+}
+
+
+// ************************************************************************
+
 SingletonTaskObserver::SingletonTaskObserver()
 {
 
