@@ -407,7 +407,7 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 		auto hexStringTemp = mm->getFreeMemory(hexSize);
 		//char* hexString = (char*)malloc(hexSize);
 		memset(*hexStringTemp, 0, hexSize);
-		sodium_bin2hex(*hexStringTemp, hexSize, pubkey, crypto_sign_PUBLICKEYBYTES);
+		sodium_bin2hex((char*)(*hexStringTemp), hexSize, pubkey, crypto_sign_PUBLICKEYBYTES);
 		mPublicHex = *hexStringTemp;
 		mm->releaseMemory(hexStringTemp);
 	}

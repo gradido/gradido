@@ -139,7 +139,8 @@ namespace model {
 		size_t ModelBase::updateIntoDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement update(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER)
+			Poco::Data::Statement update(session);
 
 			if (mID == 0) {
 				addError(new Error("ModelBase::updateIntoDB", "id is zero"));
