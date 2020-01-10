@@ -282,6 +282,15 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << ( langCatalog->gettext("Create New Account") );
 	responseStream << "</a>\n";
 	responseStream << "                    </div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"reset-pwd-link\">\n";
+	responseStream << "\t\t\t\t\t\t<a href=\"";
+#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/resetPassword\">";
+#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << ( langCatalog->gettext("Passwort vergessen") );
+	responseStream << "</a>\n";
+	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "                  </div>\n";
 	responseStream << "                </div>\n";
 	responseStream << "                </form>\n";

@@ -170,6 +170,9 @@
                       <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
                       <a href="https://gradido.com"><%= langCatalog->gettext("Create New Account") %></a>
                     </div>
+					<div class="reset-pwd-link">
+						<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
+					</div>
                   </div>
                 </div>
                 </form>
