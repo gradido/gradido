@@ -49,10 +49,12 @@ public:
 	static const char* TaskObserverTypeToString(TaskObserverType type);
 	static TaskObserverType StringToTaskObserverType(const std::string& typeString);
 
+	static inline DHASH makeHash(const std::string& email) { return DRMakeStringHash(email.data(), email.size()); }
+
 protected:
 	SingletonTaskObserver();
 
-	inline DHASH makeHash(const std::string& email) { return DRMakeStringHash(email.data(), email.size()); }
+	
 
 
 	struct UserObserverEntry

@@ -27,6 +27,7 @@ void SingletonTaskObserver::addTask(const std::string& email, TaskObserverType t
 	UserObserverEntry* entry = static_cast<UserObserverEntry*>(mObserverEntrys.findByHash(id));
 	if (!entry) {
 		entry = new UserObserverEntry(email, id);
+		mObserverEntrys.addByHash(id, entry);
 	}
 	if (entry->mEmail != email) {
 		em->addError(new ParamError(funcName, "hash collision with ", email.data()));
@@ -46,6 +47,7 @@ void SingletonTaskObserver::addTask(DHASH id, TaskObserverType type)
 	UserObserverEntry* entry = static_cast<UserObserverEntry*>(mObserverEntrys.findByHash(id));
 	if (!entry) {
 		entry = new UserObserverEntry("", id);
+		mObserverEntrys.addByHash(id, entry);
 	}
 	entry->mTasksCount[type]++;
 	unlock();

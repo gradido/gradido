@@ -76,6 +76,9 @@
 			case USER_PASSWORD_INCORRECT:
 				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")));
 				break;
+			case USER_PASSWORD_ENCRYPTION_IN_PROCESS: 
+				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")));
+				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
 				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")));
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");

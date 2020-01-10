@@ -10,6 +10,7 @@
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/EmailManager.h"
+#include "../SingletonManager/SingletonTaskObserver.h"
 
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
@@ -452,7 +453,8 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 
 bool Session::startProcessingTransaction(const std::string& proto_message_base64)
 {
-	lock("Session::startProcessingTransaction");
+	static const char* funcName = "Session::startProcessingTransaction";
+	lock(funcName);
 	HASH hs = ProcessingTransaction::calculateHash(proto_message_base64);
 	// check if it is already running or waiting
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
@@ -460,13 +462,18 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			it = mProcessingTransactions.erase(it);
 		}
 		if (hs == (*it)->getHash()) {
-			addError(new Error("Session::startProcessingTransaction", "transaction already in list"));
+			addError(new Error(funcName, "transaction already in list"));
 			unlock();
 			return false;
 		}
 	}
-	
-	Poco::AutoPtr<ProcessingTransaction> processorTask(new ProcessingTransaction(proto_message_base64));
+	if (mSessionUser.isNull() || !mSessionUser->getEmail()) {
+		addError(new Error(funcName, "user is zero"));
+		unlock();
+		return false;
+	}
+
+	Poco::AutoPtr<ProcessingTransaction> processorTask(new ProcessingTransaction(proto_message_base64, DRMakeStringHash(mSessionUser->getEmail())));
 	processorTask->scheduleTask(processorTask);
 	mProcessingTransactions.push_back(processorTask);
 	unlock();
@@ -559,6 +566,12 @@ bool Session::isPwdValid(const std::string& pwd)
 
 UserStates Session::loadUser(const std::string& email, const std::string& password)
 {
+	auto observer = SingletonTaskObserver::getInstance();
+	if (email != "") {
+		if (observer->getTaskCount(email, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
+			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
+		}
+	}
 	//Profiler usedTime;
 	lock("Session::loadUser");
 	if (mSessionUser && mSessionUser->getEmail() != email) {
