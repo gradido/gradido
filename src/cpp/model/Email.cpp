@@ -1,4 +1,4 @@
-#include "Email.h"
+ï»¿#include "Email.h"
 #include "../SingletonManager/EmailManager.h"
 
 #include "Poco/Net/MediaType.h"
@@ -12,25 +12,25 @@ Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido reg
 Wenn du es warst, klicke bitte auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\
-Mit freundlichen Grüßen\n\
+Mit freundlichen GrÃ¼ÃŸen\n\
 Dario, Gradido Server Admin\n\
 "};
 
 const static char EmailText_emailResetPassword[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
-Du oder jemand anderes hat für dieses Konto ein Passwort Reset angefordert.\n\
+Du oder jemand anderes hat fÃ¼r dieses Konto ein Passwort Reset angefordert.\n\
 Wenn du es warst, klicke bitte auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\
-Mit freundlichen Grüßen\n\
+Mit freundlichen GrÃ¼ÃŸen\n\
 Dario, Gradido Server Admin\n\
 " };
 
 const static char EmailText_adminEmailResetPassword[] = { u8"\
 Der Benutzer mit der Email-Adresse: [email] hat sein Passwort vergessen.\n\
-Außerdem hat er auch seine Passphrase vergessen. \n\
-Bitte logge dich im Admin-Bereich um das Problem zu lösen.\n\
+AuÃŸerdem hat er auch seine Passphrase vergessen. \n\
+Bitte logge dich im Admin-Bereich um das Problem zu lÃ¶sen.\n\
 \n\
 LG \n\
 Gradido Login Server\
@@ -121,7 +121,7 @@ Gradido Login Server\
 				return false;
 			}
 			mailMessage->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mUser->getModel()->getEmail()));
-			mailMessage->setSubject(langCatalog->gettext_str(u8"Gradido: Passwort zurücksetzen"));
+			mailMessage->setSubject(langCatalog->gettext_str(u8"Gradido: Passwort zurÃ¼cksetzen"));
 
 			mailMessage->addContent(
 				new Poco::Net::StringPartSource(replaceUserNamesAndLink(
