@@ -62,11 +62,9 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 		auto user = controller::User::create();
 		
 		if(email != "") {
-		    
 			if(!user->getModel()->loadFromDB("email", email) || !user->getModel()->isEmailChecked()) {
-			//if(!session->ifUserExist(email)) {
 				//printf("user: %s\n", user->getModel()->toString().data());
-				addError(new Error(langCatalog->gettext("E-Mail"), langCatalog->gettext("E-Mail Adresse nicht gefunden werden oder ist nicht aktiviert.")));
+				addError(new Error(langCatalog->gettext("E-Mail"), langCatalog->gettext("E-Mail Adresse konnte nicht gefunden werden oder ist nicht aktiviert.")));
 				emailInputClass += " is-invalid"; 
 			}
 		} else {
@@ -196,10 +194,10 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\n";
 	responseStream << "</style>\n";
 	responseStream << "\t";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  if(state == PAGE_ASK) { 	responseStream << "\n";
 	responseStream << "\t\t<form action=\"";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/resetPassword\">\n";
 	responseStream << "\t\t\t";
@@ -239,28 +237,28 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t\t<div class=\"item-wrapper\">\n";
 	responseStream << "\t\t\t  <div class=\"form-group\">\n";
 	responseStream << "\t\t\t\t<label for=\"email\">";
-#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 107 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Gebe bitte hier deine E-Mail Adresse an:") );
 	responseStream << "&nbsp;&nbsp;&nbsp;&nbsp;</label>\n";
 	responseStream << "\t\t\t\t<input type=\"text\" class=\"";
-#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( emailInputClass );
 	responseStream << "\" name=\"email\" id=\"email\" placeholder=\"E-Mail\" value=\"";
-#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( email );
 	responseStream << "\">\n";
 	responseStream << "\t\t\t\t<label>";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Hast du dir deine Passphrase notiert oder gemerkt?") );
 	responseStream << "</label>    \n";
 	responseStream << "\t\t\t\t<div class=\"";
-#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( passphraseRadioClass );
 	responseStream << "\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"radio\">\n";
 	responseStream << "\t\t\t\t\t  <label class=\"radio-label mr-4\">\n";
 	responseStream << "\t\t\t\t\t\t<input name=\"passphrase_memorized\" onclick=\"removeGroupInvalidClass()\"  type=\"radio\" value=\"true\">";
-#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Ja") );
 	responseStream << " <i class=\"input-frame\"></i>\n";
 	responseStream << "\t\t\t\t\t  </label>\n";
@@ -268,7 +266,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t\t\t\t<div class=\"radio\">\n";
 	responseStream << "\t\t\t\t\t  <label class=\"radio-label\">\n";
 	responseStream << "\t\t\t\t\t\t<input name=\"passphrase_memorized\" onclick=\"removeGroupInvalidClass()\" type=\"radio\" value=\"false\">";
-#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Nein") );
 	responseStream << " <i class=\"input-frame\"></i>\n";
 	responseStream << "\t\t\t\t\t  </label>\n";
@@ -276,45 +274,45 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t  </div>\n";
 	responseStream << "\t\t\t  <button type=\"submit\" class=\"btn btn-sm btn-primary\">";
-#line 125 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Absenden") );
 	responseStream << "</button>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t  ";
-#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  } else if(state == PAGE_WAIT_EMAIL) { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 129 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 127 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Dir wird eine E-Mail zugeschickt um dein Passwort zur&uuml;ckzusetzen.") );
 	responseStream << "\n";
 	responseStream << "\t  ";
-#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  } else if(state == PAGE_WAIT_ADMIN) { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 129 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Der Admin hat eine E-Mail bekommen und wird sich bei dir melden.") );
 	responseStream << "\n";
 	responseStream << "\t  ";
-#line 132 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  } else if(state == PAGE_EMAIL_ALREADY_SEND) { 	responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Du hast bereits eine E-Mail bekommen. Bitte schau auch in dein Spam-Verzeichnis nach. ") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t<p>";
-#line 134 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 132 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Du hast wirklich keine E-Mail erhalten und auch schon ein paar Minuten gewartet?") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t<p><b><a href=\"mailto:";
-#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( adminReceiver );
 	responseStream << "?subject=Error Reset Password email&amp;body=Hallo Dario,%0D%0A%0D%0Aich habe keine Passwort zurücksetzen E-Mail erhalten,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">";
-#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail an Support schicken"));
 	responseStream << "</a></b></p>\n";
 	responseStream << "\t  ";
-#line 136 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+#line 134 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  } 	responseStream << "\n";
 	responseStream << "          </div>  \n";
 	responseStream << "          </div>\n";
