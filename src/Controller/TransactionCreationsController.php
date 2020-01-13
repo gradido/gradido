@@ -237,6 +237,9 @@ class TransactionCreationsController extends AppController
                 ]);
           //}
         }
+        usort($possibleReceiver, function($a, $b) {
+          return ($a['name'] <=> $b['name']);
+        });
         //var_dump($possibleReceiver);
         $creationForm = new CreationForm();
         
