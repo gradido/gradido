@@ -60,7 +60,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
   
   <fieldset>
     <?= $this->Form->control('memo'); ?>
-    <?= $this->Form->control('amount'); ?>
+    <?= $this->Form->control('amount', ['required' => false]); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
       $disable = null;
       if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 10000000) {
@@ -80,7 +80,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
           &lt;<?= $possibleReceiver['email'] ?>&gt;
         <?php endif; ?><br>
         <div class="input number grd-padding-top-bottom-5">
-          <?= $this->Form->text('user_amount[' . $possibleReceiver['id'] . ']', ['placeholder' => __('Für benutzerdefinierten Betrag'), 'type' => 'number', 'step' => '0.01', $disable]); ?> GDD
+          <?= $this->Form->text('user_amount[' . $possibleReceiver['id'] . ']', ['placeholder' => __('Für benutzerdefinierten Betrag'), 'class' => 'user_amount', 'type' => 'number', 'step' => '0.01', $disable]); ?> GDD
         </div>
         <?php if(isset($possibleReceiver['pending'])) : ?>
         <span class="grd_smaller color-orange">
@@ -127,4 +127,54 @@ $this->assign('title', __('Schöpfungstransaktion'));
       }  
     }
   }
+  
+  // cross browser dom is ready module from: 
+// https://www.competa.com/blog/cross-browser-document-ready-with-vanilla-javascript/
+var domIsReady = (function(domIsReady) {
+   var isBrowserIeOrNot = function() {
+      return (!document.attachEvent || typeof document.attachEvent === "undefined" ? 'not-ie' : 'ie');
+   }
+
+   domIsReady = function(callback) {
+      if(callback && typeof callback === 'function'){
+         if(isBrowserIeOrNot() !== 'ie') {
+            document.addEventListener("DOMContentLoaded", function() {
+               return callback();
+            });
+         } else {
+            document.attachEvent("onreadystatechange", function() {
+               if(document.readyState === "complete") {
+                  return callback();
+               }
+            });
+         }
+      } else {
+         console.error('The callback is not a function!');
+      }
+   }
+
+   return domIsReady;
+})(domIsReady || {});
+
+(function(document, window, domIsReady, undefined) {
+   domIsReady(function() {
+      var userAmountInputs = document.getElementsByClassName("user_amount");
+      for(var i in userAmountInputs) {
+        var input = userAmountInputs[i];
+        //console.log("input: %o", input);
+        if(input.parentNode != undefined) {
+//          var checkbox = input.parentNode.previousElementSibling.previousElementSibling;
+          //console.log("checkbox: %o?", checkbox);
+          input.onfocus = function(e) {
+            var checkbox = e.target.parentNode.previousElementSibling.previousElementSibling;
+            checkbox.checked = true;
+            //console.log("onFocus checkbox: %o", checkbox);
+          }
+        }
+      }
+   });
+})(document, window, domIsReady);
+
+  // 
+  
 </script>
