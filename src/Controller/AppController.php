@@ -121,7 +121,11 @@ class AppController extends Controller
             $GLOBALS["passed"] = $passedArguments[0];
         }
         $GLOBALS["subside"] = $subside;
-
+        
+        // server login
+        if($this->Auth->user('id')) {
+          $GLOBALS['ServerUser'] = $this->Auth->user();
+        }
 
     }
     
@@ -157,7 +161,10 @@ class AppController extends Controller
 
                 if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
                   //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
-                  $session->destroy();
+                  if($session->read('session_id') != $session_id || 
+                    ( $userStored && !isset($userStored['id']))) {
+                    $session->destroy();
+                  }
                   foreach($json['user'] as $key => $value) {
                     $session->write('StateUser.' . $key, $value );
                   }
