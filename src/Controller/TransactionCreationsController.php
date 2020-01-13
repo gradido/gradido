@@ -228,14 +228,14 @@ class TransactionCreationsController extends AppController
               $sumAmount += $transactionCreation->amount;
             }
           }
-          if($sumAmount < 10000000) {
+          //if($sumAmount < 10000000) {
             array_push($possibleReceiver, [
                 'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
                 'id' => $stateUser->id,
                 'email' => $stateUser->email,
                 'amount' => $sumAmount
                 ]);
-          }
+          //}
         }
         //var_dump($possibleReceiver);
         $creationForm = new CreationForm();

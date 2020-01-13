@@ -44,7 +44,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?= $this->Form->control('amount'); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
       $disable = '';
-      if($activeUser['id'] == $possibleReceiver['id']) {
+      if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 10000000) {
         $disable = 'disabled';
       }
       ?>
