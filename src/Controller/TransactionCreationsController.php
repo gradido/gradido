@@ -252,6 +252,8 @@ class TransactionCreationsController extends AppController
         
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
+          //var_dump($requestData);
+          //die("miau");
           // memo
           // amount
           $memo = $requestData['memo'];
@@ -263,19 +265,34 @@ class TransactionCreationsController extends AppController
             $this->Flash->error(__('no user choosen'));
           } else {
             $users = $requestData['user'];
+            if(isset($requestData['user_pending'])) {
+              $pendings = $requestData['user_pending'];
+            } else {
+              $pendings = [];
+            }
             //var_dump(array_keys($users));
             $receiverUsers = $stateUserTable
                     ->find('all')
                     ->where(['id IN' => array_keys($users)])
-                    ->select(['public_key', 'email'])
+                    ->select(['public_key', 'email', 'id'])
                     ->contain(false);
             $transactions  = [];
             //var_dump($receiverUsers);
             foreach($receiverUsers as $receiverUser) {
+              $localAmountCent = $amountCent;
+              $id = $receiverUser->id;
+              if($requestData['user_amount'][$id] != '') {
+                $localAmountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['user_amount'][$id]);
+              }
+              if(isset($pendings[$id])) {
+                $pendings[$id] += $localAmountCent;
+              } else {
+                $pendings[$id] = $localAmountCent;
+              }
               $pubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
               $identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
               $builderResult = TransactionCreation::build(
-                    $amountCent, 
+                    $localAmountCent, 
                     $memo, 
                     $pubKeyHex,
                     $identHash
@@ -284,6 +301,16 @@ class TransactionCreationsController extends AppController
                   array_push($transactions, base64_encode($builderResult['transactionBody']->serializeToString()));
               }
             }
+            /*echo "pendings: ";
+            var_dump($pendings);
+            echo "<br>";*/
+            foreach($possibleReceiver as $i => $_possibleReceiver) {
+              $id = $_possibleReceiver['id'];
+              if(isset($pendings[$id])) {
+                $possibleReceiver[$i]['pending'] = $pendings[$id];
+              }
+            }
+            $this->set('possibleReceiver', $possibleReceiver);
             $creationTransactionCount = count($transactions);
             if($creationTransactionCount > 0) {
               $user_balance = 0;

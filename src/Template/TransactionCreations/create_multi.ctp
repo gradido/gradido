@@ -22,8 +22,13 @@ $this->assign('title', __('Schöpfungstransaktion'));
   }
   
   .grd_big_checkbox {
-    border:1px dotted grey;
+    border:1px dotted black;
+    padding:4px;
     margin-bottom:5px;
+  }
+  
+  .grd_margin-bottom_50 {
+    margin-bottom:50px;
   }
   
   .grd_smaller {
@@ -31,8 +36,22 @@ $this->assign('title', __('Schöpfungstransaktion'));
     color:blue;
   }
   
+  .color-orange {
+    color:#6400d9;
+  }
+  
+  .flowing-bottom {
+    position:fixed;
+    bottom:0px;
+    padding-left:20px;
+    padding-right:20px;
+    padding-top:10px;
+    padding-bottom:10px;
+    background-color:rgba(255,255,255,0.5);
+  }
+  
 </style>
-<div class="grd_container_small">
+<div class="grd_container_small grd_margin-bottom_50">
   
   <button type="button" onclick="checkAll()" >Alle auswählen</button>
   <button type="button" onclick="uncheckAll()">Alle abwählen</button>
@@ -43,25 +62,38 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount'); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
-      $disable = '';
+      $disable = null;
       if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 10000000) {
         $disable = 'disabled';
       }
       ?>
     <div class="grd_big_checkbox">
+      <?php if(isset($possibleReceiver['pending'])) : ?>
+        <?= $this->Form->hidden('user_pending[' . $possibleReceiver['id'] . ']', ['value' => $possibleReceiver['pending']] ) ?>
+      <?php endif; ?>
       <?= $this->Form->checkbox('user[' .$possibleReceiver['id'] . ']',  ['value' => $possibleReceiver['id'], 'hiddenField' => false, $disable]); ?>
-      <?php if($disable != '') : ?>
+      <?php if($disable != null) : ?>
         <span style="color:grey" title="Du kannst leider nicht für dich selbst schöpfen.">
       <?php endif; ?>
       <?= $possibleReceiver['name'] ?>   
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;
         <?php endif; ?><br>
+        <div class="input number grd-padding-top-bottom-5">
+          <?= $this->Form->text('user_amount[' . $possibleReceiver['id'] . ']', ['placeholder' => __('Für benutzerdefinierten Betrag'), 'type' => 'number', 'step' => '0.01', $disable]); ?> GDD
+        </div>
+        <?php if(isset($possibleReceiver['pending'])) : ?>
+        <span class="grd_smaller color-orange">
+          Bereits als Transaktion angelegt: <?= $this->element('printGradido', ['number' => $possibleReceiver['pending']]);?>
+        </span>
+        <br>
+        <?php endif; ?>
         <?php if($possibleReceiver['amount'] != 0) : ?>
           <span class="grd_smaller">
-            In diesem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?></span>
+            In diesem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?>
+          </span>
         <?php endif; ?>
-        <?php if($disable != '') : ?>
+        <?php if($disable != null) : ?>
           </span>
         <?php endif; ?>
           <br>
@@ -69,8 +101,10 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?php endforeach; ?>
     <!--<?= $this->Form->control('receiver_pubkey_hex', []) ?>-->
   </fieldset>
-  <?= $this->Form->button(__('Transaktion(n) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
-  <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'grd-form-bn grd_clickable  grd-width-200']) ?>
+  <div class="flowing-bottom">
+    <?= $this->Form->button(__('Transaktion(n) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
+    <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'grd-form-bn grd_clickable  grd-width-200']) ?>
+  </div>
   <?= $this->Form->end() ?>
 </div>
 <script type="text/javascript">
