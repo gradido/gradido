@@ -88,7 +88,7 @@ namespace model {
 		template<class WhereFieldType, class Tuple> 
 		std::vector<Tuple> ModelBase::loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults)
 		{
-			printf("ModelBase::loadFromDB multi\n");
+			//printf("ModelBase::loadFromDB multi\n");
 			std::vector<Tuple> results;
 			return results;
 			if (expectedResults > 0) {

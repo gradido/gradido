@@ -148,6 +148,10 @@ public:
 	Languages getLanguage();
 	inline const char* gettext(const char* text) { if (mLanguageCatalog.isNull()) return text; return mLanguageCatalog->gettext(text); }
 
+	// last referer
+	inline void setLastReferer(const std::string& lastReferer) { mLastExternReferer = lastReferer; }
+	inline const std::string& getLastReferer() const { return mLastExternReferer; }
+
 protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
@@ -164,6 +168,7 @@ private:
 	std::string mPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
+	std::string          mLastExternReferer;
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 
 

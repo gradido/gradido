@@ -44,6 +44,7 @@ public:
 
 	//! \return -1 if no entry for email found
 	int getTaskCount(const std::string& email, TaskObserverType type);
+	int getTaskCount(DHASH id, TaskObserverType type);
 	std::vector<int> getTasksCount(const std::string& email);
 
 	static const char* TaskObserverTypeToString(TaskObserverType type);

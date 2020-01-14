@@ -100,7 +100,7 @@ int SigningTransaction::run() {
 	
 
 	// finalize
-	printf("sigpair size: %d\n", transaction.sigmap().sigpair_size());
+	//printf("sigpair size: %d\n", transaction.sigmap().sigpair_size());
 	std::string finalTransactionBin = transaction.SerializeAsString();
 	if (finalTransactionBin == "") {
 		addError(new Error("SigningTransaction", "error serializing final transaction"));
@@ -123,7 +123,7 @@ int SigningTransaction::run() {
 	Poco::JSON::Object requestJson;
 	requestJson.set("method", "putTransaction");
 	requestJson.set("transaction", std::string((char*)*finalBase64Bin));
-	printf("\nbase64 transaction: \n%s\n\n", (char*)*finalBase64Bin);
+	//printf("\nbase64 transaction: \n%s\n\n", (char*)*finalBase64Bin);
 	mm->releaseMemory(finalBase64Bin);
 
 	
@@ -188,7 +188,7 @@ int SigningTransaction::run() {
 			sendErrorsAsEmail();
 			return -10;
 		}
-		printf("state: %s\n", stateString.data());
+		//printf("state: %s\n", stateString.data());
 		int zahl = 1;
 	}
 	catch (Poco::Exception& e) {

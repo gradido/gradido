@@ -443,6 +443,7 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 		// max age of 0 delete cookie
 		keks.setMaxAge(0);
 		response.addCookie(keks);
+		printf("remove PHP Kekse\n");
 	}
 
 

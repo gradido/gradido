@@ -42,12 +42,18 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
 	mRemoveGETParameters.extract(uri, url_first_part);
 
+	std::string externReferer;
+
 	if (uri != "/favicon.ico") {
 		//printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
-		/*auto referer = request.find("Referer");
+		auto referer = request.find("Referer");
 		if (referer != request.end()) {
-			printf("referer: %s\n", referer->second.data());
-		}*/
+			//printf("referer: %s\n", referer->second.data());
+			auto refererString = referer->second;
+			if (refererString.find(ServerConfig::g_serverPath) == refererString.npos) {
+				externReferer = refererString;
+			}
+		}//*/
 	}
 
 	if (url_first_part == "/elopage_webhook_261") {
@@ -67,6 +73,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	try {
 		session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 	} catch (...) {}
+
 	auto sm = SessionManager::getInstance();
 	auto s = sm->getSession(session_id);
 
@@ -99,6 +106,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return resetPassword;
 	}
 	if (s) {
+		if (externReferer != "") {
+			s->setLastReferer(externReferer);
+		}
+
 		auto user = s->getUser();
 		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
 			user->sendErrorsAsEmail();

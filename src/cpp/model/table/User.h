@@ -22,6 +22,8 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
+		
+
 		class User : public ModelBase 
 		{
 		public:

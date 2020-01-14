@@ -70,6 +70,7 @@
 			getErrors(mSession);
 			
 			auto uri_start = request.serverParams().getServerName();
+			auto lastExternReferer = mSession->getLastReferer();
 			
 			switch(userState) {
 			case USER_EMPTY: 
@@ -88,7 +89,11 @@
 				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
-				response.redirect(ServerConfig::g_php_serverPath + "/");
+				if(lastExternReferer != "") {
+					response.redirect(lastExternReferer);
+				} else {
+					response.redirect(ServerConfig::g_php_serverPath + "/");
+				}
 				return;
 			}
 			
