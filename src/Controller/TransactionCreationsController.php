@@ -181,16 +181,12 @@ class TransactionCreationsController extends AppController
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
-        $user = $session->read('StateUser');
-//        var_dump($user);
-        if(!$user) {
-          //return $this->redirect(Router::url('/', true) . 'account/', 303);
-          $result = $this->requestLogin();
-          if($result !== true) {
-            return $result;
-          }
-          $user = $session->read('StateUser');
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
         }
+        $user = $session->read('StateUser');
+        
         $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
         
         $connection = ConnectionManager::get('default');
