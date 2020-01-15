@@ -50,15 +50,16 @@ enum PageState {
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
-		auto observer = SingletonTaskObserver::getInstance();
+		/*auto observer = SingletonTaskObserver::getInstance();
 		auto emailHash = DRMakeStringHash(mSession->getUser()->getEmail());
 		int breakCount = 0;
 		while(observer->getTaskCount(emailHash, TASK_OBSERVER_SIGN_TRANSACTION) > 0) {
 			if(breakCount > 100) break;
 			breakCount++;
 			Poco::Thread::sleep(10);
-		}
+		}*/
 		auto lastExternReferer = mSession->getLastReferer();
+		//lastExternReferer = "";
 		if(lastExternReferer != "") {
 			printf("last extern referer: %s\n", lastExternReferer.data());
 			response.redirect(lastExternReferer);

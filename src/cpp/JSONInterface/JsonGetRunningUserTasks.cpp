@@ -7,9 +7,29 @@ Poco::JSON::Object* JsonGetRunningUserTasks::handle(Poco::Dynamic::Var params)
 {
 	std::string email;
 	Poco::JSON::Object* result = new Poco::JSON::Object;
-	if (params.isStruct()) {
+	bool parameterReaded = false;
+	// if is json object
+	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
+		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
+		/// Throws a RangeException if the value does not fit
+		/// into the result variable.
+		/// Throws a NotImplementedException if conversion is
+		/// not available for the given type.
+		/// Throws InvalidAccessException if Var is empty.
+		try {
+			paramJsonObject->get("email").convert(email);
+			parameterReaded = true;
+		}
+		catch (Poco::Exception& ex) {
+			printf("[JsonGetRunningUserTasks::handle] try to use params as jsonObject: %s\n", ex.displayText().data());
+			result->set("state", "error");
+			result->set("msg", "json exception");
+			result->set("details", ex.displayText());
+		}
+	}
+	else if (params.isStruct()) {
 		auto _email = params["email"];
-		int zahl = 0;
+		parameterReaded = true;
 		//std::string miau = params["miau"];
 	}
 	else if (params.isVector()) {
@@ -20,9 +40,31 @@ Poco::JSON::Object* JsonGetRunningUserTasks::handle(Poco::Dynamic::Var params)
 				break;
 			}
 		}
+		parameterReaded = true;
+	}
+	else if (params.isArray()) {
+		result->set("state", "error");
+		result->set("msg", "array not implemented yet");
+	}
+	else if (params.isList()) {
+		result->set("state", "error");
+		result->set("msg", "list not implemented yet");
+	}
+	else if (params.isString()) {
+		result->set("state", "error");
+		result->set("msg", "string not implemented yet");
+	}
+	else if (params.isDeque()) {
+		result->set("state", "error");
+		result->set("msg", "deque not implemented yet");
+	}
+	else {
+		result->set("state", "error");
+		result->set("msg", "format not implemented");
+		result->set("details", std::string(params.type().name()));
 	}
 
-	if (email != "") {
+	if (parameterReaded && email != "") {
 		auto ob = SingletonTaskObserver::getInstance();
 		auto tasks = ob->getTasksCount(email);
 		Poco::JSON::Object tasksJson;
@@ -38,10 +80,10 @@ Poco::JSON::Object* JsonGetRunningUserTasks::handle(Poco::Dynamic::Var params)
 		result->set("state", "success");
 		result->set("runningTasks", tasksJson);
 	}
-	else {
+	else if(parameterReaded) {
 		result->set("state", "error");
 		result->set("msg", "empty email");
-	}
+	} 
 
 	return result;
 }

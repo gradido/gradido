@@ -30,6 +30,7 @@ SigningTransaction::SigningTransaction(Poco::AutoPtr<ProcessingTransaction> proc
 SigningTransaction::~SigningTransaction()
 {
 	auto ob = SingletonTaskObserver::getInstance();
+	//Poco::Thread::sleep(10000);
 	if (!mUser.isNull() && mUser->getEmail() != "") {
 		ob->removeTask(mUser->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	}
@@ -135,7 +136,7 @@ int SigningTransaction::run() {
 	try {
 		Profiler phpRequestTime;
 		Poco::Net::HTTPSClientSession httpsClientSession(ServerConfig::g_php_serverHost, 443);
-		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/TransactionJsonRequestHandler");
+		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
 		std::ostream& requestStream = httpsClientSession.sendRequest(request);
@@ -198,7 +199,7 @@ int SigningTransaction::run() {
 		return -8;
 	}
 	
-	
+	//Poco::Thread::sleep(10000);
 
 	return 0;
 }

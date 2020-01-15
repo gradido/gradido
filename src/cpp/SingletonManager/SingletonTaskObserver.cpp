@@ -46,6 +46,9 @@ void SingletonTaskObserver::addTask(const std::string& email, TaskObserverType t
 		em->addError(new ParamError(funcName, "and ", entry->mEmail.data()));
 		em->sendErrorsAsEmail();
 	}
+	if (entry->mEmail == "") {
+		entry->mEmail = email;
+	}
 	entry->mTasksCount[type]++;
 	unlock();
 }
@@ -162,7 +165,7 @@ int SingletonTaskObserver::getTaskCount(const std::string& email, TaskObserverTy
 
 	lock("SingletonTaskObserver::getTaskCount");
 	UserObserverEntry* entry = static_cast<UserObserverEntry*>(mObserverEntrys.findByHash(id));
-	if (!entry || entry->mEmail != email) {
+	if (!entry || (entry->mEmail != "" && entry->mEmail != email)) {
 		unlock();
 		return -1;
 	}

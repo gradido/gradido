@@ -28,7 +28,7 @@ ProcessingTransaction::~ProcessingTransaction()
 	}
 	auto observer = SingletonTaskObserver::getInstance();
 	if (mUserEmailHash != 0) {
-		observer->addTask(mUserEmailHash, TASK_OBSERVER_PREPARE_TRANSACTION);
+		observer->removeTask(mUserEmailHash, TASK_OBSERVER_PREPARE_TRANSACTION);
 	}
 	unlock();
 }

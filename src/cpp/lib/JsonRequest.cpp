@@ -37,7 +37,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::
 	try {
 		Profiler phpRequestTime;
 		Poco::Net::HTTPSClientSession httpsClientSession(mServerHost, mServerPort);
-		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/TransactionJsonRequestHandler");
+		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
 		std::ostream& requestStream = httpsClientSession.sendRequest(request);

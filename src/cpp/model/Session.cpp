@@ -103,9 +103,9 @@ void Session::reset()
 	//printf("[Session::reset]\n");
 	lock("Session::reset");
 	
-	mSessionUser = nullptr;
-	mNewUser = nullptr;
-	mEmailVerificationCodeObject = nullptr;
+	mSessionUser.assign(nullptr);
+	mNewUser.assign(nullptr);
+	mEmailVerificationCodeObject.assign(nullptr);
 
 	// watch out
 	//updateTimeout();
@@ -115,7 +115,6 @@ void Session::reset()
 	
 	mPassphrase = "";
 	mClientLoginIP = Poco::Net::IPAddress();
-	mEmailVerificationCodeObject = nullptr;
 	unlock();
 	//printf("[Session::reset] finished\n");
 }
@@ -336,7 +335,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		if (emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
 			unlock();
 			if (mEmailVerificationCodeObject->deleteFromDB()) {
-				mEmailVerificationCodeObject = nullptr;
+				mEmailVerificationCodeObject.assign(nullptr);
 			}
 			else {
 				em->getErrors(mEmailVerificationCodeObject->getModel());
@@ -528,7 +527,7 @@ void Session::finalizeTransaction(bool sign, bool reject)
 			signingTransaction->scheduleTask(signingTransaction);
 		}
 	}
-	mCurrentActiveProcessingTransaction = nullptr;
+	mCurrentActiveProcessingTransaction.assign(nullptr);
 	unlock();
 }
 
@@ -575,8 +574,8 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	//Profiler usedTime;
 	lock("Session::loadUser");
 	if (mSessionUser && mSessionUser->getEmail() != email) {
-		mSessionUser = nullptr;
-		mNewUser = nullptr;
+		mSessionUser.assign(nullptr);
+		mNewUser.assign(nullptr);
 	}
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
