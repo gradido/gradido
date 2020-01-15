@@ -244,6 +244,7 @@ class TransactionCreationsController extends AppController
         
         $this->set('activeUser', $user);
         $this->set('creationForm', $creationForm);
+        $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('timeUsed', microtime(true) - $startTime);
         
         if ($this->request->is('post')) {

@@ -1,9 +1,3 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 // cross browser dom is ready module from: 
 // https://www.competa.com/blog/cross-browser-document-ready-with-vanilla-javascript/
 var domIsReady = (function(domIsReady) {
@@ -31,6 +25,38 @@ var domIsReady = (function(domIsReady) {
 
    return domIsReady;
 })(domIsReady || {});
+
+
+// vanilla ajax request, json get
+function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction) {
+  var xhr = new XMLHttpRequest();
+    
+  xhr.onload = function(e) {
+    var xhr = e.target;
+    //console.log(xhr);
+    var jsonReturn = [];
+    if (xhr.responseType === 'json') {
+        jsonReturn = xhr.response;
+    } else {
+        jsonReturn = JSON.parse(xhr.responseText);
+    }
+    successFunction(jsonReturn);
+  }
+  xhr.onerror = function(e) {
+    errorFunction(e);
+  }
+  xhr.ontimeout = function(e) {
+    timeoutFunction(e);
+  }
+  
+  var bustCache =  '&' + new Date().getTime();
+  //oReq.open('GET', e.target.dataset.url + bustCache, true);
+  xhr.open('GET', basisUrl + '?method='+method + bustCache, true);
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+  xhr.responseType = 'json'; 
+  xhr.send();
+}
+
 
 /*
  * var el = document.querySelector('.toggle-me');

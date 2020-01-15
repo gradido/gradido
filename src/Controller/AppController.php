@@ -146,9 +146,11 @@ class AppController extends Controller
         if($session_id != 0) {
           $userStored = $session->read('StateUser');
           $transactionPendings = $session->read('Transactions.pending');
+          $transactionExecutings = $session->read('Transaction.executing');
           if($session->read('session_id') != $session_id || 
              ( $userStored && !isset($userStored['id'])) ||
-              intval($transactionPendings) > 0) {
+              intval($transactionPendings) > 0 ||
+              intval($transactionExecutings) > 0) {
             $http = new Client();
             try {
               $loginServer = Configure::read('LoginServer');
@@ -170,8 +172,10 @@ class AppController extends Controller
                   }
                   //var_dump($json);
                   $transactionPendings = $json['Transaction.pending'];
+                  $transactionExecuting = $json['Transaction.executing'];
                   //echo "read transaction pending: $transactionPendings<br>";
                   $session->write('Transactions.pending', $transactionPendings);
+                  $session->write('Transaction.executing', $transactionExecuting);
                   $session->write('session_id', $session_id);
                   $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
                   if($json['user']['public_hex'] != '') {

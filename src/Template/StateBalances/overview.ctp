@@ -18,6 +18,17 @@ $this->assign('title', __('Kontoübersicht'));
     </div>
   </div>
 </div>
+<?php if($transactionExecutingCount > 0) : ?>
+<div class="row">
+  <div class="col-md-8 equel-grid">
+    <div class="grid">
+      <div id="transaction-execute-display" class="grid-body py-3" style="color:grey">
+        
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 <div class="row">
   <div class="col-md-10 equel-grid">
     <div class="grid">
@@ -95,3 +106,55 @@ $this->assign('title', __('Kontoübersicht'));
     </div>
   </div>
 </div>
+<?php if($transactionExecutingCount > 0) : ?>
+<script type="text/javascript">
+  //function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction)
+  g_transactionExecutionCount = <?= $transactionExecutingCount ?>;
+  
+  function updateTransactionExecutingDisplay(count) {
+    var display = document.getElementById('transaction-execute-display');
+    display.innerHTML = count + " ";
+    if(count == 1) {
+      display.innerHTML += "<?= __('Laufende Transaktion') ?>";
+    } else {
+      display.innerHTML += "<?= __('Laufende Transaktionen') ?>";
+    }
+    display.innerHTML += '&nbsp;<div class="spinner-border text-light spinner-border-sm" role="status"><span class="sr-only">Loading...</span></div>';
+  }
+  
+  function checkTransactionExecuting() {
+    
+    
+    getJson('<?= $this->Url->build(["controller" => "JsonRequestHandler"]);?>', 'getRunningUserTasks',
+      // success
+      function(json) {
+        if(json.state === 'success') {
+           var newCount = 0;
+           if(json.data.runningTasks["sign transaction"] != undefined) {
+             newCount = json.data.runningTasks["sign transaction"];
+           }
+           if(newCount != g_transactionExecutionCount) {
+             g_transactionExecutionCount = newCount;
+             location.reload();
+             //updateTransactionExecutingDisplay(g_transactionExecutionCount);
+           }
+        }
+      },
+      // error
+      function(e) {
+      },
+      // timeout
+      function(e) {
+      }
+    )
+  }
+  
+  (function(document, window, domIsReady, undefined) {
+   domIsReady(function() {
+      updateTransactionExecutingDisplay(g_transactionExecutionCount);
+      setTimeout(checkTransactionExecuting, 100);
+      //setInterval(checkTransactionExecuting, 100);
+   });
+})(document, window, domIsReady);
+</script>
+<?php endif; ?>

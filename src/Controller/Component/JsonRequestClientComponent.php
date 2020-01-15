@@ -7,6 +7,8 @@
  */
 namespace App\Controller\Component;
 
+use App\Model\Validation\GenericValidation;
+
 use Cake\Controller\Component;
 use Cake\Http\Client;
 use Cake\Core\Configure;
@@ -51,6 +53,32 @@ class JsonRequestClientComponent extends Component
        return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json', 'details' => $responseType];
     }
     return ['state' => 'success', 'data' => $json];
+  }
+  
+  public function getRunningUserTasks($email)
+  {
+      if($email == "") {
+        return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'email is empty'];
+      }
+      if(!GenericValidation::email($email, [])) {
+        return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'email is invalid'];
+      }
+      $http = new Client();
+    
+      $transactionbody = json_encode([
+          'email' => $email
+      ]);
+      $response = $http->post($this->getLoginServerUrl() . '/getRunningUserTasks', $transactionbody, ['type' => 'json']);
+      $responseStatus = $response->getStatusCode();
+      if($responseStatus != 200) {
+        return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response status code isn\'t 200', 'details' => $responseStatus];
+      }
+
+      $json = $response->getJson();
+      if($json == null) {
+         return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json', 'details' => $responseType];
+      }
+      return ['state' => 'success', 'data' => $json];
   }
   
   static public function getLoginServerUrl()

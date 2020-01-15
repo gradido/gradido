@@ -66,10 +66,7 @@ if(!isset($balance)) {
                     ?>
                 </li>
               <?php endif; ?>
-              <?php if(isset($GLOBALS['ServerUser'])) : ?> 
-                <li><?= $this->Html->link(__('Server'), ['controller' => 'Dashboard', 'action' => 'serverIndex'], ['class' => 'grd-nav-bn'])?></li>
-              <?php endif; ?>
-                <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard'], ['class' => 'grd-nav-bn'])?></li>
+                <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard', 'action' => 'index'], ['class' => 'grd-nav-bn'])?></li>
               <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>

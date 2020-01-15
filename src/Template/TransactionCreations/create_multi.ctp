@@ -57,7 +57,9 @@ $this->assign('title', __('Schöpfungstransaktion'));
   <button type="button" onclick="uncheckAll()">Alle abwählen</button>
   <div style="margin-bottom:5px"></div>
   <?= $this->Form->create($creationForm) ?>
-  
+  <?php if($transactionExecutingCount > 0) : ?>
+    <div id="transaction-execute-display"></div>
+  <?php endif; ?>
   <fieldset>
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount', ['required' => false]); ?>
@@ -107,6 +109,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
   </div>
   <?= $this->Form->end() ?>
 </div>
+<?= $this->Html->script('basic'); ?>
 <script type="text/javascript">
   function checkAll()
   {
@@ -128,34 +131,6 @@ $this->assign('title', __('Schöpfungstransaktion'));
     }
   }
   
-  // cross browser dom is ready module from: 
-// https://www.competa.com/blog/cross-browser-document-ready-with-vanilla-javascript/
-var domIsReady = (function(domIsReady) {
-   var isBrowserIeOrNot = function() {
-      return (!document.attachEvent || typeof document.attachEvent === "undefined" ? 'not-ie' : 'ie');
-   }
-
-   domIsReady = function(callback) {
-      if(callback && typeof callback === 'function'){
-         if(isBrowserIeOrNot() !== 'ie') {
-            document.addEventListener("DOMContentLoaded", function() {
-               return callback();
-            });
-         } else {
-            document.attachEvent("onreadystatechange", function() {
-               if(document.readyState === "complete") {
-                  return callback();
-               }
-            });
-         }
-      } else {
-         console.error('The callback is not a function!');
-      }
-   }
-
-   return domIsReady;
-})(domIsReady || {});
-
 (function(document, window, domIsReady, undefined) {
    domIsReady(function() {
       var userAmountInputs = document.getElementsByClassName("user_amount");
@@ -178,3 +153,62 @@ var domIsReady = (function(domIsReady) {
   // 
   
 </script>
+<?php if($transactionExecutingCount > 0) : ?>
+<script type="text/javascript">
+  //function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction)
+  g_transactionExecutionCount = <?= $transactionExecutingCount ?>;
+  g_updateExecutionDisplayInterval = null;
+  
+  function updateTransactionExecutingDisplay(count) {
+    var display = document.getElementById('transaction-execute-display');
+    if(count > 0) {
+      display.innerHTML = count + " ";
+      if(count == 1) {
+        display.innerHTML += "<?= __('Laufende Transaktion') ?>";
+      } else {
+        display.innerHTML += "<?= __('Laufende Transaktionen') ?>";
+      }
+    } else {
+      display.innerHTML =  '<?= __('Alle Transaktionen abgeschlossen!') ?> <button class="grd-form-bn grd_clickable" onclick="location.reload()">Seite neuladen</button>';
+    }
+  }
+  
+  function checkTransactionExecuting() {
+    
+    
+    getJson('<?= $this->Url->build(["controller" => "JsonRequestHandler"]);?>', 'getRunningUserTasks',
+      // success
+      function(json) {
+        if(json.state === 'success') {
+           var newCount = 0;
+           if(json.data.runningTasks["sign transaction"] != undefined) {
+             newCount = json.data.runningTasks["sign transaction"];
+           }
+           if(newCount != g_transactionExecutionCount) {
+             g_transactionExecutionCount = newCount;
+             //location.reload();
+             updateTransactionExecutingDisplay(g_transactionExecutionCount);
+           }
+           if(newCount == 0) {
+             clearInterval(g_updateExecutionDisplayInterval);
+           }
+        }
+      },
+      // error
+      function(e) {
+      },
+      // timeout
+      function(e) {
+      }
+    )
+  }
+  
+  (function(document, window, domIsReady, undefined) {
+   domIsReady(function() {
+      updateTransactionExecutingDisplay(g_transactionExecutionCount);
+      //setTimeout(checkTransactionExecuting, 100);
+      g_updateExecutionDisplayInterval = setInterval(checkTransactionExecuting, 100);
+   });
+})(document, window, domIsReady);
+</script>
+<?php endif; ?>

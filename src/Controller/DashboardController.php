@@ -40,7 +40,15 @@ class DashboardController extends AppController
         }
         $user = $session->read('StateUser');
         
+        $serverUser = $this->Auth->user('id');
+        if($serverUser) {
+          $adminErrorsTable = TableRegistry::getTableLocator()->get('AdminErrors');
+          $adminErrorCount = $adminErrorsTable->find('all')->count();
+          $this->set('adminErrorCount', $adminErrorCount);
+        }
+        
         $this->set('user', $user);
+        $this->set('serverUser', $serverUser);
         $this->set('timeUsed', microtime(true) - $startTime);
          
     }

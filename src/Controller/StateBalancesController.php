@@ -132,6 +132,7 @@ class StateBalancesController extends AppController
         }
         uasort($transactions, array($this, 'sortTransactions')); 
         $this->set('transactions', $transactions);
+        $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
     }
