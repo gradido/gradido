@@ -67,12 +67,15 @@ namespace model {
 		
 		Poco::Data::Statement User::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
-
+			std::string _fieldName = fieldName;
+			if (_fieldName == "id") {
+				_fieldName = getTableName() + std::string(".id");
+			}
 			Poco::Data::Statement select(session);
-			select << "SELECT id, email, first_name, last_name, password, pubkey, privkey, email_checked, language, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, email_checked, language, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
-				   << " WHERE " << fieldName << " = ?"
+				   << " WHERE " << _fieldName << " = ?"
 				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mEmailChecked), into(mLanguageKey), into(mRole);
 
 
@@ -144,28 +147,25 @@ namespace model {
 
 		Poco::JSON::Object User::getJson()
 		{
-			auto mm = MemoryManager::getInstance();
-			auto pubkeyHex = mm->getFreeMemory(65);
-			memset(*pubkeyHex, 0, 65);
 
 			lock("User::getJson");
 			Poco::JSON::Object userObj;
 
-			if (!mPublicKey.isNull()) {
-				sodium_bin2hex(*pubkeyHex, 65, mPublicKey.value().content().data(), mPublicKey.value().content().size());
-			}
-
 			userObj.set("first_name", mFirstName);
 			userObj.set("last_name", mLastName);
 			userObj.set("email", mEmail);
-			userObj.set("public_hex", (char*)*pubkeyHex);
+
 			//userObj.set("state", userStateToString(mState));
 			userObj.set("email_checked", mEmailChecked);
 			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
-			userObj.set("role", UserRoles::typeToString(getRole()));
+			try {
+				userObj.set("role", UserRoles::typeToString(getRole()));
+			}
+			catch (Poco::Exception ex) {
+				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
+				sendErrorsAsEmail();
+			}
 			unlock();
-
-			mm->releaseMemory(pubkeyHex);
 
 			return userObj;
 		}

@@ -419,6 +419,11 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 	mEmailChecked = model->isEmailChecked();
 	mLanguage = LanguageManager::languageFromString(model->getLanguageKey());
 	mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
+
+	mState = USER_LOADED_FROM_DB;
+	if (!mEmailChecked) { mState = USER_EMAIL_NOT_ACTIVATED; }
+	else if (!mPrivateKey) { mState = USER_NO_PRIVATE_KEY; }
+	else { mState = USER_COMPLETE; }
 }
 
 

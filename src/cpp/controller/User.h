@@ -29,15 +29,19 @@ namespace controller {
 		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
 		int load(const unsigned char* pubkey_array);
+		Poco::JSON::Object getJson();
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
+		const std::string& getPublicHex();
 		
 
 	protected:
 		User(model::table::User* dbModel);
-		UserLoadedRole mUserRole;
+		
+		std::string mPublicHex;
+
 
 	};
 }
