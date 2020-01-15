@@ -12,12 +12,12 @@ namespace model {
 	namespace table {
 
 		User::User()
-			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de")
+			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 		}
 
 		User::User(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
-			: mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey)
+			: mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mRole(ROLE_NOT_LOADED)
 		{
 
 		}
@@ -69,9 +69,11 @@ namespace model {
 		{
 
 			Poco::Data::Statement select(session);
-
-			select << "SELECT id, email, first_name, last_name, password, pubkey, privkey, email_checked, language from " << getTableName() << " where " << fieldName << " = ?",
-				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mEmailChecked), into(mLanguageKey);
+			select << "SELECT id, email, first_name, last_name, password, pubkey, privkey, email_checked, language, user_roles.role_id " 
+				   << " FROM " << getTableName() 
+				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
+				   << " WHERE " << fieldName << " = ?"
+				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mEmailChecked), into(mLanguageKey), into(mRole);
 
 
 			return select;
@@ -137,6 +139,35 @@ namespace model {
 			mm->releaseMemory(privkeyHex);
 
 			return ss.str();
+		}
+
+
+		Poco::JSON::Object User::getJson()
+		{
+			auto mm = MemoryManager::getInstance();
+			auto pubkeyHex = mm->getFreeMemory(65);
+			memset(*pubkeyHex, 0, 65);
+
+			lock("User::getJson");
+			Poco::JSON::Object userObj;
+
+			if (!mPublicKey.isNull()) {
+				sodium_bin2hex(*pubkeyHex, 65, mPublicKey.value().content().data(), mPublicKey.value().content().size());
+			}
+
+			userObj.set("first_name", mFirstName);
+			userObj.set("last_name", mLastName);
+			userObj.set("email", mEmail);
+			userObj.set("public_hex", (char*)*pubkeyHex);
+			//userObj.set("state", userStateToString(mState));
+			userObj.set("email_checked", mEmailChecked);
+			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
+			userObj.set("role", UserRoles::typeToString(getRole()));
+			unlock();
+
+			mm->releaseMemory(pubkeyHex);
+
+			return userObj;
 		}
 	}
 }

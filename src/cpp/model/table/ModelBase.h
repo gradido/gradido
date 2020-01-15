@@ -11,6 +11,8 @@
 
 #include "../../ServerConfig.h"
 
+#include "Poco/JSON/Object.h"
+
 //using namespace Poco::Data::Keywords;
 
 namespace model {
@@ -166,6 +168,8 @@ namespace model {
 
 		// ******************** Generic Tasks ************************************
 
+
+		// --------       Insert      ---------------
 		class ModelInsertTask : public UniLib::controller::CPUTask
 		{
 		public:
@@ -180,7 +184,7 @@ namespace model {
 			bool mLoadId;
 
 		};
-
+		// --------       Update      ---------------
 
 		template <class T>
 		class ModelUpdateTask : public UniLib::controller::CPUTask
@@ -210,6 +214,7 @@ namespace model {
 			bool mEmailErrors;
 		};
 
+		// --------       Load      ---------------
 
 	}
 }

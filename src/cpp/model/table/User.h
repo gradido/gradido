@@ -7,6 +7,8 @@
 //#include "Poco/Nullable.h"
 //#include "Poco/Data/LOB.h"
 
+#include "UserRoles.h"
+
 namespace model {
 	namespace table {
 		enum UserFields
@@ -41,6 +43,7 @@ namespace model {
 			inline const std::string& getFirstName() const { return mFirstName; }
 			inline const std::string& getLastName() const { return mLastName; }
 			inline const Poco::UInt64& getPasswordHashed() const { return mPasswordHashed; }
+			inline RoleType getRole() const { if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
 			inline bool existPrivateKeyCrypted() const { return !mPrivateKey.isNull(); }
 			inline const std::vector<unsigned char>& getPrivateKeyCrypted() const { return mPrivateKey.value().content(); }
@@ -58,7 +61,7 @@ namespace model {
 			inline void setEmailChecked(bool emailChecked) { mEmailChecked = emailChecked; }
 			inline void setLanguageKey(const std::string& languageKey) { mLanguageKey = languageKey; }
 
-			
+			Poco::JSON::Object getJson();
 
 		protected:
 
@@ -79,6 +82,9 @@ namespace model {
 
 			bool mEmailChecked;
 			std::string mLanguageKey;
+
+			// from neighbor tables
+			Poco::Nullable<int> mRole;
 
 		};
 	}

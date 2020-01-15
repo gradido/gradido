@@ -576,10 +576,16 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	lock("Session::loadUser");
 	if (mSessionUser && mSessionUser->getEmail() != email) {
 		mSessionUser = nullptr;
+		mNewUser = nullptr;
 	}
-	if (!mSessionUser) {
+	//if (!mSessionUser) {
+	if (mNewUser.isNull()) {
+		mNewUser = controller::User::create();
+
 		// load user for email only once from db
-		mSessionUser = new User(email.data());
+		mNewUser->load(email);
+		mSessionUser = new User(mNewUser);
+		//mSessionUser = new User(email.data());
 	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		if (!mSessionUser->validatePwd(password, this)) {

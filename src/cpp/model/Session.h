@@ -64,6 +64,7 @@ public:
 
 	// set new model objects
 	inline void setUser(Poco::AutoPtr<controller::User> user) { mNewUser = user; }
+	inline Poco::AutoPtr<controller::User> getNewUser() { return mNewUser; }
 
 	// ----------------  User functions ----------------------------
 	// TODO: automatic redirect after some time, median profiled time for register

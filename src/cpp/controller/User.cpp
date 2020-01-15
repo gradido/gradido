@@ -2,6 +2,7 @@
 
 namespace controller {
 	User::User(model::table::User* dbModel)
+		: mUserRole(USER_ROLE_NOT_LOADED)
 	{
 		mDBModel = dbModel;
 	}
@@ -31,4 +32,5 @@ namespace controller {
 		Poco::Data::BLOB pubkey(pubkey_array, 32);
 		return getModel()->loadFromDB("pubkey", pubkey);
 	}
+
 }
