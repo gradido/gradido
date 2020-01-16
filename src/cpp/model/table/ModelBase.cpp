@@ -136,6 +136,13 @@ namespace model {
 			throw Poco::Exception(message);
 		}
 
+		Poco::Data::Statement ModelBase::_loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			std::string message = getTableName();
+			message += "::_loadMultipleFromDB multi not implemented";
+			throw Poco::Exception(message);
+		}
+
 		Poco::DateTime ModelBase::parseElopageDate(std::string dateString)
 		{
 			std::string decodedDateString = "";

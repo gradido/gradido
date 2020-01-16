@@ -8,6 +8,7 @@
 #include "JsonUnknown.h"
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
+#include "JsonGetUsers.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)")
@@ -28,6 +29,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/getRunningUserTasks") {
 		return new JsonGetRunningUserTasks;
+	}
+	else if (url_first_part == "/getUsers") {
+		return new JsonGetUsers;
 	}
 
 	return new JsonUnknown;

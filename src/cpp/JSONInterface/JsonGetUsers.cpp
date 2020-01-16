@@ -1,16 +1,39 @@
 #include "JsonGetUsers.h"
 #include "Poco/URI.h"
+#include "Poco/JSON/Array.h"
 
 #include "../SingletonManager/SessionManager.h"
-#include "../model/table/User.h"
+#include "../controller/User.h"
 
 Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 {
 
 	int session_id = 0;
+	std::string searchString;
 	Poco::JSON::Object* result = new Poco::JSON::Object;
-	if (params.isStruct()) {
+	// if is json object
+	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
+		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
+		/// Throws a RangeException if the value does not fit
+		/// into the result variable.
+		/// Throws a NotImplementedException if conversion is
+		/// not available for the given type.
+		/// Throws InvalidAccessException if Var is empty.
+		try {
+			paramJsonObject->get("search").convert(searchString);
+			paramJsonObject->get("session_id").convert(session_id);
+		}
+		catch (Poco::Exception& ex) {
+			printf("[JsonGetUsers::handle] try to use params as jsonObject: %s\n", ex.displayText().data());
+			result->set("state", "error");
+			result->set("msg", "json exception");
+			result->set("details", ex.displayText());
+			return result;
+		}
+	}
+	else if (params.isStruct()) {
 		session_id = params["session_id"];
+		searchString = params["search"].toString();
 		//std::string miau = params["miau"];
 	}
 	else if (params.isVector()) {
@@ -19,7 +42,9 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 			for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
 				if (it->first == "session_id") {
 					session_id = stoi(it->second);
-					break;
+				}
+				else if (it->first == "search") {
+					searchString = it->second;
 				}
 			}
 			//auto var = params[0];
@@ -56,26 +81,42 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 		auto session = sm->getSession(session_id);
 		//Session* session = nullptr;
 		if (session) {
-			auto user = session->getUser();
-			if (!user) {
+			auto user = session->getNewUser();
+			if (user.isNull()) {
 				result->set("state", "not found");
 				result->set("msg", "Session didn't contain user");
 				return result;
 			}
-			result->set("state", "success");
-			result->set("clientIP", session->getClientIp().toString());
-			Poco::JSON::Object usersObj;
-			model::table::User newUser;
-			//auto newUsers = newUser.loadFromDB("email_checked", 0, 0);
-			result->set("user", user->getJson());
-			result->set("Transaction.pending", session->getProcessingTransactionCount());
-			//printf("pending: %d\n", session->getProcessingTransactionCount());
-			return result;
+			else if (searchString == "") {
+				result->set("state", "not found");
+				result->set("msg", "search string is empty");
+				return result;
+			}
+			else if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
+				result->set("state", "wrong role");
+				result->set("msg", "User hasn't correct role");
+				return result;
+			}
+
+			auto results = controller::User::search(searchString);
+			if (results.size() > 0) {
+				result->set("state", "success");
+
+				//Poco::JSON::Object jsonResultObject;
+				Poco::JSON::Array  jsonUsersArray;
+
+				for (auto it = results.begin(); it != results.end(); it++) {
+					jsonUsersArray.add((*it)->getJson());
+					(*it)->release();
+				}
+				results.clear();
+				result->set("users", jsonUsersArray);
+			}
+			
 		}
 		else {
 			result->set("state", "not found");
-			result->set("msg", "Session not found");
-			return result;
+			result->set("msg", "session not found");
 		}
 
 	}

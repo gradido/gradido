@@ -24,7 +24,7 @@ namespace controller {
 		static Poco::AutoPtr<User> create();
 		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 
-
+		static std::vector<User*> search(const std::string& searchString);
 
 		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }

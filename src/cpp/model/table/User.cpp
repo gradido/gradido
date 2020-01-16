@@ -21,6 +21,13 @@ namespace model {
 		{
 
 		}
+		//id, first_name, last_name, email, pubkey, email_checked
+		User::User(UserTuple tuple)
+			: ModelBase(tuple.get<0>()), mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mPublicKey(tuple.get<4>()), mEmailChecked(tuple.get<5>()),
+			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
+		{
+
+		}
 
 		User::~User()
 		{
@@ -78,6 +85,45 @@ namespace model {
 				   << " WHERE " << _fieldName << " = ?"
 				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mEmailChecked), into(mLanguageKey), into(mRole);
 
+
+			return select;
+		}
+
+		Poco::Data::Statement User::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		{
+			Poco::Data::Statement select(session);
+			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
+			select << "SELECT id, first_name, last_name, email, pubkey, email_checked FROM " << getTableName()
+				<< " where " << fieldName << " LIKE ?";
+
+
+			return select;
+		}
+
+		Poco::Data::Statement User::_loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			Poco::Data::Statement select(session);
+
+			if (fieldNames.size() <= 1) {
+				throw Poco::NullValueException("User::_loadMultipleFromDB fieldNames empty or contain only one field");
+			}
+
+			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
+			select << "SELECT id, first_name, last_name, email, pubkey, email_checked FROM " << getTableName()
+				<< " where " << fieldNames[0] << " LIKE ?";
+			if (conditionType == MYSQL_CONDITION_AND) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " AND " << fieldNames[i] << " LIKE ? ";
+				}
+			}
+			else if (conditionType == MYSQL_CONDITION_OR) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " OR " << fieldNames[i] << " LIKE ? ";
+				}
+			}
+			else {
+				addError(new ParamError("User::_loadMultipleFromDB", "condition type not implemented", conditionType));
+			}
 
 			return select;
 		}

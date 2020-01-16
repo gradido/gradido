@@ -4,6 +4,7 @@
 #include "ModelBase.h"
 #include "../../SingletonManager/MemoryManager.h"
 
+#include "Poco/Tuple.h"
 //#include "Poco/Nullable.h"
 //#include "Poco/Data/LOB.h"
 
@@ -24,12 +25,13 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		
+		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
 
 		class User : public ModelBase 
 		{
 		public:
 			User();
+			User(UserTuple tuple);
 			User(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 			~User();
 
@@ -67,6 +69,8 @@ namespace model {
 
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
+			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
+			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			// insert only with email, first_name, last_name, password if exist and language
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 			

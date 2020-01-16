@@ -102,7 +102,7 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 		}
 		else {
 			result->set("state", "not found");
-			result->set("msg", "Session not found");
+			result->set("msg", "session not found");
 			return result;
 		}
 		

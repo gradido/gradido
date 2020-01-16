@@ -41,6 +41,8 @@ namespace model {
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
 			template<class T1, class T2> 
 			size_t loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
+			template<class WhereFieldType, class Tuple>
+			std::vector<Tuple> loadFromDB(const std::vector<std::string>& fieldNames, const std::vector<WhereFieldType>& fieldValues, MysqlConditionType conditionType = MYSQL_CONDITION_AND, int expectedResults = 0);
 			bool insertIntoDB(bool loadId);
 
 			bool deleteFromDB();
@@ -58,6 +60,7 @@ namespace model {
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			virtual Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
+			virtual Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			virtual Poco::Data::Statement _insertIntoDB(Poco::Data::Session session) = 0;
 
 			int mID;
@@ -92,7 +95,7 @@ namespace model {
 		{
 			//printf("ModelBase::loadFromDB multi\n");
 			std::vector<Tuple> results;
-			return results;
+			//return results;
 			if (expectedResults > 0) {
 				results.reserve(expectedResults);
 			}
@@ -108,6 +111,42 @@ namespace model {
 				lock();
 				addError(new ParamError(getTableName(), "mysql error by multi selecting", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
+				unlock();
+			}
+			return results;
+		}
+
+		template<class WhereFieldType, class Tuple>
+		std::vector<Tuple> ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const std::vector<WhereFieldType>& fieldValues, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/, int expectedResults/* = 0*/)
+		{
+			std::vector<Tuple> results;
+			
+			if (fieldNames.size() != fieldValues.size() || fieldNames.size() <= 1) {
+				lock();
+				addError(new Error(getTableName(), "fieldNames and fieldValues size don't match or smaller as 1"));
+				unlock();
+				return results;
+			}
+			if (expectedResults > 0) {
+				results.reserve(expectedResults);
+			}
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement select = _loadMultipleFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldNames, conditionType);
+			select, Poco::Data::Keywords::into(results);// Poco::Data::Keywords::useRef(fieldValue);
+			for (auto it = fieldValues.begin(); it != fieldValues.end(); it++) {
+				select, Poco::Data::Keywords::useRef(*it);
+			}
+
+			size_t resultCount = 0;
+			try {
+				resultCount = select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by multi selecting", ex.displayText().data()));
+				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
+					addError(new ParamError(getTableName(), "field name for select: ", (*it).data()));
+				}
 				unlock();
 			}
 			return results;

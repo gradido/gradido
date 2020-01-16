@@ -420,10 +420,25 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 	mLanguage = LanguageManager::languageFromString(model->getLanguageKey());
 	mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(mLanguage);
 
-	mState = USER_LOADED_FROM_DB;
-	if (!mEmailChecked) { mState = USER_EMAIL_NOT_ACTIVATED; }
-	else if (!mPrivateKey) { mState = USER_NO_PRIVATE_KEY; }
-	else { mState = USER_COMPLETE; }
+	/*
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_PASSWORD_ENCRYPTION_IN_PROCESS,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_COMPLETE
+	*/
+
+	if (mEmail != "") {
+		mState = USER_LOADED_FROM_DB;
+
+		if (!mEmailChecked) { mState = USER_EMAIL_NOT_ACTIVATED; }
+		else if (!mPublicKey) { mState = USER_NO_KEYS; }
+		else if (!mPrivateKey) { mState = USER_NO_PRIVATE_KEY; }
+		else { mState = USER_COMPLETE; }
+	}
 }
 
 
