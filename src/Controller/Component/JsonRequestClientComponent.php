@@ -32,27 +32,12 @@ class JsonRequestClientComponent extends Component
       return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'base64Message contain invalid base64 characters'];
     }
     
-    $http = new Client();
-    
-    $transactionbody = json_encode([
+    return $this->sendRequest(json_encode([
         'session_id' => $session_id,
         'transaction_base64' => $base64Message,
         'balance' => $user_balance
-    ]);
-    $response = $http->post($this->getLoginServerUrl() . '/checkTransaction', $transactionbody, ['type' => 'json']);
-    $responseStatus = $response->getStatusCode();
-    if($responseStatus != 200) {
-      return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response status code isn\'t 200', 'details' => $responseStatus];
-    }
-    //$responseType = $response->getType();
-    //if($responseType != 'application/json') {
-//      return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t json', 'details' => $responseType];
-//    }
-    $json = $response->getJson();
-    if($json == null) {
-       return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json', 'details' => $responseType];
-    }
-    return ['state' => 'success', 'data' => $json];
+    ]), '/checkTransaction');
+      
   }
   
   public function getRunningUserTasks($email)
@@ -63,22 +48,45 @@ class JsonRequestClientComponent extends Component
       if(!GenericValidation::email($email, [])) {
         return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'email is invalid'];
       }
-      $http = new Client();
-    
-      $transactionbody = json_encode([
+      
+      return $this->sendRequest(json_encode([
           'email' => $email
-      ]);
-      $response = $http->post($this->getLoginServerUrl() . '/getRunningUserTasks', $transactionbody, ['type' => 'json']);
-      $responseStatus = $response->getStatusCode();
-      if($responseStatus != 200) {
-        return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response status code isn\'t 200', 'details' => $responseStatus];
-      }
-
-      $json = $response->getJson();
-      if($json == null) {
-         return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json', 'details' => $responseType];
-      }
-      return ['state' => 'success', 'data' => $json];
+      ]), '/getRunningUserTasks');
+  }
+  
+  public function getUsers($session_id, $searchString)
+  {
+    if($searchString == "") {
+        return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'search string is empty'];
+    }
+    if(!is_numeric($session_id)) {
+      return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'session_id isn\'t numeric'];
+    }
+    
+    return $this->sendRequest(json_encode([
+                'session_id' => $session_id,
+                'search' => $searchString
+            ]), '/getUsers');
+  }
+  
+  public function sendRequest($transactionBody, $url_last_part) {
+    $http = new Client();
+    
+    $response = $http->post($this->getLoginServerUrl() . $url_last_part, $transactionBody, ['type' => 'json']);
+    $responseStatus = $response->getStatusCode();
+    if($responseStatus != 200) {
+      return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response status code isn\'t 200', 'details' => $responseStatus];
+    }
+    //$responseType = $response->getType();
+    //if($responseType != 'application/json') {
+//      return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t json', 'details' => $responseType];
+//    }
+    $json = $response->getJson();
+    if($json == null) {
+        //$responseType = $response->getType();
+        return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
+    }
+    return ['state' => 'success', 'data' => $json];
   }
   
   static public function getLoginServerUrl()

@@ -1,7 +1,11 @@
 <?php
 namespace App\Controller;
 
+use Cake\Routing\Router;
+
 use App\Controller\AppController;
+use App\Form\UserSearchForm;
+use App\Model\Validation\GenericValidation;
 
 use Model\Transactions\TransactionCreation;
 
@@ -14,6 +18,16 @@ use Model\Transactions\TransactionCreation;
  */
 class StateUsersController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('GradidoNumber');
+        $this->loadComponent('JsonRequestClient');
+        $this->Auth->allow(['search']);
+        
+    }
+    
     /**
      * Index method
      *
@@ -36,6 +50,56 @@ class StateUsersController extends AppController
           $stateUsers[$i]->identHash = TransactionCreation::DRMakeStringHash($user->email);
         }
         $this->set('stateUsers', $stateUsers);
+    }
+    
+    public function search()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend_ripple');
+        $session = $this->getRequest()->getSession();
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
+        }
+        $user = $session->read('StateUser');
+        if($user['role'] != 'admin') {
+          return $this->redirect(['controller' => 'dashboard', 'action' => 'index']); 
+        }
+        
+        $searchForm = new UserSearchForm();
+        
+        $timeUsed = microtime(true) - $startTime;
+        //$this->set('timeUsed', $timeUsed);
+        $this->set(compact('timeUsed', 'searchForm'));
+        
+        if ($this->request->is('post')) {
+          $requestData = $this->request->getData();
+          
+          if($searchForm->validate($requestData)) {
+            //var_dump($requestData);
+            $searchString = $requestData['search'];
+            $searchType = 'unknown';
+            if(GenericValidation::email($searchString, [])) {
+              $searchType = 'email';
+            }
+            $resultJson = $this->JsonRequestClient->getUsers($session->read('session_id'), $searchString);
+            if($resultJson['state'] == 'success') {
+              $dataJson = $resultJson['data'];
+              if($dataJson['state'] != 'success') {
+                  if($dataJson['msg'] == 'session not found') {
+                    $session->destroy();
+                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                  }
+              }
+              var_dump($dataJson);
+            }
+            
+          } else {
+            $this->Flash->error(__('Something was invalid, please try again!'));
+          }
+          $timeUsed = microtime(true) - $startTime;
+          $this->set('timeUsed', $timeUsed);
+        }
     }
 
     /**
