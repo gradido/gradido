@@ -33,7 +33,7 @@ $this->loadHelper('Form', [
 <div class="row">
   <div class="col-md-10 equel-grid">
     <div class="grid">
-      <?php if(count($finalUserEntrys) > 0) : ?>
+      <?php if(isset($finalUserEntrys) && count($finalUserEntrys) > 0) : ?>
         <div class="grid-body py-3">
           <p class="grid-header"><?= __('Benutzer gefunden') ?></p>
         </div>
