@@ -210,10 +210,11 @@ class StateUsersController extends AppController
           } else {
             $this->Flash->error(__('Something was invalid, please try again!'));
           }
-          $timeUsed = microtime(true) - $startTime;
+          
           $this->set('finalUserEntrys', $finalUserEntrys);
-          $this->set('timeUsed', $timeUsed);
         }
+        $timeUsed = microtime(true) - $startTime;
+        $this->set('timeUsed', $timeUsed);
     }
 
     /**

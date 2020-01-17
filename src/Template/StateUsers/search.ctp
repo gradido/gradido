@@ -67,7 +67,7 @@ $this->loadHelper('Form', [
             </tbody>
           </table>
         </div>
-      <?php else :  ?>
+      <?php elseif(isset($finalUserEntrys)) :  ?>
       <div class="grid-body py-3">
           <p class="grid-header"><?= __('Keine Benutzer gefunden') ?></p>
         </div>
