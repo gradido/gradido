@@ -26,8 +26,11 @@
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('index_id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('state_group_id') ?></th>
+                <!--<th scope="col"><?= $this->Paginator->sort('index_id') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('state_group_id') ?></th>-->
+                <th scope="col"><?= $this->Paginator->sort('first_name') ?>
+                <th scope="col"><?= $this->Paginator->sort('last_name') ?>
+                <th scope="col"><?= $this->Paginator->sort('email') ?>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
         </thead>
@@ -35,8 +38,11 @@
             <?php foreach ($stateUsers as $stateUser): ?>
             <tr>
                 <td><?= $this->Number->format($stateUser->id) ?></td>
-                <td><?= $this->Number->format($stateUser->index_id) ?></td>
-                <td><?= $stateUser->has('state_group') ? $this->Html->link($stateUser->state_group->name, ['controller' => 'StateGroups', 'action' => 'view', $stateUser->state_group->id]) : '' ?></td>
+                <!--<td><?= $this->Number->format($stateUser->index_id) ?></td>
+                <td><?= $stateUser->has('state_group') ? $this->Html->link($stateUser->state_group->name, ['controller' => 'StateGroups', 'action' => 'view', $stateUser->state_group->id]) : '' ?></td>-->
+                <td><?= $stateUser->first_name ?></td>
+                <td><?= $stateUser->last_name ?></td>
+                <td><?= $stateUser->email ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $stateUser->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['action' => 'edit', $stateUser->id]) ?>

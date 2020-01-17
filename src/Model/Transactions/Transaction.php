@@ -20,22 +20,30 @@ class Transaction extends TransactionBase {
   
     public function __construct($base64Data) {
         //$transactionBin = base64_decode($base64Data, true);
-        //if($transactionBin == false)
+        //if($transactionBin == false) {
       //sodium_base64_VARIANT_URLSAFE_NO_PADDING
-        try {
-          $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
-        } catch(\SodiumException $e) {
-          $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
-          return;
-        }
-        //*/
+            try {
+              $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+            } catch(\SodiumException $e) {
+              //$this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+              //return;
+               $transactionBin = base64_decode($base64Data, true);
+               if($transactionBin == false) {
+                 $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+                 return;
+               }
+            }
+        //*/}
+        
         if($transactionBin == false) {
           //$this->addError('base64 decode failed');
           $this->addError('Transaction', 'base64 decode error: ' . $base64Data);
         } else {
+          //var_dump($transactionBin);
           $this->mProtoTransaction = new \Model\Messages\Gradido\Transaction();
           try {
             $this->mProtoTransaction->mergeFromString($transactionBin);
+            var_dump($this->mProtoTransaction);
             // cannot catch Exception with cakePHP, I don't know why
           } catch(\Google\Protobuf\Internal\GPBDecodeException $e) {
             //var_dump($e);
@@ -45,7 +53,9 @@ class Transaction extends TransactionBase {
           
           //echo 'serialize to json: <br>';
           //echo $this->mProtoTransaction->serializeToJsonString();
-          
+          echo "body bytes: <br>";
+          var_dump($this->mProtoTransaction->getBodyBytes());
+          echo "<br>end body bytes<br>";
           $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
         }
     }

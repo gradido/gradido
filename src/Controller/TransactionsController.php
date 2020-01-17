@@ -3,6 +3,9 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 
+use Model\Transactions\Transaction;
+use Model\Transactions\TransactionBody;
+
 /**
  * Transactions Controller
  *
@@ -12,6 +15,14 @@ use App\Controller\AppController;
  */
 class TransactionsController extends AppController
 {
+  
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('GradidoNumber');
+        $this->Auth->allow(['decode']);
+
+    }
     /**
      * Index method
      *
@@ -41,6 +52,39 @@ class TransactionsController extends AppController
         ]);
 
         $this->set('transaction', $transaction);
+    }
+    
+    public function decode()
+    {
+      $this->viewBuilder()->setLayout('frontend');
+      if ($this->request->is('post')) {
+          $base64 = $this->request->getData('base64');
+          if(!$base64 || $base64 == '') {
+            $this->Flash->error(__('No valid data given, please try again.'));
+          } else {
+            try {
+              $transactionBin = sodium_base642bin($base64, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+            } catch(Exception $ex) {
+              var_dump($ex);
+            }
+            $transaction = new TransactionBody($transactionBin);
+            if($transaction->hasErrors()) {
+              $this->set('errors', $transaction->getErrors());
+            } else {
+              //$transaction->validate();
+              if($transaction->hasErrors()) {
+                $this->set('errors', $transaction->getErrors());
+              }
+              //var_dump($transaction);
+              echo "<br>bin: <br>";
+              var_dump($transactionBin);
+              echo "<br>";
+              $this->set('transaction', $transaction);
+            }
+              
+          }
+      }
+      
     }
 
     /**

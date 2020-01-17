@@ -30,3 +30,48 @@ $this->loadHelper('Form', [
     </div>
   </div>
 </div>
+<div class="row">
+  <div class="col-md-10 equel-grid">
+    <div class="grid">
+      <?php if(count($finalUserEntrys) > 0) : ?>
+        <div class="grid-body py-3">
+          <p class="grid-header"><?= __('Benutzer gefunden') ?></p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr class="solid-header">
+                <th class="pl-4">Name</th>
+                <th>E-Mail</th>
+                <th>Kontostand</th>
+                <th>Public Key</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach($finalUserEntrys as $user) : ?>
+              <tr>
+                <td class="pr-0 pl-4">
+                  <span class="text-black font-weight-medium d-block">
+                    <?= $user['name'] ?>
+                  </span>
+                  <span>
+                    <span class="status-indicator rounded-indicator small bg-<?= $user['indicator']['color'] ?>"></span>
+                    <small><?= __($user['indicator']['name']) ?></small>
+                  </span>
+                </td>
+                <td><?= $user['email'] ?></td>
+                <td><?= $this->element('printGradido', ['number' => $user['balance']]) ?></td>
+                <td title="<?= $user['pubkeyhex'] ?>"><?= substr($user['pubkeyhex'], 0, 10) . '...' ?></td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php else :  ?>
+      <div class="grid-body py-3">
+          <p class="grid-header"><?= __('Keine Benutzer gefunden') ?></p>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>

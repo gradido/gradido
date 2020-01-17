@@ -1,0 +1,2223 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2020-01-17 18:44+0000\n"
+"PO-Revision-Date: 2020-01-17 19:48+0100\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: \n"
+"Language: de_DE\n"
+
+#: Controller/AddressTypesController.php:55
+#: Controller/AddressTypesController.php:79
+msgid "The address type has been saved."
+msgstr ""
+
+#: Controller/AddressTypesController.php:59
+#: Controller/AddressTypesController.php:83
+msgid "The address type could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/AddressTypesController.php:100
+msgid "The address type has been deleted."
+msgstr ""
+
+#: Controller/AddressTypesController.php:102
+msgid "The address type could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/AdminErrorsController.php:57
+#: Controller/AdminErrorsController.php:82
+msgid "The admin error has been saved."
+msgstr ""
+
+#: Controller/AdminErrorsController.php:61
+#: Controller/AdminErrorsController.php:86
+msgid "The admin error could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/AdminErrorsController.php:104
+msgid "The admin error has been deleted."
+msgstr ""
+
+#: Controller/AdminErrorsController.php:106
+msgid "The admin error could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/AppController.php:196
+msgid "error updating state user "
+msgstr ""
+
+#: Controller/AppController.php:212
+msgid "error saving state user "
+msgstr ""
+
+#: Controller/AppController.php:220
+msgid "invalid session"
+msgstr ""
+
+#: Controller/AppController.php:227
+#: Controller/TransactionSendCoinsController.php:222
+msgid "error http request: "
+msgstr ""
+
+#: Controller/AppController.php:264
+msgid "Serious error, couldn't save to db, please write the admin: "
+msgstr ""
+
+#: Controller/OperatorTypesController.php:54
+#: Controller/OperatorTypesController.php:78
+msgid "The operator type has been saved."
+msgstr ""
+
+#: Controller/OperatorTypesController.php:58
+#: Controller/OperatorTypesController.php:82
+msgid "The operator type could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/OperatorTypesController.php:99
+msgid "The operator type has been deleted."
+msgstr ""
+
+#: Controller/OperatorTypesController.php:101
+msgid "The operator type could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/OperatorsController.php:182
+#: Controller/OperatorsController.php:207
+msgid "The operator has been saved."
+msgstr ""
+
+#: Controller/OperatorsController.php:186
+#: Controller/OperatorsController.php:211
+msgid "The operator could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/OperatorsController.php:229
+msgid "The operator has been deleted."
+msgstr ""
+
+#: Controller/OperatorsController.php:231
+msgid "The operator could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/ServerUsersController.php:42
+msgid "Invalid username or password, try again"
+msgstr ""
+
+#: Controller/ServerUsersController.php:78
+#: Controller/ServerUsersController.php:102
+msgid "The server user has been saved."
+msgstr ""
+
+#: Controller/ServerUsersController.php:82
+#: Controller/ServerUsersController.php:106
+msgid "The server user could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/ServerUsersController.php:123
+msgid "The server user has been deleted."
+msgstr ""
+
+#: Controller/ServerUsersController.php:125
+msgid "The server user could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateBalancesController.php:175
+#: Controller/StateBalancesController.php:200
+msgid "The state balance has been saved."
+msgstr ""
+
+#: Controller/StateBalancesController.php:179
+#: Controller/StateBalancesController.php:204
+msgid "The state balance could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateBalancesController.php:222
+msgid "The state balance has been deleted."
+msgstr ""
+
+#: Controller/StateBalancesController.php:224
+msgid "The state balance could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateCreatedController.php:57
+#: Controller/StateCreatedController.php:83
+msgid "The state created has been saved."
+msgstr ""
+
+#: Controller/StateCreatedController.php:61
+#: Controller/StateCreatedController.php:87
+msgid "The state created could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateCreatedController.php:106
+msgid "The state created has been deleted."
+msgstr ""
+
+#: Controller/StateCreatedController.php:108
+msgid "The state created could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateErrorsController.php:66
+msgid "Error belongs to another User, cannot delete"
+msgstr ""
+
+#: Controller/StateErrorsController.php:69
+#: Controller/StateErrorsController.php:157
+msgid "The state error has been deleted."
+msgstr ""
+
+#: Controller/StateErrorsController.php:71
+#: Controller/StateErrorsController.php:159
+msgid "The state error could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateErrorsController.php:108
+#: Controller/StateErrorsController.php:134
+msgid "The state error has been saved."
+msgstr ""
+
+#: Controller/StateErrorsController.php:112
+#: Controller/StateErrorsController.php:138
+msgid "The state error could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupAddressesController.php:57
+#: Controller/StateGroupAddressesController.php:83
+msgid "The state group address has been saved."
+msgstr ""
+
+#: Controller/StateGroupAddressesController.php:61
+#: Controller/StateGroupAddressesController.php:87
+msgid "The state group address could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupAddressesController.php:106
+msgid "The state group address has been deleted."
+msgstr ""
+
+#: Controller/StateGroupAddressesController.php:108
+msgid "The state group address could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupRelationshipsController.php:57
+#: Controller/StateGroupRelationshipsController.php:84
+msgid "The state group relationship has been saved."
+msgstr ""
+
+#: Controller/StateGroupRelationshipsController.php:61
+#: Controller/StateGroupRelationshipsController.php:88
+msgid "The state group relationship could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupRelationshipsController.php:108
+msgid "The state group relationship has been deleted."
+msgstr ""
+
+#: Controller/StateGroupRelationshipsController.php:110
+msgid "The state group relationship could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupsController.php:57
+#: Controller/StateGroupsController.php:82
+msgid "The state group has been saved."
+msgstr ""
+
+#: Controller/StateGroupsController.php:61
+#: Controller/StateGroupsController.php:86
+msgid "The state group could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateGroupsController.php:104
+msgid "The state group has been deleted."
+msgstr ""
+
+#: Controller/StateGroupsController.php:106
+msgid "The state group could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateRelationshipTypesController.php:54
+#: Controller/StateRelationshipTypesController.php:78
+msgid "The state relationship type has been saved."
+msgstr ""
+
+#: Controller/StateRelationshipTypesController.php:58
+#: Controller/StateRelationshipTypesController.php:82
+msgid "The state relationship type could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateRelationshipTypesController.php:99
+msgid "The state relationship type has been deleted."
+msgstr ""
+
+#: Controller/StateRelationshipTypesController.php:101
+msgid "The state relationship type could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/StateUsersController.php:13
+msgid "account created"
+msgstr "Konto angelegt"
+
+#: Controller/StateUsersController.php:14
+msgid "account not on login-server"
+msgstr "Konto nicht auf Login-Server"
+
+#: Controller/StateUsersController.php:15
+msgid "email activated"
+msgstr "Konto aktiviert"
+
+#: Controller/StateUsersController.php:16
+msgid "account copied to community"
+msgstr "Konto kopiert nach Community-Server"
+
+#: Controller/StateUsersController.php:17
+msgid "email not activated"
+msgstr "Konto nicht aktiviert"
+
+#: Controller/StateUsersController.php:18
+msgid "account multiple times on login-server"
+msgstr "Konto mehrfach vorhanden"
+
+#: Controller/StateUsersController.php:19
+msgid "account not on community server"
+msgstr "Konto nicht auf Community-Server"
+
+#: Controller/StateUsersController.php:20
+msgid "no keys"
+msgstr "Keine Schlüssel generiert"
+
+#: Controller/StateUsersController.php:209
+#: Controller/TransactionCreationsController.php:174
+#: Controller/TransactionSendCoinsController.php:231
+msgid "Something was invalid, please try again!"
+msgstr ""
+
+#: Controller/StateUsersController.php:244
+#: Controller/StateUsersController.php:270
+msgid "The state user has been saved."
+msgstr ""
+
+#: Controller/StateUsersController.php:248
+#: Controller/StateUsersController.php:274
+msgid "The state user could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/StateUsersController.php:293
+msgid "The state user has been deleted."
+msgstr ""
+
+#: Controller/StateUsersController.php:295
+msgid "The state user could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:139
+#: Controller/TransactionCreationsController.php:326
+msgid "Error by requesting LoginServer, please try again"
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:141
+#: Controller/TransactionCreationsController.php:328
+msgid "Error, please wait for the admin to fix it"
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:151
+#: Controller/TransactionCreationsController.php:338
+msgid "Login Server Error, please wait for the admin to fix it"
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:165
+#: Controller/TransactionCreationsController.php:352
+#: Controller/TransactionSendCoinsController.php:216
+msgid "Transaction submitted for review."
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:170
+msgid "Building transaction failed"
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:262
+msgid "no user choosen"
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:373
+#: Controller/TransactionCreationsController.php:399
+msgid "The transaction creation has been saved."
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:377
+#: Controller/TransactionCreationsController.php:403
+msgid "The transaction creation could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:422
+msgid "The transaction creation has been deleted."
+msgstr ""
+
+#: Controller/TransactionCreationsController.php:424
+msgid "The transaction creation could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupAddaddressController.php:57
+#: Controller/TransactionGroupAddaddressController.php:83
+msgid "The transaction group addaddres has been saved."
+msgstr ""
+
+#: Controller/TransactionGroupAddaddressController.php:61
+#: Controller/TransactionGroupAddaddressController.php:87
+msgid "The transaction group addaddres could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupAddaddressController.php:106
+msgid "The transaction group addaddres has been deleted."
+msgstr ""
+
+#: Controller/TransactionGroupAddaddressController.php:108
+msgid ""
+"The transaction group addaddres could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupAllowtradesController.php:57
+#: Controller/TransactionGroupAllowtradesController.php:83
+msgid "The transaction group allowtrade has been saved."
+msgstr ""
+
+#: Controller/TransactionGroupAllowtradesController.php:61
+#: Controller/TransactionGroupAllowtradesController.php:87
+msgid "The transaction group allowtrade could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupAllowtradesController.php:106
+msgid "The transaction group allowtrade has been deleted."
+msgstr ""
+
+#: Controller/TransactionGroupAllowtradesController.php:108
+msgid ""
+"The transaction group allowtrade could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupCreatesController.php:57
+#: Controller/TransactionGroupCreatesController.php:83
+msgid "The transaction group create has been saved."
+msgstr ""
+
+#: Controller/TransactionGroupCreatesController.php:61
+#: Controller/TransactionGroupCreatesController.php:87
+msgid "The transaction group create could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionGroupCreatesController.php:106
+msgid "The transaction group create has been deleted."
+msgstr ""
+
+#: Controller/TransactionGroupCreatesController.php:108
+msgid "The transaction group create could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:73
+#: Controller/TransactionSendCoinsController.php:100
+msgid "The transaction send coin has been saved."
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:77
+#: Controller/TransactionSendCoinsController.php:104
+msgid "The transaction send coin could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:145
+msgid "Du hast nicht genug Geld!"
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:151
+msgid "Du kannst dir leider nicht selbst Geld schicken!"
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:163
+msgid ""
+"Diese E-Mail ist mir nicht bekannt, hat dein Empfänger denn schon ein "
+"Gradido-Konto?"
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:202
+msgid "login server return error: "
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:226
+msgid "No Valid Receiver Public given"
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:250
+msgid "The transaction send coin has been deleted."
+msgstr ""
+
+#: Controller/TransactionSendCoinsController.php:252
+msgid "The transaction send coin could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionSignaturesController.php:57
+#: Controller/TransactionSignaturesController.php:82
+msgid "The transaction signature has been saved."
+msgstr ""
+
+#: Controller/TransactionSignaturesController.php:61
+#: Controller/TransactionSignaturesController.php:86
+msgid "The transaction signature could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionSignaturesController.php:104
+msgid "The transaction signature has been deleted."
+msgstr ""
+
+#: Controller/TransactionSignaturesController.php:106
+msgid "The transaction signature could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionTypesController.php:54
+#: Controller/TransactionTypesController.php:78
+msgid "The transaction type has been saved."
+msgstr ""
+
+#: Controller/TransactionTypesController.php:58
+#: Controller/TransactionTypesController.php:82
+msgid "The transaction type could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionTypesController.php:99
+msgid "The transaction type has been deleted."
+msgstr ""
+
+#: Controller/TransactionTypesController.php:101
+msgid "The transaction type could not be deleted. Please, try again."
+msgstr ""
+
+#: Controller/TransactionsController.php:63
+msgid "No valid data given, please try again."
+msgstr ""
+
+#: Controller/TransactionsController.php:101
+#: Controller/TransactionsController.php:127
+msgid "The transaction has been saved."
+msgstr ""
+
+#: Controller/TransactionsController.php:105
+#: Controller/TransactionsController.php:131
+msgid "The transaction could not be saved. Please, try again."
+msgstr ""
+
+#: Controller/TransactionsController.php:150
+msgid "The transaction has been deleted."
+msgstr ""
+
+#: Controller/TransactionsController.php:152
+msgid "The transaction could not be deleted. Please, try again."
+msgstr ""
+
+#: Form/CreationForm.php:43 Form/TransferForm.php:46
+msgid "No HTML Tags like &gt; or &lt; please."
+msgstr ""
+
+#: Form/CreationForm.php:55
+msgid "Please give a valid number with maximal 2 decimal places"
+msgstr ""
+
+#: Form/TransferForm.php:35
+msgid "A valid email address is required"
+msgstr ""
+
+#: Form/TransferForm.php:39
+msgid "The memo should contain max 150 character"
+msgstr ""
+
+#: Form/TransferForm.php:58
+msgid "Please give a valid positive number with maximal 2 decimal places"
+msgstr ""
+
+#: Form/UserSearchForm.php:32
+msgid "The search text should contain max 50 character"
+msgstr ""
+
+#: Form/UserSearchForm.php:39
+msgid "No HTML Tags like < or > please."
+msgstr ""
+
+#: Model/Table/ServerUsersTable.php:58
+msgid "Please give a username"
+msgstr ""
+
+#: Model/Table/ServerUsersTable.php:64
+msgid "Please give a password"
+msgstr ""
+
+#: Model/Table/ServerUsersTable.php:69
+msgid "Please give a email"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:9 Template/AddressTypes/edit.ctp:9
+#: Template/AddressTypes/index.ctp:9 Template/AddressTypes/index.ctp:25
+#: Template/AddressTypes/view.ctp:9 Template/AddressTypes/view.ctp:45
+#: Template/AddressTypes/view.ctp:72 Template/AdminErrors/add.ctp:9
+#: Template/AdminErrors/edit.ctp:9 Template/AdminErrors/index.ctp:9
+#: Template/AdminErrors/index.ctp:28 Template/AdminErrors/view.ctp:9
+#: Template/OperatorTypes/add.ctp:9 Template/OperatorTypes/edit.ctp:9
+#: Template/OperatorTypes/index.ctp:9 Template/OperatorTypes/index.ctp:23
+#: Template/OperatorTypes/view.ctp:9 Template/OperatorTypes/view.ctp:43
+#: Template/Operators/add.ctp:9 Template/Operators/edit.ctp:9
+#: Template/Operators/index.ctp:9 Template/Operators/index.ctp:24
+#: Template/Operators/view.ctp:9 Template/ServerUsers/add.ctp:9
+#: Template/ServerUsers/edit.ctp:9 Template/ServerUsers/index.ctp:9
+#: Template/ServerUsers/index.ctp:26 Template/ServerUsers/view.ctp:9
+#: Template/StateBalances/add.ctp:9 Template/StateBalances/edit.ctp:9
+#: Template/StateBalances/index.ctp:9 Template/StateBalances/index.ctp:24
+#: Template/StateBalances/view.ctp:9 Template/StateCreated/add.ctp:9
+#: Template/StateCreated/edit.ctp:9 Template/StateCreated/index.ctp:9
+#: Template/StateCreated/index.ctp:29 Template/StateCreated/view.ctp:9
+#: Template/StateErrors/add.ctp:9 Template/StateErrors/edit.ctp:9
+#: Template/StateErrors/index.ctp:9 Template/StateErrors/index.ctp:26
+#: Template/StateErrors/view.ctp:9 Template/StateGroupAddresses/add.ctp:9
+#: Template/StateGroupAddresses/edit.ctp:9
+#: Template/StateGroupAddresses/index.ctp:9
+#: Template/StateGroupAddresses/index.ctp:25
+#: Template/StateGroupAddresses/view.ctp:9
+#: Template/StateGroupRelationships/add.ctp:9
+#: Template/StateGroupRelationships/edit.ctp:9
+#: Template/StateGroupRelationships/index.ctp:9
+#: Template/StateGroupRelationships/index.ctp:22
+#: Template/StateGroupRelationships/view.ctp:9 Template/StateGroups/add.ctp:9
+#: Template/StateGroups/edit.ctp:9 Template/StateGroups/index.ctp:9
+#: Template/StateGroups/index.ctp:29 Template/StateGroups/view.ctp:9
+#: Template/StateGroups/view.ctp:49 Template/StateGroups/view.ctp:76
+#: Template/StateGroups/view.ctp:104 Template/StateGroups/view.ctp:133
+#: Template/StateRelationshipTypes/add.ctp:9
+#: Template/StateRelationshipTypes/edit.ctp:9
+#: Template/StateRelationshipTypes/index.ctp:9
+#: Template/StateRelationshipTypes/index.ctp:21
+#: Template/StateRelationshipTypes/view.ctp:9 Template/StateUsers/add.ctp:9
+#: Template/StateUsers/edit.ctp:9 Template/StateUsers/index.ctp:9
+#: Template/StateUsers/index.ctp:34 Template/StateUsers/view.ctp:9
+#: Template/StateUsers/view.ctp:51 Template/StateUsers/view.ctp:81
+#: Template/StateUsers/view.ctp:112 Template/StateUsers/view.ctp:143
+#: Template/TransactionCreations/add.ctp:9
+#: Template/TransactionCreations/edit.ctp:9
+#: Template/TransactionCreations/index.ctp:9
+#: Template/TransactionCreations/index.ctp:26
+#: Template/TransactionCreations/view.ctp:9
+#: Template/TransactionGroupAddaddress/add.ctp:9
+#: Template/TransactionGroupAddaddress/edit.ctp:9
+#: Template/TransactionGroupAddaddress/index.ctp:9
+#: Template/TransactionGroupAddaddress/index.ctp:25
+#: Template/TransactionGroupAddaddress/view.ctp:9
+#: Template/TransactionGroupAllowtrades/add.ctp:9
+#: Template/TransactionGroupAllowtrades/edit.ctp:9
+#: Template/TransactionGroupAllowtrades/index.ctp:9
+#: Template/TransactionGroupAllowtrades/index.ctp:24
+#: Template/TransactionGroupAllowtrades/view.ctp:9
+#: Template/TransactionGroupCreates/add.ctp:9
+#: Template/TransactionGroupCreates/edit.ctp:9
+#: Template/TransactionGroupCreates/index.ctp:9
+#: Template/TransactionGroupCreates/index.ctp:26
+#: Template/TransactionGroupCreates/view.ctp:9
+#: Template/TransactionSendCoins/add.ctp:9
+#: Template/TransactionSendCoins/edit.ctp:9
+#: Template/TransactionSendCoins/index.ctp:9
+#: Template/TransactionSendCoins/index.ctp:27
+#: Template/TransactionSendCoins/view.ctp:9
+#: Template/TransactionSignatures/add.ctp:9
+#: Template/TransactionSignatures/edit.ctp:9
+#: Template/TransactionSignatures/index.ctp:9
+#: Template/TransactionSignatures/index.ctp:22
+#: Template/TransactionSignatures/view.ctp:9
+#: Template/TransactionTypes/add.ctp:9 Template/TransactionTypes/edit.ctp:9
+#: Template/TransactionTypes/index.ctp:9 Template/TransactionTypes/index.ctp:23
+#: Template/TransactionTypes/view.ctp:9 Template/TransactionTypes/view.ctp:44
+#: Template/Transactions/add.ctp:9 Template/Transactions/edit.ctp:9
+#: Template/Transactions/index.ctp:9 Template/Transactions/index.ctp:40
+#: Template/Transactions/view.ctp:9 Template/Transactions/view.ctp:66
+#: Template/Transactions/view.ctp:97 Template/Transactions/view.ctp:125
+#: Template/Transactions/view.ctp:152 Template/Transactions/view.ctp:180
+#: Template/Transactions/view.ctp:211 Template/Transactions/view.ctp:241
+msgid "Actions"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:10 Template/AddressTypes/edit.ctp:16
+#: Template/AddressTypes/view.ctp:12 Template/StateGroupAddresses/add.ctp:13
+#: Template/StateGroupAddresses/edit.ctp:19
+#: Template/StateGroupAddresses/index.ctp:13
+#: Template/StateGroupAddresses/view.ctp:16
+#: Template/TransactionGroupAddaddress/add.ctp:13
+#: Template/TransactionGroupAddaddress/edit.ctp:19
+#: Template/TransactionGroupAddaddress/index.ctp:13
+#: Template/TransactionGroupAddaddress/view.ctp:16
+msgid "List Address Types"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:11 Template/AddressTypes/edit.ctp:17
+#: Template/AddressTypes/index.ctp:11 Template/AddressTypes/view.ctp:14
+#: Template/StateGroupAddresses/add.ctp:10
+#: Template/StateGroupAddresses/edit.ctp:16
+#: Template/StateGroupAddresses/view.ctp:12 Template/StateGroups/add.ctp:11
+#: Template/StateGroups/edit.ctp:17 Template/StateGroups/index.ctp:11
+#: Template/StateGroups/view.ctp:14
+msgid "List State Group Addresses"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:12 Template/AddressTypes/edit.ctp:18
+#: Template/AddressTypes/index.ctp:12 Template/AddressTypes/view.ctp:15
+#: Template/StateGroupAddresses/index.ctp:10
+#: Template/StateGroupAddresses/view.ctp:13 Template/StateGroups/add.ctp:12
+#: Template/StateGroups/edit.ctp:18 Template/StateGroups/index.ctp:12
+#: Template/StateGroups/view.ctp:15
+msgid "New State Group Address"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:13 Template/AddressTypes/edit.ctp:19
+#: Template/AddressTypes/index.ctp:13 Template/AddressTypes/view.ctp:16
+#: Template/TransactionGroupAddaddress/add.ctp:10
+#: Template/TransactionGroupAddaddress/edit.ctp:16
+#: Template/TransactionGroupAddaddress/view.ctp:12
+#: Template/Transactions/add.ctp:19 Template/Transactions/edit.ctp:25
+#: Template/Transactions/index.ctp:19 Template/Transactions/view.ctp:22
+msgid "List Transaction Group Addaddress"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:14 Template/AddressTypes/edit.ctp:20
+#: Template/AddressTypes/index.ctp:14 Template/AddressTypes/view.ctp:17
+#: Template/TransactionGroupAddaddress/index.ctp:10
+#: Template/TransactionGroupAddaddress/view.ctp:13
+#: Template/Transactions/add.ctp:20 Template/Transactions/edit.ctp:26
+#: Template/Transactions/index.ctp:20 Template/Transactions/view.ctp:23
+msgid "New Transaction Group Addaddres"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:20
+msgid "Add Address Type"
+msgstr ""
+
+#: Template/AddressTypes/add.ctp:26 Template/AddressTypes/edit.ctp:32
+#: Template/AdminErrors/add.ctp:28 Template/AdminErrors/edit.ctp:34
+#: Template/OperatorTypes/add.ctp:24 Template/OperatorTypes/edit.ctp:30
+#: Template/Operators/add.ctp:24 Template/Operators/edit.ctp:30
+#: Template/ServerUsers/add.ctp:24 Template/ServerUsers/edit.ctp:32
+#: Template/StateBalances/add.ctp:24 Template/StateBalances/edit.ctp:30
+#: Template/StateCreated/add.ctp:29 Template/StateCreated/edit.ctp:35
+#: Template/StateErrors/add.ctp:27 Template/StateErrors/edit.ctp:33
+#: Template/StateGroupAddresses/add.ctp:26
+#: Template/StateGroupAddresses/edit.ctp:32
+#: Template/StateGroupRelationships/add.ctp:23
+#: Template/StateGroupRelationships/edit.ctp:29 Template/StateGroups/add.ctp:30
+#: Template/StateGroups/edit.ctp:36 Template/StateRelationshipTypes/add.ctp:22
+#: Template/StateRelationshipTypes/edit.ctp:28 Template/StateUsers/add.ctp:32
+#: Template/StateUsers/edit.ctp:38 Template/TransactionCreations/add.ctp:27
+#: Template/TransactionCreations/edit.ctp:33
+#: Template/TransactionGroupAddaddress/add.ctp:26
+#: Template/TransactionGroupAddaddress/edit.ctp:32
+#: Template/TransactionGroupAllowtrades/add.ctp:25
+#: Template/TransactionGroupAllowtrades/edit.ctp:31
+#: Template/TransactionGroupCreates/add.ctp:27
+#: Template/TransactionGroupCreates/edit.ctp:33
+#: Template/TransactionSendCoins/add.ctp:28
+#: Template/TransactionSendCoins/edit.ctp:34
+#: Template/TransactionSignatures/add.ctp:23
+#: Template/TransactionSignatures/edit.ctp:29
+#: Template/TransactionTypes/add.ctp:24 Template/TransactionTypes/edit.ctp:30
+#: Template/Transactions/add.ctp:41 Template/Transactions/edit.ctp:47
+msgid "Submit"
+msgstr ""
+
+#: Template/AddressTypes/edit.ctp:11 Template/AddressTypes/index.ctp:37
+#: Template/AddressTypes/view.ctp:56 Template/AddressTypes/view.ctp:83
+#: Template/AdminErrors/edit.ctp:11 Template/AdminErrors/index.ctp:45
+#: Template/OperatorTypes/edit.ctp:11 Template/OperatorTypes/index.ctp:35
+#: Template/OperatorTypes/view.ctp:54 Template/Operators/edit.ctp:11
+#: Template/Operators/index.ctp:40 Template/ServerUsers/edit.ctp:11
+#: Template/ServerUsers/index.ctp:43 Template/StateBalances/edit.ctp:11
+#: Template/StateBalances/index.ctp:37 Template/StateCreated/edit.ctp:11
+#: Template/StateCreated/index.ctp:45 Template/StateErrors/edit.ctp:11
+#: Template/StateErrors/index.ctp:39 Template/StateErrors/show_for_user.ctp:43
+#: Template/StateGroupAddresses/edit.ctp:11
+#: Template/StateGroupAddresses/index.ctp:37
+#: Template/StateGroupRelationships/edit.ctp:11
+#: Template/StateGroupRelationships/index.ctp:35
+#: Template/StateGroups/edit.ctp:11 Template/StateGroups/index.ctp:41
+#: Template/StateGroups/view.ctp:60 Template/StateGroups/view.ctp:87
+#: Template/StateGroups/view.ctp:116 Template/StateGroups/view.ctp:145
+#: Template/StateRelationshipTypes/edit.ctp:11
+#: Template/StateRelationshipTypes/index.ctp:33 Template/StateUsers/edit.ctp:11
+#: Template/StateUsers/index.ctp:49 Template/StateUsers/view.ctp:62
+#: Template/StateUsers/view.ctp:95 Template/StateUsers/view.ctp:124
+#: Template/StateUsers/view.ctp:157 Template/TransactionCreations/edit.ctp:11
+#: Template/TransactionCreations/index.ctp:39
+#: Template/TransactionGroupAddaddress/edit.ctp:11
+#: Template/TransactionGroupAddaddress/index.ctp:37
+#: Template/TransactionGroupAllowtrades/edit.ctp:11
+#: Template/TransactionGroupAllowtrades/index.ctp:37
+#: Template/TransactionGroupCreates/edit.ctp:11
+#: Template/TransactionGroupCreates/index.ctp:39
+#: Template/TransactionSendCoins/edit.ctp:11
+#: Template/TransactionSendCoins/index.ctp:41
+#: Template/TransactionSignatures/edit.ctp:11
+#: Template/TransactionSignatures/index.ctp:33
+#: Template/TransactionTypes/edit.ctp:11 Template/TransactionTypes/index.ctp:35
+#: Template/TransactionTypes/view.ctp:56 Template/Transactions/edit.ctp:11
+#: Template/Transactions/index.ctp:53 Template/Transactions/view.ctp:80
+#: Template/Transactions/view.ctp:109 Template/Transactions/view.ctp:136
+#: Template/Transactions/view.ctp:163 Template/Transactions/view.ctp:192
+#: Template/Transactions/view.ctp:225 Template/Transactions/view.ctp:252
+msgid "Delete"
+msgstr ""
+
+#: Template/AddressTypes/edit.ctp:13 Template/AddressTypes/index.ctp:37
+#: Template/AddressTypes/view.ctp:11 Template/AddressTypes/view.ctp:56
+#: Template/AddressTypes/view.ctp:83 Template/AdminErrors/edit.ctp:13
+#: Template/AdminErrors/index.ctp:45 Template/AdminErrors/view.ctp:11
+#: Template/OperatorTypes/edit.ctp:13 Template/OperatorTypes/index.ctp:35
+#: Template/OperatorTypes/view.ctp:11 Template/OperatorTypes/view.ctp:54
+#: Template/Operators/edit.ctp:13 Template/Operators/index.ctp:40
+#: Template/Operators/view.ctp:11 Template/ServerUsers/edit.ctp:13
+#: Template/ServerUsers/index.ctp:43 Template/ServerUsers/view.ctp:11
+#: Template/StateBalances/edit.ctp:13 Template/StateBalances/index.ctp:37
+#: Template/StateBalances/view.ctp:11 Template/StateCreated/edit.ctp:13
+#: Template/StateCreated/index.ctp:45 Template/StateCreated/view.ctp:11
+#: Template/StateErrors/edit.ctp:13 Template/StateErrors/index.ctp:39
+#: Template/StateErrors/view.ctp:11 Template/StateGroupAddresses/edit.ctp:13
+#: Template/StateGroupAddresses/index.ctp:37
+#: Template/StateGroupAddresses/view.ctp:11
+#: Template/StateGroupRelationships/edit.ctp:13
+#: Template/StateGroupRelationships/index.ctp:35
+#: Template/StateGroupRelationships/view.ctp:11
+#: Template/StateGroups/edit.ctp:13 Template/StateGroups/index.ctp:41
+#: Template/StateGroups/view.ctp:11 Template/StateGroups/view.ctp:60
+#: Template/StateGroups/view.ctp:87 Template/StateGroups/view.ctp:116
+#: Template/StateGroups/view.ctp:145
+#: Template/StateRelationshipTypes/edit.ctp:13
+#: Template/StateRelationshipTypes/index.ctp:33
+#: Template/StateRelationshipTypes/view.ctp:11 Template/StateUsers/edit.ctp:13
+#: Template/StateUsers/index.ctp:49 Template/StateUsers/view.ctp:11
+#: Template/StateUsers/view.ctp:62 Template/StateUsers/view.ctp:95
+#: Template/StateUsers/view.ctp:124 Template/StateUsers/view.ctp:157
+#: Template/TransactionCreations/edit.ctp:13
+#: Template/TransactionCreations/index.ctp:39
+#: Template/TransactionCreations/view.ctp:11
+#: Template/TransactionGroupAddaddress/edit.ctp:13
+#: Template/TransactionGroupAddaddress/index.ctp:37
+#: Template/TransactionGroupAddaddress/view.ctp:11
+#: Template/TransactionGroupAllowtrades/edit.ctp:13
+#: Template/TransactionGroupAllowtrades/index.ctp:37
+#: Template/TransactionGroupAllowtrades/view.ctp:11
+#: Template/TransactionGroupCreates/edit.ctp:13
+#: Template/TransactionGroupCreates/index.ctp:39
+#: Template/TransactionGroupCreates/view.ctp:11
+#: Template/TransactionSendCoins/edit.ctp:13
+#: Template/TransactionSendCoins/index.ctp:41
+#: Template/TransactionSendCoins/view.ctp:11
+#: Template/TransactionSignatures/edit.ctp:13
+#: Template/TransactionSignatures/index.ctp:33
+#: Template/TransactionSignatures/view.ctp:11
+#: Template/TransactionTypes/edit.ctp:13 Template/TransactionTypes/index.ctp:35
+#: Template/TransactionTypes/view.ctp:11 Template/TransactionTypes/view.ctp:56
+#: Template/Transactions/edit.ctp:13 Template/Transactions/index.ctp:53
+#: Template/Transactions/view.ctp:11 Template/Transactions/view.ctp:80
+#: Template/Transactions/view.ctp:109 Template/Transactions/view.ctp:136
+#: Template/Transactions/view.ctp:163 Template/Transactions/view.ctp:192
+#: Template/Transactions/view.ctp:225 Template/Transactions/view.ctp:252
+msgid "Are you sure you want to delete # {0}?"
+msgstr ""
+
+#: Template/AddressTypes/edit.ctp:26 Template/AddressTypes/view.ctp:10
+msgid "Edit Address Type"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:10 Template/AddressTypes/view.ctp:13
+#: Template/StateGroupAddresses/add.ctp:14
+#: Template/StateGroupAddresses/edit.ctp:20
+#: Template/StateGroupAddresses/index.ctp:14
+#: Template/StateGroupAddresses/view.ctp:17
+#: Template/TransactionGroupAddaddress/add.ctp:14
+#: Template/TransactionGroupAddaddress/edit.ctp:20
+#: Template/TransactionGroupAddaddress/index.ctp:14
+#: Template/TransactionGroupAddaddress/view.ctp:17
+msgid "New Address Type"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:18
+msgid "Address Types"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:35 Template/AddressTypes/view.ctp:54
+#: Template/AddressTypes/view.ctp:81 Template/AdminErrors/index.ctp:43
+#: Template/OperatorTypes/index.ctp:33 Template/OperatorTypes/view.ctp:52
+#: Template/Operators/index.ctp:38 Template/ServerUsers/index.ctp:41
+#: Template/StateBalances/index.ctp:35 Template/StateCreated/index.ctp:43
+#: Template/StateErrors/index.ctp:37 Template/StateGroupAddresses/index.ctp:35
+#: Template/StateGroupRelationships/index.ctp:33
+#: Template/StateGroups/index.ctp:39 Template/StateGroups/view.ctp:58
+#: Template/StateGroups/view.ctp:85 Template/StateGroups/view.ctp:114
+#: Template/StateGroups/view.ctp:143
+#: Template/StateRelationshipTypes/index.ctp:31
+#: Template/StateUsers/index.ctp:47 Template/StateUsers/view.ctp:60
+#: Template/StateUsers/view.ctp:93 Template/StateUsers/view.ctp:122
+#: Template/StateUsers/view.ctp:155 Template/TransactionCreations/index.ctp:37
+#: Template/TransactionGroupAddaddress/index.ctp:35
+#: Template/TransactionGroupAllowtrades/index.ctp:35
+#: Template/TransactionGroupCreates/index.ctp:37
+#: Template/TransactionSendCoins/index.ctp:39
+#: Template/TransactionSignatures/index.ctp:31
+#: Template/TransactionTypes/index.ctp:33 Template/TransactionTypes/view.ctp:54
+#: Template/Transactions/index.ctp:51 Template/Transactions/view.ctp:78
+#: Template/Transactions/view.ctp:107 Template/Transactions/view.ctp:134
+#: Template/Transactions/view.ctp:161 Template/Transactions/view.ctp:190
+#: Template/Transactions/view.ctp:223 Template/Transactions/view.ctp:250
+msgid "View"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:36 Template/AddressTypes/view.ctp:55
+#: Template/AddressTypes/view.ctp:82 Template/AdminErrors/index.ctp:44
+#: Template/OperatorTypes/index.ctp:34 Template/OperatorTypes/view.ctp:53
+#: Template/Operators/index.ctp:39 Template/ServerUsers/index.ctp:42
+#: Template/StateBalances/index.ctp:36 Template/StateCreated/index.ctp:44
+#: Template/StateErrors/index.ctp:38 Template/StateGroupAddresses/index.ctp:36
+#: Template/StateGroupRelationships/index.ctp:34
+#: Template/StateGroups/index.ctp:40 Template/StateGroups/view.ctp:59
+#: Template/StateGroups/view.ctp:86 Template/StateGroups/view.ctp:115
+#: Template/StateGroups/view.ctp:144
+#: Template/StateRelationshipTypes/index.ctp:32
+#: Template/StateUsers/index.ctp:48 Template/StateUsers/view.ctp:61
+#: Template/StateUsers/view.ctp:94 Template/StateUsers/view.ctp:123
+#: Template/StateUsers/view.ctp:156 Template/TransactionCreations/index.ctp:38
+#: Template/TransactionGroupAddaddress/index.ctp:36
+#: Template/TransactionGroupAllowtrades/index.ctp:36
+#: Template/TransactionGroupCreates/index.ctp:38
+#: Template/TransactionSendCoins/index.ctp:40
+#: Template/TransactionSignatures/index.ctp:32
+#: Template/TransactionTypes/index.ctp:34 Template/TransactionTypes/view.ctp:55
+#: Template/Transactions/index.ctp:52 Template/Transactions/view.ctp:79
+#: Template/Transactions/view.ctp:108 Template/Transactions/view.ctp:135
+#: Template/Transactions/view.ctp:162 Template/Transactions/view.ctp:191
+#: Template/Transactions/view.ctp:224 Template/Transactions/view.ctp:251
+msgid "Edit"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:45 Template/AdminErrors/index.ctp:53
+#: Template/OperatorTypes/index.ctp:43 Template/Operators/index.ctp:48
+#: Template/ServerUsers/index.ctp:51 Template/StateBalances/index.ctp:45
+#: Template/StateCreated/index.ctp:53 Template/StateErrors/index.ctp:47
+#: Template/StateGroupAddresses/index.ctp:45
+#: Template/StateGroupRelationships/index.ctp:43
+#: Template/StateGroups/index.ctp:49
+#: Template/StateRelationshipTypes/index.ctp:41
+#: Template/StateUsers/index.ctp:57 Template/TransactionCreations/index.ctp:47
+#: Template/TransactionGroupAddaddress/index.ctp:45
+#: Template/TransactionGroupAllowtrades/index.ctp:45
+#: Template/TransactionGroupCreates/index.ctp:47
+#: Template/TransactionSendCoins/index.ctp:49
+#: Template/TransactionSignatures/index.ctp:41
+#: Template/TransactionTypes/index.ctp:43 Template/Transactions/index.ctp:61
+msgid "first"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:46 Template/AdminErrors/index.ctp:54
+#: Template/OperatorTypes/index.ctp:44 Template/Operators/index.ctp:49
+#: Template/ServerUsers/index.ctp:52 Template/StateBalances/index.ctp:46
+#: Template/StateCreated/index.ctp:54 Template/StateErrors/index.ctp:48
+#: Template/StateGroupAddresses/index.ctp:46
+#: Template/StateGroupRelationships/index.ctp:44
+#: Template/StateGroups/index.ctp:50
+#: Template/StateRelationshipTypes/index.ctp:42
+#: Template/StateUsers/index.ctp:58 Template/TransactionCreations/index.ctp:48
+#: Template/TransactionGroupAddaddress/index.ctp:46
+#: Template/TransactionGroupAllowtrades/index.ctp:46
+#: Template/TransactionGroupCreates/index.ctp:48
+#: Template/TransactionSendCoins/index.ctp:50
+#: Template/TransactionSignatures/index.ctp:42
+#: Template/TransactionTypes/index.ctp:44 Template/Transactions/index.ctp:62
+msgid "previous"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:48 Template/AdminErrors/index.ctp:56
+#: Template/OperatorTypes/index.ctp:46 Template/Operators/index.ctp:51
+#: Template/ServerUsers/index.ctp:54 Template/StateBalances/index.ctp:48
+#: Template/StateCreated/index.ctp:56 Template/StateErrors/index.ctp:50
+#: Template/StateGroupAddresses/index.ctp:48
+#: Template/StateGroupRelationships/index.ctp:46
+#: Template/StateGroups/index.ctp:52
+#: Template/StateRelationshipTypes/index.ctp:44
+#: Template/StateUsers/index.ctp:60 Template/TransactionCreations/index.ctp:50
+#: Template/TransactionGroupAddaddress/index.ctp:48
+#: Template/TransactionGroupAllowtrades/index.ctp:48
+#: Template/TransactionGroupCreates/index.ctp:50
+#: Template/TransactionSendCoins/index.ctp:52
+#: Template/TransactionSignatures/index.ctp:44
+#: Template/TransactionTypes/index.ctp:46 Template/Transactions/index.ctp:64
+msgid "next"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:49 Template/AdminErrors/index.ctp:57
+#: Template/OperatorTypes/index.ctp:47 Template/Operators/index.ctp:52
+#: Template/ServerUsers/index.ctp:55 Template/StateBalances/index.ctp:49
+#: Template/StateCreated/index.ctp:57 Template/StateErrors/index.ctp:51
+#: Template/StateGroupAddresses/index.ctp:49
+#: Template/StateGroupRelationships/index.ctp:47
+#: Template/StateGroups/index.ctp:53
+#: Template/StateRelationshipTypes/index.ctp:45
+#: Template/StateUsers/index.ctp:61 Template/TransactionCreations/index.ctp:51
+#: Template/TransactionGroupAddaddress/index.ctp:49
+#: Template/TransactionGroupAllowtrades/index.ctp:49
+#: Template/TransactionGroupCreates/index.ctp:51
+#: Template/TransactionSendCoins/index.ctp:53
+#: Template/TransactionSignatures/index.ctp:45
+#: Template/TransactionTypes/index.ctp:47 Template/Transactions/index.ctp:65
+msgid "last"
+msgstr ""
+
+#: Template/AddressTypes/index.ctp:51 Template/AdminErrors/index.ctp:59
+#: Template/OperatorTypes/index.ctp:49 Template/Operators/index.ctp:54
+#: Template/ServerUsers/index.ctp:57 Template/StateBalances/index.ctp:51
+#: Template/StateCreated/index.ctp:59 Template/StateErrors/index.ctp:53
+#: Template/StateGroupAddresses/index.ctp:51
+#: Template/StateGroupRelationships/index.ctp:49
+#: Template/StateGroups/index.ctp:55
+#: Template/StateRelationshipTypes/index.ctp:47
+#: Template/StateUsers/index.ctp:63 Template/TransactionCreations/index.ctp:53
+#: Template/TransactionGroupAddaddress/index.ctp:51
+#: Template/TransactionGroupAllowtrades/index.ctp:51
+#: Template/TransactionGroupCreates/index.ctp:53
+#: Template/TransactionSendCoins/index.ctp:55
+#: Template/TransactionSignatures/index.ctp:47
+#: Template/TransactionTypes/index.ctp:49 Template/Transactions/index.ctp:67
+msgid ""
+"Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} "
+"total"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:11
+msgid "Delete Address Type"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:24 Template/OperatorTypes/view.ctp:22
+#: Template/StateGroups/view.ctp:28 Template/StateGroups/view.ctp:103
+#: Template/StateRelationshipTypes/view.ctp:20
+#: Template/TransactionGroupCreates/view.ctp:32
+#: Template/TransactionTypes/view.ctp:22 Template/Transactions/view.ctp:179
+msgid "Name"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:28 Template/OperatorTypes/view.ctp:26
+#: Template/StateRelationshipTypes/view.ctp:24
+#: Template/TransactionTypes/view.ctp:26
+msgid "Text"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:32 Template/AddressTypes/view.ctp:41
+#: Template/AddressTypes/view.ctp:68 Template/AdminErrors/view.ctp:46
+#: Template/OperatorTypes/view.ctp:30 Template/OperatorTypes/view.ctp:39
+#: Template/Operators/view.ctp:32 Template/ServerUsers/view.ctp:36
+#: Template/StateBalances/view.ctp:26 Template/StateCreated/view.ctp:32
+#: Template/StateErrors/view.ctp:32 Template/StateGroupAddresses/view.ctp:32
+#: Template/StateGroupRelationships/view.ctp:20
+#: Template/StateGroups/view.ctp:32 Template/StateGroups/view.ctp:45
+#: Template/StateGroups/view.ctp:72 Template/StateGroups/view.ctp:99
+#: Template/StateGroups/view.ctp:128
+#: Template/StateRelationshipTypes/view.ctp:28 Template/StateUsers/view.ctp:34
+#: Template/StateUsers/view.ctp:47 Template/StateUsers/view.ctp:74
+#: Template/StateUsers/view.ctp:107 Template/StateUsers/view.ctp:136
+#: Template/TransactionCreations/view.ctp:32
+#: Template/TransactionGroupAddaddress/view.ctp:32
+#: Template/TransactionGroupAllowtrades/view.ctp:26
+#: Template/TransactionGroupCreates/view.ctp:36
+#: Template/TransactionSendCoins/view.ctp:32
+#: Template/TransactionSignatures/view.ctp:26
+#: Template/TransactionTypes/view.ctp:30 Template/TransactionTypes/view.ctp:39
+#: Template/Transactions/view.ctp:46 Template/Transactions/view.ctp:59
+#: Template/Transactions/view.ctp:92 Template/Transactions/view.ctp:121
+#: Template/Transactions/view.ctp:148 Template/Transactions/view.ctp:175
+#: Template/Transactions/view.ctp:204 Template/Transactions/view.ctp:237
+msgid "Id"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:37 Template/StateGroups/view.ctp:41
+msgid "Related State Group Addresses"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:42 Template/StateGroups/view.ctp:46
+#: Template/StateGroups/view.ctp:74 Template/StateGroups/view.ctp:102
+#: Template/StateGroups/view.ctp:129 Template/TransactionTypes/view.ctp:40
+#: Template/Transactions/view.ctp:178
+msgid "State Group Id"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:43 Template/AddressTypes/view.ctp:71
+#: Template/StateGroups/view.ctp:47 Template/StateGroups/view.ctp:75
+#: Template/Transactions/view.ctp:124
+msgid "Public Key"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:44 Template/AddressTypes/view.ctp:70
+#: Template/StateGroups/view.ctp:48 Template/Transactions/view.ctp:123
+msgid "Address Type Id"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:64 Template/Transactions/view.ctp:117
+msgid "Related Transaction Group Addaddress"
+msgstr ""
+
+#: Template/AddressTypes/view.ctp:69 Template/StateGroups/view.ctp:100
+#: Template/StateUsers/view.ctp:75 Template/StateUsers/view.ctp:108
+#: Template/StateUsers/view.ctp:137 Template/Transactions/view.ctp:60
+#: Template/Transactions/view.ctp:93 Template/Transactions/view.ctp:122
+#: Template/Transactions/view.ctp:149 Template/Transactions/view.ctp:176
+#: Template/Transactions/view.ctp:205 Template/Transactions/view.ctp:238
+msgid "Transaction Id"
+msgstr ""
+
+#: Template/AdminErrors/add.ctp:10 Template/AdminErrors/edit.ctp:16
+#: Template/AdminErrors/view.ctp:12
+msgid "List Admin Errors"
+msgstr ""
+
+#: Template/AdminErrors/add.ctp:11 Template/AdminErrors/edit.ctp:17
+#: Template/AdminErrors/index.ctp:11 Template/AdminErrors/view.ctp:14
+#: Template/StateBalances/add.ctp:11 Template/StateBalances/edit.ctp:17
+#: Template/StateBalances/index.ctp:11 Template/StateBalances/view.ctp:14
+#: Template/StateCreated/add.ctp:13 Template/StateCreated/edit.ctp:19
+#: Template/StateCreated/index.ctp:13 Template/StateCreated/view.ctp:16
+#: Template/StateErrors/add.ctp:11 Template/StateErrors/edit.ctp:17
+#: Template/StateErrors/index.ctp:11 Template/StateErrors/view.ctp:14
+#: Template/StateGroups/add.ctp:13 Template/StateGroups/edit.ctp:19
+#: Template/StateGroups/index.ctp:13 Template/StateGroups/view.ctp:16
+#: Template/StateUsers/add.ctp:10 Template/StateUsers/edit.ctp:16
+#: Template/StateUsers/view.ctp:12 Template/TransactionCreations/add.ctp:13
+#: Template/TransactionCreations/edit.ctp:19
+#: Template/TransactionCreations/index.ctp:13
+#: Template/TransactionCreations/view.ctp:16
+#: Template/TransactionSendCoins/add.ctp:13
+#: Template/TransactionSendCoins/edit.ctp:19
+#: Template/TransactionSendCoins/index.ctp:13
+#: Template/TransactionSendCoins/view.ctp:16
+msgid "List State Users"
+msgstr ""
+
+#: Template/AdminErrors/add.ctp:12 Template/AdminErrors/edit.ctp:18
+#: Template/AdminErrors/index.ctp:12 Template/AdminErrors/view.ctp:15
+#: Template/StateBalances/add.ctp:12 Template/StateBalances/edit.ctp:18
+#: Template/StateBalances/index.ctp:12 Template/StateBalances/view.ctp:15
+#: Template/StateCreated/add.ctp:14 Template/StateCreated/edit.ctp:20
+#: Template/StateCreated/index.ctp:14 Template/StateCreated/view.ctp:17
+#: Template/StateErrors/add.ctp:12 Template/StateErrors/edit.ctp:18
+#: Template/StateErrors/index.ctp:12 Template/StateErrors/view.ctp:15
+#: Template/StateGroups/add.ctp:14 Template/StateGroups/edit.ctp:20
+#: Template/StateGroups/index.ctp:14 Template/StateGroups/view.ctp:17
+#: Template/StateUsers/index.ctp:10 Template/StateUsers/view.ctp:13
+#: Template/TransactionCreations/add.ctp:14
+#: Template/TransactionCreations/edit.ctp:20
+#: Template/TransactionCreations/index.ctp:14
+#: Template/TransactionCreations/view.ctp:17
+#: Template/TransactionSendCoins/add.ctp:14
+#: Template/TransactionSendCoins/edit.ctp:20
+#: Template/TransactionSendCoins/index.ctp:14
+#: Template/TransactionSendCoins/view.ctp:17
+msgid "New State User"
+msgstr ""
+
+#: Template/AdminErrors/add.ctp:18
+msgid "Add Admin Error"
+msgstr ""
+
+#: Template/AdminErrors/edit.ctp:24 Template/AdminErrors/view.ctp:10
+msgid "Edit Admin Error"
+msgstr ""
+
+#: Template/AdminErrors/index.ctp:10 Template/AdminErrors/view.ctp:13
+msgid "New Admin Error"
+msgstr ""
+
+#: Template/AdminErrors/index.ctp:16
+msgid "Admin Errors"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:11
+msgid "Delete Admin Error"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:22 Template/StateBalances/view.ctp:22
+#: Template/StateCreated/view.ctp:28 Template/StateErrors/view.ctp:24
+#: Template/TransactionCreations/view.ctp:28
+#: Template/TransactionSendCoins/view.ctp:28
+msgid "State User"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:26
+msgid "Controller"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:30
+msgid "Action"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:34
+msgid "State"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:38
+msgid "Msg"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:42
+msgid "Details"
+msgstr ""
+
+#: Template/AdminErrors/view.ctp:50 Template/ServerUsers/view.ctp:44
+#: Template/StateCreated/view.ctp:48 Template/StateErrors/view.ctp:36
+#: Template/StateUsers/view.ctp:79 Template/Transactions/view.ctp:64
+msgid "Created"
+msgstr ""
+
+#: Template/Dashboard/error_http_request.ctp:9
+msgid "Error, Please try again"
+msgstr ""
+
+#: Template/Dashboard/error_http_request.ctp:13 Template/Layout/error.ctp:43
+msgid "Back"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:12 Template/Dashboard/server_index.ctp:9
+msgid "Willkommen"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:22
+msgid "übersicht"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:27
+msgid "überweisen"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:34
+msgid "löschen"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:40 Template/Dashboard/server_index.ctp:16
+msgid "einzeln schöpfen"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:45 Template/Dashboard/server_index.ctp:21
+msgid "viele schöpfen"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:51 Template/Dashboard/server_index.ctp:27
+#: Template/Element/navi_header.ctp:33
+msgid "Fehler"
+msgstr ""
+
+#: Template/Dashboard/index.ctp:59 Template/StateUsers/search.ctp:9
+msgid "Benutzer suchen"
+msgstr ""
+
+#: Template/Element/navi.ctp:25 Template/StateBalances/overview.ctp:8
+msgid "Kontoübersicht"
+msgstr ""
+
+#: Template/Element/navi.ctp:35 Template/Layout/frontend.ctp:69
+#: Template/Layout/frontend_ripple.ctp:105
+msgid "Startseite"
+msgstr ""
+
+#: Template/Element/navi.ctp:36 Template/TransactionSendCoins/create.ctp:9
+msgid "Überweisung"
+msgstr ""
+
+#: Template/Element/navi.ctp:44
+msgid "Abmelden"
+msgstr ""
+
+#: Template/Element/navi_header.ctp:38
+msgid "Transaktionen sind noch zu unterzeichnen"
+msgstr ""
+
+#: Template/Element/Flash/success.ctp:9
+msgid "Info:"
+msgstr ""
+
+#: Template/Layout/default.ctp:45 Template/Layout/frontend.ctp:78
+msgid "Logout"
+msgstr ""
+
+#: Template/Layout/error.ctp:35 Template/Error/error400.ctp:36
+#: Template/Error/error500.ctp:41
+msgid "Error"
+msgstr ""
+
+#: Template/Layout/frontend.ctp:60
+msgid "Fehler "
+msgstr ""
+
+#: Template/Layout/frontend.ctp:70
+msgid "Kontostand"
+msgstr ""
+
+#: Template/Layout/frontend.ctp:74
+msgid "Transaktionen unterzeichnen"
+msgstr ""
+
+#: Template/Layout/frontend_ripple.ctp:44
+msgid "Community Server in Entwicklung"
+msgstr ""
+
+#: Template/OperatorTypes/add.ctp:10 Template/OperatorTypes/edit.ctp:16
+#: Template/OperatorTypes/view.ctp:12
+msgid "List Operator Types"
+msgstr ""
+
+#: Template/OperatorTypes/add.ctp:11 Template/OperatorTypes/edit.ctp:17
+#: Template/OperatorTypes/index.ctp:11 Template/OperatorTypes/view.ctp:14
+#: Template/Operators/add.ctp:10 Template/Operators/edit.ctp:16
+#: Template/Operators/view.ctp:12
+msgid "List Operators"
+msgstr ""
+
+#: Template/OperatorTypes/add.ctp:12 Template/OperatorTypes/edit.ctp:18
+#: Template/OperatorTypes/index.ctp:12 Template/OperatorTypes/view.ctp:15
+#: Template/Operators/index.ctp:10 Template/Operators/view.ctp:13
+msgid "New Operator"
+msgstr ""
+
+#: Template/OperatorTypes/add.ctp:18
+msgid "Add Operator Type"
+msgstr ""
+
+#: Template/OperatorTypes/edit.ctp:24 Template/OperatorTypes/view.ctp:10
+msgid "Edit Operator Type"
+msgstr ""
+
+#: Template/OperatorTypes/index.ctp:10 Template/OperatorTypes/view.ctp:13
+msgid "New Operator Type"
+msgstr ""
+
+#: Template/OperatorTypes/index.ctp:16
+msgid "Operator Types"
+msgstr ""
+
+#: Template/OperatorTypes/view.ctp:11
+msgid "Delete Operator Type"
+msgstr ""
+
+#: Template/OperatorTypes/view.ctp:35
+msgid "Related Operators"
+msgstr ""
+
+#: Template/OperatorTypes/view.ctp:40 Template/Operators/view.ctp:20
+#: Template/ServerUsers/view.ctp:20
+msgid "Username"
+msgstr ""
+
+#: Template/OperatorTypes/view.ctp:41 Template/Operators/view.ctp:36
+msgid "Operator Type Id"
+msgstr ""
+
+#: Template/OperatorTypes/view.ctp:42 Template/Operators/view.ctp:28
+msgid "Data Base64"
+msgstr ""
+
+#: Template/Operators/add.ctp:16
+msgid "Add Operator"
+msgstr ""
+
+#: Template/Operators/edit.ctp:22 Template/Operators/view.ctp:10
+msgid "Edit Operator"
+msgstr ""
+
+#: Template/Operators/index.ctp:14
+msgid "Operators"
+msgstr ""
+
+#: Template/Operators/view.ctp:11
+msgid "Delete Operator"
+msgstr ""
+
+#: Template/Operators/view.ctp:24
+msgid "User Pubkey"
+msgstr ""
+
+#: Template/ServerUsers/add.ctp:10 Template/ServerUsers/edit.ctp:16
+#: Template/ServerUsers/view.ctp:12
+msgid "List Server Users"
+msgstr ""
+
+#: Template/ServerUsers/add.ctp:16
+msgid "Add Server User"
+msgstr ""
+
+#: Template/ServerUsers/edit.ctp:22 Template/ServerUsers/view.ctp:10
+msgid "Edit Server User"
+msgstr ""
+
+#: Template/ServerUsers/index.ctp:10 Template/ServerUsers/view.ctp:13
+msgid "New Server User"
+msgstr ""
+
+#: Template/ServerUsers/index.ctp:14
+msgid "Server Users"
+msgstr ""
+
+#: Template/ServerUsers/login.ctp:13
+msgid "Please enter your username and password"
+msgstr ""
+
+#: Template/ServerUsers/login.ctp:17
+msgid "Login"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:11
+msgid "Delete Server User"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:24
+msgid "Password"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:28
+msgid "Email"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:32
+msgid "Role"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:40
+msgid "Last Login"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:48 Template/StateBalances/view.ctp:34
+#: Template/StateUsers/view.ctp:49
+msgid "Modified"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:52
+msgid "Activated"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:53
+#: Template/TransactionGroupAllowtrades/view.ctp:35
+msgid "Yes"
+msgstr ""
+
+#: Template/ServerUsers/view.ctp:53
+#: Template/TransactionGroupAllowtrades/view.ctp:35
+msgid "No"
+msgstr ""
+
+#: Template/StateBalances/add.ctp:10 Template/StateBalances/edit.ctp:16
+#: Template/StateBalances/view.ctp:12 Template/StateUsers/add.ctp:13
+#: Template/StateUsers/edit.ctp:19 Template/StateUsers/index.ctp:13
+#: Template/StateUsers/view.ctp:16
+msgid "List State Balances"
+msgstr ""
+
+#: Template/StateBalances/add.ctp:18
+msgid "Add State Balance"
+msgstr ""
+
+#: Template/StateBalances/edit.ctp:24 Template/StateBalances/view.ctp:10
+msgid "Edit State Balance"
+msgstr ""
+
+#: Template/StateBalances/index.ctp:10 Template/StateBalances/view.ctp:13
+#: Template/StateUsers/add.ctp:14 Template/StateUsers/edit.ctp:20
+#: Template/StateUsers/index.ctp:14 Template/StateUsers/view.ctp:17
+msgid "New State Balance"
+msgstr ""
+
+#: Template/StateBalances/index.ctp:16
+msgid "State Balances"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:15
+msgid "Aktueller Kontostand: "
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:42
+msgid "Absender"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:43
+#: Template/TransactionSendCoins/create.ctp:30
+msgid "Verwendungszweck"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:44
+msgid "Datum"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:45
+msgid "Betrag"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:46
+msgid "Transaktions Nr."
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:46
+msgid "Nr"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:79
+msgid "Geschöpft"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:81
+msgid "Gesendet"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:83
+msgid "Empfangen"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:118
+#: Template/TransactionCreations/create_multi.ctp:167
+msgid "Laufende Transaktion"
+msgstr ""
+
+#: Template/StateBalances/overview.ctp:120
+#: Template/TransactionCreations/create_multi.ctp:169
+msgid "Laufende Transaktionen"
+msgstr ""
+
+#: Template/StateBalances/view.ctp:11
+msgid "Delete State Balance"
+msgstr ""
+
+#: Template/StateBalances/view.ctp:30 Template/StateUsers/view.ctp:50
+#: Template/StateUsers/view.ctp:110 Template/StateUsers/view.ctp:141
+#: Template/TransactionCreations/view.ctp:36
+#: Template/TransactionSendCoins/view.ctp:36 Template/Transactions/view.ctp:95
+#: Template/Transactions/view.ctp:209
+msgid "Amount"
+msgstr ""
+
+#: Template/StateCreated/add.ctp:10 Template/StateCreated/edit.ctp:16
+#: Template/StateCreated/view.ctp:12 Template/StateUsers/add.ctp:15
+#: Template/StateUsers/edit.ctp:21 Template/StateUsers/index.ctp:15
+#: Template/StateUsers/view.ctp:18 Template/Transactions/add.ctp:15
+#: Template/Transactions/edit.ctp:21 Template/Transactions/index.ctp:15
+#: Template/Transactions/view.ctp:18
+msgid "List State Created"
+msgstr ""
+
+#: Template/StateCreated/add.ctp:11 Template/StateCreated/edit.ctp:17
+#: Template/StateCreated/index.ctp:11 Template/StateCreated/view.ctp:14
+#: Template/StateGroups/add.ctp:17 Template/StateGroups/edit.ctp:23
+#: Template/StateGroups/index.ctp:17 Template/StateGroups/view.ctp:20
+#: Template/TransactionCreations/add.ctp:11
+#: Template/TransactionCreations/edit.ctp:17
+#: Template/TransactionCreations/index.ctp:11
+#: Template/TransactionCreations/view.ctp:14
+#: Template/TransactionGroupAddaddress/add.ctp:11
+#: Template/TransactionGroupAddaddress/edit.ctp:17
+#: Template/TransactionGroupAddaddress/index.ctp:11
+#: Template/TransactionGroupAddaddress/view.ctp:14
+#: Template/TransactionGroupAllowtrades/add.ctp:11
+#: Template/TransactionGroupAllowtrades/edit.ctp:17
+#: Template/TransactionGroupAllowtrades/index.ctp:11
+#: Template/TransactionGroupAllowtrades/view.ctp:14
+#: Template/TransactionGroupCreates/add.ctp:11
+#: Template/TransactionGroupCreates/edit.ctp:17
+#: Template/TransactionGroupCreates/index.ctp:11
+#: Template/TransactionGroupCreates/view.ctp:14
+#: Template/TransactionSendCoins/add.ctp:11
+#: Template/TransactionSendCoins/edit.ctp:17
+#: Template/TransactionSendCoins/index.ctp:11
+#: Template/TransactionSendCoins/view.ctp:14
+#: Template/TransactionSignatures/add.ctp:11
+#: Template/TransactionSignatures/edit.ctp:17
+#: Template/TransactionSignatures/index.ctp:11
+#: Template/TransactionSignatures/view.ctp:14
+#: Template/TransactionTypes/add.ctp:11 Template/TransactionTypes/edit.ctp:17
+#: Template/TransactionTypes/index.ctp:11 Template/TransactionTypes/view.ctp:14
+#: Template/Transactions/add.ctp:10 Template/Transactions/edit.ctp:16
+#: Template/Transactions/view.ctp:12
+msgid "List Transactions"
+msgstr ""
+
+#: Template/StateCreated/add.ctp:12 Template/StateCreated/edit.ctp:18
+#: Template/StateCreated/index.ctp:12 Template/StateCreated/view.ctp:15
+#: Template/StateGroups/add.ctp:18 Template/StateGroups/edit.ctp:24
+#: Template/StateGroups/index.ctp:18 Template/StateGroups/view.ctp:21
+#: Template/TransactionCreations/add.ctp:12
+#: Template/TransactionCreations/edit.ctp:18
+#: Template/TransactionCreations/index.ctp:12
+#: Template/TransactionCreations/view.ctp:15
+#: Template/TransactionGroupAddaddress/add.ctp:12
+#: Template/TransactionGroupAddaddress/edit.ctp:18
+#: Template/TransactionGroupAddaddress/index.ctp:12
+#: Template/TransactionGroupAddaddress/view.ctp:15
+#: Template/TransactionGroupAllowtrades/add.ctp:12
+#: Template/TransactionGroupAllowtrades/edit.ctp:18
+#: Template/TransactionGroupAllowtrades/index.ctp:12
+#: Template/TransactionGroupAllowtrades/view.ctp:15
+#: Template/TransactionGroupCreates/add.ctp:12
+#: Template/TransactionGroupCreates/edit.ctp:18
+#: Template/TransactionGroupCreates/index.ctp:12
+#: Template/TransactionGroupCreates/view.ctp:15
+#: Template/TransactionSendCoins/add.ctp:12
+#: Template/TransactionSendCoins/edit.ctp:18
+#: Template/TransactionSendCoins/index.ctp:12
+#: Template/TransactionSendCoins/view.ctp:15
+#: Template/TransactionSignatures/add.ctp:12
+#: Template/TransactionSignatures/edit.ctp:18
+#: Template/TransactionSignatures/index.ctp:12
+#: Template/TransactionSignatures/view.ctp:15
+#: Template/TransactionTypes/add.ctp:12 Template/TransactionTypes/edit.ctp:18
+#: Template/TransactionTypes/index.ctp:12 Template/TransactionTypes/view.ctp:15
+#: Template/Transactions/index.ctp:10 Template/Transactions/view.ctp:13
+msgid "New Transaction"
+msgstr ""
+
+#: Template/StateCreated/add.ctp:20
+msgid "Add State Created"
+msgstr ""
+
+#: Template/StateCreated/edit.ctp:26 Template/StateCreated/view.ctp:10
+msgid "Edit State Created"
+msgstr ""
+
+#: Template/StateCreated/index.ctp:10 Template/StateCreated/view.ctp:13
+#: Template/StateUsers/add.ctp:16 Template/StateUsers/edit.ctp:22
+#: Template/StateUsers/index.ctp:16 Template/StateUsers/view.ctp:19
+#: Template/Transactions/add.ctp:16 Template/Transactions/edit.ctp:22
+#: Template/Transactions/index.ctp:16 Template/Transactions/view.ctp:19
+msgid "New State Created"
+msgstr ""
+
+#: Template/StateCreated/index.ctp:18
+msgid "State Created"
+msgstr ""
+
+#: Template/StateCreated/view.ctp:11
+msgid "Delete State Created"
+msgstr ""
+
+#: Template/StateCreated/view.ctp:24 Template/TransactionCreations/view.ctp:24
+#: Template/TransactionGroupAddaddress/view.ctp:24
+#: Template/TransactionGroupAllowtrades/view.ctp:22
+#: Template/TransactionGroupCreates/view.ctp:24
+#: Template/TransactionSendCoins/view.ctp:24
+#: Template/TransactionSignatures/view.ctp:22
+msgid "Transaction"
+msgstr ""
+
+#: Template/StateCreated/view.ctp:36 Template/StateUsers/view.ctp:76
+#: Template/Transactions/view.ctp:61
+msgid "Month"
+msgstr ""
+
+#: Template/StateCreated/view.ctp:40 Template/StateUsers/view.ctp:77
+#: Template/Transactions/view.ctp:62
+msgid "Year"
+msgstr ""
+
+#: Template/StateCreated/view.ctp:44 Template/StateUsers/view.ctp:80
+#: Template/Transactions/view.ctp:65
+msgid "Short Ident Hash"
+msgstr ""
+
+#: Template/StateErrors/add.ctp:10 Template/StateErrors/edit.ctp:16
+#: Template/StateErrors/view.ctp:12
+msgid "List State Errors"
+msgstr ""
+
+#: Template/StateErrors/add.ctp:13 Template/StateErrors/edit.ctp:19
+#: Template/StateErrors/index.ctp:13 Template/StateErrors/view.ctp:16
+#: Template/TransactionTypes/add.ctp:10 Template/TransactionTypes/edit.ctp:16
+#: Template/TransactionTypes/view.ctp:12 Template/Transactions/add.ctp:13
+#: Template/Transactions/edit.ctp:19 Template/Transactions/index.ctp:13
+#: Template/Transactions/view.ctp:16
+msgid "List Transaction Types"
+msgstr ""
+
+#: Template/StateErrors/add.ctp:14 Template/StateErrors/edit.ctp:20
+#: Template/StateErrors/index.ctp:14 Template/StateErrors/view.ctp:17
+#: Template/TransactionTypes/index.ctp:10 Template/TransactionTypes/view.ctp:13
+#: Template/Transactions/add.ctp:14 Template/Transactions/edit.ctp:20
+#: Template/Transactions/index.ctp:14 Template/Transactions/view.ctp:17
+msgid "New Transaction Type"
+msgstr ""
+
+#: Template/StateErrors/add.ctp:20
+msgid "Add State Error"
+msgstr ""
+
+#: Template/StateErrors/edit.ctp:26 Template/StateErrors/view.ctp:10
+msgid "Edit State Error"
+msgstr ""
+
+#: Template/StateErrors/index.ctp:10 Template/StateErrors/view.ctp:13
+msgid "New State Error"
+msgstr ""
+
+#: Template/StateErrors/index.ctp:18
+msgid "State Errors"
+msgstr ""
+
+#: Template/StateErrors/show_for_user.ctp:9
+msgid "Fehlermeldungen"
+msgstr ""
+
+#: Template/StateErrors/view.ctp:11
+msgid "Delete State Error"
+msgstr ""
+
+#: Template/StateErrors/view.ctp:28 Template/Transactions/view.ctp:42
+msgid "Transaction Type"
+msgstr ""
+
+#: Template/StateErrors/view.ctp:41
+msgid "Message Json"
+msgstr ""
+
+#: Template/StateGroupAddresses/add.ctp:11
+#: Template/StateGroupAddresses/edit.ctp:17
+#: Template/StateGroupAddresses/index.ctp:11
+#: Template/StateGroupAddresses/view.ctp:14 Template/StateGroups/add.ctp:10
+#: Template/StateGroups/edit.ctp:16 Template/StateGroups/view.ctp:12
+#: Template/StateUsers/add.ctp:11 Template/StateUsers/edit.ctp:17
+#: Template/StateUsers/index.ctp:11 Template/StateUsers/view.ctp:14
+#: Template/TransactionGroupCreates/add.ctp:13
+#: Template/TransactionGroupCreates/edit.ctp:19
+#: Template/TransactionGroupCreates/index.ctp:13
+#: Template/TransactionGroupCreates/view.ctp:16
+#: Template/Transactions/add.ctp:11 Template/Transactions/edit.ctp:17
+#: Template/Transactions/index.ctp:11 Template/Transactions/view.ctp:14
+msgid "List State Groups"
+msgstr ""
+
+#: Template/StateGroupAddresses/add.ctp:12
+#: Template/StateGroupAddresses/edit.ctp:18
+#: Template/StateGroupAddresses/index.ctp:12
+#: Template/StateGroupAddresses/view.ctp:15 Template/StateGroups/index.ctp:10
+#: Template/StateGroups/view.ctp:13 Template/StateUsers/add.ctp:12
+#: Template/StateUsers/edit.ctp:18 Template/StateUsers/index.ctp:12
+#: Template/StateUsers/view.ctp:15 Template/TransactionGroupCreates/add.ctp:14
+#: Template/TransactionGroupCreates/edit.ctp:20
+#: Template/TransactionGroupCreates/index.ctp:14
+#: Template/TransactionGroupCreates/view.ctp:17
+#: Template/Transactions/add.ctp:12 Template/Transactions/edit.ctp:18
+#: Template/Transactions/index.ctp:12 Template/Transactions/view.ctp:15
+msgid "New State Group"
+msgstr ""
+
+#: Template/StateGroupAddresses/add.ctp:20
+msgid "Add State Group Address"
+msgstr ""
+
+#: Template/StateGroupAddresses/edit.ctp:26
+#: Template/StateGroupAddresses/view.ctp:10
+msgid "Edit State Group Address"
+msgstr ""
+
+#: Template/StateGroupAddresses/index.ctp:18
+msgid "State Group Addresses"
+msgstr ""
+
+#: Template/StateGroupAddresses/view.ctp:11
+msgid "Delete State Group Address"
+msgstr ""
+
+#: Template/StateGroupAddresses/view.ctp:24 Template/StateUsers/view.ctp:30
+#: Template/TransactionGroupCreates/view.ctp:28
+#: Template/Transactions/view.ctp:38
+msgid "State Group"
+msgstr ""
+
+#: Template/StateGroupAddresses/view.ctp:28
+#: Template/TransactionGroupAddaddress/view.ctp:28
+msgid "Address Type"
+msgstr ""
+
+#: Template/StateGroupRelationships/add.ctp:10
+#: Template/StateGroupRelationships/edit.ctp:16
+#: Template/StateGroupRelationships/view.ctp:12
+msgid "List State Group Relationships"
+msgstr ""
+
+#: Template/StateGroupRelationships/add.ctp:16
+msgid "Add State Group Relationship"
+msgstr ""
+
+#: Template/StateGroupRelationships/edit.ctp:22
+#: Template/StateGroupRelationships/view.ctp:10
+msgid "Edit State Group Relationship"
+msgstr ""
+
+#: Template/StateGroupRelationships/index.ctp:10
+#: Template/StateGroupRelationships/view.ctp:13
+msgid "New State Group Relationship"
+msgstr ""
+
+#: Template/StateGroupRelationships/index.ctp:14
+msgid "State Group Relationships"
+msgstr ""
+
+#: Template/StateGroupRelationships/view.ctp:11
+msgid "Delete State Group Relationship"
+msgstr ""
+
+#: Template/StateGroupRelationships/view.ctp:24
+msgid "State Group1 Id"
+msgstr ""
+
+#: Template/StateGroupRelationships/view.ctp:28
+msgid "State Group2 Id"
+msgstr ""
+
+#: Template/StateGroupRelationships/view.ctp:32
+msgid "State Relationship Id"
+msgstr ""
+
+#: Template/StateGroups/add.ctp:15 Template/StateGroups/edit.ctp:21
+#: Template/StateGroups/index.ctp:15 Template/StateGroups/view.ctp:18
+#: Template/TransactionGroupCreates/add.ctp:10
+#: Template/TransactionGroupCreates/edit.ctp:16
+#: Template/TransactionGroupCreates/view.ctp:12
+#: Template/Transactions/add.ctp:23 Template/Transactions/edit.ctp:29
+#: Template/Transactions/index.ctp:23 Template/Transactions/view.ctp:26
+msgid "List Transaction Group Creates"
+msgstr ""
+
+#: Template/StateGroups/add.ctp:16 Template/StateGroups/edit.ctp:22
+#: Template/StateGroups/index.ctp:16 Template/StateGroups/view.ctp:19
+#: Template/TransactionGroupCreates/index.ctp:10
+#: Template/TransactionGroupCreates/view.ctp:13
+#: Template/Transactions/add.ctp:24 Template/Transactions/edit.ctp:30
+#: Template/Transactions/index.ctp:24 Template/Transactions/view.ctp:27
+msgid "New Transaction Group Create"
+msgstr ""
+
+#: Template/StateGroups/add.ctp:24
+msgid "Add State Group"
+msgstr ""
+
+#: Template/StateGroups/edit.ctp:30 Template/StateGroups/view.ctp:10
+msgid "Edit State Group"
+msgstr ""
+
+#: Template/StateGroups/index.ctp:22
+msgid "State Groups"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:11
+msgid "Delete State Group"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:36
+msgid "User Count"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:68
+msgid "Related State Users"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:73 Template/StateUsers/view.ctp:38
+msgid "Index Id"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:95 Template/Transactions/view.ctp:171
+msgid "Related Transaction Group Creates"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:101 Template/Transactions/view.ctp:177
+msgid "Group Public Key"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:124 Template/TransactionTypes/view.ctp:35
+msgid "Related Transactions"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:130 Template/TransactionTypes/view.ctp:41
+msgid "Transaction Type Id"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:131 Template/TransactionTypes/view.ctp:42
+msgid "Tx Hash"
+msgstr ""
+
+#: Template/StateGroups/view.ctp:132 Template/TransactionTypes/view.ctp:43
+#: Template/Transactions/view.ctp:50
+msgid "Received"
+msgstr ""
+
+#: Template/StateRelationshipTypes/add.ctp:10
+#: Template/StateRelationshipTypes/edit.ctp:16
+#: Template/StateRelationshipTypes/view.ctp:12
+msgid "List State Relationship Types"
+msgstr ""
+
+#: Template/StateRelationshipTypes/add.ctp:16
+msgid "Add State Relationship Type"
+msgstr ""
+
+#: Template/StateRelationshipTypes/edit.ctp:22
+#: Template/StateRelationshipTypes/view.ctp:10
+msgid "Edit State Relationship Type"
+msgstr ""
+
+#: Template/StateRelationshipTypes/index.ctp:10
+#: Template/StateRelationshipTypes/view.ctp:13
+msgid "New State Relationship Type"
+msgstr ""
+
+#: Template/StateRelationshipTypes/index.ctp:14
+msgid "State Relationship Types"
+msgstr ""
+
+#: Template/StateRelationshipTypes/view.ctp:11
+msgid "Delete State Relationship Type"
+msgstr ""
+
+#: Template/StateUsers/add.ctp:17 Template/StateUsers/edit.ctp:23
+#: Template/StateUsers/index.ctp:17 Template/StateUsers/view.ctp:20
+#: Template/TransactionCreations/add.ctp:10
+#: Template/TransactionCreations/edit.ctp:16
+#: Template/TransactionCreations/view.ctp:12 Template/Transactions/add.ctp:17
+#: Template/Transactions/edit.ctp:23 Template/Transactions/index.ctp:17
+#: Template/Transactions/view.ctp:20
+msgid "List Transaction Creations"
+msgstr ""
+
+#: Template/StateUsers/add.ctp:18 Template/StateUsers/edit.ctp:24
+#: Template/StateUsers/index.ctp:18 Template/StateUsers/view.ctp:21
+#: Template/TransactionCreations/index.ctp:10
+#: Template/TransactionCreations/view.ctp:13 Template/Transactions/add.ctp:18
+#: Template/Transactions/edit.ctp:24 Template/Transactions/index.ctp:18
+#: Template/Transactions/view.ctp:21
+msgid "New Transaction Creation"
+msgstr ""
+
+#: Template/StateUsers/add.ctp:19 Template/StateUsers/edit.ctp:25
+#: Template/StateUsers/index.ctp:19 Template/StateUsers/view.ctp:22
+#: Template/TransactionSendCoins/add.ctp:10
+#: Template/TransactionSendCoins/edit.ctp:16
+#: Template/TransactionSendCoins/view.ctp:12 Template/Transactions/add.ctp:25
+#: Template/Transactions/edit.ctp:31 Template/Transactions/index.ctp:25
+#: Template/Transactions/view.ctp:28
+msgid "List Transaction Send Coins"
+msgstr ""
+
+#: Template/StateUsers/add.ctp:20 Template/StateUsers/edit.ctp:26
+#: Template/StateUsers/index.ctp:20 Template/StateUsers/view.ctp:23
+#: Template/TransactionSendCoins/index.ctp:10
+#: Template/TransactionSendCoins/view.ctp:13 Template/Transactions/add.ctp:26
+#: Template/Transactions/edit.ctp:32 Template/Transactions/index.ctp:26
+#: Template/Transactions/view.ctp:29
+msgid "New Transaction Send Coin"
+msgstr ""
+
+#: Template/StateUsers/add.ctp:26
+msgid "Add State User"
+msgstr ""
+
+#: Template/StateUsers/edit.ctp:32 Template/StateUsers/view.ctp:10
+msgid "Edit State User"
+msgstr ""
+
+#: Template/StateUsers/index.ctp:24
+msgid "State Users"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:24
+msgid "Vorname oder Nachname oder E-Mail"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:25
+msgid "Datenbank durchsuchen"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:38
+msgid "Benutzer gefunden"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:73
+msgid "Keine Benutzer gefunden"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:11
+msgid "Delete State User"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:43
+msgid "Related State Balances"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:48 Template/StateUsers/view.ctp:78
+#: Template/StateUsers/view.ctp:109 Template/StateUsers/view.ctp:138
+#: Template/Transactions/view.ctp:63 Template/Transactions/view.ctp:94
+#: Template/Transactions/view.ctp:206
+msgid "State User Id"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:70 Template/Transactions/view.ctp:55
+msgid "Related State Created"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:103 Template/Transactions/view.ctp:88
+msgid "Related Transaction Creations"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:111 Template/Transactions/view.ctp:96
+msgid "Ident Hash"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:132 Template/Transactions/view.ctp:200
+msgid "Related Transaction Send Coins"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:139 Template/Transactions/view.ctp:207
+msgid "Receiver Public Key"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:140 Template/Transactions/view.ctp:208
+msgid "Receiver User Id"
+msgstr ""
+
+#: Template/StateUsers/view.ctp:142 Template/TransactionSendCoins/view.ctp:40
+#: Template/Transactions/view.ctp:210
+msgid "Sender Final Balance"
+msgstr ""
+
+#: Template/TransactionCreations/add.ctp:20
+msgid "Add Transaction Creation"
+msgstr ""
+
+#: Template/TransactionCreations/create.ctp:17
+#: Template/TransactionCreations/create_multi.ctp:17
+msgid "Schöpfungstransaktion"
+msgstr ""
+
+#: Template/TransactionCreations/create.ctp:28
+#: Template/TransactionCreations/create_multi.ctp:107
+msgid "Transaktion(n) abschließen"
+msgstr ""
+
+#: Template/TransactionCreations/create.ctp:29
+#: Template/TransactionCreations/create_multi.ctp:108
+#: Template/TransactionSendCoins/create.ctp:33
+msgid "Weitere Transaktion erstellen"
+msgstr ""
+
+#: Template/TransactionCreations/create_multi.ctp:85
+msgid "Für benutzerdefinierten Betrag"
+msgstr ""
+
+#: Template/TransactionCreations/create_multi.ctp:172
+msgid "Alle Transaktionen abgeschlossen!"
+msgstr ""
+
+#: Template/TransactionCreations/edit.ctp:26
+#: Template/TransactionCreations/view.ctp:10
+msgid "Edit Transaction Creation"
+msgstr ""
+
+#: Template/TransactionCreations/index.ctp:18
+msgid "Transaction Creations"
+msgstr ""
+
+#: Template/TransactionCreations/view.ctp:11
+msgid "Delete Transaction Creation"
+msgstr ""
+
+#: Template/TransactionGroupAddaddress/add.ctp:20
+msgid "Add Transaction Group Addaddres"
+msgstr ""
+
+#: Template/TransactionGroupAddaddress/edit.ctp:26
+#: Template/TransactionGroupAddaddress/view.ctp:10
+msgid "Edit Transaction Group Addaddres"
+msgstr ""
+
+#: Template/TransactionGroupAddaddress/index.ctp:18
+msgid "Transaction Group Addaddress"
+msgstr ""
+
+#: Template/TransactionGroupAddaddress/view.ctp:11
+msgid "Delete Transaction Group Addaddres"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/add.ctp:10
+#: Template/TransactionGroupAllowtrades/edit.ctp:16
+#: Template/TransactionGroupAllowtrades/view.ctp:12
+#: Template/Transactions/add.ctp:21 Template/Transactions/edit.ctp:27
+#: Template/Transactions/index.ctp:21 Template/Transactions/view.ctp:24
+msgid "List Transaction Group Allowtrades"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/add.ctp:18
+msgid "Add Transaction Group Allowtrade"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/edit.ctp:24
+#: Template/TransactionGroupAllowtrades/view.ctp:10
+msgid "Edit Transaction Group Allowtrade"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/index.ctp:10
+#: Template/TransactionGroupAllowtrades/view.ctp:13
+#: Template/Transactions/add.ctp:22 Template/Transactions/edit.ctp:28
+#: Template/Transactions/index.ctp:22 Template/Transactions/view.ctp:25
+msgid "New Transaction Group Allowtrade"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/index.ctp:16
+msgid "Transaction Group Allowtrades"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/view.ctp:11
+msgid "Delete Transaction Group Allowtrade"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/view.ctp:30
+#: Template/Transactions/view.ctp:150
+msgid "Group Id"
+msgstr ""
+
+#: Template/TransactionGroupAllowtrades/view.ctp:34
+#: Template/Transactions/view.ctp:151
+msgid "Allow"
+msgstr ""
+
+#: Template/TransactionGroupCreates/add.ctp:20
+msgid "Add Transaction Group Create"
+msgstr ""
+
+#: Template/TransactionGroupCreates/edit.ctp:26
+#: Template/TransactionGroupCreates/view.ctp:10
+msgid "Edit Transaction Group Create"
+msgstr ""
+
+#: Template/TransactionGroupCreates/index.ctp:18
+msgid "Transaction Group Creates"
+msgstr ""
+
+#: Template/TransactionGroupCreates/view.ctp:11
+msgid "Delete Transaction Group Create"
+msgstr ""
+
+#: Template/TransactionSendCoins/add.ctp:20
+msgid "Add Transaction Send Coin"
+msgstr ""
+
+#: Template/TransactionSendCoins/create.ctp:29
+msgid "Betrag in GDD"
+msgstr ""
+
+#: Template/TransactionSendCoins/create.ctp:31
+msgid "Empfänger"
+msgstr ""
+
+#: Template/TransactionSendCoins/create.ctp:32
+msgid "Transaktion abschließen"
+msgstr ""
+
+#: Template/TransactionSendCoins/edit.ctp:26
+#: Template/TransactionSendCoins/view.ctp:10
+msgid "Edit Transaction Send Coin"
+msgstr ""
+
+#: Template/TransactionSendCoins/index.ctp:18
+msgid "Transaction Send Coins"
+msgstr ""
+
+#: Template/TransactionSendCoins/view.ctp:11
+msgid "Delete Transaction Send Coin"
+msgstr ""
+
+#: Template/TransactionSignatures/add.ctp:10
+#: Template/TransactionSignatures/edit.ctp:16
+#: Template/TransactionSignatures/view.ctp:12 Template/Transactions/add.ctp:27
+#: Template/Transactions/edit.ctp:33 Template/Transactions/index.ctp:27
+#: Template/Transactions/view.ctp:30
+msgid "List Transaction Signatures"
+msgstr ""
+
+#: Template/TransactionSignatures/add.ctp:18
+msgid "Add Transaction Signature"
+msgstr ""
+
+#: Template/TransactionSignatures/edit.ctp:24
+#: Template/TransactionSignatures/view.ctp:10
+msgid "Edit Transaction Signature"
+msgstr ""
+
+#: Template/TransactionSignatures/index.ctp:10
+#: Template/TransactionSignatures/view.ctp:13 Template/Transactions/add.ctp:28
+#: Template/Transactions/edit.ctp:34 Template/Transactions/index.ctp:28
+#: Template/Transactions/view.ctp:31
+msgid "New Transaction Signature"
+msgstr ""
+
+#: Template/TransactionSignatures/index.ctp:16
+msgid "Transaction Signatures"
+msgstr ""
+
+#: Template/TransactionSignatures/view.ctp:11
+msgid "Delete Transaction Signature"
+msgstr ""
+
+#: Template/TransactionTypes/add.ctp:18
+msgid "Add Transaction Type"
+msgstr ""
+
+#: Template/TransactionTypes/edit.ctp:24 Template/TransactionTypes/view.ctp:10
+msgid "Edit Transaction Type"
+msgstr ""
+
+#: Template/TransactionTypes/index.ctp:16
+msgid "Transaction Types"
+msgstr ""
+
+#: Template/TransactionTypes/view.ctp:11
+msgid "Delete Transaction Type"
+msgstr ""
+
+#: Template/Transactions/add.ctp:34
+msgid "Add Transaction"
+msgstr ""
+
+#: Template/Transactions/edit.ctp:40 Template/Transactions/view.ctp:10
+msgid "Edit Transaction"
+msgstr ""
+
+#: Template/Transactions/index.ctp:32
+msgid "Transactions"
+msgstr ""
+
+#: Template/Transactions/view.ctp:11
+msgid "Delete Transaction"
+msgstr ""
+
+#: Template/Transactions/view.ctp:144
+msgid "Related Transaction Group Allowtrades"
+msgstr ""
+
+#: Template/Transactions/view.ctp:233
+msgid "Related Transaction Signatures"
+msgstr ""
+
+#: Template/Transactions/view.ctp:239
+msgid "Signature"
+msgstr ""
+
+#: Template/Transactions/view.ctp:240
+msgid "Pubkey"
+msgstr ""
+
+#: Template/Error/error400.ctp:37
+msgid "The requested address {0} was not found on this server."
+msgstr ""
+
+#: Template/Error/error500.ctp:39
+msgid "An Internal Error Has Occurred"
+msgstr ""

@@ -2,12 +2,23 @@
 namespace App\Controller;
 
 use Cake\Routing\Router;
+use Cake\I18n\I18n;
 
 use App\Controller\AppController;
 use App\Form\UserSearchForm;
 use App\Model\Validation\GenericValidation;
 
 use Model\Transactions\TransactionCreation;
+
+// for translating
+__('account created');
+__('account not on login-server');
+__('email activated');
+__('account copied to community');
+__('email not activated');
+__('account multiple times on login-server');
+__('account not on community server');
+__('no keys');
 
 /**
  * StateUsers Controller
@@ -36,7 +47,7 @@ class StateUsersController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['Indices', 'StateGroups']
+            'contain' => []
         ];
         $stateUsers = $this->paginate($this->StateUsers);
 
@@ -55,6 +66,7 @@ class StateUsersController extends AppController
     public function search()
     {
         $startTime = microtime(true);
+        I18n::setLocale('de_DE');
         $this->viewBuilder()->setLayout('frontend_ripple');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
@@ -82,7 +94,9 @@ class StateUsersController extends AppController
             if(GenericValidation::email($searchString, [])) {
               $searchType = 'email';
             }
+            // find users on login server
             $resultJson = $this->JsonRequestClient->getUsers($session->read('session_id'), $searchString);
+            $loginServerUser = [];
             if($resultJson['state'] == 'success') {
               $dataJson = $resultJson['data'];
               if($dataJson['state'] != 'success') {
@@ -91,13 +105,113 @@ class StateUsersController extends AppController
                     return $this->redirect(Router::url('/', true) . 'account', 303);
                   }
               }
-              var_dump($dataJson);
+              //var_dump($dataJson);
+              $loginServerUser = $dataJson['users'];
+            }
+            $pubkeySorted = [];
+            $emptyPubkeys = [];
+            foreach($loginServerUser as $u) {
+              if(!isset($u['public_hex']) || $u['public_hex'] == '') {
+                array_push($emptyPubkeys, $u);
+              } else {
+                if(!isset($pubkeySorted[$u['public_hex']])) {
+                  $pubkeySorted[$u['public_hex']] = ['login' => [], 'community' => []];
+                }
+                array_push($pubkeySorted[$u['public_hex']]['login'], $u);
+              }
+            }
+            // find user on community server db
+            $globalSearch = '%' . $searchString . '%';
+            $communityUsers = $this->StateUsers
+                    ->find('all')
+                    ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]]);
+            if($searchType != 'email') {
+                $communityUsers->where(['OR' => [
+                      'first_name LIKE' => $globalSearch,
+                      'last_name  LIKE' => $globalSearch
+                    ]]);
+            } else {
+              $communityUsers->where(['email LIKE' => $globalSearch]);
+            }
+            //var_dump($communityUsers->toArray());
+            foreach($communityUsers as $u) {
+              $pubkey_hex = bin2hex(stream_get_contents($u->public_key));
+              $u->public_hex = $pubkey_hex;
+              if(!isset($pubkeySorted[$pubkey_hex])) {
+                $pubkeySorted[$pubkey_hex] = ['login' => [], 'community' => []];
+              }
+              array_push($pubkeySorted[$u['public_hex']]['community'], $u);
+            }
+            $finalUserEntrys = [];
+            // detect states
+            foreach($pubkeySorted as $pubhex => $user) {
+              $finalUser = [];
+              $state = 'account created';
+              $color = 'secondary';
+              $finalUser['balance'] = 0;
+              $finalUser['pubkeyhex'] = $pubhex;
+              
+              if(count($user['login']) == 0) {
+                $state = 'account not on login-server';
+                $color = 'danger';
+                if(count($user['community']) == 1) {
+                  $c_user = $user['community'][0];
+                  $finalUser['name'] = $c_user->first_name . ' ' . $c_user->last_name;
+                  $finalUser['email'] = $c_user->email;
+                }
+              } else if(count($user['login']) == 1) {
+                if($user['login'][0]['email_checked'] == true) {
+                  $state = 'email activated';
+                  $color = 'success';
+                  $l_user = $user['login'][0];
+                  $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
+                  $finalUser['email'] = $l_user['email'];
+                  if(count($user['community']) == 1) {
+                    $state = 'account copied to community';
+                    $color = 'primary';
+                    //var_dump($user['community'][0]->state_balances[0]['amount']);
+                    if(isset($user['community'][0]->state_balances) && 
+                       isset($user['community'][0]->state_balances[0]['amount'])) {
+                      $finalUser['balance'] = $user['community'][0]->state_balances[0]->amount;
+                    }
+                  }
+                  
+                } else {
+                  $state = 'email not activated';
+                  $color = 'warning';
+                }
+              } else {
+                $state = 'account multiple times on login-server';
+                $color = 'danger';
+              }
+              $finalUser['indicator'] = ['name' => $state, 'color' => $color];
+              array_push($finalUserEntrys, $finalUser);
             }
             
+            foreach($emptyPubkeys as $user) {
+              $finalUser = [];
+              $state = 'account not on community server';
+              $color = 'secondary';
+              if($user['email_checked'] == false) {
+                $state = 'email not activated';
+                $color = 'warning';
+              } else {
+                $state = 'no keys';
+                $color = 'warning';
+              }
+              $finalUser['balance'] = 0;
+              $finalUser['pubkeyhex'] = '';
+              $finalUser['name'] = $user['first_name'] . ' ' . $user['last_name'];
+              $finalUser['email'] = $user['email'];
+              $finalUser['indicator'] = ['name' => $state, 'color' => $color];
+              array_push($finalUserEntrys, $finalUser);
+            }
+            //var_dump($pubkeySorted);
           } else {
             $this->Flash->error(__('Something was invalid, please try again!'));
           }
           $timeUsed = microtime(true) - $startTime;
+          $this->set('finalUserEntrys', $finalUserEntrys);
           $this->set('timeUsed', $timeUsed);
         }
     }
