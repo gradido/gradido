@@ -79,23 +79,17 @@ namespace controller {
 
 		auto pubkey = getModel()->getPublicKey();
 
-		if (pubkey) {
+		if (pubkey) 
+		{
 			auto pubkeyHex = mm->getFreeMemory(65);
 			memset(*pubkeyHex, 0, 65);
 			sodium_bin2hex(*pubkeyHex, 65, pubkey, 32);
 			mPublicHex = (char*)*pubkeyHex;
-			mm->releaseMemory(pubkeyHex);
-			unlock();
-			return mPublicHex;
-		}
-		else {
-			unlock();
-			return "";
+			mm->releaseMemory(pubkeyHex);	
 		}
 		
 		unlock();
-		return "<error>";
-		
+		return mPublicHex;
 	}
 
 	Poco::JSON::Object User::getJson()
