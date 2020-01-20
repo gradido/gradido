@@ -125,14 +125,13 @@ class StateUsersController extends AppController
             $communityUsers = $this->StateUsers
                     ->find('all')
                     ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]]);
-            if($searchType != 'email') {
-                $communityUsers->where(['OR' => [
-                      'first_name LIKE' => $globalSearch,
-                      'last_name  LIKE' => $globalSearch
-                    ]]);
-            } else {
-              $communityUsers->where(['email LIKE' => $globalSearch]);
-            }
+            
+            $communityUsers->where(['OR' => [
+                  'first_name LIKE' => $globalSearch,
+                  'last_name  LIKE' => $globalSearch,
+                  'email      LIKE' => $globalSearch
+            ]]);
+            
             //var_dump($communityUsers->toArray());
             foreach($communityUsers as $u) {
               $pubkey_hex = bin2hex(stream_get_contents($u->public_key));

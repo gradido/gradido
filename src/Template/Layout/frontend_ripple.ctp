@@ -42,7 +42,7 @@ $GLOBALS["self"] = $this;
 <body class="header-fixed">
     <div class="versionstring dev-info">
         <p class="grd_small"><?= __("Community Server in Entwicklung") ?></p>
-        <p class="grd_small">Alpha 0.11.0</p>
+        <p class="grd_small">Alpha 0.20.KW03.01</p>
     </div>
     <nav class="t-header">
       <div class="t-header-brand-wrapper">
@@ -118,8 +118,8 @@ $GLOBALS["self"] = $this;
           <div class="row">
             <div class="col-sm-6 text-center text-sm-right order-sm-1">
               <ul class="text-gray">
-                <li><a href="#">Terms of use</a></li>
-                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
+                <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
               </ul>
             </div>
             <div class="col-sm-6 text-center text-sm-left mt-3 mt-sm-0">
