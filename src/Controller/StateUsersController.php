@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use Cake\Routing\Router;
 use Cake\I18n\I18n;
+use Cake\I18n\FrozenTime;
 
 use App\Controller\AppController;
 use App\Form\UserSearchForm;
@@ -149,6 +150,7 @@ class StateUsersController extends AppController
               $color = 'secondary';
               $finalUser['balance'] = 0;
               $finalUser['pubkeyhex'] = $pubhex;
+              $finalUser['created'] = null;
               
               if(count($user['login']) == 0) {
                 $state = 'account not on login-server';
@@ -165,6 +167,10 @@ class StateUsersController extends AppController
                   $l_user = $user['login'][0];
                   $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
                   $finalUser['email'] = $l_user['email'];
+                  echo "<br>created: ";
+                  var_dump($l_user['created']);
+                  echo "<br>";
+                  $finalUser['created'] =  new FrozenTime($l_user['created']);
                   if(count($user['community']) == 1) {
                     $state = 'account copied to community';
                     $color = 'success';
@@ -202,6 +208,7 @@ class StateUsersController extends AppController
               $finalUser['pubkeyhex'] = '';
               $finalUser['name'] = $user['first_name'] . ' ' . $user['last_name'];
               $finalUser['email'] = $user['email'];
+              $finalUser['created'] = new FrozenTime($user['created']);
               $finalUser['indicator'] = ['name' => $state, 'color' => $color];
               array_push($finalUserEntrys, $finalUser);
             }

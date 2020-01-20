@@ -31,7 +31,7 @@ $this->loadHelper('Form', [
   </div>
 </div>
 <div class="row">
-  <div class="col-md-10 equel-grid">
+  <div class="col-md-11 equel-grid">
     <div class="grid">
       <?php if(isset($finalUserEntrys) && count($finalUserEntrys) > 0) : ?>
         <div class="grid-body py-3">
@@ -45,6 +45,7 @@ $this->loadHelper('Form', [
                 <th>E-Mail</th>
                 <th>Kontostand</th>
                 <th>Public Key</th>
+                <th>Erstellt</th>
               </tr>
             </thead>
             <tbody>
@@ -62,6 +63,10 @@ $this->loadHelper('Form', [
                 <td><?= $user['email'] ?></td>
                 <td><?= $this->element('printGradido', ['number' => $user['balance']]) ?></td>
                 <td title="<?= $user['pubkeyhex'] ?>"><?= substr($user['pubkeyhex'], 0, 10) . '...' ?></td>
+                <td><?php if($user['created'] != null) {
+                    echo $user['created']->format('d.m.Y H:i:s');   
+                }
+                ?></td>
               </tr>
               <?php endforeach; ?>
             </tbody>
