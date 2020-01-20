@@ -167,9 +167,6 @@ class StateUsersController extends AppController
                   $l_user = $user['login'][0];
                   $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
                   $finalUser['email'] = $l_user['email'];
-                  echo "<br>created: ";
-                  var_dump($l_user['created']);
-                  echo "<br>";
                   $finalUser['created'] =  new FrozenTime($l_user['created']);
                   if(count($user['community']) == 1) {
                     $state = 'account copied to community';
