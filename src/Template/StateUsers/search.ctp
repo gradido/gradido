@@ -64,7 +64,7 @@ $this->loadHelper('Form', [
                 <td><?= $this->element('printGradido', ['number' => $user['balance']]) ?></td>
                 <td title="<?= $user['pubkeyhex'] ?>"><?= substr($user['pubkeyhex'], 0, 10) . '...' ?></td>
                 <td><?php if($user['created'] != null) {
-                    echo $user['created']->format('d.m.Y H:i:s');   
+                    echo $user['created']->format('d.m.y H:i:s');   
                 }
                 ?></td>
               </tr>
