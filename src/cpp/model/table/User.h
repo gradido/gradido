@@ -5,6 +5,7 @@
 #include "../../SingletonManager/MemoryManager.h"
 
 #include "Poco/Tuple.h"
+#include "Poco/DateTime.h"
 //#include "Poco/Nullable.h"
 //#include "Poco/Data/LOB.h"
 
@@ -21,11 +22,12 @@ namespace model {
 			USER_FIELDS_PASSWORD,
 			USER_FIELDS_PUBLIC_KEY,
 			USER_FIELDS_PRIVATE_KEY,
+			USER_FIELDS_CREATED,
 			USER_FIELDS_EMAIL_CHECKED,
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int> UserTuple;
 
 		class User : public ModelBase 
 		{
@@ -83,9 +85,11 @@ namespace model {
 			Poco::Nullable<Poco::Data::BLOB> mPublicKey;
 			Poco::Nullable<Poco::Data::BLOB> mPrivateKey;
 			// created: Mysql DateTime
+			Poco::DateTime mCreated;
 
 			bool mEmailChecked;
 			std::string mLanguageKey;
+
 
 			// from neighbor tables
 			Poco::Nullable<int> mRole;

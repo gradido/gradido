@@ -1,5 +1,6 @@
 #include "User.h"
 
+#include "Poco/DateTimeFormatter.h"
 #include "Poco/Data/Binding.h"
 
 #include "sodium.h"
@@ -21,9 +22,9 @@ namespace model {
 		{
 
 		}
-		//id, first_name, last_name, email, pubkey, email_checked
+		//id, first_name, last_name, email, pubkey, created, email_checked
 		User::User(UserTuple tuple)
-			: ModelBase(tuple.get<0>()), mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mPublicKey(tuple.get<4>()), mEmailChecked(tuple.get<5>()),
+			: ModelBase(tuple.get<0>()), mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()),
 			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
@@ -79,11 +80,11 @@ namespace model {
 				_fieldName = getTableName() + std::string(".id");
 			}
 			Poco::Data::Statement select(session);
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, email_checked, language, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, created, email_checked, language, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
 				   << " WHERE " << _fieldName << " = ?"
-				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mEmailChecked), into(mLanguageKey), into(mRole);
+				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mCreated), into(mEmailChecked), into(mLanguageKey), into(mRole);
 
 
 			return select;
@@ -93,7 +94,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, email_checked FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 
@@ -109,7 +110,7 @@ namespace model {
 			}
 
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, email_checked FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked FROM " << getTableName()
 				<< " where " << fieldNames[0] << " LIKE ?";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -181,6 +182,7 @@ namespace model {
 			ss << "password hash: " << mPasswordHashed << std::endl;
 			ss << "public key: " << (char*)*pubkeyHex << std::endl;
 			ss << "private key: " << (char*)*privkeyHex << std::endl;
+			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << std::endl;
 			ss << "email checked: " << mEmailChecked << std::endl;
 			ss << "language key: " << mLanguageKey << std::endl;
 
@@ -202,6 +204,8 @@ namespace model {
 			userObj.set("email", mEmail);
 
 			//userObj.set("state", userStateToString(mState));
+			auto createTimeStamp = mCreated.timestamp();
+			userObj.set("created", createTimeStamp.raw() / createTimeStamp.resolution());
 			userObj.set("email_checked", mEmailChecked);
 			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
 			try {
