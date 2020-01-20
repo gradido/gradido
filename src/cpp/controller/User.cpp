@@ -39,14 +39,14 @@ namespace controller {
 
 		std::vector<model::table::UserTuple> resultFromDB;
 		// check if search string is email
-		if (sm->isValid(searchString, VALIDATE_EMAIL)) {
+		/*if (sm->isValid(searchString, VALIDATE_EMAIL)) {
 			resultFromDB = db->loadFromDB <std::string, model::table::UserTuple>("email", globalSearch);
 		}
-		else {
-			std::vector<std::string> fieldNames =  { "first_name", "last_name" };
-			std::vector<std::string> fieldValues = { globalSearch, globalSearch };
+		else {*/
+			std::vector<std::string> fieldNames =  { "first_name", "last_name", "email" };
+			std::vector<std::string> fieldValues = { globalSearch, globalSearch, globalSearch };
 			resultFromDB = db->loadFromDB<std::string, model::table::UserTuple>(fieldNames, fieldValues, model::table::MYSQL_CONDITION_OR);
-		}
+		//}
 
 		db->release();
 		db = nullptr;

@@ -498,8 +498,8 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "          <div class=\"row\">\n";
 	responseStream << "            <div class=\"col-sm-6 text-center text-sm-right order-sm-1\">\n";
 	responseStream << "              <ul class=\"text-gray\">\n";
-	responseStream << "                <li><a href=\"#\">Terms of use</a></li>\n";
-	responseStream << "                <li><a href=\"#\">Privacy Policy</a></li>\n";
+	responseStream << "\t\t\t\t<li><a href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\">Datenschutzerkl&auml;rung</a></li>\n";
+	responseStream << "                <li><a href=\"https://gradido.net/de/impressum/\" target=\"_blank\">Impressum</a></li>\n";
 	responseStream << "              </ul>\n";
 	responseStream << "            </div>\n";
 	responseStream << "            <div class=\"col-sm-6 text-center text-sm-left mt-3 mt-sm-0\">\n";

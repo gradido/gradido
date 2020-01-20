@@ -19,6 +19,8 @@
 #include "CheckTransactionPage.h"
 #include "ResetPassword.h"
 
+#include "DecodeTransactionPage.h"
+
 
 #include "../SingletonManager/SessionManager.h"
 
@@ -60,6 +62,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		mLogging.information(dateTimeString + " call from elopage");
 		//printf("call from elopage\n");
 		auto pageRequestHandler = new ElopageWebhook;
+		pageRequestHandler->setProfiler(timeUsed);
+		return pageRequestHandler;
+	}
+
+	if (url_first_part == "/decode_transaction") {
+		mLogging.information(dateTimeString + " decode");
+		auto pageRequestHandler = new DecodeTransactionPage;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
 	}

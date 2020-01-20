@@ -198,8 +198,6 @@ int SigningTransaction::run() {
 		sendErrorsAsEmail();
 		return -8;
 	}
-	
-	//Poco::Thread::sleep(10000);
 
 	return 0;
 }
