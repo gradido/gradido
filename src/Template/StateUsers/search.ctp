@@ -32,7 +32,7 @@ $this->loadHelper('Form', [
   </div>
 </div>
 <div class="row">
-  <div class="col-md-11 equel-grid">
+  <div class="col-md-12 equel-grid">
     <div class="grid">
       <div id="gradido-mithril-user-search"></div>
     </div>
