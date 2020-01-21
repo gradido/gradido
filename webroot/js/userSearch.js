@@ -8132,7 +8132,7 @@ var _default = {
       color: 'warning',
       description: {
         title: 'Das Konto wurde auf dem Login-Server angelegt, aber es wurden noch keine Schlüssel generiert!',
-        line: ['+', '+', '-', '-', '-']
+        lines: ['+', '+', '-', '-', '-']
       }
     }
   },
