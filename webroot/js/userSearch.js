@@ -8190,9 +8190,14 @@ function view(vnode) {
     var acc = new _AccountState["default"]('account not on login-server');
     return (0, _mithril["default"])('', [(0, _mithril["default"])('.grid-body.py-3', (0, _mithril["default"])('p.grid-header', window.texte.USER_FOUND)), (0, _mithril["default"])('.table-responsive', (0, _mithril["default"])(_userTable["default"], {
       users: g_users
-    })), (0, _mithril["default"])('.tippy-popper', (0, _mithril["default"])('.tippy-tooltip', {
-      'data-placement': 'top'
-    }, [(0, _mithril["default"])('.tippy-backdop'), (0, _mithril["default"])('.tippy-arrow'), (0, _mithril["default"])('.tippy-content', acc.getTooltip())]))]);
+    }))
+    /*m('.tippy-popper', 
+     m('.tippy-tooltip', {'data-placement': 'top'}, [
+       m('.tippy-backdop'),
+       m('.tippy-arrow'),
+       m('.tippy-content', acc.getTooltip())
+     ]))*/
+    ]);
     return (0, _mithril["default"])(_userTable["default"], {
       users: g_users
     });
@@ -8340,8 +8345,10 @@ function view(vnode) {
     case 'text':
       actionColor = 'secondary';
       break;
-  } //const tooltipContent = status.getTooltipText()
+  } // disable until has function
 
+
+  actionColor = false; //const tooltipContent = status.getTooltipText()
 
   return (0, _mithril["default"])('tr', [(0, _mithril["default"])('td', actionColor !== false ? (0, _mithril["default"])('i.mdi.mdi-menu-down.btn.btn-xs.btn-' + actionColor) : null), (0, _mithril["default"])('td.pr-0', [(0, _mithril["default"])('span.text-black.font-weight-medium.d-block', user.name), (0, _mithril["default"])((0, _Tooltip["default"])((0, _mithril["default"])('span', [(0, _mithril["default"])('span.status-indicator.rounded-indicator.small.' + statusColor), (0, _mithril["default"])('small', statusTitle)])), {
     accountState: status
