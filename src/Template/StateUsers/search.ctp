@@ -12,6 +12,42 @@ $this->loadHelper('Form', [
     'templates' => 'ripple_control_group_form',
 ]);//*/
 ?>
+<style type="text/css">
+ .tippy-tooltip[data-animation=fade][data-state=hidden]{opacity:0}.tippy-iOS{cursor:pointer!important;-webkit-tap-highlight-color:transparent}.tippy-popper{pointer-events:none;max-width:calc(100vw - 10px);transition-timing-function:cubic-bezier(.165,.84,.44,1);transition-property:transform}.tippy-tooltip{position:relative;color:#fff;border-radius:4px;font-size:14px;line-height:1.4;background-color:#333;transition-property:visibility,opacity,transform;outline:0}.tippy-tooltip[data-placement^=top]>.tippy-arrow{border-width:8px 8px 0;border-top-color:#333;margin:0 3px;transform-origin:50% 0;bottom:-7px}.tippy-tooltip[data-placement^=bottom]>.tippy-arrow{border-width:0 8px 8px;border-bottom-color:#333;margin:0 3px;transform-origin:50% 7px;top:-7px}.tippy-tooltip[data-placement^=left]>.tippy-arrow{border-width:8px 0 8px 8px;border-left-color:#333;margin:3px 0;transform-origin:0 50%;right:-7px}.tippy-tooltip[data-placement^=right]>.tippy-arrow{border-width:8px 8px 8px 0;border-right-color:#333;margin:3px 0;transform-origin:7px 50%;left:-7px}.tippy-tooltip[data-interactive][data-state=visible]{pointer-events:auto}.tippy-tooltip[data-inertia][data-state=visible]{transition-timing-function:cubic-bezier(.54,1.5,.38,1.11)}.tippy-arrow{position:absolute;border-color:transparent;border-style:solid}.tippy-content{padding:5px 9px}
+  
+ .tippy-popper {
+   ax-width: calc(100vw - 10px);
+   
+ }
+.tippy-tooltip {
+  color:#101010;
+  background-color:#f9fafb;
+  border-radius: 0;
+  font-size:12px;
+}
+
+.tippy-content b {
+  color:#047006;
+}
+
+.tippy-content ul {
+  list-style-type:none;
+  padding-left:4px;
+  
+}
+
+.tippy-content .mdi {
+  font-size: 16px;
+}
+
+.tippy-content .grid-header {
+  padding: 5px 10px;
+  margin-bottom:5px;
+}
+
+
+
+</style>
 <div class="row">
   <div class="col-md-10 equel-grid">
     <div class="grid">
@@ -23,6 +59,7 @@ $this->loadHelper('Form', [
               <?= $this->Form->create($searchForm, ['class' => 't-header-search-box']) ?>
                   <?= $this->Form->control('search', ['label' => false, 'class' => 'form-control', 'id' => 'inlineFormInputGroup', 'placeholder' => __('Vorname oder Nachname oder E-Mail')]) ?>
               <?= $this->Form->button('<i class="mdi mdi-magnify"></i>&nbsp;' . __('Datenbank durchsuchen'), ['class' => 'btn btn-sm btn-primary']) ?>
+              <?= $this->Form->hidden('order_row', ['id' => 'input-order-row']) ?>
             </div>
           </div>
         </div>
@@ -33,50 +70,14 @@ $this->loadHelper('Form', [
 <div class="row">
   <div class="col-md-11 equel-grid">
     <div class="grid">
-      <?php if(isset($finalUserEntrys) && count($finalUserEntrys) > 0) : ?>
-        <div class="grid-body py-3">
-          <p class="grid-header"><?= __('Benutzer gefunden') ?></p>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-sm">
-            <thead>
-              <tr class="solid-header">
-                <th class="pl-4">Name</th>
-                <th>E-Mail</th>
-                <th>Kontostand</th>
-                <th>Public Key</th>
-                <th>Erstellt</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach($finalUserEntrys as $user) : ?>
-              <tr>
-                <td class="pr-0 pl-4">
-                  <span class="text-black font-weight-medium d-block">
-                    <?= $user['name'] ?>
-                  </span>
-                  <span>
-                    <span class="status-indicator rounded-indicator small bg-<?= $user['indicator']['color'] ?>"></span>
-                    <small><?= __($user['indicator']['name']) ?></small>
-                  </span>
-                </td>
-                <td><?= $user['email'] ?></td>
-                <td><?= $this->element('printGradido', ['number' => $user['balance']]) ?></td>
-                <td title="<?= $user['pubkeyhex'] ?>"><?= substr($user['pubkeyhex'], 0, 10) . '...' ?></td>
-                <td><?php if($user['created'] != null) {
-                    echo $user['created']->format('d.m.y H:i:s');   
-                }
-                ?></td>
-              </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      <?php elseif(isset($finalUserEntrys)) :  ?>
-      <div class="grid-body py-3">
-          <p class="grid-header"><?= __('Keine Benutzer gefunden') ?></p>
-        </div>
-      <?php endif; ?>
+      <div id="gradido-mithril-user-search"></div>
     </div>
   </div>
 </div>
+<?php // adding scripts vendor and core from ripple ui for popup/tooltip ?>
+<script type="text/javascript">
+  <?php if(isset($finalUserEntrys)) : ?>
+    g_users = <?= json_encode($finalUserEntrys); ?>;
+  <?php endif; ?>
+</script>
+<?= $this->Html->script('userSearch.min') ?>
