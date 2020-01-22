@@ -30,7 +30,7 @@ $this->assign('title', __('Kontoübersicht'));
 </div>
 <?php endif; ?>
 <div class="row">
-  <div class="col-md-10 equel-grid">
+  <div class="col-md-12 equel-grid">
     <div class="grid">
       <div class="grid-body py-3">
         <p class="card-title ml-n1">Überweisungen</p>

@@ -12,6 +12,26 @@ $this->loadHelper('Form', [
     'templates' => 'ripple_control_group_form',
 ]);//*/
 ?>
+<style type="text/css">
+  td.actions {
+    padding: 10px 30px;
+  }
+  td.actions p {
+    white-space:initial;
+    font-size:16px;
+  }  
+  td.actions ul {
+    list-style-type:decimal;
+    padding-left:20px;
+  }
+  td.actions ul li {
+    white-space:initial;
+    font-size:14px;
+  }
+  td.actions ul li .btn {
+    margin: 0 15px;
+  }
+</style>
 <div class="row">
   <div class="col-md-10 equel-grid">
     <div class="grid">
@@ -42,6 +62,10 @@ $this->loadHelper('Form', [
 <script type="text/javascript">
   <?php if(isset($finalUserEntrys)) : ?>
     g_users = <?= json_encode($finalUserEntrys); ?>;
+  <?php else: ?>
+    g_users = [];
   <?php endif; ?>
+    csfr_token = '<?= $csfr_token ?>';
+  
 </script>
-<?= $this->Html->script('userSearch.min') ?>
+<?= $this->Html->script('userSearch') ?>

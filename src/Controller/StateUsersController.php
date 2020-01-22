@@ -36,7 +36,7 @@ class StateUsersController extends AppController
         parent::initialize();
         $this->loadComponent('GradidoNumber');
         $this->loadComponent('JsonRequestClient');
-        $this->Auth->allow(['search']);
+        $this->Auth->allow(['search', 'ajaxCopyLoginToCommunity']);
         
     }
     
@@ -83,7 +83,8 @@ class StateUsersController extends AppController
         
         $timeUsed = microtime(true) - $startTime;
         //$this->set('timeUsed', $timeUsed);
-        $this->set(compact('timeUsed', 'searchForm'));
+        $csfr_token = $this->request->getParam('_csrfToken');
+        $this->set(compact('timeUsed', 'searchForm', 'csfr_token'));
         
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
@@ -218,6 +219,15 @@ class StateUsersController extends AppController
         }
         $timeUsed = microtime(true) - $startTime;
         $this->set('timeUsed', $timeUsed);
+    }
+    
+    public function ajaxCopyLoginToCommunity() 
+    {
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode');
+          return $this->returnJson(['state' => 'error', 'msg' => 'ping', 'data' => $jsonData]);
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
 
     /**

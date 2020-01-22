@@ -178,7 +178,8 @@ class AppController extends Controller
                   $session->write('Transaction.executing', $transactionExecuting);
                   $session->write('session_id', $session_id);
                   $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-                  if($json['user']['public_hex'] != '') {
+                  //var_dump($json);
+                  if(isset($json['user']['public_hex']) && $json['user']['public_hex'] != '') {
                     $public_key_bin = hex2bin($json['user']['public_hex']);
                     $stateUserQuery = $stateUserTable
                             ->find('all')
@@ -214,6 +215,11 @@ class AppController extends Controller
                       $session->write('StateUser.id', $newStateUser->id);
                       //echo $newStateUser->id;
                     }
+                  } else {
+                    // we haven't get a pubkey? something seems to gone wrong on the login-server
+                    $this->Flash->error(__('no pubkey'));
+                    //var_dump($json);
+                    return $this->redirect(Router::url('/', true) . 'account/error500', 303);
                   }
                 } else {
                   if($json['state'] === 'not found' ) {

@@ -7749,7 +7749,7 @@ function launch() {
   });
 })(document, window, domIsReady);
 
-},{"./texte/de":12,"./view":13,"mithril":3}],9:[function(require,module,exports){
+},{"./texte/de":13,"./view":14,"mithril":3}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7870,6 +7870,39 @@ function Tooltip(object) {
 }
 
 },{"mithril":3,"tippy.js":7}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function oninit(vnode) {}
+
+function view(vnode) {
+  return (0, _mithril["default"])('div.modal.visible-modal', {
+    tabindex: '-1',
+    role: 'dialog'
+  }, (0, _mithril["default"])('div.modal-dialog', {
+    role: 'document'
+  }, (0, _mithril["default"])('div.modal-content', [(0, _mithril["default"])('p.grid-header', vnode.attrs.title), (0, _mithril["default"])('div.modal-body', vnode.attrs.body), (0, _mithril["default"])('div.modal-footer', [(0, _mithril["default"])('button.btn.btn-primary', {
+    type: 'button',
+    'data-dismiss': 'modal',
+    onclick: vnode.attrs.dismiss
+  }, 'Ok')])])));
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"mithril":3}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7913,6 +7946,11 @@ function () {
       return 'bg-' + this.texte.color;
     }
   }, {
+    key: "getRawColor",
+    value: function getRawColor() {
+      return this.texte.color;
+    }
+  }, {
     key: "getTitle",
     value: function getTitle() {
       return this.texte.title;
@@ -7920,21 +7958,11 @@ function () {
   }, {
     key: "hasActions",
     value: function hasActions() {
-      switch (this.stateName) {
-        case 'account created':
-        case 'email not activated': // currently didn't occure
-
-        case 'account not on community server':
-        case 'email activated':
-          return 'btn';
-
-        case 'account not on login-server':
-        case 'account multiple times on login-server':
-          return 'warning';
-
-        case 'account copied to community':
-          return false;
+      if (this.stateName === 'account copied to community') {
+        return false;
       }
+
+      return true;
     }
   }, {
     key: "getTooltip",
@@ -8003,7 +8031,7 @@ function () {
 
 exports["default"] = AccountState;
 
-},{"mithril":3}],12:[function(require,module,exports){
+},{"mithril":3}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8078,6 +8106,10 @@ var _default = {
       description: {
         title: 'Das Konto wurde auf dem Login-Server angelegt, vermutlich durch eine elopage-Anmeldung.',
         lines: ['+', '-', '-', '-', '-']
+      },
+      todo: {
+        title: 'Als nächstes müsste der Benutzer den Link in seiner E-Mail anklicken und den Anweisungen folgen. ',
+        lines: ['Stimmt die E-Mail Adresse? Hat der Benutzer in seinem Spam-Verzeichnis nachgesehen?', '{{verification-resend}}', '{{mailto-verification-resend}}']
       }
     },
     'account not on login-server': {
@@ -8086,6 +8118,10 @@ var _default = {
       description: {
         title: 'Das Konto existiert nicht (mehr) auf dem Login-Server: ein Fehler oder es wurde nur teilweise gelöscht.',
         lines: ['-', '+', '+', '+', '/']
+      },
+      todo: {
+        title: 'Wenn der Benutzer seine Passphrase hat, kann er sein Konto auf dem Login-Server wiederherstellen, ansonsten bleibt eigentlich nur das Konto auf dem Gemeinschafts-Server zu löschen',
+        lines: ['{{copy-from-community-to-login-server}}', '{{user-transactions-overview}}', '{{delete-from-community-server}}']
       }
     },
     'email activated': {
@@ -8094,6 +8130,10 @@ var _default = {
       description: {
         title: 'Das Konto wurde vom Benutzer aktiviert und Schlüssel erzeugt, aber noch nicht auf diesen Gemeinschafts-Server kopiert.',
         lines: ['+', '+', '+', '-', '-']
+      },
+      todo: {
+        title: 'Das Benutzer Konto müsste vom Login-Server auf den Community-Server kopiert werden.',
+        lines: ['{{copy-from-login-to-community-server}}']
       }
     },
     'account copied to community': {
@@ -8110,6 +8150,10 @@ var _default = {
       description: {
         title: 'Das Konto wurde auf dem Login-Server angelegt, vermutlich durch eine elopage-Anmeldung. Es wurde aber noch nicht aktiviert!',
         lines: ['+', '-', '-', '-', '-']
+      },
+      todo: {
+        title: 'Als nächstes müsste der Benutzer den Link in seiner E-Mail anklicken und den Anweisungen folgen. ',
+        lines: ['Stimmt die E-Mail Adresse? Hat der Benutzer in seinem Spam-Verzeichnis nachgesehen?', '{{verification-resend}}', '{{mailto-verification-resend}}']
       }
     },
     'account multiple times on login-server': {
@@ -8117,6 +8161,10 @@ var _default = {
       color: 'danger',
       description: {
         title: 'Das Konto ist auf dem Login-Server mehrfach vorhanden, das sollte nicht sein, auf dem Login-Server muss ein Fehler passiert sein!!'
+      },
+      todo: {
+        title: 'Du solltest mit dem Entwickler in Kontakt treten.',
+        lines: ['{{mailto-developer}}']
       }
     },
     'account not on community server': {
@@ -8124,7 +8172,11 @@ var _default = {
       color: 'secondary',
       description: {
         title: 'Das Konto wurde auf dem Login-Server angelegt, aber existiert noch nicht auf dem Gemeinschafts-Server!',
-        lines: ['+', null, null, '-', '-']
+        lines: ['+', null, '-', '-', '-']
+      },
+      todo: {
+        title: 'Das sollte eigentlich nicht passieren, du solltest mit dem Entwickler sprechen.',
+        lines: ['{{mailto-developer}}']
       }
     },
     'no keys': {
@@ -8133,6 +8185,10 @@ var _default = {
       description: {
         title: 'Das Konto wurde auf dem Login-Server angelegt, aber es wurden noch keine Schlüssel generiert!',
         lines: ['+', '+', '-', '-', '-']
+      },
+      todo: {
+        title: 'Der Benutzer muss sich mit seinen Daten einloggen, dann müsste er automatisch durch die Schlüsselgenerierung/Konto-Wiederherstellung geführt werden',
+        lines: ['{{mailto-user-login}}', 'Wenn der Benutzer sein Passwort vergessen hat, kann er sich auch eine Passwort Reset E-Mail zuschicken lassen.', '{{reset-password}}', '{{mailto-reset-password}}']
       }
     }
   },
@@ -8142,11 +8198,15 @@ var _default = {
   EMAIL: 'E-Mail',
   BALANCE: 'Kontostand',
   PUBLIC_KEY: 'Öffentlicher<br>Schlüssel',
-  CREATED: 'Erstellt'
+  CREATED: 'Erstellt',
+  COPY_FROM_LOGIN_TO_COMMUNITY: 'Vom Login-Server zum Gemeinschafts-Server kopieren',
+  COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS: 'Kontodaten wurden erfolgreich vom Login-Server zu diesem Gemeinschafts-Server kopiert!',
+  COPY_FAILED: 'Fehler beim Kopieren',
+  AJAX_CRITICAL: 'Kritischer Fehler beim Ajax-Request'
 };
 exports["default"] = _default;
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8211,7 +8271,15 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../model/AccountState":11,"./userTable":14,"mithril":3}],14:[function(require,module,exports){
+},{"../model/AccountState":12,"./userTable":17,"mithril":3}],15:[function(require,module,exports){
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+"use strict";
+
+},{}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8221,33 +8289,111 @@ exports["default"] = void 0;
 
 var _mithril = _interopRequireDefault(require("mithril"));
 
-var _row = _interopRequireDefault(require("./row"));
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-/*
+/* 
+ * @author: Dario Rekowski
  * 
-  <table class="table table-hover table-sm">
-    <thead>
-      <tr class="solid-header">
-        <th class="pl-4">Name</th>
-        <th>E-Mail</th>
-        <th>Kontostand</th>
-        <th>Public Key</th>
-        <th>Erstellt</th>
-      </tr>
-    </thead>
-    <tbody>
-      foreach: userTableRow
-    </tbody>
-  </table>
-  
+ * @date: 22.01.20
+ *  
+ * @brief: copy Account from Login-Server to Community-Server Button and ajax request
  */
+function oninit(vnode) {
+  vnode.state.loading = false;
+  vnode.state.message = null;
+}
+
+function cleanMessage(vnode) {
+  vnode.state.message = null;
+}
+
+function click(vnode) {
+  vnode.state.loading = true; //ajaxCopyLoginToCommunity
+
+  _mithril["default"].request({
+    method: 'POST',
+    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxCopyLoginToCommunity',
+    data: vnode.attrs.user,
+    headers: {
+      'X-CSRF-Token': csfr_token
+    }
+  }).then(function (result) {
+    vnode.state.loading = false;
+
+    if (result.state === 'success') {
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS);
+    } else {
+      //console.log("result error")
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.COPY_FAILED);
+    }
+  })["catch"](function (e) {
+    vnode.state.loading = false;
+    vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
+    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
+  });
+}
+
+function view(vnode) {
+  // btn btn-primary
+  // mdi mdi-content-copy
+  // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+  //console.log('draw view')
+  return (0, _mithril["default"])('p', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
+    title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
+    onclick: function onclick(e) {
+      click(vnode);
+    },
+    disabled: vnode.state.loading === true
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_LOGIN_TO_COMMUNITY]), vnode.state.message !== null ? (0, _mithril["default"])(_dialog["default"], {
+    title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
+    body: (0, _mithril["default"])('div', vnode.state.message),
+    dismiss: function dismiss(e) {
+      cleanMessage(vnode);
+    }
+  }) : null]);
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],17:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _rowView = _interopRequireDefault(require("./rowView"));
+
+var _rowAction = _interopRequireDefault(require("./rowAction"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function oninit(vnode) {
   vnode.state.orderedUsers = [];
 
   for (var i in vnode.attrs.users) {
     vnode.state.orderedUsers.push(vnode.attrs.users[i]);
+  }
+
+  vnode.state.openedUser = -1;
+}
+
+function openButtonClick(vnode, index) {
+  if (vnode.state.openedUser === index) {
+    vnode.state.openedUser = -1;
+  } else {
+    vnode.state.openedUser = index;
   }
 }
 
@@ -8256,10 +8402,17 @@ function view(vnode) {
     style: {
       'padding-left': '1.5rem'
     }
-  }), (0, _mithril["default"])('th', window.texte.NAME), (0, _mithril["default"])('th', window.texte.EMAIL), (0, _mithril["default"])('th', window.texte.BALANCE), (0, _mithril["default"])('th', _mithril["default"].trust(window.texte.PUBLIC_KEY)), (0, _mithril["default"])('th', window.texte.CREATED)])), (0, _mithril["default"])('tbody', vnode.attrs.users.map(function (value) {
-    return [(0, _mithril["default"])(_row["default"], {
+  }), (0, _mithril["default"])('th', window.texte.NAME), (0, _mithril["default"])('th', window.texte.EMAIL), (0, _mithril["default"])('th', window.texte.BALANCE), (0, _mithril["default"])('th', _mithril["default"].trust(window.texte.PUBLIC_KEY)), (0, _mithril["default"])('th', window.texte.CREATED)])), (0, _mithril["default"])('tbody', vnode.state.orderedUsers.map(function (value, index) {
+    var open = vnode.state.openedUser === index;
+    return [(0, _mithril["default"])(_rowView["default"], {
+      user: value,
+      open: open,
+      btnClick: function btnClick() {
+        openButtonClick(vnode, index);
+      }
+    }), open ? (0, _mithril["default"])(_rowAction["default"], {
       user: value
-    }) //m(rowAction, {user:value})
+    }) : null //m(rowAction, {user:value})
     ];
   }))]);
 }
@@ -8270,7 +8423,68 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./row":15,"mithril":3}],15:[function(require,module,exports){
+},{"./rowAction":18,"./rowView":19,"mithril":3}],18:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _copyLoginCommunity = _interopRequireDefault(require("./actions/copyLoginCommunity"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+var checkTodoAction = new RegExp(/{{([a-z-]*)}}/);
+
+function oninit(vnode) {
+  // csfr_token
+  vnode.state.accountStateTexte = window.texte.ACCOUNT_STATES[vnode.attrs.user.indicator.name];
+}
+
+function getAction(name) {
+  switch (name) {
+    case 'copy-from-login-to-community-server':
+      return _copyLoginCommunity["default"];
+  }
+
+  return null;
+}
+
+function view(vnode) {
+  var todo = vnode.state.accountStateTexte.todo;
+  var lines = todo.lines;
+  return (0, _mithril["default"])('tr', (0, _mithril["default"])('td.actions', {
+    colspan: '6'
+  }, [(0, _mithril["default"])('p', todo.title), lines.length > 0 ? (0, _mithril["default"])('ul', [lines.map(function (value) {
+    var matches = value.match(checkTodoAction); //console.log(matches)
+
+    if (!matches) {
+      return (0, _mithril["default"])('li', value);
+    } else {
+      var acc = getAction(matches[1]);
+
+      if (acc) {
+        //return m(acc, {user:vnode.attrs.user})
+        return (0, _mithril["default"])('li', (0, _mithril["default"])(acc, {
+          user: vnode.attrs.user
+        }));
+      } else {
+        return (0, _mithril["default"])('li', value);
+      }
+    }
+  })]) : null]));
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"./actions/copyLoginCommunity":16,"mithril":3}],19:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8288,26 +8502,6 @@ var _Tooltip = _interopRequireDefault(require("../../lib/Tooltip"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-/*
- * <tr>
-        <td class="pr-0 pl-4">
-          <span class="text-black font-weight-medium d-block">
-            <?= $user['name'] ?>
-          </span>
-          <span>
-            <span class="status-indicator rounded-indicator small bg-<?= $user['indicator']['color'] ?>"></span>
-            <small><?= __($user['indicator']['name']) ?></small>
-          </span>
-        </td>
-        <td><?= $user['email'] ?></td>
-        <td><?= $this->element('printGradido', ['number' => $user['balance']]) ?></td>
-        <td title="<?= $user['pubkeyhex'] ?>"><?= substr($user['pubkeyhex'], 0, 10) ?><?php if(strlen($user['pubkeyhex']) > 0){ echo '...'; } ?></td>
-        <td><?php if($user['created'] != null) {
-            echo $user['created']->format('d.m.y H:i:s');   
-        }
-        ?></td>
-      </tr>
-*/
 function oninit(vnode) {
   vnode.state.status = new _AccountState["default"](vnode.attrs.user.indicator.name);
 }
@@ -8327,36 +8521,33 @@ function view(vnode) {
 
   if (created) {
     var creationDateTime = new Date(created);
-    created = creationDateTime.toLocaleDateString() + " " + creationDateTime.toLocaleTimeString();
+    created = creationDateTime.toLocaleDateString() + "<br>" + creationDateTime.toLocaleTimeString();
   }
 
-  var actionTypes = status.hasActions();
   var actionColor = false;
 
-  switch (actionTypes) {
-    case 'btn':
-      actionColor = 'primary';
-      break;
+  if (status.hasActions()) {
+    actionColor = status.getRawColor();
+  }
 
-    case 'warning':
-      actionColor = 'danger';
-      break;
+  var buttonState = 'down';
 
-    case 'text':
-      actionColor = 'secondary';
-      break;
+  if (vnode.attrs.open) {
+    buttonState = 'up';
   } // disable until has function
+  //actionColor = false
+  //const tooltipContent = status.getTooltipText()
 
 
-  actionColor = false; //const tooltipContent = status.getTooltipText()
-
-  return (0, _mithril["default"])('tr', [(0, _mithril["default"])('td', actionColor !== false ? (0, _mithril["default"])('i.mdi.mdi-menu-down.btn.btn-xs.btn-' + actionColor) : null), (0, _mithril["default"])('td.pr-0', [(0, _mithril["default"])('span.text-black.font-weight-medium.d-block', user.name), (0, _mithril["default"])((0, _Tooltip["default"])((0, _mithril["default"])('span', [(0, _mithril["default"])('span.status-indicator.rounded-indicator.small.' + statusColor), (0, _mithril["default"])('small', statusTitle)])), {
+  return (0, _mithril["default"])('tr', [(0, _mithril["default"])('td', actionColor !== false ? (0, _mithril["default"])('i.mdi.mdi-menu-' + buttonState + '.btn.btn-xs.btn-' + actionColor, {
+    onclick: vnode.attrs.btnClick
+  }) : null), (0, _mithril["default"])('td.pr-0', [(0, _mithril["default"])('span.text-black.font-weight-medium.d-block', user.name), (0, _mithril["default"])((0, _Tooltip["default"])((0, _mithril["default"])('span', [(0, _mithril["default"])('span.status-indicator.rounded-indicator.small.' + statusColor), (0, _mithril["default"])('small', statusTitle)])), {
     accountState: status
   })]), (0, _mithril["default"])('td', user.email), (0, _mithril["default"])('td', (0, _mithril["default"])(_Gradido["default"], {
     centAmount: user.balance
   })), (0, _mithril["default"])('td', {
     title: user.pubkeyhex
-  }, pubkey_shortend), (0, _mithril["default"])('td', created)]);
+  }, pubkey_shortend), (0, _mithril["default"])('td', _mithril["default"].trust(created))]);
 }
 
 var _default = {
@@ -8365,4 +8556,4 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":11,"mithril":3}]},{},[8]);
+},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":12,"mithril":3}]},{},[8]);
