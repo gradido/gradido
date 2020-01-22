@@ -11,7 +11,7 @@
 #include "JsonGetUsers.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
-	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)")
+	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
 {
 }
 
@@ -19,7 +19,14 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 {
 	std::string uri = request.getURI();
 	std::string url_first_part;
+	std::stringstream logStream;
+
 	mRemoveGETParameters.extract(uri, url_first_part);
+
+	std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+	logStream << dateTimeString << " call " << uri;
+
+	mLogging.information(logStream.str());
 
 	if (url_first_part == "/login") {
 		return new JsonGetLogin;

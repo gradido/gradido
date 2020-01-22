@@ -52,7 +52,7 @@ namespace model {
 				mPublicKey = Poco::Nullable<Poco::Data::BLOB>();
 			}
 			else {
-				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(publicKey, 32));
+				mPublicKey = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(publicKey, 32));
 			}
 		}
 

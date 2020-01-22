@@ -107,7 +107,7 @@ public:
 	void setEmailChecked();
 	bool isEmptyPassword();
 	//bool setNewPassword(const std::string& newPassword);
-	bool updatePassword(const std::string& newPassword, const std::string& passphrase);
+	bool updatePassword(const std::string& newPassword, const std::string& passphrase, Poco::AutoPtr<controller::User> newUser);
 	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
 	bool validateIdentHash(HASH hash);
 	
@@ -185,21 +185,22 @@ private:
 class UserCreateCryptoKey : public UniLib::controller::CPUTask
 {
 public:
-	UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler);
+	UserCreateCryptoKey(Poco::AutoPtr<User> user, Poco::AutoPtr<controller::User> newUser, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler);
 
 	virtual int run();
 	virtual const char* getResourceType() const { return "UserCreateCryptoKey"; };
 
 private:
 	Poco::AutoPtr<User> mUser;
+	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassword;
 };
 
 class UserGenerateKeys : public UniLib::controller::CPUTask
 {
 public:
-	UserGenerateKeys(Poco::AutoPtr<User> user, const std::string& passphrase)
-		: mUser(user), mPassphrase(passphrase) {
+	UserGenerateKeys(Poco::AutoPtr<User> user, Poco::AutoPtr<controller::User> newUser, const std::string& passphrase)
+		: mUser(user), mNewUser(newUser), mPassphrase(passphrase) {
 #ifdef _UNI_LIB_DEBUG
 		setName(user->getEmail());
 #endif
@@ -214,6 +215,7 @@ public:
 	virtual const char* getResourceType() const { return "UserGenerateKeys"; };
 protected:
 	Poco::AutoPtr<User> mUser;
+	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
 	KeyPair mKeys;
 };

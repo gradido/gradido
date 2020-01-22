@@ -114,6 +114,7 @@ void Session::reset()
 	mState = SESSION_STATE_EMPTY;
 	
 	mPassphrase = "";
+	mLastExternReferer = "";
 	mClientLoginIP = Poco::Net::IPAddress();
 	unlock();
 	//printf("[Session::reset] finished\n");
@@ -189,7 +190,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	//prepareEmail->scheduleTask(prepareEmail);
 
 	// create user crypto key
-	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, password, ServerConfig::g_CryptoCPUScheduler));
+	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, mNewUser, password, ServerConfig::g_CryptoCPUScheduler));
 	cryptoKeyTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_CRYPTO_KEY_GENERATED, this));
 	cryptoKeyTask->scheduleTask(cryptoKeyTask);
 

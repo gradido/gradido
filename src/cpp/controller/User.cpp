@@ -96,6 +96,7 @@ namespace controller {
 	{
 		auto json = getModel()->getJson();
 		auto pubkey = getPublicHex();
+		//printf("[controller::User::getJson] this: %d\n", (int)this);
 		if (pubkey != "") {
 			json.set("public_hex", pubkey);
 		}

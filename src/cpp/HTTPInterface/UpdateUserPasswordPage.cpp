@@ -56,7 +56,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 			    auto sessionState = mSession->getSessionState();
 				
 				
-				if(user->updatePassword(pwd, "")) {
+				if(user->updatePassword(pwd, "", mSession->getNewUser())) {
 					//std::string referUri = request.get("Referer", uri_start + "/");
 					//printf("[updateUserPasswordPage] redirect to referUri: %s\n", referUri.data());
 					

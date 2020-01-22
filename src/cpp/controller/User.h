@@ -34,6 +34,8 @@ namespace controller {
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
+
+
 		const std::string& getPublicHex();
 		
 

@@ -22,8 +22,8 @@ using namespace Poco::Data::Keywords;
 
 // -------------------------------------------------------------------------------------------------
 
-UserCreateCryptoKey::UserCreateCryptoKey(Poco::AutoPtr<User> user, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
-	: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mPassword(password) {
+UserCreateCryptoKey::UserCreateCryptoKey(Poco::AutoPtr<User> user, Poco::AutoPtr<controller::User> newUser, const std::string& password, UniLib::controller::CPUSheduler* cpuScheduler)
+	: UniLib::controller::CPUTask(cpuScheduler), mUser(user), mNewUser(newUser), mPassword(password) {
 #ifdef _UNI_LIB_DEBUG
 	setName(user->getEmail());
 #endif
@@ -42,7 +42,7 @@ int UserCreateCryptoKey::run()
 
 	auto pwdHashed = mUser->createPasswordHashed(cryptoKey);
 	mUser->setPwdHashed(pwdHashed);
-
+	mNewUser->getModel()->setPasswordHashed(pwdHashed);
 
 	//printf("crypto key created\n");
 	setTaskFinished();
@@ -65,9 +65,16 @@ int UserGenerateKeys::run()
 
 	mUser->setPublicKeyHex(mKeys.getPubkeyHex());
 	mUser->setPublicKey(mKeys.getPublicKey());
+
+	auto newUserModel = mNewUser->getModel();
+
+	newUserModel->setPublicKey(mKeys.getPublicKey());
 	if (mUser->hasCryptoKey()) {
 		mUser->setPrivKey(mKeys.getPrivateKey());
+		newUserModel->setPrivateKey(mUser->getPrivKey());
 	}
+
+	//printf("[UserGenerateKeys::run] controller::User: %d\n", (int)mNewUser.get());
 
 	return 0;
 }
@@ -435,7 +442,7 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 		mState = USER_LOADED_FROM_DB;
 
 		if (!mEmailChecked) { mState = USER_EMAIL_NOT_ACTIVATED; }
-		else if (!mPublicKey) { mState = USER_NO_KEYS; }
+		else if (!pubkey) { mState = USER_NO_KEYS; }
 		else if (!mPrivateKey) { mState = USER_NO_PRIVATE_KEY; }
 		else { mState = USER_COMPLETE; }
 	}
@@ -628,7 +635,7 @@ bool User::setNewPassword(const std::string& newPassword)
 	return true;
 }
 */
-bool User::updatePassword(const std::string& newPassword, const std::string& passphrase)
+bool User::updatePassword(const std::string& newPassword, const std::string& passphrase, Poco::AutoPtr<controller::User> newUser)
 {
 	static const char* functionName("User::updatePassword");
 	if (newPassword == "") {
@@ -659,7 +666,7 @@ bool User::updatePassword(const std::string& newPassword, const std::string& pas
 		duplicate();
 		lock(functionName);
 		//printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
-		mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newPassword, ServerConfig::g_CPUScheduler);
+		mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newUser, newPassword, ServerConfig::g_CPUScheduler);
 		mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
 		unlock();
 	}
@@ -697,7 +704,7 @@ bool User::updatePassword(const std::string& newPassword, const std::string& pas
 
 	if (passphrase != "") {
 		duplicate();
-		UniLib::controller::TaskPtr genKeys(new UserGenerateKeys(this, passphrase));
+		UniLib::controller::TaskPtr genKeys(new UserGenerateKeys(this, newUser, passphrase));
 		genKeys->scheduleTask(genKeys);
 
 		
@@ -940,7 +947,7 @@ bool User::generateKeys(bool savePrivkey, const std::string& passphrase, Session
 	//Profiler timeUsed;
 	
 	duplicate();
-	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, passphrase));
+	UniLib::controller::TaskPtr generateKeysTask(new UserGenerateKeys(this, session->getNewUser(), passphrase));
 	//generateKeysTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_KEY_PAIR_GENERATED, session));
 	//generateKeysTask->scheduleTask(generateKeysTask);
 	// run directly because we like to show pubkey on interface, shouldn't last to long
