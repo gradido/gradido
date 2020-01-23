@@ -17,7 +17,7 @@ $this->loadHelper('Form', [
     padding: 10px 30px;
   }
   td.actions p {
-    white-space:initial;
+    white-space:normal;
     font-size:16px;
   }  
   td.actions ul {
