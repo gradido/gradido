@@ -43,7 +43,7 @@ class Transaction extends TransactionBase {
           $this->mProtoTransaction = new \Model\Messages\Gradido\Transaction();
           try {
             $this->mProtoTransaction->mergeFromString($transactionBin);
-            var_dump($this->mProtoTransaction);
+            //var_dump($this->mProtoTransaction);
             // cannot catch Exception with cakePHP, I don't know why
           } catch(\Google\Protobuf\Internal\GPBDecodeException $e) {
             //var_dump($e);
@@ -53,9 +53,9 @@ class Transaction extends TransactionBase {
           
           //echo 'serialize to json: <br>';
           //echo $this->mProtoTransaction->serializeToJsonString();
-          echo "body bytes: <br>";
-          var_dump($this->mProtoTransaction->getBodyBytes());
-          echo "<br>end body bytes<br>";
+          //echo "body bytes: <br>";
+          //var_dump($this->mProtoTransaction->getBodyBytes());
+          //echo "<br>end body bytes<br>";
           $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
         }
     }
