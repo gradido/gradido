@@ -8121,7 +8121,7 @@ var _default = {
       },
       todo: {
         title: 'Wenn der Benutzer seine Passphrase hat, kann er sein Konto auf dem Login-Server wiederherstellen, ansonsten bleibt eigentlich nur das Konto auf dem Gemeinschafts-Server zu löschen',
-        lines: ['{{copy-from-community-to-login-server}}', '{{user-transactions-overview}}', '{{delete-from-community-server}}']
+        lines: ['Nachdem das Konto auf dem Login-Server kopiert wurde, bekommt der Benutzer automatisch eine E-Mail mit einem Link zur Kontoaktivierung zugeschickt.', '{{copy-from-community-to-login-server}}', '{{user-transactions-overview}}', 'Es wird nur der Benutzer gelöscht, nicht seine Transaktionen. Zu diesen hat er wieder Zugriff wenn er sein Konto mit Hilfe seiner Passphrase wiederherstellt.', '{{delete-from-community-server}}']
       }
     },
     'email activated': {
@@ -8202,7 +8202,8 @@ var _default = {
   COPY_FROM_LOGIN_TO_COMMUNITY: 'Vom Login-Server zum Gemeinschafts-Server kopieren',
   COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS: 'Kontodaten wurden erfolgreich vom Login-Server zu diesem Gemeinschafts-Server kopiert!',
   COPY_FAILED: 'Fehler beim Kopieren',
-  AJAX_CRITICAL: 'Kritischer Fehler beim Ajax-Request'
+  AJAX_CRITICAL: 'Kritischer Fehler beim Ajax-Request',
+  COPY_IN_PROGRESS: 'Wird kopiert'
 };
 exports["default"] = _default;
 
@@ -8305,14 +8306,23 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 function oninit(vnode) {
   vnode.state.loading = false;
   vnode.state.message = null;
+  vnode.state.showDialog = false;
+  vnode.state.copyResult = null;
 }
 
 function cleanMessage(vnode) {
   vnode.state.message = null;
+  vnode.state.showDialog = false;
+
+  if (vnode.state.copyResult === 'success' && typeof vnode.attrs.updateState === 'function') {
+    vnode.attrs.updateState('account copied to community');
+  } //
+
 }
 
 function click(vnode) {
-  vnode.state.loading = true; //ajaxCopyLoginToCommunity
+  vnode.state.loading = true;
+  vnode.state.showDialog = true; //ajaxCopyLoginToCommunity
 
   _mithril["default"].request({
     method: 'POST',
@@ -8326,13 +8336,16 @@ function click(vnode) {
 
     if (result.state === 'success') {
       vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS);
+      vnode.state.copyResult = 'success';
     } else {
       //console.log("result error")
       vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.COPY_FAILED);
+      vnode.state.copyResult = 'error';
     }
   })["catch"](function (e) {
     vnode.state.loading = false;
     vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
+    vnode.state.copyResult = 'critical error';
     console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
   });
 }
@@ -8348,9 +8361,9 @@ function view(vnode) {
       click(vnode);
     },
     disabled: vnode.state.loading === true
-  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_LOGIN_TO_COMMUNITY]), vnode.state.message !== null ? (0, _mithril["default"])(_dialog["default"], {
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_LOGIN_TO_COMMUNITY]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
     title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
-    body: (0, _mithril["default"])('div', vnode.state.message),
+    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), window.texte.COPY_IN_PROGRESS]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
     dismiss: function dismiss(e) {
       cleanMessage(vnode);
     }
@@ -8397,6 +8410,15 @@ function openButtonClick(vnode, index) {
   }
 }
 
+function updateStateForActiveUser(newState, vnode) {
+  console.log('updateStateForActiveUser');
+
+  if (-1 !== vnode.state.openedUser) {
+    vnode.state.orderedUsers[vnode.state.openedUser].indicator.name = newState;
+    vnode.state.openedUser = -1;
+  }
+}
+
 function view(vnode) {
   return (0, _mithril["default"])('table.table.table-hover.table-sm', [(0, _mithril["default"])('thead', (0, _mithril["default"])('tr.solid-header', [(0, _mithril["default"])('th', {
     style: {
@@ -8411,7 +8433,10 @@ function view(vnode) {
         openButtonClick(vnode, index);
       }
     }), open ? (0, _mithril["default"])(_rowAction["default"], {
-      user: value
+      user: value,
+      updateState: function updateState(newState) {
+        updateStateForActiveUser(newState, vnode);
+      }
     }) : null //m(rowAction, {user:value})
     ];
   }))]);
@@ -8469,7 +8494,8 @@ function view(vnode) {
       if (acc) {
         //return m(acc, {user:vnode.attrs.user})
         return (0, _mithril["default"])('li', (0, _mithril["default"])(acc, {
-          user: vnode.attrs.user
+          user: vnode.attrs.user,
+          updateState: vnode.attrs.updateState
         }));
       } else {
         return (0, _mithril["default"])('li', value);
@@ -8502,13 +8528,11 @@ var _Tooltip = _interopRequireDefault(require("../../lib/Tooltip"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function oninit(vnode) {
-  vnode.state.status = new _AccountState["default"](vnode.attrs.user.indicator.name);
-}
+function oninit(vnode) {}
 
 function view(vnode) {
+  var status = new _AccountState["default"](vnode.attrs.user.indicator.name);
   var user = vnode.attrs.user;
-  var status = vnode.state.status;
   var statusColor = status.getColor();
   var statusTitle = status.getTitle();
   var pubkey_shortend = user.pubkeyhex;

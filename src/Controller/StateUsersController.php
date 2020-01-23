@@ -167,6 +167,8 @@ class StateUsersController extends AppController
                   $color = 'primary';
                   $l_user = $user['login'][0];
                   $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
+                  $finalUser['first_name'] = $l_user['first_name'];
+                  $finalUser['last_name'] = $l_user['last_name'];
                   $finalUser['email'] = $l_user['email'];
                   $finalUser['created'] =  new FrozenTime($l_user['created']);
                   if(count($user['community']) == 1) {
@@ -205,6 +207,8 @@ class StateUsersController extends AppController
               $finalUser['balance'] = 0;
               $finalUser['pubkeyhex'] = '';
               $finalUser['name'] = $user['first_name'] . ' ' . $user['last_name'];
+              $finalUser['first_name'] = $user['first_name'];
+              $finalUser['last_name'] = $user['last_name'];
               $finalUser['email'] = $user['email'];
               $finalUser['created'] = new FrozenTime($user['created']);
               $finalUser['indicator'] = ['name' => $state, 'color' => $color];
@@ -224,8 +228,19 @@ class StateUsersController extends AppController
     public function ajaxCopyLoginToCommunity() 
     {
       if($this->request->is('post')) {
-          $jsonData = $this->request->input('json_decode');
-          return $this->returnJson(['state' => 'error', 'msg' => 'ping', 'data' => $jsonData]);
+          $jsonData = $this->request->input('json_decode', true);
+          //$user = $jsonData['user'];
+          //var_dump($jsonData);
+          
+          $newStateUser = $this->StateUsers->newEntity();
+          $this->StateUsers->patchEntity($newStateUser, $jsonData);
+          $newStateUser->public_key = hex2bin($jsonData['pubkeyhex']);
+          
+          if(!$this->StateUsers->save($newStateUser)) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'error by saving', 'details' => json_encode($newStateUser->errors())]);
+          }
+                      
+          return $this->returnJson(['state' => 'success']);
       }
       return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
