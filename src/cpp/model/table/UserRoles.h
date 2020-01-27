@@ -26,7 +26,7 @@ namespace model {
 			~UserRoles();
 
 			// generic db operations
-			const char* getTableName() { return "user_roles"; }
+			const char* getTableName() const { return "user_roles"; }
 			std::string toString();
 
 			inline int getUserId() const { return mUserId; }

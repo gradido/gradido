@@ -30,13 +30,15 @@ namespace model {
 			ModelBase() : mID(0), mReferenceCount(1) {}
 			virtual ~ModelBase();
 
-			virtual const char* getTableName() = 0;
+			virtual const char* getTableName() const = 0;
 			virtual std::string toString() = 0;
 			
 			template<class T> 
 			size_t updateIntoDB(const std::string& fieldName, const T& fieldValue );
 			template<class T> 
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
+			template<class T>
+			bool isExistInDB(const std::string& fieldName, const T& fieldValue) const;
 			template<class WhereFieldType, class Tuple> 
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
 			template<class T1, class T2> 
@@ -88,6 +90,30 @@ namespace model {
 				unlock();
 			}
 			return resultCount;
+		}
+
+		template<class T>
+		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue) const
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			int id;
+			select << "SELECT " << "id "
+				<< " FROM " << getTableName()
+				<< " WHERE " << fieldName << " = ?"
+				, into(id), Poco::Data::Keywords::useRef(fieldValue);
+			try {
+				if (select.execute() == 1) {
+					return true;
+				}
+			}
+			catch (Poco::Exception& ex) {
+				/*lock();
+				addError(new ParamError(getTableName(), "mysql error by isExistInDB", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
+				unlock();*/
+			}
+			return false;
 		}
 
 		template<class WhereFieldType, class Tuple> 

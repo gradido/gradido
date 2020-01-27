@@ -70,6 +70,10 @@ public:
 	// TODO: automatic redirect after some time, median profiled time for register
 	// TODO: register state: written into db, mails sended, update state only if new state is higher as old state
 	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
+
+	// adminRegister without passwort
+	bool adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email);
+
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	UserStates loadUser(const std::string& email, const std::string& password);
 	bool ifUserExist(const std::string& email);

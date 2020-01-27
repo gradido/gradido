@@ -34,7 +34,7 @@ namespace model {
 			~ElopageBuy();
 
 			// generic db operations
-			const char* getTableName() { return "elopage_buys"; }
+			const char* getTableName() const { return "elopage_buys"; }
 			
 			std::string toString();
 			

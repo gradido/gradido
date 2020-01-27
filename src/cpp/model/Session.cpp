@@ -135,6 +135,58 @@ Poco::AutoPtr<controller::EmailVerificationCode> Session::getEmailVerificationCo
 	return ret;
 }
 
+bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email)
+{
+	Profiler usedTime;
+
+	if (mNewUser->getModel()->getRole() != model::table::ROLE_ADMIN) {
+		addError(new Error(gettext("Benutzer"), gettext("Eingeloggter Benutzer ist kein Admin")));
+		return false;
+	}
+
+	auto sm = SessionManager::getInstance();
+	if (!sm->isValid(first_name, VALIDATE_NAME)) {
+		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		return false;
+	}
+	if (!sm->isValid(last_name, VALIDATE_NAME)) {
+		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		return false;
+	}
+	if (!sm->isValid(email, VALIDATE_EMAIL)) {
+		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")));
+		return false;
+	}
+
+
+	// check if user with that email already exist
+	if (mNewUser->getModel()->isExistInDB("email", email)) {
+		addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")));
+		return false;
+	}
+
+	auto newUser = controller::User::create(email, first_name, last_name);
+	updateTimeout();
+
+
+	auto newUserModel = newUser->getModel();
+	if (!newUserModel->insertIntoDB(true)) {
+		addError(new Error(gettext("Benutzer"), gettext("Fehler beim speichern!")));
+		return false;
+	}
+
+	auto emailVerificationCode = controller::EmailVerificationCode::create(newUserModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+	if (!emailVerificationCode->getModel()->insertIntoDB(false)) {
+		addError(new Error(gettext("Email Verification Code"), gettext("Fehler beim speichern!")));
+		return false;
+	}
+	
+	EmailManager::getInstance()->addEmail(new model::Email(emailVerificationCode, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
+	
+
+	return true;
+}
+
 bool Session::createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
 {
 	Profiler usedTime;

@@ -1,0 +1,61 @@
+<%@ page class="RegisterAdminPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+#include "../SingletonManager/SessionManager.h"
+#include "Poco/Net/HTTPCookie.h"
+%>
+<%%
+	const char* pageName = "Admin Registrieren";
+	//auto sm = SessionManager::getInstance();
+	
+	bool userReturned = false;
+	
+	if(!form.empty()) {			
+		userReturned = mSession->adminCreateUser(
+			form.get("register-first-name", ""),
+			form.get("register-last-name", ""),
+			form.get("register-email", "")
+		);
+		getErrors(mSession);
+	}
+		
+	
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Einen neuen Account anlegen</h1>
+	<%= getErrorsHtml() %>
+	<% if(!form.empty() && userReturned) {%>
+		<div class="grd_text-max-width">
+			<div class="grd_text">
+				Die Anmeldung wird verarbeitet und es wird dem Benutzer eine Aktivierungs-E-Mail zugeschickt. 
+			</div>
+		</div>
+	<% } else { %>
+	<form method="POST">
+		
+		<fieldset class="grd_container_small">
+			<legend>Account anlegen</legend>
+			<p>Bitte gebe die Benutzer-Daten ein um einen Account anzulegen</p>
+			<p class="grd_small">
+				<label for="register-first-name">Vorname</label>
+				<input id="register-first-name" type="text" name="register-first-name" value="<%= !form.empty() ? form.get("register-first-name") : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="register-last-name">Nachname</label>
+				<input id="register-last-name" type="text" name="register-last-name" value="<%= !form.empty() ? form.get("register-last-name") : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="register-email">E-Mail</label>
+				<input id="register-email" type="email" name="register-email" value="<%= !form.empty() ? form.get("register-email") : "" %>"/>
+			</p>
+		</fieldset>
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Anmelden">
+		
+	</form>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

@@ -18,6 +18,7 @@
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
 #include "ResetPassword.h"
+#include "RegisterAdminPage.h"
 
 #include "DecodeTransactionPage.h"
 
@@ -128,6 +129,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		if (url_first_part == "/error500") {
 			auto pageRequestHandler = new Error500Page(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+		if (url_first_part == "/adminRegister") {
+			auto pageRequestHandler = new RegisterAdminPage(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}

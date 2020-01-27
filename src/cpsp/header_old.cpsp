@@ -52,11 +52,3 @@ label:not(.grd_radio_label) {
 	<p class="grd_small">Login Server in Entwicklung</p>
 	<p class="grd_small">Alpha <%= ServerConfig::g_versionString %></p>
 </div>
-<!--<nav class="grd-left-bar expanded" data-topbar role="navigation">
-	<div class="grd-left-bar-section">
-		<ul class="grd-no-style">
-		  <li><a href="<%= ServerConfig::g_php_serverPath %>" class="grd-nav-bn">Startseite</a>
-		  <li><a href="./account/logout" class="grd-nav-bn">Logout</a></li>
-		</ul>
-	</div>
-</nav>-->

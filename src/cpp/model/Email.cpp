@@ -16,6 +16,17 @@ Mit freundlichen Grüßen\n\
 Dario, Gradido Server Admin\n\
 "};
 
+const static char EmailText_adminEmailVerification[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Der Admin hat soeben ein Gradido Konto für dich mit dieser E-Mail angelegt.\n\
+Bitte klicke zur Bestätigung auf den Link: [link]\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+"};
+
 const static char EmailText_emailResetPassword[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
@@ -77,6 +88,8 @@ Gradido Login Server\
 		Poco::Net::MediaType mt("text", "plain");
 		mt.setParameter("charset", "utf-8");
 
+		const char* messageTemplate = nullptr;
+
 		switch (mType) {
 		case EMAIL_DEFAULT: 
 			mailMessage->addRecipient(adminRecipient);
@@ -91,6 +104,7 @@ Gradido Login Server\
 			break;
 		
 		case EMAIL_USER_VERIFICATION_CODE:
+		case EMAIL_ADMIN_USER_VERIFICATION_CODE:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
 				addError(new Error(functionName, "no receiver email set for user email verification email"));
 				return false;
@@ -102,9 +116,14 @@ Gradido Login Server\
 			mailMessage->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mUser->getModel()->getEmail()));
 			mailMessage->setSubject(langCatalog->gettext_str("Gradido: E-Mail Verification"));
 
+			messageTemplate = EmailText_emailVerification;
+			if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE) {
+				messageTemplate = EmailText_adminEmailVerification;
+			}
+
 			mailMessage->addContent(
 				new Poco::Net::StringPartSource(replaceUserNamesAndLink(
-					langCatalog->gettext(EmailText_emailVerification),
+					langCatalog->gettext(messageTemplate),
 					userTableModel->getFirstName(), 
 					userTableModel->getLastName(),
 					mEmailVerificationCode->getLink()

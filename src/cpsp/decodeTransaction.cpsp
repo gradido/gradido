@@ -77,8 +77,11 @@
 			<p>pubkey: <%= hex %></p>
 			<p>amount: <%= receiver.amount() %></p>
 		<% } %>
-		<% } else if(transactionBody.has_creation()) { %>
+		<% } else if(transactionBody.has_creation()) { 
+			auto creation = transactionBody.creation();
+		%>
 		<h3>Creation</h3>
+		<p>pubkey: <%= creation.
 		<% } %>
 	<% } %>
 </div>
