@@ -96,7 +96,8 @@ namespace model {
 		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select(session);
 			int id;
 			select << "SELECT " << "id "
 				<< " FROM " << getTableName()
