@@ -40,6 +40,7 @@ namespace model {
 			// generic db operations
 			const char* getTableName() const { return "users"; }
 			std::string toString();
+			std::string toHTMLString();
 			
 
 			// default getter unlocked

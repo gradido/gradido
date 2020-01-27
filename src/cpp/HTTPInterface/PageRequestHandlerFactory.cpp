@@ -67,13 +67,6 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return pageRequestHandler;
 	}
 
-	if (url_first_part == "/decode_transaction") {
-		mLogging.information(dateTimeString + " decode");
-		auto pageRequestHandler = new DecodeTransactionPage;
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
-	}
-
 	// check if user has valid session
 	Poco::Net::NameValueCollection cookies;
 	request.getCookies(cookies);
@@ -114,6 +107,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		auto resetPassword = new ResetPassword;
 		resetPassword->setProfiler(timeUsed);
 		return resetPassword;
+	}
+
+	if (url_first_part == "/decode_transaction") {
+		mLogging.information(dateTimeString + " decode");
+		auto pageRequestHandler = new DecodeTransactionPage(s);
+		pageRequestHandler->setProfiler(timeUsed);
+		return pageRequestHandler;
 	}
 	if (s) {
 		if (externReferer != "") {

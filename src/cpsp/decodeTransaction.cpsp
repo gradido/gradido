@@ -1,16 +1,27 @@
 <%@ page class="DecodeTransactionPage" %>
 <%@ page form="true" %>
 <%@	page compressed="true" %>
-<%@ page baseClass="PageRequestMessagedHandler" %>
-<%@ header include="PageRequestMessagedHandler.h" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
 #include "sodium.h"
 #include "../proto/gradido/TransactionBody.pb.h"
+#include "../controller/User.h"
+#include "../model/TransactionBase.h"
 %>
 <%%
 	const char* pageName = "Decode Transaction";
 	model::messages::gradido::TransactionBody transactionBody;
 	bool decoded = false;
+	bool adminUser = false;
+	if(mSession && mSession->getNewUser())  {
+		auto user = mSession->getNewUser();
+		auto model = user->getModel();
+		if(model && model->getRole() == model::table::ROLE_ADMIN) {
+			adminUser = true;
+		}
+	}
 	if(!form.empty()) {
 		auto base64 = form.get("transaction", "");
 		if(base64 != "") {
@@ -66,7 +77,7 @@
 			sodium_bin2hex(hex, 65, (const unsigned char*)sender.ed25519_sender_pubkey().data(), sender.ed25519_sender_pubkey().size());
 			%>
 			<p>pubkey: <%= hex %></p>
-			<p>amount: <%= sender.amount() %></p>
+			<p>amount: <%=  TransactionBase::amountToString(sender.amount()) %> GDD</p>
 		<% } %>
 		<b>Receiver</b>
 		<% for(int i = 0; i < transfer.receiveramounts_size(); i++) {
@@ -75,13 +86,31 @@
 			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
 			%>
 			<p>pubkey: <%= hex %></p>
-			<p>amount: <%= receiver.amount() %></p>
+			<p>amount: <%=  TransactionBase::amountToString(receiver.amount()) %> GDD</p>
 		<% } %>
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
+			auto receiver = creation.receiveramount();
+			char hex[65]; memset(hex, 0, 65);
+			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
+			
+			Poco::AutoPtr<controller::User> user = nullptr;
+			if(adminUser) {
+				user = controller::User::create();
+				if(!user->load((const unsigned char*)receiver.ed25519_receiver_pubkey().data())) {
+					user.assign(nullptr);
+				}
+			}
+			//pubkey
 		%>
 		<h3>Creation</h3>
-		<p>pubkey: <%= creation.
+		<% if(!adminUser || user.isNull() || !user->getModel()) { %>
+		<p>pubkey: <%= hex %></p>
+		<% } else { %>
+		<p>user: </p>
+		<p><%= user->getModel()->toHTMLString() %></p>
+		<% } %>
+		<p>amount: <%= TransactionBase::amountToString(receiver.amount()) %> GDD</p>
 		<% } %>
 	<% } %>
 </div>

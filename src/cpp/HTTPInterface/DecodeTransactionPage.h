@@ -5,12 +5,14 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 
 
-#include "PageRequestMessagedHandler.h"
+#include "SessionHTTPRequestHandler.h"
 
 
-class DecodeTransactionPage: public PageRequestMessagedHandler
+class DecodeTransactionPage: public SessionHTTPRequestHandler
 {
 public:
+	DecodeTransactionPage(Session*);
+
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 };
 

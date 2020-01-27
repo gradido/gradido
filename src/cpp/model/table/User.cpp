@@ -192,6 +192,31 @@ namespace model {
 			return ss.str();
 		}
 
+		std::string User::toHTMLString()
+		{
+			auto mm = MemoryManager::getInstance();
+			auto pubkeyHex = mm->getFreeMemory(65);
+
+			memset(*pubkeyHex, 0, 65);
+
+			std::stringstream ss;
+
+			if (!mPublicKey.isNull()) {
+				sodium_bin2hex(*pubkeyHex, 65, mPublicKey.value().content().data(), mPublicKey.value().content().size());
+			}
+
+			ss << "<b>" << mFirstName << " " << mLastName << " <" << mEmail << "></b>" << "<br>";
+			ss << "public key: " << (char*)*pubkeyHex << "<br>";
+			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << "<br>";
+			ss << "email checked: " << mEmailChecked << "<br>";
+			ss << "language key: " << mLanguageKey << "<br>";
+			ss << "role: " << UserRoles::typeToString(getRole()) << "<br>";
+
+			mm->releaseMemory(pubkeyHex);
+			
+			return ss.str();
+		}
+
 
 		Poco::JSON::Object User::getJson()
 		{
