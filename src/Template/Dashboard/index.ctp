@@ -1,5 +1,5 @@
 <?php
-
+use Cake\Routing\Router;
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -60,6 +60,9 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
               ['controller' => 'StateUsers', 'action' => 'search'],
               ['class' => 'grd-nav-bn grd-nav-bn-large']
               ); ?>
+      <a href="<?= Router::url('./', true) ?>account/adminRegister" class="grd-nav-bn grd-nav-bn-large">
+        <?= __("Benutzer hinzufügen") ?>
+      </a>
     </fieldset>
     <?php endif; ?>
     
