@@ -38,7 +38,7 @@ namespace model {
 			template<class T> 
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
 			template<class T>
-			bool isExistInDB(const std::string& fieldName, const T& fieldValue) const;
+			bool isExistInDB(const std::string& fieldName, const T& fieldValue);
 			template<class WhereFieldType, class Tuple> 
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
 			template<class T1, class T2> 
@@ -93,7 +93,7 @@ namespace model {
 		}
 
 		template<class T>
-		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue) const
+		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
 			Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
