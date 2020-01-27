@@ -101,7 +101,7 @@ namespace model {
 			select << "SELECT " << "id "
 				<< " FROM " << getTableName()
 				<< " WHERE " << fieldName << " = ?"
-				, into(id), Poco::Data::Keywords::useRef(fieldValue);
+				, Poco::Data::Keywords::into(id), Poco::Data::Keywords::useRef(fieldValue);
 			try {
 				if (select.execute() == 1) {
 					return true;
