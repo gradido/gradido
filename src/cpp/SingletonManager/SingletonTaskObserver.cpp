@@ -133,6 +133,7 @@ void SingletonTaskObserver::removeTask(DHASH id, TaskObserverType type)
 	}
 	else {
 		em->addError(new Error(funcName, "entry not found"));
+		em->addError(new ParamError(funcName, "existing entry count", mObserverEntrys.getNItems()));
 		em->sendErrorsAsEmail();
 	}
 	unlock();
