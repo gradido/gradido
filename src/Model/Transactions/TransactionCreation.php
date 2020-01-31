@@ -18,6 +18,10 @@ class TransactionCreation extends TransactionBase {
       $this->receiver_pubkey_hex = bin2hex($this->getReceiverPublic());
     }
     
+    public function getProto() {
+      return $this->protoTransactionCreation;
+    }
+    
     static public function build($amount, $memo, $receiver_public_hex, $ident_hash) 
     {    
         $receiver = new \Model\Messages\Gradido\ReceiverAmount();
@@ -152,5 +156,30 @@ class TransactionCreation extends TransactionBase {
       
       return true;
     }
-            
+ 
+    static public function fromEntity($transactionCreationEntity)
+    {
+      $protoCreation = new \Model\Messages\Gradido\TransactionCreation();
+      
+      //var_dump($transactionCreationEntity);
+      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      //return new TransactionCreation($protoCreation);
+      $userId = $transactionCreationEntity->state_user_id;
+      
+      
+      $stateUser = $stateUsersTable->get($userId);
+      
+      
+      $receiverAmount = new \Model\Messages\Gradido\ReceiverAmount();
+      $receiverAmount->setEd25519ReceiverPubkey(stream_get_contents($stateUser->public_key));
+      
+      $receiverAmount->setAmount($transactionCreationEntity->amount);
+      
+      $protoCreation->setReceiverAmount($receiverAmount);
+      
+      //echo "receiver amount: check<br>";
+      $identHashBytes = stream_get_contents($transactionCreationEntity->ident_hash);
+      $protoCreation->setIdentHash(intval($identHashBytes));
+      return new TransactionCreation($protoCreation);
+    }
 }

@@ -136,4 +136,22 @@ class TransactionBody extends TransactionBase {
     return $this->transactionTypeId;
   }
   
+  static public function fromEntity($memo, $transaction) 
+  {
+    $protoBody = new \Model\Messages\Gradido\TransactionBody();
+    $protoBody->setMemo($memo);
+    if(count($transaction->transaction_creations) == 1) {
+      //echo "is creation<br>";
+      $protoBody->setCreation(TransactionCreation::fromEntity($transaction->transaction_creations[0])->getProto());
+    }
+    else if(count($transaction->transaction_send_coins) == 1) {
+      echo "is transfer";
+      $protoBody->setTransfer(TransactionTransfer::fromEntity($transaction->transaction_send_coins)->getProto());
+    } else {
+      return ['invalid transaction type or count'];
+    }
+    
+    return $protoBody;
+  }
+  
 }

@@ -6,6 +6,8 @@ use App\Controller\AppController;
 use Model\Transactions\Transaction;
 use Model\Transactions\TransactionBody;
 
+use Cake\Core\Configure;
+
 /**
  * Transactions Controller
  *
@@ -20,6 +22,7 @@ class TransactionsController extends AppController
     {
         parent::initialize();
         $this->loadComponent('GradidoNumber');
+        $this->loadComponent('JsonRpcRequestClient');
         $this->Auth->allow(['decode']);
 
     }
@@ -85,6 +88,99 @@ class TransactionsController extends AppController
           }
       }
       
+    }
+    
+    public function sendToNode() {
+      $this->viewBuilder()->setLayout('frontend');
+      $startTime = microtime(true);
+      
+      //$loginServer = Configure::read('LoginServer');    
+      
+      $jsonRpcResult = $this->JsonRpcRequestClient->request('getlasttransaction', []);
+      $result = $jsonRpcResult['result'];
+      //var_dump($result);
+      if($result['state'] != 'success') {
+        $this->Flash->error(__('error retriving last saved transaction from gradido node.'));
+        $timeUsed = microtime(true) - $startTime;
+        $this->set('timeUsed', $timeUsed);
+        return;
+      }
+      
+      $firstId = 1;
+      if($result['transaction'] != '') {
+        $lastKnowTransaction = new Transaction($result['transaction']);
+        $firstId = $lastKnowTransaction->getId()+1;
+      }
+      
+      $transactionIDEntities = $this->Transactions
+              ->find('all')
+              ->select(['id'])
+              ->where(['id >=' => $firstId])
+              ;
+      $transactionIDs = [];
+      foreach($transactionIDEntities as $entity) {
+        array_push($transactionIDs, $entity->id);
+      }
+      
+      $csfr_token = $this->request->getParam('_csrfToken');
+      $this->set('csfr_token', $csfr_token);
+      $this->set('transactionIds', $transactionIDs);
+      
+      $timeUsed = microtime(true) - $startTime;
+      $this->set('timeUsed', $timeUsed);
+      
+      if ($this->request->is('post')) {
+        $host = $this->request->getData('host');
+        $port = $this->request->getData('port');
+        //$gradidod = new JsonRpcClient($host . ':' . $port);
+        
+        
+        //var_dump($transactionIDs);
+                
+        //$result = $this->JsonRpcRequestClient->request('puttransaction', ['group' => 'Hallo', 'transaction' => 'Hallo2' ]);
+        
+        //$result = $gradidod->putTransaction(['group' => 'Hallo', 'transaction' => 'Hallo2' ]);
+        //var_dump($result);
+        
+        $timeUsed = microtime(true) - $startTime;
+        $this->set('timeUsed', $timeUsed);
+      }
+    }
+    
+    public function ajaxPutTransactionToGradidoNode()
+    {
+      $startTime = microtime(true);
+      if($this->request->is('post')) {
+          //$jsonData = $this->request->input('json_decode', true);
+          $data = $this->request->getData();
+          //$user = $jsonData['user'];
+          //var_dump($data);
+          $transactionId = $data['transaction_id'];
+          if($transactionId == null || $transactionId < 1) {
+            $timeUsed = microtime(true) - $startTime;
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid transaction id', 'timeUsed' => $timeUsed]);
+          }
+          try {
+            $transaction = Transaction::fromTable($transactionId);
+          } catch(Exception $e) {
+            echo "exception: ";
+            var_dump($e);
+          }
+          $transactionBase64 = base64_encode($transaction->serializeToString());
+          //echo "base64: <br>$transactionBase64<br>";
+          
+          $result = $this->JsonRpcRequestClient->request('puttransaction', [
+              'group' => 'd502c4254defe1842d71c484dc35f56983ce938e3c22058795c7520b62ab9123', 
+              'transaction' => $transactionBase64 
+          ]);
+          
+          $timeUsed = microtime(true) - $startTime;
+          $result['timeUsed'] = $timeUsed;
+          return $this->returnJson($result);
+          //return $this->returnJson(['state' => 'success', 'timeUsed' => $timeUsed]);
+      }
+      $timeUsed = microtime(true) - $startTime;
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request', 'timeUsed' => $timeUsed]);
     }
 
     /**

@@ -17,6 +17,8 @@ class Transaction extends TransactionBase {
   
     private $mProtoTransaction = null;
     private $mTransactionBody = null;
+    
+    
   
     public function __construct($base64Data) {
         //$transactionBin = base64_decode($base64Data, true);
@@ -67,6 +69,10 @@ class Transaction extends TransactionBase {
     public function getFirstPublic() {
       $sigPairs = $this->mProtoTransaction->getSigMap()->getSigPair();
       return $sigPairs[0]->getPubKey();
+    }
+    
+    public function getId() {
+      return $this->mProtoTransaction->getId();
     }
     
     public function validate() {
@@ -151,9 +157,42 @@ class Transaction extends TransactionBase {
       return true;
     }
 
-    
+    static public function fromTable($id) 
+    {   
+        $transactionsTable = TableRegistry::getTableLocator()->get('transactions');
+        $transactionEntry = $transactionsTable
+                ->find('all')
+                ->where(['id' => $id])
+                ->contain([
+                    'TransactionCreations', 
+                    'TransactionSendCoins', 
+                    'TransactionSignatures'])
+                ->first();
+        //var_dump($transactionEntry->toArray());
+        $protoTransaction = new \Model\Messages\Gradido\Transaction();
+        
+        
+        
+        $protoTransaction->setId($transactionEntry->id);
 
-    
-            
-  
+        
+        $recevied = new \Model\Messages\Gradido\TimestampSeconds();
+        $recevied->setSeconds($transactionEntry->received->getTimestamp());
+        $protoTransaction->setReceived($recevied);
+        
+        
+        $sigMap = SignatureMap::fromEntity($transactionEntry->transaction_signatures);
+        $protoTransaction->setSigMap($sigMap->getProto());
+        
+        //echo "sig map: check<br>";
+        $protoTransaction->setTxHash(stream_get_contents($transactionEntry->tx_hash));
+        
+        $body = TransactionBody::fromEntity($transactionEntry->memo, $transactionEntry);
+        if(is_array($body)) {
+          return ['state' => 'error', 'msg' => 'error creating body transaction', 'details' => $body];
+        }
+        //$protoTransaction->setBodyBytes($body->serializeToString());
+        return $protoTransaction;
+    }    
+
 }

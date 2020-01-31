@@ -12,6 +12,10 @@ class TransactionTransfer extends TransactionBase {
       $this->protoTransactionTransfer = $protoTransactionTransfer;
     }
     
+    public function getProto() {
+      return $this->protoTransactionTransfer;
+    }
+    
     static public function build($amount, $memo, $receiver_public_hex, $sender_public_hex) 
     {    
       // repeated SenderAmount senderAmounts = 1;
@@ -200,6 +204,16 @@ class TransactionTransfer extends TransactionBase {
       //$this->addError('TransactionTransfer::save', 'not implemented yet');
       //return false;
       return true;
+    }
+    
+    static public function fromEntity($transactionTransferEntity)
+    {
+      $protoTransfer = new \Model\Messages\Gradido\Transfer();
+      
+      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      
+      
+      return new TransactionTransfer($protoTransfer);
     }
 }
 
