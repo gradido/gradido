@@ -1,7 +1,9 @@
 ﻿#include "Email.h"
-#include "../SingletonManager/EmailManager.h"
+#include "../../SingletonManager/EmailManager.h"
 
 #include "Poco/Net/MediaType.h"
+
+#include "../TransactionBase.h"
 
 namespace model {
 
@@ -45,6 +47,17 @@ Bitte logge dich im Admin-Bereich um das Problem zu lösen.\n\
 \n\
 LG \n\
 Gradido Login Server\
+" };
+
+const static char EmailText_notificationTransactionCreation[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Für dich wurden soeben [amount] GDD geschöpft.\n\
+\n\
+Bitte antworte nicht auf diese E-Mail\n\
+\n\
+Mit freundlichen Grüßen\n\
+Gradido Login-Server\n\
 " };
 
 	Email::Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type)
@@ -207,7 +220,7 @@ Gradido Login Server\
 			result.replace(findPos, 6, link);
 		}
 		else {
-			addError(new Error(functionName, "no email placeholder found"));
+			//addError(new Error(functionName, "no email placeholder found"));
 		}
 		return result;
 	}
@@ -223,6 +236,20 @@ Gradido Login Server\
 		}
 		else {
 			addError(new Error(functionName, "no email placeholder found"));
+		}
+		return result;
+	}
+
+	std::string Email::replaceAmount(const char* src, Poco::Int64 gradido_cent)
+	{
+		std::string result = src;
+		static const char* functionName = "Email::replaceAmount";
+		int findPos = result.find("[amount]");
+		if (findPos != result.npos) {
+			result.replace(findPos, 8, TransactionBase::amountToString(gradido_cent));
+		}
+		else {
+			addError(new Error(functionName, "no amount placeholder found"));
 		}
 		return result;
 	}

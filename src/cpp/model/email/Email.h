@@ -12,12 +12,12 @@
 
 #include "Poco/Net/MailMessage.h"
 
-#include "../controller/EmailVerificationCode.h"
-#include "../controller/User.h"
+#include "../../controller/EmailVerificationCode.h"
+#include "../../controller/User.h"
 
-#include "../SingletonManager/LanguageManager.h"
+#include "../../SingletonManager/LanguageManager.h"
 
-#include "../lib/ErrorList.h"
+#include "../../lib/ErrorList.h"
 
 namespace model {
 	using namespace Poco;
@@ -29,7 +29,9 @@ namespace model {
 		EMAIL_USER_VERIFICATION_CODE,
 		EMAIL_ADMIN_USER_VERIFICATION_CODE,
 		EMAIL_USER_RESET_PASSWORD,
-		EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE
+		EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE,
+		EMAIL_NOTIFICATION_TRANSACTION_CREATION,
+		EMAIL_NOTIFICATION_TRANSACTION_TRANSFER
 	};
 
 	class Email: public ErrorList
@@ -44,12 +46,13 @@ namespace model {
 		inline EmailType getType() { return mType; }
 		inline controller::User* getUser() { if (!mUser.isNull()) return mUser.get(); return nullptr; }
 
-		bool draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog);
+		virtual bool draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog);
 		inline void addContent(Poco::Net::StringPartSource* str_content) { mAdditionalStringPartSrcs.push(str_content); }
 
 	protected:
 		std::string replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link);
 		std::string replaceEmail(const char* src, const std::string& email);
+		std::string replaceAmount(const char* src, Poco::Int64 gradido_cent);
 
 		AutoPtr<controller::EmailVerificationCode> mEmailVerificationCode;
 		AutoPtr<controller::User> mUser;

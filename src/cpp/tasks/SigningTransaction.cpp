@@ -118,6 +118,7 @@ int SigningTransaction::run() {
 		mm->releaseMemory(finalBase64Bin);
 		return -7;
 	}
+	addError(new Error("Signing transaction final", *finalBase64Bin));
 
 	// create json request
 

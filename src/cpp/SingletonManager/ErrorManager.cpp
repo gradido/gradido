@@ -6,7 +6,7 @@
 
 #include "../lib/ErrorList.h"
 
-#include "../model/Email.h"
+#include "../model/Email/Email.h"
 
 #include "EmailManager.h"
 

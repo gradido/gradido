@@ -82,8 +82,8 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 		}*/
 		auto lastExternReferer = mSession->getLastReferer();
 		//lastExternReferer = "";
-		if(lastExternReferer != "") {
-			printf("last extern referer: %s\n", lastExternReferer.data());
+		if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
+			//printf("last extern referer: %s\n", lastExternReferer.data());
 			response.redirect(lastExternReferer);
 		} else {
 			response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");

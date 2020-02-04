@@ -2,4 +2,7 @@ HTTPInterface/LoginPage.cpp
 HTTPInterface/CheckEmailPage.cpp
 HTTPInterface/ResetPassword.cpp
 model/Session.cpp
-model/Email.cpp
+model/Email/Email.cpp
+model/Email/EmailCustomReply.cpp
+model/Email/EmailNotificationCreation.cpp
+model/Email/EmailNotificationTransfer.cpp
