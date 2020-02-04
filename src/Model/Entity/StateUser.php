@@ -43,4 +43,12 @@ class StateUser extends Entity
         'transaction_creations' => true,
         'transaction_send_coins' => true
     ];
+    
+    public function getEmailWithName() {
+      return $this->first_name . ' ' . $this->last_name . ' <' . $this->email . '>';
+    }
+    
+    public function getNames() {
+      return $this->first_name . ' ' . $this->last_name;
+    }
 }

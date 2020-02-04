@@ -5,6 +5,8 @@ namespace Model\Transactions;
 //use App\Model\Transactions\TransactionBase;
 
 use Cake\ORM\TableRegistry;
+use Cake\Core\Configure;
+use Cake\Mailer\Email;
 
 class TransactionCreation extends TransactionBase {
   
@@ -135,12 +137,12 @@ class TransactionCreation extends TransactionBase {
       
       // state user id
       //$state_user_id = $this->getStateUserId($firstPublic);
-      $receiverUser = $this->getStateUserId($this->getReceiverPublic());
-      if(!$receiverUser) {
+      $receiverUserId = $this->getStateUserId($this->getReceiverPublic());
+      if(!$receiverUserId) {
         $this->addError('TransactionCreation::save', 'couldn\'t get state user id');
         return false;
       }
-      $transactionCreationEntity->state_user_id = $receiverUser;
+      $transactionCreationEntity->state_user_id = $receiverUserId;
       $transactionCreationEntity->amount = $this->getAmount();
       $transactionCreationEntity->ident_hash = $this->getIdentHash();
       
@@ -150,10 +152,34 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      if(false === $this->updateStateBalance($receiverUser, $this->getAmount())) {
+      if(false === $this->updateStateBalance($receiverUserId, $this->getAmount())) {
         return false;
       }
       
+      
+      return true;
+    }
+    
+    public function sendNotificationEmail($memo) 
+    {
+      // send notification email
+        $receiverUserId = $this->getStateUserId($this->getReceiverPublic());
+        $receiverUser = $this->getStateUser($receiverUserId);
+        $noReplyEmail = Configure::read('noReplyEmail');
+        
+        try {
+          $email = new Email();
+          $emailViewBuilder = $email->viewBuilder();
+          $emailViewBuilder->setTemplate('notificationCreation')
+                           ->setVars(['user' => $receiverUser, 'gdd_cent' => $this->getAmount(), 'memo' => $memo]);
+          $email->setFrom([$noReplyEmail => 'Nicht antworten'])
+                ->setTo([$receiverUser->email => $receiverUser->getNames()])
+                ->setSubject(__('Gradido Schöpfung erhalten'))
+                ->send();
+        } catch(Exception $e) {
+          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+          return false;
+        }
       return true;
     }
  

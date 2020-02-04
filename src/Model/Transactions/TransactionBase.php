@@ -6,6 +6,7 @@ use Cake\ORM\TableRegistry;
 
 class TransactionBase {
     private $errors = [];
+    static $stateUsersTable = null;
   
     public function getErrors() {
       return $this->errors;
@@ -23,8 +24,18 @@ class TransactionBase {
        return count($this->errors) > 0;
     }
     
+    public static function getStateUsersTable()
+    {
+      if(!self::$stateUsersTable) {
+        self::$stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      }
+      return self::$stateUsersTable;
+    }
+
+
     protected function getStateUserId($publicKey) {
-      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      
+      $stateUsersTable = self::getStateUsersTable();
       $stateUser = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $publicKey])->first();
       if($stateUser) {
         return $stateUser->id;
@@ -41,6 +52,17 @@ class TransactionBase {
       return NULL;
     }
     
+    protected function getStateUser($id) {
+      $stateUsersTable = self::getStateUsersTable();
+      $stateUser = $stateUsersTable->get($id);
+      if($stateUser) {
+        return $stateUser;
+      }
+      
+      return NULL;
+    }
+
+
     protected function updateStateBalance($stateUserId, $addAmountCent) {
         $finalBalance = 0;
         $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');

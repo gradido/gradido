@@ -151,9 +151,10 @@ class Transaction extends TransactionBase {
         return false;
       }
       
-      
-      
       $connection->commit();
+      
+      $this->mTransactionBody->getSpecificTransaction()->sendNotificationEmail($this->mTransactionBody->getMemo());
+      
       return true;
     }
 

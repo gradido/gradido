@@ -90,10 +90,15 @@ class TransactionBody extends TransactionBase {
       $previousTxHash = null;
       if($this->mTransactionID > 1) {
         try {
-          $previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
+          $previousTransaction = $transactionsTable
+                  ->find('all', ['contain' => false])
+                  ->select(['tx_hash'])
+                  ->where(['id' => $this->mTransactionID - 1])
+                  ->first();
+          /*$previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
               'contain' => false, 
               'fields' => ['tx_hash']
-          ]);
+          ]);*/
         } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
           $this->addError('TransactionBody::save', 'previous transaction (with id ' . ($this->mTransactionID-1) . ' not found');
           return false;
@@ -105,7 +110,17 @@ class TransactionBody extends TransactionBase {
         }
         $previousTxHash = $previousTransaction->tx_hash;
       }
-      $transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
+      try {
+        //$transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
+        $transactionEntity->received = $transactionsTable
+                ->find('all', ['contain' => false])
+                ->where(['id' => $transactionEntity->id])
+                ->select(['received'])->first()->received;
+      } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+        $this->addError('TransactionBody::save', 'current transaction (with id ' . ($transactionEntity->id) . ' not found');
+        $this->addError('exception: ', $ex->getMessage());
+        return false;
+      }
       
       // calculate tx hash
       // previous tx hash + id + received + sigMap as string

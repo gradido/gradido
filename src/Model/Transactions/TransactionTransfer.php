@@ -4,6 +4,8 @@ namespace Model\Transactions;
 
 //use App\Model\Transactions\TransactionBase;
 use Cake\ORM\TableRegistry;
+use Cake\Core\Configure;
+use Cake\Mailer\Email;
 
 class TransactionTransfer extends TransactionBase {
     private $protoTransactionTransfer;
@@ -167,7 +169,7 @@ class TransactionTransfer extends TransactionBase {
       $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
       
       if(count($this->protoTransactionTransfer->getReceiverAmounts()) !== 1) {
-        $this->addError($functionName, 'not more tahn one receiver currently supported');
+        $this->addError($functionName, 'not more than one receiver currently supported');
         return false;
       }
       $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
@@ -201,8 +203,45 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
+      
+      
+      
       //$this->addError('TransactionTransfer::save', 'not implemented yet');
       //return false;
+      return true;
+    }
+    
+    public function sendNotificationEmail($memo)
+    {
+      // send notification email
+      
+      $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
+      $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
+      $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());
+      $receiverUserId = $this->getStateUserId($receiverAmount->getEd25519ReceiverPubkey());
+      
+      $receiverUser = $this->getStateUser($receiverUserId);
+      $senderUser   = $this->getStateUser($senderUserId);
+      $serverAdminEmail = Configure::read('ServerAdminEmail');
+
+      try {
+        $email = new Email();
+        $emailViewBuilder = $email->viewBuilder();
+        $emailViewBuilder->setTemplate('notificationTransfer')
+                         ->setVars(['receiverUser' => $receiverUser,
+                                    'senderUser' => $senderUser,
+                                    'gdd_cent' => $receiverAmount->getAmount(), 
+                                    'memo' => $memo]);
+
+        $email->setFrom([$serverAdminEmail => $senderUser->getNames() . ' via Gradido Community'])
+              ->setTo([$receiverUser->email => $receiverUser->getNames()])
+              ->setReplyTo($senderUser->email)
+              ->setSubject(__('Gradidos erhalten'))
+              ->send();
+      } catch(Exception $e) {
+        $this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+        return false;
+      }
       return true;
     }
     

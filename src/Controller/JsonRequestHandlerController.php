@@ -6,6 +6,7 @@ use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 
+
 use Model\Transactions\Transaction;
 /*!
  * @author: Dario Rekowski#
@@ -63,6 +64,8 @@ class JsonRequestHandlerController extends AppController {
       }
       
       if ($transaction->save()) {
+        
+        
         // success
         return $this->returnJson(['state' => 'success']);
       } else {

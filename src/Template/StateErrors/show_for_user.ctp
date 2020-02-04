@@ -24,7 +24,7 @@ $this->assign('title', __('Fehlermeldungen'));
         $type = $transactionTypes[$error->transaction_type_id-1]; 
         $errorMessage = "";
         $errorArray = json_decode($error->message_json, true);
-        if(isset($errorArray['details'])) {
+        if(isset($errorArray['details']) && is_array($errorArray['details'])) {
           
           foreach($errorArray['details'][0] as $function => $errorString) {
             $errorMessage = '<b>' . $function . '</b><br> ' . $errorString;
