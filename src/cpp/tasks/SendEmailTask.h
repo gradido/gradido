@@ -4,7 +4,7 @@
 #include "CPUTask.h"
 #include "Poco/Net/MailMessage.h"
 
-#include "../model/Email/Email.h"
+#include "../model/email/Email.h"
 
 /*
  * @author: Dario Rekowski

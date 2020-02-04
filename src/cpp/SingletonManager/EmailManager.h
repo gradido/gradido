@@ -15,7 +15,7 @@
 
 #include "../lib/MultithreadQueue.h"
 #include "../tasks/Thread.h"
-#include "../model/Email/Email.h"
+#include "../model/email/Email.h"
 
 class EmailManager : public UniLib::lib::Thread
 {
