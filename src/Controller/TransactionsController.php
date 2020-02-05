@@ -34,7 +34,7 @@ class TransactionsController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['StateGroups', 'TransactionTypes']
+            'contain' => ['TransactionTypes']
         ];
         $transactions = $this->paginate($this->Transactions);
 

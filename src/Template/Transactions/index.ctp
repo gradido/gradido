@@ -30,28 +30,23 @@
 </nav>
 <div class="transactions index large-9 medium-8 columns content">
     <h3><?= __('Transactions') ?></h3>
-    <table cellpadding="0" cellspacing="0">
+    <table cellpadding="0" cellspacing="0" style="table-layout: auto">
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('state_group_id') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('memo') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('transaction_type_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('received') ?></th>
-                <th scope="col" class="actions"><?= __('Actions') ?></th>
+                
             </tr>
         </thead>
         <tbody>
             <?php foreach ($transactions as $transaction): ?>
             <tr>
                 <td><?= $this->Number->format($transaction->id) ?></td>
-                <td><?= $transaction->has('state_group') ? $this->Html->link($transaction->state_group->name, ['controller' => 'StateGroups', 'action' => 'view', $transaction->state_group->id]) : '' ?></td>
-                <td><?= $transaction->has('transaction_type') ? $this->Html->link($transaction->transaction_type->name, ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></td>
+                <td><?= h($transaction->memo) ?></td>
+                <td><?= $transaction->has('transaction_type') ? $this->Html->link(__($transaction->transaction_type->name), ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></td>
                 <td><?= h($transaction->received) ?></td>
-                <td class="actions">
-                    <?= $this->Html->link(__('View'), ['action' => 'view', $transaction->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transaction->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $transaction->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transaction->id)]) ?>
-                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
