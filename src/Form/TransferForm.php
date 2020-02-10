@@ -14,7 +14,7 @@ class TransferForm extends Form
         return $schema
             ->addField('email', ['type' => 'string'])
             ->addField('amount', ['type' => 'decimal', 'precision' => 2])
-            ->addField('memo', ['type' =>'text', 'default' => '', 'rows' => 5, 'maxlength' => 150]);
+            ->addField('memo', ['type' =>'text', 'default' => '', 'rows' => 3, 'maxlength' => 150]);
     }
 
     function validationDefault(Validator $validator)

@@ -122,7 +122,7 @@ class TransactionCreation extends TransactionBase {
         }
       }
       if($newSum > 10000000) {
-        $this->addError('TransactionCreation::validate', 'Creation more than 1000 gr per Month not allowed');
+        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month not allowed');
         return false;
       }
       //die("\n");
@@ -204,8 +204,11 @@ class TransactionCreation extends TransactionBase {
       $protoCreation->setReceiverAmount($receiverAmount);
       
       //echo "receiver amount: check<br>";
-      $identHashBytes = stream_get_contents($transactionCreationEntity->ident_hash);
-      $protoCreation->setIdentHash(intval($identHashBytes));
+      //$identHashBytes = stream_get_contents($transactionCreationEntity->ident_hash);
+      
+      // intval
+      //$protoCreation->setIdentHash(intval($identHashBytes));
+      $protoCreation->setIdentHash(self::DRMakeStringHash($stateUser->email));
       return new TransactionCreation($protoCreation);
     }
 }

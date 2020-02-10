@@ -192,7 +192,7 @@ class Transaction extends TransactionBase {
         if(is_array($body)) {
           return ['state' => 'error', 'msg' => 'error creating body transaction', 'details' => $body];
         }
-        //$protoTransaction->setBodyBytes($body->serializeToString());
+        $protoTransaction->setBodyBytes($body->serializeToString());
         return $protoTransaction;
     }    
 

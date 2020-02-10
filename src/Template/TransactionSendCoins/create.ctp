@@ -26,9 +26,9 @@ $this->loadHelper('Form', [
           <div class="row mb-3">
             <div class="col-md-10 mx-auto">
               <?= $this->Form->create($transferForm) ?>
-                <?= $this->Form->control('amount', ['label' => __('Betrag in GDD')]) ?>
-                <?= $this->Form->control('memo', ['label' => __('Verwendungszweck')]) ?>
                 <?= $this->Form->control('email', ['label' => __('Empfänger'), 'placeholder' => 'E-Mail']) ?>
+                <?= $this->Form->control('memo', ['label' => __('Verwendungszweck'), 'rows' => 3]) ?>
+                <?= $this->Form->control('amount', ['label' => __('Betrag in GDD')]) ?>
                 <?= $this->Form->button(__('Transaktion abschließen'), ['name' => 'next', 'class' => 'btn btn-sm btn-primary']) ?>
                 <!--<?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'btn btn-sm']) ?>-->
               <?= $this->Form->end() ?>

@@ -15,7 +15,7 @@ class CreationForm extends Form
             //->addField('receiver_pubkey_hex', ['type' => 'string'])
             ->addField('receiver', ['type' => 'select'])
             ->addField('amount', ['type' => 'decimal', 'precision' => 2])
-            ->addField('memo', ['type' =>'text', 'default' => '', 'rows' => 5, 'maxlength' => 150]);
+            ->addField('memo', ['type' =>'text', 'default' => '', 'rows' => 3, 'maxlength' => 150]);
     }
 
     function validationDefault(Validator $validator)

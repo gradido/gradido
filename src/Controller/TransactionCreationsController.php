@@ -43,8 +43,13 @@ class TransactionCreationsController extends AppController
             'contain' => ['Transactions', 'StateUsers']
         ];
         $transactionCreations = $this->paginate($this->TransactionCreations);
+        $identHashes = [];
+        foreach($transactionCreations as $creation) {
+          $identHash = TransactionCreation::DRMakeStringHash($creation->state_user->email);
+          $identHashes[$creation->state_user->id] = $identHash;
+        }
 
-        $this->set(compact('transactionCreations'));
+        $this->set(compact('transactionCreations', 'identHashes'));
     }
 
     /**
