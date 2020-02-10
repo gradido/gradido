@@ -18,13 +18,13 @@ $this->loadHelper('Form', [
   }
 </style>
 <div class="row">
-  <div class="col-md-10 equel-grid">
+  <div class="col-lg-11 col-md-12 equel-grid">
     <div class="grid">
       <p class="grid-header">Überweisen</p>
       <div class="grid-body">
         <div class="item-wrapper">
           <div class="row mb-3">
-            <div class="col-md-10 mx-auto">
+            <div class="col-lg-11 col-md-12 mx-auto">
               <?= $this->Form->create($transferForm) ?>
                 <?= $this->Form->control('email', ['label' => __('Empfänger'), 'placeholder' => 'E-Mail']) ?>
                 <?= $this->Form->control('memo', ['label' => __('Verwendungszweck'), 'rows' => 3]) ?>

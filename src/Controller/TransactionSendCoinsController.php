@@ -7,6 +7,8 @@ use Cake\Http\Client;
 use Cake\Core\Configure;
 use Cake\Routing\Router;
 
+use Cake\I18n\I18n;
+
 use App\Form\TransferForm;
 
 use Model\Transactions\TransactionTransfer;
@@ -111,6 +113,10 @@ class TransactionSendCoinsController extends AppController
     
     public function create()
     {
+        /*$locale = I18n::getLocale();
+        $defaultLocale = I18n::getDefaultLocale();
+        echo "locale: $locale, default locale: $defaultLocale<br>";
+         * */
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend_ripple');
         $session = $this->getRequest()->getSession();
