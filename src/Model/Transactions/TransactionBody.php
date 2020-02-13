@@ -155,6 +155,9 @@ class TransactionBody extends TransactionBase {
   {
     $protoBody = new \Model\Messages\Gradido\TransactionBody();
     $protoBody->setMemo($memo);
+    
+    //$created->setSeconds($var);
+    //$protoBody->setCreated($created);
     if(count($transaction->transaction_creations) == 1) {
       //echo "is creation<br>";
       $protoBody->setCreation(TransactionCreation::fromEntity($transaction->transaction_creations[0])->getProto());

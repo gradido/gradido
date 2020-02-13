@@ -66,7 +66,7 @@ Letzte eingereichte Transaktion <?= gTransactionIds[0] - 1 ?>
         headers: {'X-CSRF-Token': csfr_token},
         dataType: 'json',
         success: function (data) {
-          if(data.state === 'success') {
+          if(data.result.state === 'success') {
             progressState.addClass('grd-success').html('Erfolgreich eingereicht');
             setTimeout(function() { putTransaction(index+1);}, 1000);
           } else {
@@ -77,7 +77,8 @@ Letzte eingereichte Transaktion <?= gTransactionIds[0] - 1 ?>
             progressState.addClass('grd-error').html('Fehler beim einreichen');
           }
           var timeString = round_to_precision(data.timeUsed * 1000.0, 4) + ' ms';
-          progressState.append('&nbsp;').append('<span class="time-used">' + timeString + '</span>');
+          var nodeTime = data.result.timeUsed;
+          progressState.append('&nbsp;').append('<span class="time-used">' + timeString + ' (node: ' + nodeTime + ')</span>');
         }
     });
   }

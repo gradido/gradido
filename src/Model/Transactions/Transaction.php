@@ -97,6 +97,7 @@ class Transaction extends TransactionBase {
           //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
           $pubkey = $sigPair->getPubKey();
           $signature = $sigPair->getEd25519();
+          echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
           if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
               $this->addError('Transaction::validate', 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid ' );
               return false;
@@ -192,7 +193,50 @@ class Transaction extends TransactionBase {
         if(is_array($body)) {
           return ['state' => 'error', 'msg' => 'error creating body transaction', 'details' => $body];
         }
-        $protoTransaction->setBodyBytes($body->serializeToString());
+        
+        // validate signatures
+        $sigPairs = $sigMap->getProto()->getSigPair();
+        
+        if(!$sigPairs || count($sigPairs) < 1) {
+          return ['state' => 'error', 'msg' => 'error no signatures found'];
+        }
+        
+        //echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
+        $created = new \Model\Messages\Gradido\TimestampSeconds();
+        $created->setSeconds($recevied->getSeconds());
+        $body->setCreated($created);
+        $bodyBytes = $body->serializeToString();
+        $createTrys = 0;
+        $createRight = false;
+        // check signature(s) and 
+        // try to get created field of TransactionBody right, because it wasn't saved
+        foreach($sigPairs as $sigPair) {
+          //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
+          $pubkey = $sigPair->getPubKey();
+          $signature = $sigPair->getEd25519();
+          if(!$createRight) {
+            while($createTrys < 500) {
+              if(\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
+                $createRight = true;
+                break;
+              } else {
+                $createTrys++;
+                $created->setSeconds($created->getSeconds() - 1);
+                //$body->setCreated($created);
+                $bodyBytes = $body->serializeToString();
+              }
+            }
+          }
+            
+          if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
+              return ['state' => 'error', 'msg' => 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid '];
+          } 
+        }
+        
+        $protoTransaction->setBodyBytes($bodyBytes);
+        
+        
+        
         return $protoTransaction;
     }    
 

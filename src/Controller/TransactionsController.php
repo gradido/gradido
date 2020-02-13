@@ -166,17 +166,23 @@ class TransactionsController extends AppController
             echo "exception: ";
             var_dump($e);
           }
-          $transactionBase64 = base64_encode($transaction->serializeToString());
-          //echo "base64: <br>$transactionBase64<br>";
-          
-          $result = $this->JsonRpcRequestClient->request('puttransaction', [
-              'group' => 'd502c4254defe1842d71c484dc35f56983ce938e3c22058795c7520b62ab9123', 
-              'transaction' => $transactionBase64 
-          ]);
-          
-          $timeUsed = microtime(true) - $startTime;
-          $result['timeUsed'] = $timeUsed;
-          return $this->returnJson($result);
+          if(is_array($transaction)) {
+            $timeUsed = microtime(true) - $startTime;
+            $transaction['timeUsed'] = $timeUsed;
+            return $this->returnJson($transaction);
+          } else {
+            $transactionBase64 = base64_encode($transaction->serializeToString());
+            //echo "base64: <br>$transactionBase64<br>";
+
+            $result = $this->JsonRpcRequestClient->request('puttransaction', [
+                'group' => 'd502c4254defe1842d71c484dc35f56983ce938e3c22058795c7520b62ab9123', 
+                'transaction' => $transactionBase64 
+            ]);
+
+            $timeUsed = microtime(true) - $startTime;
+            $result['timeUsed'] = $timeUsed;
+            return $this->returnJson($result);
+          }
           //return $this->returnJson(['state' => 'success', 'timeUsed' => $timeUsed]);
       }
       $timeUsed = microtime(true) - $startTime;
