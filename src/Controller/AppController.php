@@ -20,6 +20,7 @@ use Cake\Http\Client;
 use Cake\Routing\Router;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
+use Cake\I18n\Time;
 
 /**
  * Application Controller
@@ -288,4 +289,14 @@ class AppController extends Controller
       $response = $this->response->withType('application/json');
       return $response->withStringBody(json_encode($array));
     }
+    
+    public function getStartEndForMonth($month, $year) 
+    {
+      $timeString = $year . '-' . $month . '-01 00:00';
+      $firstDay = new Time($timeString);
+      $lastDay  = new Time($timeString);
+      $lastDay = $lastDay->addMonth(1);
+      return [$firstDay, $lastDay];
+    }
+            
 }

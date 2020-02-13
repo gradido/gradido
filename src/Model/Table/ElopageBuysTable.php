@@ -37,30 +37,11 @@ class ElopageBuysTable extends Table
         parent::initialize($config);
 
         $this->setTable('elopage_buys');
-        $this->setDisplayField('id');
+        $this->setDisplayField('payer_email');
         $this->setPrimaryKey('id');
 
-        $this->belongsTo('ElopageUsers', [
-            'foreignKey' => 'elopage_user_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->belongsTo('AffiliatePrograms', [
-            'foreignKey' => 'affiliate_program_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->belongsTo('Publishers', [
-            'foreignKey' => 'publisher_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->belongsTo('Orders', [
-            'foreignKey' => 'order_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->belongsTo('Products', [
-            'foreignKey' => 'product_id',
-            'joinType' => 'INNER',
-        ]);
     }
+    
 
     /**
      * Default validation rules.
@@ -119,11 +100,6 @@ class ElopageBuysTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['elopage_user_id'], 'ElopageUsers'));
-        $rules->add($rules->existsIn(['affiliate_program_id'], 'AffiliatePrograms'));
-        $rules->add($rules->existsIn(['publisher_id'], 'Publishers'));
-        $rules->add($rules->existsIn(['order_id'], 'Orders'));
-        $rules->add($rules->existsIn(['product_id'], 'Products'));
 
         return $rules;
     }
