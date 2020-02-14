@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\Datasource\ConnectionManager;
 use Cake\I18n\Time;
 
 /**
@@ -27,6 +28,7 @@ class UsersController extends AppController
     
     public function statistics()
     {
+        $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend_ripple');
         $users = $this->Users->find('all')->select(['id']);
         
@@ -42,7 +44,26 @@ class UsersController extends AppController
         $newUsersLastMonth = $this->Users->find('all')
                                          ->select(['id'])
                                          ->where(['created >=' => $prevSortDate[0], 'created <' => $prevSortDate[1]]);
-        $this->set(compact('users', 'newUsersThisMonth', 'newUsersLastMonth'));
+        
+        // new user sorted after date
+        $connection = ConnectionManager::get('loginServer');
+        $newAccountsPerDay = $connection->execute('SELECT count(id) as count, created FROM users GROUP BY CAST(created as DATE) ORDER BY created DESC ')->fetchAll('assoc');
+        
+        $newAccountsTree = [];
+        foreach($newAccountsPerDay as $entry) {
+          $created = new Time($entry['created']);
+          if(!isset($newAccountsTree[$created->year])) {
+            $newAccountsTree[$created->year] = [];
+          }
+          if(!isset($newAccountsTree[$created->year][$created->month])) {
+            $newAccountsTree[$created->year][$created->month] = ['count' => 0, 'days' => []];
+          }
+          array_push($newAccountsTree[$created->year][$created->month]['days'], $entry);
+          $newAccountsTree[$created->year][$created->month]['count'] += intval($entry['count']);
+        }
+        
+        $timeUsed = microtime(true) - $startTime;
+        $this->set(compact('users', 'newUsersThisMonth', 'newUsersLastMonth', 'timeUsed', 'newAccountsTree'));
     }
 
     /**

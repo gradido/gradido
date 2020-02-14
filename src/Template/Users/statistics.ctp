@@ -56,4 +56,36 @@ if($users->count() > 0 && $newUsersLastMonth->count()) {
     </div>
   </div>
 </div>
+<div class="row">
+    <div class="col-md-8 equel-grid">
+      <div class="grid">
+        <div class="grid-body py-3">
+          <p class="card-title ml-n1"><?= __('Anmeldungen detailliert'); ?></p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr class="solid-header">
+                <th class="pl-4"><?= __('Jahr')?></th>
+                <th><?= __('Monat') ?></th>
+                <th><?= __('Anzahl Anmeldungen') ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach($newAccountsTree as $year => $yearEntrys) : ?>
+                <?php foreach($yearEntrys as $month => $monthEntrys): ?>
+                <tr class="collapsed" data-toggle="collapse" aria-expanded="false">
+                  <td><?= $year ?></td>
+                  <td><?= $month ?></td>
+                  <td><?= $monthEntrys['count'] ?></td>
+                </tr>
+                <tr class="collapse"><td>Tage</td></tr>
+                <?php endforeach; ?>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 <?= $this->Html->script(['core', 'vendor.addons']); ?>
