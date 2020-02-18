@@ -97,8 +97,15 @@
 				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
+				auto referer = request.find("Referer");
+				std::string refererString;
+				if (referer != request.end()) {
+					refererString = referer->second;
+				}
 				if(lastExternReferer != "") {
 					response.redirect(lastExternReferer);
+				} else if(refererString != "") {
+					response.redirect(refererString);
 				} else {
 					response.redirect(ServerConfig::g_php_serverPath + "/");
 				}

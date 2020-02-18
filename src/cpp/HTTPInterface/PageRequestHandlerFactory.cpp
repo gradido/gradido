@@ -20,6 +20,7 @@
 #include "ResetPassword.h"
 #include "RegisterAdminPage.h"
 #include "DebugPassphrasePage.h"
+#include "AdminCheckUserBackup.h"
 
 #include "DecodeTransactionPage.h"
 
@@ -141,6 +142,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/debugPassphrase") {
 				auto pageRequestHandler = new DebugPassphrasePage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/checkUserBackups") {
+				auto pageRequestHandler = new AdminCheckUserBackup(s);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}

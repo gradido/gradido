@@ -1,0 +1,98 @@
+<%@ page class="AdminCheckUserBackup" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+#include "../crypto/KeyPair.h"
+#include "../SingletonManager/ConnectionManager.h"
+
+#include "../controller/UserBackups.h"
+
+#include "Poco/Data/Binding.h"
+using namespace Poco::Data::Keywords;
+
+typedef Poco::Tuple<int, Poco::Nullable<Poco::Data::BLOB>, std::string> UserBackupTuple;
+
+struct SListEntry 
+{
+	Poco::AutoPtr<controller::User> user;
+	std::vector<Poco::AutoPtr<controller::UserBackups>> backups;
+};
+
+%>
+<%%
+	const char* pageName = "Admin Check User Backups";
+	auto cm = ConnectionManager::getInstance();
+	KeyPair keys;
+	std::list<SListEntry> notMatchingEntrys;
+	
+	Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+	std::list<UserBackupTuple> userBackupEntrys;
+	select << "SELECT u.id, u.pubkey, b.passphrase FROM users as u LEFT JOIN user_backups as b on(u.id = b.user_id)"
+	, into(userBackupEntrys);
+			
+	size_t resultCount = 0;
+	try {
+		resultCount = select.execute();
+		
+		for(auto it = userBackupEntrys.begin(); it != userBackupEntrys.end(); it++) {
+			auto tuple = *it;
+			auto pubkey = tuple.get<1>();
+			if(pubkey.isNull()) {
+				continue;
+			}
+			auto passphrase = KeyPair::filterPassphrase(tuple.get<2>());
+			auto user_id = tuple.get<0>();
+			Mnemonic* wordSource = nullptr;
+			if(!User::validatePassphrase(passphrase, &wordSource)) {
+				addError(new Error("admin Check user backup", "invalid passphrase"));
+				addError(new ParamError("admin Check user backup", "passphrase", passphrase.data()));
+				addError(new ParamError("admin Check user backup", "user id", user_id));
+				continue;
+			} else {
+				keys.generateFromPassphrase(passphrase.data(), wordSource);
+			}
+			if(keys.isPubkeysTheSame(pubkey.value().content().data())) {
+				continue;
+			}
+			SListEntry entry;
+			entry.user = controller::User::create();
+			entry.user->load(user_id);
+			entry.backups = controller::UserBackups::load(user_id);
+			
+			notMatchingEntrys.push_back(entry);
+			
+		}
+	}
+	catch (Poco::Exception& ex) {
+		addError(new ParamError("adminCheckUserBackup", "mysql error", ex.displayText().data()));
+	}
+	
+		
+	
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Admin Check User Backup</h1>
+	<%= getErrorsHtml() %>
+	<p><b>Unmatching count: <%= notMatchingEntrys.size() %></b></p>
+	<table>
+		<thead>
+			<tr><th>id</th><th>Vorname</th><th>Nachname</th><th>E-Mail</th><th>backups count</tr>
+		</thead>
+		<tbody>
+			<% for(auto it = notMatchingEntrys.begin(); it != notMatchingEntrys.end(); it++) { 
+				auto userModel = (*it).user->getModel();
+			%>
+				<tr>
+				<td><%= userModel->getID() %></td>
+				<td><%= userModel->getFirstName() %></td>
+				<td><%= userModel->getLastName() %></td>
+				<td><%= userModel->getEmail() %></td>
+				<td><%= (*it).backups.size() %></td>
+				</tr>
+			<% } %>
+		</tbody>
+</div>
+<%@ include file="footer.cpsp" %>

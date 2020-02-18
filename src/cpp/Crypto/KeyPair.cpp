@@ -43,8 +43,8 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	// libsodium doc: https://libsodium.gitbook.io/doc/advanced/hmac-sha2
 	// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 	//crypto_auth_hmacsha512_keygen
-	unsigned long word_indices[PHRASE_WORD_COUNT+1];
-	memset(word_indices, 0, PHRASE_WORD_COUNT + 1);
+	unsigned long word_indices[PHRASE_WORD_COUNT];
+	memset(word_indices, 0, PHRASE_WORD_COUNT);
 
 	//DHASH key = DRMakeStringHash(passphrase);
 	size_t pass_phrase_size = strlen(passphrase);
@@ -96,8 +96,10 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	/*printf("word_indices: \n");
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 		if (i > 0) printf(" ");
-		printf("%hu", word_indices[i]);
-	}//*/
+		printf("%4hu", word_indices[i]);
+	}
+	printf("\n");
+	//*/
 	//printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
 //	printf("passphrase bin: \n%s\n\n", getHex((unsigned char*)passphrase, pass_phrase_size).data());
 
@@ -248,4 +250,9 @@ bool KeyPair::savePrivKey(int userId)
 		return false;
 	}
 	return true;
+}
+
+bool KeyPair::isPubkeysTheSame(const unsigned char* pubkey) const
+{
+	return sodium_memcmp(pubkey, mPublicKey, ed25519_pubkey_SIZE) == 0;
 }

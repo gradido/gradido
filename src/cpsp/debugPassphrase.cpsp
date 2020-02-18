@@ -14,6 +14,7 @@
 	std::string privKeyHex = "";
 	std::string privKeyCryptedHex = "";
 	User::passwordHashed pwdHashed = 0;
+	Poco::AutoPtr<controller::User> existingUser;
 	if(!form.empty()) {
 		auto passphrase = KeyPair::filterPassphrase(form.get("passphrase", ""));
 		Mnemonic* wordSource = nullptr;
@@ -22,7 +23,14 @@
 		} else {
 			keys.generateFromPassphrase(passphrase.data(), wordSource);
 		}
-		auto newUser = new User(form.get("email", "").data(), "first_name", "last_name");
+		auto email = form.get("email", "");
+		auto newUser = new User(email.data(), "first_name", "last_name");
+		
+		
+		if(email != "") {
+			existingUser = controller::User::create();
+			existingUser->load(email);
+		}
 		newUser->validatePwd(form.get("password", ""), this);
 		pwdHashed = newUser->getPwdHashed();
 		auto privKey = keys.getPrivateKey();
@@ -62,5 +70,11 @@
 	<p>Private Key:<br><%= privKeyHex %></p>
 	<p>Passwort Hashed:<br><%= std::to_string(pwdHashed) %></p>
 	<p>Private key crypted:<br><%= privKeyCryptedHex %></p>
+	<% if(!existingUser.isNull()) { 
+		 auto userModel = existingUser->getModel(); 
+		 auto dbPubkey = userModel->getPublicKey();
+		 %>
+		<p>user Public: <br><%= KeyPair::getHex(dbPubkey, ed25519_pubkey_SIZE) %></p>
+	<% } %>
 </div>
 <%@ include file="footer.cpsp" %>

@@ -32,6 +32,8 @@ public:
 	
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 
+	bool isPubkeysTheSame(const unsigned char* pubkey) const;
+
 protected:
 	const MemoryBin* getPrivateKey() const { return mSodiumSecret; }
 

@@ -35,6 +35,7 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	std::string privKeyHex = "";
 	std::string privKeyCryptedHex = "";
 	User::passwordHashed pwdHashed = 0;
+	Poco::AutoPtr<controller::User> existingUser;
 	if(!form.empty()) {
 		auto passphrase = KeyPair::filterPassphrase(form.get("passphrase", ""));
 		Mnemonic* wordSource = nullptr;
@@ -43,7 +44,14 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 		} else {
 			keys.generateFromPassphrase(passphrase.data(), wordSource);
 		}
-		auto newUser = new User(form.get("email", "").data(), "first_name", "last_name");
+		auto email = form.get("email", "");
+		auto newUser = new User(email.data(), "first_name", "last_name");
+		
+		
+		if(email != "") {
+			existingUser = controller::User::create();
+			existingUser->load(email);
+		}
 		newUser->validatePwd(form.get("password", ""), this);
 		pwdHashed = newUser->getPwdHashed();
 		auto privKey = keys.getPrivateKey();
@@ -131,7 +139,7 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Debug Passphrase</h1>\n";
 	responseStream << "\t";
-#line 45 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
@@ -140,7 +148,7 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"email\">E-Mail</label>\n";
 	responseStream << "\t\t\t\t<input id=\"email\" type=\"email\" name=\"email\" value=\"";
-#line 51 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 59 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( !form.empty() ? form.get("email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
@@ -149,28 +157,41 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t\t<input id=\"password\" type=\"password\" name=\"password\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<textarea style=\"width:100%;height:100px\" name=\"passphrase\">";
-#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 65 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( !form.empty() ? form.get("passphrase", "") : "" );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" name=\"submit\" value=\"Debug\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t<p>Public key:<br>";
-#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( keys.getPubkeyHex() );
 	responseStream << "</p>\n";
 	responseStream << "\t<p>Private Key:<br>";
-#line 62 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 70 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( privKeyHex );
 	responseStream << "</p>\n";
 	responseStream << "\t<p>Passwort Hashed:<br>";
-#line 63 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 71 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( std::to_string(pwdHashed) );
 	responseStream << "</p>\n";
 	responseStream << "\t<p>Private key crypted:<br>";
-#line 64 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+#line 72 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 	responseStream << ( privKeyCryptedHex );
 	responseStream << "</p>\n";
+	responseStream << "\t";
+#line 73 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+ if(!existingUser.isNull()) { 
+		 auto userModel = existingUser->getModel(); 
+		 auto dbPubkey = userModel->getPublicKey();
+		 	responseStream << "\n";
+	responseStream << "\t\t<p>user Public: <br>";
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+	responseStream << ( KeyPair::getHex(dbPubkey, ed25519_pubkey_SIZE) );
+	responseStream << "</p>\n";
+	responseStream << "\t";
+#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
 	responseStream << "\t<div class=\"grd-time-used dev-info\">\n";
