@@ -5,7 +5,7 @@
 <%@ page ctorArg="Session*" %>
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
-#include "../crypto/KeyPair.h"
+#include "../Crypto/KeyPair.h"
 #include "../SingletonManager/ConnectionManager.h"
 
 #include "../controller/UserBackups.h"

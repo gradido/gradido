@@ -7,7 +7,7 @@
 
 #line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugPassphrase.cpsp"
 
-#include "../crypto/KeyPair.h"
+#include "../Crypto/KeyPair.h"
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
  
 #include "../ServerConfig.h"	
