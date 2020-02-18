@@ -228,7 +228,7 @@ int HandleElopageRequestTask::run()
 	// get input data
 	// check event type
 	std::string event = mRequestData.get("event", "");
-	if (event == "lesson.viewed" || event == "lesson.completed") {
+	if (event == "lesson.viewed" || event == "lesson.completed" || event == "lesson.commented") {
 		return 0;
 	}
 

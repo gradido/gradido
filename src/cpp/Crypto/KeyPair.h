@@ -12,11 +12,13 @@
 
 class UserWriteKeysIntoDB;
 class UserGenerateKeys;
+class DebugPassphrasePage;
 // TODO: https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519
 class KeyPair 
 {
 	friend UserWriteKeysIntoDB;
 	friend UserGenerateKeys;
+	friend DebugPassphrasePage;
 public:
 	KeyPair();
 	~KeyPair();
@@ -26,6 +28,7 @@ public:
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);
 	static std::string getHex(const unsigned char* data, Poco::UInt32 size);
+	static std::string getHex(const MemoryBin* data);
 	
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 

@@ -90,7 +90,8 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	
 	// debug passphrase
 //	printf("\passsphrase: <%s>\n", passphrase);
-//	printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
+	printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
+	printf("clear passphrase: \n%s\n", clearPassphrase.data());
 //	printf("passphrase bin: \n%s\n\n", getHex((unsigned char*)passphrase, pass_phrase_size).data());
 
 	//ed25519_create_keypair(public_key, private_key, hash);
@@ -210,6 +211,11 @@ std::string KeyPair::getHex(const unsigned char* data, Poco::UInt32 size)
 	mm->releaseMemory(hexMem);
 
 	return hex;
+}
+
+std::string KeyPair::getHex(const MemoryBin* data)
+{
+	return getHex(*data, data->size());
 }
 
 bool KeyPair::savePrivKey(int userId)

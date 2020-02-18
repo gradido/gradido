@@ -1,5 +1,7 @@
 #include "SigningTransaction.h"
 
+#include <google/protobuf/text_format.h>
+
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
@@ -99,7 +101,14 @@ int SigningTransaction::run() {
 	*sigBytes = std::string((char*)*sign, sign->size());
 	mm->releaseMemory(sign);
 	
-
+	/*std::string protoPrettyPrint;
+	google::protobuf::TextFormat::PrintToString(transaction, &protoPrettyPrint);
+	printf("transaction pretty: %s\n", protoPrettyPrint.data());
+	model::messages::gradido::TransactionBody transactionBody;
+	transactionBody.MergeFromString(transaction.bodybytes());
+	google::protobuf::TextFormat::PrintToString(transactionBody, &protoPrettyPrint);
+	printf("transaction body pretty: \n%s\n", protoPrettyPrint.data());
+	*/
 	// finalize
 	//printf("sigpair size: %d\n", transaction.sigmap().sigpair_size());
 	std::string finalTransactionBin = transaction.SerializeAsString();
@@ -199,6 +208,7 @@ int SigningTransaction::run() {
 		sendErrorsAsEmail();
 		return -8;
 	}
+	
 
 	return 0;
 }

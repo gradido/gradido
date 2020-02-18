@@ -1,0 +1,66 @@
+<%@ page class="DebugPassphrasePage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+#include "../crypto/KeyPair.h"
+%>
+<%%
+	const char* pageName = "Debug Passphrase";
+	auto mm = MemoryManager::getInstance();
+	KeyPair keys;
+	std::string privKeyHex = "";
+	std::string privKeyCryptedHex = "";
+	User::passwordHashed pwdHashed = 0;
+	if(!form.empty()) {
+		auto passphrase = KeyPair::filterPassphrase(form.get("passphrase", ""));
+		Mnemonic* wordSource = nullptr;
+		if(!User::validatePassphrase(passphrase, &wordSource)) {
+			addError(new Error("debug Passphrase", "invalid passphrase"));
+		} else {
+			keys.generateFromPassphrase(passphrase.data(), wordSource);
+		}
+		auto newUser = new User(form.get("email", "").data(), "first_name", "last_name");
+		newUser->validatePwd(form.get("password", ""), this);
+		pwdHashed = newUser->getPwdHashed();
+		auto privKey = keys.getPrivateKey();
+		if(privKey) {
+			privKeyHex = KeyPair::getHex(privKey);
+			auto privKeyCrypted = newUser->encrypt(privKey);
+			if(privKeyCrypted) {
+				privKeyCryptedHex = KeyPair::getHex(privKeyCrypted);
+				mm->releaseMemory(privKeyCrypted);
+			}
+		}
+		getErrors(newUser);
+		delete newUser;
+	}
+		
+	
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Debug Passphrase</h1>
+	<%= getErrorsHtml() %>
+	<form method="POST">
+		<fieldset class="grd_container_small">
+			<legend>Userdata</legend>
+			<p class="grd_small">
+				<label for="email">E-Mail</label>
+				<input id="email" type="email" name="email" value="<%= !form.empty() ? form.get("email") : "" %>"/>
+			</p>
+			<p class="grd_small">
+				<label for="password">Passwort</label>
+				<input id="password" type="password" name="password"/>
+			</p>
+			<textarea style="width:100%;height:100px" name="passphrase"><%= !form.empty() ? form.get("passphrase", "") : "" %></textarea>
+		</fieldset>
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Debug">
+	</form>
+	<p>Public key:<br><%= keys.getPubkeyHex() %></p>
+	<p>Private Key:<br><%= privKeyHex %></p>
+	<p>Passwort Hashed:<br><%= std::to_string(pwdHashed) %></p>
+	<p>Private key crypted:<br><%= privKeyCryptedHex %></p>
+</div>
+<%@ include file="footer.cpsp" %>

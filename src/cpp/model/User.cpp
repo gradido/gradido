@@ -748,6 +748,12 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");
 	}
+	if (nullptr == cmpCryptoKey) {
+		if (validationErrorsToPrint) {
+			validationErrorsToPrint->addError(new Error("User::validatePwd", "couldn't create crypto key"));
+			return false;
+		}
+	}
 	User::passwordHashed pwdHashed;
 	if (!ServerConfig::g_ServerCryptoKey) {
 		if (validationErrorsToPrint) {

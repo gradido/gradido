@@ -19,6 +19,7 @@
 #include "CheckTransactionPage.h"
 #include "ResetPassword.h"
 #include "RegisterAdminPage.h"
+#include "DebugPassphrasePage.h"
 
 #include "DecodeTransactionPage.h"
 
@@ -132,10 +133,17 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
-		if (url_first_part == "/adminRegister") {
-			auto pageRequestHandler = new RegisterAdminPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+		if (s->getNewUser()->getModel()->getRole() == model::table::ROLE_ADMIN) {
+			if (url_first_part == "/adminRegister") {
+				auto pageRequestHandler = new RegisterAdminPage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/debugPassphrase") {
+				auto pageRequestHandler = new DebugPassphrasePage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
 		}
 
 		if(url_first_part == "/logout") {

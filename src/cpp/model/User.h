@@ -23,7 +23,7 @@ class Session;
 class UserWriteCryptoKeyHashIntoDB;
 class SigningTransaction;
 class UserGenerateKeys;
-
+class DebugPassphrasePage;
 
 enum UserStates
 {
@@ -54,6 +54,7 @@ class User : public ErrorList
 	friend UserWriteCryptoKeyHashIntoDB;
 	friend SigningTransaction;
 	friend UserGenerateKeys;
+	friend DebugPassphrasePage;
 public:
 	// new user
 	User(const char* email, const char* first_name, const char* last_name);
