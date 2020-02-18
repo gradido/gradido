@@ -12,12 +12,14 @@
 #include "Poco/Logger.h"
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
+#include "../SingletonManager/ErrorManager.h"
 	
 %>
 <%% 
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
 	auto lm = LanguageManager::getInstance();
+	auto em = ErrorManager::getInstance();
 	
 	auto lang = chooseLanguage(request);
 	auto langCatalog = lm->getFreeCatalog(lang);
@@ -85,6 +87,12 @@
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
+			    if(mSession->getSessionState() == SESSION_STATE_PASSPHRASE_WRITTEN) {
+					//mSession->addError(new Error(langCatalog->ge)
+					em->addError(new Error("LoginPage", "user has no keys, but passphrase is written"));
+					em->addError(new ParamError("LoginPage", "user email", email));
+					em->sendErrorsAsEmail();
+				}
 				response.redirect(ServerConfig::g_serverPath + "/passphrase");
 				return;
 			case USER_NO_PRIVATE_KEY:

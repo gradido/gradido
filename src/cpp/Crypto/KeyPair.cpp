@@ -43,7 +43,8 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	// libsodium doc: https://libsodium.gitbook.io/doc/advanced/hmac-sha2
 	// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 	//crypto_auth_hmacsha512_keygen
-	unsigned long word_indices[PHRASE_WORD_COUNT];
+	unsigned long word_indices[PHRASE_WORD_COUNT+1];
+	memset(word_indices, 0, PHRASE_WORD_COUNT + 1);
 
 	//DHASH key = DRMakeStringHash(passphrase);
 	size_t pass_phrase_size = strlen(passphrase);
@@ -52,13 +53,14 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	size_t buffer_cursor = 0;
 	// get word indices for hmac key
 	unsigned char word_cursor = 0;
-	for (size_t i = 0; i < pass_phrase_size; i++) {
-		if (passphrase[i] == ' ') {
+	for (size_t i = 0; i <= pass_phrase_size; i++) {
+		if (passphrase[i] == ' ' || passphrase[i] == '\0') {
 			if(buffer_cursor < 3) continue;
 			if (word_source->isWordExist(acBuffer)) {
 				clearPassphrase += acBuffer;
 				clearPassphrase += " ";
 				word_indices[word_cursor] = word_source->getWordIndex(acBuffer);
+				//printf("index for %s is: %hu\n", acBuffer, word_source->getWordIndex(acBuffer));
 			}
 			else {
 				er->addError(new ParamError("KeyPair::generateFromPassphrase", "word didn't exist", acBuffer));
@@ -90,8 +92,13 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, Mnemonic* word_sour
 	
 	// debug passphrase
 //	printf("\passsphrase: <%s>\n", passphrase);
-	printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
-	printf("clear passphrase: \n%s\n", clearPassphrase.data());
+	//printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
+	/*printf("word_indices: \n");
+	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
+		if (i > 0) printf(" ");
+		printf("%hu", word_indices[i]);
+	}//*/
+	//printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
 //	printf("passphrase bin: \n%s\n\n", getHex((unsigned char*)passphrase, pass_phrase_size).data());
 
 	//ed25519_create_keypair(public_key, private_key, hash);
