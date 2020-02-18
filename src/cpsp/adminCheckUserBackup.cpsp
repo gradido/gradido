@@ -28,7 +28,8 @@ struct SListEntry
 	KeyPair keys;
 	std::list<SListEntry> notMatchingEntrys;
 	
-	Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+	auto con = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement select(con);
 	std::list<UserBackupTuple> userBackupEntrys;
 	select << "SELECT u.id, u.pubkey, b.passphrase FROM users as u LEFT JOIN user_backups as b on(u.id = b.user_id)"
 	, into(userBackupEntrys);
