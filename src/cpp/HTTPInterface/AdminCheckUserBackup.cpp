@@ -49,7 +49,8 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	KeyPair keys;
 	std::list<SListEntry> notMatchingEntrys;
 	
-	Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+	auto con = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+	Poco::Data::Statement select(con);
 	std::list<UserBackupTuple> userBackupEntrys;
 	select << "SELECT u.id, u.pubkey, b.passphrase FROM users as u LEFT JOIN user_backups as b on(u.id = b.user_id)"
 	, into(userBackupEntrys);
@@ -164,11 +165,11 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Admin Check User Backup</h1>\n";
 	responseStream << "\t";
-#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<p><b>Unmatching count: ";
-#line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( notMatchingEntrys.size() );
 	responseStream << "</b></p>\n";
 	responseStream << "\t<table>\n";
@@ -177,34 +178,34 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t</thead>\n";
 	responseStream << "\t\t<tbody>\n";
 	responseStream << "\t\t\t";
-#line 85 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 86 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  for(auto it = notMatchingEntrys.begin(); it != notMatchingEntrys.end(); it++) { 
 				auto userModel = (*it).user->getModel();
 				responseStream << "\n";
 	responseStream << "\t\t\t\t<tr>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getID() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 91 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getFirstName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 91 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getLastName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getEmail() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( (*it).backups.size() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t</tr>\n";
 	responseStream << "\t\t\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</tbody>\n";
 	responseStream << "</div>\n";
