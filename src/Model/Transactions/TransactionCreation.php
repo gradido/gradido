@@ -172,6 +172,11 @@ class TransactionCreation extends TransactionBase {
           $emailViewBuilder = $email->viewBuilder();
           $emailViewBuilder->setTemplate('notificationCreation')
                            ->setVars(['user' => $receiverUser, 'gdd_cent' => $this->getAmount(), 'memo' => $memo]);
+          $receiverNames = $receiverUser->getNames();
+          if($receiverNames == '' || $receiverUser->email == '') {
+            $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
+            return false;
+          }
           $email->setFrom([$noReplyEmail => 'Nicht antworten'])
                 ->setTo([$receiverUser->email => $receiverUser->getNames()])
                 ->setSubject(__('Gradido Schöpfung erhalten'))

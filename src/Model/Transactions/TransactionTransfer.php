@@ -232,7 +232,11 @@ class TransactionTransfer extends TransactionBase {
                                     'senderUser' => $senderUser,
                                     'gdd_cent' => $receiverAmount->getAmount(), 
                                     'memo' => $memo]);
-
+        $receiverNames = $receiverUser->getNames();
+        if($receiverNames == '' || $receiverUser->email == '') {
+            $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
+            return false;
+          }
         $email->setFrom([$serverAdminEmail => $senderUser->getNames() . ' via Gradido Community'])
               ->setTo([$receiverUser->email => $receiverUser->getNames()])
               ->setReplyTo($senderUser->email)
