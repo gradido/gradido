@@ -97,7 +97,7 @@ class Transaction extends TransactionBase {
           //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
           $pubkey = $sigPair->getPubKey();
           $signature = $sigPair->getEd25519();
-          echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
+          //echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
           if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
               $this->addError('Transaction::validate', 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid ' );
               return false;

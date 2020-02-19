@@ -220,7 +220,7 @@ class AppController extends Controller
                     // we haven't get a pubkey? something seems to gone wrong on the login-server
                     $this->Flash->error(__('no pubkey'));
                     //var_dump($json);
-                    return $this->redirect(Router::url('/', true) . 'account/error500', 303);
+                    return $this->redirect(Router::url('/', true) . 'account/error500/noPubkey', 303);
                   }
                 } else {
                   if($json['state'] === 'not found' ) {
