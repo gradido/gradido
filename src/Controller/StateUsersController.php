@@ -4,6 +4,7 @@ namespace App\Controller;
 use Cake\Routing\Router;
 use Cake\I18n\I18n;
 use Cake\I18n\FrozenTime;
+use Cake\ORM\TableRegistry;
 
 use App\Controller\AppController;
 use App\Form\UserSearchForm;
@@ -36,7 +37,10 @@ class StateUsersController extends AppController
         parent::initialize();
         $this->loadComponent('GradidoNumber');
         $this->loadComponent('JsonRequestClient');
-        $this->Auth->allow(['search', 'ajaxCopyLoginToCommunity']);
+        $this->Auth->allow([
+            'search', 'ajaxCopyLoginToCommunity', 'ajaxCopyCommunityToLogin', 
+            'ajaxDelete', 'ajaxCountTransactions'
+         ]);
         
     }
     
@@ -153,12 +157,21 @@ class StateUsersController extends AppController
               $finalUser['pubkeyhex'] = $pubhex;
               $finalUser['created'] = null;
               
+              if(count($user['community']) == 1) {
+                if(isset($user['community'][0]->state_balances) && 
+                   isset($user['community'][0]->state_balances[0]['amount'])) {
+                   $finalUser['balance'] = $user['community'][0]->state_balances[0]->amount;
+                }
+              }
+              
               if(count($user['login']) == 0) {
                 $state = 'account not on login-server';
                 $color = 'danger';
                 if(count($user['community']) == 1) {
                   $c_user = $user['community'][0];
                   $finalUser['name'] = $c_user->first_name . ' ' . $c_user->last_name;
+                  $finalUser['first_name'] = $c_user->first_name;
+                  $finalUser['last_name'] = $c_user->last_name;
                   $finalUser['email'] = $c_user->email;
                 }
               } else if(count($user['login']) == 1) {
@@ -175,10 +188,7 @@ class StateUsersController extends AppController
                     $state = 'account copied to community';
                     $color = 'success';
                     //var_dump($user['community'][0]->state_balances[0]['amount']);
-                    if(isset($user['community'][0]->state_balances) && 
-                       isset($user['community'][0]->state_balances[0]['amount'])) {
-                      $finalUser['balance'] = $user['community'][0]->state_balances[0]->amount;
-                    }
+                    
                   }
                   
                 } else {
@@ -225,8 +235,35 @@ class StateUsersController extends AppController
         $this->set('timeUsed', $timeUsed);
     }
     
+    public function ajaxCopyCommunityToLogin() 
+    {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode', true);
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
     public function ajaxCopyLoginToCommunity() 
     {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+        
       if($this->request->is('post')) {
           $jsonData = $this->request->input('json_decode', true);
           //$user = $jsonData['user'];
@@ -244,6 +281,100 @@ class StateUsersController extends AppController
       }
       return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
+    
+    public function ajaxDelete() 
+    {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+      
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode', true);
+          //$user = $jsonData['user'];
+          //var_dump($jsonData);
+          $pubkey = hex2bin($jsonData['pubkeyhex']);
+          $stateUsers = $this->StateUsers->find('all')->where(['public_key' => $pubkey]);
+          if($stateUsers->count() != 1) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid result count']);
+          }
+          
+          if ($this->StateUsers->delete($stateUsers->first())) {
+            return $this->returnJson(['state' => 'success']);
+          } else {
+            return $this->returnJson(['state' => 'error', 'msg' => 'error by deleting', 'details' => json_encode($stateUser->errors())]);
+          }
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
+    public function ajaxCountTransactions()
+    {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+      
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode', true);
+          //$user = $jsonData['user'];
+          //var_dump($jsonData);
+          $pubkey = hex2bin($jsonData['pubkeyhex']);
+          $stateUsers = $this->StateUsers
+                  ->find('all')
+                  ->where(['public_key' => $pubkey])
+                  ->select(['id']);
+          if($stateUsers->count() != 1) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid result count']);
+          }
+          $stateUser = $stateUsers->first();
+          //var_dump($stateUser);
+          //var_dump($stateUser->toArray());
+          $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
+          $creationTransactions = $creationsTable
+                  ->find('all')
+                  ->select(['id'])
+                  ->where(['state_user_id' => $stateUser->id]);
+
+          $transferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+          $transferTransactions = $transferTable
+                  ->find('all')
+                  ->where(['OR' => ['state_user_id' => $stateUser->id, 'receiver_user_id' => $stateUser->id]])
+                  ->select(['state_user_id', 'receiver_user_id']);
+          $counts = ['creation' => $creationTransactions->count(), 'receive' => 0, 'sended' => 0];
+          foreach($transferTransactions as $transfer) {
+            //var_dump($transfer);
+            if($transfer->state_user_id == $stateUser->id) {
+              $counts['sended']++;
+            }
+            if($transfer->receiver_user_id == $stateUser->id) {
+              $counts['receive']++;
+            }
+          }
+          return $this->returnJson(['state' => 'success', 'counts' => $counts]);
+          
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+      
+    }
+    /*
+     
+     getField(vnode, 'receive'),
+     
+     getField(vnode, 'sended'),
+     
+     getField(vnode, 'creation'),
+     */
 
     /**
      * View method
@@ -255,7 +386,7 @@ class StateUsersController extends AppController
     public function view($id = null)
     {
         $stateUser = $this->StateUsers->get($id, [
-            'contain' => ['Indices', 'StateGroups', 'StateBalances', 'StateCreated', 'TransactionCreations', 'TransactionSendCoins']
+            'contain' => ['StateGroups', 'StateBalances', 'StateCreated', 'TransactionCreations', 'TransactionSendCoins']
         ]);
 
         $this->set('stateUser', $stateUser);
