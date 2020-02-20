@@ -161,13 +161,6 @@ input.grd-pubkey {
 input.grd-non-der-keys {
   width: 900px;
 }
-div.input.text.error {
-  border: 1px solid red;
-}
-.error-message {
-  color: darkred;
-  font-size: 14px;
-}
 input:not([type='radio']) {
   width: 200px;
 }
@@ -214,13 +207,13 @@ and open the template in the editor.
   padding: 5px;
   color: green;
 }
-.flash-messages .alert {
+.flash-messages .message {
   padding: 5px;
 }
-.flash-messages .alert-success {
+.flash-messages .success {
   color: green;
 }
-.flash-messages .alert-error {
+.flash-messages .error {
   color: red;
 }
 /*
@@ -258,9 +251,6 @@ nav ul {
   vertical-align: middle;
   color: grey;
 }
-.grd-nav-without-border {
-  border: none;
-}
 .grd-nav-bn-large {
   width: 40vw;
   height: 18vh;
@@ -270,9 +260,6 @@ a.grd-nav-bn,
 a.grd-nav-bn:visited {
   color: black;
   text-decoration: none;
-}
-.grd-nav-bn-discard {
-  color: darkred !important;
 }
 /*
 To change this license header, choose License Headers in Project Properties.
