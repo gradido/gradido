@@ -177,7 +177,7 @@ class TransactionCreation extends TransactionBase {
             $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
             return false;
           }
-          $email->setFrom([$noReplyEmail => 'Nicht antworten'])
+          $email->setFrom([$noReplyEmail => 'Gradido (nicht antworten)'])
                 ->setTo([$receiverUser->email => $receiverUser->getNames()])
                 ->setSubject(__('Gradido Schöpfung erhalten'))
                 ->send();

@@ -8,7 +8,7 @@
 $this->assign('title', __('Gradido Schöpfung'));
 ?><?= __('Hallo') ?> <?= $user->first_name ?> <?= $user->last_name ?>, 
  
-<?= __('Für dich wurden soeben {0} geschöpft.', $this->element('printGradido', ['number' => $gdd_cent, 'raw' => true])) ?> 
+<?= __('für dich wurden soeben {0} geschöpft.', $this->element('printGradido', ['number' => $gdd_cent, 'raw' => true])) ?> 
 Gradido Akademie schreibt: 
  
 <?= $memo ?> 
