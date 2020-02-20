@@ -57,6 +57,36 @@ if($users->count() > 0 && $newUsersLastMonth->count()) {
   </div>
 </div>
 <div class="row">
+    <div class="col-md-10 equel-grid">
+      <div class="grid">
+        <div class="grid-body py-3">
+          <p class="card-title ml-n1"><?= __('Letzte Anmeldungen'); ?></p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr class="solid-header">
+                <th class="pl-4"><?= __('Name')?></th>
+                <th><?= __('E-Mail') ?></th>
+                <th><?= __('Erstellt') ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach($lastUsers as $user) : ?>
+              <tr>
+                <td><?= $user->first_name . ' ' . $user->last_name ?></td>
+                <td><?= $user->email ?></td>
+                <td><?= $user->created ?></td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+        <?php //var_dump($lastUsers->toArray()); ?>
+      </div>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-8 equel-grid">
       <div class="grid">
         <div class="grid-body py-3">
@@ -87,5 +117,6 @@ if($users->count() > 0 && $newUsersLastMonth->count()) {
         </div>
       </div>
     </div>
-  </div>
+</div>
 <?= $this->Html->script(['core', 'vendor.addons']); ?>
+<?= $this->Html->script('userSearch') ?>

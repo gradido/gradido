@@ -349,3 +349,6 @@ p.grd_small {
 .grd-negative-currency {
   color: red;
 }
+.admin-border {
+  border-color: #ffa600;
+}

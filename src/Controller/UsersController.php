@@ -62,8 +62,14 @@ class UsersController extends AppController
           $newAccountsTree[$created->year][$created->month]['count'] += intval($entry['count']);
         }
         
+        // last 5 new users
+        $lastUsers = $this->Users->find('all')->order(['created DESC'])->limit(5);
+        
         $timeUsed = microtime(true) - $startTime;
-        $this->set(compact('users', 'newUsersThisMonth', 'newUsersLastMonth', 'timeUsed', 'newAccountsTree'));
+        
+        $this->set(compact(
+                'users', 'newUsersThisMonth', 'newUsersLastMonth',
+                'timeUsed', 'newAccountsTree', 'lastUsers'));
     }
 
     /**
