@@ -15,6 +15,9 @@
 #include "Poco/Mutex.h"
 #include <string>
 #include <map>
+#include <list>
+
+#include "Poco/JSON/Array.h"
 
 #define PHRASE_WORD_COUNT 24
 
@@ -32,6 +35,10 @@ public:
 	inline bool isWordExist(const std::string& word) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);  DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
 	// using only for debugging
 	std::string getCompleteWordList();
+
+	Poco::JSON::Array getSortedWordList();
+
+	void printToFile(const char* filename);
 
 protected:
 

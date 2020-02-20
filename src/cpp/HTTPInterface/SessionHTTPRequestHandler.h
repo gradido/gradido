@@ -13,7 +13,6 @@ public:
 	
 protected:
 	Session* mSession;
-	
 
 	inline const char* gettext(const char* text) { if (!mSession || !mSession->getLanguageCatalog()) return text; return mSession->getLanguageCatalog()->gettext(text); }
 	

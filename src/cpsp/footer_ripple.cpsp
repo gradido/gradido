@@ -1,5 +1,5 @@
-	</div>
-        </div>
+			</div>
+		</div>
         <!-- content viewport ends -->
         <!-- partial:partials/_footer.html -->
         <footer class="footer">
@@ -11,7 +11,7 @@
               </ul>
             </div>
             <div class="col-sm-6 text-center text-sm-left mt-3 mt-sm-0">
-              <small class="text-muted d-block">Copyright © 2019 Gradido</small>
+              <small class="text-muted d-block">Copyright © 2020 Gradido</small>
             </div>
           </div>
         </footer>

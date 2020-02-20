@@ -7,21 +7,28 @@
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "../Crypto/KeyPair.h"
+#include "../ServerConfig.h"
 //#include "Poco/Net/HTTPServerParams.h"
 
 enum PageState 
 {
 	PAGE_ASK_PASSPHRASE,
 	PAGE_SHOW_PASSPHRASE,
+	PAGE_ASK_ENSURE_PASSPHRASE,
 	PAGE_FORCE_ASK_PASSPHRASE
 };
 %>
 <%%
-	const char* pageName = "Passphrase";
+	const char* pageName = gettext("Passphrase");
+	std::string pageTitle = gettext("Ein neues Konto anlegen");
+	std::string pageSubtitle = gettext("Passphrase");
 	PageState state = PAGE_ASK_PASSPHRASE;
+	auto lang = mSession->getLanguage();
 	
 	auto sm = SessionManager::getInstance();
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	
 	// remove old cookies if exist
 	sm->deleteLoginCookies(request, response, mSession);
 	// save login cookie, because maybe we've get an new session
@@ -37,7 +44,6 @@ enum PageState
 		if (registerKeyChoice == "no") {
 			auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
 			
-			Mnemonic* wordSource = nullptr;
 			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase, &wordSource)) {
 				// passphrase is valid 
 				if(PAGE_FORCE_ASK_PASSPHRASE == state) {
@@ -68,63 +74,141 @@ enum PageState
 		state = PAGE_SHOW_PASSPHRASE;
 		mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 	}
+	if(state == PAGE_ASK_ENSURE_PASSPHRASE) {
+		pageSubtitle = gettext("Passphrase überprüfen");
+	}
+	else if(state == PAGE_ASK_PASSPHRASE) {
+		pageSubtitle = gettext("Passphrase erfragen");
+	} else if(state == PAGE_FORCE_ASK_PASSPHRASE) {
+		pageTitle = gettext("Neues Passwort anlegen");
+		pageSubtitle = gettext("Passphrase erfragen");
+	}
 	getErrors(mSession);
-%><%@ include file="header_old.cpsp" %>
-<div class="grd_container">
-	<h1>Einen neuen Account anlegen</h1>
-	<%= getErrorsHtml() %>
-	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
-		<div class="grd_text-max-width">
-			<div class="grd_text">
-				Schreibe dir die Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.
-			</div>
-			<div class="grd_textarea" style="width:220px;text-align:center;">
-				<%= mSession->getPassphrase() %>
-			</div>
-			<div class="grd_text">
-				<h3>Was ist eine Passphrase?</h3>
-				<p>Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen. </p>
-				<p>Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.</p>
-			</div>
-			<div class="grd-margin-top-10"></div>
-			<a href="saveKeys" class="grd-form-bn grd-form-bn-succeed grd_clickable">Weiter</a>
-		</div>
-	<% } else if(state == PAGE_ASK_PASSPHRASE) { %>
-	<p>Deine E-Mail Adresse wurde erfolgreich bestätigt. </p>
-	<form method="POST" action="<%= uri_start %>/passphrase">
-		<fieldset class="grd_container_small">
-			<legend>Neue Gradido Adresse anlegen / wiederherstellen</legend>
-			<p>Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues anlegen?</p>
-			<p>*Das Konto muss nach dem 01.09.2019 angelegt worden sein.</p>
-			<p class="grd_small">
-				<input id="passphrase-new-yes" type="radio" name="passphrase" value="yes" checked/>
-				<label class="grd_radio_label" for="passphrase-new-yes">Nein, bitte ein neues erstellen!</label>
-			</p>
-			<p class="grd_small">
-				<input id="passphrase-new-no" type="radio" name="passphrase" value="no"/>
-				<label class="grd_radio_label" for="passphrase-new-no">Ja, bitte wiederherstellen!</label>
-			</p>
-			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
-		</fieldset>
-		
-		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Weiter">
-		
-	</form>
-	<% } else if(PAGE_FORCE_ASK_PASSPHRASE == state ) { %>
-		<form method="POST" action="<%= uri_start %>/passphrase">
-		<fieldset class="grd_container_small">
-			<legend>Konto wiederherstellen / Neues Passwort anlegen</legend>
-			<p>Um dein Konto wiederherzustellen, dir ein Neues Passwort ausw&auml;hlen zu können, tippe hier bitte die W&ouml;rter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast</p>
-			<textarea style="width:100%;height:100px" name="passphrase-existing"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
-		</fieldset>
-		
-		<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="Weiter">
-		
-	</form>
-	<% } else { %>
-		<div class="grd_text">
-			Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin. 
-		</div>
-	<% } %>
+%><%@ include file="login_header.cpsp" %><%@ include file="flags.cpsp" %>
+<div class="row mb-3">
+	<h2><%= pageTitle %></h2>
+	<h3 class="mx-auto"><%= pageSubtitle %></h3>
 </div>
-<%@ include file="footer.cpsp" %>
+<div class="item-wrapper">
+	<div class="row mb-3">
+	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
+	  <div class="col-md-10 mx-auto">
+		<div class="form-group row showcase_row_area">
+		  <div class="col-md-12 col-lg-12 ">
+			<div class="alert alert-orange">
+			  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+			  <p><%= gettext("Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.") %></p>
+			</div>
+			<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
+			  <h5 class="alert-heading"><%= gettext("Passphrase") %></h5>
+			  <p><%= mSession->getPassphrase() %></p>
+			</div>
+			<div class="alert alert-secondary">
+			  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
+			  <p><%= gettext("Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen.") %></p>
+			  <p><%= gettext("Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.") %></p>
+			</div>
+		  </div>
+		  <a href="<%= uri_start %>/passphrase" class="btn btn-sm btn-primary pull-right" name="next"><%= gettext("Weiter") %></a>
+		</div>
+	  </div>
+	  <% } else if(state == PAGE_ASK_ENSURE_PASSPHRASE) { %>
+	  <div class="">
+		  <div class="item-wrapper">
+			<div class="row mb-3">
+			  <div class="col-md-10 mx-auto">
+				<form>
+				  <div class="form-group row showcase_row_area">
+					<div class="col-md-12 col-lg-12 ">
+					  <div class="alert alert-orange">
+						<h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+						<p><%= gettext("Hast du dir deine Passphrase gemerkt?") %></p>
+						<p><%= gettext("Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in anderer Reihenfolge.") %><p>
+						<p><%= gettext("Klicke sie an um sie einzusetzen.") %></p>
+					  </div>
+					  <div id="gradido-mithril-passphrase"></div>
+					  <noscript>
+						<%= gettext("Ohne Javascript kannst du auch gleich weiter machen:") %>
+						<a href="saveKeys" class="btn btn-sm btn-primary pull-right" name="next">Weiter</a>
+					  </noscript>
+					</div>
+				  </div>
+				</form>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		<script type="text/javascript">
+			var mnemonicWords = "<% wordSource->getSortedWordList().stringify(responseStream); %>";
+		</script>
+	  <% } else if(state == PAGE_ASK_PASSPHRASE) { %>
+	  <div class="col-md-10 mx-auto">
+		<div class="form-group row showcase_row_area">
+		  <div class="col-md-12 col-lg-12 ">
+			<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
+			  <h5 class="alert-heading"><%= gettext("Passphrase") %></h5>
+			  <p><%= gettext("Deine E-Mail Adresse wurde erfolgreich bestätigt.") %></p>
+			</div>
+			<form method="POST" action="<%= uri_start %>/passphrase">
+				<div class="alert alert-orange">
+				  <h5 class="alert-heading"><%= gettext("Neue Gradido Adresse anlegen / wiederherstellen") %></h5>
+				  <p><%= gettext("Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues anlegen?") %></p>
+				  <p><%= gettext("*Das Konto muss nach dem 01.09.2019 angelegt worden sein.") %></p>
+				</div>
+				<div class="row">
+					<div class="col-md-9">
+						<div class="form-group">
+							<div class="radio alert-orange">
+								<label for="passphrase-new-yes" class="radio-label mr-4">
+									<input id="passphrase-new-yes" name="passphrase" type="radio" value="yes" checked/>
+									<%= gettext("Nein, bitte ein neues erstellen!") %>
+									<i class="input-frame"></i>
+								</label>
+							</div>
+							<div class="radio alert-orange">
+								<label for="passphrase-new-no" class="radio-label mr-4">
+									<input id="passphrase-new-no" name="passphrase" type="radio" value="no"/>
+									<%= gettext("Ja, bitte wiederherstellen!") %>
+									<i class="input-frame"></i>
+								</label>
+							</div>
+						</div>
+						<textarea class="form-control" name="passphrase-existing" cols="12" rows="5"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
+						<button type="submit" class="btn btn-sm btn-primary pull-right" name="submit"><%= gettext("Weiter") %></button>
+					</div>
+				</div>
+			</form>
+		  </div>
+		  <!--<a href="<%= uri_start %>/passphrase" class="btn btn-sm btn-primary pull-right" name="next"><%= gettext("Weiter") %></a>-->
+		</div>
+	  </div>
+	  <% } else if(state == PAGE_FORCE_ASK_PASSPHRASE) { %>
+	  <div class="col-md-10 mx-auto">
+		<div class="form-group row showcase_row_area">
+		  <div class="col-md-12 col-lg-12 ">
+			<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
+			  <h5 class="alert-heading"><%= gettext("Konto wiederherstellen / Neues Passwort anlegen") %></h5>
+			  <p><%= gettext("Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu können, tippe hier bitte die Wörter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast.") %></p>
+			</div>
+			<form method="POST" action="<%= uri_start %>/passphrase">
+				<textarea class="form-control" name="passphrase-existing" cols="12" rows="5"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
+				<button type="submit" class="btn btn-sm btn-primary pull-right" name="submit"><%= gettext("Weiter") %></button>
+			</form>
+		  </div>
+		</div>
+	  </div>
+	  <% } else { %>
+		<div class="col-md-10 mx-auto">
+			<div class="form-group row showcase_row_area">
+			  <div class="col-md-12 col-lg-12 ">
+				<div class="col-lg-8 col-md-10 mx-auto alert alert-danger" style="text-align:center">
+				  <h5 class="alert-heading"><%= gettext("Fehler") %></h5>
+				  <p><%= gettext("Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende dich an den Server-Admin.") %></p>
+				</div>
+			  </div>
+			</div>
+		</div>
+	  <% } %>
+	</div>
+</div>
+<%@ include file="footer_ripple.cpsp" %>

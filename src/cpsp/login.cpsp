@@ -104,7 +104,10 @@
 				}
 				if(lastExternReferer != "") {
 					response.redirect(lastExternReferer);
-				} else if(refererString != "") {
+				} else if(refererString != "" && 
+				          refererString.find("login") == std::string::npos && 
+						  refererString.find("logout") == std::string::npos &&
+						  refererString.find("user_delete") == std::string::npos ) {
 					response.redirect(refererString);
 				} else {
 					response.redirect(ServerConfig::g_php_serverPath + "/");

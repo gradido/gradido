@@ -125,3 +125,26 @@ std::string Mnemonic::getCompleteWordList()
 	}
 	return result;
 }
+
+void Mnemonic::printToFile(const char* filename)
+{
+	FILE* f = fopen(filename, "wt");
+	auto words = getCompleteWordList();
+	fwrite(words.data(), 1, words.size(), f);
+	fclose(f);
+}
+
+Poco::JSON::Array Mnemonic::getSortedWordList()
+{
+	std::list<std::string> words;
+	for (auto it = mWordHashIndices.begin(); it != mWordHashIndices.end(); it++) {
+		words.push_back(mWords[it->second]);
+	}
+	words.sort();
+	Poco::JSON::Array json;
+	for (auto it = words.begin(); it != words.end(); it++) {
+		json.add(*it);
+	}
+//	json.stringify()
+	return json;
+}

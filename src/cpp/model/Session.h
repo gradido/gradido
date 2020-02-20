@@ -50,11 +50,13 @@ enum SessionStates {
 };
 
 class SessionManager;
+class UpdateUserPasswordPage;
 
 class Session : public ErrorList, public UniLib::lib::MultithreadContainer
 {
 	friend WriteEmailVerification;
 	friend SessionManager;
+	friend UpdateUserPasswordPage;
 public:
 	Session(int handle);
 	~Session();
@@ -116,6 +118,7 @@ public:
 	// ------------------------ Passphrase functions ----------------------------
 	
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
+	
 	inline const std::string& getPassphrase() { return mPassphrase; }
 	bool generatePassphrase();
 	bool generateKeys(bool savePrivkey, bool savePassphrase);
@@ -164,6 +167,7 @@ protected:
 	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
 
+	inline const std::string& getPassphrase() const { return mPassphrase; }
 	
 
 private: 
