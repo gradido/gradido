@@ -27,7 +27,8 @@ enum PageState
 	
 	auto sm = SessionManager::getInstance();
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
-	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	//Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 	
 	// remove old cookies if exist
 	sm->deleteLoginCookies(request, response, mSession);
@@ -39,40 +40,56 @@ enum PageState
 	}
 	
 	if (!form.empty()) {
-		auto registerKeyChoice = form.get("passphrase", "no");
-		std::string oldPassphrase = "";
-		if (registerKeyChoice == "no") {
-			auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
-			
-			if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase, &wordSource)) {
-				// passphrase is valid 
-				if(PAGE_FORCE_ASK_PASSPHRASE == state) {
-					auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
-					if(-2 == compareResult) {
-						response.redirect(ServerConfig::g_serverPath + "/error500");
+	
+		auto btnNext = form.get("nextEnsure", "");
+		auto btnChecked = form.get("btnChecked", "");
+		
+		if(btnChecked != "") {
+			mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+			response.redirect(ServerConfig::g_serverPath + "/passphrase");
+			return;
+		}
+		
+		if(btnNext != "") {
+			state = PAGE_ASK_ENSURE_PASSPHRASE;
+		} else {
+			auto registerKeyChoice = form.get("passphrase", "no");
+			std::string oldPassphrase = "";
+			if (registerKeyChoice == "no") {
+				auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
+				
+				if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase, &wordSource)) {
+					// passphrase is valid 
+					if(PAGE_FORCE_ASK_PASSPHRASE == state) {
+						auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
+						if(-2 == compareResult) {
+							response.redirect(ServerConfig::g_serverPath + "/error500");
+							return;
+						} else if(1 == compareResult) {
+							response.redirect(ServerConfig::g_serverPath + "/updateUserPassword");
+							return;
+						}
+					} else {
+						mSession->setPassphrase(oldPassphrase);
+						mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+						response.redirect(ServerConfig::g_serverPath + "/saveKeys");
 						return;
-					} else if(1 == compareResult) {
-						response.redirect(ServerConfig::g_serverPath + "/updateUserPassword");
-						return;
+						//state = PAGE_SHOW_PASSPHRASE;
 					}
-				} else {
-					mSession->setPassphrase(oldPassphrase);
-					mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
-					state = PAGE_SHOW_PASSPHRASE;
+				}
+				else {
+					addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
 				}
 			}
-			else {
-				addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+			else if (registerKeyChoice == "yes") {
+				mSession->generatePassphrase();
 			}
-		}
-		else if (registerKeyChoice == "yes") {
-			mSession->generatePassphrase();
 		}
 	}
 
-	if(mSession->getSessionState() == SESSION_STATE_PASSPHRASE_GENERATED) {
+	if(mSession->getSessionState() == SESSION_STATE_PASSPHRASE_GENERATED && state != PAGE_ASK_ENSURE_PASSPHRASE) {
 		state = PAGE_SHOW_PASSPHRASE;
-		mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+		//mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 	}
 	if(state == PAGE_ASK_ENSURE_PASSPHRASE) {
 		pageSubtitle = gettext("Passphrase überprüfen");
@@ -84,7 +101,7 @@ enum PageState
 		pageSubtitle = gettext("Passphrase erfragen");
 	}
 	getErrors(mSession);
-%><%@ include file="login_header.cpsp" %><%@ include file="flags.cpsp" %>
+%><%@ include file="login_header.cpsp" %><%% withMaterialIcons = true; %><%@ include file="flags.cpsp" %>
 <div class="row mb-3">
 	<h2><%= pageTitle %></h2>
 	<h3 class="mx-auto"><%= pageSubtitle %></h3>
@@ -94,44 +111,56 @@ enum PageState
 	<% if(state == PAGE_SHOW_PASSPHRASE) {%>
 	  <div class="col-md-10 mx-auto">
 		<div class="form-group row showcase_row_area">
-		  <div class="col-md-12 col-lg-12 ">
-			<div class="alert alert-orange">
-			  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
-			  <p><%= gettext("Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.") %></p>
-			</div>
-			<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
-			  <h5 class="alert-heading"><%= gettext("Passphrase") %></h5>
-			  <p><%= mSession->getPassphrase() %></p>
-			</div>
-			<div class="alert alert-secondary">
-			  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
-			  <p><%= gettext("Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen.") %></p>
-			  <p><%= gettext("Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.") %></p>
-			</div>
-		  </div>
-		  <a href="<%= uri_start %>/passphrase" class="btn btn-sm btn-primary pull-right" name="next"><%= gettext("Weiter") %></a>
+			<form method="POST" action="<%= uri_start %>/passphrase">
+			  <div class="col-md-12 col-lg-12 ">
+				<div class="alert alert-orange">
+				  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+				  <p><%= gettext("Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.") %></p>
+				</div>
+				<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
+				  <h5 class="alert-heading"><%= gettext("Passphrase") %></h5>
+				  <p><%= mSession->getPassphrase() %></p>
+				</div>
+				<div class="alert alert-secondary">
+				  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
+				  <p><%= gettext("Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen.") %></p>
+				  <p><%= gettext("Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.") %></p>
+				</div>
+				<input type="submit" class="btn btn-sm btn-primary pull-right" name="nextEnsure" value="<%= gettext("Weiter") %>"/>
+			  </div>
+			</form>
 		</div>
 	  </div>
 	  <% } else if(state == PAGE_ASK_ENSURE_PASSPHRASE) { %>
+	   <style type="text/css">
+		button:disabled {
+			cursor:default;
+		}
+		.visible-modal {
+			background-color: rgba(0,0,0,0.4)
+		}
+		</style>
 	  <div class="">
 		  <div class="item-wrapper">
 			<div class="row mb-3">
 			  <div class="col-md-10 mx-auto">
-				<form>
+				<form method="POST" action="<%= uri_start %>/passphrase">
 				  <div class="form-group row showcase_row_area">
-					<div class="col-md-12 col-lg-12 ">
-					  <div class="alert alert-orange">
-						<h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
-						<p><%= gettext("Hast du dir deine Passphrase gemerkt?") %></p>
-						<p><%= gettext("Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in anderer Reihenfolge.") %><p>
-						<p><%= gettext("Klicke sie an um sie einzusetzen.") %></p>
-					  </div>
-					  <div id="gradido-mithril-passphrase"></div>
-					  <noscript>
-						<%= gettext("Ohne Javascript kannst du auch gleich weiter machen:") %>
-						<a href="saveKeys" class="btn btn-sm btn-primary pull-right" name="next">Weiter</a>
-					  </noscript>
-					</div>
+					<form method="POST" action="<%= uri_start %>/passphrase">
+						<div class="col-md-12 col-lg-12 ">
+						  <div class="alert alert-orange">
+							<h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+							<p><%= gettext("Hast du dir deine Passphrase gemerkt?") %></p>
+							<p><%= gettext("Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in anderer Reihenfolge.") %><p>
+							<p><%= gettext("Klicke sie an um sie einzusetzen.") %></p>
+						  </div>
+						  <div id="gradido-mithril-passphrase"></div>
+						  <noscript>
+							<p><%= gettext("Weil du kein Javascript verwendest geht es direkt weiter. Hast du dir deine Passphrase gemerkt oder aufgeschrieben?") %></p>
+							<input type="submit" class="btn btn-sm btn-primary pull-right" name="btnChecked" value="<%= gettext("Ja") %>"/>
+						  </noscript>
+						</div>
+					</form>
 				  </div>
 				</form>
 			  </div>
@@ -139,8 +168,10 @@ enum PageState
 		  </div>
 		</div>
 		<script type="text/javascript">
-			var mnemonicWords = "<% wordSource->getSortedWordList().stringify(responseStream); %>";
+			var mnemonicWords = <% wordSource->getSortedWordList().stringify(responseStream); %>;
+			var passphrase = "<%= mSession->getPassphrase() %>";
 		</script>
+		<script src="<%= ServerConfig::g_php_serverPath %>js/ensurePassphrase.js" type="text/javascript"></script>
 	  <% } else if(state == PAGE_ASK_PASSPHRASE) { %>
 	  <div class="col-md-10 mx-auto">
 		<div class="form-group row showcase_row_area">

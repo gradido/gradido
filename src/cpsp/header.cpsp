@@ -1,5 +1,7 @@
 <%! 
 #include "../ServerConfig.h"	
+%><%% 
+	bool withMaterialIcons = false; 
 %>
 <!DOCTYPE html>
 <html>
@@ -8,6 +10,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Gradido Login Server: <%= pageName %></title>
 <link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/loginServer/style.css">
+<% if(withMaterialIcons) { %>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/materialdesignicons.min.css">
+<% } %>
 </head>
 <body class="header-fixed">
 <div class="versionstring dev-info">
