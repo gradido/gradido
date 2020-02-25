@@ -247,7 +247,7 @@ enum PageState
 	  <div class="col-md-10 mx-auto">
 		<div class="form-group row showcase_row_area">
 		  <div class="col-md-12 col-lg-12 ">
-			<div class="col-lg-8 col-md-10 mx-auto alert alert-primary" style="text-align:center">
+			<div class="col-lg-12 col-md-12 mx-auto alert alert-primary" style="text-align:center">
 			  <h5 class="alert-heading"><%= gettext("Konto wiederherstellen / Neues Passwort anlegen") %></h5>
 			  <p><%= gettext("Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu können, tippe hier bitte die Wörter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast.") %></p>
 			</div>

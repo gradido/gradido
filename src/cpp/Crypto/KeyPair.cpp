@@ -6,6 +6,8 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/ConnectionManager.h"
 
+//#include "Poco/ISO8859_4Encoding.h"
+
 using namespace Poco::Data::Keywords;
 
 
@@ -154,14 +156,43 @@ std::string KeyPair::filterPassphrase(const std::string& passphrase)
 	std::string filteredPassphrase;
 	auto passphrase_size = passphrase.size();
 	for (int i = 0; i < passphrase_size; i++) {
-		char c = passphrase.data()[i];
+		unsigned char c = passphrase.data()[i];
 		// asci 128 even by utf8 (hex)
 		// 0000 0000 – 0000 007F
 		// utf8
 		if (c > 0x0000007F) {
 			int additionalUtfByteCount = 0;
-			filteredPassphrase += c;
+			//filteredPassphrase += c;
 			if ((c & 0x00000080) == 0x00000080) {
+				// c3 a4 => ä
+				// c3 bc => ü
+				// c3 b6 => ö
+				// c3 84 => Ä
+				// c3 96 => Ö
+				// c3 9c => Ü
+				// c3 9f => ß
+
+				std::vector<Poco::Tuple<int, std::string>> specialChars = {
+					{0xa4, "auml"}, {0x84, "Auml"}, 
+					{0xbc, "uuml"}, {0x9c, "Uuml"},
+					{0xb6, "ouml"}, {0x96, "Ouml"},
+					{0x9f, "szlig"}
+				};
+
+				unsigned char c2 = passphrase.data()[i + 1];
+				bool insertedHtmlEntitie = false;
+				for (auto it = specialChars.begin(); it != specialChars.end(); it++) {
+					if (c2 == it->get<0>()) {
+						auto htmlEntitie = it->get<1>();
+						filteredPassphrase += "&";
+						filteredPassphrase += htmlEntitie;
+						filteredPassphrase += ";";
+						i++;
+						insertedHtmlEntitie = true;
+						break;
+					}
+				}
+				if (insertedHtmlEntitie) continue;
 				additionalUtfByteCount = 1;
 			}
 			else if ((c & 0x00000800) == 0x00000800) {
@@ -170,7 +201,7 @@ std::string KeyPair::filterPassphrase(const std::string& passphrase)
 			else if ((c & 0x00010000) == 0x00010000) {
 				additionalUtfByteCount = 3;
 			}
-			for (int j = 1; j <= additionalUtfByteCount; j++) {
+			for (int j = 0; j <= additionalUtfByteCount; j++) {
 				filteredPassphrase += passphrase.data()[i + j];
 				i++;
 			}
@@ -181,7 +212,9 @@ std::string KeyPair::filterPassphrase(const std::string& passphrase)
 			// 90 = Z
 			// 97 = a
 			// 122 = z
-			if (c == 32 ||
+			// 59 = ;
+			// 38 = &
+			if (c == 32 || c == 59 || c == 38 ||
 				(c >= 65 && c <= 90) ||
 				(c >= 97 && c <= 122)) {
 				filteredPassphrase += c;
