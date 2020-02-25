@@ -1435,12 +1435,17 @@ var _view = _interopRequireDefault(require("./view"));
 
 var _de = _interopRequireDefault(require("./texte/de"));
 
+var _en = _interopRequireDefault(require("./texte/en"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function launch() {
   //m.mount(window.document.getElementById('canvas'), view)
-  //if(window.language == 'de') {
-  window.texte = _de["default"]; //}
+  if (window.language === 'en') {
+    window.texte = _en["default"];
+  } else {
+    window.texte = _de["default"];
+  }
 
   _mithril["default"].mount(window.document.getElementById('gradido-mithril-passphrase'), _view["default"]);
 } // cross browser dom is ready module from: 
@@ -1481,7 +1486,7 @@ var domIsReady = function (domIsReady) {
   });
 })(document, window, domIsReady);
 
-},{"./texte/de":6,"./view":8,"mithril":3}],5:[function(require,module,exports){
+},{"./texte/de":7,"./texte/en":8,"./view":10,"mithril":3}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1527,6 +1532,50 @@ exports["default"] = void 0;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+function getEntities() {
+  return [['auml', 'ä'], ['ouml', 'ö'], ['uuml', 'ü'], ['Auml', 'Ä'], ['Ouml', 'Ö'], ['Uuml', 'Ü'], ['szlig', 'ß']];
+}
+
+function decodeHTMLEntities(text) {
+  var entities = getEntities();
+
+  for (var i = 0, max = entities.length; i < max; ++i) {
+    text = text.replace(new RegExp('&' + entities[i][0] + ';', 'g'), entities[i][1]);
+  }
+
+  return text;
+}
+
+function encodeHTMLEntities(text) {
+  var entities = getEntities();
+
+  for (var i = 0, max = entities.length; i < max; ++i) {
+    //text = text.replace(new RegExp('&'+entities[i][0]+';', 'g'), entities[i][1]);
+    text = text.replace(new RegExp(entities[i][1], 'g'), '&' + entities[i][0] + ';');
+  }
+
+  return text;
+}
+
+var _default = {
+  decodeHTMLEntities: decodeHTMLEntities,
+  encodeHTMLEntities: encodeHTMLEntities
+};
+exports["default"] = _default;
+
+},{}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 var _default = {
   INVALID_PASSPHRASE: 'Das ist nicht deine Passphrase, Möchtest du nochmal schauen wie sie hieß?',
   SHOW_PASSPHRASE: 'Passphrase nochmal anzeigen',
@@ -1536,7 +1585,29 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+var _default = {
+  INVALID_PASSPHRASE: 'This is not the correct passphrase. This is not your passphrase, would you like to see what its name was again?',
+  SHOW_PASSPHRASE: 'Show Passphrase again',
+  DIALOG_SHOW_PASSPHRASE_TITLE: 'Passphrase',
+  YES: 'Yes',
+  NEXT: 'Next'
+};
+exports["default"] = _default;
+
+},{}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1587,7 +1658,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"mithril":3}],8:[function(require,module,exports){
+},{"mithril":3}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1600,6 +1671,8 @@ var _mithril = _interopRequireDefault(require("mithril"));
 var _button = _interopRequireDefault(require("./button"));
 
 var _dialog = _interopRequireDefault(require("../lib/dialog"));
+
+var _htmlEntities = _interopRequireDefault(require("../lib/htmlEntities"));
 
 var _passphrase = _interopRequireDefault(require("./passphrase"));
 
@@ -1641,11 +1714,11 @@ function oninit(vnode) {
       vnode.state.passphraseIndicesSorted[_i] = _index;
       vnode.state.btnDisableArray[_i] = false;
     }
-  }
+  } //console.log("Passphrase: %s", passphrase)
+  //console.log("Passphrase indices: %o", vnode.state.passphraseIndices)
+  //console.log("Passphrase sorted indices: %o", vnode.state.passphraseIndicesSorted)
 
-  console.log("Passphrase: %s", passphrase);
-  console.log("Passphrase indices: %o", vnode.state.passphraseIndices);
-  console.log("Passphrase sorted indices: %o", vnode.state.passphraseIndicesSorted);
+
   vnode.state.valid = true;
   vnode.state.complete = false;
   vnode.state.showPassphrase = false;
@@ -1703,7 +1776,9 @@ function checkValidationTextbox(vnode) {
   }
 
   for (var _i2 in words) {
-    var word = words[_i2];
+    var word = _htmlEntities["default"].encodeHTMLEntities(words[_i2]);
+
+    if (word === "") continue;
     var index = mnemonicWords.indexOf(word); //console.log("index of word: %o = %o", word, index)
 
     if (index !== -1) {
@@ -1749,7 +1824,7 @@ function view(vnode) {
   return (0, _mithril["default"])('div', [(0, _mithril["default"])('div.col-md-12.showcase_content_area.mb-0', [vnode.state.passphraseIndicesSorted.map(function (val, i) {
     return (0, _mithril["default"])(_button["default"], {
       btnColor: 'btn-outline-warning',
-      word: mnemonicWords[val],
+      word: _htmlEntities["default"].decodeHTMLEntities(mnemonicWords[val]),
       addWordCallback: function addWordCallback(word) {
         addWordToTextbox(vnode, word);
       },
@@ -1758,7 +1833,7 @@ function view(vnode) {
   }), choosenWords.map(function (val) {
     return (0, _mithril["default"])('button.btn.btn-sm.btn-outline-success.disabled', {
       disabled: true
-    }, mnemonicWords[val]);
+    }, _htmlEntities["default"].decodeHTMLEntities(mnemonicWords[val]));
   })]), (0, _mithril["default"])('div.form-group.row-showcase_row_area', (0, _mithril["default"])('div.col-lg-8.col-md-9.mx-auto', [(0, _mithril["default"])('textarea' + classes + '#inputPassphrase', {
     name: 'inputPassphrase',
     cols: 10,
@@ -1799,7 +1874,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../lib/dialog":5,"./button":7,"./passphrase":9,"mithril":3}],9:[function(require,module,exports){
+},{"../lib/dialog":5,"../lib/htmlEntities":6,"./button":9,"./passphrase":11,"mithril":3}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1808,6 +1883,8 @@ Object.defineProperty(exports, "__esModule", {
 exports["default"] = void 0;
 
 var _mithril = _interopRequireDefault(require("mithril"));
+
+var _htmlEntities = _interopRequireDefault(require("../lib/htmlEntities"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -1838,7 +1915,7 @@ function view(vnode) {
     style: {
       'text-align': 'center'
     }
-  }, passphraseString);
+  }, _htmlEntities["default"].decodeHTMLEntities(passphraseString));
 }
 
 var _default = {
@@ -1847,4 +1924,4 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"mithril":3}]},{},[4]);
+},{"../lib/htmlEntities":6,"mithril":3}]},{},[4]);
