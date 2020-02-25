@@ -1,0 +1,6 @@
+<%@ page class="TranslatePassphrase" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>

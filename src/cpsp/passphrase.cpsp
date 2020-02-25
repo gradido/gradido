@@ -70,27 +70,29 @@ enum PageState
 			if (registerKeyChoice == "no") {
 				auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
 				
-				if (oldPassphrase != "" && User::validatePassphrase(oldPassphrase, &wordSource)) {
-					// passphrase is valid 
-					if(PAGE_FORCE_ASK_PASSPHRASE == state) {
-						auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
-						if(-2 == compareResult) {
-							response.redirect(ServerConfig::g_serverPath + "/error500");
+				if(oldPassphrase != "") {
+					if (User::validatePassphrase(oldPassphrase, &wordSource)) {
+						// passphrase is valid 
+						if(PAGE_FORCE_ASK_PASSPHRASE == state) {
+							auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
+							if(-2 == compareResult) {
+								response.redirect(ServerConfig::g_serverPath + "/error500");
+								return;
+							} else if(1 == compareResult) {
+								response.redirect(ServerConfig::g_serverPath + "/updateUserPassword");
+								return;
+							}
+						} else {
+							mSession->setPassphrase(oldPassphrase);
+							mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
+							response.redirect(ServerConfig::g_serverPath + "/saveKeys");
 							return;
-						} else if(1 == compareResult) {
-							response.redirect(ServerConfig::g_serverPath + "/updateUserPassword");
-							return;
+							//state = PAGE_SHOW_PASSPHRASE;
 						}
-					} else {
-						mSession->setPassphrase(oldPassphrase);
-						mSession->updateState(SESSION_STATE_PASSPHRASE_SHOWN);
-						response.redirect(ServerConfig::g_serverPath + "/saveKeys");
-						return;
-						//state = PAGE_SHOW_PASSPHRASE;
 					}
-				}
-				else {
-					addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+					else {
+						addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+					}
 				}
 			}
 			else if (registerKeyChoice == "yes") {

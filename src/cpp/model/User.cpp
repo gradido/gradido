@@ -56,10 +56,16 @@ int UserCreateCryptoKey::run()
 int UserGenerateKeys::run() 
 {
 	
-	// always return true, cannot fail (only if low on memory)
-	// !!! update: can no fail, if passphrase is invalid, for example if memory is corrupted
-	if (!mKeys.generateFromPassphrase(mPassphrase.data(), &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER])) {
+	Mnemonic* wordList = nullptr;
+	if (!User::validatePassphrase(mPassphrase, &wordList)) {
 		mUser->addError(new Error(mUser->gettext("User generate Keys"), mUser->gettext("invalid passphrase, please notice the server admin coin@gradido.net")));
+		return -2;
+	}
+
+	// always return true, cannot fail (only if low on memory)
+	// !!! update: now can fail, if passphrase is invalid, for example if memory is corrupted
+	if (!mKeys.generateFromPassphrase(mPassphrase.data(), wordList)) {
+		mUser->addError(new Error(mUser->gettext("User generate Keys"), mUser->gettext("invalid passphrase2, please notice the server admin coin@gradido.net")));
 		return -1;
 	}
 
