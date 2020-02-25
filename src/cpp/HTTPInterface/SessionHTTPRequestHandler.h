@@ -14,6 +14,7 @@ public:
 protected:
 	Session* mSession;
 
+	Languages chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn = "");
 	inline const char* gettext(const char* text) { if (!mSession || !mSession->getLanguageCatalog()) return text; return mSession->getLanguageCatalog()->gettext(text); }
 	
 };

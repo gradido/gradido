@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 		printf("error initing sodium, early exit\n");
 		return -1;
 	}
-	ServerConfig::g_versionString = "0.20.KW03.02";
+	ServerConfig::g_versionString = "0.20.KW08.02";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
 

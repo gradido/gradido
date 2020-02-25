@@ -22,6 +22,7 @@
 	auto em = ErrorManager::getInstance();
 	
 	auto lang = chooseLanguage(request);
+	printf("choose language return: %d\n", lang);
 	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	std::string presetEmail("");
@@ -31,7 +32,11 @@
 	
 	if(!form.empty()) {
 		bool langUpdatedByBtn = false;
-		auto langBtn = form.get("lang-btn", "");
+		auto langBtn = form.get("lang", "");
+		if(langBtn != "") {
+			langUpdatedByBtn = true;
+		}
+		/*
 		auto langInput = form.get("lang", "");
 		auto updatedLang = LANG_NULL;
 		if(langBtn != "") {
@@ -45,7 +50,7 @@
 			lang = updatedLang;
 			langCatalog = lm->getFreeCatalog(lang);
 		}
-		 
+		 */
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
 		
@@ -160,26 +165,10 @@
 				<%= getErrorsHtml() %>	  
 			</div>
             <div class="grid-body">
-              <form action="<%= ServerConfig::g_serverPath %>/" method="POST">
-			  <input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">
-                <div class="row pull-right-row">
-                  <div class="equel-grid pull-right">
-                    <div class="grid-body-small text-center">
-                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
-						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-                          <span class="flag-england"></span>
-                        </button>
-                    </div>
-                  </div>
-                  <div class="equel-grid pull-right">
-                    <div class="grid-body-small text-center">
-                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
-						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-                          <span class="flag-germany"></span>
-                        </button>
-                    </div>
-                  </div>
-                </div>
+              
+			  <!--<input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">-->
+			  <%@ include file="flags.cpsp" %>
+			  <form action="<%= ServerConfig::g_serverPath %>/" method="POST">
                 <div class="row display-block">
                   <div class="col-lg-7 col-md-8 col-sm-9 col-12 mx-auto form-wrapper">
                     <div class="form-group input-rounded">
@@ -198,7 +187,7 @@
 					</div>
                   </div>
                 </div>
-                </form>
+			  </form>
             </div>
           </div>
         </div>

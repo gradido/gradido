@@ -6,7 +6,7 @@
 
 //const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?/(en|de)");
 // detect also lang field from form get
-const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
+const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9/_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
 
 Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn /*= ""*/)
 {
@@ -20,6 +20,9 @@ Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerReques
 		//std::string lang_str;
 		mDetectLanguageGET.split(uri, matches);
 		if (matches.size() > 0) {
+			//for (auto it = matches.begin(); it != matches.end(); it++) {
+//				printf("Matches: %s\n", it->data());
+			//}
 			lang = LanguageManager::languageFromString(matches[matches.size()-1]);
 		}
 		else {

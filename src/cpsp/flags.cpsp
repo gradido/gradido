@@ -1,18 +1,20 @@
-<div class="row pull-right-row">
-  <div class="equel-grid pull-right">
-	<div class="grid-body-small text-center">
-		<button id="flag-england" name="lang" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
-		else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-		  <span class="flag-england"></span>
-		</button>
+<form method="GET" action="">
+	<div class="row pull-right-row">
+	  <div class="equel-grid pull-right">
+		<div class="grid-body-small text-center">
+			<button id="flag-england" name="lang" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
+			else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
+			  <span class="flag-england"></span>
+			</button>
+		</div>
+	  </div>
+	  <div class="equel-grid pull-right">
+		<div class="grid-body-small text-center">
+			<button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
+			else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
+			  <span class="flag-germany"></span>
+			</button>
+		</div>
+	  </div>
 	</div>
-  </div>
-  <div class="equel-grid pull-right">
-	<div class="grid-body-small text-center">
-		<button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
-		else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-		  <span class="flag-germany"></span>
-		</button>
-	</div>
-  </div>
-</div>
+</form>

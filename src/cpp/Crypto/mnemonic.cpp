@@ -97,6 +97,7 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 	}
 	//printf("c[Mnemonic::%s] before freeing buffer \n", __FUNCTION__);
 	free(buffer);
+	return -5;
 }
 
 

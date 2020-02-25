@@ -487,7 +487,7 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 	unsigned int phrase_buffer_size = 0;
 	bool errorReloadingMnemonicWordList = false;
 	int loopTrys = 0;
-	Poco::RegularExpression checkValidWord("^[a-zäöüß]*$");
+	Poco::RegularExpression checkValidWord("^[a-zA-ZÄÖÜäöüß&;]*$");
 
 	// TODO: make sure words didn't double
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
@@ -549,7 +549,12 @@ bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSour
 		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
 		bool existAll = true;
 		for (auto it = results.begin(); it != results.end(); it++) {
+			if (*it == "\0" || *it == "" || it->size() < 3) continue;
 			if (!m.isWordExist(*it)) {
+				if (i == 1) {
+					int zahl = 0;
+				}
+				printf("wordlist: %d, word not found: %s\n", i, it->data());
 				existAll = false;
 				continue;
 			}

@@ -43,6 +43,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	auto em = ErrorManager::getInstance();
 	
 	auto lang = chooseLanguage(request);
+	printf("choose language return: %d\n", lang);
 	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	std::string presetEmail("");
@@ -52,7 +53,11 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	
 	if(!form.empty()) {
 		bool langUpdatedByBtn = false;
-		auto langBtn = form.get("lang-btn", "");
+		auto langBtn = form.get("lang", "");
+		if(langBtn != "") {
+			langUpdatedByBtn = true;
+		}
+		/*
 		auto langInput = form.get("lang", "");
 		auto updatedLang = LANG_NULL;
 		if(langBtn != "") {
@@ -66,7 +71,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			lang = updatedLang;
 			langCatalog = lm->getFreeCatalog(lang);
 		}
-		 
+		 */
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
 		
@@ -151,6 +156,9 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 		sm->deleteLoginCookies(request, response);
 	}	
 	
+#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+ 
+	bool withMaterialIcons = false; 
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
@@ -163,19 +171,27 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/loginServer/style.css\">\n";
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+ if(withMaterialIcons) { 	responseStream << "\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "css/materialdesignicons.min.css\">\n";
+#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "</head>\n";
 	responseStream << "<body class=\"header-fixed\">\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
 	responseStream << "\t<p class=\"grd_small\">Alpha ";
-#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "</div>\n";
@@ -183,7 +199,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
-#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
 	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
@@ -206,20 +222,20 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "      <div class=\"row\">\n";
 	responseStream << "        <div class=\"col-12 logo-section\">\n";
 	responseStream << "          <a href=\"";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"logo\">\n";
 	responseStream << "\t\t\t<picture>\n";
 	responseStream << "\t\t\t\t<source srcset=\"";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 154 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.webp\" type=\"image/webp\">\n";
 	responseStream << "\t\t\t\t<source srcset=\"";
-#line 150 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 155 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" type=\"image/png\"> \n";
 	responseStream << "\t\t\t\t<img src=\"";
-#line 151 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" alt=\"logo\" />\n";
 	responseStream << "\t\t\t</picture>\n";
@@ -231,92 +247,99 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "          <div class=\"grid\">\n";
 	responseStream << "\t\t\t<div class=\"center-ul-container\">\n";
 	responseStream << "\t\t\t\t";
-#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 165 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\t  \n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "            <div class=\"grid-body\">\n";
-	responseStream << "              <form action=\"";
-#line 163 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << "              \n";
+	responseStream << "\t\t\t  <!--<input type=\"hidden\" name=\"lang\" value=\"";
+#line 169 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << ( LanguageManager::keyForLanguage(lang) );
+	responseStream << "\">-->\n";
+	responseStream << "\t\t\t  ";
+	// begin include flags.cpsp
+	responseStream << "<form method=\"GET\" action=\"\">\n";
+	responseStream << "\t<div class=\"row pull-right-row\">\n";
+	responseStream << "\t  <div class=\"equel-grid pull-right\">\n";
+	responseStream << "\t\t<div class=\"grid-body-small text-center\">\n";
+	responseStream << "\t\t\t<button id=\"flag-england\" name=\"lang\" value=\"en\" title=\"English\" type=\"submit\" ";
+#line 5 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ if(lang != LANG_EN) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
+#line 5 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ } 
+			else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
+#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ } 	responseStream << ">\n";
+	responseStream << "\t\t\t  <span class=\"flag-england\"></span>\n";
+	responseStream << "\t\t\t</button>\n";
+	responseStream << "\t\t</div>\n";
+	responseStream << "\t  </div>\n";
+	responseStream << "\t  <div class=\"equel-grid pull-right\">\n";
+	responseStream << "\t\t<div class=\"grid-body-small text-center\">\n";
+	responseStream << "\t\t\t<button id=\"flag-germany\" name=\"lang\" value=\"de\" title=\"Deutsch\" type=\"submit\" ";
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ if(lang != LANG_DE) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ } 
+			else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
+#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+ } 	responseStream << ">\n";
+	responseStream << "\t\t\t  <span class=\"flag-germany\"></span>\n";
+	responseStream << "\t\t\t</button>\n";
+	responseStream << "\t\t</div>\n";
+	responseStream << "\t  </div>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "</form>";
+	// end include flags.cpsp
+	responseStream << "\n";
+	responseStream << "\t\t\t  <form action=\"";
+#line 171 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/\" method=\"POST\">\n";
-	responseStream << "\t\t\t  <input type=\"hidden\" name=\"lang\" value=\"";
-#line 164 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
-	responseStream << ( LanguageManager::keyForLanguage(lang) );
-	responseStream << "\">\n";
-	responseStream << "                <div class=\"row pull-right-row\">\n";
-	responseStream << "                  <div class=\"equel-grid pull-right\">\n";
-	responseStream << "                    <div class=\"grid-body-small text-center\">\n";
-	responseStream << "                        <button id=\"flag-england\" name=\"lang-btn\" value=\"en\" title=\"English\" type=\"submit\" ";
-#line 168 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- if(lang != LANG_EN) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
-#line 168 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- } 
-						else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
-#line 169 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- } 	responseStream << ">\n";
-	responseStream << "                          <span class=\"flag-england\"></span>\n";
-	responseStream << "                        </button>\n";
-	responseStream << "                    </div>\n";
-	responseStream << "                  </div>\n";
-	responseStream << "                  <div class=\"equel-grid pull-right\">\n";
-	responseStream << "                    <div class=\"grid-body-small text-center\">\n";
-	responseStream << "                        <button id=\"flag-germany\" name=\"lang-btn\" value=\"de\" title=\"Deutsch\" type=\"submit\" ";
-#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- if(lang != LANG_DE) { 	responseStream << "class=\"btn btn-outline-secondary flag-btn\"";
-#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- } 
-						else { 	responseStream << "class=\"btn btn-secondary disabled flag-btn\" disabled";
-#line 177 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
- } 	responseStream << ">\n";
-	responseStream << "                          <span class=\"flag-germany\"></span>\n";
-	responseStream << "                        </button>\n";
-	responseStream << "                    </div>\n";
-	responseStream << "                  </div>\n";
-	responseStream << "                </div>\n";
 	responseStream << "                <div class=\"row display-block\">\n";
 	responseStream << "                  <div class=\"col-lg-7 col-md-8 col-sm-9 col-12 mx-auto form-wrapper\">\n";
 	responseStream << "                    <div class=\"form-group input-rounded\">\n";
 	responseStream << "                      <input type=\"text\" class=\"form-control\" name=\"login-email\" placeholder=\"";
-#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail") );
 	responseStream << "\" value=\"";
-#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( presetEmail );
 	responseStream << "\"/>\n";
 	responseStream << "                    </div>\n";
 	responseStream << "                    <div class=\"form-group input-rounded\">\n";
 	responseStream << "                      <input type=\"password\" class=\"form-control\" name=\"login-password\" placeholder=\"";
-#line 189 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 178 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Password") );
 	responseStream << "\" />\n";
 	responseStream << "                    </div>\n";
 	responseStream << "                    <button type=\"submit\" name=\"submit\" class=\"btn btn-primary btn-block\">";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 180 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext(" Login ") );
 	responseStream << "</button>\n";
 	responseStream << "                    <div class=\"signup-link\">\n";
 	responseStream << "                      <p>";
-#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 182 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") );
 	responseStream << "</p>\n";
 	responseStream << "                      <a href=\"https://gradido.com\">";
-#line 194 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 183 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Create New Account") );
 	responseStream << "</a>\n";
 	responseStream << "                    </div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"reset-pwd-link\">\n";
 	responseStream << "\t\t\t\t\t\t<a href=\"";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/resetPassword\">";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Passwort vergessen") );
 	responseStream << "</a>\n";
 	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "                  </div>\n";
 	responseStream << "                </div>\n";
-	responseStream << "                </form>\n";
+	responseStream << "\t\t\t  </form>\n";
 	responseStream << "            </div>\n";
 	responseStream << "          </div>\n";
 	responseStream << "        </div>\n";
