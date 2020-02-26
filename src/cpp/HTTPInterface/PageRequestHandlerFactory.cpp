@@ -21,6 +21,7 @@
 #include "RegisterAdminPage.h"
 #include "DebugPassphrasePage.h"
 #include "AdminCheckUserBackup.h"
+#include "TranslatePassphrase.h"
 
 #include "DecodeTransactionPage.h"
 
@@ -121,7 +122,6 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (externReferer != "") {
 			s->setLastReferer(externReferer);
 		}
-
 		auto user = s->getUser();
 		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
 			user->sendErrorsAsEmail();
@@ -131,6 +131,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		if (url_first_part == "/error500") {
 			auto pageRequestHandler = new Error500Page(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+		if (url_first_part == "/transform_passphrase") {
+			auto pageRequestHandler = new TranslatePassphrase(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}

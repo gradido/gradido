@@ -4,3 +4,86 @@
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%@ page form="true" %>
 <%@	page compressed="true" %>
+<%! 
+#include "../Crypto/KeyPair.h"
+#include "../ServerConfig.h"
+%>
+<%% 
+	chooseLanguage(request);
+	// variable needed for flags
+	auto lang = mSession->getLanguage();
+	auto uri_start = ServerConfig::g_serverPath;
+	const char* pageName = gettext("Passphrase Transformieren");
+	std::string passphrase;
+	auto role = mSession->getNewUser()->getModel()->getRole();
+	std::string inputPassphrase;
+	
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
+	Mnemonic* targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];	
+	if(lang == LANG_DE) {
+		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+		targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
+	}
+	
+	if(!form.empty()) 
+	{
+	
+	   inputPassphrase = form.get("inputPassphrase", "");
+	   auto localPassphrase = KeyPair::filterPassphrase(inputPassphrase);
+	   if(localPassphrase != "" && !User::validatePassphrase(localPassphrase, &wordSource)) {
+			addError(new Error(
+				gettext("Fehler"), 
+				gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")
+			));
+	   } else {
+			if(wordSource == &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]) {
+				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+			} else {
+				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
+			}
+			passphrase = KeyPair::passphraseTransform(localPassphrase, wordSource, targetSource);
+	   }
+	   
+	   auto btnGenerate = form.get("btnGenerate", "");
+	   if("" != btnGenerate) {
+			passphrase = mSession->generatePassphrase();
+	   }
+	}
+%><%@ include file="login_header.cpsp" %><%@ include file="flags.cpsp" %>
+<div class="row mb-3" style="margin-top:70px;">
+	<h2 class="mx-auto"><%= gettext("Passphrase umwandeln") %></h2>
+</div>
+<div class="item-wrapper">
+<div class="row mb-3">
+  <div class="col-md-10 mx-auto">
+	<div class="form-group row showcase_row_area">
+	  <div class="col-md-12 col-lg-12 ">
+		<div class="alert alert-orange">
+		  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+		  <p><%= gettext("Kopiere/schreibe deine Passphrase in die Textbox und du bekommst sie in die jeweils andere Sprache umgewandelt.") %></p>
+		  <p><%= gettext("Du kannst mit beiden Varianten dein Konto wiederherstellen oder dein Passwort ändern.") %></p>
+		</div>
+	  </div>
+	  <div class="col-lg-12 col-md-12 mb-5">
+		<form action="<%= uri_start %>/transform_passphrase">
+		  <div class="form-group row-showcase_row_area">
+			<textarea name="inputPassphrase" cols="10" rows="5" id="inputPassphrase" class="form-control" placeholder="<%= gettext("deine Passphrase") %>"><%= inputPassphrase %></textarea>
+		  </div>
+		  <input name="btnTransform" type="submit" value="Umwandeln" class="btn btn btn-orange">
+		  <% if(controller::USER_ROLE_ADMIN == role) { %>
+			<input name="btnGenerate" type="submit" value="Neue generieren" class="btn btn-secondary">
+		  <% } %>
+		</form>
+	  </div>
+	  <% if(passphrase != "") { %>
+		<div class="col-lg-12 col-md-12">
+			<div class="alert alert-success">
+				<h5 class="alert-heading">Umgewandelte Passphrase: </h5>
+				<p><%= passphrase %></p>
+			</div>
+		</div>
+	  <% } %>
+	  </div>
+	</div>
+  </div>
+<%@ include file="footer_ripple.cpsp" %>

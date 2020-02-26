@@ -926,13 +926,13 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 bool Session::generatePassphrase()
 {
 	auto lang = getLanguage();
-	if (lang == LANG_EN) {
+	/*if (lang == LANG_EN) {
 		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 	}
 	else {
 		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
-	}
-
+	}*/
+	mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
 	updateState(SESSION_STATE_PASSPHRASE_GENERATED);
 	return true;
 }

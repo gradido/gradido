@@ -30,9 +30,9 @@ public:
 
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
-	inline const char* getWord(unsigned int index) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500); if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
-	inline unsigned short getWordIndex(const char* word) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);  DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
-	inline bool isWordExist(const std::string& word) { Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);  DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
+	inline const char* getWord(unsigned int index) const {  if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
+	inline unsigned short getWordIndex(const char* word) const {   DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
+	inline bool isWordExist(const std::string& word) const {  DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
 	// using only for debugging
 	std::string getCompleteWordList();
 

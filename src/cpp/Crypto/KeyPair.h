@@ -23,8 +23,10 @@ public:
 	KeyPair();
 	~KeyPair();
 
-	bool generateFromPassphrase(const char* passphrase, Mnemonic* word_source);
+	bool generateFromPassphrase(const char* passphrase, const Mnemonic* word_source);
+	static std::string passphraseTransform(const std::string& passphrase, const Mnemonic* currentWordSource, const Mnemonic* targetWordSource);
 	static std::string filterPassphrase(const std::string& passphrase);
+	
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);
 	static std::string getHex(const unsigned char* data, Poco::UInt32 size);
@@ -37,6 +39,8 @@ public:
 protected:
 	const MemoryBin* getPrivateKey() const { return mSodiumSecret; }
 
+	static MemoryBin* createWordIndices(const std::string& passphrase, const Mnemonic* word_source);
+	static std::string createClearPassphraseFromWordIndices(MemoryBin* word_indices, const Mnemonic* word_source);
 	
 
 private:

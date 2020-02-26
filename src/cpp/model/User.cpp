@@ -551,6 +551,7 @@ bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSour
 	std::istringstream iss(passphrase);
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
 								     std::istream_iterator<std::string>());
+	
 	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
 		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
 		bool existAll = true;
@@ -569,6 +570,7 @@ bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSour
 			if (wordSource) {
 				*wordSource = &m;
 			}
+
 			return true;
 		}
 	}
