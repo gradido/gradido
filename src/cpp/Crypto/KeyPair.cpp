@@ -150,8 +150,8 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 	auto mm = MemoryManager::getInstance();
 
 	auto word_indices = mm->getFreeMemory(sizeof(Poco::UInt32) * PHRASE_WORD_COUNT);
-	Poco::UInt32* word_indices_p = (Poco::UInt32*)(word_indices->data());
-	unsigned long word_indices_old[PHRASE_WORD_COUNT] = { 0 };
+	Poco::UInt64* word_indices_p = (Poco::UInt64*)(word_indices->data());
+	//unsigned long word_indices_old[PHRASE_WORD_COUNT] = { 0 };
 	//memset(word_indices_old, 0, PHRASE_WORD_COUNT);// *sizeof(unsigned long));
 	memset(*word_indices, 0, word_indices->size());
 
@@ -168,7 +168,7 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 			if (buffer_cursor < 3) continue;
 			if (word_source->isWordExist(acBuffer)) {
 				word_indices_p[word_cursor] = word_source->getWordIndex(acBuffer);
-				word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
+			//	word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
 			}
 			else {
 				er->addError(new ParamError("KeyPair::generateFromPassphrase", "word didn't exist", acBuffer));
@@ -185,11 +185,11 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 			acBuffer[buffer_cursor++] = *it;
 		}
 	}
-	if (memcmp(word_indices_p, word_indices_old, word_indices->size()) != 0) {
+	/*if (memcmp(word_indices_p, word_indices_old, word_indices->size()) != 0) {
 
 		printf("not identical\n");
 		memcpy(word_indices_p, word_indices_old, word_indices->size());
-	}
+	}*/
 	return word_indices;
 }
 
