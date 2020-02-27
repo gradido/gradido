@@ -14,6 +14,7 @@
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
 #include "ElopageWebhook.h"
+#include "ElopageWebhookLight.h"
 #include "UpdateUserPasswordPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
@@ -66,6 +67,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		mLogging.information(dateTimeString + " call from elopage");
 		//printf("call from elopage\n");
 		auto pageRequestHandler = new ElopageWebhook;
+		pageRequestHandler->setProfiler(timeUsed);
+		return pageRequestHandler;
+	}
+
+	if (url_first_part == "/elopage_webhook_211") {
+		mLogging.information(dateTimeString + " call from elopage light");
+		auto pageRequestHandler = new ElopageWebhookLight;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
 	}

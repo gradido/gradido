@@ -109,7 +109,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 
 	// write stream result also to file
 	static Poco::Mutex mutex;
-
+	Profiler timeUsed;
 	mutex.lock();
 
 	Poco::FileOutputStream file("elopage_webhook_requests.txt", std::ios::out | std::ios::app);
@@ -129,8 +129,10 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	file << completeRequest << std::endl;
 	file << std::endl;
 	file.close();
+	std::string timeUsedStr = timeUsed.string();
+	printf("[%s] time for elopage request write to file and maybe wait on lock: %s\n", dateTimeStr.data(), timeUsedStr.data());
 	mutex.unlock();
-
+	
 
 	UniLib::controller::TaskPtr handleElopageTask(new HandleElopageRequestTask(elopageRequestData));
 	handleElopageTask->scheduleTask(handleElopageTask);

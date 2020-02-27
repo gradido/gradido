@@ -93,8 +93,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	sha512_final(&state, hash);
 	//crypto_auth_hmacsha512_final(&state, hash);
 	
-	
-
+	/*
 	// debug passphrase
 	printf("\passsphrase: <%s>\n", passphrase);
 	printf("size word indices: %u\n", word_indices->size());
