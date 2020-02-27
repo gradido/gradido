@@ -8,12 +8,12 @@
 
 namespace controller {
 
-	enum UserLoadedRole {
+	/*enum UserLoadedRole {
 		USER_ROLE_NOT_LOADED,
 		USER_ROLE_CURRENTLY_LOADING,
 		USER_ROLE_NONE,
 		USER_ROLE_ADMIN
-	};
+	};*/
 
 	class User : public TableControllerBase
 	{

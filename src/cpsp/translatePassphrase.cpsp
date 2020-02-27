@@ -30,6 +30,14 @@
 	
 	   inputPassphrase = form.get("inputPassphrase", "");
 	   auto localPassphrase = KeyPair::filterPassphrase(inputPassphrase);
+	   
+	   auto btnGenerate = form.get("btnGenerate", "");
+	   if("" != btnGenerate) {
+			mSession->generatePassphrase();
+			localPassphrase = mSession->getPassphrase();
+			inputPassphrase = localPassphrase;
+	   }
+	   
 	   if(localPassphrase != "" && !User::validatePassphrase(localPassphrase, &wordSource)) {
 			addError(new Error(
 				gettext("Fehler"), 
@@ -44,10 +52,7 @@
 			passphrase = KeyPair::passphraseTransform(localPassphrase, wordSource, targetSource);
 	   }
 	   
-	   auto btnGenerate = form.get("btnGenerate", "");
-	   if("" != btnGenerate) {
-			passphrase = mSession->generatePassphrase();
-	   }
+	   
 	}
 %><%@ include file="login_header.cpsp" %><%@ include file="flags.cpsp" %>
 <div class="row mb-3" style="margin-top:70px;">
@@ -70,7 +75,7 @@
 			<textarea name="inputPassphrase" cols="10" rows="5" id="inputPassphrase" class="form-control" placeholder="<%= gettext("deine Passphrase") %>"><%= inputPassphrase %></textarea>
 		  </div>
 		  <input name="btnTransform" type="submit" value="Umwandeln" class="btn btn btn-orange">
-		  <% if(controller::USER_ROLE_ADMIN == role) { %>
+		  <% if(model::table::ROLE_ADMIN == role) { %>
 			<input name="btnGenerate" type="submit" value="Neue generieren" class="btn btn-secondary">
 		  <% } %>
 		</form>

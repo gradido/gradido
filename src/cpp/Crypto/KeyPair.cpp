@@ -79,26 +79,34 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	size_t word_index_size = sizeof(word_indices);
 	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
 	sha512_init(&state);
-	sha512_update(&state, (unsigned char*)word_indices, sizeof(word_indices));
+	sha512_update(&state, *word_indices, word_indices->size());
 	sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
 	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
 	sha512_final(&state, hash);
 	//crypto_auth_hmacsha512_final(&state, hash);
 	
-	mm->releaseMemory(word_indices);
+	
 
 	// debug passphrase
-//	printf("\passsphrase: <%s>\n", passphrase);
-	//printf("word_indices: \n%s\n", getHex((unsigned char*)word_indices, sizeof(word_indices)).data());
-	/*printf("word_indices: \n");
+	printf("\passsphrase: <%s>\n", passphrase);
+	printf("size word indices: %u\n", word_indices->size());
+	std::string word_indicesHex = getHex(*word_indices, word_indices->size());
+	printf("word_indices: \n%s\n", word_indicesHex.data());
+	printf("word_indices: \n");
+	Poco::UInt64* word_indices_p = (Poco::UInt64*)(word_indices->data());
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 		if (i > 0) printf(" ");
-		printf("%4hu", word_indices[i]);
+		printf("%4hu", word_indices_p[i]);
 	}
 	printf("\n");
 	//*/
-	//printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
-//	printf("passphrase bin: \n%s\n\n", getHex((unsigned char*)passphrase, pass_phrase_size).data());
+	printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
+	std::string hex_clearPassphrase = getHex((const unsigned char*)clearPassphrase.data(), clearPassphrase.size());
+	printf("passphrase bin: \n%s\n\n", hex_clearPassphrase.data());
+
+
+	mm->releaseMemory(word_indices);
+
 
 	//ed25519_create_keypair(public_key, private_key, hash);
 	private_key_t prv_key_t;
@@ -149,10 +157,10 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 	auto er = ErrorManager::getInstance();
 	auto mm = MemoryManager::getInstance();
 
-	auto word_indices = mm->getFreeMemory(sizeof(Poco::UInt32) * PHRASE_WORD_COUNT);
+	auto word_indices = mm->getFreeMemory(sizeof(Poco::UInt64) * PHRASE_WORD_COUNT);
 	Poco::UInt64* word_indices_p = (Poco::UInt64*)(word_indices->data());
-	//unsigned long word_indices_old[PHRASE_WORD_COUNT] = { 0 };
-	//memset(word_indices_old, 0, PHRASE_WORD_COUNT);// *sizeof(unsigned long));
+	//Poco::UInt64 word_indices_old[PHRASE_WORD_COUNT] = { 0 };
+	//memset(word_indices_old, 0, PHRASE_WORD_COUNT * sizeof(Poco::UInt64));// *sizeof(unsigned long));
 	memset(*word_indices, 0, word_indices->size());
 
 	//DHASH key = DRMakeStringHash(passphrase);
@@ -163,12 +171,15 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 
 	// get word indices for hmac key
 	unsigned char word_cursor = 0;
-	for (auto it = passphrase.begin(); it != passphrase.end(); it++) {
-		if (*it == ' ' || *it == '\0') {
-			if (buffer_cursor < 3) continue;
+	for (auto it = passphrase.begin(); it != passphrase.end(); it++) 
+	{
+		if (*it == ' ') {
+			if (buffer_cursor < 3) {
+				continue;
+			}
 			if (word_source->isWordExist(acBuffer)) {
 				word_indices_p[word_cursor] = word_source->getWordIndex(acBuffer);
-			//	word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
+				//word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
 			}
 			else {
 				er->addError(new ParamError("KeyPair::generateFromPassphrase", "word didn't exist", acBuffer));
@@ -185,6 +196,12 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 			acBuffer[buffer_cursor++] = *it;
 		}
 	}
+	if (word_source->isWordExist(acBuffer)) {
+		word_indices_p[word_cursor] = word_source->getWordIndex(acBuffer);
+		//word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
+		word_cursor++;
+	}
+	//printf("word cursor: %d\n", word_cursor);
 	/*if (memcmp(word_indices_p, word_indices_old, word_indices->size()) != 0) {
 
 		printf("not identical\n");
@@ -195,10 +212,10 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 
 std::string KeyPair::createClearPassphraseFromWordIndices(MemoryBin* word_indices, const Mnemonic* word_source)
 {
-	Poco::UInt32* word_indices_p = (Poco::UInt32*)word_indices->data();
+	Poco::UInt64* word_indices_p = (Poco::UInt64*)word_indices->data();
 	std::string clearPassphrase;
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
-		if (i * sizeof(Poco::UInt32) >= word_indices->size()) break;
+		if (i * sizeof(Poco::UInt64) >= word_indices->size()) break;
 		auto word = word_source->getWord(word_indices_p[i]);
 		if (word) {
 			clearPassphrase += word;

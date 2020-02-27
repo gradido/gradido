@@ -33,7 +33,7 @@ Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerReques
 			$lang = in_array($lang, $acceptLang) ? $lang : 'en';
 			*/
 			std::string accept_languages = request.get("HTTP_ACCEPT_LANGUAGE", "");
-			printf("[PageRequestMessagedHandler::chooseLanguage] accept header: %s\n", accept_languages.data());
+			//printf("[PageRequestMessagedHandler::chooseLanguage] accept header: %s\n", accept_languages.data());
 		}
 	}
 

@@ -43,7 +43,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	auto em = ErrorManager::getInstance();
 	
 	auto lang = chooseLanguage(request);
-	printf("choose language return: %d\n", lang);
+	//printf("choose language return: %d\n", lang);
 	auto langCatalog = lm->getFreeCatalog(lang);
 	
 	std::string presetEmail("");
