@@ -29,9 +29,17 @@ int main(int argc, char** argv)
 	ServerConfig::g_versionString = "0.20.KW08.04";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
+
+	// load word lists
+	if (!ServerConfig::loadMnemonicWordLists()) {
+		//printf("[Gradido_LoginServer::%s] error loading mnemonic Word List\n", __FUNCTION__);
+		printf("[Gradido_LoginServer::main] error loading mnemonic Word List");
+		return -2;
+	}
+
 	if (!ImportantTests::passphraseGenerationAndTransformation()) {
 		printf("test passphrase generation and transformation failed\n");
-		return -2;
+		return -3;
 	}
 	
 	Gradido_LoginServer app;

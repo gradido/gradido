@@ -15,6 +15,14 @@ using namespace Poco::Data::Keywords;
 
 #define STR_BUFFER_SIZE 25
 
+static std::vector<Poco::Tuple<int, std::string>> g_specialChars = {
+	{ 0xa4, "auml" },{ 0x84, "Auml" },
+	{ 0xbc, "uuml" },{ 0x9c, "Uuml" },
+	{ 0xb6, "ouml" },{ 0x96, "Ouml" },
+	{ 0x9f, "szlig" }
+};
+
+
 KeyPair::KeyPair()
 	: mPrivateKey(nullptr), mSodiumSecret(nullptr)
 {
@@ -88,7 +96,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	
 
 	// debug passphrase
-	printf("\passsphrase: <%s>\n", passphrase);
+	/*printf("\passsphrase: <%s>\n", passphrase);
 	printf("size word indices: %u\n", word_indices->size());
 	std::string word_indicesHex = getHex(*word_indices, word_indices->size());
 	printf("word_indices: \n%s\n", word_indicesHex.data());
@@ -100,9 +108,9 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	}
 	printf("\n");
 	//*/
-	printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
-	std::string hex_clearPassphrase = getHex((const unsigned char*)clearPassphrase.data(), clearPassphrase.size());
-	printf("passphrase bin: \n%s\n\n", hex_clearPassphrase.data());
+	//printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
+	//std::string hex_clearPassphrase = getHex((const unsigned char*)clearPassphrase.data(), clearPassphrase.size());
+	//printf("passphrase bin: \n%s\n\n", hex_clearPassphrase.data());
 
 
 	mm->releaseMemory(word_indices);
@@ -229,6 +237,7 @@ std::string KeyPair::filterPassphrase(const std::string& passphrase)
 {
 	std::string filteredPassphrase;
 	auto passphrase_size = passphrase.size();
+	
 	for (int i = 0; i < passphrase_size; i++) {
 		unsigned char c = passphrase.data()[i];
 		// asci 128 even by utf8 (hex)
@@ -246,16 +255,11 @@ std::string KeyPair::filterPassphrase(const std::string& passphrase)
 				// c3 9c => Ü
 				// c3 9f => ß
 
-				std::vector<Poco::Tuple<int, std::string>> specialChars = {
-					{0xa4, "auml"}, {0x84, "Auml"}, 
-					{0xbc, "uuml"}, {0x9c, "Uuml"},
-					{0xb6, "ouml"}, {0x96, "Ouml"},
-					{0x9f, "szlig"}
-				};
+				
 
 				unsigned char c2 = passphrase.data()[i + 1];
 				bool insertedHtmlEntitie = false;
-				for (auto it = specialChars.begin(); it != specialChars.end(); it++) {
+				for (auto it = g_specialChars.begin(); it != g_specialChars.end(); it++) {
 					if (c2 == it->get<0>()) {
 						auto htmlEntitie = it->get<1>();
 						filteredPassphrase += "&";
