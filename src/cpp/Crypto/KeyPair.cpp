@@ -96,7 +96,7 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	
 
 	// debug passphrase
-	/*printf("\passsphrase: <%s>\n", passphrase);
+	printf("\passsphrase: <%s>\n", passphrase);
 	printf("size word indices: %u\n", word_indices->size());
 	std::string word_indicesHex = getHex(*word_indices, word_indices->size());
 	printf("word_indices: \n%s\n", word_indicesHex.data());
@@ -107,11 +107,12 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 		printf("%4hu", word_indices_p[i]);
 	}
 	printf("\n");
-	//*/
-	//printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
-	//std::string hex_clearPassphrase = getHex((const unsigned char*)clearPassphrase.data(), clearPassphrase.size());
-	//printf("passphrase bin: \n%s\n\n", hex_clearPassphrase.data());
+	
+	printf("\nclear passphrase: \n%s\n", clearPassphrase.data());
+	std::string hex_clearPassphrase = getHex((const unsigned char*)clearPassphrase.data(), clearPassphrase.size());
+	printf("passphrase bin: \n%s\n\n", hex_clearPassphrase.data());
 
+	//*/
 
 	mm->releaseMemory(word_indices);
 
