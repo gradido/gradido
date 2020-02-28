@@ -40,7 +40,7 @@ void DebugPassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 		auto passphrase = KeyPair::filterPassphrase(form.get("passphrase", ""));
 		Mnemonic* wordSource = nullptr;
 		if(!User::validatePassphrase(passphrase, &wordSource)) {
-			addError(new Error("debug Passphrase", "invalid passphrase"));
+			addError(new Error("debug Passphrase", "invalid passphrase"), false);
 		} else {
 			keys.generateFromPassphrase(passphrase.data(), wordSource);
 		}

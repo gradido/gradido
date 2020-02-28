@@ -32,7 +32,7 @@ public:
 	static ErrorManager* getInstance();
 	
 	// will called delete on error 
-	virtual void addError(Error* error);
+	virtual void addError(Error* error, bool log = true);
 
 	int getErrors(ErrorList* send);
 

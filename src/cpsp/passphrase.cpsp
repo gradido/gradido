@@ -38,7 +38,7 @@ enum PageState
 	//Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
 	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
 	if(lang == LANG_DE) {
-		//wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
 	}
 	
 	// remove old cookies if exist
@@ -91,7 +91,7 @@ enum PageState
 						}
 					}
 					else {
-						addError(new Error("Passphrase", "Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen)."));
+						addError(new Error(gettext("Passphrase"), gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")), false);
 					}
 				}
 			}
@@ -105,11 +105,17 @@ enum PageState
 	auto passphrase = mSession->getPassphrase();
 	auto langWordSource = wordSource;
 	if("" != passphrase && !User::validatePassphrase(passphrase, &wordSource)) {
-		addError(new Error(gettext("Intern error"), gettext("Invalid Passphrase")));
-		addError(new ParamError(gettext("Passphrase"), gettext("Passphrase"), passphrase.data()));
+		addError(new Error("PassphrasePage", "Invalid Passphrase after double check"));
+		addError(new ParamError("PassphrasePage", "passphrase", passphrase.data()));
+		if(!mSession->getNewUser().isNull()) {
+			addError(new ParamError("PassphrasePage", "user email", mSession->getNewUser()->getModel()->getEmail()));
+		}
+		sendErrorsAsEmail();
+		addError(new Error(gettext("Passphrase"), gettext("intern errorm please try again later")), false);
 		//response.redirect(ServerConfig::g_serverPath + "/error500");
 		//return;
 	}
+	//printf("wordSource: %d, langWordSource: %d\n", (int)wordSource, (int)langWordSource);
 	if(wordSource != langWordSource) {
 		mSession->generatePassphrase();
 		User::validatePassphrase(passphrase, &wordSource);

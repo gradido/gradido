@@ -103,13 +103,13 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			switch(userState) {
 			case USER_EMPTY: 
 			case USER_PASSWORD_INCORRECT:
-				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")));
+				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")), false);
 				break;
 			case USER_PASSWORD_ENCRYPTION_IN_PROCESS: 
-				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")));
+				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
 				break;
 			case USER_EMAIL_NOT_ACTIVATED: 
-				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")));
+				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")), false);
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
 				return;
 			case USER_NO_KEYS: 
@@ -142,7 +142,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			}
 			
 		} else if(!langUpdatedByBtn) {
-			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")));
+			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")), false);
 		}
 		
 	} else {

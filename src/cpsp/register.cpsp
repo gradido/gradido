@@ -15,7 +15,7 @@
 	
 	if(!form.empty()) {
 		if(form.get("register-password2", "") != form.get("register-password", "")) {
-			addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
+			addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."), false);
 		} else {
 			auto session = sm->getSession(request);
 			if(!session) {

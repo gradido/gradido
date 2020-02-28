@@ -16,7 +16,7 @@ enum PageState
 	PAGE_ERROR
 };
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
  
 #include "../ServerConfig.h"	
 
@@ -44,12 +44,12 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	PageState state = PAGE_ASK;
 	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
 	
-	// skip asking user if he like to save keys and passphrase on server
+	// skip asking user if he like to save keys and passphrase on server for now!
 	state = PAGE_SHOW_PUBKEY;
 	if(!mSession->generateKeys(true, true)) {
 		getErrors(mSession);
 	}
-	
+	/*
 	if(!form.empty()) {
 		// privkey
 		auto savePrivkeyChoice = form.get("save-privkey");
@@ -60,7 +60,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 				auto pwd = form.get("save-privkey-password", "");
 				
 				if(!mSession->isPwdValid(pwd)) {
-					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"), false);
 					hasErrors = true;
 				} else {
 					savePrivkey = true;
@@ -88,26 +88,26 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 		}
 		//printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
 			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
-	}
+	}*/
 	getErrors(mSession);
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
-	// begin include header.cpsp
+	// begin include header_old.cpsp
 	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
 	responseStream << "<head>\n";
 	responseStream << "<meta charset=\"UTF-8\">\n";
-	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
+	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -151,20 +151,12 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.6.0</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha ";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
 	responseStream << "</div>\n";
-	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
-	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
-	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
-	responseStream << "\t\t  <li><a href=\"";
-#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
-	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
-	responseStream << "\t\t</ul>\n";
-	responseStream << "\t</div>\n";
-	responseStream << "</nav>-->";
-	// end include header.cpsp
+	// end include header_old.cpsp
 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Daten speichern</h1>\n";

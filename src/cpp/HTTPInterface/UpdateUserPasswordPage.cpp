@@ -51,7 +51,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 		auto pwd = form.get("register-password", "");
 		if(pwd != "") {
 			if(pwd != form.get("register-password2", "")) {
-				mSession->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."));
+				mSession->addError(new Error("Passwort", "Passw&ouml;rter sind nicht identisch."), false);
 			} else if(SessionManager::getInstance()->checkPwdValidation(pwd, mSession)) {
 			    auto sessionState = mSession->getSessionState();
 				

@@ -140,28 +140,28 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 	Profiler usedTime;
 
 	if (mNewUser->getModel()->getRole() != model::table::ROLE_ADMIN) {
-		addError(new Error(gettext("Benutzer"), gettext("Eingeloggter Benutzer ist kein Admin")));
+		addError(new Error(gettext("Benutzer"), gettext("Eingeloggter Benutzer ist kein Admin")), false);
 		return false;
 	}
 
 	auto sm = SessionManager::getInstance();
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
 	}
 	if (!sm->isValid(last_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
 	}
 	if (!sm->isValid(email, VALIDATE_EMAIL)) {
-		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")));
+		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
 		return false;
 	}
 
 
 	// check if user with that email already exist
 	if (mNewUser->getModel()->isExistInDB("email", email)) {
-		addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")));
+		addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")), false);
 		return false;
 	}
 
@@ -192,15 +192,15 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	Profiler usedTime;
 	auto sm = SessionManager::getInstance();
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
 	}
 	if (!sm->isValid(last_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")));
+		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
 	}
 	if (!sm->isValid(email, VALIDATE_EMAIL)) {
-		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")));
+		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
 		return false;
 	}
 	if (!sm->checkPwdValidation(password, this)) {
@@ -225,7 +225,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	select << "SELECT email from users where email = ?;", useRef(email);
 	try {
 		if (select.execute() > 0) {
-			addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")));
+			addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")), false);
 			return false;
 		}
 	}
@@ -370,7 +370,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		}
 		if (firstEmailActivation && userModel->isEmailChecked()) {
 			mSessionUser = new User(mNewUser);
-			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")));
+			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")), false);
 			unlock();
 			return 1;
 		}
@@ -482,7 +482,12 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 		return -2;
 	}
 	if (!keys.generateFromPassphrase(inputPassphrase.data(), wordSource)) {
-		addError(new Error(gettext("Passphrase"), gettext("Deine Passphrase ist ung&uuml;tig")));
+		addError(new ParamError(functionName, "invalid passphrase", inputPassphrase));
+		if (!mNewUser.isNull() && mNewUser->getModel()) {
+			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
+		}
+		sendErrorsAsEmail();
+		addError(new Error(gettext("Passphrase"), gettext("Deine Passphrase ist ung&uuml;tig")), false);
 		return 0;
 	}
 	auto userModel = mNewUser->getModel();
@@ -491,7 +496,10 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 		userModel->loadFromDB("email", userModel->getEmail());
 		existingPublic = userModel->getPublicKey();
 		if (!existingPublic) {
-			addError(new Error(gettext("Passphrase"), gettext("Ein Fehler trat auf, bitte versuche es erneut")));
+			addError(new Error(functionName, "cannot load existing public key from db"));
+			addError(new ParamError(functionName, "user email", userModel->getEmail()));
+			sendErrorsAsEmail();
+			addError(new Error(gettext("Passphrase"), gettext("Ein Fehler trat auf, bitte versuche es erneut")), false);
 			return -1;
 		}
 	}
@@ -499,7 +507,7 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 		mPassphrase = inputPassphrase;
 		return 1;
 	}
-	addError(new Error(gettext("Passphrase"), gettext("Das ist nicht die richtige Passphrase.")));
+	addError(new Error(gettext("Passphrase"), gettext("Das ist nicht die richtige Passphrase.")), false);
 	return 0;
 }
 

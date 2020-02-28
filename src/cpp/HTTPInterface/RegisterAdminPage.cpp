@@ -134,7 +134,7 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "\t\t\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t\t<legend>Account anlegen</legend>\n";
-	responseStream << "\t\t\t<p>Bitte gebe deine Daten um einen Account anzulegen</p>\n";
+	responseStream << "\t\t\t<p>Bitte gebe die Benutzer-Daten ein um einen Account anzulegen</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-first-name\">Vorname</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-first-name\" type=\"text\" name=\"register-first-name\" value=\"";

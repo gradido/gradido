@@ -97,19 +97,11 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<body>\n";
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha 0.8.1</p>\n";
+	responseStream << "\t<p class=\"grd_small\">Alpha ";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
 	responseStream << "</div>\n";
-	responseStream << "<!--<nav class=\"grd-left-bar expanded\" data-topbar role=\"navigation\">\n";
-	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
-	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
-	responseStream << "\t\t  <li><a href=\"";
-#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
-	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
-	responseStream << "\t\t</ul>\n";
-	responseStream << "\t</div>\n";
-	responseStream << "</nav>-->";
 	// end include header_old.cpsp
 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";

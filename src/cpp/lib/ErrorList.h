@@ -26,7 +26,7 @@ public:
 	~ErrorList();
 
 	// push error, error will be deleted in deconstructor
-	virtual void addError(Error* error);
+	virtual void addError(Error* error, bool log = true);
 
 	// return error on top of stack, please delete after using
 	Error* getLastError();

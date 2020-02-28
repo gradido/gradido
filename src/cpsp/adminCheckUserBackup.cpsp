@@ -48,9 +48,9 @@ struct SListEntry
 			auto user_id = tuple.get<0>();
 			Mnemonic* wordSource = nullptr;
 			if(!User::validatePassphrase(passphrase, &wordSource)) {
-				addError(new Error("admin Check user backup", "invalid passphrase"));
-				addError(new ParamError("admin Check user backup", "passphrase", passphrase.data()));
-				addError(new ParamError("admin Check user backup", "user id", user_id));
+				addError(new Error("admin Check user backup", "invalid passphrase"), false);
+				addError(new ParamError("admin Check user backup", "passphrase", passphrase.data()), false);
+				addError(new ParamError("admin Check user backup", "user id", user_id), false);
 				continue;
 			} else {
 				keys.generateFromPassphrase(passphrase.data(), wordSource);
@@ -68,7 +68,7 @@ struct SListEntry
 		}
 	}
 	catch (Poco::Exception& ex) {
-		addError(new ParamError("adminCheckUserBackup", "mysql error", ex.displayText().data()));
+		addError(new ParamError("adminCheckUserBackup", "mysql error", ex.displayText().data()), false);
 	}
 	
 		

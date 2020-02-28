@@ -56,9 +56,9 @@ ErrorList::~ErrorList()
 	}
 }
 
-void ErrorList::addError(Error* error)
+void ErrorList::addError(Error* error, bool log/* = true */)
 {
-	mLogging.error("[ErrorList::addError] %s", error->getString());
+	if(log) mLogging.error("[ErrorList::addError] %s", error->getString(false));
 	mErrorStack.push(error);
 }
 
@@ -93,7 +93,7 @@ int ErrorList::getErrors(ErrorList* send)
 	Error* error = nullptr;
 	int iCount = 0;
 	while (error = send->getLastError()) {
-		addError(error);
+		addError(error, false);
 		iCount++;
 	}
 	return iCount;

@@ -21,7 +21,7 @@ public:
 
 	const char* getFunctionName() { return mFunctionName.data(); }
 	const char* getMessage() { return mMessage.data(); }
-	virtual std::string getString();
+	virtual std::string getString(bool withNewline = true);
 	virtual std::string getHtmlString();
 
 protected:
@@ -44,7 +44,7 @@ public:
 		mParam = ss.str();
 	}
 
-	virtual std::string getString();
+	virtual std::string getString(bool withNewline = true);
 	virtual std::string getHtmlString();
 protected:
 	std::string mParam;
@@ -55,7 +55,7 @@ protected:
 class IErrorCollection
 {
 public: 
-	virtual void addError(Error*) = 0;
+	virtual void addError(Error*, bool log = true) = 0;
 };
 
 #endif // DR_LUA_WEB_MODULE_ERROR_ERROR_H

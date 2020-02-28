@@ -39,7 +39,7 @@ enum PageState
 				auto pwd = form.get("save-privkey-password", "");
 				
 				if(!mSession->isPwdValid(pwd)) {
-					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"));
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"), false);
 					hasErrors = true;
 				} else {
 					savePrivkey = true;
@@ -69,7 +69,7 @@ enum PageState
 			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
 	}*/
 	getErrors(mSession);
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
 	<h1>Daten speichern</h1>
 	<%= getErrorsHtml() %>

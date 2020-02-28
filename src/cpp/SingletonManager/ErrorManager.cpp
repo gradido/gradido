@@ -34,7 +34,7 @@ ErrorManager::~ErrorManager()
 	mErrorsMap.clear();
 }
 
-void ErrorManager::addError(Error* error)
+void ErrorManager::addError(Error* error, bool log/* = true*/)
 {
 	DHASH id = DRMakeStringHash(error->getFunctionName());
 	mWorkingMutex.lock();
@@ -42,7 +42,7 @@ void ErrorManager::addError(Error* error)
 	std::list<Error*>* list = nullptr;
 
 	//printf("[ErrorManager::addError] error with function: %s, %s\n", error->getFunctionName(), error->getMessage());
-	mLogging.error("[ErrorManager::addError] %s", error->getString());
+	if(log) mLogging.error("[ErrorManager::addError] %s", error->getString(false));
 
 	if (it == mErrorsMap.end()) {
 		list = new std::list<Error *>;
@@ -67,7 +67,7 @@ int ErrorManager::getErrors(ErrorList* send)
 	Error* error = nullptr;
 	int iCount = 0;
 	while (error = send->getLastError()) {
-		addError(error);
+		addError(error, false);
 		iCount++;
 	}
 	return iCount;

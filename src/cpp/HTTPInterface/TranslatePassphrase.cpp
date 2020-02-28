@@ -63,7 +63,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 			addError(new Error(
 				gettext("Fehler"), 
 				gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")
-			));
+			), false);
 	   } else {
 			if(wordSource == &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]) {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];

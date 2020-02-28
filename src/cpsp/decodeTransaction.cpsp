@@ -35,13 +35,13 @@
 				sodium_base64_VARIANT_ORIGINAL)) 
 			{
 				free(binBuffer);
-				addError(new Error("ProcessingTransaction", "error decoding base64"));
+				addError(new Error("ProcessingTransaction", "error decoding base64"), false);
 			} else {
 				std::string binString((char*)binBuffer, resultingBinSize);
 				free(binBuffer);
 				
 				if (!transactionBody.ParseFromString(binString)) {
-					addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"));			
+					addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"), false);			
 				} else {
 					decoded = true;
 				}

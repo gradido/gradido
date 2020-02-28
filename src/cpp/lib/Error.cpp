@@ -12,10 +12,11 @@ Error::~Error()
 
 }
 
-std::string Error::getString() 
+std::string Error::getString(bool withNewline/* = true*/)
 {
 	std::stringstream ss;
-	ss << mFunctionName << ": " << mMessage << std::endl;
+	ss << mFunctionName << ": " << mMessage;
+	if(withNewline) ss << std::endl;
 
 	return ss.str();
 }
@@ -27,10 +28,11 @@ std::string Error::getHtmlString()
 	return ss.str();
 }
 
-std::string ParamError::getString()
+std::string ParamError::getString(bool withNewline/* = true*/)
 {
 	std::stringstream ss;
-	ss << mFunctionName << ": " << mMessage << " " << mParam << std::endl;
+	ss << mFunctionName << ": " << mMessage << " " << mParam;
+	if (withNewline) ss << std::endl;
 
 	return ss.str();
 }

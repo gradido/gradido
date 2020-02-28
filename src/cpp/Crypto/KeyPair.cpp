@@ -185,7 +185,7 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 			if (buffer_cursor < 3) {
 				continue;
 			}
-			if (word_source->isWordExist(acBuffer)) {
+			if (PHRASE_WORD_COUNT > word_cursor && word_source->isWordExist(acBuffer)) {
 				word_indices_p[word_cursor] = word_source->getWordIndex(acBuffer);
 				//word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
 			}
@@ -204,7 +204,7 @@ MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemo
 			acBuffer[buffer_cursor++] = *it;
 		}
 	}
-	if (word_source->isWordExist(acBuffer)) {
+	if (PHRASE_WORD_COUNT > word_cursor && word_source->isWordExist(acBuffer)) {
 		word_indices_p[word_cursor] = word_source->getWordIndex(acBuffer);
 		//word_indices_old[word_cursor] = word_source->getWordIndex(acBuffer);
 		word_cursor++;

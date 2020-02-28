@@ -13,6 +13,7 @@ MemoryBin::~MemoryBin()
 {
 	if (mData) {
 		free(mData);
+		mData = nullptr;
 	}
 }
 

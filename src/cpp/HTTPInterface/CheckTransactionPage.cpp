@@ -490,8 +490,8 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "</div>\n";
 #line 196 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	// begin include footer_ripple.cpsp
-	responseStream << "\t</div>\n";
-	responseStream << "        </div>\n";
+	responseStream << "\t\t\t</div>\n";
+	responseStream << "\t\t</div>\n";
 	responseStream << "        <!-- content viewport ends -->\n";
 	responseStream << "        <!-- partial:partials/_footer.html -->\n";
 	responseStream << "        <footer class=\"footer\">\n";
@@ -503,7 +503,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "              </ul>\n";
 	responseStream << "            </div>\n";
 	responseStream << "            <div class=\"col-sm-6 text-center text-sm-left mt-3 mt-sm-0\">\n";
-	responseStream << "              <small class=\"text-muted d-block\">Copyright © 2019 Gradido</small>\n";
+	responseStream << "              <small class=\"text-muted d-block\">Copyright © 2020 Gradido</small>\n";
 	responseStream << "            </div>\n";
 	responseStream << "          </div>\n";
 	responseStream << "        </footer>\n";
