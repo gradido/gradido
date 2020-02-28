@@ -561,7 +561,7 @@ bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSour
 				if (i == 1) {
 					int zahl = 0;
 				}
-				printf("wordlist: %d, word not found: %s\n", i, it->data());
+				//printf("wordlist: %d, word not found: %s\n", i, it->data());
 				existAll = false;
 				continue;
 			}

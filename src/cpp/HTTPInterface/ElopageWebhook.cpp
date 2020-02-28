@@ -38,14 +38,15 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	int breakCount = 100;
 	while (stream.good() && breakCount > 0) {
 //		char dummy;
-		char keyBuffer[30]; memset(keyBuffer, 0, 30);
-		char valueBuffer[75]; memset(valueBuffer, 0, 75);
+		//char keyBuffer[30]; memset(keyBuffer, 0, 30);
+		//char valueBuffer[75]; memset(valueBuffer, 0, 75);
+		std::vector<char> keyBuffer(30);
+		std::vector<char> valueBuffer(75);
 		/*stream.get(keyBuffer, 30, '=').get(dummy)
 			  .get(valueBuffer, 35, '&').get(dummy);*/
 		std::string line;
 		std::getline(stream, line);
 		int mode = 0;
-		int cursor = 0;
 		for (int i = 0; i < line.size(); i++) {
 			char c = line.at(i);
 			completeRequest += c;
@@ -55,43 +56,51 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 			}
 			if (c == '&') {
 				mode = 0;
-				cursor = 0;
+				valueBuffer.push_back('\0');
+				keyBuffer.push_back('\0');
 				std::string urlDecodedValue;
-				Poco::URI::decode(valueBuffer, urlDecodedValue);
-				elopageRequestData.set(keyBuffer, urlDecodedValue);
-				memset(keyBuffer, 0, 30);
-				memset(valueBuffer, 0, 75);
+				try {
+					Poco::URI::decode(valueBuffer.data(), urlDecodedValue);
+				}
+				catch (Poco::Exception& ex) {
+					Poco::Logger& logging(Poco::Logger::get("errorLog"));
+					logging.error("[ElopageWebhook::handleRequest] error decoding URI: %s, exception: %s", std::string(valueBuffer.data()), ex.displayText());
+					urlDecodedValue = valueBuffer.data();
+				}
+				elopageRequestData.set(keyBuffer.data(), urlDecodedValue);
+				valueBuffer.clear();
+				keyBuffer.clear();
 				continue;
 			}
 			switch (mode) {
 			case 0: // read key
 				if (c == '=') {
 					mode = 1;
-					cursor = 0;
 					continue;
 				}
-				if (cursor < 29) {
-					keyBuffer[cursor++] = c;
-				}
-				else {
-					int zahl = 1;
-				}
+				keyBuffer.push_back(c);
 				break;
 			case 1: // read value
-				if (cursor < 74) {
-					valueBuffer[cursor++] = c;
-				}
-				else {
-					int zahl = 1;
-				}
+				valueBuffer.push_back(c);
 				break;
 			}
 		}
+		valueBuffer.push_back('\0');
+		keyBuffer.push_back('\0');
+
 		// last key-value pair
 		std::string urlDecodedValue;
-		Poco::URI::decode(valueBuffer, urlDecodedValue);
-		if (strcmp(keyBuffer, "")) {
-			elopageRequestData.set(keyBuffer, urlDecodedValue);
+		try {
+			Poco::URI::decode(valueBuffer.data(), urlDecodedValue);
+		}
+		catch (Poco::Exception& ex) {
+			Poco::Logger& logging(Poco::Logger::get("errorLog"));
+			logging.error("[ElopageWebhook::handleRequest] error decoding URI (last): %s, exception: %s", std::string(valueBuffer.data()), ex.displayText());
+			urlDecodedValue = valueBuffer.data();
+		}
+		
+		if (strcmp(keyBuffer.data(), "")) {
+			elopageRequestData.set(keyBuffer.data(), urlDecodedValue);
 		}
 
 		//printf("[ElopageWebhook::handleRequest] key: %s, value: %s\n", keyBuffer, valueBuffer);
