@@ -109,7 +109,12 @@ class TransactionCreation extends TransactionBase {
       //$existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
       $existingCreations->select(['amount', 'state_user_id']);
       $existingCreations->matching('Transactions', function ($q) {
-          return $q->where(['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())']);
+        
+          return $q->where(
+                  ['OR' => 
+                      ['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())',
+                       'EXTRACT(YEAR_MONTH FROM DATE_ADD(Transactions.received, INTERVAL 1 MONTH)) LIKE EXTRACT(YEAR_MONTH FROM NOW())']
+                  ])->select('received');
       });
       //debug($existingCreations);
       $newSum = $this->getAmount();
@@ -121,8 +126,8 @@ class TransactionCreation extends TransactionBase {
           $newSum += $creation->amount;
         }
       }
-      if($newSum > 10000000) {
-        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month not allowed');
+      if($newSum > 20000000) {
+        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (2 Month) not allowed');
         return false;
       }
       //die("\n");

@@ -55,8 +55,11 @@ Router::scope('/', function (RouteBuilder $routes) {
     $csrf->whitelistCallback(function ($request) {
         // Skip token check for API URLs.
       //die($request->getParam('controller'));
-        if($request->getParam('controller') === 'JsonRequestHandler') {
-            return true;
+        $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
+        foreach($whitelist as $entry) {
+          if($request->getParam('controller') === $entry) {
+              return true;
+          }
         }
     });
 

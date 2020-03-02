@@ -65,7 +65,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?= $this->Form->control('amount', ['required' => false]); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
       $disable = null;
-      if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 10000000) {
+      if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 20000000) {
         $disable = 'disabled';
       }
       ?>
@@ -92,7 +92,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
         <?php endif; ?>
         <?php if($possibleReceiver['amount'] != 0) : ?>
           <span class="grd_smaller">
-            In diesem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?>
+            In diesem und letztem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?>
           </span>
         <?php endif; ?>
         <?php if($disable != null) : ?>

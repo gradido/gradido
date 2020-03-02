@@ -163,7 +163,7 @@ class TransactionBody extends TransactionBase {
       $protoBody->setCreation(TransactionCreation::fromEntity($transaction->transaction_creations[0])->getProto());
     }
     else if(count($transaction->transaction_send_coins) == 1) {
-      echo "is transfer";
+      //echo "is transfer";
       $protoBody->setTransfer(TransactionTransfer::fromEntity($transaction->transaction_send_coins)->getProto());
     } else {
       return ['invalid transaction type or count'];

@@ -53,7 +53,7 @@ Letzte eingereichte Transaktion <?= gTransactionIds[0] - 1 ?>
     if(gTransactionIds[index] === undefined) {
       return;
     }
-    console.log("index: %d", index);
+    //console.log("index: %d", index);
     var progressState = $('#put-progress .progress-state').eq(index);
     progressState.html('<i>Wird verarbeitet</i>');
     
@@ -66,7 +66,12 @@ Letzte eingereichte Transaktion <?= gTransactionIds[0] - 1 ?>
         headers: {'X-CSRF-Token': csfr_token},
         dataType: 'json',
         success: function (data) {
-          if(data.result.state === 'success') {
+          var isNodeAnswer = true;
+          if(typeof data.result === 'undefined') {
+            isNodeAnswer = false;
+          }
+          //console.log("node answer: %o", isNodeAnswer)
+          if(isNodeAnswer && data.result.state === 'success') {
             progressState.addClass('grd-success').html('Erfolgreich eingereicht');
             setTimeout(function() { putTransaction(index+1);}, 1000);
           } else {
@@ -74,11 +79,20 @@ Letzte eingereichte Transaktion <?= gTransactionIds[0] - 1 ?>
               if(_index <= index) return;
               $(dom).html('Abgebrochen');
             });
-            progressState.addClass('grd-error').html('Fehler beim einreichen');
+            //console.log("Fehler beim einreichen")
+            if(isNodeAnswer) {
+              progressState.addClass('grd-error').html('Fehler beim einreichen');
+            } else {
+              progressState.addClass('grd-error').html('Fehler auf Community Server');
+            }
           }
           var timeString = round_to_precision(data.timeUsed * 1000.0, 4) + ' ms';
-          var nodeTime = data.result.timeUsed;
-          progressState.append('&nbsp;').append('<span class="time-used">' + timeString + ' (node: ' + nodeTime + ')</span>');
+          if(isNodeAnswer) {
+            var nodeTime = data.result.timeUsed;
+            progressState.append('&nbsp;').append('<span class="time-used">' + timeString + ' (node: ' + nodeTime + ')</span>');
+          } else {
+            progressState.append('&nbsp;').append('<span class="time-used">' + timeString + '</span>');
+          }
         }
     });
   }

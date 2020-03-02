@@ -197,7 +197,7 @@ class TransactionCreationsController extends AppController
         $connection = ConnectionManager::get('default');
         $transactionActiveMonth = $connection->execute(
                 'SELECT id, received FROM transactions '
-                . 'where received >= date_add(curdate(), interval 1 - day(curdate()) day) '
+                . 'where received >= date_sub(date_add(curdate(), interval 1 - day(curdate()) day), interval 1 month) '
                 . 'AND '
                 . 'received < date_add(date_add(curdate(), interval 1 - day(curdate()) day), interval 1 month) '
                 . 'AND '
@@ -229,14 +229,16 @@ class TransactionCreationsController extends AppController
               $sumAmount += $transactionCreation->amount;
             }
           }
-          //if($sumAmount < 10000000) {
+          //if($sumAmount < 20000000) {
             array_push($possibleReceiver, [
                 'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
                 'id' => $stateUser->id,
                 'email' => $stateUser->email,
                 'amount' => $sumAmount
                 ]);
-          //}
+          /*} else {
+            $this->Flash->error(__('Creation above 2.000 GDD for 2 last two month'));
+          }*/
         }
         usort($possibleReceiver, function($a, $b) {
           return (strtolower ($a['name']) <=> strtolower ($b['name']));
