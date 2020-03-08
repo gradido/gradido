@@ -2,6 +2,7 @@
 use Model\Navigation\NaviEntry;
 use Model\Navigation\NaviEntrySub;
 use Model\Navigation\NaviEntryAbsoluteLink;
+use Model\Navigation\NaviEntryExternLink;
 
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
@@ -34,6 +35,7 @@ if($balance < 0 ) {
 array_push($navi, $balanceNaviEntry);
 array_push($navi, new NaviEntry(__('Startseite'), 'mdi-gauge', 'Dashboard', 'index'));
 array_push($navi, new NaviEntry(__('Überweisung'), 'mdi-bank-transfer-out', 'TransactionSendCoins', 'create'));
+array_push($navi, new NaviEntryExternLink(__('Mitgliederbereich'), 'mdi-account-switch', 'https://elopage.com/s/gradido/sign_in'));
 
 if(intval($transactionPendings) > 0) {
 /*  array_push($navi, new NaviEntryAbsoluteLink(

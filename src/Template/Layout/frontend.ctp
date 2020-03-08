@@ -62,12 +62,17 @@ if(!isset($balance)) {
               <?php endif; ?>
               <?php if(isset($balance)) : ?>
                 <li><?= $this->Html->link($this->element('printGradido', ['number' => $balance]), 
-                        ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn grd-nav-without-border', 'escape' => false])
+                        ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn', 'escape' => false])
                     ?>
                 </li>
               <?php endif; ?>
                 <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard', 'action' => 'index'], ['class' => 'grd-nav-bn'])?></li>
               <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
+              <li>
+                  <a href="https://elopage.com/s/gradido/sign_in" target="_blank" class="grd-nav-bn">
+                    <?= __("Mitgliederbereich") ?>
+                  </a>
+              </li>
               <?php if(intval($transactionPendings) > 0) : ?>
                 <li>
                   <a href="<?= Router::url('./', true) ?>account/checkTransactions" class="grd-nav-bn">

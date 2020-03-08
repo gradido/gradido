@@ -14,11 +14,11 @@ use Cake\Routing\Router;
 
 class NaviEntryAbsoluteLink extends NaviEntryBase {
   
-    private $link = '';
-    private $active = '';
-    private $iconClass = '';
-    private $iconColor = '';
-    private $bgColorClass = '';
+    protected $link = '';
+    protected $active = '';
+    protected $iconClass = '';
+    protected $iconColor = '';
+    protected $bgColorClass = '';
 
     public function __construct($title, $iconClass, $link, $active = null) {
 
@@ -45,7 +45,7 @@ class NaviEntryAbsoluteLink extends NaviEntryBase {
         return $this->active;
     }
    
-    private function link() {
+    protected function link() {
         //global $self;
         //echo "<i>self: </i>"; var_dump($GLOBALS("self"));
         $self = $GLOBALS["self"];

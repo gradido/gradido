@@ -231,7 +231,7 @@ nav.grd-left-bar {
   top: 80.5px;
 }
 nav .grd-nav-bn {
-  width: 100px;
+  width: 120px;
 }
 nav ul {
   margin-top: 0;
@@ -251,6 +251,9 @@ nav ul {
   vertical-align: middle;
   color: grey;
 }
+.grd-nav-without-border {
+  border: none;
+}
 .grd-nav-bn-large {
   width: 40vw;
   height: 18vh;
@@ -260,6 +263,9 @@ a.grd-nav-bn,
 a.grd-nav-bn:visited {
   color: black;
   text-decoration: none;
+}
+.grd-nav-bn-discard {
+  color: darkred !important;
 }
 /*
 To change this license header, choose License Headers in Project Properties.
