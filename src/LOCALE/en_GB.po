@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-25 09:44+0100\n"
-"PO-Revision-Date: 2020-02-25 09:50+0100\n"
+"PO-Revision-Date: 2020-03-08 13:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
@@ -66,7 +66,7 @@ msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:182
 msgid "You haven't any account yet? Please follow the link to create one."
-msgstr "Don't have an account yet?"
+msgstr "Don't have an Gradido-account yet?"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:183
 msgid "Create New Account"
