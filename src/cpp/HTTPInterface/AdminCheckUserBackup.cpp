@@ -85,7 +85,7 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 				if(matching) continue;
 			} else {
 				auto lastEntry = notMatchingEntrys.back();
-				if(lastEntry->user->getModel()->getId() == user_id && matching == true) {
+				if(lastEntry.user->getModel()->getID() == user_id && matching == true) {
 					notMatchingEntrys.pop_back();
 					continue;
 				}
