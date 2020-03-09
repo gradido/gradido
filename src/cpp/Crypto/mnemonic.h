@@ -30,9 +30,9 @@ public:
 
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
-	inline const char* getWord(unsigned int index) const {  if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
-	inline unsigned short getWordIndex(const char* word) const {   DHASH word_hash = DRMakeStringHash(word); return mWordHashIndices.find(word_hash)->second; }
-	inline bool isWordExist(const std::string& word) const {  DHASH word_hash = DRMakeStringHash(word.data());  return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); }
+	inline const char* getWord(short index) const {  if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
+	short getWordIndex(const char* word) const;
+	inline bool isWordExist(const std::string& word) const { return getWordIndex(word.data()) != -1; }
 	// using only for debugging
 	std::string getCompleteWordList();
 
@@ -44,10 +44,17 @@ protected:
 
 	void clear();
 
+	struct HashCollisionWords {
+		DHASH hash;
+		std::vector<std::string> words;
+	};
+
 	char* mWords[2048];
 	//DRHashList mWordHashIndices;
 	typedef std::pair<DHASH, unsigned short> WordHashEntry;
+	typedef std::pair<std::string, unsigned short> HashCollideWordEntry;
 	std::map<DHASH, unsigned short> mWordHashIndices;
+	std::map<DHASH, std::map<std::string, unsigned short>> mHashCollisionWords;
 	Poco::Mutex mWorkingMutex;
 
 };

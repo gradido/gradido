@@ -66,6 +66,7 @@ namespace ServerConfig {
 					printf("[%s] error init bip0039 mnemonic set, error nr: %d\n", __FUNCTION__, iResult);
 					return false;
 				}
+				//g_Mnemonic_WordLists[i].printToFile("en_words.txt");
 				break;
 			default: printf("[%s] unknown MnemonicType\n", __FUNCTION__); return false;
 			}
