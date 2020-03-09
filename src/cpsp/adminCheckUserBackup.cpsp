@@ -31,13 +31,13 @@ struct SListEntry
 	auto con = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement select(con);
 	std::list<UserBackupTuple> userBackupEntrys;
-	select << "SELECT u.id, u.pubkey, b.passphrase FROM users as u LEFT JOIN user_backups as b on(u.id = b.user_id)"
+	select << "SELECT u.id, u.pubkey, b.passphrase FROM users as u LEFT JOIN user_backups as b on(u.id = b.user_id) order by u.id"
 	, into(userBackupEntrys);
 			
 	size_t resultCount = 0;
 	try {
 		resultCount = select.execute();
-		
+		int last_user_id = 0;
 		for(auto it = userBackupEntrys.begin(); it != userBackupEntrys.end(); it++) {
 			auto tuple = *it;
 			auto pubkey = tuple.get<1>();
@@ -55,9 +55,21 @@ struct SListEntry
 			} else {
 				keys.generateFromPassphrase(passphrase.data(), wordSource);
 			}
+			bool matching = false;
 			if(keys.isPubkeysTheSame(pubkey.value().content().data())) {
-				continue;
+				matching = true;
 			}
+			if(user_id != last_user_id) {
+				last_user_id = user_id;
+				if(matching) continue;
+			} else {
+				auto lastEntry = notMatchingEntrys.back();
+				if(lastEntry->user->getModel()->getId() == user_id && matching == true) {
+					notMatchingEntrys.pop_back();
+					continue;
+				}
+			}
+			
 			SListEntry entry;
 			entry.user = controller::User::create();
 			entry.user->load(user_id);
