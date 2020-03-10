@@ -28,12 +28,24 @@
 			unsigned char* binBuffer = (unsigned char*)malloc(base64.size());
 			size_t resultingBinSize = 0;
 			size_t base64_size = base64.size();
-			if (sodium_base642bin(
+			bool encodingValid = false;
+			if (!sodium_base642bin(
 				binBuffer, base64_size,
 				base64.data(), base64_size, 
 				nullptr, &resultingBinSize, nullptr, 
 				sodium_base64_VARIANT_ORIGINAL)) 
 			{
+				encodingValid = true;
+			} else if(!sodium_base642bin(
+  					  binBuffer, base64_size, 
+					  base64.data(), base64_size,
+					  nullptr, &resultingBinSize, nullptr,
+					  sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
+				  //encodingValid = true;
+				  //free(binBuffer);
+				  addError(new Error("ProcessingTransaction", "it is maybe a Transaction, but I support only TransactionBodys"), false);
+			}
+			if(false == encodingValid) {
 				free(binBuffer);
 				addError(new Error("ProcessingTransaction", "error decoding base64"), false);
 			} else {
@@ -46,6 +58,7 @@
 					decoded = true;
 				}
 			}
+			
 		}
 	} 
 	/*
