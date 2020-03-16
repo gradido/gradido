@@ -19,6 +19,7 @@
 #include "../lib/JsonRequest.h"
 
 #include "../controller/User.h"
+#include "../controller/UserBackups.h"
 #include "../controller/EmailVerificationCode.h"
 
 #include "table/ModelBase.h"
@@ -787,20 +788,48 @@ void Session::detectSessionState()
 
 	if (USER_NO_KEYS == userState) {
 		
+		auto user_id = mSessionUser->getDBId();
+		auto userBackups = controller::UserBackups::load(user_id);
+
+		// check passphrase, only possible while passphrase isn't crypted in db
+		bool correctPassphraseFound = false;
+		bool cryptedPassphrase = false;
+		for (auto it = userBackups.begin(); it != userBackups.end(); it++) {
+			KeyPair keys;
+			auto passphrase = (*it)->getModel()->getPassphrase();
+			Mnemonic* wordSource = nullptr;
+			if (User::validatePassphrase(passphrase, &wordSource)) {
+				if (keys.generateFromPassphrase((*it)->getModel()->getPassphrase().data(), wordSource)) {
+					if (sodium_memcmp(mSessionUser->getPublicKey(), keys.getPublicKey(), ed25519_pubkey_SIZE) == 0) {
+						correctPassphraseFound = true;
+						break;
+					}
+				}
+			}
+			else {
+				cryptedPassphrase = true;
+			}
+		}
+		/*
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(dbConnection);
 		Poco::Nullable<Poco::Data::BLOB> passphrase;
-		auto user_id = mSessionUser->getDBId();
+		
 		select << "SELECT passphrase from user_backups where user_id = ?;", 
 			into(passphrase), use(user_id);
 		try {
 			if (select.execute() == 1 && !passphrase.isNull()) {
+				//KeyPair keys;keys.generateFromPassphrase(passphrase.value().rawContent())
 				updateState(SESSION_STATE_PASSPHRASE_WRITTEN);
 				return;
 			}
 		}
 		catch (Poco::Exception& exc) {
 			printf("[Session::detectSessionState] 2 mysql exception: %s\n", exc.displayText().data());
+		}*/
+		if (correctPassphraseFound || cryptedPassphrase) {
+			updateState(SESSION_STATE_PASSPHRASE_WRITTEN);
+			return;
 		}
 		if (mPassphrase != "") {
 			updateState(SESSION_STATE_PASSPHRASE_GENERATED);

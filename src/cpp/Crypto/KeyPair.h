@@ -13,12 +13,14 @@
 class UserWriteKeysIntoDB;
 class UserGenerateKeys;
 class DebugPassphrasePage;
+class User;
 // TODO: https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519
 class KeyPair 
 {
 	friend UserWriteKeysIntoDB;
 	friend UserGenerateKeys;
 	friend DebugPassphrasePage;
+	friend User;
 public:
 	KeyPair();
 	~KeyPair();

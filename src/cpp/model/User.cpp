@@ -12,6 +12,8 @@
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 
+#include "../controller/UserBackups.h"
+
 
 #include "Poco/Data/Binding.h"
 
@@ -1085,8 +1087,53 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	auto mm = MemoryManager::getInstance();
 	//auto signBinBuffer = (unsigned char*)malloc(crypto_sign_BYTES);
 	auto privKey = getPrivKey();
+	
 	if (!privKey) {
 		addError(new Error("User::sign", "decrypt privkey failed"));
+
+		auto userBackups = controller::UserBackups::load(mDBId);
+
+		// get privkey, only possible while passphrase isn't crypted in db
+		bool correctPassphraseFound = false;
+		KeyPair keys;
+		for (auto it = userBackups.begin(); it != userBackups.end(); it++) {
+			
+			auto passphrase = (*it)->getModel()->getPassphrase();
+			Mnemonic* wordSource = nullptr;
+			if (User::validatePassphrase(passphrase, &wordSource)) {
+				if (keys.generateFromPassphrase((*it)->getModel()->getPassphrase().data(), wordSource)) {
+					if(keys.isPubkeysTheSame(getPublicKey()))
+					{
+						correctPassphraseFound = true;
+						break;
+					}
+				}
+			}
+		}
+		if (correctPassphraseFound) {
+			auto const_privKey = keys.getPrivateKey();
+			auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
+
+			unsigned long long actualSignLength = 0;
+
+			if (crypto_sign_detached(*signBinBuffer, &actualSignLength, message, messageSize, *const_privKey)) {
+				addError(new Error("User::sign 2", "sign failed"));
+				mm->releaseMemory(signBinBuffer);
+				return nullptr;
+			}
+
+			if (crypto_sign_verify_detached(*signBinBuffer, message, messageSize, mPublicKey) != 0) {
+				// Incorrect signature! 
+				//printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
+				addError(new Error("User::sign 2", "sign verify failed"));
+				mm->releaseMemory(privKey);
+				mm->releaseMemory(signBinBuffer);
+				return nullptr;
+			}			
+
+			return signBinBuffer;
+		}
+
 		return nullptr;
 	}
 
