@@ -1111,9 +1111,22 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 			}
 		}
 		if (correctPassphraseFound) {
+			
+			// save corrected key into db
+			auto encyrptedPrivKey = encrypt(privKey);
+			auto newUser = controller::User::create();
+			if (1 == newUser->load(mDBId)) {
+				auto userModel = newUser->getModel();
+				userModel->setPrivateKey(encyrptedPrivKey);
+				userModel->updatePrivkey();
+				
+				mm->releaseMemory(encyrptedPrivKey);
+				
+			}
+			
+			// sign with received key
 			auto const_privKey = keys.getPrivateKey();
 			auto signBinBuffer = mm->getFreeMemory(crypto_sign_BYTES);
-
 			unsigned long long actualSignLength = 0;
 
 			if (crypto_sign_detached(*signBinBuffer, &actualSignLength, message, messageSize, *const_privKey)) {

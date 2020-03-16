@@ -140,6 +140,7 @@ namespace model {
 			return select;
 		}
 
+
 		/*
 		std::string mEmail;
 		std::string mFirstName;

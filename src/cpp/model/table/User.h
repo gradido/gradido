@@ -41,6 +41,9 @@ namespace model {
 			const char* getTableName() const { return "users"; }
 			std::string toString();
 			std::string toHTMLString();
+
+			// specific db operation
+			inline size_t updatePrivkey() { lock(); auto result = updateIntoDB("privkey", mPrivateKey); unlock(); return result; }
 			
 
 			// default getter unlocked
