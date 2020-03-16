@@ -43,7 +43,7 @@ namespace model {
 			std::string toHTMLString();
 
 			// specific db operation
-			inline size_t updatePrivkey() { lock(); auto result = updateIntoDB("privkey", mPrivateKey); unlock(); return result; }
+			size_t updatePrivkey();
 			
 
 			// default getter unlocked

@@ -140,6 +140,13 @@ namespace model {
 			return select;
 		}
 
+		size_t User::updatePrivkey() { 
+			lock(); 
+			if (mPrivateKey.isNull()) return 0;
+			auto result = updateIntoDB("privkey", mPrivateKey.value()); 
+			unlock(); 
+			return result; 
+		}
 
 		/*
 		std::string mEmail;
