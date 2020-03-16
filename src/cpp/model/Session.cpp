@@ -794,7 +794,7 @@ void Session::detectSessionState()
 		// check passphrase, only possible while passphrase isn't crypted in db
 		bool correctPassphraseFound = false;
 		// always trigger SESSION_STATE_PASSPHRASE_WRITTEN, else lost of data possible
-		bool cryptedPassphrase = true;
+		bool cryptedPassphrase = userBackups.size() > 0;
 		for (auto it = userBackups.begin(); it != userBackups.end(); it++) {
 			KeyPair keys;
 			auto passphrase = (*it)->getModel()->getPassphrase();
