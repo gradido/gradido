@@ -32,7 +32,7 @@
             <tr>
                 <td><?= $this->Number->format($transactionSendCoin->id) ?></td>
                 <td><?= $transactionSendCoin->has('transaction') ? $this->Html->link($transactionSendCoin->transaction->id, ['controller' => 'Transactions', 'action' => 'view', $transactionSendCoin->transaction->id]) : '' ?></td>
-                <td><?= $transactionSendCoin->has('state_user') ? $this->Html->link($transactionSendCoin->state_user->id, ['controller' => 'StateUsers', 'action' => 'view', $transactionSendCoin->state_user->id]) : '' ?></td>
+                <td><?= $transactionSendCoin->has('state_user') ? $this->Html->link($transactionSendCoin->state_user->getEmailWithName(), ['controller' => 'StateUsers', 'action' => 'view', $transactionSendCoin->state_user->id]) : '' ?></td>
                 <td><?= $this->Number->format($transactionSendCoin->amount) ?></td>
                 <td><?= $this->Number->format($transactionSendCoin->sender_final_balance) ?></td>
                 <td class="actions">
