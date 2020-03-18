@@ -1010,6 +1010,10 @@ MemoryBin* User::encrypt(const MemoryBin* data)
 		addError(new Error("User::encrypt", "hasn't crypto key"));
 		return nullptr;
 	}
+	if (!data) {
+		addError(new Error("User::encrypt", "data is zero"));
+		return nullptr;
+	}
 	size_t message_len = data->size();
 	size_t ciphertext_len = crypto_secretbox_MACBYTES + message_len;
 
@@ -1089,7 +1093,8 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 	auto privKey = getPrivKey();
 	
 	if (!privKey) {
-		addError(new Error("User::sign", "decrypt privkey failed"));
+		//addError(new Error("User::sign", "decrypt privkey failed"));
+		
 
 		auto userBackups = controller::UserBackups::load(mDBId);
 
@@ -1113,12 +1118,16 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 		if (correctPassphraseFound) {
 			
 			// save corrected key into db
-			auto encyrptedPrivKey = encrypt(privKey);
+			auto encyrptedPrivKey = encrypt(keys.getPrivateKey());
 			auto newUser = controller::User::create();
 			if (1 == newUser->load(mDBId)) {
 				auto userModel = newUser->getModel();
-				userModel->setPrivateKey(encyrptedPrivKey);
-				userModel->updatePrivkey();
+				if (encyrptedPrivKey) {
+					userModel->setPrivateKey(encyrptedPrivKey);
+					userModel->updatePrivkey();
+					// remove unencrypt error from priv key to prevent error 404 forwarding
+					delete getLastError();
+				}
 				
 				mm->releaseMemory(encyrptedPrivKey);
 				

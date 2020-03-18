@@ -132,7 +132,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		auto user = s->getUser();
 		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
-			user->sendErrorsAsEmail();
+			if (!user.isNull() && user->errorCount()) {
+				s->getErrors(user);
+			}
+			s->sendErrorsAsEmail();
 			auto pageRequestHandler = new Error500Page(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
