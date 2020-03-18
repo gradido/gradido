@@ -207,11 +207,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t";
 #line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
  if(state == PAGE_ASK) { 	responseStream << "\n";
-	responseStream << "\t\t<form action=\"";
-#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/resetPassword\">\n";
-	responseStream << "\t\t\t";
+	responseStream << "\t\t";
 	// begin include flags.cpsp
 	responseStream << "<form method=\"GET\" action=\"\">\n";
 	responseStream << "\t<div class=\"row pull-right-row\">\n";
@@ -247,6 +243,10 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "</form>";
 	// end include flags.cpsp
 	responseStream << "\n";
+	responseStream << "\t\t<form action=\"";
+#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/resetPassword\">\n";
 	responseStream << "\t\t\t<div class=\"item-wrapper\">\n";
 	responseStream << "\t\t\t  <div class=\"form-group\">\n";
 	responseStream << "\t\t\t\t<label for=\"email\">";
@@ -286,7 +286,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t  </div>\n";
-	responseStream << "\t\t\t  <button type=\"submit\" class=\"btn btn-sm btn-primary\">";
+	responseStream << "\t\t\t  <button type=\"submit\" class=\"btn btn-sm btn-primary\" >";
 #line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
 	responseStream << ( langCatalog->gettext("Absenden") );
 	responseStream << "</button>\n";
@@ -338,7 +338,9 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t<script type=\"text/javascript\">\n";
 	responseStream << "\t\tfunction removeGroupInvalidClass() {\n";
 	responseStream << "\t\t\tvar elements = document.getElementsByClassName(\"group-is-invalid\");\n";
-	responseStream << "\t\t\telements[0].classList.remove(\"group-is-invalid\");\n";
+	responseStream << "\t\t\tif(elements.length > 0) {\n";
+	responseStream << "\t\t\t\telements[0].classList.remove(\"group-is-invalid\");\n";
+	responseStream << "\t\t\t}\n";
 	responseStream << "\t\t}\n";
 	responseStream << "\t</script>\n";
 	// begin include footer.cpsp
