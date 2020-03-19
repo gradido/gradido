@@ -9,6 +9,7 @@
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonAdminEmailVerificationResend.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
@@ -39,6 +40,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/getUsers") {
 		return new JsonGetUsers;
+	} 
+	else if (url_first_part == "/adminEmailVerificationResend") {
+		return new JsonAdminEmailVerificationResend;
 	}
 
 	return new JsonUnknown;

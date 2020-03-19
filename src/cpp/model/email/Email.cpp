@@ -29,6 +29,21 @@ Mit freundlichen Grüßen\n\
 Dario, Gradido Server Admin\n\
 "};
 
+const static char EmailText_adminEmailVerificationResend[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
+Du hast vor einer Weile ein Gradido Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
+\n\
+Bitte klicke zur Bestätigung auf den Link: [link]\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+" };
+
+
+
 const static char EmailText_emailResetPassword[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
@@ -118,6 +133,7 @@ Gradido Login-Server\n\
 		
 		case EMAIL_USER_VERIFICATION_CODE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE:
+		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
 				addError(new Error(functionName, "no receiver email set for user email verification email"));
 				return false;
@@ -132,6 +148,9 @@ Gradido Login-Server\n\
 			messageTemplate = EmailText_emailVerification;
 			if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE) {
 				messageTemplate = EmailText_adminEmailVerification;
+			}
+			else if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND) {
+				messageTemplate = EmailText_adminEmailVerificationResend;
 			}
 
 			mailMessage->addContent(

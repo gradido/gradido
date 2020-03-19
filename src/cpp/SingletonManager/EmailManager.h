@@ -29,6 +29,7 @@ public:
 
 	inline const std::string& getAdminReceiver() { return mEmailAccount.admin_receiver; }
 
+	//! \brief call delete on email after sending it
 	inline void addEmail(model::Email* email) { mPendingEmails.push(email); condSignal();}
 	
 protected:

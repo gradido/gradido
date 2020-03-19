@@ -83,7 +83,6 @@ MemoryManager::MemoryManager()
 	mMemoryPageStacks[2] = new MemoryPageStack(65); // pubkey hex
 	mMemoryPageStacks[3] = new MemoryPageStack(96); // privkey encrypted
 	mMemoryPageStacks[4] = new MemoryPageStack(161); // privkey hex 
-	
 }
 
 MemoryManager::~MemoryManager()
