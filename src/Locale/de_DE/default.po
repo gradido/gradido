@@ -4,16 +4,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2020-02-10 10:20+0000\n"
-"PO-Revision-Date: 2020-02-10 11:58+0100\n"
-"Last-Translator: \n"
+"POT-Creation-Date: 2020-01-17 18:44+0000\n"
+"PO-Revision-Date: 2020-01-17 19:48+0100\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
-"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: \n"
+"Language: de_DE\n"
 
 #: Controller/AddressTypesController.php:55
 #: Controller/AddressTypesController.php:79
@@ -51,28 +51,24 @@ msgstr ""
 msgid "The admin error could not be deleted. Please, try again."
 msgstr ""
 
-#: Controller/AppController.php:197
+#: Controller/AppController.php:196
 msgid "error updating state user "
 msgstr ""
 
-#: Controller/AppController.php:213
+#: Controller/AppController.php:212
 msgid "error saving state user "
 msgstr ""
 
 #: Controller/AppController.php:220
-msgid "no pubkey"
-msgstr ""
-
-#: Controller/AppController.php:226
 msgid "invalid session"
 msgstr ""
 
-#: Controller/AppController.php:233
+#: Controller/AppController.php:227
 #: Controller/TransactionSendCoinsController.php:222
 msgid "error http request: "
 msgstr ""
 
-#: Controller/AppController.php:270
+#: Controller/AppController.php:264
 msgid "Serious error, couldn't save to db, please write the admin: "
 msgstr ""
 
@@ -114,7 +110,7 @@ msgstr ""
 
 #: Controller/ServerUsersController.php:42
 msgid "Invalid username or password, try again"
-msgstr "Ungültiger Benutzername oder Passwort, bitte versuche es nochmal."
+msgstr ""
 
 #: Controller/ServerUsersController.php:78
 #: Controller/ServerUsersController.php:102
@@ -266,108 +262,106 @@ msgstr ""
 msgid "The state relationship type could not be deleted. Please, try again."
 msgstr ""
 
-#: Controller/StateUsersController.php:15
+#: Controller/StateUsersController.php:13
 msgid "account created"
 msgstr "Konto angelegt"
 
-#: Controller/StateUsersController.php:16
+#: Controller/StateUsersController.php:14
 msgid "account not on login-server"
 msgstr "Konto nicht auf Login-Server"
 
-#: Controller/StateUsersController.php:17
+#: Controller/StateUsersController.php:15
 msgid "email activated"
 msgstr "Konto aktiviert"
 
-#: Controller/StateUsersController.php:18
+#: Controller/StateUsersController.php:16
 msgid "account copied to community"
 msgstr "Konto kopiert nach Community-Server"
 
-#: Controller/StateUsersController.php:19
+#: Controller/StateUsersController.php:17
 msgid "email not activated"
 msgstr "Konto nicht aktiviert"
 
-#: Controller/StateUsersController.php:20
+#: Controller/StateUsersController.php:18
 msgid "account multiple times on login-server"
 msgstr "Konto mehrfach vorhanden"
 
-#: Controller/StateUsersController.php:21
+#: Controller/StateUsersController.php:19
 msgid "account not on community server"
 msgstr "Konto nicht auf Community-Server"
 
-#: Controller/StateUsersController.php:22
+#: Controller/StateUsersController.php:20
 msgid "no keys"
 msgstr "Keine Schlüssel generiert"
 
-#: Controller/StateUsersController.php:219
-#: Controller/TransactionCreationsController.php:179
+#: Controller/StateUsersController.php:209
+#: Controller/TransactionCreationsController.php:174
 #: Controller/TransactionSendCoinsController.php:231
 msgid "Something was invalid, please try again!"
 msgstr ""
-"Mindestens eine Angabe ist fehlerhaft, bitte schaue weiter unten für eine "
-"genaue Fehlerbeschreibung!"
 
-#: Controller/StateUsersController.php:275
-#: Controller/StateUsersController.php:301
+#: Controller/StateUsersController.php:244
+#: Controller/StateUsersController.php:270
 msgid "The state user has been saved."
 msgstr ""
 
-#: Controller/StateUsersController.php:279
-#: Controller/StateUsersController.php:305
+#: Controller/StateUsersController.php:248
+#: Controller/StateUsersController.php:274
 msgid "The state user could not be saved. Please, try again."
 msgstr ""
 
-#: Controller/StateUsersController.php:324
+#: Controller/StateUsersController.php:293
 msgid "The state user has been deleted."
 msgstr ""
 
-#: Controller/StateUsersController.php:326
+#: Controller/StateUsersController.php:295
 msgid "The state user could not be deleted. Please, try again."
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:144
-#: Controller/TransactionCreationsController.php:331
+#: Controller/TransactionCreationsController.php:139
+#: Controller/TransactionCreationsController.php:326
 msgid "Error by requesting LoginServer, please try again"
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:146
-#: Controller/TransactionCreationsController.php:333
+#: Controller/TransactionCreationsController.php:141
+#: Controller/TransactionCreationsController.php:328
 msgid "Error, please wait for the admin to fix it"
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:156
-#: Controller/TransactionCreationsController.php:343
+#: Controller/TransactionCreationsController.php:151
+#: Controller/TransactionCreationsController.php:338
 msgid "Login Server Error, please wait for the admin to fix it"
-msgstr "Fehler auf dem Login Server, bitte warte bis es behoben wurde. "
+msgstr ""
 
-#: Controller/TransactionCreationsController.php:170
-#: Controller/TransactionCreationsController.php:357
+#: Controller/TransactionCreationsController.php:165
+#: Controller/TransactionCreationsController.php:352
 #: Controller/TransactionSendCoinsController.php:216
 msgid "Transaction submitted for review."
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:175
+#: Controller/TransactionCreationsController.php:170
 msgid "Building transaction failed"
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:267
+#: Controller/TransactionCreationsController.php:262
 msgid "no user choosen"
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:378
-#: Controller/TransactionCreationsController.php:404
+#: Controller/TransactionCreationsController.php:373
+#: Controller/TransactionCreationsController.php:399
 msgid "The transaction creation has been saved."
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:382
-#: Controller/TransactionCreationsController.php:408
+#: Controller/TransactionCreationsController.php:377
+#: Controller/TransactionCreationsController.php:403
 msgid "The transaction creation could not be saved. Please, try again."
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:427
+#: Controller/TransactionCreationsController.php:422
 msgid "The transaction creation has been deleted."
 msgstr ""
 
-#: Controller/TransactionCreationsController.php:429
+#: Controller/TransactionCreationsController.php:424
 msgid "The transaction creation could not be deleted. Please, try again."
 msgstr ""
 
@@ -503,55 +497,51 @@ msgstr ""
 msgid "The transaction type could not be deleted. Please, try again."
 msgstr ""
 
-#: Controller/TransactionsController.php:66
+#: Controller/TransactionsController.php:63
 msgid "No valid data given, please try again."
 msgstr ""
 
-#: Controller/TransactionsController.php:103
-msgid "error retriving last saved transaction from gradido node."
-msgstr ""
-
-#: Controller/TransactionsController.php:197
-#: Controller/TransactionsController.php:223
+#: Controller/TransactionsController.php:101
+#: Controller/TransactionsController.php:127
 msgid "The transaction has been saved."
 msgstr ""
 
-#: Controller/TransactionsController.php:201
-#: Controller/TransactionsController.php:227
+#: Controller/TransactionsController.php:105
+#: Controller/TransactionsController.php:131
 msgid "The transaction could not be saved. Please, try again."
 msgstr ""
 
-#: Controller/TransactionsController.php:246
+#: Controller/TransactionsController.php:150
 msgid "The transaction has been deleted."
 msgstr ""
 
-#: Controller/TransactionsController.php:248
+#: Controller/TransactionsController.php:152
 msgid "The transaction could not be deleted. Please, try again."
 msgstr ""
 
 #: Form/CreationForm.php:43 Form/TransferForm.php:46
 msgid "No HTML Tags like &gt; or &lt; please."
-msgstr "Bitte keine HTML Tags wie &gt; oder &lt;!"
+msgstr ""
 
 #: Form/CreationForm.php:55
 msgid "Please give a valid number with maximal 2 decimal places"
-msgstr "Bitte gebe eine Zahl mit höchstens zwei Nachkommastellen an!"
+msgstr ""
 
 #: Form/TransferForm.php:35
 msgid "A valid email address is required"
-msgstr "Eine gültige E-Mail Adresse wird benötigt. "
+msgstr ""
 
 #: Form/TransferForm.php:39
 msgid "The memo should contain max 150 character"
-msgstr "Der Verwendungszweck darf maximal aus 150 Zeichen bestehen!"
+msgstr ""
 
 #: Form/TransferForm.php:58
 msgid "Please give a valid positive number with maximal 2 decimal places"
-msgstr "Bitte gebe eine positive Zahl mit höchstens zwei Nachkommastellen an!"
+msgstr ""
 
 #: Form/UserSearchForm.php:32
 msgid "The search text should contain max 50 character"
-msgstr "Der Suchtext darf nicht mehr als 50 Zeichen enthalten. "
+msgstr ""
 
 #: Form/UserSearchForm.php:39
 msgid "No HTML Tags like < or > please."
@@ -559,22 +549,14 @@ msgstr ""
 
 #: Model/Table/ServerUsersTable.php:58
 msgid "Please give a username"
-msgstr "Bitte gebe einen Benutzernamen an."
+msgstr ""
 
 #: Model/Table/ServerUsersTable.php:64
 msgid "Please give a password"
-msgstr "Bitte gebe ein Passwort an."
+msgstr ""
 
 #: Model/Table/ServerUsersTable.php:69
 msgid "Please give a email"
-msgstr "Bitte gebe eine E-Mail an."
-
-#: Model/Transactions/TransactionCreation.php:177
-msgid "Gradido Schöpfung erhalten"
-msgstr ""
-
-#: Model/Transactions/TransactionTransfer.php:239
-msgid "Gradidos erhalten"
 msgstr ""
 
 #: Template/AddressTypes/add.ctp:9 Template/AddressTypes/edit.ctp:9
@@ -624,7 +606,7 @@ msgstr ""
 #: Template/TransactionCreations/add.ctp:9
 #: Template/TransactionCreations/edit.ctp:9
 #: Template/TransactionCreations/index.ctp:9
-#: Template/TransactionCreations/index.ctp:27
+#: Template/TransactionCreations/index.ctp:26
 #: Template/TransactionCreations/view.ctp:9
 #: Template/TransactionGroupAddaddress/add.ctp:9
 #: Template/TransactionGroupAddaddress/edit.ctp:9
@@ -655,11 +637,11 @@ msgstr ""
 #: Template/TransactionTypes/index.ctp:9 Template/TransactionTypes/index.ctp:23
 #: Template/TransactionTypes/view.ctp:9 Template/TransactionTypes/view.ctp:44
 #: Template/Transactions/add.ctp:9 Template/Transactions/edit.ctp:9
-#: Template/Transactions/index.ctp:9 Template/Transactions/view.ctp:9
-#: Template/Transactions/view.ctp:66 Template/Transactions/view.ctp:97
-#: Template/Transactions/view.ctp:125 Template/Transactions/view.ctp:152
-#: Template/Transactions/view.ctp:180 Template/Transactions/view.ctp:211
-#: Template/Transactions/view.ctp:241
+#: Template/Transactions/index.ctp:9 Template/Transactions/index.ctp:40
+#: Template/Transactions/view.ctp:9 Template/Transactions/view.ctp:66
+#: Template/Transactions/view.ctp:97 Template/Transactions/view.ctp:125
+#: Template/Transactions/view.ctp:152 Template/Transactions/view.ctp:180
+#: Template/Transactions/view.ctp:211 Template/Transactions/view.ctp:241
 msgid "Actions"
 msgstr ""
 
@@ -770,7 +752,7 @@ msgstr ""
 #: Template/StateUsers/index.ctp:49 Template/StateUsers/view.ctp:62
 #: Template/StateUsers/view.ctp:95 Template/StateUsers/view.ctp:124
 #: Template/StateUsers/view.ctp:157 Template/TransactionCreations/edit.ctp:11
-#: Template/TransactionCreations/index.ctp:41
+#: Template/TransactionCreations/index.ctp:39
 #: Template/TransactionGroupAddaddress/edit.ctp:11
 #: Template/TransactionGroupAddaddress/index.ctp:37
 #: Template/TransactionGroupAllowtrades/edit.ctp:11
@@ -783,10 +765,10 @@ msgstr ""
 #: Template/TransactionSignatures/index.ctp:33
 #: Template/TransactionTypes/edit.ctp:11 Template/TransactionTypes/index.ctp:35
 #: Template/TransactionTypes/view.ctp:56 Template/Transactions/edit.ctp:11
-#: Template/Transactions/view.ctp:80 Template/Transactions/view.ctp:109
-#: Template/Transactions/view.ctp:136 Template/Transactions/view.ctp:163
-#: Template/Transactions/view.ctp:192 Template/Transactions/view.ctp:225
-#: Template/Transactions/view.ctp:252
+#: Template/Transactions/index.ctp:53 Template/Transactions/view.ctp:80
+#: Template/Transactions/view.ctp:109 Template/Transactions/view.ctp:136
+#: Template/Transactions/view.ctp:163 Template/Transactions/view.ctp:192
+#: Template/Transactions/view.ctp:225 Template/Transactions/view.ctp:252
 msgid "Delete"
 msgstr ""
 
@@ -820,7 +802,7 @@ msgstr ""
 #: Template/StateUsers/view.ctp:62 Template/StateUsers/view.ctp:95
 #: Template/StateUsers/view.ctp:124 Template/StateUsers/view.ctp:157
 #: Template/TransactionCreations/edit.ctp:13
-#: Template/TransactionCreations/index.ctp:41
+#: Template/TransactionCreations/index.ctp:39
 #: Template/TransactionCreations/view.ctp:11
 #: Template/TransactionGroupAddaddress/edit.ctp:13
 #: Template/TransactionGroupAddaddress/index.ctp:37
@@ -839,11 +821,11 @@ msgstr ""
 #: Template/TransactionSignatures/view.ctp:11
 #: Template/TransactionTypes/edit.ctp:13 Template/TransactionTypes/index.ctp:35
 #: Template/TransactionTypes/view.ctp:11 Template/TransactionTypes/view.ctp:56
-#: Template/Transactions/edit.ctp:13 Template/Transactions/view.ctp:11
-#: Template/Transactions/view.ctp:80 Template/Transactions/view.ctp:109
-#: Template/Transactions/view.ctp:136 Template/Transactions/view.ctp:163
-#: Template/Transactions/view.ctp:192 Template/Transactions/view.ctp:225
-#: Template/Transactions/view.ctp:252
+#: Template/Transactions/edit.ctp:13 Template/Transactions/index.ctp:53
+#: Template/Transactions/view.ctp:11 Template/Transactions/view.ctp:80
+#: Template/Transactions/view.ctp:109 Template/Transactions/view.ctp:136
+#: Template/Transactions/view.ctp:163 Template/Transactions/view.ctp:192
+#: Template/Transactions/view.ctp:225 Template/Transactions/view.ctp:252
 msgid "Are you sure you want to delete # {0}?"
 msgstr ""
 
@@ -880,17 +862,17 @@ msgstr ""
 #: Template/StateRelationshipTypes/index.ctp:31
 #: Template/StateUsers/index.ctp:47 Template/StateUsers/view.ctp:60
 #: Template/StateUsers/view.ctp:93 Template/StateUsers/view.ctp:122
-#: Template/StateUsers/view.ctp:155 Template/TransactionCreations/index.ctp:39
+#: Template/StateUsers/view.ctp:155 Template/TransactionCreations/index.ctp:37
 #: Template/TransactionGroupAddaddress/index.ctp:35
 #: Template/TransactionGroupAllowtrades/index.ctp:35
 #: Template/TransactionGroupCreates/index.ctp:37
 #: Template/TransactionSendCoins/index.ctp:39
 #: Template/TransactionSignatures/index.ctp:31
 #: Template/TransactionTypes/index.ctp:33 Template/TransactionTypes/view.ctp:54
-#: Template/Transactions/view.ctp:78 Template/Transactions/view.ctp:107
-#: Template/Transactions/view.ctp:134 Template/Transactions/view.ctp:161
-#: Template/Transactions/view.ctp:190 Template/Transactions/view.ctp:223
-#: Template/Transactions/view.ctp:250
+#: Template/Transactions/index.ctp:51 Template/Transactions/view.ctp:78
+#: Template/Transactions/view.ctp:107 Template/Transactions/view.ctp:134
+#: Template/Transactions/view.ctp:161 Template/Transactions/view.ctp:190
+#: Template/Transactions/view.ctp:223 Template/Transactions/view.ctp:250
 msgid "View"
 msgstr ""
 
@@ -907,17 +889,17 @@ msgstr ""
 #: Template/StateRelationshipTypes/index.ctp:32
 #: Template/StateUsers/index.ctp:48 Template/StateUsers/view.ctp:61
 #: Template/StateUsers/view.ctp:94 Template/StateUsers/view.ctp:123
-#: Template/StateUsers/view.ctp:156 Template/TransactionCreations/index.ctp:40
+#: Template/StateUsers/view.ctp:156 Template/TransactionCreations/index.ctp:38
 #: Template/TransactionGroupAddaddress/index.ctp:36
 #: Template/TransactionGroupAllowtrades/index.ctp:36
 #: Template/TransactionGroupCreates/index.ctp:38
 #: Template/TransactionSendCoins/index.ctp:40
 #: Template/TransactionSignatures/index.ctp:32
 #: Template/TransactionTypes/index.ctp:34 Template/TransactionTypes/view.ctp:55
-#: Template/Transactions/view.ctp:79 Template/Transactions/view.ctp:108
-#: Template/Transactions/view.ctp:135 Template/Transactions/view.ctp:162
-#: Template/Transactions/view.ctp:191 Template/Transactions/view.ctp:224
-#: Template/Transactions/view.ctp:251
+#: Template/Transactions/index.ctp:52 Template/Transactions/view.ctp:79
+#: Template/Transactions/view.ctp:108 Template/Transactions/view.ctp:135
+#: Template/Transactions/view.ctp:162 Template/Transactions/view.ctp:191
+#: Template/Transactions/view.ctp:224 Template/Transactions/view.ctp:251
 msgid "Edit"
 msgstr ""
 
@@ -929,13 +911,13 @@ msgstr ""
 #: Template/StateGroupRelationships/index.ctp:43
 #: Template/StateGroups/index.ctp:49
 #: Template/StateRelationshipTypes/index.ctp:41
-#: Template/StateUsers/index.ctp:57 Template/TransactionCreations/index.ctp:49
+#: Template/StateUsers/index.ctp:57 Template/TransactionCreations/index.ctp:47
 #: Template/TransactionGroupAddaddress/index.ctp:45
 #: Template/TransactionGroupAllowtrades/index.ctp:45
 #: Template/TransactionGroupCreates/index.ctp:47
 #: Template/TransactionSendCoins/index.ctp:49
 #: Template/TransactionSignatures/index.ctp:41
-#: Template/TransactionTypes/index.ctp:43 Template/Transactions/index.ctp:56
+#: Template/TransactionTypes/index.ctp:43 Template/Transactions/index.ctp:61
 msgid "first"
 msgstr ""
 
@@ -947,13 +929,13 @@ msgstr ""
 #: Template/StateGroupRelationships/index.ctp:44
 #: Template/StateGroups/index.ctp:50
 #: Template/StateRelationshipTypes/index.ctp:42
-#: Template/StateUsers/index.ctp:58 Template/TransactionCreations/index.ctp:50
+#: Template/StateUsers/index.ctp:58 Template/TransactionCreations/index.ctp:48
 #: Template/TransactionGroupAddaddress/index.ctp:46
 #: Template/TransactionGroupAllowtrades/index.ctp:46
 #: Template/TransactionGroupCreates/index.ctp:48
 #: Template/TransactionSendCoins/index.ctp:50
 #: Template/TransactionSignatures/index.ctp:42
-#: Template/TransactionTypes/index.ctp:44 Template/Transactions/index.ctp:57
+#: Template/TransactionTypes/index.ctp:44 Template/Transactions/index.ctp:62
 msgid "previous"
 msgstr ""
 
@@ -965,13 +947,13 @@ msgstr ""
 #: Template/StateGroupRelationships/index.ctp:46
 #: Template/StateGroups/index.ctp:52
 #: Template/StateRelationshipTypes/index.ctp:44
-#: Template/StateUsers/index.ctp:60 Template/TransactionCreations/index.ctp:52
+#: Template/StateUsers/index.ctp:60 Template/TransactionCreations/index.ctp:50
 #: Template/TransactionGroupAddaddress/index.ctp:48
 #: Template/TransactionGroupAllowtrades/index.ctp:48
 #: Template/TransactionGroupCreates/index.ctp:50
 #: Template/TransactionSendCoins/index.ctp:52
 #: Template/TransactionSignatures/index.ctp:44
-#: Template/TransactionTypes/index.ctp:46 Template/Transactions/index.ctp:59
+#: Template/TransactionTypes/index.ctp:46 Template/Transactions/index.ctp:64
 msgid "next"
 msgstr ""
 
@@ -983,13 +965,13 @@ msgstr ""
 #: Template/StateGroupRelationships/index.ctp:47
 #: Template/StateGroups/index.ctp:53
 #: Template/StateRelationshipTypes/index.ctp:45
-#: Template/StateUsers/index.ctp:61 Template/TransactionCreations/index.ctp:53
+#: Template/StateUsers/index.ctp:61 Template/TransactionCreations/index.ctp:51
 #: Template/TransactionGroupAddaddress/index.ctp:49
 #: Template/TransactionGroupAllowtrades/index.ctp:49
 #: Template/TransactionGroupCreates/index.ctp:51
 #: Template/TransactionSendCoins/index.ctp:53
 #: Template/TransactionSignatures/index.ctp:45
-#: Template/TransactionTypes/index.ctp:47 Template/Transactions/index.ctp:60
+#: Template/TransactionTypes/index.ctp:47 Template/Transactions/index.ctp:65
 msgid "last"
 msgstr ""
 
@@ -1001,13 +983,13 @@ msgstr ""
 #: Template/StateGroupRelationships/index.ctp:49
 #: Template/StateGroups/index.ctp:55
 #: Template/StateRelationshipTypes/index.ctp:47
-#: Template/StateUsers/index.ctp:63 Template/TransactionCreations/index.ctp:55
+#: Template/StateUsers/index.ctp:63 Template/TransactionCreations/index.ctp:53
 #: Template/TransactionGroupAddaddress/index.ctp:51
 #: Template/TransactionGroupAllowtrades/index.ctp:51
 #: Template/TransactionGroupCreates/index.ctp:53
 #: Template/TransactionSendCoins/index.ctp:55
 #: Template/TransactionSignatures/index.ctp:47
-#: Template/TransactionTypes/index.ctp:49 Template/Transactions/index.ctp:62
+#: Template/TransactionTypes/index.ctp:49 Template/Transactions/index.ctp:67
 msgid ""
 "Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} "
 "total"
@@ -1197,7 +1179,7 @@ msgstr ""
 
 #: Template/Dashboard/error_http_request.ctp:9
 msgid "Error, Please try again"
-msgstr "Fehler, bitte versuche er erneut!"
+msgstr ""
 
 #: Template/Dashboard/error_http_request.ctp:13 Template/Layout/error.ctp:43
 msgid "Back"
@@ -1236,10 +1218,6 @@ msgstr ""
 msgid "Benutzer suchen"
 msgstr ""
 
-#: Template/Dashboard/index.ctp:64
-msgid "Benutzer hinzufügen"
-msgstr ""
-
 #: Template/Element/navi.ctp:25 Template/StateBalances/overview.ctp:8
 msgid "Kontoübersicht"
 msgstr ""
@@ -1265,50 +1243,12 @@ msgstr ""
 msgid "Info:"
 msgstr ""
 
-#: Template/Email/text/notification_creation.ctp:8
-msgid "Gradido Schöpfung"
-msgstr ""
-
-#: Template/Email/text/notification_creation.ctp:9
-#: Template/Email/text/notification_transfer.ctp:11
-msgid "Hallo"
-msgstr ""
-
-#: Template/Email/text/notification_creation.ctp:11
-msgid "Für dich wurden soeben {0} geschöpft."
-msgstr ""
-
-#: Template/Email/text/notification_creation.ctp:16
-msgid "Bitte antworte nicht auf diese E-Mail!"
-msgstr ""
-
-#: Template/Email/text/notification_creation.ctp:18
-#: Template/Email/text/notification_transfer.ctp:20
-msgid "Mit freundlichen Grüßen"
-msgstr ""
-
-#: Template/Email/text/notification_transfer.ctp:8
-msgid "Gradido Überweisung"
-msgstr ""
-
-#: Template/Email/text/notification_transfer.ctp:13
-msgid "Du hast soeben {0} von {1} erhalten."
-msgstr ""
-
-#: Template/Email/text/notification_transfer.ctp:14
-msgid "{0} schreibt:"
-msgstr ""
-
-#: Template/Email/text/notification_transfer.ctp:18
-msgid ""
-"Du kannst {0} eine Nachricht schreiben, indem du auf diese E-Mail antwortest"
-msgstr ""
-
 #: Template/Layout/default.ctp:45 Template/Layout/frontend.ctp:78
 msgid "Logout"
 msgstr ""
 
-#: Template/Layout/error.ctp:35
+#: Template/Layout/error.ctp:35 Template/Error/error400.ctp:36
+#: Template/Error/error500.ctp:41
 msgid "Error"
 msgstr ""
 
@@ -1326,14 +1266,6 @@ msgstr ""
 
 #: Template/Layout/frontend_ripple.ctp:44
 msgid "Community Server in Entwicklung"
-msgstr ""
-
-#: Template/Layout/frontend_ripple.ctp:121
-msgid "Datenschutzerklärung"
-msgstr ""
-
-#: Template/Layout/frontend_ripple.ctp:122
-msgid "Impressum"
 msgstr ""
 
 #: Template/OperatorTypes/add.ctp:10 Template/OperatorTypes/edit.ctp:16
@@ -1434,7 +1366,7 @@ msgstr ""
 
 #: Template/ServerUsers/login.ctp:13
 msgid "Please enter your username and password"
-msgstr "Bitte gebe deinen Benutzernamen und dein Passwort ein"
+msgstr ""
 
 #: Template/ServerUsers/login.ctp:17
 msgid "Login"
@@ -1996,12 +1928,20 @@ msgstr ""
 msgid "State Users"
 msgstr ""
 
-#: Template/StateUsers/search.ctp:44
+#: Template/StateUsers/search.ctp:24
 msgid "Vorname oder Nachname oder E-Mail"
 msgstr ""
 
-#: Template/StateUsers/search.ctp:45
+#: Template/StateUsers/search.ctp:25
 msgid "Datenbank durchsuchen"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:38
+msgid "Benutzer gefunden"
+msgstr ""
+
+#: Template/StateUsers/search.ctp:73
+msgid "Keine Benutzer gefunden"
 msgstr ""
 
 #: Template/StateUsers/view.ctp:11
@@ -2170,11 +2110,11 @@ msgid "Add Transaction Send Coin"
 msgstr ""
 
 #: Template/TransactionSendCoins/create.ctp:29
-msgid "Empfänger"
+msgid "Betrag in GDD"
 msgstr ""
 
 #: Template/TransactionSendCoins/create.ctp:31
-msgid "Betrag in GDD"
+msgid "Empfänger"
 msgstr ""
 
 #: Template/TransactionSendCoins/create.ctp:32
@@ -2254,10 +2194,6 @@ msgstr ""
 msgid "Transactions"
 msgstr ""
 
-#: Template/Transactions/send_to_node.ctp:8
-msgid "Transaktionen an Gradido-Node senden"
-msgstr ""
-
 #: Template/Transactions/view.ctp:11
 msgid "Delete Transaction"
 msgstr ""
@@ -2276,4 +2212,12 @@ msgstr ""
 
 #: Template/Transactions/view.ctp:240
 msgid "Pubkey"
+msgstr ""
+
+#: Template/Error/error400.ctp:37
+msgid "The requested address {0} was not found on this server."
+msgstr ""
+
+#: Template/Error/error500.ctp:39
+msgid "An Internal Error Has Occurred"
 msgstr ""
