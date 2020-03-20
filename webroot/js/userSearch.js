@@ -8121,7 +8121,7 @@ var _default = {
       },
       todo: {
         title: 'Wenn der Benutzer seine Passphrase hat, kann er sein Konto auf dem Login-Server wiederherstellen, ansonsten bleibt eigentlich nur das Konto auf dem Gemeinschafts-Server zu löschen',
-        lines: ['Nachdem das Konto auf dem Login-Server kopiert wurde, bekommt der Benutzer automatisch eine E-Mail mit einem Link zur Kontoaktivierung zugeschickt.', '{{copy-from-community-to-login-server}}', '{{user-transactions-overview}}', 'Es wird nur der Benutzer gelöscht, nicht seine Transaktionen. Zu diesen hat er wieder Zugriff wenn er sein Konto mit Hilfe seiner Passphrase wiederherstellt.', '{{delete-from-community-server}}']
+        lines: ['Nachdem das Konto auf dem Login-Server kopiert wurde, bekommt der Benutzer automatisch eine E-Mail mit einem Link zur Kontoaktivierung zugeschickt.', '{{copy-from-community-to-login-server}}', '<hr>', 'Es wird nur der Benutzer gelöscht, nicht seine Transaktionen. Zu diesen hat er wieder Zugriff wenn er sein Konto mit Hilfe seiner Passphrase wiederhergestellt hat.', '{{user-transactions-overview}}', '{{delete-from-community-server}}']
       }
     },
     'email activated': {
@@ -8132,7 +8132,7 @@ var _default = {
         lines: ['+', '+', '+', '-', '-']
       },
       todo: {
-        title: 'Das Benutzer Konto müsste vom Login-Server auf den Community-Server kopiert werden.',
+        title: 'Das Benutzer Konto müsste vom Login-Server auf den Gemeinschafts-Server kopiert werden.',
         lines: ['{{copy-from-login-to-community-server}}']
       }
     },
@@ -8201,9 +8201,18 @@ var _default = {
   CREATED: 'Erstellt',
   COPY_FROM_LOGIN_TO_COMMUNITY: 'Vom Login-Server zum Gemeinschafts-Server kopieren',
   COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS: 'Kontodaten wurden erfolgreich vom Login-Server zu diesem Gemeinschafts-Server kopiert!',
+  COPY_FROM_COMMUNITY_TO_LOGIN: 'Vom Gemeinschafts-Server zum Login-Server kopieren',
+  COPY_FROM_COMMUNITY_TO_LOGIN_SUCCESS: 'Kontodaten wurden erfolgreich vom Gemeinschafts-Server zum Login-Server kopiert!',
+  DELETE_FROM_COMMUNITY: 'Benutzer Konto vom Gemeinschafts-Server löschen',
+  DELETE_FROM_COMMUNITY_SUCCESS: 'Benutzer Konto vom Gemeinschafts-Server erfolgreich gelöscht',
   COPY_FAILED: 'Fehler beim Kopieren',
+  DELETE_FAILED: 'Fehler beim löschen',
   AJAX_CRITICAL: 'Kritischer Fehler beim Ajax-Request',
-  COPY_IN_PROGRESS: 'Wird kopiert'
+  COPY_IN_PROGRESS: 'Wird kopiert',
+  DELETE_IN_PROGRESS: 'Wird gelöscht',
+  RECEIVE_TRANSACTIONS_COUNT: 'Erhaltene Transaktionen: ',
+  SENDED_TRANSACTIONS_COUNT: 'gesendete Transaktionen: ',
+  CREATION_TRANSACTIONS_COUNT: 'erhaltende Schöpfungs-Transaktionen: '
 };
 exports["default"] = _default;
 
@@ -8272,7 +8281,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../model/AccountState":12,"./userTable":17,"mithril":3}],15:[function(require,module,exports){
+},{"../model/AccountState":12,"./userTable":20,"mithril":3}],15:[function(require,module,exports){
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -8281,6 +8290,102 @@ exports["default"] = _default;
 "use strict";
 
 },{}],16:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * @author: Dario Rekowski
+ * 
+ * @date: 22.01.20
+ *  
+ * @brief: copy Account from Login-Server to Community-Server Button and ajax request
+ */
+function oninit(vnode) {
+  vnode.state.loading = false;
+  vnode.state.message = null;
+  vnode.state.showDialog = false;
+  vnode.state.copyResult = null;
+}
+
+function cleanMessage(vnode) {
+  vnode.state.message = null;
+  vnode.state.showDialog = false;
+
+  if (vnode.state.copyResult === 'success' && typeof vnode.attrs.updateState === 'function') {
+    vnode.attrs.updateState('account copied to community');
+  } //
+
+}
+
+function click(vnode) {
+  vnode.state.loading = true;
+  vnode.state.showDialog = true; //ajaxCopyLoginToCommunity
+
+  _mithril["default"].request({
+    method: 'POST',
+    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxCopyCommunityToLogin',
+    data: vnode.attrs.user,
+    headers: {
+      'X-CSRF-Token': csfr_token
+    }
+  }).then(function (result) {
+    vnode.state.loading = false;
+
+    if (result.state === 'success') {
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.COPY_FROM_COMMUNITY_TO_LOGIN_SUCCESS);
+      vnode.state.copyResult = 'success';
+    } else {
+      //console.log("result error")
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.COPY_FAILED);
+      vnode.state.copyResult = 'error';
+    }
+  })["catch"](function (e) {
+    vnode.state.loading = false;
+    vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
+    vnode.state.copyResult = 'critical error';
+    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
+  });
+}
+
+function view(vnode) {
+  // btn btn-primary
+  // mdi mdi-content-copy
+  // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+  //console.log('draw view')
+  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
+    title: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN,
+    onclick: function onclick(e) {
+      click(vnode);
+    },
+    disabled: vnode.state.loading === true
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_COMMUNITY_TO_LOGIN]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
+    title: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN,
+    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), window.texte.COPY_IN_PROGRESS]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
+    dismiss: function dismiss(e) {
+      cleanMessage(vnode);
+    }
+  }) : null]);
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8355,7 +8460,7 @@ function view(vnode) {
   // mdi mdi-content-copy
   // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
   //console.log('draw view')
-  return (0, _mithril["default"])('p', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
+  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
     title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
     onclick: function onclick(e) {
       click(vnode);
@@ -8376,7 +8481,178 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],17:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],18:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * @author: Dario Rekowski
+ * 
+ * @date: 23.01.20
+ *  
+ * @brief: delete user from Community-Server Button and ajax request
+ */
+function oninit(vnode) {
+  vnode.state.loading = false;
+  vnode.state.message = null;
+  vnode.state.showDialog = false;
+  vnode.state.copyResult = null;
+}
+
+function cleanMessage(vnode) {
+  vnode.state.message = null;
+  vnode.state.showDialog = false;
+
+  if (vnode.state.copyResult === 'success' && typeof vnode.attrs.deleteUser === 'function') {
+    vnode.attrs.deleteUser();
+  } //
+
+}
+
+function click(vnode) {
+  vnode.state.loading = true;
+  vnode.state.showDialog = true; //ajaxCopyLoginToCommunity
+
+  _mithril["default"].request({
+    method: 'POST',
+    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxDelete',
+    data: vnode.attrs.user,
+    headers: {
+      'X-CSRF-Token': csfr_token
+    }
+  }).then(function (result) {
+    vnode.state.loading = false;
+
+    if (result.state === 'success') {
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS);
+      vnode.state.copyResult = 'success';
+    } else {
+      //console.log("result error")
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.DELETE_FAILED);
+      vnode.state.copyResult = 'error';
+    }
+  })["catch"](function (e) {
+    vnode.state.loading = false;
+    vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
+    vnode.state.copyResult = 'critical error';
+    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
+  });
+}
+
+function view(vnode) {
+  // btn btn-primary
+  // mdi mdi-content-copy
+  // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+  //console.log('draw view')
+  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
+    title: window.texte.DELETE_FROM_COMMUNITY,
+    onclick: function onclick(e) {
+      click(vnode);
+    },
+    disabled: vnode.state.loading === true
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-delete')), window.texte.DELETE_FROM_COMMUNITY]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
+    title: window.texte.DELETE_FROM_COMMUNITY,
+    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), window.texte.DELETE_IN_PROGRESS]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
+    dismiss: function dismiss(e) {
+      cleanMessage(vnode);
+    }
+  }) : null]);
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],19:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * @author: Dario Rekowski
+ * 
+ * @date: 23.01.20
+ *  
+ * @brief: count transactions from users and calculate/take balance
+ */
+function oninit(vnode) {
+  vnode.state.loading = true;
+  vnode.state.results = null;
+  vnode.state.copyResult = false;
+
+  _mithril["default"].request({
+    method: 'POST',
+    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxCountTransactions',
+    data: vnode.attrs.user,
+    headers: {
+      'X-CSRF-Token': csfr_token
+    }
+  }).then(function (result) {
+    vnode.state.loading = false;
+
+    if (result.state === 'success') {
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS);
+      vnode.state.copyResult = 'success';
+      vnode.state.results = result.counts;
+    } else {
+      //console.log("result error")
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.DELETE_FAILED);
+      vnode.state.copyResult = 'error';
+    }
+  })["catch"](function (e) {
+    vnode.state.loading = false;
+    vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
+    vnode.state.copyResult = 'critical error';
+    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
+  });
+}
+
+function getField(vnode, index) {
+  if (null === vnode.state.results) {
+    return (0, _mithril["default"])('i.spinner-border.spinner-border-sm');
+  } else if (index in vnode.state.results) {
+    return vnode.state.results[index];
+  } else {
+    return '0';
+  }
+}
+
+function view(vnode) {
+  return (0, _mithril["default"])('span', [window.texte.RECEIVE_TRANSACTIONS_COUNT, getField(vnode, 'receive'), ', ', window.texte.SENDED_TRANSACTIONS_COUNT, getField(vnode, 'sended'), ', ', window.texte.CREATION_TRANSACTIONS_COUNT, getField(vnode, 'creation')]);
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8411,10 +8687,16 @@ function openButtonClick(vnode, index) {
 }
 
 function updateStateForActiveUser(newState, vnode) {
-  console.log('updateStateForActiveUser');
-
+  //console.log('updateStateForActiveUser')
   if (-1 !== vnode.state.openedUser) {
     vnode.state.orderedUsers[vnode.state.openedUser].indicator.name = newState;
+    vnode.state.openedUser = -1;
+  }
+}
+
+function deleteActiveUser(vnode) {
+  if (-1 !== vnode.state.openedUser) {
+    vnode.state.orderedUsers.splice(vnode.state.openedUser, 1);
     vnode.state.openedUser = -1;
   }
 }
@@ -8436,6 +8718,9 @@ function view(vnode) {
       user: value,
       updateState: function updateState(newState) {
         updateStateForActiveUser(newState, vnode);
+      },
+      deleteUser: function deleteUser() {
+        deleteActiveUser(vnode);
       }
     }) : null //m(rowAction, {user:value})
     ];
@@ -8448,7 +8733,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./rowAction":18,"./rowView":19,"mithril":3}],18:[function(require,module,exports){
+},{"./rowAction":21,"./rowView":22,"mithril":3}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8459,6 +8744,12 @@ exports["default"] = void 0;
 var _mithril = _interopRequireDefault(require("mithril"));
 
 var _copyLoginCommunity = _interopRequireDefault(require("./actions/copyLoginCommunity"));
+
+var _deleteCommunityServer = _interopRequireDefault(require("./actions/deleteCommunityServer"));
+
+var _userTransactionsOverview = _interopRequireDefault(require("./actions/userTransactionsOverview"));
+
+var _copyCommunityLogin = _interopRequireDefault(require("./actions/copyCommunityLogin"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -8473,6 +8764,15 @@ function getAction(name) {
   switch (name) {
     case 'copy-from-login-to-community-server':
       return _copyLoginCommunity["default"];
+
+    case 'delete-from-community-server':
+      return _deleteCommunityServer["default"];
+
+    case 'user-transactions-overview':
+      return _userTransactionsOverview["default"];
+
+    case 'copy-from-community-to-login-server':
+      return _copyCommunityLogin["default"];
   }
 
   return null;
@@ -8486,7 +8786,9 @@ function view(vnode) {
   }, [(0, _mithril["default"])('p', todo.title), lines.length > 0 ? (0, _mithril["default"])('ul', [lines.map(function (value) {
     var matches = value.match(checkTodoAction); //console.log(matches)
 
-    if (!matches) {
+    if (value === '<hr>') {
+      return _mithril["default"].trust('</ul><hr><ul>');
+    } else if (!matches) {
       return (0, _mithril["default"])('li', value);
     } else {
       var acc = getAction(matches[1]);
@@ -8495,7 +8797,8 @@ function view(vnode) {
         //return m(acc, {user:vnode.attrs.user})
         return (0, _mithril["default"])('li', (0, _mithril["default"])(acc, {
           user: vnode.attrs.user,
-          updateState: vnode.attrs.updateState
+          updateState: vnode.attrs.updateState,
+          deleteUser: vnode.attrs.deleteUser
         }));
       } else {
         return (0, _mithril["default"])('li', value);
@@ -8510,7 +8813,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./actions/copyLoginCommunity":16,"mithril":3}],19:[function(require,module,exports){
+},{"./actions/copyCommunityLogin":16,"./actions/copyLoginCommunity":17,"./actions/deleteCommunityServer":18,"./actions/userTransactionsOverview":19,"mithril":3}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8552,6 +8855,7 @@ function view(vnode) {
 
   if (status.hasActions()) {
     actionColor = status.getRawColor();
+    actionColor = 'primary';
   }
 
   var buttonState = 'down';
