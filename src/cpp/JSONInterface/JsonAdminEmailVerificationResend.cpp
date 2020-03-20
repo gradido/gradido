@@ -6,6 +6,7 @@
 #include "../SingletonManager/EmailManager.h"
 
 #include "../controller/User.h"
+#include "../controller/EmailVerificationCode.h"
 
 Poco::JSON::Object* JsonAdminEmailVerificationResend::handle(Poco::Dynamic::Var params)
 {
@@ -112,8 +113,21 @@ Poco::JSON::Object* JsonAdminEmailVerificationResend::handle(Poco::Dynamic::Var 
 				if (userModel->getRole() == model::table::ROLE_ADMIN) {
 					auto receiverUser = controller::User::create();
 					if (1 == receiverUser->load(email)) {
-						em->addEmail(new model::Email(receiverUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND));
-						result->set("state", "success");
+						if (!receiverUser->getModel()->isEmailChecked()) {
+							auto emailVerification = controller::EmailVerificationCode::create(receiverUser->getModel()->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+							if (!emailVerification.isNull()) {
+								em->addEmail(new model::Email(emailVerification, receiverUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND));
+								result->set("state", "success");
+							}
+							else {
+								result->set("state", "error");
+								result->set("msg", "no email verification code found");
+							}
+						}
+						else {
+							result->set("state", "error");
+							result->set("msg", "account already active");
+						}
 					}
 					else {
 						result->set("state", "error");
