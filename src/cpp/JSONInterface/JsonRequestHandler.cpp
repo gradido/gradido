@@ -8,7 +8,7 @@
 
 #include "Poco/JSON/Parser.h"
 
-
+#include "../lib/DataTypeConverter.h"
 
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
@@ -28,16 +28,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	if (method == "POST" || method == "PUT") {
 		// extract parameter from request
 		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream);
-		//Poco::JSON::Parser jsonParser;
-
-		/*try {
-			auto params = jsonParser.parse(request_stream);
-			// call logic
-			json_result = handle(params);
-		}
-		catch (Poco::Exception& ex) {
-			printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
-		}*/
+	
 		if (parsedResult.size() != 0) {
 			json_result = handle(parsedResult);
 		}
@@ -89,3 +80,33 @@ Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream&
 	}
 	return Poco::Dynamic::Var();
 }
+
+Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string details)
+{
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "error");
+	result->set("msg", msg);
+	if (details != "") {
+		result->set("details", details);
+	}
+	return result;
+}
+
+Poco::JSON::Object* JsonRequestHandler::stateSuccess()
+{
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "success");
+	return result;
+}
+
+Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, const char* msg, std::string details/* = ""*/)
+{
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", state);
+	result->set("msg", msg);
+	if (details != "") {
+		result->set("details", details);
+	}
+	return result;
+}
+

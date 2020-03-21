@@ -3,6 +3,14 @@
 
 #include "JsonRequestHandler.h"
 
+/*!
+ * @author Dario Rekowski
+ * @date 2020-03-21
+ * @brief call to get more infos about user
+ *
+ * works only for admins
+ */
+
 class JsonGetUserInfos : public JsonRequestHandler
 {
 public:

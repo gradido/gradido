@@ -2,35 +2,37 @@
 
 namespace DataTypeConverter
 {
-	int strToInt(const std::string& input)
+	NumberParseState strToInt(const std::string& input, int& result)
 	{
 		try {
-			return stoi(input);
+			result = stoi(input);
+			return NUMBER_PARSE_OKAY;
 		}
-		catch (const std::invalid_argument& ia) {
-			result->set("state", "error");
-			result->set("msg", "error parsing query params, invalid argument: ");
-			result->set("details", ia.what());
-			return result;
+		catch (const std::invalid_argument& ia) 
+		{
+			printf("[strToInt] exception: invalid argument: %s\n", ia.what());
+			return NUMBER_PARSE_INVALID_ARGUMENT;
 		}
-		catch (const std::out_of_range& oor) {
-			result->set("state", "error");
-			result->set("msg", "error parsing query params, Out of Range error: ");
-			result->set("details", oor.what());
-			return result;
+		catch (const std::out_of_range& oor) 
+		{
+			printf("[strToInt] exception: out or range: %s\n", oor.what());
+			return NUMBER_PARSE_OUT_OF_RANGE;
 		}
-		catch (const std::logic_error & ler) {
-			result->set("state", "error");
-			result->set("msg", "error parsing query params, Logical error: ");
-			result->set("details", ler.what());
-			return result;
+		catch (const std::logic_error & ler) 
+		{
+			printf("[strToInt] exception: logical error: %s\n", ler.what());
+			return NUMBER_PARSE_LOGIC_ERROR;
 		}
-		catch (Poco::Exception& ex) {
-			//printf("[JsonGetLogin::handle] exception: %s\n", ex.displayText().data());
-			result->set("state", "error");
-			result->set("msg", "error parsing query params, Poco Error");
-			result->set("details", ex.displayText());
-			return result;
+	}
+
+	const char* numberParseStateToString(NumberParseState state)
+	{
+		switch (state) {
+		case NUMBER_PARSE_OKAY: return "okay";
+		case NUMBER_PARSE_INVALID_ARGUMENT: return "invalid argument";
+		case NUMBER_PARSE_OUT_OF_RANGE: return "out of range";
+		case NUMBER_PARSE_LOGIC_ERROR: return "logical error";
 		}
+		return "<unknown>";
 	}
 }
