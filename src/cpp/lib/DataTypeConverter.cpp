@@ -1,5 +1,7 @@
 #include "DataTypeConverter.h"
 
+#include <stdexcept>
+
 namespace DataTypeConverter
 {
 	NumberParseState strToInt(const std::string& input, int& result)
