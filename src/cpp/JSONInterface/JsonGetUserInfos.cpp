@@ -5,6 +5,8 @@
 #include "../controller/User.h"
 #include "../controller/EmailVerificationCode.h"
 
+#include "../ServerConfig.h"
+
 Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
@@ -15,7 +17,7 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 	// incoming
 	int session_id = 0;
 	std::string email;
-	Poco::Dynamic::Var ask;
+	Poco::JSON::Array::Ptr askArray;
 
 	auto sm = SessionManager::getInstance();
 
@@ -30,7 +32,7 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		try {
 			paramJsonObject->get("email").convert(email);
 			paramJsonObject->get("session_id").convert(session_id);
-			ask = paramJsonObject->get("ask");
+			askArray = paramJsonObject->getArray("ask");
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -43,6 +45,9 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 	if (!session_id) {
 		return stateError("session_id invalid");
 	}
+	if (askArray.isNull()) {
+		return stateError("ask is zero or not an array");
+	}
 
 	auto session = sm->getSession(session_id);
 	if (!session) {
@@ -54,41 +59,41 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		return customStateError("not found", "user not found");
 	}
 	auto userModel = user->getModel();
-	if (ask.isArray()) {
-		Poco::JSON::Object* result = new Poco::JSON::Object;
-		result->set("state", "success");
-		Poco::JSON::Array  jsonErrorsArray;
-		Poco::JSON::Object jsonUser;
 
-		for (auto it = ask.begin(); it != ask.end(); it++) {
-			auto parameter = *it;
-			if (parameter.isString()) {
-				std::string parameterString;
+	
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "success");
+	Poco::JSON::Array  jsonErrorsArray;
+	Poco::JSON::Object jsonUser;
+	Poco::JSON::Object jsonServer;
+
+	for (auto it = askArray->begin(); it != askArray->end(); it++) {
+		auto parameter = *it;
+		std::string parameterString;
+		try {
+			parameter.convert(parameterString);
+			if (parameterString == "EmailVerificationCode.Register") {
 				try {
-					parameter.convert(parameterString);
-					if (parameterString == "EmailOptIn.Register") {
-						try {
-							auto emailVerificationCode = controller::EmailVerificationCode::load(
-								userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
-							);
-							jsonUser.set("verificationCode", std::to_string(emailVerificationCode->getModel()->getCode()));
-						}
-						catch (...) {
-
-						}
-
-					}
+					auto emailVerificationCode = controller::EmailVerificationCode::load(
+						userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
+					);
+					jsonUser.set("EmailVerificationCode.Register", std::to_string(emailVerificationCode->getModel()->getCode()));
 				}
 				catch (Poco::Exception& ex) {
-					jsonErrorsArray.add("ask parameter invalid");
+					printf("exception: %s\n", ex.displayText().data());
 				}
 			}
+			else if (parameterString == "loginServer.path") {
+				jsonServer.set("loginServer.path", ServerConfig::g_php_serverPath);
+			}
 		}
-		result->set("errors", jsonErrorsArray);
-		result->set("userData", jsonUser);
-		return result;
+		catch (Poco::Exception& ex) {
+			jsonErrorsArray.add("ask parameter invalid");
+		}
 	}
-	else {
-		return stateError("ask isn't a array");
-	}
+	result->set("errors", jsonErrorsArray);
+	result->set("userData", jsonUser);
+	result->set("server", jsonServer);
+	return result;
+	
 }
