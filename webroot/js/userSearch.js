@@ -7749,7 +7749,7 @@ function launch() {
   });
 })(document, window, domIsReady);
 
-},{"./texte/de":13,"./view":14,"mithril":3}],9:[function(require,module,exports){
+},{"./texte/de":14,"./view":15,"mithril":3}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7891,6 +7891,7 @@ function view(vnode) {
     role: 'document'
   }, (0, _mithril["default"])('div.modal-content', [(0, _mithril["default"])('p.grid-header', vnode.attrs.title), (0, _mithril["default"])('div.modal-body', vnode.attrs.body), (0, _mithril["default"])('div.modal-footer', [(0, _mithril["default"])('button.btn.btn-primary', {
     type: 'button',
+    disabled: vnode.attrs.btnDisabled,
     'data-dismiss': 'modal',
     onclick: vnode.attrs.dismiss
   }, 'Ok')])])));
@@ -7903,6 +7904,24 @@ var _default = {
 exports["default"] = _default;
 
 },{"mithril":3}],12:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = encode;
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+function encode(receiver, subject, body) {
+  //return encodeURIComponent(receiver + '?subject=' + subject + '&body='  + body)
+  return encodeURIComponent(receiver) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+},{}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8031,7 +8050,7 @@ function () {
 
 exports["default"] = AccountState;
 
-},{"mithril":3}],13:[function(require,module,exports){
+},{"mithril":3}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8205,18 +8224,23 @@ var _default = {
   COPY_FROM_COMMUNITY_TO_LOGIN_SUCCESS: 'Kontodaten wurden erfolgreich vom Gemeinschafts-Server zum Login-Server kopiert!',
   DELETE_FROM_COMMUNITY: 'Benutzer Konto vom Gemeinschafts-Server löschen',
   DELETE_FROM_COMMUNITY_SUCCESS: 'Benutzer Konto vom Gemeinschafts-Server erfolgreich gelöscht',
+  VERIFICATION_EMAIL_RESEND: 'Verification Email erneut zusenden',
+  VERIFICATION_EMAIL_RESEND_SUCCESS: 'Verification Email wird erneut zugestellt',
+  MAILTO_VERIFICATION_EMAIL: 'Verification Email selbst verschicken',
   COPY_FAILED: 'Fehler beim Kopieren',
   DELETE_FAILED: 'Fehler beim löschen',
+  RESEND_FAILED: 'Senden fehlgeschlagen',
   AJAX_CRITICAL: 'Kritischer Fehler beim Ajax-Request',
   COPY_IN_PROGRESS: 'Wird kopiert',
   DELETE_IN_PROGRESS: 'Wird gelöscht',
+  RESEND_IN_PROGRESS: 'Wird gesendet',
   RECEIVE_TRANSACTIONS_COUNT: 'Erhaltene Transaktionen: ',
   SENDED_TRANSACTIONS_COUNT: 'gesendete Transaktionen: ',
   CREATION_TRANSACTIONS_COUNT: 'erhaltende Schöpfungs-Transaktionen: '
 };
 exports["default"] = _default;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8281,15 +8305,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../model/AccountState":12,"./userTable":20,"mithril":3}],15:[function(require,module,exports){
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-"use strict";
-
-},{}],16:[function(require,module,exports){
+},{"../model/AccountState":13,"./userTable":23,"mithril":3}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8299,8 +8315,6 @@ exports["default"] = void 0;
 
 var _mithril = _interopRequireDefault(require("mithril"));
 
-var _actionBase = _interopRequireDefault(require("./actionBase"));
-
 var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -8308,23 +8322,24 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 /* 
  * @author: Dario Rekowski
  * 
- * @date: 22.01.20
+ * @date: 20.03.20
  *  
- * @brief: copy Account from Login-Server to Community-Server Button and ajax request
+ * @brief: Object for buttons with start an ajax request
  */
 function oninit(vnode) {
   vnode.state.loading = false;
   vnode.state.message = null;
   vnode.state.showDialog = false;
-  vnode.state.copyResult = null;
+  vnode.state.ajaxResult = null;
 }
 
 function cleanMessage(vnode) {
   vnode.state.message = null;
   vnode.state.showDialog = false;
 
-  if (vnode.state.copyResult === 'success' && typeof vnode.attrs.updateState === 'function') {
-    vnode.attrs.updateState('account copied to community');
+  if (vnode.state.ajaxResult === 'success' && typeof vnode.attrs.updateStateFunc === 'function' && typeof vnode.attrs.successState !== 'undefined') {
+    //vnode.attrs.updateState('account copied to community')
+    vnode.attrs.updateStateFunc(vnode.attrs.successState);
   } //
 
 }
@@ -8335,26 +8350,30 @@ function click(vnode) {
 
   _mithril["default"].request({
     method: 'POST',
-    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxCopyCommunityToLogin',
-    data: vnode.attrs.user,
+    url: window.location.protocol + '//' + document.domain + '/state-users/' + vnode.attrs.actionNamePHP,
+    data: vnode.attrs.ajaxData,
     headers: {
       'X-CSRF-Token': csfr_token
     }
   }).then(function (result) {
     vnode.state.loading = false;
 
-    if (result.state === 'success') {
-      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.COPY_FROM_COMMUNITY_TO_LOGIN_SUCCESS);
-      vnode.state.copyResult = 'success';
+    if (typeof vnode.attrs.ajaxHandler === 'function') {
+      vnode.attrs.ajaxHandler(result);
     } else {
-      //console.log("result error")
-      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.COPY_FAILED);
-      vnode.state.copyResult = 'error';
+      if (result.state === 'success') {
+        vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', vnode.attrs.alertSuccess);
+        vnode.state.ajaxResult = 'success';
+      } else {
+        //console.log("result error")
+        vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', vnode.attrs.alertFailed);
+        vnode.state.ajaxResult = 'error';
+      }
     }
   })["catch"](function (e) {
     vnode.state.loading = false;
     vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.AJAX_CRITICAL);
-    vnode.state.copyResult = 'critical error';
+    vnode.state.ajaxResult = 'critical error';
     console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
   });
 }
@@ -8364,15 +8383,16 @@ function view(vnode) {
   // mdi mdi-content-copy
   // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
   //console.log('draw view')
-  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
-    title: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN,
+  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.' + vnode.attrs.btnColor + '.btn-xs', {
+    title: vnode.attrs.btnTitle,
     onclick: function onclick(e) {
       click(vnode);
     },
     disabled: vnode.state.loading === true
-  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_COMMUNITY_TO_LOGIN]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
-    title: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN,
-    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), window.texte.COPY_IN_PROGRESS]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.' + vnode.attrs.btnSymbol)), vnode.attrs.btnTitle]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
+    title: vnode.attrs.btnTitle,
+    btnDisabled: vnode.state.loading,
+    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), vnode.attrs.progessText]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
     dismiss: function dismiss(e) {
       cleanMessage(vnode);
     }
@@ -8385,7 +8405,52 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],17:[function(require,module,exports){
+},{"../../../lib/dialog":11,"mithril":3}],17:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * @author: Dario Rekowski
+ * 
+ * @date: 22.01.20
+ *  
+ * @brief: copy Account from Login-Server to Community-Server Button and ajax request
+ */
+function view(vnode) {
+  // btn btn-primary
+  // mdi mdi-content-copy
+  // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+  //console.log('draw view')
+  return (0, _mithril["default"])(_actionBase["default"], {
+    updateStateFunc: vnode.attrs.updateState,
+    successState: 'email not activated',
+    actionNamePHP: 'ajaxCopyCommunityToLogin',
+    ajaxData: vnode.attrs.user,
+    alertSuccess: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN_SUCCESS,
+    alertFailed: window.texte.COPY_FAILED,
+    btnColor: 'btn-gradido-orange',
+    btnSymbol: 'mdi-content-copy',
+    btnTitle: window.texte.COPY_FROM_COMMUNITY_TO_LOGIN,
+    progessText: window.texte.COPY_IN_PROGRESS
+  });
+}
+
+var _default = {
+  view: view
+};
+exports["default"] = _default;
+
+},{"./actionBase":16,"mithril":3}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8460,19 +8525,48 @@ function view(vnode) {
   // mdi mdi-content-copy
   // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
   //console.log('draw view')
-  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-gradido-orange.btn-xs', {
-    title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
-    onclick: function onclick(e) {
-      click(vnode);
-    },
-    disabled: vnode.state.loading === true
-  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-content-copy')), window.texte.COPY_FROM_LOGIN_TO_COMMUNITY]), vnode.state.showDialog ? (0, _mithril["default"])(_dialog["default"], {
-    title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
-    body: (0, _mithril["default"])('div', [vnode.state.loading ? (0, _mithril["default"])('div', [(0, _mithril["default"])('i.spinner-border.spinner-border-sm'), _mithril["default"].trust('&nbsp;'), window.texte.COPY_IN_PROGRESS]) : null, (0, _mithril["default"])('div', vnode.state.message)]),
-    dismiss: function dismiss(e) {
-      cleanMessage(vnode);
-    }
-  }) : null]);
+  return (0, _mithril["default"])(_actionBase["default"], {
+    updateStateFunc: vnode.attrs.updateState,
+    successState: 'account copied to community',
+    actionNamePHP: 'ajaxCopyLoginToCommunity',
+    ajaxData: vnode.attrs.user,
+    alertSuccess: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY_SUCCESS,
+    alertFailed: window.texte.COPY_FAILED,
+    btnColor: 'btn-gradido-orange',
+    btnSymbol: 'mdi-content-copy',
+    btnTitle: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
+    progessText: window.texte.COPY_IN_PROGRESS
+  });
+  /*
+  
+  return m('span', [
+    m('span', [
+      m('button.btn.btn-gradido-orange.btn-xs', {
+        title:window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
+        onclick:(e) => {click(vnode)},
+        disabled: vnode.state.loading === true
+      }, 
+      vnode.state.loading === true ? 
+          m('i.spinner-border.spinner-border-sm') : 
+          m('i.mdi.mdi-content-copy')
+      ),
+      window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+    ]),
+    vnode.state.showDialog ? 
+      m(dialog, {
+        title: window.texte.COPY_FROM_LOGIN_TO_COMMUNITY,
+        body: m('div', [
+            vnode.state.loading ? 
+              m('div', [
+                m('i.spinner-border.spinner-border-sm'), 
+                m.trust('&nbsp;'), 
+                window.texte.COPY_IN_PROGRESS]
+              ) : null,
+            m('div', vnode.state.message)
+        ]),
+        dismiss: (e) => {cleanMessage(vnode)}
+      }) : null
+  ])*/
 }
 
 var _default = {
@@ -8481,7 +8575,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],18:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],19:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8577,7 +8671,127 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],19:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],20:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
+
+var _emailToLink = _interopRequireDefault(require("../../../lib/emailToLink"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * @author: Dario Rekowski
+ * 
+ * @date: 20.03.20
+ *  
+ * @brief: getting email verification code in silence
+ */
+function oninit(vnode) {
+  vnode.state.loading = true;
+  vnode.state.results = null;
+  vnode.state.additionalUserData = [];
+  vnode.state.serverData = [];
+
+  _mithril["default"].request({
+    method: 'POST',
+    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxGetUserEmailVerificationCode',
+    data: vnode.attrs.user,
+    headers: {
+      'X-CSRF-Token': csfr_token
+    }
+  }).then(function (result) {
+    vnode.state.loading = false;
+
+    if (result.state === 'success') {
+      vnode.state.copyResult = 'success';
+      vnode.state.additionalUserData = result.data.userData;
+      vnode.state.serverData = result.data.server; //console.log("ajax result: %o", result)
+    } else {//console.log("result error")
+      }
+  })["catch"](function (e) {
+    vnode.state.loading = false;
+    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
+  });
+}
+
+function getField(vnode, index) {
+  if (null === vnode.state.results) {
+    return (0, _mithril["default"])('i.spinner-border.spinner-border-sm');
+  } else if (index in vnode.state.results) {
+    return vnode.state.results[index];
+  } else {
+    return '0';
+  }
+}
+
+function view(vnode) {
+  var email = vnode.attrs.user.email;
+  var first_name = vnode.attrs.user.first_name;
+  var last_name = vnode.attrs.user.last_name;
+  var recevier = first_name + ' ' + last_name + ' <' + email + '>';
+  var userData = vnode.state.additionalUserData;
+  var serverData = vnode.state.serverData; //console.log('Server data: %o', serverData)
+  //vnode.state.additionalUserData.verificationCode
+
+  var link = serverData['loginServer.path'] + 'checkEmail/' + userData['EmailVerificationCode.Register'];
+  var body = 'Liebe(r) ' + first_name + ' ' + last_name + ',\n\
+\n\
+Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
+Du hast vor einer Weile ein Gradido Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
+\n\
+Bitte klicke zur Bestätigung auf den Link: ' + link + '\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+';
+
+  if (true === vnode.state.loading) {
+    return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-secondary.btn-xs', {
+      title: window.texte.MAILTO_VERIFICATION_EMAIL,
+      disabled: true
+    }, (0, _mithril["default"])('i.spinner-border.spinner-border-sm')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
+  } else {
+    return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('a.btn.btn-primary.btn-xs', {
+      title: window.texte.MAILTO_VERIFICATION_EMAIL,
+      href: 'mailto:' + (0, _emailToLink["default"])(recevier, 'Gradido: E-Mail Verification', body)
+    }, (0, _mithril["default"])('i.mdi.mdi-email-outline')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
+  }
+
+  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('a.btn.btn-secondary.btn-xs', {
+    title: window.texte.MAILTO_VERIFICATION_EMAIL,
+    href: 'mailto:' + (0, _emailToLink["default"])(recevier, 'Gradido: E-Mail Verification', body),
+    disabled: vnode.state.loading === true
+  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-email-outline')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
+  /*return m('span', [
+    window.texte.RECEIVE_TRANSACTIONS_COUNT,
+    getField(vnode, 'receive'),
+    ', ',
+    window.texte.SENDED_TRANSACTIONS_COUNT,
+    getField(vnode, 'sended'),
+    ', ',
+    window.texte.CREATION_TRANSACTIONS_COUNT,
+    getField(vnode, 'creation')
+  ])*/
+}
+
+var _default = {
+  view: view,
+  oninit: oninit
+};
+exports["default"] = _default;
+
+},{"../../../lib/dialog":11,"../../../lib/emailToLink":12,"./actionBase":16,"mithril":3}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8616,12 +8830,12 @@ function oninit(vnode) {
     vnode.state.loading = false;
 
     if (result.state === 'success') {
-      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS);
+      //vnode.state.message = m('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS)
       vnode.state.copyResult = 'success';
       vnode.state.results = result.counts;
     } else {
       //console.log("result error")
-      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.DELETE_FAILED);
+      //vnode.state.message  = m('div.alert.alert-danger', window.texte.DELETE_FAILED)
       vnode.state.copyResult = 'error';
     }
   })["catch"](function (e) {
@@ -8652,7 +8866,49 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],20:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],22:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _mithril = _interopRequireDefault(require("mithril"));
+
+var _actionBase = _interopRequireDefault(require("./actionBase"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+//mdi-email
+function view(vnode) {
+  // btn btn-primary
+  // mdi mdi-content-copy
+  // window.texte.COPY_FROM_LOGIN_TO_COMMUNITY
+  //console.log('draw view')
+  return (0, _mithril["default"])(_actionBase["default"], {
+    actionNamePHP: 'ajaxVerificationEmailResend',
+    ajaxData: vnode.attrs.user,
+    alertSuccess: window.texte.VERIFICATION_EMAIL_RESEND_SUCCESS,
+    alertFailed: window.texte.RESEND_FAILED,
+    btnColor: 'btn-gradido-orange',
+    btnSymbol: 'mdi-email',
+    btnTitle: window.texte.VERIFICATION_EMAIL_RESEND,
+    progessText: window.texte.RESEND_IN_PROGRESS
+  });
+}
+
+var _default = {
+  view: view
+};
+exports["default"] = _default;
+
+},{"./actionBase":16,"mithril":3}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8733,7 +8989,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./rowAction":21,"./rowView":22,"mithril":3}],21:[function(require,module,exports){
+},{"./rowAction":24,"./rowView":25,"mithril":3}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8751,6 +9007,10 @@ var _userTransactionsOverview = _interopRequireDefault(require("./actions/userTr
 
 var _copyCommunityLogin = _interopRequireDefault(require("./actions/copyCommunityLogin"));
 
+var _verificationResend = _interopRequireDefault(require("./actions/verificationResend"));
+
+var _mailtoVerificationResend = _interopRequireDefault(require("./actions/mailtoVerificationResend"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var checkTodoAction = new RegExp(/{{([a-z-]*)}}/);
@@ -8764,15 +9024,19 @@ function getAction(name) {
   switch (name) {
     case 'copy-from-login-to-community-server':
       return _copyLoginCommunity["default"];
-
-    case 'delete-from-community-server':
-      return _deleteCommunityServer["default"];
+    //case 'delete-from-community-server': return deleteCommunityServer;
 
     case 'user-transactions-overview':
       return _userTransactionsOverview["default"];
 
     case 'copy-from-community-to-login-server':
       return _copyCommunityLogin["default"];
+
+    case 'verification-resend':
+      return _verificationResend["default"];
+
+    case 'mailto-verification-resend':
+      return _mailtoVerificationResend["default"];
   }
 
   return null;
@@ -8813,7 +9077,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./actions/copyCommunityLogin":16,"./actions/copyLoginCommunity":17,"./actions/deleteCommunityServer":18,"./actions/userTransactionsOverview":19,"mithril":3}],22:[function(require,module,exports){
+},{"./actions/copyCommunityLogin":17,"./actions/copyLoginCommunity":18,"./actions/deleteCommunityServer":19,"./actions/mailtoVerificationResend":20,"./actions/userTransactionsOverview":21,"./actions/verificationResend":22,"mithril":3}],25:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8884,4 +9148,4 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":12,"mithril":3}]},{},[8]);
+},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":13,"mithril":3}]},{},[8]);

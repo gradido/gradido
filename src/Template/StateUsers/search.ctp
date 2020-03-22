@@ -68,4 +68,4 @@ $this->loadHelper('Form', [
     csfr_token = '<?= $csfr_token ?>';
   
 </script>
-<?= $this->Html->script('userSearch.min') ?>
+<?= $this->Html->script('userSearch') ?>

@@ -39,7 +39,8 @@ class StateUsersController extends AppController
         $this->loadComponent('JsonRequestClient');
         $this->Auth->allow([
             'search', 'ajaxCopyLoginToCommunity', 'ajaxCopyCommunityToLogin', 
-            'ajaxDelete', 'ajaxCountTransactions'
+            'ajaxDelete', 'ajaxCountTransactions', 'ajaxVerificationEmailResend',
+            'ajaxGetUserEmailVerificationCode'
          ]);
         
     }
@@ -112,7 +113,9 @@ class StateUsersController extends AppController
                   }
               }
               //var_dump($dataJson);
-              $loginServerUser = $dataJson['users'];
+              if(isset($dataJson['users'])) {
+                $loginServerUser = $dataJson['users'];
+              }
             }
             $pubkeySorted = [];
             $emptyPubkeys = [];
@@ -281,6 +284,60 @@ class StateUsersController extends AppController
       }
       return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
+    
+    public function ajaxVerificationEmailResend() 
+    {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode', true);
+          $email = $jsonData['email'];
+          $session_id = $session->read('session_id');
+          
+          return $this->returnJson($this->JsonRequestClient->sendRequest(json_encode([
+              'session_id' => $session_id,
+              'email' => $email
+          ]), '/adminEmailVerificationResend'));
+          /*return $this->sendRequest(json_encode([
+                'session_id' => $session_id,
+                'search' => $searchString
+            ]), '/getUsers');*/
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
+    public function ajaxGetUserEmailVerificationCode()
+    {
+      $session = $this->getRequest()->getSession();
+      $result = $this->requestLogin();
+      if($result !== true) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+      }
+      $user = $session->read('StateUser');
+      if($user['role'] != 'admin') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'not an admin']);
+      }
+      if($this->request->is('post')) {
+          $jsonData = $this->request->input('json_decode', true);
+          $email = $jsonData['email'];
+          $session_id = $session->read('session_id');
+          
+          return $this->returnJson($this->JsonRequestClient->sendRequest(json_encode([
+              'session_id' => $session_id,
+              'email' => $email,
+              'ask' => ['EmailVerificationCode.Register', 'loginServer.path']
+          ]), '/getUserInfos'));
+      }
+      return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
     
     public function ajaxDelete() 
     {
