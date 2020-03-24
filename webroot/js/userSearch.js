@@ -8743,7 +8743,7 @@ function view(vnode) {
   var serverData = vnode.state.serverData; //console.log('Server data: %o', serverData)
   //vnode.state.additionalUserData.verificationCode
 
-  var link = serverData['loginServer.path'] + 'checkEmail/' + userData['EmailVerificationCode.Register'];
+  var link = serverData['loginServer.path'] + '/checkEmail/' + userData['EmailVerificationCode.Register'];
   var body = 'Liebe(r) ' + first_name + ' ' + last_name + ',\n\
 \n\
 Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
