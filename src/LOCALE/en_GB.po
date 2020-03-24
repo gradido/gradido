@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-25 09:44+0100\n"
-"PO-Revision-Date: 2020-03-08 13:02+0100\n"
+"POT-Creation-Date: 2020-03-24 10:44+0100\n"
+"PO-Revision-Date: 2020-03-24 10:51+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
@@ -51,8 +51,8 @@ msgstr ""
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:175
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:50
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:54
-#: model/Session.cpp:157 model/Session.cpp:164 model/Session.cpp:203
-#: model/Session.cpp:228
+#: model/Session.cpp:158 model/Session.cpp:165 model/Session.cpp:204
+#: model/Session.cpp:229
 msgid "E-Mail"
 msgstr ""
 
@@ -81,7 +81,7 @@ msgid "Bitte gebe deinen E-Mail Verification Code ein:"
 msgstr "Please enter your E-Mail Verification Code:"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:98
-#: model/Session.cpp:180
+#: model/Session.cpp:181
 msgid "Email Verification Code"
 msgstr ""
 
@@ -120,10 +120,10 @@ msgstr "Please give your E-Mail Address."
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:59
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:74
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:22
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:123
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:182
-#: model/Session.cpp:485 model/Session.cpp:494 model/Session.cpp:502
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:26
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:94
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
+#: model/Session.cpp:491 model/Session.cpp:503 model/Session.cpp:511
 msgid "Passphrase"
 msgstr ""
 
@@ -144,7 +144,7 @@ msgid "Hast du dir deine Passphrase notiert oder gemerkt?"
 msgstr "Do you memorized your passphrase?"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:113
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:162
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:196
 msgid "Ja"
 msgstr "Yes"
 
@@ -176,46 +176,60 @@ msgid ""
 "gewartet?"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:23
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:27
 msgid "Neues Konto anlegen"
 msgstr "Create new Account"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:24
-msgid "3/3"
-msgstr ""
-
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:98
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:28
 msgid "2/3"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:101
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:104
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:94
+msgid ""
+"Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu "
+"generieren (lassen)."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
+msgid "intern errorm please try again later"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:129
+msgid "3/3"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:132
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:135
 msgid "1/3"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:103
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:134
 msgid "Neues Passwort anlegen"
 msgstr "Create new Password"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:119
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:154
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:153
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:188
 msgid "Was zu tun ist:"
 msgstr "What to do:"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:120
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:154
 msgid ""
 "Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um "
 "deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine "
 "Gradidos verloren."
 msgstr ""
-"Write down your passphrase and put it away well. You need it to restore "
-"your address. If you lose them, your Gradidos are lost too."
+"Write down your passphrase and put it away well. You need it to restore your "
+"address. If you lose them, your Gradidos are lost too."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:127
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:157
+msgid "Deine Passphrase (Groß/Kleinschreibung beachten)"
+msgstr "Your Passphrase"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:161
 msgid "Was ist eine Passphrase?"
 msgstr "What is a passphrase?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:128
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:162
 msgid ""
 "Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen "
 "komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen."
@@ -223,37 +237,37 @@ msgstr ""
 "The passphrase comes from the crypto area and is a way to represent a "
 "complicated cryptographic key in a legible form."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:129
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:163
 msgid ""
 "Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. "
 "Bitcoin) um maximale Sicherheit zu erreichen."
 msgstr ""
 "The new Gradido is technically based on a cryptocurrency (such as Bitcoin) "
-"to achieve maximum security."
+"to achieve maximum security for you."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:131
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:210
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:215
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:228
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:165
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:244
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:249
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:262
 msgid "Weiter"
 msgstr "Next"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:155
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:189
 msgid "Hast du dir deine Passphrase gemerkt?"
 msgstr "Do you memorized your passphrase?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:156
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:190
 msgid ""
 "Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in "
 "anderer Reihenfolge."
 msgstr ""
 "Then show me. I will give you your words in a different order as support."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:157
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:191
 msgid "Klicke sie an um sie einzusetzen."
 msgstr "Click on it to use it."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:161
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:195
 msgid ""
 "Weil du kein Javascript verwendest geht es direkt weiter. Hast du dir deine "
 "Passphrase gemerkt oder aufgeschrieben?"
@@ -261,52 +275,52 @@ msgstr ""
 "Because you don't use javascript it goes straight on. Did you remember or "
 "write down your passphrase?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:183
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:217
 msgid "Deine E-Mail Adresse wurde erfolgreich bestätigt."
 msgstr "Your email address has been successfully confirmed."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:187
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:221
 msgid "Neue Gradido Adresse anlegen / wiederherstellen"
 msgstr "Create / restore new Gradido address"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:188
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:222
 msgid ""
 "Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues "
 "anlegen?"
 msgstr ""
 "Do you want to restore an existing * Gradido account or create a new one?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:189
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:223
 msgid "*Das Konto muss nach dem 01.09.2019 angelegt worden sein."
 msgstr "* The account must have been created after September 1st, 2019."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:197
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:231
 msgid "Nein, bitte ein neues erstellen!"
 msgstr "No, please create a new one!"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:204
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:238
 msgid "Ja, bitte wiederherstellen!"
 msgstr "Yes, please restore !!"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:223
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:257
 msgid "Konto wiederherstellen / Neues Passwort anlegen"
 msgstr "Restore account / create new password"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:224
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:258
 msgid ""
 "Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu "
 "können, tippe hier bitte die Wörter deiner Passphrase in der richtigen "
 "Reihenfolge ein, welche du dir aufgeschrieben hast."
 msgstr ""
-"To restore your account and to be able to choose a new password, please "
-"type in the words of your passphrase in the correct order, which you have "
-"written down."
+"To restore your account and to be able to choose a new password, please type "
+"in the words of your passphrase in the correct order, which you have written "
+"down."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:238
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:272
 msgid "Fehler"
 msgstr "Erro"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:239
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:273
 msgid ""
 "Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende "
 "dich an den Server-Admin."
@@ -314,88 +328,91 @@ msgstr ""
 "Invalid page, if you see that something is wrong here. Please contact the "
 "server admin."
 
-#: model/Session.cpp:143 model/Session.cpp:174 model/Session.cpp:687
-#: model/Session.cpp:693 model/Session.cpp:953
+#: model/Session.cpp:144 model/Session.cpp:175 model/Session.cpp:696
+#: model/Session.cpp:702 model/Session.cpp:998
 msgid "Benutzer"
 msgstr "User"
 
-#: model/Session.cpp:143
+#: model/Session.cpp:144
 msgid "Eingeloggter Benutzer ist kein Admin"
 msgstr "Logged in user is not admin"
 
-#: model/Session.cpp:149 model/Session.cpp:195
+#: model/Session.cpp:150 model/Session.cpp:196
 msgid "Vorname"
 msgstr "Firstname"
 
-#: model/Session.cpp:149 model/Session.cpp:153 model/Session.cpp:195
-#: model/Session.cpp:199
+#: model/Session.cpp:150 model/Session.cpp:154 model/Session.cpp:196
+#: model/Session.cpp:200
 msgid ""
 "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen "
 "<>&;"
 msgstr "Please enter your Name. At least 3 Character, without <>& and ;"
 
-#: model/Session.cpp:153 model/Session.cpp:199
+#: model/Session.cpp:154 model/Session.cpp:200
 msgid "Nachname"
 msgstr "Lastname"
 
-#: model/Session.cpp:157 model/Session.cpp:203
+#: model/Session.cpp:158 model/Session.cpp:204
 msgid "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."
 msgstr "Please enter a valid email."
 
-#: model/Session.cpp:164 model/Session.cpp:228
+#: model/Session.cpp:165 model/Session.cpp:229
 msgid "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"
 msgstr "This email has an account already."
 
-#: model/Session.cpp:174 model/Session.cpp:180
+#: model/Session.cpp:175 model/Session.cpp:181
 msgid "Fehler beim speichern!"
 msgstr ""
 
-#: model/Session.cpp:373 model/Session.cpp:432 model/Session.cpp:835
-#: model/Session.cpp:843
+#: model/Session.cpp:374 model/Session.cpp:433 model/Session.cpp:874
+#: model/Session.cpp:882
 msgid "E-Mail Verification"
 msgstr ""
 
-#: model/Session.cpp:373
+#: model/Session.cpp:374
 msgid "Du hast dein Konto bereits aktiviert!"
 msgstr "You already activated your account!"
 
-#: model/Session.cpp:432
+#: model/Session.cpp:433
 msgid "Falscher Code f&uuml;r aktiven Login"
 msgstr "Wrong Code for active Login."
 
-#: model/Session.cpp:485
+#: model/Session.cpp:491
 msgid "Deine Passphrase ist ung&uuml;tig"
 msgstr ""
 
-#: model/Session.cpp:494
+#: model/Session.cpp:503
 msgid "Ein Fehler trat auf, bitte versuche es erneut"
 msgstr ""
 
-#: model/Session.cpp:502
+#: model/Session.cpp:511
 msgid "Das ist nicht die richtige Passphrase."
 msgstr "This is not the correct passphrase."
 
-#: model/Session.cpp:687
+#: model/Session.cpp:696
 msgid "Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus."
 msgstr "Couldn't connect to the community server, send E-Mail to admin."
 
-#: model/Session.cpp:693
+#: model/Session.cpp:702
 msgid ""
 "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und "
 "versuche es nochmal."
 msgstr "Error by deleting the account. Please re-login and try again."
 
-#: model/Session.cpp:835
+#: model/Session.cpp:874
 msgid "Konnte kein passendes Konto finden."
 msgstr "This Account didn't seem to exist."
 
-#: model/Session.cpp:843
+#: model/Session.cpp:882
 msgid "Fehler beim laden des Benutzers."
 msgstr ""
 
-#: model/Session.cpp:953
+#: model/Session.cpp:998
 msgid "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."
 msgstr "Invalid User, please re-login."
+
+#~ msgid "Deine Passphrase"
+#~ msgstr "Your passphrase"
 
 #~ msgid ""
 #~ "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "

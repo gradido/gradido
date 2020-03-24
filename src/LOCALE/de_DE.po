@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-25 16:36+0100\n"
-"PO-Revision-Date: 2020-03-08 13:01+0100\n"
+"POT-Creation-Date: 2020-03-24 10:44+0100\n"
+"PO-Revision-Date: 2020-03-24 10:51+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -18,137 +18,403 @@ msgstr ""
 "X-Generator: Poedit 2.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:71
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:87
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:85
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:124
 msgid "Login"
 msgstr "Anmeldung"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:71
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:85
 msgid "E-Mail or password isn't right, please try again!"
 msgstr ""
 "E-Mail und Passwort Kombination stimmen nicht, bitte versuche es erneut. "
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:74
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:88
+#, fuzzy
+#| msgid "Password"
+msgid "Passwort"
+msgstr "Passwort"
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:88
+msgid ""
+"Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:91
 msgid "Account"
 msgstr "Konto"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:74
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:91
 msgid "E-Mail Address not checked, do you already get one?"
 msgstr ""
 "E-Mail Adresse wurde noch nicht überprüft. Hast du schon in deine E-Mails "
 "geschaut? Bitte schau auch in dein Spam-Verzeichnis nach."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:87
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:124
 msgid "Username and password are needed!"
 msgstr "E-Mail und Passwort werden benötigt!"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:139
-#: model/Session.cpp:138 model/Session.cpp:162
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:175
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:50
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:54
+#: model/Session.cpp:158 model/Session.cpp:165 model/Session.cpp:204
+#: model/Session.cpp:229
 msgid "E-Mail"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:142
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:178
 msgid "Password"
 msgstr "Passwort"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:144
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:180
 msgid " Login "
 msgstr "Anmeldung"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:146
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:182
 msgid "You haven't any account yet? Please follow the link to create one."
 msgstr "Du hast noch kein Gradido-Konto?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:147
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:183
 msgid "Create New Account"
 msgstr "Neues Konto erstellen"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:92
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:186
+msgid "Passwort vergessen"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:97
 msgid "Bitte gebe deinen E-Mail Verification Code ein:"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:93
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:98
+#: model/Session.cpp:181
 #, fuzzy
 #| msgid "E-Mail Verification"
 msgid "Email Verification Code"
 msgstr "E-Mail Überprüfung"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:95
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:100
 msgid "&Uuml;berpr&uuml;fe Code"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:99
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:104
 msgid "Du hast bisher keinen Code erhalten?"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:100
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:105
 msgid "E-Mail erneut zuschicken (in Arbeit)"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:103
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:108
 msgid "Funktioniert dein E-Mail Verification Code nicht?"
 msgstr ""
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:104
-msgid "Schicke mir eine E-Mail und ich k&uuml;mmere mich darum: "
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:109
+msgid "Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: "
 msgstr ""
 
-#: model/Session.cpp:130
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:110
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:133
+msgid "E-Mail an Support schicken"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:50
+msgid "E-Mail Adresse konnte nicht gefunden werden oder ist nicht aktiviert."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:54
+msgid "E-Mail Adresse nicht angegeben."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:59
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:74
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:26
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:94
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
+#: model/Session.cpp:491 model/Session.cpp:503 model/Session.cpp:511
+msgid "Passphrase"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:59
+msgid "Bitte w&auml;hle eine Option aus."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:74
+msgid "Ung&uuml;ltige Option"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:107
+msgid "Gebe bitte hier deine E-Mail Adresse an:"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:109
+msgid "Hast du dir deine Passphrase notiert oder gemerkt?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:113
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:196
+msgid "Ja"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:118
+msgid "Nein"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:123
+msgid "Absenden"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:127
+msgid "Dir wird eine E-Mail zugeschickt um dein Passwort zur&uuml;ckzusetzen."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:129
+msgid "Der Admin hat eine E-Mail bekommen und wird sich bei dir melden."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:131
+msgid ""
+"Du hast bereits eine E-Mail bekommen. Bitte schau auch in dein Spam-"
+"Verzeichnis nach. "
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:132
+msgid ""
+"Du hast wirklich keine E-Mail erhalten und auch schon ein paar Minuten "
+"gewartet?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:27
+msgid "Neues Konto anlegen"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:28
+msgid "2/3"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:94
+msgid ""
+"Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu "
+"generieren (lassen)."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
+msgid "intern errorm please try again later"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:129
+msgid "3/3"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:132
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:135
+msgid "1/3"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:134
+msgid "Neues Passwort anlegen"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:153
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:188
+msgid "Was zu tun ist:"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:154
+msgid ""
+"Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um "
+"deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine "
+"Gradidos verloren."
+msgstr ""
+"Schreibe dir deine Passphrase auf oder drucke sie aus und bewahre sie <b>in "
+"Papier-Form</b> an einem sicheren Ort auf (speichere sie nicht auf deinem "
+"Rechner oder Mobilgerät)! Du brauchst deine Passphrase um dein Konto "
+"wiederherzustellen, wenn du mal dein Passort vergessen haben solltest. "
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:157
+msgid "Deine Passphrase (Groß/Kleinschreibung beachten)"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:161
+msgid "Was ist eine Passphrase?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:162
+msgid ""
+"Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen "
+"komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:163
+msgid ""
+"Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. "
+"Bitcoin) um maximale Sicherheit zu erreichen."
+msgstr ""
+"Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. "
+"Bitcoin) um für dich die maximale Sicherheit zu gewährleisten."
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:165
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:244
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:249
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:262
+msgid "Weiter"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:189
+msgid "Hast du dir deine Passphrase gemerkt?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:190
+msgid ""
+"Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in "
+"anderer Reihenfolge."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:191
+msgid "Klicke sie an um sie einzusetzen."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:195
+msgid ""
+"Weil du kein Javascript verwendest geht es direkt weiter. Hast du dir deine "
+"Passphrase gemerkt oder aufgeschrieben?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:217
+msgid "Deine E-Mail Adresse wurde erfolgreich bestätigt."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:221
+msgid "Neue Gradido Adresse anlegen / wiederherstellen"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:222
+msgid ""
+"Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues "
+"anlegen?"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:223
+msgid "*Das Konto muss nach dem 01.09.2019 angelegt worden sein."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:231
+msgid "Nein, bitte ein neues erstellen!"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:238
+msgid "Ja, bitte wiederherstellen!"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:257
+msgid "Konto wiederherstellen / Neues Passwort anlegen"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:258
+msgid ""
+"Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu "
+"können, tippe hier bitte die Wörter deiner Passphrase in der richtigen "
+"Reihenfolge ein, welche du dir aufgeschrieben hast."
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:272
+msgid "Fehler"
+msgstr ""
+
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:273
+msgid ""
+"Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende "
+"dich an den Server-Admin."
+msgstr ""
+
+#: model/Session.cpp:144 model/Session.cpp:175 model/Session.cpp:696
+#: model/Session.cpp:702 model/Session.cpp:998
+msgid "Benutzer"
+msgstr ""
+
+#: model/Session.cpp:144
+msgid "Eingeloggter Benutzer ist kein Admin"
+msgstr ""
+
+#: model/Session.cpp:150 model/Session.cpp:196
 msgid "Vorname"
 msgstr ""
 
-#: model/Session.cpp:130 model/Session.cpp:134
+#: model/Session.cpp:150 model/Session.cpp:154 model/Session.cpp:196
+#: model/Session.cpp:200
 msgid ""
 "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen "
 "<>&;"
 msgstr ""
 
-#: model/Session.cpp:134
+#: model/Session.cpp:154 model/Session.cpp:200
 msgid "Nachname"
 msgstr ""
 
-#: model/Session.cpp:138
+#: model/Session.cpp:158 model/Session.cpp:204
 msgid "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."
 msgstr ""
 
-#: model/Session.cpp:162
+#: model/Session.cpp:165 model/Session.cpp:229
 msgid "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"
 msgstr ""
 
-#: model/Session.cpp:210
-msgid "Gradido: E-Mail Verification"
-msgstr "Gradido: E-Mail Überprüfung"
+#: model/Session.cpp:175 model/Session.cpp:181
+msgid "Fehler beim speichern!"
+msgstr ""
 
-#: model/Session.cpp:281 model/Session.cpp:288 model/Session.cpp:560
+#: model/Session.cpp:374 model/Session.cpp:433 model/Session.cpp:874
+#: model/Session.cpp:882
 msgid "E-Mail Verification"
 msgstr "E-Mail Überprüfung"
 
-#: model/Session.cpp:281
-msgid ""
-"Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "
-"registriere dich erneut oder wende dich an den Server-Admin"
+#: model/Session.cpp:374
+msgid "Du hast dein Konto bereits aktiviert!"
 msgstr ""
-"Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder schreibe "
-"mir eine E-Mail an: coin@gradido.net."
 
-#: model/Session.cpp:288
+#: model/Session.cpp:433
 msgid "Falscher Code f&uuml;r aktiven Login"
 msgstr ""
 
-#: model/Session.cpp:421 model/Session.cpp:675
-msgid "Benutzer"
+#: model/Session.cpp:491
+msgid "Deine Passphrase ist ung&uuml;tig"
 msgstr ""
 
-#: model/Session.cpp:421
+#: model/Session.cpp:503
+msgid "Ein Fehler trat auf, bitte versuche es erneut"
+msgstr ""
+
+#: model/Session.cpp:511
+msgid "Das ist nicht die richtige Passphrase."
+msgstr ""
+
+#: model/Session.cpp:696
+msgid "Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus."
+msgstr ""
+
+#: model/Session.cpp:702
 msgid ""
 "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und "
 "versuche es nochmal."
 msgstr ""
 
-#: model/Session.cpp:560
-msgid "Konnte keinen passenden Account finden."
+#: model/Session.cpp:874
+msgid "Konnte kein passendes Konto finden."
 msgstr ""
 
-#: model/Session.cpp:675
+#: model/Session.cpp:882
+msgid "Fehler beim laden des Benutzers."
+msgstr ""
+
+#: model/Session.cpp:998
 msgid "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."
 msgstr ""
+
+#~ msgid "Gradido: E-Mail Verification"
+#~ msgstr "Gradido: E-Mail Überprüfung"
+
+#~ msgid ""
+#~ "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "
+#~ "registriere dich erneut oder wende dich an den Server-Admin"
+#~ msgstr ""
+#~ "Der Code stimmt nicht, bitte &uuml;berpr&uuml;fe ihn nochmal oder "
+#~ "schreibe mir eine E-Mail an: coin@gradido.net."

@@ -149,15 +149,15 @@ enum PageState
 		<div class="form-group row showcase_row_area">
 			<form method="POST" action="<%= uri_start %>/passphrase">
 			  <div class="col-md-12 col-lg-12 ">
-				<div class="alert alert-orange">
+				<div class="alert">
 				  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
 				  <p><%= gettext("Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.") %></p>
 				</div>
 				<div class="col-lg-12 col-md-12 mx-auto alert alert-primary" style="text-align:center">
-				  <h5 class="alert-heading"><%= gettext("Passphrase") %></h5>
+				  <h5 class="alert-heading"><%= gettext("Deine Passphrase (Groß/Kleinschreibung beachten)") %>:</h5>
 				  <p><%= mSession->getPassphrase() %></p>
 				</div>
-				<div class="alert alert-secondary">
+				<div class="alert">
 				  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
 				  <p><%= gettext("Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen.") %></p>
 				  <p><%= gettext("Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.") %></p>
@@ -184,7 +184,7 @@ enum PageState
 				  <div class="form-group row showcase_row_area">
 					<form method="POST" action="<%= uri_start %>/passphrase">
 						<div class="col-md-12 col-lg-12 ">
-						  <div class="alert alert-orange">
+						  <div class="alert">
 							<h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
 							<p><%= gettext("Hast du dir deine Passphrase gemerkt?") %></p>
 							<p><%= gettext("Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in anderer Reihenfolge.") %><p>
@@ -217,7 +217,7 @@ enum PageState
 			  <p><%= gettext("Deine E-Mail Adresse wurde erfolgreich bestätigt.") %></p>
 			</div>
 			<form method="POST" action="<%= uri_start %>/passphrase">
-				<div class="alert alert-orange">
+				<div class="alert">
 				  <h5 class="alert-heading"><%= gettext("Neue Gradido Adresse anlegen / wiederherstellen") %></h5>
 				  <p><%= gettext("Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues anlegen?") %></p>
 				  <p><%= gettext("*Das Konto muss nach dem 01.09.2019 angelegt worden sein.") %></p>
@@ -225,14 +225,14 @@ enum PageState
 				<div class="row">
 					<div class="col-md-9">
 						<div class="form-group">
-							<div class="radio alert-orange">
+							<div class="radio">
 								<label for="passphrase-new-yes" class="radio-label mr-4">
 									<input id="passphrase-new-yes" name="passphrase" type="radio" value="yes" checked/>
 									<%= gettext("Nein, bitte ein neues erstellen!") %>
 									<i class="input-frame"></i>
 								</label>
 							</div>
-							<div class="radio alert-orange">
+							<div class="radio">
 								<label for="passphrase-new-no" class="radio-label mr-4">
 									<input id="passphrase-new-no" name="passphrase" type="radio" value="no"/>
 									<%= gettext("Ja, bitte wiederherstellen!") %>

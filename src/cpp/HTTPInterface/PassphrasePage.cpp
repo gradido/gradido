@@ -315,7 +315,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << ( uri_start );
 	responseStream << "/passphrase\">\n";
 	responseStream << "\t\t\t  <div class=\"col-md-12 col-lg-12 \">\n";
-	responseStream << "\t\t\t\t<div class=\"alert alert-orange\">\n";
+	responseStream << "\t\t\t\t<div class=\"alert\">\n";
 	responseStream << "\t\t\t\t  <h5 class=\"alert-heading\">";
 #line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( gettext("Was zu tun ist:") );
@@ -328,14 +328,14 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<div class=\"col-lg-12 col-md-12 mx-auto alert alert-primary\" style=\"text-align:center\">\n";
 	responseStream << "\t\t\t\t  <h5 class=\"alert-heading\">";
 #line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
-	responseStream << ( gettext("Passphrase") );
-	responseStream << "</h5>\n";
+	responseStream << ( gettext("Deine Passphrase (Groß/Kleinschreibung beachten)") );
+	responseStream << ":</h5>\n";
 	responseStream << "\t\t\t\t  <p>";
 #line 158 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( mSession->getPassphrase() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t\t</div>\n";
-	responseStream << "\t\t\t\t<div class=\"alert alert-secondary\">\n";
+	responseStream << "\t\t\t\t<div class=\"alert\">\n";
 	responseStream << "\t\t\t\t  <h5 class=\"alert-heading\">";
 #line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( gettext("Was ist eine Passphrase?") );
@@ -382,7 +382,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << ( uri_start );
 	responseStream << "/passphrase\">\n";
 	responseStream << "\t\t\t\t\t\t<div class=\"col-md-12 col-lg-12 \">\n";
-	responseStream << "\t\t\t\t\t\t  <div class=\"alert alert-orange\">\n";
+	responseStream << "\t\t\t\t\t\t  <div class=\"alert\">\n";
 	responseStream << "\t\t\t\t\t\t\t<h5 class=\"alert-heading\">";
 #line 188 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( gettext("Was zu tun ist:") );
@@ -452,7 +452,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 #line 219 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/passphrase\">\n";
-	responseStream << "\t\t\t\t<div class=\"alert alert-orange\">\n";
+	responseStream << "\t\t\t\t<div class=\"alert\">\n";
 	responseStream << "\t\t\t\t  <h5 class=\"alert-heading\">";
 #line 221 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( gettext("Neue Gradido Adresse anlegen / wiederherstellen") );
@@ -469,7 +469,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"col-md-9\">\n";
 	responseStream << "\t\t\t\t\t\t<div class=\"form-group\">\n";
-	responseStream << "\t\t\t\t\t\t\t<div class=\"radio alert-orange\">\n";
+	responseStream << "\t\t\t\t\t\t\t<div class=\"radio\">\n";
 	responseStream << "\t\t\t\t\t\t\t\t<label for=\"passphrase-new-yes\" class=\"radio-label mr-4\">\n";
 	responseStream << "\t\t\t\t\t\t\t\t\t<input id=\"passphrase-new-yes\" name=\"passphrase\" type=\"radio\" value=\"yes\" checked/>\n";
 	responseStream << "\t\t\t\t\t\t\t\t\t";
@@ -479,7 +479,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t\t\t\t\t\t<i class=\"input-frame\"></i>\n";
 	responseStream << "\t\t\t\t\t\t\t\t</label>\n";
 	responseStream << "\t\t\t\t\t\t\t</div>\n";
-	responseStream << "\t\t\t\t\t\t\t<div class=\"radio alert-orange\">\n";
+	responseStream << "\t\t\t\t\t\t\t<div class=\"radio\">\n";
 	responseStream << "\t\t\t\t\t\t\t\t<label for=\"passphrase-new-no\" class=\"radio-label mr-4\">\n";
 	responseStream << "\t\t\t\t\t\t\t\t\t<input id=\"passphrase-new-no\" name=\"passphrase\" type=\"radio\" value=\"no\"/>\n";
 	responseStream << "\t\t\t\t\t\t\t\t\t";
