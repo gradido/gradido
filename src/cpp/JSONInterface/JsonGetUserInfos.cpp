@@ -77,6 +77,11 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 					auto emailVerificationCode = controller::EmailVerificationCode::load(
 						userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
 					);
+					if (!emailVerificationCode) {
+						emailVerificationCode = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+						UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
+						insert->scheduleTask(insert);
+					}
 					jsonUser.set("EmailVerificationCode.Register", std::to_string(emailVerificationCode->getModel()->getCode()));
 				}
 				catch (Poco::Exception& ex) {
