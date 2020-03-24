@@ -84,7 +84,7 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 				}
 			}
 			else if (parameterString == "loginServer.path") {
-				jsonServer.set("loginServer.path", ServerConfig::g_php_serverPath);
+				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
 			}
 		}
 		catch (Poco::Exception& ex) {
