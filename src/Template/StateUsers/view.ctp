@@ -54,17 +54,18 @@
                 <th scope="col"><?= __('Transaction') ?></th>
                 <th scope="col"><?= __('Erhalten') ?></th>
                 <th scope="col"><?= __('Betrag') ?></th>
-                <th scope="col"><?= __('Ident Hash') ?></th>
+                <th scope="col"><?= __('Verwendungszweck') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
             <?php foreach ($stateUser->transaction_creations as $transactionCreations): //var_dump($transactionCreations); 
               $txHash = bin2hex(stream_get_contents($transactionCreations->transaction->tx_hash));
+              $memo = $transactionCreations->transaction->memo;
               ?>
             <tr>
                 <td><?= $this->Html->link(substr($txHash, 0, 12) . '...', ['controller' => 'Transactions', 'action' => 'view', $transactionCreations->transaction_id], ['title' => $txHash] ) ?></td>
                 <td><?= h($transactionCreations->transaction->received) ?></td>
                 <td><?= $this->element('printGradido', ['number' =>$transactionCreations->amount]) ?></td>
-                <td><?= h(substr(bin2hex(stream_get_contents($transactionCreations->ident_hash)), 0, 6)) ?></td>
+                <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionCreations', 'action' => 'view', $transactionCreations->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionCreations', 'action' => 'edit', $transactionCreations->id]) ?>
