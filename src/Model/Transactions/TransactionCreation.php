@@ -113,7 +113,7 @@ class TransactionCreation extends TransactionBase {
           return $q->where(
                   ['OR' => 
                       ['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())',
-                       'EXTRACT(YEAR_MONTH FROM DATE_ADD(Transactions.received, INTERVAL 1 MONTH)) LIKE EXTRACT(YEAR_MONTH FROM NOW())']
+                       'EXTRACT(YEAR_MONTH FROM DATE_ADD(Transactions.received, INTERVAL 2 MONTH)) LIKE EXTRACT(YEAR_MONTH FROM NOW())']
                   ])->select('received');
       });
       //debug($existingCreations);
@@ -126,8 +126,8 @@ class TransactionCreation extends TransactionBase {
           $newSum += $creation->amount;
         }
       }
-      if($newSum > 20000000) {
-        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (2 Month) not allowed');
+      if($newSum > 30000000) {
+        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
         return false;
       }
       //die("\n");

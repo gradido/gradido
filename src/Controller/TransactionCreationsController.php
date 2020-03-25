@@ -197,9 +197,9 @@ class TransactionCreationsController extends AppController
         $connection = ConnectionManager::get('default');
         $transactionActiveMonth = $connection->execute(
                 'SELECT id, received FROM transactions '
-                . 'where received >= date_sub(date_add(curdate(), interval 1 - day(curdate()) day), interval 1 month) '
+                . 'where received >= date_sub(date_add(curdate(), interval 1 - day(curdate()) day), interval 2 month) '
                 . 'AND '
-                . 'received < date_add(date_add(curdate(), interval 1 - day(curdate()) day), interval 1 month) '
+                . 'received < date_add(date_add(curdate(), interval 1 - day(curdate()) day), interval 2 month) '
                 . 'AND '
                 . 'transaction_type_id = 1'
         )->fetchAll('assoc');
