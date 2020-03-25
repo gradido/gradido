@@ -77,7 +77,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
       <?php if($disable != null) : ?>
         <span style="color:grey" title="Du kannst leider nicht für dich selbst schöpfen.">
       <?php endif; ?>
-          <a target="_blank" href="/state-users/view/<?= $possibleReceiver['id'] ?>">
+          <a style="color:black;text-decoration: none;" target="_blank" href="/state-users/view/<?= $possibleReceiver['id'] ?>">
       <?= $possibleReceiver['name'] ?>   
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;
