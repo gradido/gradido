@@ -210,19 +210,19 @@
                 <th scope="col"><?= __('Sender Final Balance') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
-            <?php foreach ($transaction->transaction_send_coins as $transactionSendCoins): ?>
+            <?php foreach ($transaction->transaction_send_coins as $transactionReceiveCoins): ?>
             <tr>
-                <td><?= h($transactionSendCoins->id) ?></td>
-                <td><?= h($transactionSendCoins->transaction_id) ?></td>
-                <td><?= h($transactionSendCoins->state_user_id) ?></td>
-                <td><?= h($transactionSendCoins->receiver_public_key) ?></td>
-                <td><?= h($transactionSendCoins->receiver_user_id) ?></td>
-                <td><?= h($transactionSendCoins->amount) ?></td>
-                <td><?= h($transactionSendCoins->sender_final_balance) ?></td>
+                <td><?= h($transactionReceiveCoins->id) ?></td>
+                <td><?= h($transactionReceiveCoins->transaction_id) ?></td>
+                <td><?= h($transactionReceiveCoins->state_user_id) ?></td>
+                <td><?= h($transactionReceiveCoins->receiver_public_key) ?></td>
+                <td><?= h($transactionReceiveCoins->receiver_user_id) ?></td>
+                <td><?= h($transactionReceiveCoins->amount) ?></td>
+                <td><?= h($transactionReceiveCoins->sender_final_balance) ?></td>
                 <td class="actions">
-                    <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionSendCoins->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionSendCoins->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionSendCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionSendCoins->id)]) ?>
+                    <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionReceiveCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionReceiveCoins->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>

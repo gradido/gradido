@@ -4,7 +4,7 @@
  * @var \App\Model\Entity\StateUser $stateUser
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav class="large-2 medium-3 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit State User'), ['action' => 'edit', $stateUser->id]) ?> </li>
@@ -21,7 +21,7 @@
         <li><?= $this->Html->link(__('New Transaction Send Coin'), ['controller' => 'TransactionSendCoins', 'action' => 'add']) ?> </li>
     </ul>
 </nav>
-<div class="stateUsers view large-9 medium-8 columns content">
+<div class="stateUsers view large-10 medium-9 columns content">
   <h3><?= h($stateUser->first_name) ?> <?= h($stateUser->last_name) ?> &lt;<?= h($stateUser->email) ?>&gt;</h3>
     <div class="related">
         <h4><?= __('Related State Balances') ?></h4>
@@ -77,31 +77,68 @@
         <?php endif; ?>
     </div>
     <div class="related">
-        <h4><?= __('Related Transaction Send Coins') ?></h4>
+        <h4><?= __('Versendete Überweisungen') ?></h4>
         <?php if (!empty($stateUser->transaction_send_coins)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
-                <th scope="col"><?= __('Transaction') ?></th>
-                <th scope="col"><?= __('Receiver Public Key') ?></th>
-                <th scope="col"><?= __('Receiver User Id') ?></th>
-                <th scope="col"><?= __('Amount') ?></th>
-                <th scope="col"><?= __('Sender Final Balance') ?></th>
+                <th scope="col"><?= __('Überweisung') ?></th>
+                <th scope="col"><?= __('Erhalten') ?></th>
+                <th scope="col"><?= __('Empfänger ') ?></th>
+                <th scope="col"><?= __('Betrag') ?></th>
+                <th scope="col"><?= __('Verwendungszweck') ?></th>
+                <th scope="col"><?= __('Betrag nach Senden') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
-            <?php foreach ($stateUser->transaction_send_coins as $transactionSendCoins):
-              $txHash = bin2hex(stream_get_contents($transactionSendCoins->transaction->tx_hash));
+            <?php foreach ($stateUser->transaction_send_coins as $transactionReceiveCoins):
+              $txHash = bin2hex(stream_get_contents($transactionReceiveCoins->transaction->tx_hash));
+              $memo = $transactionReceiveCoins->transaction->memo;
+              //var_dump($transactionSendCoins);
               ?>
             <tr>
-                <td><?= $this->Html->link(substr($txHash, 0, 12), ['controller' => 'Transactions', 'action' => 'view', $transactionSendCoins->transaction_id]) ?></td>
-                <td><?= h($transactionSendCoins->state_user_id) ?></td>
-                <td><?= h($transactionSendCoins->receiver_public_key) ?></td>
-                <td><?= h($transactionSendCoins->receiver_user_id) ?></td>
-                <td><?= $this->element('printGradido', ['number' =>$transactionSendCoins->amount]) ?></td>
-                <td><?= h($transactionSendCoins->sender_final_balance) ?></td>
+                <td title="<?= $txHash ?>"><?= $this->Html->link(substr($txHash, 0, 12) . '...', ['controller' => 'Transactions', 'action' => 'view', $transactionReceiveCoins->transaction_id]) ?></td>
+                <td><?= h($transactionReceiveCoins->transaction->received) ?></td>
+                <td><?= $this->Html->link($transactionReceiveCoins->receiver_user->getEmailWithName(), ['controller' => 'StateUsers', 'action' => 'view', $transactionReceiveCoins->receiver_user_id]) ?></td>
+                <td><?= $this->element('printGradido', ['number' =>$transactionReceiveCoins->amount]) ?></td>
+                <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
+                <td><?= $this->element('printGradido', ['number' => $transactionReceiveCoins->sender_final_balance]) ?></td>
                 <td class="actions">
-                    <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionSendCoins->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionSendCoins->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionSendCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionSendCoins->id)]) ?>
+                    <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionReceiveCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionReceiveCoins->id)]) ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+        <?php endif; ?>
+    </div>
+  <!-- TransactionReceivedCoins -->
+    <div class="related">
+        <h4><?= __('Empfangende Überweisungen') ?></h4>
+        <?php if (!empty($stateUser->transaction_received_coins)): ?>
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th scope="col"><?= __('Überweisung') ?></th>
+                <th scope="col"><?= __('Erhalten') ?></th>
+                <th scope="col"><?= __('Sender') ?></th>
+                <th scope="col"><?= __('Betrag') ?></th>
+                <th scope="col"><?= __('Verwendungszweck') ?></th>
+                <th scope="col" class="actions"><?= __('Actions') ?></th>
+            </tr>
+            <?php foreach ($stateUser->transaction_received_coins as $transactionReceiveCoins):
+              $txHash = bin2hex(stream_get_contents($transactionReceiveCoins->transaction->tx_hash));
+              $memo = $transactionReceiveCoins->transaction->memo; 
+              //var_dump($transactionReceiveCoins);
+              ?>
+            <tr>
+                <td title="<?= $txHash ?>"><?= $this->Html->link(substr($txHash, 0, 12).'...', ['controller' => 'Transactions', 'action' => 'view', $transactionReceiveCoins->transaction_id]) ?></td>
+                <td><?= h($transactionReceiveCoins->transaction->received) ?></td>
+                <td><?= $this->Html->link($transactionReceiveCoins->state_user->getEmailWithName(), ['controller' => 'StateUsers', 'action' => 'view', $transactionReceiveCoins->state_user_id]) ?></td>
+                <td><?= $this->element('printGradido', ['number' =>$transactionReceiveCoins->amount]) ?></td>
+                <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
+                <td class="actions">
+                    <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionReceiveCoins->id]) ?>
+                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionReceiveCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionReceiveCoins->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -61,10 +61,10 @@ class StateUsersTable extends Table
         $this->hasMany('TransactionSendCoins', [
             'foreignKey' => 'state_user_id'
         ]);
-        /*$this->hasMany('TransactionReceiveCoins', [
+        $this->hasMany('TransactionReceivedCoins', [
             'className' => 'TransactionSendCoins',
             'foreignKey' => 'receiver_user_id'
-        ]);*/
+        ]);
     }
 
     /**

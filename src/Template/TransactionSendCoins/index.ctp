@@ -28,7 +28,7 @@
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($transactionSendCoins as $transactionSendCoin): ?>
+            <?php foreach ($transactionReceiveCoins as $transactionSendCoin): ?>
             <tr>
                 <td><?= $this->Number->format($transactionSendCoin->id) ?></td>
                 <td><?= $transactionSendCoin->has('transaction') ? $this->Html->link($transactionSendCoin->transaction->id, ['controller' => 'Transactions', 'action' => 'view', $transactionSendCoin->transaction->id]) : '' ?></td>
