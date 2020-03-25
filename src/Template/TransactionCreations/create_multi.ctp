@@ -77,10 +77,11 @@ $this->assign('title', __('Schöpfungstransaktion'));
       <?php if($disable != null) : ?>
         <span style="color:grey" title="Du kannst leider nicht für dich selbst schöpfen.">
       <?php endif; ?>
+          <a target="_blank" href="/state-users/view/<?= $possibleReceiver['id'] ?>">
       <?= $possibleReceiver['name'] ?>   
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;
-        <?php endif; ?><br>
+        <?php endif; ?></a><br>
         <div class="input number grd-padding-top-bottom-5">
           <?= $this->Form->text('user_amount[' . $possibleReceiver['id'] . ']', ['placeholder' => __('Für benutzerdefinierten Betrag'), 'class' => 'user_amount', 'type' => 'number', 'step' => '0.01', $disable]); ?> GDD
         </div>
