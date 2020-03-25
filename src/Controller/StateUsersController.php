@@ -443,7 +443,7 @@ class StateUsersController extends AppController
     public function view($id = null)
     {
         $stateUser = $this->StateUsers->get($id, [
-            'contain' => ['StateGroups', 'StateBalances', 'StateCreated', 'TransactionCreations', 'TransactionSendCoins']
+            'contain' => ['StateBalances', 'TransactionCreations', 'TransactionSendCoins']
         ]);
 
         $this->set('stateUser', $stateUser);

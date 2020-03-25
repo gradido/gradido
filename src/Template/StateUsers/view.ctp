@@ -15,8 +15,6 @@
         <li><?= $this->Html->link(__('New State Group'), ['controller' => 'StateGroups', 'action' => 'add']) ?> </li>
         <li><?= $this->Html->link(__('List State Balances'), ['controller' => 'StateBalances', 'action' => 'index']) ?> </li>
         <li><?= $this->Html->link(__('New State Balance'), ['controller' => 'StateBalances', 'action' => 'add']) ?> </li>
-        <li><?= $this->Html->link(__('List State Created'), ['controller' => 'StateCreated', 'action' => 'index']) ?> </li>
-        <li><?= $this->Html->link(__('New State Created'), ['controller' => 'StateCreated', 'action' => 'add']) ?> </li>
         <li><?= $this->Html->link(__('List Transaction Creations'), ['controller' => 'TransactionCreations', 'action' => 'index']) ?> </li>
         <li><?= $this->Html->link(__('New Transaction Creation'), ['controller' => 'TransactionCreations', 'action' => 'add']) ?> </li>
         <li><?= $this->Html->link(__('List Transaction Send Coins'), ['controller' => 'TransactionSendCoins', 'action' => 'index']) ?> </li>
@@ -25,20 +23,6 @@
 </nav>
 <div class="stateUsers view large-9 medium-8 columns content">
     <h3><?= h($stateUser->id) ?></h3>
-    <table class="vertical-table">
-        <tr>
-            <th scope="row"><?= __('State Group') ?></th>
-            <td><?= $stateUser->has('state_group') ? $this->Html->link($stateUser->state_group->name, ['controller' => 'StateGroups', 'action' => 'view', $stateUser->state_group->id]) : '' ?></td>
-        </tr>
-        <tr>
-            <th scope="row"><?= __('Id') ?></th>
-            <td><?= $this->Number->format($stateUser->id) ?></td>
-        </tr>
-        <tr>
-            <th scope="row"><?= __('Index Id') ?></th>
-            <td><?= $this->Number->format($stateUser->index_id) ?></td>
-        </tr>
-    </table>
     <div class="related">
         <h4><?= __('Related State Balances') ?></h4>
         <?php if (!empty($stateUser->state_balances)): ?>
@@ -60,39 +44,6 @@
                     <?= $this->Html->link(__('View'), ['controller' => 'StateBalances', 'action' => 'view', $stateBalances->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['controller' => 'StateBalances', 'action' => 'edit', $stateBalances->id]) ?>
                     <?= $this->Form->postLink(__('Delete'), ['controller' => 'StateBalances', 'action' => 'delete', $stateBalances->id], ['confirm' => __('Are you sure you want to delete # {0}?', $stateBalances->id)]) ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php endif; ?>
-    </div>
-    <div class="related">
-        <h4><?= __('Related State Created') ?></h4>
-        <?php if (!empty($stateUser->state_created)): ?>
-        <table cellpadding="0" cellspacing="0">
-            <tr>
-                <th scope="col"><?= __('Id') ?></th>
-                <th scope="col"><?= __('Transaction Id') ?></th>
-                <th scope="col"><?= __('Month') ?></th>
-                <th scope="col"><?= __('Year') ?></th>
-                <th scope="col"><?= __('State User Id') ?></th>
-                <th scope="col"><?= __('Created') ?></th>
-                <th scope="col"><?= __('Short Ident Hash') ?></th>
-                <th scope="col" class="actions"><?= __('Actions') ?></th>
-            </tr>
-            <?php foreach ($stateUser->state_created as $stateCreated): ?>
-            <tr>
-                <td><?= h($stateCreated->id) ?></td>
-                <td><?= h($stateCreated->transaction_id) ?></td>
-                <td><?= h($stateCreated->month) ?></td>
-                <td><?= h($stateCreated->year) ?></td>
-                <td><?= h($stateCreated->state_user_id) ?></td>
-                <td><?= h($stateCreated->created) ?></td>
-                <td><?= h($stateCreated->short_ident_hash) ?></td>
-                <td class="actions">
-                    <?= $this->Html->link(__('View'), ['controller' => 'StateCreated', 'action' => 'view', $stateCreated->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'StateCreated', 'action' => 'edit', $stateCreated->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'StateCreated', 'action' => 'delete', $stateCreated->id], ['confirm' => __('Are you sure you want to delete # {0}?', $stateCreated->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
