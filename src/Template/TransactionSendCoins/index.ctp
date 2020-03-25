@@ -37,8 +37,6 @@
                 <td><?= $this->Number->format($transactionSendCoin->sender_final_balance) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $transactionSendCoin->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transactionSendCoin->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $transactionSendCoin->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionSendCoin->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>

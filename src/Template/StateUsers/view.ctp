@@ -24,7 +24,7 @@
 <div class="stateUsers view large-10 medium-9 columns content">
   <h3><?= h($stateUser->first_name) ?> <?= h($stateUser->last_name) ?> &lt;<?= h($stateUser->email) ?>&gt;</h3>
     <div class="related">
-        <h4><?= __('Related State Balances') ?></h4>
+        <h4><?= __('State Balance') ?></h4>
         <?php if (!empty($stateUser->state_balances)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
@@ -38,8 +38,6 @@
                 <td><?= $this->element('printGradido', ['number' =>$stateBalances->amount]) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'StateBalances', 'action' => 'view', $stateBalances->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'StateBalances', 'action' => 'edit', $stateBalances->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'StateBalances', 'action' => 'delete', $stateBalances->id], ['confirm' => __('Are you sure you want to delete # {0}?', $stateBalances->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -47,7 +45,7 @@
         <?php endif; ?>
     </div>
     <div class="related">
-        <h4><?= __('Related Transaction Creations') ?></h4>
+        <h4><?= __('Schöpfungen') ?></h4>
         <?php if (!empty($stateUser->transaction_creations)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
@@ -68,8 +66,6 @@
                 <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionCreations', 'action' => 'view', $transactionCreations->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionCreations', 'action' => 'edit', $transactionCreations->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionCreations', 'action' => 'delete', $transactionCreations->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionCreations->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -103,8 +99,6 @@
                 <td><?= $this->element('printGradido', ['number' => $transactionReceiveCoins->sender_final_balance]) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionReceiveCoins->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionReceiveCoins->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionReceiveCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionReceiveCoins->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -137,8 +131,6 @@
                 <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionReceiveCoins->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionSendCoins', 'action' => 'edit', $transactionReceiveCoins->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'TransactionSendCoins', 'action' => 'delete', $transactionReceiveCoins->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionReceiveCoins->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -37,8 +37,6 @@
                 <td><?= stream_get_contents($transactionCreation->ident_hash) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $transactionCreation->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transactionCreation->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $transactionCreation->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionCreation->id)]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
