@@ -22,24 +22,20 @@
     </ul>
 </nav>
 <div class="stateUsers view large-9 medium-8 columns content">
-    <h3><?= h($stateUser->id) ?></h3>
+  <h3><?= h($stateUser->first_name) ?> <?= h($stateUser->last_name) ?> &lt;<?= h($stateUser->email) ?>&gt;</h3>
     <div class="related">
         <h4><?= __('Related State Balances') ?></h4>
         <?php if (!empty($stateUser->state_balances)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
-                <th scope="col"><?= __('Id') ?></th>
-                <th scope="col"><?= __('State User Id') ?></th>
-                <th scope="col"><?= __('Modified') ?></th>
+                <th scope="col"><?= __('Letztes Update') ?></th>
                 <th scope="col"><?= __('Amount') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
             <?php foreach ($stateUser->state_balances as $stateBalances): ?>
             <tr>
-                <td><?= h($stateBalances->id) ?></td>
-                <td><?= h($stateBalances->state_user_id) ?></td>
                 <td><?= h($stateBalances->modified) ?></td>
-                <td><?= h($stateBalances->amount) ?></td>
+                <td><?= $this->element('printGradido', ['number' =>$stateBalances->amount]) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'StateBalances', 'action' => 'view', $stateBalances->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['controller' => 'StateBalances', 'action' => 'edit', $stateBalances->id]) ?>
@@ -55,20 +51,20 @@
         <?php if (!empty($stateUser->transaction_creations)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
-                <th scope="col"><?= __('Id') ?></th>
-                <th scope="col"><?= __('Transaction Id') ?></th>
-                <th scope="col"><?= __('State User Id') ?></th>
-                <th scope="col"><?= __('Amount') ?></th>
+                <th scope="col"><?= __('Transaction') ?></th>
+                <th scope="col"><?= __('Erhalten') ?></th>
+                <th scope="col"><?= __('Betrag') ?></th>
                 <th scope="col"><?= __('Ident Hash') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
-            <?php foreach ($stateUser->transaction_creations as $transactionCreations): ?>
+            <?php foreach ($stateUser->transaction_creations as $transactionCreations): //var_dump($transactionCreations); 
+              $txHash = bin2hex(stream_get_contents($transactionCreations->transaction->tx_hash));
+              ?>
             <tr>
-                <td><?= h($transactionCreations->id) ?></td>
-                <td><?= h($transactionCreations->transaction_id) ?></td>
-                <td><?= h($transactionCreations->state_user_id) ?></td>
-                <td><?= h($transactionCreations->amount) ?></td>
-                <td><?= h($transactionCreations->ident_hash) ?></td>
+                <td><?= $this->Html->link(substr($txHash, 0, 12) . '...', ['controller' => 'Transactions', 'action' => 'view', $transactionCreations->transaction_id], ['title' => $txHash] ) ?></td>
+                <td><?= h($transactionCreations->transaction->received) ?></td>
+                <td><?= $this->element('printGradido', ['number' =>$transactionCreations->amount]) ?></td>
+                <td><?= h(substr(bin2hex(stream_get_contents($transactionCreations->ident_hash)), 0, 6)) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionCreations', 'action' => 'view', $transactionCreations->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['controller' => 'TransactionCreations', 'action' => 'edit', $transactionCreations->id]) ?>
@@ -84,23 +80,22 @@
         <?php if (!empty($stateUser->transaction_send_coins)): ?>
         <table cellpadding="0" cellspacing="0">
             <tr>
-                <th scope="col"><?= __('Id') ?></th>
-                <th scope="col"><?= __('Transaction Id') ?></th>
-                <th scope="col"><?= __('State User Id') ?></th>
+                <th scope="col"><?= __('Transaction') ?></th>
                 <th scope="col"><?= __('Receiver Public Key') ?></th>
                 <th scope="col"><?= __('Receiver User Id') ?></th>
                 <th scope="col"><?= __('Amount') ?></th>
                 <th scope="col"><?= __('Sender Final Balance') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
-            <?php foreach ($stateUser->transaction_send_coins as $transactionSendCoins): ?>
+            <?php foreach ($stateUser->transaction_send_coins as $transactionSendCoins):
+              $txHash = bin2hex(stream_get_contents($transactionSendCoins->transaction->tx_hash));
+              ?>
             <tr>
-                <td><?= h($transactionSendCoins->id) ?></td>
-                <td><?= h($transactionSendCoins->transaction_id) ?></td>
+                <td><?= $this->Html->link(substr($txHash, 0, 12), ['controller' => 'Transactions', 'action' => 'view', $transactionSendCoins->transaction_id]) ?></td>
                 <td><?= h($transactionSendCoins->state_user_id) ?></td>
                 <td><?= h($transactionSendCoins->receiver_public_key) ?></td>
                 <td><?= h($transactionSendCoins->receiver_user_id) ?></td>
-                <td><?= h($transactionSendCoins->amount) ?></td>
+                <td><?= $this->element('printGradido', ['number' =>$transactionSendCoins->amount]) ?></td>
                 <td><?= h($transactionSendCoins->sender_final_balance) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionSendCoins', 'action' => 'view', $transactionSendCoins->id]) ?>

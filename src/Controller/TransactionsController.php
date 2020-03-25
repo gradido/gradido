@@ -51,7 +51,7 @@ class TransactionsController extends AppController
     public function view($id = null)
     {
         $transaction = $this->Transactions->get($id, [
-            'contain' => ['StateGroups', 'TransactionTypes', 'StateCreated', 'TransactionCreations', 'TransactionGroupAddaddress', 'TransactionGroupAllowtrades', 'TransactionGroupCreates', 'TransactionSendCoins', 'TransactionSignatures']
+            'contain' => ['TransactionTypes', 'TransactionCreations', 'TransactionGroupAddaddress', 'TransactionGroupAllowtrades', 'TransactionGroupCreates', 'TransactionSendCoins', 'TransactionSignatures']
         ]);
 
         $this->set('transaction', $transaction);
