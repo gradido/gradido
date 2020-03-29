@@ -200,7 +200,7 @@ int SigningTransaction::run() {
 			return -10;
 		}
 		//printf("state: %s\n", stateString.data());
-		int zahl = 1;
+		//int zahl = 1;
 	}
 	catch (Poco::Exception& e) {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));

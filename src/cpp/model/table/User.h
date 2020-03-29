@@ -44,6 +44,7 @@ namespace model {
 
 			// specific db operation
 			size_t updatePrivkey();
+			size_t updatePublickey();
 			
 
 			// default getter unlocked

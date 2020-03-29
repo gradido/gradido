@@ -24,7 +24,9 @@
 #include "AdminCheckUserBackup.h"
 #include "TranslatePassphrase.h"
 
+
 #include "DecodeTransactionPage.h"
+#include "RepairDefectPassphrase.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -147,6 +149,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		if (url_first_part == "/transform_passphrase") {
 			auto pageRequestHandler = new TranslatePassphrase(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+		if (url_first_part == "/repairPassphrase") {
+			auto pageRequestHandler = new RepairDefectPassphrase(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}

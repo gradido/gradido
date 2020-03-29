@@ -52,6 +52,7 @@ enum SessionStates {
 class SessionManager;
 class UpdateUserPasswordPage;
 class PassphrasePage;
+class RepairDefectPassphrase;
 
 class Session : public ErrorList, public UniLib::lib::MultithreadContainer
 {
@@ -59,6 +60,7 @@ class Session : public ErrorList, public UniLib::lib::MultithreadContainer
 	friend SessionManager;
 	friend UpdateUserPasswordPage;
 	friend PassphrasePage;
+	friend RepairDefectPassphrase;
 public:
 	Session(int handle);
 	~Session();

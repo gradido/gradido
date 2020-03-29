@@ -1,0 +1,224 @@
+<%@ page class="RepairDefectPassphrase" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+#include "../SingletonManager/MemoryManager.h"
+#include "../SingletonManager/EmailManager.h"
+#include "../crypto/KeyPair.h"
+#include "../controller/UserBackups.h"
+#include "../tasks/SigningTransaction.h"
+#include "../ServerConfig.h"
+
+#include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+
+enum PageState 
+{
+	GENERATE_PASSPHRASE,
+	SHOW_PASSPHRASE,
+	CREATE_TRANSACTION,
+	CHECK_TRANSACTION,
+	FINISH
+};
+
+%>
+<%%
+	auto mm = MemoryManager::getInstance();
+	auto em = EmailManager::getInstance();
+	auto user = mSession->getUser();
+	auto privKey = user->getPrivKey();
+	auto adminEmail =  em->getAdminReceiver();
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	std::string pageName = "Repariere Defekte Passphrase";
+	
+	std::string errorString = "";
+	
+	PageState state = GENERATE_PASSPHRASE;
+	
+	
+	if(!form.empty()) 
+	{
+		printf("form not empty\n");
+		auto btn = form.get("generate", "");
+		auto btn2 = form.get("transfer", "");
+		printf("btn: %s\n", btn.data());
+		printf("btn2: %s\n", btn2.data());
+		if(btn == "Neue Passphrase generieren!") 
+		{
+			if(!mSession->generatePassphrase()) 
+			{
+				addError(new Error("Passphrase", "Fehler beim generieren der Passphrase, evt. erneut versuchen!"));
+			} 
+			else 
+			{
+				auto newPassphrase = mSession->getPassphrase();
+				if(!User::validatePassphrase(newPassphrase, &wordSource)) 
+				{
+					addError(new Error("Passphrase", "Fehler beim validieren der Passphrase"));
+				} 
+				else
+				{
+					KeyPair keys; 
+					if(!keys.generateFromPassphrase(newPassphrase.data(), wordSource)) 
+					{
+						addError(new Error("Passphrase", "Konnte keine Keys aus der Passphrase generieren"));
+					} 
+					else 
+					{
+						auto newPassphraseModel = controller::UserBackups::create(user->getDBId(), newPassphrase);
+						auto result = newPassphraseModel->getModel()->insertIntoDB(false);
+						//state = SHOW_PASSPHRASE;
+						if(result) {
+							state = SHOW_PASSPHRASE;
+						} else {
+							addError(new Error("Speichern", "Fehler beim speichern der neuen Passphrase, evt. erneut versuchen!"));
+						}//*/
+					}
+				}
+			}
+		} 
+		else if("" != btn2) 
+		{
+			KeyPair keys;
+			auto newPassphrase = mSession->getPassphrase();
+			
+			if(!User::validatePassphrase(newPassphrase, &wordSource) || !keys.generateFromPassphrase(mSession->getPassphrase().data(), wordSource)) {
+				addError(new Error("Passphrase", "Ungültige Passphrase, bitte neuladen"));
+			}
+			// create payload
+			Poco::JSON::Object requestJson;
+			Poco::JSON::Object pubkeys;
+			pubkeys.set("sender", user->getPublicKeyHex());
+			pubkeys.set("receiver", keys.getPubkeyHex());
+			requestJson.set("method", "moveTransaction");
+			requestJson.set("pubkeys", pubkeys);
+			requestJson.set("memo", form.get("memo", ""));
+			requestJson.set("session_id", mSession->getHandle());
+			
+			printf("[repairDefectPassphrase] prepare request\n");
+			
+			// send to php server
+			Poco::Net::HTTPSClientSession httpsClientSession(ServerConfig::g_php_serverHost, 443);
+			Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
+
+			request.setChunkedTransferEncoding(true);
+			std::ostream& requestStream = httpsClientSession.sendRequest(request);
+			requestJson.stringify(requestStream);
+
+			Poco::Net::HTTPResponse response;
+			std::istream& request_stream = httpsClientSession.receiveResponse(response);
+			
+			std::stringstream responseStringStream;
+			for (std::string line; std::getline(request_stream, line); ) {
+				responseStringStream << line << std::endl;
+			}
+			
+			// extract parameter from request
+			Poco::JSON::Parser jsonParser;
+			Poco::Dynamic::Var parsedJson;
+			
+			printf("[repairDefectPassphrase] parse request result\n");
+			try {
+				parsedJson = jsonParser.parse(responseStringStream);
+				
+				Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
+				auto jsonState = object.get("state");
+				std::string stateString = jsonState.convert<std::string>();
+				if (stateString == "error") {
+					addError(new Error("Transfer", "php server return error"));
+					if (!object.isNull("msg")) {
+						addError(new ParamError("php server", "msg:", object.get("msg").convert<std::string>().data()));
+					}
+					if (!object.isNull("details")) {
+						addError(new ParamError("php server", "details:", object.get("details").convert<std::string>().data()));
+					}
+				} else if(stateString == "success") {
+					printf("[repairDefectPassphrase] request success, wait on transaction ready\n");
+					auto currentActiveTransaction = mSession->getNextReadyTransaction();
+					while(currentActiveTransaction.isNull()) {
+						Poco::Thread::sleep(10);
+						currentActiveTransaction = mSession->getNextReadyTransaction();
+					}
+					if(!currentActiveTransaction->isTransfer()) {
+						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
+					} else {
+						auto signing = new SigningTransaction(currentActiveTransaction, user);
+						printf("[repairDefectPassphrase] before running sign\n");
+						if(!signing->run()) {
+							auto newUser = mSession->getNewUser();
+							auto newUserModel = newUser->getModel();
+							auto cryptedPrivKey = user->encrypt(keys.getPrivateKey());
+							newUserModel->setPublicKey(keys.getPublicKey());
+							newUserModel->setPrivateKey(cryptedPrivKey);
+							mm->releaseMemory(cryptedPrivKey);
+							if(!newUserModel->updatePrivkey() || !newUserModel->updatePublickey()) {
+								printf("[repairDefectPassphrase] error saving keys\n");
+								addError(new Error("Speichern", "Fehler beim speichern der neuen Keys in die Datenbank, bitte erneut versuchen (Seite neuladen)"));
+							} else {
+								//response.redirect(ServerConfig::g_serverPath + "/logout");
+								//return;
+								printf("[repairDefectPassphrase] set state to FINISH\n");
+								state = FINISH;
+							}
+						} else {
+							addError(new Error("Transaction", "Fehler beim signieren, bitter erneut versuchen"));
+						}
+						// remove transaction from list
+						mSession->finalizeTransaction(true, true);
+					}
+				}
+			}
+			catch (Poco::Exception& ex) {
+				//printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
+				addError(new ParamError("Transfer", "Fehler beim erstellen der Transaktion, bitte erneut versuchen", ex.displayText().data()));
+				errorString = responseStringStream.str();
+			}
+			
+			//state = CREATE_TRANSACTION;
+		}
+	}
+	mm->releaseMemory(privKey);
+	
+%><%@ include file="header_old.cpsp" %>
+<% if("" != errorString) { %>
+	<%= errorString %>
+<% } %>
+<div class="grd_container">
+	<%= getErrorsHtml() %>
+	<h1>Konto reparieren</h1>
+	<p>Der Login-Server hat festgestellt das die gespeicherte Passphrase nicht zu deinem Konto passt.</p>
+	<% if(GENERATE_PASSPHRASE == state) { %>
+		<% if(privKey) { %>
+			<p>Dein Privat Key konnte noch entschlüsselt werden. Es könnte also eine neue Passphrase generiert werden und dein aktueller Kontostand
+			auf die neue Adresse transferiert werden. </p>
+			<form method="POST">
+				<input type="submit" style="width:auto;" name="generate" value="Neue Passphrase generieren!">
+			</form>
+		<% } else {%>
+			<p>Dein Privat Key konnte nicht entschlüsselt werden. Bitte wende dich an den Admin: <a href="mailto:<%= adminEmail%>"><%= adminEmail %></a></p>
+		<% } %>
+	<% } else if(SHOW_PASSPHRASE == state) { %>
+		<p>Deine neue Passphrase, bitte schreibe sie dir auf (am besten auf einen Zettel) und hebe sie gut auf. 
+		Du brauchst sie wenn du dein Passwort vergessen hast oder dein Konto umziehen möchtest:</p>
+		<fieldset><legend>Deine neue Passphrase:</legend>
+			<div class="grd_container_small grd_container">
+				<%= mSession->getPassphrase() %>
+			</div>
+		</fieldset>
+		<form method="POST">
+			<p><label style="width:auto" for="memo-text">Verwendungszweck für Überweisung:</label></p>
+			<p><textarea name="memo" id="memo-text" rows="4"></textarea></p>
+			<p><input type="submit" style="width:auto" name="transfer" value="Guthaben auf neue Adresse &uuml;berweisen!"></p>
+		</form>
+	<% } else if(FINISH == state) { %>
+		<p>Neue Daten erfolgreich gespeichert, bitte logge dich nun aus. Danach kannst du dich gerne wieder einloggen und müsstest dein Guthaben wieder auf deinem Konto haben.</p>
+		<a class="grd-nav-bn" href="<%= ServerConfig::g_serverPath + "/logout" %>">Ausloggen</a>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

@@ -24,6 +24,7 @@ class UserWriteCryptoKeyHashIntoDB;
 class SigningTransaction;
 class UserGenerateKeys;
 class DebugPassphrasePage;
+class RepairDefectPassphrase;
 
 enum UserStates
 {
@@ -55,6 +56,7 @@ class User : public ErrorList
 	friend SigningTransaction;
 	friend UserGenerateKeys;
 	friend DebugPassphrasePage;
+	friend RepairDefectPassphrase;
 public:
 	// new user
 	User(const char* email, const char* first_name, const char* last_name);
@@ -159,6 +161,7 @@ private:
 	
 	std::string mPublicHex;
 	unsigned char mPublicKey[crypto_sign_PUBLICKEYBYTES];
+	//! crypted private key
 	MemoryBin* mPrivateKey;
 	// TODO: insert created if necessary
 

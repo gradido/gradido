@@ -14,6 +14,8 @@ class UserWriteKeysIntoDB;
 class UserGenerateKeys;
 class DebugPassphrasePage;
 class User;
+class RepairDefectPassphrase;
+
 // TODO: https://libsodium.gitbook.io/doc/advanced/ed25519-curve25519
 class KeyPair 
 {
@@ -21,6 +23,7 @@ class KeyPair
 	friend UserGenerateKeys;
 	friend DebugPassphrasePage;
 	friend User;
+	friend RepairDefectPassphrase;
 public:
 	KeyPair();
 	~KeyPair();
