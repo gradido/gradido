@@ -5,8 +5,10 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
+use Cake\Http\Client;
+use Cake\Core\Configure;
 
-
+use Model\Transactions\TransactionTransfer;
 use Model\Transactions\Transaction;
 /*!
  * @author: Dario Rekowski#
@@ -29,7 +31,6 @@ class JsonRequestHandlerController extends AppController {
   
     public function index()
     {
-        
         if($this->request->is('get')) {
           $method = $this->request->getQuery('method');
           switch($method) {
@@ -40,14 +41,20 @@ class JsonRequestHandlerController extends AppController {
         else if($this->request->is('post')) {
           $jsonData = $this->request->input('json_decode');
           //var_dump($jsonData);
-          if($jsonData == NULL || !isset($jsonData->method) || !isset($jsonData->transaction)) {
+          if($jsonData == NULL || !isset($jsonData->method)) {
             return $this->returnJson(['state' => 'error', 'msg' => 'parameter error']);
           }
           $method = $jsonData->method;
         
           switch($method) {
-            case 'putTransaction': return $this->putTransaction($jsonData->transaction);
+            case 'putTransaction': 
+              if(!isset($jsonData->transaction)) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'parameter error']);
+              } else {
+                return $this->putTransaction($jsonData->transaction);
+              }
             case 'userDelete': return $this->userDelete($jsonData->user);
+            case 'moveTransaction': return $this->moveTransaction($jsonData->pubkeys, $jsonData->memo, $jsonData->session_id);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
@@ -77,6 +84,57 @@ class JsonRequestHandlerController extends AppController {
       }
       
       return $this->returnJson(['state' => 'success']);
+    }
+    
+    private function moveTransaction($pubkeys, $memo, $session_id) {
+      //$pubkeys->sender
+      //$pubkeys->receiver
+      $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+      $user = $stateUserTable->find('all')->where(['public_key' => hex2bin($pubkeys->sender)])->contain(['StateBalances']);
+      if(!$user->count()) {
+        return $this->returnJson(['state' => 'not found', 'msg' => 'user not found or empty balance']);
+      }
+      $amountCent = $user->first()->state_balances[0]->amount;
+      //var_dump($user->first());
+      $builderResult = TransactionTransfer::build(
+                    $amountCent, 
+                    $memo,
+                    $pubkeys->receiver,
+                    $pubkeys->sender
+            );
+      if($builderResult['state'] === 'success') {
+
+        $http = new Client();
+        try {
+          $loginServer = Configure::read('LoginServer');
+          $url = $loginServer['host'] . ':' . $loginServer['port'];
+       
+          $response = $http->post($url . '/checkTransaction', json_encode([
+              'session_id' => $session_id,
+              'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+              'balance' => $amountCent
+          ]), ['type' => 'json']);
+          $json = $response->getJson();
+          if($json['state'] != 'success') {
+            if($json['msg'] == 'session not found') {
+              return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
+            } else {
+              //$this->Flash->error(__('login server return error: ' . json_encode($json)));
+              return $this->returnJson(['state' => 'error', 'msg' => 'login server return error', 'details' => $json]);
+            }
+          } else {
+            return $this->returnJson(['state' => 'success']);
+          }
+
+        } catch(\Exception $e) {
+            $msg = $e->getMessage();
+            //$this->Flash->error(__('error http request: ') . $msg);
+            return $this->returnJson(['state' => 'error', 'msg' => 'error http request', 'details' => $msg]);
+        }
+
+      } else {
+        return $this->returnJson(['state' => 'error', 'msg' => 'error building transaction']);
+      }
     }
     
     private function userDelete($userPubkeyHex) {
