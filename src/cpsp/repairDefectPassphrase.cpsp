@@ -7,7 +7,7 @@
 <%!
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/EmailManager.h"
-#include "../crypto/KeyPair.h"
+#include "../Crypto/KeyPair.h"
 #include "../controller/UserBackups.h"
 #include "../tasks/SigningTransaction.h"
 #include "../ServerConfig.h"
