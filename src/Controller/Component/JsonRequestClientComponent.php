@@ -89,10 +89,43 @@ class JsonRequestClientComponent extends Component
     return ['state' => 'success', 'data' => $json];
   }
   
+  public function sendRequestGDT($transactionBody, $url) {
+    
+    $http = new Client();
+    $fullUrl = $this->getGDTServerUrl() . DS . $url;
+    $response = $http->post($this->getGDTServerUrl() . DS . $url, $transactionBody, ['type' => 'json']);
+    $responseStatus = $response->getStatusCode();
+    if($responseStatus != 200) {
+      return [
+          'state' => 'error', 
+          'type' => 'request error', 
+          'msg' => 'server response status code isn\'t 200', 
+          'details' => $responseStatus,
+          'fullUrl' => $fullUrl
+      ];
+    }
+    //$responseType = $response->getType();
+    //if($responseType != 'application/json') {
+//      return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t json', 'details' => $responseType];
+//    }
+    $json = $response->getJson();
+    if($json == null) {
+        //$responseType = $response->getType();
+        return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
+    }
+    return ['state' => 'success', 'data' => $json];
+  }
+  
   static public function getLoginServerUrl()
   {
     $loginServer = Configure::read('LoginServer');    
     return $loginServer['host'] . ':' . $loginServer['port'];
+  }
+  
+  static public function getGDTServerUrl()
+  {
+    $gdtServer = Configure::read('GDTServer');
+    return $gdtServer['host'];
   }
   
   static public function is_base64($s)

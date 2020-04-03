@@ -20,21 +20,28 @@ class Transaction extends TransactionBase {
     
     
   
-    public function __construct($base64Data) {
+    public function __construct($base64Data) 
+    {
         //$transactionBin = base64_decode($base64Data, true);
         //if($transactionBin == false) {
       //sodium_base64_VARIANT_URLSAFE_NO_PADDING
-            try {
-              $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
-            } catch(\SodiumException $e) {
-              //$this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
-              //return;
-               $transactionBin = base64_decode($base64Data, true);
-               if($transactionBin == false) {
-                 $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
-                 return;
-               }
-            }
+      if(is_a($base64Data, '\Model\Messages\Gradido\Transaction')) {
+        $this->mProtoTransaction = $base64Data;
+        $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
+        return;
+      }
+      
+      try {
+        $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+      } catch(\SodiumException $e) {
+        //$this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+        //return;
+         $transactionBin = base64_decode($base64Data, true);
+         if($transactionBin == false) {
+           $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+           return;
+         }
+      }
         //*/}
         
         if($transactionBin == false) {
@@ -60,6 +67,25 @@ class Transaction extends TransactionBase {
           //echo "<br>end body bytes<br>";
           $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
         }
+    }
+    
+    static public function build(\Model\Messages\Gradido\TransactionBody $transactionBody, $senderKeyPair) 
+    {
+        $protoTransaction = new \Model\Messages\Gradido\Transaction();
+        
+        $recevied = new \Model\Messages\Gradido\TimestampSeconds();
+        $recevied->setSeconds(time());
+        $protoTransaction->setReceived($recevied);
+        
+        $bodyBytes = $transactionBody->serializeToString();
+        
+        $sigMap = SignatureMap::build($bodyBytes, [$senderKeyPair]);
+        $protoTransaction->setSigMap($sigMap->getProto());
+        
+        $protoTransaction->setBodyBytes($bodyBytes);
+        
+        return $protoTransaction;
+        
     }
     
     public function getTransactionBody() {

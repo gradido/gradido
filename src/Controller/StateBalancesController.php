@@ -19,6 +19,7 @@ class StateBalancesController extends AppController
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['overview']);
+        $this->loadComponent('JsonRequestClient');
     }
     /**
      * Index method
@@ -45,6 +46,11 @@ class StateBalancesController extends AppController
           return $result;
         }
         $user = $session->read('StateUser');
+        // sendRequestGDT
+        // listPerEmailApi
+        
+        $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+        var_dump($gdtEntries);
         
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable

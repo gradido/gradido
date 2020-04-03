@@ -172,4 +172,20 @@ class TransactionBody extends TransactionBase {
     return $protoBody;
   }
   
+  static public function build($memo, $specificTransaction) 
+  {
+    $protoBody = new \Model\Messages\Gradido\TransactionBody();
+    $protoBody->setMemo($memo);
+    
+    if(is_a($specificTransaction, 'TransactionCreation')) {
+      $protoBody->setCreation($specificTransaction->getProto());
+    } else if(is_a($specificTransaction, 'TransactionTransfer')) {
+      $protoBody->setTransfer($specificTransaction->getProto());
+    } else {
+      return ['invalid tarnsaction type'];
+    }
+    return $protoBody;
+    
+  }
+  
 }

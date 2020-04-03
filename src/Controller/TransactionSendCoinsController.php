@@ -10,8 +10,12 @@ use Cake\Routing\Router;
 use Cake\I18n\I18n;
 
 use App\Form\TransferForm;
+use App\Form\TransferRawForm;
 
 use Model\Transactions\TransactionTransfer;
+use Model\Transactions\TransactionBody;
+use Model\Transactions\Transaction;
+
 /**
  * TransactionSendCoins Controller
  *
@@ -28,6 +32,7 @@ class TransactionSendCoinsController extends AppController
         $this->loadComponent('GradidoNumber');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('create');
+        $this->Auth->allow('createRaw');
     }
     
     /**
@@ -236,6 +241,53 @@ class TransactionSendCoinsController extends AppController
           } else {
             $this->Flash->error(__('Something was invalid, please try again!'));
           }
+        }
+        
+        $this->set('timeUsed', microtime(true) - $startTime);
+    }
+    
+    public function createRaw()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend_ripple');
+        
+        $transferRawForm = new TransferRawForm();
+        $this->set('transferRawForm', $transferRawForm);
+        
+        if ($this->request->is('post')) {
+          $requestData = $this->request->getData();
+          if($transferRawForm->validate($requestData)) {
+            $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+            $sender = ['priv' => $requestData['sender_privkey_hex'], 'pub' => $requestData['sender_pubkey_hex']];
+            $reciver = ['pub' => $requestData['receiver_pubkey_hex']];
+            
+            $builderResult = TransactionTransfer::build(
+                    $amountCent, 
+                    $requestData['memo'], 
+                    $reciver['pub'],
+                    $sender['pub']
+            );
+            if($builderResult['state'] === 'success') {
+              $protoTransaction = Transaction::build($builderResult['transactionBody'], $sender);
+              $transaction = new Transaction($protoTransaction);
+              if(!$transaction->validate()) {
+                $this->Flash->error(__('Error validating transaction'));
+              } else {
+                if(!$transaction->save()) {
+                  $this->Flash->error(__('Error saving transaction'));
+                } else {
+                  $this->Flash->success(__('Gradidos erfolgreich überwiesen!'));
+                }
+              }
+            } else {
+              $this->Flash->error(__('Error building transaction'));
+            }
+            
+          }
+          //var_dump($requestData);
+          //
+          //var_dump($data);
+          
         }
         
         $this->set('timeUsed', microtime(true) - $startTime);

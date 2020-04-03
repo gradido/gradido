@@ -25,7 +25,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
     <?= $this->Form->control('receiver', ['options' => $address_options]); ?>
     <!--<?= $this->Form->control('receiver_pubkey_hex', []) ?>-->
   </fieldset>
-  <?= $this->Form->button(__('Transaktion(n) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
+  <?= $this->Form->button(__('Transaktion(en) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
   <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'grd-form-bn grd_clickable  grd-width-200']) ?>
   <?= $this->Form->end() ?>
 </div>
