@@ -235,6 +235,21 @@ namespace model {
 			return ss.str();
 		}
 
+		std::string User::getPublicKeyHex() const
+		{
+			auto mm = MemoryManager::getInstance();
+			auto pubkeyHex = mm->getFreeMemory(65);
+
+			memset(*pubkeyHex, 0, 65);
+
+			if (!mPublicKey.isNull()) {
+				sodium_bin2hex(*pubkeyHex, 65, mPublicKey.value().content().data(), mPublicKey.value().content().size());
+			}
+			std::string pubkeyHexString((const char*)pubkeyHex->data(), pubkeyHex->size()-1);
+			mm->releaseMemory(pubkeyHex);
+			return pubkeyHexString;
+		}
+
 
 		Poco::JSON::Object User::getJson()
 		{
@@ -262,5 +277,7 @@ namespace model {
 
 			return userObj;
 		}
+
+		
 	}
 }

@@ -1,0 +1,161 @@
+<%@ page class="PassphrasedTransaction" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="PageRequestMessagedHandler.h" %>
+<%!
+#include "../SingletonManager/MemoryManager.h"
+#include "../SingletonManager/SessionManager.h"
+#include "../Crypto/KeyPair.h"
+#include "../ServerConfig.h"
+
+#include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+
+enum PageState {
+	PAGE_STATE_INPUT,
+	PAGE_STATE_SUCCESS
+};
+%>
+<%% 
+	std::string pageName = "Gradidos mit Passphrase überweisen";	
+	PageState state = PAGE_STATE_INPUT;
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	auto sm = SessionManager::getInstance();
+	auto mm = MemoryManager::getInstance();
+	std::string errorString ="";
+	
+	if(!form.empty()) {
+		auto passphrase = form.get("passphrase", "");
+		bool passphraseValid = User::validatePassphrase(passphrase, &wordSource);
+		bool keysGenerated = false;
+		KeyPair keys; 
+		if(!passphraseValid) 
+		{
+			addError(new Error("Passphrase", "Fehler beim validieren der Passphrase"));
+		}  
+		else 
+		{
+			keysGenerated = keys.generateFromPassphrase(passphrase.data(), wordSource);
+			if(!keysGenerated) 
+			{
+				addError(new Error("Passphrase", "Konnte keine Keys aus der Passphrase generieren"));
+			} 
+		}
+		if(passphraseValid && keysGenerated)
+		{
+			// create session only for transaction
+			int session_id = 0;
+			auto session = sm->getNewSession(&session_id);
+			// create payload
+			Poco::JSON::Object requestJson;
+			Poco::JSON::Object pubkeys;
+			pubkeys.set("sender", keys.getPubkeyHex());
+			pubkeys.set("receiver", form.get("recevier", ""));
+			requestJson.set("method", "moveTransaction");
+			requestJson.set("pubkeys", pubkeys);
+			requestJson.set("memo", form.get("memo", ""));
+			requestJson.set("session_id", session_id);
+			
+			printf("[PassphrasedTransaction] prepare request\n");
+			
+			// send to php server
+			Poco::Net::HTTPSClientSession httpsClientSession(ServerConfig::g_php_serverHost, 443);
+			Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
+
+			request.setChunkedTransferEncoding(true);
+			std::ostream& requestStream = httpsClientSession.sendRequest(request);
+			requestJson.stringify(requestStream);
+
+			Poco::Net::HTTPResponse response;
+			std::istream& request_stream = httpsClientSession.receiveResponse(response);
+			
+			std::stringstream responseStringStream;
+			for (std::string line; std::getline(request_stream, line); ) {
+				responseStringStream << line << std::endl;
+			}
+			
+			// extract parameter from request
+			Poco::JSON::Parser jsonParser;
+			Poco::Dynamic::Var parsedJson;
+			
+			printf("[PassphrasedTransaction] parse request result\n");
+			try {
+				parsedJson = jsonParser.parse(responseStringStream);
+				
+				Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
+				auto jsonState = object.get("state");
+				std::string stateString = jsonState.convert<std::string>();
+				if (stateString == "error") {
+					addError(new Error("Transfer", "php server return error"));
+					if (!object.isNull("msg")) {
+						addError(new ParamError("php server", "msg:", object.get("msg").convert<std::string>().data()));
+					}
+					if (!object.isNull("details")) {
+						addError(new ParamError("php server", "details:", object.get("details").convert<std::string>().data()));
+					}
+				} else if(stateString == "success") {
+					printf("[PassphrasedTransaction] request success, wait on transaction ready\n");
+					auto currentActiveTransaction = session->getNextReadyTransaction();
+					while(currentActiveTransaction.isNull()) {
+						Poco::Thread::sleep(10);
+						currentActiveTransaction = session->getNextReadyTransaction();
+					}
+					if(!currentActiveTransaction->isTransfer()) {
+						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
+					} else {
+						//auto signing = new SigningTransaction(currentActiveTransaction, user);
+						printf("[PassphrasedTransaction] cannot sign, implementation missing\n");
+						/*if(!signing->run()) {
+							
+						} else {
+							addError(new Error("Transaction", "Fehler beim signieren, bitter erneut versuchen"));
+						}*/
+						// remove transaction from list
+						//mSession->finalizeTransaction(true, true);
+					}
+				}
+			}
+			catch (Poco::Exception& ex) {
+				//printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
+				addError(new ParamError("Transfer", "Fehler beim erstellen der Transaktion, bitte erneut versuchen", ex.displayText().data()));
+				errorString = responseStringStream.str();
+				sm->releaseSession(session);
+				session = nullptr;
+			}
+			if(session) {
+				sm->releaseSession(session);
+			}
+		}
+	}
+	
+	
+%><%@ include file="header_old.cpsp" %>
+<% if("" == errorString) { %>
+	<%= errorString %>
+<% } %>
+<div class="grd_container">
+	<%= getErrorsHtml() %>
+	<% if(PAGE_STATE_INPUT == state) { %>
+	
+		<fieldset class="grd_container_small">
+		<form method="POST">
+			<p><label style="width:auto" for="passphrase">Sender Passphrase</label></p>
+			<p><textarea style="width:100%;height:100px" name="passphrase"><%= !form.empty() ? form.get("passphrase", "") : "" %></textarea></p>
+			<p><label style="width:auto" for="memo-text">Verwendungszweck für Überweisung:</label></p>
+			<p><textarea name="memo" id="memo-text" rows="4"><%= !form.empty() ? form.get("memo-text", "") : "" %></textarea></p>
+			<p class="grd_small">
+				<label for="recevier">Empfänger Public Key Hex</label>
+				<input id="recevier" type="recevier" recevier="email" value="<%= !form.empty() ? form.get("recevier") : "" %>"/>
+			</p>
+			<p><input type="submit" style="width:auto" name="transfer" value="Guthaben auf neue Adresse &uuml;berweisen!"></p>
+		</form>
+	<% } else if(PAGE_STATE_SUCCESS == state) { %>
+		<p>Gradidos wurden erfolgreich überwiesen.</p>
+		<a href="<%= ServerConfig::g_serverPath %>/passphrased_transaction">Weitere Gradidos überweisen</a>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

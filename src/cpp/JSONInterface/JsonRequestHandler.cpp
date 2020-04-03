@@ -70,7 +70,7 @@ Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream&
 			errorHandler->addError(new ParamError(functionName, "error parsing request answer", ex.displayText().data()));
 			errorHandler->sendErrorsAsEmail(responseStringStream.str());
 		} 
-		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d_%m_%yT%H_%M_%S");
 		std::string filename = dateTimeString + "_response.html";
 		FILE* f = fopen(filename.data(), "wt");
 		std::string responseString = responseStringStream.str();

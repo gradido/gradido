@@ -23,6 +23,7 @@
 #include "DebugPassphrasePage.h"
 #include "AdminCheckUserBackup.h"
 #include "TranslatePassphrase.h"
+#include "PassphrasedTransaction.h"
 
 
 #include "DecodeTransactionPage.h"
@@ -125,6 +126,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	if (url_first_part == "/decode_transaction") {
 		mLogging.information(dateTimeString + " decode");
 		auto pageRequestHandler = new DecodeTransactionPage(s);
+		pageRequestHandler->setProfiler(timeUsed);
+		return pageRequestHandler;
+	}
+	if (url_first_part == "/passphrased_transaction") {
+		auto pageRequestHandler = new PassphrasedTransaction();
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
 	}

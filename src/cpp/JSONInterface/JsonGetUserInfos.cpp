@@ -91,6 +91,9 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "loginServer.path") {
 				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
 			}
+			else if (parameterString == "user.pubkeyhex") {
+				jsonUser.set("pubkeyhex", userModel->getPublicKeyHex());
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");

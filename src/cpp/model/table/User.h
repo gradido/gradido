@@ -54,6 +54,8 @@ namespace model {
 			inline const Poco::UInt64& getPasswordHashed() const { return mPasswordHashed; }
 			inline RoleType getRole() const { if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			std::string getPublicKeyHex() const;
+
 			inline bool existPrivateKeyCrypted() const { return !mPrivateKey.isNull(); }
 			inline const std::vector<unsigned char>& getPrivateKeyCrypted() const { return mPrivateKey.value().content(); }
 			inline bool isEmailChecked() const { return mEmailChecked; }
