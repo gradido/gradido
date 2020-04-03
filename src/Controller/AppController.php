@@ -250,7 +250,7 @@ class AppController extends Controller
     }
      */
     
-    public function addAdminError($controller, $action, $returnTable, $state_user_id) {
+    public function addAdminError($controller, $action, array $returnTable, $state_user_id) {
       if(!is_array($returnTable)) {
         $this->addAdminError('AppController', 'addAdminError', ['state' => 'error', 'msg' => 'returnTable isn\'t array', 'details' => gettype($returnTable)]);
         return false;
@@ -260,7 +260,7 @@ class AppController extends Controller
       $adminErrorEntity->state_user_id = $state_user_id;
       $adminErrorEntity->controller = $controller;
       $adminErrorEntity->action = $action;
-      $adminErrorEntity->state = $returnTable->state;
+      $adminErrorEntity->state = $returnTable['state'];
       if(isset($returnTable['msg'])) {
         $adminErrorEntity->msg = $returnTable['msg'];
       }

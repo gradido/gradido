@@ -30,6 +30,7 @@ class TransactionSendCoinsController extends AppController
     {
         parent::initialize();
         $this->loadComponent('GradidoNumber');
+        $this->loadComponent('JsonRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('create');
         $this->Auth->allow('createRaw');
@@ -162,19 +163,35 @@ class TransactionSendCoinsController extends AppController
               $this->Flash->error(__('Du kannst dir leider nicht selbst Geld schicken!'));
               return;
             }
-            
-            $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-            $receiverUser = $stateUserTable
-                     ->find('all')
-                     ->select(['public_key'])
-                     ->contain(false)
-                     ->where(['email' => $receiverEmail])->first();
-            //var_dump($receiverUser);
-            if(!$receiverUser) {
-              $this->Flash->error(__('Diese E-Mail ist mir nicht bekannt, hat dein Empfänger denn schon ein Gradido-Konto?'));
-              return;
+            $receiverPubkeyHex ='';
+            $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
+                'session_id' => $session->read('session_id'),
+                'email' => $receiverEmail,
+                'ask' => ['user.pubkeyhex']
+            ]), '/getUserInfos');
+            if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+              $receiverPubKeyHex = $requestAnswear['data']['userData']['pubkeyhex'];
+            } else {
+              $this->addAdminError('TransactionSendCoins', 'create', $requestAnswear, $user['id']);
+              $this->Flash->error(__('Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?'));
+              $this->set('timeUsed', microtime(true) - $startTime);
+                return;
             }
-             $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+            if('' == $receiverPubKeyHex) {
+              $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+              $receiverUser = $stateUserTable
+                       ->find('all')
+                       ->select(['public_key'])
+                       ->contain(false)
+                       ->where(['email' => $receiverEmail])->first();
+              //var_dump($receiverUser);
+              if(!$receiverUser) {
+                $this->Flash->error(__('Diese E-Mail ist mir nicht bekannt, hat dein Empfänger denn schon ein Gradido-Konto?'));
+                $this->set('timeUsed', microtime(true) - $startTime);
+                return;
+              }
+               $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+            }
             //var_dump($sessionStateUser);
             
             $builderResult = TransactionTransfer::build(
@@ -234,7 +251,7 @@ class TransactionSendCoinsController extends AppController
               }
               
             } else {
-              $this->Flash->error(__('No Valid Receiver Public given'));
+              $this->Flash->error(__('No Valid Receiver Public given: ' . $receiverPubKeyHex));
             }
            
 //           */
