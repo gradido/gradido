@@ -49,8 +49,8 @@ class StateBalancesController extends AppController
         // sendRequestGDT
         // listPerEmailApi
         
-        $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-        var_dump($gdtEntries);
+        //$gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+        //var_dump($gdtEntries);
         
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable
