@@ -139,10 +139,10 @@ $this->assign('title', __('Schöpfungstransaktion'));
         var input = userAmountInputs[i];
         //console.log("input: %o", input);
         if(input.parentNode != undefined) {
-//          var checkbox = input.parentNode.previousElementSibling.previousElementSibling;
+          var checkbox = input.parentNode.previousElementSibling.previousElementSibling.previousElementSibling;
           //console.log("checkbox: %o?", checkbox);
           input.onfocus = function(e) {
-            var checkbox = e.target.parentNode.previousElementSibling.previousElementSibling;
+            var checkbox = e.target.parentNode.previousElementSibling.previousElementSibling.previousElementSibling;
             checkbox.checked = true;
             //console.log("onFocus checkbox: %o", checkbox);
           }
