@@ -58,7 +58,10 @@ namespace ServerConfig {
 					printf("[%s] error init german mnemonic set, error nr: %d\n", __FUNCTION__, iResult);
 					return false;
 				}
-				//g_Mnemonic_WordLists[i].printToFile("de_words.txt");
+				g_Mnemonic_WordLists[i].printToFile("de_words.txt");
+				for (int iWord = 750; iWord < 755; iWord++) {
+					printf("%d: %s\n", iWord, g_Mnemonic_WordLists[i].getWord(iWord));
+				}
 				break;
 			case MNEMONIC_BIP0039_SORTED_ORDER:
 				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_bip0039, g_mnemonic_bip0039_original_size, g_mnemonic_bip0039_compressed_size);

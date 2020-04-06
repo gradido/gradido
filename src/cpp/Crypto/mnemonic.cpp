@@ -88,10 +88,7 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 					return -4;
 				}
 				memcpy(mWords[cursor], &uncompressed_buffer[word_begin], word_size);
-
-				//char bu[256]; memset(bu, 0, 256);
-				//memcpy(bu, &uncompressed_buffer[word_begin - 1], 15);
-				//printf("word (%d): %s\n", cursor, bu);
+				//printf("%d: %s\n", cursor, mWords[cursor]);
 
 				DHASH word_hash = DRMakeStringHash(mWords[cursor]);
 				//mWordHashIndices.addByHash(word_hash, (void*)cursor);

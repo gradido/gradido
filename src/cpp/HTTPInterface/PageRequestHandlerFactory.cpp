@@ -21,6 +21,7 @@
 #include "ResetPassword.h"
 #include "RegisterAdminPage.h"
 #include "DebugPassphrasePage.h"
+#include "DebugMnemonicPage.h"
 #include "AdminCheckUserBackup.h"
 #include "TranslatePassphrase.h"
 #include "PassphrasedTransaction.h"
@@ -171,6 +172,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/debugPassphrase") {
 				auto pageRequestHandler = new DebugPassphrasePage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/debugMnemonic") {
+				auto pageRequestHandler = new DebugMnemonicPage(s);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}

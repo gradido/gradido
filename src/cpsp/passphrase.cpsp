@@ -111,7 +111,7 @@ enum PageState
 			addError(new ParamError("PassphrasePage", "user email", mSession->getNewUser()->getModel()->getEmail()));
 		}
 		sendErrorsAsEmail();
-		addError(new Error(gettext("Passphrase"), gettext("intern errorm please try again later")), false);
+		addError(new Error(gettext("Passphrase"), gettext("intern error please try again later")), false);
 		//response.redirect(ServerConfig::g_serverPath + "/error500");
 		//return;
 	}
