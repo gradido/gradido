@@ -14,6 +14,9 @@ $this->assign('title', __('Kontoübersicht'));
       <div class="grid-body py-3">
         <h3><?= __('Aktueller Kontostand: ') ?></h3>
         <h2><?= $this->element('printGradido', ['number' => $balance]) ?></h2>
+        <?php if($gdtSum > 0) : ?>
+          <h2><?= $this->Html->link($this->element('printGDT', ['number' => $gdtSum]), ['action' => 'overview_gdt'], ['escape' => false]) ?></h2>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -106,6 +109,7 @@ $this->assign('title', __('Kontoübersicht'));
     </div>
   </div>
 </div>
+<?= $this->Html->css(['gdt.css']) ?>
 <?php if($transactionExecutingCount > 0) : ?>
 <script type="text/javascript">
   //function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction)

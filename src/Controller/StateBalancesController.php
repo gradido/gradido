@@ -18,7 +18,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview']);
+        $this->Auth->allow(['overview', 'overviewGdt']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -49,8 +49,17 @@ class StateBalancesController extends AppController
         // sendRequestGDT
         // listPerEmailApi
         
-        //$gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-        //var_dump($gdtEntries);
+        //var_dump($user);
+        $gdtSum = 0;
+        if('admin' === $user['role']) {
+          $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+          //var_dump($gdtEntries);
+          if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
+            $gdtSum = intval($gdtEntries['data']['sum']);
+          }
+        }
+        //
+        //
         
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable
@@ -141,6 +150,39 @@ class StateBalancesController extends AppController
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
+        $this->set('gdtSum', $gdtSum);
+    }
+    
+    public function overviewGdt()
+    {
+        $startTime = microtime(true);
+        $this->viewBuilder()->setLayout('frontend_ripple');
+        $session = $this->getRequest()->getSession();
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
+        }
+        $user = $session->read('StateUser');
+        $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
+        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
+          var_dump(array_keys($requestResult['data']));
+          $ownEntries = $requestResult['data']['ownEntries'];
+          //$gdtEntries = $requestResult['data']['entries'];
+          
+          $gdtSum = 0;
+          foreach($ownEntries as $i => $gdtEntry) {
+            $gdtSum += $gdtEntry['gdt'];
+            echo "index: $i<br>";
+            var_dump($gdtEntry);
+            
+          }
+          //echo "gdtSum: $gdtSum<br>";
+          $this->set('gdtSum', $gdtSum);
+          $this->set('ownEntries', $ownEntries);
+        } else {
+          $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
+        }
+        
     }
     
     public function sortTransactions($a, $b) {
