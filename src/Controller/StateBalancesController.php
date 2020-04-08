@@ -165,20 +165,31 @@ class StateBalancesController extends AppController
         $user = $session->read('StateUser');
         $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
-          var_dump(array_keys($requestResult['data']));
+          //var_dump(array_keys($requestResult['data']));
           $ownEntries = $requestResult['data']['ownEntries'];
+          $connectEntries = $requestResult['data']['connectEntrys'];
+          $publishers = $requestResult['data']['publishers'];
           //$gdtEntries = $requestResult['data']['entries'];
           
           $gdtSum = 0;
           foreach($ownEntries as $i => $gdtEntry) {
             $gdtSum += $gdtEntry['gdt'];
-            echo "index: $i<br>";
-            var_dump($gdtEntry);
+            //echo "index: $i<br>";
+            //var_dump($gdtEntry);
             
           }
+          //$count = 0;
+          foreach($connectEntries as $entry) {
+            //if(!$count) var_dump($entry);
+            //$count++;
+            $gdtSum += $entry['connect']['gdt_entry']['gdt']; 
+          }
+          
           //echo "gdtSum: $gdtSum<br>";
           $this->set('gdtSum', $gdtSum);
           $this->set('ownEntries', $ownEntries);
+          $this->set('connectEntries', $connectEntries);
+          $this->set('publishers', $publishers);
         } else {
           $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }
