@@ -167,8 +167,9 @@ class StateBalancesController extends AppController
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
           //var_dump(array_keys($requestResult['data']));
           $ownEntries = $requestResult['data']['ownEntries'];
-          $connectEntries = $requestResult['data']['connectEntrys'];
-          $publishers = $requestResult['data']['publishers'];
+          
+          
+          
           //$gdtEntries = $requestResult['data']['entries'];
           
           $gdtSum = 0;
@@ -178,18 +179,25 @@ class StateBalancesController extends AppController
             //var_dump($gdtEntry);
             
           }
-          //$count = 0;
-          foreach($connectEntries as $entry) {
-            //if(!$count) var_dump($entry);
-            //$count++;
-            $gdtSum += $entry['connect']['gdt_entry']['gdt']; 
+          if(isset($requestResult['data']['connectEntrys'])) {
+            $connectEntries = $requestResult['data']['connectEntrys'];
+          
+            foreach($connectEntries as $entry) {
+              //if(!$count) var_dump($entry);
+              //$count++;
+              $gdtSum += $entry['connect']['gdt_entry']['gdt']; 
+            }
+            $this->set('connectEntries', $connectEntries);
           }
           
           //echo "gdtSum: $gdtSum<br>";
           $this->set('gdtSum', $gdtSum);
           $this->set('ownEntries', $ownEntries);
-          $this->set('connectEntries', $connectEntries);
-          $this->set('publishers', $publishers);
+          
+          if(isset($requestResult['data']['publishers'])) {
+            $publishers = $requestResult['data']['publishers'];
+            $this->set('publishers', $publishers);
+          }
         } else {
           $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }

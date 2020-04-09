@@ -37,7 +37,7 @@ $this->assign('title', __('GDT Kontoübersicht'));
     </div>
   </div>
 </div>
-<?php if(count($ownEntries) > 0) :?>
+<?php if(isset($ownEntries) && count($ownEntries) > 0) :?>
 <div class="row">
   <div class="col-md-12 equel-grid">
     <div class="grid">
@@ -80,7 +80,7 @@ $this->assign('title', __('GDT Kontoübersicht'));
   </div>
 </div>
 <?php endif; ?>
-<?php if(count($connectEntries) > 0) : ?>
+<?php if(isset($connectEntries) && count($connectEntries) > 0) : ?>
 <div class="row">
   <div class="col-md-12 equel-grid">
     <div class="grid">
