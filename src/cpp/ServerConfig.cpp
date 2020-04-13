@@ -113,6 +113,9 @@ namespace ServerConfig {
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg)
 	{
 		g_disableEmail = cfg.getBool("email.disable", false);
+		if (g_disableEmail) {
+			printf("Email is disabled!\n");
+		}
 		g_EmailAccount.sender = cfg.getString("email.sender");
 		g_EmailAccount.username = cfg.getString("email.username");
 		g_EmailAccount.password = cfg.getString("email.password");

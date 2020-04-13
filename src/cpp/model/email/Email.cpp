@@ -18,6 +18,21 @@ Mit freundlichen Grüßen\n\
 Dario, Gradido Server Admin\n\
 "};
 
+const static char EmailText_emailVerificationOldElopageTransaction[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Da wir Dir für Deine Beiträge GradidoTransform gutschreiben und\n\
+du bisher noch kein Gradido-Konto hattest, haben wir eines für Dich eröffnet.\n\
+\n\
+Um es zu aktivieren klicke bitte auf den Link: [link]\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Wenn Du momentan kein Gradido-Konto haben möchtest, kannst Du auch diese E-Mail ignorieren.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+" };
+
 const static char EmailText_adminEmailVerification[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
@@ -132,6 +147,7 @@ Gradido Login-Server\n\
 			break;
 		
 		case EMAIL_USER_VERIFICATION_CODE:
+		case EMAIL_USER_REGISTER_OLD_ELOPAGE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
@@ -151,6 +167,9 @@ Gradido Login-Server\n\
 			}
 			else if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND) {
 				messageTemplate = EmailText_adminEmailVerificationResend;
+			}
+			else if (mType == EMAIL_USER_REGISTER_OLD_ELOPAGE) {
+				messageTemplate = EmailText_emailVerificationOldElopageTransaction;
 			}
 
 			mailMessage->addContent(
