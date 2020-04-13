@@ -11,7 +11,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string email;
 	std::string first_name;
 	std::string last_name;
-	model::EmailType emailType;
+	int emailType;
 	auto em = EmailManager::getInstance();
 
 	// if is json object
@@ -58,7 +58,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		return stateError("insert emailOptIn failed");
 	}
 
-	em->addEmail(new model::Email(emailOptIn, user, emailType));
+	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
 
 	return stateSuccess();
 	

@@ -33,7 +33,8 @@ namespace model {
 		EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE = 7,
 		EMAIL_NOTIFICATION_TRANSACTION_CREATION = 8,
 		EMAIL_NOTIFICATION_TRANSACTION_TRANSFER = 9,
-		EMAIL_USER_REGISTER_OLD_ELOPAGE = 10
+		EMAIL_USER_REGISTER_OLD_ELOPAGE = 10,
+		EMAIL_MAX = 11
 	};
 
 	class Email: public ErrorList
@@ -45,6 +46,7 @@ namespace model {
 		Email(const std::string& errorHtml, EmailType type);
 		~Email();
 
+		static EmailType convertTypeFromInt(int type);
 		inline EmailType getType() { return mType; }
 		inline controller::User* getUser() { if (!mUser.isNull()) return mUser.get(); return nullptr; }
 

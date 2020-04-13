@@ -22,12 +22,12 @@ const static char EmailText_emailVerificationOldElopageTransaction[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
 Da wir Dir für Deine Beiträge GradidoTransform gutschreiben und\n\
-du bisher noch kein Gradido-Konto hattest, haben wir eines für Dich eröffnet.\n\
+Du bisher noch kein Gradido-Konto hattest, haben wir eines für Dich eröffnet.\n\
 \n\
 Um es zu aktivieren klicke bitte auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\
-Wenn Du momentan kein Gradido-Konto haben möchtest, kannst Du auch diese E-Mail ignorieren.\n\
+Wenn Du momentan kein Gradido-Konto haben möchtest, kannst Du diese E-Mail auch einfach ignorieren.\n\
 \n\
 Mit freundlichen Grüßen\n\
 Dario, Gradido Server Admin\n\
@@ -290,5 +290,13 @@ Gradido Login-Server\n\
 			addError(new Error(functionName, "no amount placeholder found"));
 		}
 		return result;
+	}
+
+	EmailType Email::convertTypeFromInt(int type)
+	{
+		if (type >= (int)EMAIL_MAX || type <= 0) {
+			return EMAIL_ERROR;
+		}
+		return (EmailType)type;
 	}
 }
