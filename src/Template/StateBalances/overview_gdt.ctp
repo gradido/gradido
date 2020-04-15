@@ -104,9 +104,10 @@ $this->assign('title', __('GDT Kontoübersicht'));
               $gdtEntry = $entry['connect']['gdt_entry'];
               ?>
               <tr><td colspan="5">
-                      <?php foreach($entry['publishersPath'] as $c => $publisher_id) : ?>
-                        <?php if($c > 0): ?> -> <?php endif; ?>
-                        <?= publisherLink($publishers[$publisher_id], $this) ?>
+                    <?= $elopageTransaction['email'] ?>
+                      <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
+                         -> 
+                        <?= publisherLink($publisher, $this) ?>
                       <?php endforeach; ?>
                   </td>
               </tr>
