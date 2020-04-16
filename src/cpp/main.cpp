@@ -12,6 +12,8 @@
 #include "model/table/User.h"
 #include "model/table/EmailOptIn.h"
 
+#include "Poco/DateTimeParser.h"
+
 #ifndef _TEST_BUILD
 
 
@@ -24,7 +26,9 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-
+	std::string dateTimeString = __DATE__;
+	printf("date time string: %s\n", dateTimeString.data());
+	//Poco::DateTime buildDateTime = Poco::DateTimeParser::parse();
 
 	ServerConfig::g_versionString = "0.20.KW13.02";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));

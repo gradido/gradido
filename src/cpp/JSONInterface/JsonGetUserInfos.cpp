@@ -94,6 +94,12 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "user.pubkeyhex") {
 				jsonUser.set("pubkeyhex", userModel->getPublicKeyHex());
 			}
+			else if (parameterString == "user.first_name") {
+				jsonUser.set("first_name", userModel->getFirstName());
+			}
+			else if (parameterString == "user.last_name") {
+				jsonUser.set("last_name", userModel->getLastName());
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");
