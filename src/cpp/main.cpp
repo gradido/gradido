@@ -27,10 +27,13 @@ int main(int argc, char** argv)
 	}
 
 	std::string dateTimeString = __DATE__;
-	printf("date time string: %s\n", dateTimeString.data());
-	//Poco::DateTime buildDateTime = Poco::DateTimeParser::parse();
+	//printf("date time string: %s\n", dateTimeString.data());
+	std::string formatString("%b %d %Y");
+	int timeZone = 0;
 
-	ServerConfig::g_versionString = "0.20.KW13.02";
+	Poco::DateTime buildDateTime = Poco::DateTimeParser::parse(formatString, dateTimeString, timeZone);
+	ServerConfig::g_versionString = Poco::DateTimeFormatter::format(buildDateTime, "0.%y.%m.%d");
+	//ServerConfig::g_versionString = "0.20.KW13.02";
 	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
 	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
 
