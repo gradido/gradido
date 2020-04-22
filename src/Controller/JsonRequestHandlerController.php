@@ -55,6 +55,8 @@ class JsonRequestHandlerController extends AppController {
               }
             case 'userDelete': return $this->userDelete($jsonData->user);
             case 'moveTransaction': return $this->moveTransaction($jsonData->pubkeys, $jsonData->memo, $jsonData->session_id);
+            case 'checkUser': return $this->checkUser($jsonData->email, $jsonData->last_name);
+            case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
@@ -144,6 +146,42 @@ class JsonRequestHandlerController extends AppController {
         return $this->returnJson(['state' => 'error', 'msg' => 'user not found']);
       }
       
+    }
+    
+    private function checkUser($email, $last_name) {
+      $userTable = TableRegistry::getTableLocator()->get('Users');
+      $user = $userTable->find('all')
+              ->where(['email' => $email])
+              ->contain([])
+              ->select(['first_name', 'last_name', 'email']);
+      if(!$user->count()) {
+        return $this->returnJson(['state' => 'not found', 'msg' => 'user not found']);
+      }
+      if($user->count() == 1 && $user->first()->last_name == $last_name) {
+        return $this->returnJson(['state' => 'success']);
+      }
+      return $this->returnJson(['state' => 'not identical', 'user' => $user->toArray()]);
+    }
+    
+    private function getUsers($page, $count) {
+      
+      $userTable = TableRegistry::getTableLocator()->get('Users');
+      $this->paginate = [
+        'limit' => $count,
+        'page' => $page
+      ];
+      $usersQuery = $userTable->find('all')
+                              ->select(['first_name', 'last_name', 'email'])
+                              ->order(['id']);
+      try {
+        return $this->returnJson(['state' => 'success', 'users' => $this->paginate($usersQuery)]);
+      } catch (Exception $ex) {
+        return $this->returnJson(['state' => 'exception', 'msg' => 'error paginate users', 'details' => $ex->getMessage()]);
+      }
+       
+      
+      //return $this->returnJson(['state' => 'success', 'users' => $users->toArray()]);
+       
     }
     
     private function getRunningUserTasks() {

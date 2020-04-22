@@ -11,6 +11,11 @@ if(isset($user)) {
 }
 $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']);
 ?>
+<style type="text/css">
+  .table-row {
+    display:table-row;
+  }
+</style>
 <?php if(isset($requestTime)) : ?>
   <span class='grd-second-timer'><?= round($requestTime * 1000.0) ?> ms</span>
 <?php endif; ?>
@@ -66,14 +71,21 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
     <?php if($user['role'] == 'admin') : ?>
     <fieldset class="grd-margin-top-10 admin-border">
       <h3>Benutzer ...</h3>
-      <?= $this->Html->link(
-              __('suchen'),
-              ['controller' => 'StateUsers', 'action' => 'search'],
-              ['class' => 'grd-nav-bn grd-nav-bn-large']
-              ); ?>
-      <a href="<?= Router::url('./', true) ?>account/adminRegister" class="grd-nav-bn grd-nav-bn-large">
-        <?= __("hinzufügen") ?>
-      </a>
+      <div class="table-row">
+        <?= $this->Html->link(
+                __('suchen'),
+                ['controller' => 'StateUsers', 'action' => 'search'],
+                ['class' => 'grd-nav-bn grd-nav-bn-large']
+                ); ?>
+        <a href="<?= Router::url('./', true) ?>account/adminRegister" class="grd-nav-bn grd-nav-bn-large">
+          <?= __("hinzufügen") ?>
+        </a>
+      </div>
+      <div class="table-row">
+        <a href="<?= Router::url('./', true) ?>account/adminUserPasswordReset" class="grd-nav-bn grd-nav-bn-large">
+          <?= __("hat sein Passwort und Passphrase vergessen") ?>
+        </a>
+      </div>
     </fieldset>
     <?php endif; ?>
     
