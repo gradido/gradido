@@ -25,6 +25,7 @@
 #include "AdminCheckUserBackup.h"
 #include "TranslatePassphrase.h"
 #include "PassphrasedTransaction.h"
+#include "AdminUserPasswordReset.h"
 
 
 #include "DecodeTransactionPage.h"
@@ -182,6 +183,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/checkUserBackups") {
 				auto pageRequestHandler = new AdminCheckUserBackup(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/adminUserPasswordReset") {
+				auto pageRequestHandler = new AdminUserPasswordReset(s);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}
