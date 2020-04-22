@@ -235,18 +235,22 @@ void AdminUserPasswordReset::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "Bitte schreibe sie dir auf und packe sie gut weg.\n";
 	responseStream << "\n";
 #line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
-	responseStream << ( userBackup->getPassphrase(ServerConfig::Mnemonic_Types::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER) );
+	responseStream << ( controller::UserBackups::formatPassphrase(userBackup->getPassphrase(ServerConfig::Mnemonic_Types::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER)) );
+	responseStream << "\n";
+	responseStream << " \n";
 	responseStream << "\n";
 	responseStream << "Unter diesem Link kannst du dir mit hilfe der Passphrase ein neues Passwort setzen:\n";
-#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
+#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
 	responseStream << ( code->getLink() );
+	responseStream << "\n";
+	responseStream << " \n";
 	responseStream << "\n";
 	responseStream << "Liebe Grüße\n";
 	responseStream << "Dario, Softwareentwickler bei Gradido\n";
 	responseStream << "</pre>\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t";
-#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
+#line 117 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

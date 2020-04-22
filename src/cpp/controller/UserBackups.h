@@ -25,6 +25,9 @@ namespace controller {
 
 		//! \return create keyPair from passphrase if not exist, else return existing pointer
 		Poco::SharedPtr<KeyPair> getKeyPair();
+		//! \brief adding newlines to make block format
+		static std::string formatPassphrase(std::string passphrase, int targetLinesCount = 5);
+
 		std::string getPassphrase(ServerConfig::Mnemonic_Types type);
 
 	protected:

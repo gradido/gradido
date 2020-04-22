@@ -84,4 +84,20 @@ namespace controller {
 		}
 	}
 
+	std::string UserBackups::formatPassphrase(std::string passphrase, int targetLinesCount/* = 5*/) 
+	{
+		int count = passphrase.size();
+		int charPerLine = count / (targetLinesCount);
+		int cursor = 0;
+		for (int i = 1; i < targetLinesCount; i++) {
+			cursor = charPerLine * i;
+			while (cursor < count && passphrase.at(cursor) != ' ') {
+				cursor++;
+			}
+			if (cursor >= (count-2)) break;
+			passphrase.replace(cursor, 1, 1, '\n');
+		}
+		return passphrase;
+	}
+
 }

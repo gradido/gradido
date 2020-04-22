@@ -96,7 +96,7 @@ namespace controller {
 	{
 		std::stringstream ss;
 		auto model = getModel();
-		ss << model->getFirstName() << " " << model->getLastName() << "<" << model->getEmail() << ">";
+		ss << model->getFirstName() << " " << model->getLastName() << "&lt;" << model->getEmail() << "&gt;";
 		return ss.str();
 	}
 
