@@ -92,6 +92,14 @@ namespace controller {
 		return mPublicHex;
 	}
 
+	std::string User::getEmailWithNames()
+	{
+		std::stringstream ss;
+		auto model = getModel();
+		ss << model->getFirstName() << " " << model->getLastName() << "<" << model->getEmail() << ">";
+		return ss.str();
+	}
+
 	Poco::JSON::Object User::getJson()
 	{
 		auto json = getModel()->getJson();

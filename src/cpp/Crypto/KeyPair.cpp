@@ -160,6 +160,16 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	return true;
 }
 
+bool KeyPair::generateFromPassphrase(const std::string& passphrase)
+{
+	//static bool validatePassphrase(const std::string& passphrase, Mnemonic** wordSource = nullptr);
+	Mnemonic* wordSource = nullptr;
+	if (validatePassphrase(passphrase, &wordSource)) {
+		return generateFromPassphrase(passphrase.data(), wordSource);
+	}
+	return false;
+}
+
 MemoryBin* KeyPair::createWordIndices(const std::string& passphrase, const Mnemonic* word_source)
 {
 	auto er = ErrorManager::getInstance();
@@ -366,4 +376,35 @@ bool KeyPair::savePrivKey(int userId)
 bool KeyPair::isPubkeysTheSame(const unsigned char* pubkey) const
 {
 	return sodium_memcmp(pubkey, mPublicKey, ed25519_pubkey_SIZE) == 0;
+}
+
+bool KeyPair::validatePassphrase(const std::string& passphrase, Mnemonic** wordSource/* = nullptr*/)
+{
+	std::istringstream iss(passphrase);
+	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
+		std::istream_iterator<std::string>());
+
+	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
+		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
+		bool existAll = true;
+		for (auto it = results.begin(); it != results.end(); it++) {
+			if (*it == "\0" || *it == "" || it->size() < 3) continue;
+			if (!m.isWordExist(*it)) {
+				if (i == 1) {
+					int zahl = 0;
+				}
+				//printf("wordlist: %d, word not found: %s\n", i, it->data());
+				existAll = false;
+				continue;
+			}
+		}
+		if (existAll) {
+			if (wordSource) {
+				*wordSource = &m;
+			}
+
+			return true;
+		}
+	}
+	return false;
 }

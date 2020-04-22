@@ -35,7 +35,7 @@ namespace controller {
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
 
-
+		std::string getEmailWithNames();
 		const std::string& getPublicHex();
 		
 

@@ -153,6 +153,7 @@ enum PageState {
 			</p>
 			<p><input type="submit" style="width:auto" name="transfer" value="Guthaben auf neue Adresse &uuml;berweisen!"></p>
 		</form>
+		</fieldset>
 	<% } else if(PAGE_STATE_SUCCESS == state) { %>
 		<p>Gradidos wurden erfolgreich überwiesen.</p>
 		<a href="<%= ServerConfig::g_serverPath %>/passphrased_transaction">Weitere Gradidos überweisen</a>

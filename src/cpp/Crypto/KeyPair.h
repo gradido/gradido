@@ -29,8 +29,10 @@ public:
 	~KeyPair();
 
 	bool generateFromPassphrase(const char* passphrase, const Mnemonic* word_source);
+	bool generateFromPassphrase(const std::string& passphrase);
 	static std::string passphraseTransform(const std::string& passphrase, const Mnemonic* currentWordSource, const Mnemonic* targetWordSource);
 	static std::string filterPassphrase(const std::string& passphrase);
+	static bool validatePassphrase(const std::string& passphrase, Mnemonic** wordSource = nullptr);
 	
 	std::string getPubkeyHex();
 	bool savePrivKey(int userId);

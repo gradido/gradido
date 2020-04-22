@@ -46,4 +46,42 @@ namespace controller {
 
 	}
 
+	Poco::SharedPtr<KeyPair> UserBackups::getKeyPair()
+	{
+		if (!mKeyPair.isNull()) {
+			return mKeyPair;
+		}
+		mKeyPair = new KeyPair;
+		auto model = getModel();
+		auto passphrase = model->getPassphrase();
+		
+		mKeyPair->generateFromPassphrase(passphrase);
+		return mKeyPair;
+	}
+
+	std::string UserBackups::getPassphrase(ServerConfig::Mnemonic_Types type)
+	{
+		if ((int)type < 0 || (int)type >= ServerConfig::Mnemonic_Types::MNEMONIC_MAX) {
+			return "<invalid type>";
+		}
+		auto passphrase = getModel()->getPassphrase();
+		Mnemonic* wordSource = nullptr;
+		if (KeyPair::validatePassphrase(passphrase, &wordSource)) {
+			for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
+				Mnemonic* m = &ServerConfig::g_Mnemonic_WordLists[i];
+				if (m == wordSource) {
+					if (type == i) {
+						return passphrase;
+					}
+					else {
+						return KeyPair::passphraseTransform(passphrase, m, &ServerConfig::g_Mnemonic_WordLists[type]);
+					}
+				}
+			}
+		}
+		else {
+			return "<invalid passphrase>";
+		}
+	}
+
 }

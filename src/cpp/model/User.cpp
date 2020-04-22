@@ -550,33 +550,8 @@ std::string User::generateNewPassphrase(Mnemonic* word_source)
 
 bool User::validatePassphrase(const std::string& passphrase, Mnemonic** wordSource/* = nullptr*/)
 {
-	std::istringstream iss(passphrase);
-	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
-								     std::istream_iterator<std::string>());
+	return KeyPair::validatePassphrase(passphrase, wordSource);
 	
-	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
-		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
-		bool existAll = true;
-		for (auto it = results.begin(); it != results.end(); it++) {
-			if (*it == "\0" || *it == "" || it->size() < 3) continue;
-			if (!m.isWordExist(*it)) {
-				if (i == 1) {
-					int zahl = 0;
-				}
-				//printf("wordlist: %d, word not found: %s\n", i, it->data());
-				existAll = false;
-				continue;
-			}
-		}
-		if (existAll) {
-			if (wordSource) {
-				*wordSource = &m;
-			}
-
-			return true;
-		}
-	}
-	return false;
 }
 
 bool User::isEmptyPassword()
