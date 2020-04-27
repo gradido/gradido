@@ -168,7 +168,7 @@ class JsonRequestHandlerController extends AppController {
       $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
       $stateUsers = $stateUserTable->find('all')->where(['OR' => ['email' => $email, 'last_name' => $last_name]])->contain(['StateBalances']);
       $gdds  = [];
-      foreach($stateUsers as $stateUser) {
+      /*foreach($stateUsers as $stateUser) {
         foreach($stateUser->StateBalances as $stateBalance) {
           if(!isset($gdds[$stateBalance->email])) {
             $gdds[$stateBalance->email];
@@ -178,7 +178,7 @@ class JsonRequestHandlerController extends AppController {
           }
           $gdds[$stateBalance->email][$stateBalance->last_name] += $stateBalance->amount;
         }
-      }
+      }*/
       return $this->returnJson(['state' => 'success', 'gdds' => $gdds, 'stateUsers' => $stateUsers]);
     }
     
