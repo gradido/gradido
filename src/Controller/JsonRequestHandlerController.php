@@ -171,13 +171,13 @@ class JsonRequestHandlerController extends AppController {
       $gdds  = [];
       foreach($stateUsers as $stateUser) {
         foreach($stateUser->state_balances as $stateBalance) {
-          if(!isset($gdds[$stateBalance->email])) {
-            $gdds[$stateBalance->email];
+          if(!isset($gdds[$stateUser->email])) {
+            $gdds[$stateUser->email];
           }
-          if(!isset($gdds[$stateBalance->email][$stateBalance->last_name])) {
-            $gdds[$stateBalance->email][$stateBalance->last_name] = 0;
+          if(!isset($gdds[$stateUser->email][$stateUser->last_name])) {
+            $gdds[$stateUser->email][$stateUser->last_name] = 0;
           }
-          $gdds[$stateBalance->email][$stateBalance->last_name] += $stateBalance->amount;
+          $gdds[$stateUser->email][$stateUser->last_name] += $stateBalance->amount;
         }
       }
       return $this->returnJson(['state' => 'success', 'gdds' => $gdds]);
