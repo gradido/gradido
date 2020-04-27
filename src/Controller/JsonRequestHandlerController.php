@@ -172,7 +172,7 @@ class JsonRequestHandlerController extends AppController {
       foreach($stateUsers as $stateUser) {
         foreach($stateUser->state_balances as $stateBalance) {
           if(!isset($gdds[$stateUser->email])) {
-            $gdds[$stateUser->email];
+            $gdds[$stateUser->email] = [];
           }
           if(!isset($gdds[$stateUser->email][$stateUser->last_name])) {
             $gdds[$stateUser->email][$stateUser->last_name] = 0;
