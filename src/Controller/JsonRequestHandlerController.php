@@ -57,6 +57,7 @@ class JsonRequestHandlerController extends AppController {
             case 'moveTransaction': return $this->moveTransaction($jsonData->pubkeys, $jsonData->memo, $jsonData->session_id);
             case 'checkUser': return $this->checkUser($jsonData->email, $jsonData->last_name);
             case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
+            case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
@@ -161,6 +162,24 @@ class JsonRequestHandlerController extends AppController {
         return $this->returnJson(['state' => 'success']);
       }
       return $this->returnJson(['state' => 'not identical', 'user' => $user->toArray()]);
+    }
+    
+    private function getUserBalance($email, $last_name) {
+      $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+      $stateUsers = $stateUserTable->find('all')->where(['OR' => ['email' => $email, 'last_name' => $last_name]])->contain(['StateBalances']);
+      $gdds  = [];
+      foreach($stateUsers as $stateUser) {
+        foreach($stateUser->StateBalances as $stateBalance) {
+          if(!isset($gdds[$stateBalance->email])) {
+            $gdds[$stateBalance->email];
+          }
+          if(!isset($gdds[$stateBalance->email][$stateBalance->last_name])) {
+            $gdds[$stateBalance->email][$stateBalance->last_name] = 0;
+          }
+          $gdds[$stateBalance->email][$stateBalance->last_name] += $stateBalance->amount;
+        }
+      }
+      return $this->returnJson(['state' => 'success', 'gdds' => $gdds, 'stateUsers' => $stateUsers]);
     }
     
     private function getUsers($page, $count) {

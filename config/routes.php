@@ -22,6 +22,8 @@ use Cake\Routing\RouteBuilder;
 use Cake\Routing\Router;
 use Cake\Routing\Route\DashedRoute;
 
+use Cake\Core\Configure;
+
 /**
  * The default class to use for all routes
  *
@@ -58,7 +60,18 @@ Router::scope('/', function (RouteBuilder $routes) {
         $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {
+            if($entry == 'ElopageWebhook') {
               return true;
+            }
+            if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost') {
+              return true;
+            }
+            $allowedCaller = Configure::read('API.allowedCaller');
+              $callerIp = $request->clientIp();
+              foreach($allowedCaller as $allowed) {
+                $ip = gethostbyname($allowed);
+                if($ip === $callerIp) return true;
+              }
           }
         }
     });
