@@ -197,14 +197,21 @@ void HandleElopageRequestTask::writeUserIntoDB()
 }
 
 
-int HandleElopageRequestTask::getUserIdFromDB()
+int HandleElopageRequestTask::getUserIdFromDB(bool checkEmail /* = false*/)
 {
 	auto cm = ConnectionManager::getInstance();
 	auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 	Poco::Data::Statement select(session);
 	std::vector<int> user_ids;
-	select << "SELECT id from users where email = ?;",
-		into(user_ids), use(mEmail);
+	std::vector<bool> email_checked;
+	if (checkEmail) {
+		select << "SELECT id, email_checked from users where email = ?;",
+			into(user_ids), into(email_checked), use(mEmail);
+	}
+	else {
+		select << "SELECT id from users where email = ?;",
+			into(user_ids), use(mEmail);
+	}
 	try {
 		select.execute();
 	}
@@ -226,6 +233,10 @@ int HandleElopageRequestTask::getUserIdFromDB()
 		sendErrorsAsEmail();
 	}
 	if (user_ids.size() >= 1) {
+		if (email_checked.size() >= 1 && email_checked[0]) {
+			addError(new Error("HandleElopageRequestTask::getUserIdFromDB", "user account already activated"));
+			return 0;
+		}
 		return user_ids[0];
 	}
 	return 0;
@@ -333,8 +344,9 @@ int HandleElopageRequestTask::run()
 		writeUserIntoDB();
 
 		// get user id from db
-		int user_id = getUserIdFromDB();
+		int user_id = getUserIdFromDB(true);
 		// we didn't get a user_id, something went wrong
+		// maybe user already exist
 		if (!user_id) {
 			addError(new Error("User loadEntryDBId", "user_id is zero"));
 			addError(param_error_order_id);

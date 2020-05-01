@@ -28,7 +28,7 @@ protected:
 	// return true if at least one entry in db with this email exist
 	bool validateInput();
 	void writeUserIntoDB();
-	int getUserIdFromDB();
+	int getUserIdFromDB(bool checkEmail = false);
 
 	Poco::Net::NameValueCollection mRequestData; 
 	std::string mEmail;
