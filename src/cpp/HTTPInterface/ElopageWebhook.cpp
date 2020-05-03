@@ -4,6 +4,7 @@
 #include "Poco/URI.h"
 #include "Poco/Logger.h"
 #include "Poco/Data/Binding.h"
+//#include "Poco/Data/MySQL/MySQLException.h"
 
 using namespace Poco::Data::Keywords;
 
@@ -214,6 +215,14 @@ int HandleElopageRequestTask::getUserIdFromDB(bool checkEmail /* = false*/)
 	}
 	try {
 		select.execute();
+	}
+	catch (Poco::Data::ConnectionFailedException& ex) {
+		addError(new ParamError(__FUNCTION__, "[ConnectionFailedException] mysql error selecting from db", ex.displayText().data()));
+		addError(new ParamError(__FUNCTION__, "email: ", mEmail.data()));
+	}
+	catch (Poco::Data::NotConnectedException& ex) {
+		addError(new ParamError(__FUNCTION__, "[NotConnectedException] mysql error selecting from db", ex.displayText().data()));
+		addError(new ParamError(__FUNCTION__, "email: ", mEmail.data()));
 	}
 	catch (Poco::Exception& ex) {
 		addError(new ParamError(__FUNCTION__, "mysql error selecting from db", ex.displayText().data()));
