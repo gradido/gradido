@@ -118,6 +118,11 @@ void Session::reset()
 	mLastExternReferer = "";
 	mClientLoginIP = Poco::Net::IPAddress();
 	unlock();
+
+	// reset transactions
+	mCurrentActiveProcessingTransaction = nullptr;
+	mProcessingTransactions.clear();
+
 	//printf("[Session::reset] finished\n");
 }
 
