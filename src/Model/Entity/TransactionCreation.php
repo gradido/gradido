@@ -33,6 +33,7 @@ class TransactionCreation extends Entity
         'amount' => true,
         'ident_hash' => true,
         'transaction' => true,
-        'state_user' => true
+        'state_user' => true,
+        'target_date' => true
     ];
 }

@@ -15,6 +15,9 @@ foreach($receiverProposal as $i => $receiver) {
   ]);
 }*/
 $this->assign('title', __('Schöpfungstransaktion'));
+
+use Cake\I18n\FrozenTime;
+
 ?>
 <style type="text/css">
   input[type='checkbox'] {
@@ -63,6 +66,11 @@ $this->assign('title', __('Schöpfungstransaktion'));
   <fieldset>
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount', ['required' => false]); ?>
+    <?php 
+      $firstDayLastMonth = new FrozenTime(); 
+      $firstDayLastMonth = $firstDayLastMonth->day(1)->subMonth(1);
+    ?>
+    <?= $this->Form->control('target_date', ['value' => $firstDayLastMonth]); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
       $disable = null;
       if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 20000000) {
@@ -84,6 +92,9 @@ $this->assign('title', __('Schöpfungstransaktion'));
         <?php endif; ?></a><br>
         <div class="input number grd-padding-top-bottom-5">
           <?= $this->Form->text('user_amount[' . $possibleReceiver['id'] . ']', ['placeholder' => __('Für benutzerdefinierten Betrag'), 'class' => 'user_amount', 'type' => 'number', 'step' => '0.01', $disable]); ?> GDD
+        </div>
+        <div class="input date grd-padding-top-bottom-5">
+          <?= $this->Form->date('user_target_date[' . $possibleReceiver['id'] . ']', ['value' => $firstDayLastMonth]) ?>
         </div>
         <?php if(isset($possibleReceiver['pending'])) : ?>
         <span class="grd_smaller color-orange">
@@ -139,7 +150,7 @@ $this->assign('title', __('Schöpfungstransaktion'));
         var input = userAmountInputs[i];
         //console.log("input: %o", input);
         if(input.parentNode != undefined) {
-          var checkbox = input.parentNode.previousElementSibling.previousElementSibling.previousElementSibling;
+          //var checkbox = input.parentNode.previousElementSibling.previousElementSibling.previousElementSibling;
           //console.log("checkbox: %o?", checkbox);
           input.onfocus = function(e) {
             var checkbox = e.target.parentNode.previousElementSibling.previousElementSibling.previousElementSibling;

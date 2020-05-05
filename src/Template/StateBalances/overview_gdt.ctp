@@ -48,7 +48,8 @@ $this->assign('title', __('GDT Kontoübersicht'));
         <table class="table table-hover table-sm">
           <thead>
             <tr class="solid-header">
-              <th class="pl-4"><?= __('Datum') ?></th>
+              <th class="pl-4"><?= __('E-Mail') ?></th>
+              <th><?= __('Datum') ?></th>
               <th><?= __('Kommentar') ?></th>
               <th><?= __('Euro') ?></th>
               <th><?= __('Factor')?></th>
@@ -58,6 +59,7 @@ $this->assign('title', __('GDT Kontoübersicht'));
           <tbody>
             <?php foreach($ownEntries as $entry) : ?>
             <tr>
+              <td><?= $entry['email'] ?></td>
               <td><?= new FrozenTime($entry['date']) ?></td>
               <td><?= h($entry['comment']) ?></td>
               <td>

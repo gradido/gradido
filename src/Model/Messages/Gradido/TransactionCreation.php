@@ -17,13 +17,23 @@ use Google\Protobuf\Internal\GPBUtil;
 class TransactionCreation extends \Google\Protobuf\Internal\Message
 {
     /**
+     * 40 Byte
+     *
      * Generated from protobuf field <code>.model.messages.gradido.ReceiverAmount receiverAmount = 1;</code>
      */
     private $receiverAmount = null;
     /**
+     * 4 Byte
+     *
      * Generated from protobuf field <code>sint32 ident_hash = 2;</code>
      */
     private $ident_hash = 0;
+    /**
+     * 8 Byte
+     *
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds target_date = 3;</code>
+     */
+    private $target_date = null;
 
     /**
      * Constructor.
@@ -32,7 +42,11 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
      *     Optional. Data for populating the Message object.
      *
      *     @type \Model\Messages\Gradido\ReceiverAmount $receiverAmount
+     *           40 Byte
      *     @type int $ident_hash
+     *           4 Byte
+     *     @type \Model\Messages\Gradido\TimestampSeconds $target_date
+     *           8 Byte
      * }
      */
     public function __construct($data = NULL) {
@@ -41,6 +55,8 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * 40 Byte
+     *
      * Generated from protobuf field <code>.model.messages.gradido.ReceiverAmount receiverAmount = 1;</code>
      * @return \Model\Messages\Gradido\ReceiverAmount
      */
@@ -50,6 +66,8 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * 40 Byte
+     *
      * Generated from protobuf field <code>.model.messages.gradido.ReceiverAmount receiverAmount = 1;</code>
      * @param \Model\Messages\Gradido\ReceiverAmount $var
      * @return $this
@@ -63,6 +81,8 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * 4 Byte
+     *
      * Generated from protobuf field <code>sint32 ident_hash = 2;</code>
      * @return int
      */
@@ -72,6 +92,8 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * 4 Byte
+     *
      * Generated from protobuf field <code>sint32 ident_hash = 2;</code>
      * @param int $var
      * @return $this
@@ -80,6 +102,32 @@ class TransactionCreation extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkInt32($var);
         $this->ident_hash = $var;
+
+        return $this;
+    }
+
+    /**
+     * 8 Byte
+     *
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds target_date = 3;</code>
+     * @return \Model\Messages\Gradido\TimestampSeconds
+     */
+    public function getTargetDate()
+    {
+        return $this->target_date;
+    }
+
+    /**
+     * 8 Byte
+     *
+     * Generated from protobuf field <code>.model.messages.gradido.TimestampSeconds target_date = 3;</code>
+     * @param \Model\Messages\Gradido\TimestampSeconds $var
+     * @return $this
+     */
+    public function setTargetDate($var)
+    {
+        GPBUtil::checkMessage($var, \Model\Messages\Gradido\TimestampSeconds::class);
+        $this->target_date = $var;
 
         return $this;
     }

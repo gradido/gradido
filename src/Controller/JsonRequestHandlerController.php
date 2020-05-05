@@ -66,12 +66,15 @@ class JsonRequestHandlerController extends AppController {
   
     private function putTransaction($transactionBase64) {
       $transaction = new Transaction($transactionBase64);
+      //echo "after new transaction<br>";
       if($transaction->hasErrors()) {
         return $this->returnJson(['state' => 'error', 'msg' => 'error parsing transaction', 'details' => $transaction->getErrors()]);
       }
+      //echo "after check on errors<br>";
       if(!$transaction->validate()) {
         return $this->returnJsonSaveError($transaction, ['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
       }
+      //echo "after validate <br>";
       
       if ($transaction->save()) {
         

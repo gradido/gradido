@@ -7,6 +7,7 @@ use Cake\Routing\Router;
 //use Cake\I18n\Number;
 use Cake\Http\Client;
 use Cake\Core\Configure;
+use Cake\I18n\FrozenDate;
 use Cake\Datasource\ConnectionManager;
 
 use App\Form\CreationForm;
@@ -262,6 +263,7 @@ class TransactionCreationsController extends AppController
           // amount
           $memo = $requestData['memo'];
           $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
+          $targetDate = $requestData['target_date'];
           $mode = 'next';
           if(isset($requestData['add'])) {$mode = 'add'; }
           
@@ -284,9 +286,13 @@ class TransactionCreationsController extends AppController
             //var_dump($receiverUsers);
             foreach($receiverUsers as $receiverUser) {
               $localAmountCent = $amountCent;
+              $localTargetDate = $targetDate;
               $id = $receiverUser->id;
               if($requestData['user_amount'][$id] != '') {
                 $localAmountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['user_amount'][$id]);
+              }
+              if($requestData['user_target_date'][$id]) {
+                $localTargetDate = $requestData['user_target_date'][$id];
               }
               if(isset($pendings[$id])) {
                 $pendings[$id] += $localAmountCent;
@@ -295,11 +301,22 @@ class TransactionCreationsController extends AppController
               }
               $pubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
               $identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
+              //var_dump($localTargetDate);
+              //die('a');
+              $localTargetDateFrozen = FrozenDate::now();
+              $localTargetDateFrozen = $localTargetDateFrozen
+                  ->year($localTargetDate['year'])
+                  ->month($localTargetDate['month'])
+                  ->day($localTargetDate['day']);
+              echo "input: "; var_dump($localTargetDate);echo "<br>";
+              echo "output: "; var_dump($localTargetDateFrozen);
+              //die('a');
               $builderResult = TransactionCreation::build(
                     $localAmountCent, 
                     $memo, 
                     $pubKeyHex,
-                    $identHash
+                    $identHash,
+                    $localTargetDateFrozen
               );
               if($builderResult['state'] == 'success') {
                   array_push($transactions, base64_encode($builderResult['transactionBody']->serializeToString()));

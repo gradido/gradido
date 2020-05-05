@@ -8,6 +8,8 @@ use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\Mailer\Email;
 
+
+
 class TransactionCreation extends TransactionBase {
   
     private $protoTransactionCreation;
@@ -24,7 +26,7 @@ class TransactionCreation extends TransactionBase {
       return $this->protoTransactionCreation;
     }
     
-    static public function build($amount, $memo, $receiver_public_hex, $ident_hash) 
+    static public function build($amount, $memo, $receiver_public_hex, $ident_hash, $targetDate = null) 
     {    
         $receiver = new \Model\Messages\Gradido\ReceiverAmount();
         $receiver->setAmount($amount);
@@ -42,10 +44,21 @@ class TransactionCreation extends TransactionBase {
         $transactionBody = new \Model\Messages\Gradido\TransactionBody();
         $transactionBody->setMemo($memo);
         $transactionBody->setCreated($creationDate);
+        
 
         $transaction = new \Model\Messages\Gradido\TransactionCreation();
         $transaction->setReceiverAmount($receiver);
         $transaction->setIdentHash($ident_hash);
+        echo "target date: ";
+        //var_dump($targetDate);
+        //die('die');
+        if($targetDate) {
+          $targetDateTimestamp = new \Model\Messages\Gradido\TimestampSeconds();
+          $targetDateTimestamp->setSeconds($targetDate->getTimestamp());
+          //var_dump($targetDateTimestamp); die('target');
+          $transaction->setTargetDate($targetDateTimestamp);
+        }
+        
         $transactionBody->setCreation($transaction);
         return ['state' => 'success', 'transactionBody' => $transactionBody];
     }
@@ -100,14 +113,19 @@ class TransactionCreation extends TransactionBase {
       // ident hash isn't collision ressistent, it is for speed up search
       $identHashBin = pack('a32', $this->getIdentHash());
       
-      $existingCreations = $this->transactionCreationsTable
+      $q = $existingCreations = $this->transactionCreationsTable
               ->find('all')
-              ->select(['amount', 'state_user_id'])
+              ->select(['amount', 'state_user_id', 'target_date'])
               ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]]);
+      
+      //$targetDate = $this->protoTransactionCreation->getTargetDate();
+      //echo "choose existing transactions<br>";
+      //$existingCreations->where([$q->func()->extract('YEAR_MONTH', 'target_date') . ' LIKE ' . $q->func()->extract('YEAR_MONTH', $targetDate)]);
+      //        ->where(['EXTRACT(YEAR_MONTH FROM target_date) LIKE EXTRACT(YEAR_MONTH FROM']);
       // uncomment because ident hash didn't work at the moment
               //->where(['ident_hash' => $identHashBin]);
       //$existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
-      $existingCreations->select(['amount', 'state_user_id']);
+      /* old validation not more than 3k GDD for 3 Month*/
       $existingCreations->matching('Transactions', function ($q) {
         
           return $q->where(
@@ -115,8 +133,11 @@ class TransactionCreation extends TransactionBase {
                       ['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())',
                        'EXTRACT(YEAR_MONTH FROM DATE_ADD(Transactions.received, INTERVAL 2 MONTH)) LIKE EXTRACT(YEAR_MONTH FROM NOW())']
                   ])->select('received');
-      });
+         
+      
+      });//*/
       //debug($existingCreations);
+      //echo "after choose existing transactions<br>";
       $newSum = $this->getAmount();
       //var_dump($existingCreations->toArray());
       foreach($existingCreations as $creation) {
