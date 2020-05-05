@@ -208,6 +208,23 @@ class TransactionCreationsController extends AppController
         foreach($transactionActiveMonth as $t) {
           $transactionActiveMonthSortedById[$t['id']] = $t['received'];
         }
+        $firstDayLastMonth = new FrozenDate(); 
+        $firstDayLastMonth = $firstDayLastMonth->day(1)->subMonth(1);
+        $transactionsLastMonthTargeDate = $this->TransactionCreations
+                ->find('all')
+                //->select(['state_user_id', 'target_date', 'amount'])
+                ->where(['EXTRACT(YEAR_MONTH FROM target_date) LIKE' => $firstDayLastMonth->format('Ym')])
+                ->group(['state_user_id'])
+                ->contain([]);
+        $transactionsLastMonthTargeDate->select([
+            'state_user_id', 
+            'sum_amount' => $transactionsLastMonthTargeDate->func()->sum('amount')
+        ]);
+        
+        $transactionsLastMonthTargetDateSortedByStateUserId = [];
+        foreach($transactionsLastMonthTargeDate as $transactionCreation) {
+          $transactionsLastMonthTargetDateSortedByStateUserId[$transactionCreation->state_user_id] = $transactionCreation->sum_amount;
+        }
         
         $stateUsers = $stateUserTable
                 ->find('all')
@@ -224,18 +241,25 @@ class TransactionCreationsController extends AppController
         $possibleReceiver = [];
         foreach($stateUsers as $stateUser) {
           $sumAmount = 0;
+          $sumAmount2 = 0;
+          if(isset($transactionsLastMonthTargetDateSortedByStateUserId[$stateUser->id])) {
+            $sumAmount2 = $transactionsLastMonthTargetDateSortedByStateUserId[$stateUser->id];
+          }
           foreach($stateUser->transaction_creations as $transactionCreation) {
             //var_dump($transactionCreation);
             if(isset($transactionActiveMonthSortedById[$transactionCreation->transaction_id])) {
               $sumAmount += $transactionCreation->amount;
             }
+            
           }
+          
           //if($sumAmount < 20000000) {
             array_push($possibleReceiver, [
                 'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
                 'id' => $stateUser->id,
                 'email' => $stateUser->email,
-                'amount' => $sumAmount
+                'amount' => $sumAmount,
+                'amount2' => $sumAmount2
                 ]);
           /*} else {
             $this->Flash->error(__('Creation above 2.000 GDD for 2 last two month'));
@@ -250,6 +274,7 @@ class TransactionCreationsController extends AppController
         $timeUsed = microtime(true) - $startTime;
         $this->set(compact('timeUsed', 'stateUsers', 'creationForm', 'possibleReceiver'));
         
+        $this->set('firstDayLastMonth', $firstDayLastMonth);
         $this->set('activeUser', $user);
         $this->set('creationForm', $creationForm);
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));

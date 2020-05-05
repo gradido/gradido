@@ -73,8 +73,8 @@ use Cake\I18n\FrozenTime;
     <?= $this->Form->control('target_date', ['value' => $firstDayLastMonth]); ?>
     <?php foreach($possibleReceiver as $possibleReceiver) :
       $disable = null;
-      if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 20000000) {
-        $disable = 'disabled';
+      if($activeUser['id'] == $possibleReceiver['id'] || $possibleReceiver['amount'] > 30000000) {
+        //$disable = 'disabled';
       }
       ?>
     <div class="grd_big_checkbox">
@@ -104,7 +104,12 @@ use Cake\I18n\FrozenTime;
         <?php endif; ?>
         <?php if($possibleReceiver['amount'] != 0) : ?>
           <span class="grd_smaller">
-            In diesem und letztem Monat bereits geschöpft: <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?>
+            In diesen und den letzten 2 Monaten bereits geschöpft (alte Berechnung): <?= $this->element('printGradido', ['number' => $possibleReceiver['amount']]);?>
+          </span>
+        <?php endif; ?>
+        <?php if($possibleReceiver['amount2'] > 0) : ?>
+          <span class="grd_smaller">
+            Im letzten Monat geschöpft (neue Berechnung): <?= $this->element('printGradido', ['number' => $possibleReceiver['amount2']]) ?>
           </span>
         <?php endif; ?>
         <?php if($disable != null) : ?>

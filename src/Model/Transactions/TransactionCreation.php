@@ -7,7 +7,7 @@ namespace Model\Transactions;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\Mailer\Email;
-
+use Cake\I18n\FrozenDate;
 
 
 class TransactionCreation extends TransactionBase {
@@ -113,11 +113,12 @@ class TransactionCreation extends TransactionBase {
       // ident hash isn't collision ressistent, it is for speed up search
       $identHashBin = pack('a32', $this->getIdentHash());
       
-      $q = $existingCreations = $this->transactionCreationsTable
+      //////////  old validation not more than 3k GDD for 3 Month  ///////////////
+      $existingCreations = $this->transactionCreationsTable
               ->find('all')
               ->select(['amount', 'state_user_id', 'target_date'])
-              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]]);
-      
+              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]])
+              ->where(['target_date' => NULL]);
       //$targetDate = $this->protoTransactionCreation->getTargetDate();
       //echo "choose existing transactions<br>";
       //$existingCreations->where([$q->func()->extract('YEAR_MONTH', 'target_date') . ' LIKE ' . $q->func()->extract('YEAR_MONTH', $targetDate)]);
@@ -125,7 +126,7 @@ class TransactionCreation extends TransactionBase {
       // uncomment because ident hash didn't work at the moment
               //->where(['ident_hash' => $identHashBin]);
       //$existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
-      /* old validation not more than 3k GDD for 3 Month*/
+      
       $existingCreations->matching('Transactions', function ($q) {
         
           return $q->where(
@@ -147,11 +148,46 @@ class TransactionCreation extends TransactionBase {
           $newSum += $creation->amount;
         }
       }
+      
+      /*
       if($newSum > 30000000) {
         $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
         return false;
-      }
-      //die("\n");
+      }*/
+      
+      /////////////// new validation, not more than 1K GDD per month via target_date ///////////////////////////
+      $existingCreations2 = $this->transactionCreationsTable
+              ->find('all')
+              ->select(['amount', 'state_user_id', 'target_date'])
+              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]]);
+      $q = $existingCreations2;
+      $targetDate = $this->protoTransactionCreation->getTargetDate();
+      
+      $targetDateFrozen = new FrozenDate($targetDate->getSeconds());
+      $targetDateMonthYearConcat = $targetDateFrozen->format('Ym');
+      
+      $existingCreations2->where([
+                  'target_date IS NOT' => NULL,
+                  'EXTRACT(YEAR_MONTH FROM target_date) LIKE ' => $targetDateMonthYearConcat
+                  ]);
+      
+     $newSum2 = $this->getAmount();
+     foreach($existingCreations2 as $creation) {
+       $newSum2 += $creation->amount;
+     }
+     
+     if(!$existingCreations2->count()) {
+        if($newSum > 30000000) {
+          $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
+          return false;
+        }
+     } else {
+       if($newSum2 > 10000000) {
+         $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month in target_date not allowed');
+         return false;
+       }
+     }
+     
       return true;
     }
     
@@ -171,6 +207,7 @@ class TransactionCreation extends TransactionBase {
       $transactionCreationEntity->state_user_id = $receiverUserId;
       $transactionCreationEntity->amount = $this->getAmount();
       $transactionCreationEntity->ident_hash = $this->getIdentHash();
+      $transactionCreationEntity->target_date = $this->protoTransactionCreation->getTargetDate()->getSeconds();
       
       if(!$this->transactionCreationsTable->save($transactionCreationEntity)) {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
