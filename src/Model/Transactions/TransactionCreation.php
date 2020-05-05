@@ -49,7 +49,7 @@ class TransactionCreation extends TransactionBase {
         $transaction = new \Model\Messages\Gradido\TransactionCreation();
         $transaction->setReceiverAmount($receiver);
         $transaction->setIdentHash($ident_hash);
-        echo "target date: ";
+        //echo "target date: ";
         //var_dump($targetDate);
         //die('die');
         if($targetDate) {

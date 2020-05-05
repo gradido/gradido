@@ -333,8 +333,8 @@ class TransactionCreationsController extends AppController
                   ->year($localTargetDate['year'])
                   ->month($localTargetDate['month'])
                   ->day($localTargetDate['day']);
-              echo "input: "; var_dump($localTargetDate);echo "<br>";
-              echo "output: "; var_dump($localTargetDateFrozen);
+              //echo "input: "; var_dump($localTargetDate);echo "<br>";
+              //echo "output: "; var_dump($localTargetDateFrozen);
               //die('a');
               $builderResult = TransactionCreation::build(
                     $localAmountCent, 
