@@ -114,7 +114,7 @@ class TransactionCreation extends TransactionBase {
       $identHashBin = pack('a32', $this->getIdentHash());
       
       //////////  old validation not more than 3k GDD for 3 Month  ///////////////
-      $existingCreations = $this->transactionCreationsTable
+      /*$existingCreations = $this->transactionCreationsTable
               ->find('all')
               ->select(['amount', 'state_user_id', 'target_date'])
               ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]])
@@ -136,7 +136,7 @@ class TransactionCreation extends TransactionBase {
                   ])->select('received');
          
       
-      });//*/
+      });
       //debug($existingCreations);
       //echo "after choose existing transactions<br>";
       $newSum = $this->getAmount();
@@ -149,11 +149,11 @@ class TransactionCreation extends TransactionBase {
         }
       }
       
-      /*
+      
       if($newSum > 30000000) {
         $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
         return false;
-      }*/
+      }//*/
       
       /////////////// new validation, not more than 1K GDD per month via target_date ///////////////////////////
       $existingCreations2 = $this->transactionCreationsTable
@@ -176,16 +176,16 @@ class TransactionCreation extends TransactionBase {
        $newSum2 += $creation->amount;
      }
      
-     if(!$existingCreations2->count()) {
+     /*if(!$existingCreations2->count()) {
         if($newSum > 30000000) {
           $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
           return false;
         }
-     } else {
+     } else {*/
        if($newSum2 > 10000000) {
          $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month in target_date not allowed');
          return false;
-       }
+       //}
      }
      
       return true;
