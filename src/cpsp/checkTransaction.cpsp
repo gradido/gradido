@@ -139,7 +139,7 @@ enum PageState {
 			  <div class="table-responsive mb-4">
 				<table class="table info-table table-striped table-bordered">
 				  <thead>
-					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Gradido") %></th></tr>
+					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Zieldatum") %></th><th><%= gettext("Gradido") %></th></tr>
 				  </thead>
 				  <tbody>
 					<tr>
@@ -148,6 +148,7 @@ enum PageState {
 						<% } else { %>
 							<td class="small">0x<%= creationTransaction->getPublicHex() %></td>
 						<% } %>
+						<td><%= creationTransaction->getTargetDateString() %></td>
 						<td class="grd-success-color"><%= creationTransaction->getAmountString() %> GDD</td>
 					</tr>
 				  </tbody>

@@ -28,6 +28,7 @@ public:
 	inline char* getPublicHex() { return mReceiverPublicHex; }
 
 	inline std::string getAmountString() { return amountToString(getAmount()); }
+	std::string getTargetDateString();
 
 protected:
 	const model::messages::gradido::TransactionCreation& mProtoCreation;

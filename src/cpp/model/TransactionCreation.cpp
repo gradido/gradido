@@ -1,4 +1,5 @@
 #include "TransactionCreation.h"
+#include "Poco/DateTimeFormatter.h"
 #include <sodium.h>
 
 TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
@@ -50,5 +51,13 @@ int TransactionCreation::prepare()
 
 	
 	return 0;
+}
+
+std::string TransactionCreation::getTargetDateString()
+{
+	// proto format is seconds, poco timestamp format is microseconds
+	Poco::Timestamp pocoStamp(mProtoCreation.target_date().seconds() * 1000*1000);
+	//Poco::DateTime(pocoStamp);
+	return Poco::DateTimeFormatter::format(pocoStamp, "%d. %b %y");
 }
 
