@@ -316,7 +316,7 @@ class TransactionCreationsController extends AppController
               if($requestData['user_amount'][$id] != '') {
                 $localAmountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['user_amount'][$id]);
               }
-              if($requestData['user_target_date'][$id]) {
+              if(isset($requestData['user_target_date']) && isset($requestData['user_target_date'][$id])) {
                 $localTargetDate = $requestData['user_target_date'][$id];
               }
               if(isset($pendings[$id])) {
