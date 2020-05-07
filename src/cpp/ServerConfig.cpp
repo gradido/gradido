@@ -116,11 +116,13 @@ namespace ServerConfig {
 		if (g_disableEmail) {
 			printf("Email is disabled!\n");
 		}
-		g_EmailAccount.sender = cfg.getString("email.sender");
-		g_EmailAccount.username = cfg.getString("email.username");
-		g_EmailAccount.password = cfg.getString("email.password");
-		g_EmailAccount.url = cfg.getString("email.smtp.url");
-		g_EmailAccount.port = cfg.getInt("email.smtp.port");
+		else {
+			g_EmailAccount.sender = cfg.getString("email.sender");
+			g_EmailAccount.username = cfg.getString("email.username");
+			g_EmailAccount.password = cfg.getString("email.password");
+			g_EmailAccount.url = cfg.getString("email.smtp.url");
+			g_EmailAccount.port = cfg.getInt("email.smtp.port");
+		}
 		DISASM_FALSERET;
 		//g_ServerKeySeed->put(3, DRRandom::r64());
 		return true;
