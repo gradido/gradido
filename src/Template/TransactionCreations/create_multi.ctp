@@ -34,6 +34,14 @@ use Cake\I18n\FrozenTime;
     margin-bottom:50px;
   }
   
+  .grd_margin-bottom_100 {
+    margin-bottom:100px;
+  }
+  
+  .grd_margin-bottom_120 {
+    margin-bottom:120px;
+  }
+  
   .grd_smaller {
     font-size:smaller;
     color:blue;
@@ -54,7 +62,7 @@ use Cake\I18n\FrozenTime;
   }
   
 </style>
-<div class="grd_container_small grd_margin-bottom_50">
+<div class="grd_container_small grd_margin-bottom_120">
   
   <button type="button" onclick="checkAll()" >Alle auswählen</button>
   <button type="button" onclick="uncheckAll()">Alle abwählen</button>
@@ -121,6 +129,19 @@ use Cake\I18n\FrozenTime;
     <!--<?= $this->Form->control('receiver_pubkey_hex', []) ?>-->
   </fieldset>
   <div class="flowing-bottom">
+    <?php if($countUsers > $limit) : 
+    ?><p><?= $countUsers ?> Benutzer insgesamt</p>
+    <p>Seiten: 
+      <?php for($i = 0; $i < ceil($countUsers/$limit); $i++) {
+          if($i > 0) echo ', ';     
+          if($i != $page) {
+            echo $this->Html->link($i, ['action' => 'create_multi', $i]);
+          } else {
+            echo $i;
+          }
+      } 
+      ?>
+    </p><?php endif ?>
     <?= $this->Form->button(__('Transaktion(en) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
     <?= $this->Form->button(__('Weitere Transaktion erstellen'), ['name' => 'add', 'class' => 'grd-form-bn grd_clickable  grd-width-200']) ?>
   </div>

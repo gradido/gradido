@@ -182,12 +182,13 @@ class TransactionCreationsController extends AppController
         }
     }
     
-    public function createMulti()
+    public function createMulti($page = 0)
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
+        $limit = 200;
         if($result !== true) {
           return $result;
         }
@@ -229,6 +230,7 @@ class TransactionCreationsController extends AppController
         $stateUsers = $stateUserTable
                 ->find('all')
                 ->select(['id', 'first_name', 'last_name', 'email'])
+                ->order(['id'])
                 ->contain(['TransactionCreations' => [
                     'fields' => [
                         'TransactionCreations.amount',
@@ -239,7 +241,12 @@ class TransactionCreationsController extends AppController
         
         //var_dump($stateUsers->toArray());
         $possibleReceiver = [];
-        foreach($stateUsers as $stateUser) {
+        $countUsers = 0;
+        foreach($stateUsers as $i => $stateUser) {
+          $countUsers++;
+          if($i < $page * $limit || $i >= ($page + 1) * $limit) {
+            continue;
+          }
           $sumAmount = 0;
           $sumAmount2 = 0;
           if(isset($transactionsLastMonthTargetDateSortedByStateUserId[$stateUser->id])) {
@@ -279,10 +286,14 @@ class TransactionCreationsController extends AppController
         $this->set('creationForm', $creationForm);
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('timeUsed', microtime(true) - $startTime);
+        $this->set('countUsers', $countUsers);
+        $this->set('limit', $limit);
+        $this->set('page', $page);
         
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
           //var_dump($requestData);
+          //var_dump($this->request->getData('user'));
           //die("miau");
           // memo
           // amount
