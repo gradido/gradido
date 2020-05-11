@@ -120,15 +120,12 @@ include_directories(
 
 endif(WIN32)
 
-
-
-
 target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
-target_link_libraries(Gradido_LoginServer mariadb/libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
+target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
 endif(WIN32)
 
 # install 

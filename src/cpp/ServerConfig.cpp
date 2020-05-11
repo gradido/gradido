@@ -8,6 +8,7 @@
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Net/KeyConsoleHandler.h"
 #include "Poco/Net/RejectCertificateHandler.h"
+#include "Poco/Net/DNS.h"
 #include "Poco/SharedPtr.h"
 
 #include "Poco/Mutex.h"
@@ -16,6 +17,7 @@
 #include "Poco/LocalDateTime.h"
 #include "Poco/DateTimeFormat.h"
 #include "Poco/DateTimeFormatter.h"
+
 
 using Poco::Net::SSLManager;
 using Poco::Net::Context;
@@ -46,6 +48,36 @@ namespace ServerConfig {
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
+
+	bool replaceZeroIPWithLocalhostIP(std::string& url) 
+	{
+		auto pos = url.find("0.0.0.0", 0);
+		if (pos != std::string::npos) {
+			std::string ipAddressString = "";
+			auto host = Poco::Net::DNS::thisHost();
+			for (auto it = host.addresses().begin(); it != host.addresses().end(); it++) {
+				auto ipAddress = *it;
+				if (!ipAddress.isIPv4Compatible() && !ipAddress.isIPv4Mapped()) {
+					continue;
+				}
+				if (ipAddress.isLoopback()) {
+					continue;
+				}
+				ipAddressString = ipAddress.toString();
+				//isIPv4Compatible
+				//!isLoopback
+				//printf("ipaddress: %s\n", ipAddressString.data());
+				break;
+				//break;
+			}
+			url.replace(pos, 7, ipAddressString);
+		}
+		
+		//printf("ipaddress: %s\n", ipAddress.data());
+
+		return true;
+	}
+
 
 	bool loadMnemonicWordLists()
 	{
@@ -104,8 +136,15 @@ namespace ServerConfig {
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
+		// replace 0.0.0.0 with actual server ip
+
 		g_php_serverPath = cfg.getString("phpServer.url", "");
+		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
+		replaceZeroIPWithLocalhostIP(g_php_serverHost);
+		/*std::string testIp = "http://0.0.0.0/account";
+		replaceZeroIPWithLocalhostIP(testIp);
+		printf("testIp: %s\n", testIp.data());*/
 		//g_FakeLoginSleepTime = cfg.getInt("crypto.fake_login_sleep_time", g_FakeLoginSleepTime);
 		return true;
 	}
