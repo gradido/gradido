@@ -49,28 +49,77 @@ namespace ServerConfig {
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
 
+#ifdef __linux__ 
+#include <stdio.h>      
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h> 
+#include <string.h> 
+#include <arpa/inet.h>
+#endif //#ifdef __linux__ 
+
+	std::string getHostIpString()
+	{
+#ifdef __linux__ 
+		struct ifaddrs * ifAddrStruct = NULL;
+		struct ifaddrs * ifa = NULL;
+		void * tmpAddrPtr = NULL;
+
+		getifaddrs(&ifAddrStruct);
+		std::string ipAddressString;
+
+		for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+			if (!ifa->ifa_addr) {
+				continue;
+			}
+			if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
+													   // is a valid IP4 Address
+				tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+				char addressBuffer[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+				ipAddressString = addressBuffer;
+				printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+			}
+			else if (ifa->ifa_addr->sa_family == AF_INET6) { // check it is IP6
+															 // is a valid IP6 Address
+				tmpAddrPtr = &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
+				char addressBuffer[INET6_ADDRSTRLEN];
+				inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
+				printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+			}
+		}
+		if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
+		return ipAddressString;
+#else //__linux__ 
+		std::string ipAddressString = "";
+		auto host = Poco::Net::DNS::thisHost();
+		for (auto it = host.addresses().begin(); it != host.addresses().end(); it++) {
+			auto ipAddress = *it;
+			if (!ipAddress.isIPv4Compatible() && !ipAddress.isIPv4Mapped()) {
+				continue;
+			}
+			if (ipAddress.isLoopback()) {
+				continue;
+			}
+			ipAddressString = ipAddress.toString();
+			//isIPv4Compatible
+			//!isLoopback
+			//printf("ipaddress: %s\n", ipAddressString.data());
+			break;
+			//break;
+		}
+		return ipAddressString;
+#endif // __linux__ 
+	}
+
 	bool replaceZeroIPWithLocalhostIP(std::string& url) 
 	{
 		auto pos = url.find("0.0.0.0", 0);
 		if (pos != std::string::npos) {
-			std::string ipAddressString = "";
-			auto host = Poco::Net::DNS::thisHost();
-			for (auto it = host.addresses().begin(); it != host.addresses().end(); it++) {
-				auto ipAddress = *it;
-				if (!ipAddress.isIPv4Compatible() && !ipAddress.isIPv4Mapped()) {
-					continue;
-				}
-				if (ipAddress.isLoopback()) {
-					continue;
-				}
-				ipAddressString = ipAddress.toString();
-				//isIPv4Compatible
-				//!isLoopback
-				//printf("ipaddress: %s\n", ipAddressString.data());
-				break;
-				//break;
+			std::string ipAddressString = getHostIpString();
+			if ("" != ipAddressString) {
+				url.replace(pos, 7, ipAddressString);
 			}
-			url.replace(pos, 7, ipAddressString);
 		}
 		
 		//printf("ipaddress: %s\n", ipAddress.data());
