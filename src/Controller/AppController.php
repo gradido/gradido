@@ -143,6 +143,7 @@ class AppController extends Controller
         }
         // login server cannot detect host ip
         // TODO: update login server, recognize nginx real ip header
+        $loginServer = Configure::read('LoginServer');
         
         if($session_id != 0) {
           $userStored = $session->read('StateUser');
@@ -153,8 +154,8 @@ class AppController extends Controller
               intval($transactionPendings) > 0 ||
               intval($transactionExecutings) > 0) {
             $http = new Client();
+            
             try {
-              $loginServer = Configure::read('LoginServer');
               $url = $loginServer['host'] . ':' . $loginServer['port'];
               
               $response = $http->get($url . '/login', ['session_id' => $session_id]);
@@ -238,7 +239,11 @@ class AppController extends Controller
           }
         } else {
           // no login
-          return $this->redirect(Router::url('/', true) . 'account/', 303);
+          if(isset($loginServer['path'])) {
+            return $this->redirect($loginServer['path'], 303);
+          } else {
+            return $this->redirect(Router::url('/', true) . 'account/', 303);
+          }
         }
         return true;
     }
