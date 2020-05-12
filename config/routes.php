@@ -67,11 +67,13 @@ Router::scope('/', function (RouteBuilder $routes) {
               return true;
             }
             $allowedCaller = Configure::read('API.allowedCaller');
-              $callerIp = $request->clientIp();
-              foreach($allowedCaller as $allowed) {
-                $ip = gethostbyname($allowed);
-                if($ip === $callerIp) return true;
-              }
+            if($allowedCaller && count($allowedCaller) > 0) {
+                $callerIp = $request->clientIp();
+                foreach($allowedCaller as $allowed) {
+                  $ip = gethostbyname($allowed);
+                  if($ip === $callerIp) return true;
+                }
+            }
           }
         }
     });
