@@ -127,6 +127,19 @@ namespace ServerConfig {
 		return true;
 	}
 
+	ServerSetupType getServerSetupTypeFromString(const std::string& serverSetupTypeString) {
+		if ("test" == serverSetupTypeString) {
+			return SERVER_TYPE_TEST;
+		}
+		if ("staging" == serverSetupTypeString) {
+			return SERVER_TYPE_STAGING;
+		}
+		if ("production" == serverSetupTypeString) {
+			return SERVER_TYPE_PRODUCTION;
+		}
+		return SERVER_TYPE_PRODUCTION;
+	}
+
 
 	bool loadMnemonicWordLists()
 	{
@@ -191,11 +204,10 @@ namespace ServerConfig {
 		g_php_serverPath = cfg.getString("phpServer.url", "");
 		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
-		//replaceZeroIPWithLocalhostIP(g_php_serverHost);
-		/*std::string testIp = "http://0.0.0.0/account";
-		replaceZeroIPWithLocalhostIP(testIp);
-		printf("testIp: %s\n", testIp.data());*/
-		//g_FakeLoginSleepTime = cfg.getInt("crypto.fake_login_sleep_time", g_FakeLoginSleepTime);
+		//g_ServerSetupType 
+		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
+		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
+
 		return true;
 	}
 

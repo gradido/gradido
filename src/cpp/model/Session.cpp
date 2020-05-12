@@ -860,9 +860,12 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	// prevent reading or changing cookie with js
 	keks.setHttpOnly();
 	keks.setPath("/");
-	// send cookie only via https
+	// send cookie only via https, on linux, except in test builds 
 #ifndef WIN32
-	keks.setSecure(true);
+	if (SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
+		SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
+		keks.setSecure(true);
+	}
 #endif
 	
 	return keks;

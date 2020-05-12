@@ -31,6 +31,13 @@ namespace ServerConfig {
 		int port;
 	};
 
+	enum ServerSetupType {
+		SERVER_TYPE_TEST,
+		SERVER_TYPE_STAGING,
+		SERVER_TYPE_PRODUCTION
+	};
+
+
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
 	extern ObfusArray* g_ServerCryptoKey;
@@ -50,6 +57,7 @@ namespace ServerConfig {
 	extern int         g_FakeLoginSleepTime;
 	extern std::string g_versionString;
 	extern bool		   g_disableEmail;
+	extern ServerSetupType g_ServerSetupType;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
