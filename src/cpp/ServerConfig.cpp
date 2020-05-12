@@ -205,6 +205,7 @@ namespace ServerConfig {
 		g_php_serverPath = cfg.getString("phpServer.url", "");
 		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
+		replaceZeroIPWithLocalhostIP(g_php_serverHost);
 		//g_ServerSetupType 
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
