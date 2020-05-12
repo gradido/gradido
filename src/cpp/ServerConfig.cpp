@@ -184,13 +184,14 @@ namespace ServerConfig {
 		DISASM_FALSERET;
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
 		g_serverPath = cfg.getString("loginServer.path", "");
+		replaceZeroIPWithLocalhostIP(g_serverPath);
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
 		// replace 0.0.0.0 with actual server ip
 
 		g_php_serverPath = cfg.getString("phpServer.url", "");
 		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
-		replaceZeroIPWithLocalhostIP(g_php_serverHost);
+		//replaceZeroIPWithLocalhostIP(g_php_serverHost);
 		/*std::string testIp = "http://0.0.0.0/account";
 		replaceZeroIPWithLocalhostIP(testIp);
 		printf("testIp: %s\n", testIp.data());*/
