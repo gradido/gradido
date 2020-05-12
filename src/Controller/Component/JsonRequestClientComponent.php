@@ -92,7 +92,11 @@ class JsonRequestClientComponent extends Component
   public function sendRequestGDT($transactionBody, $url) {
     
     $http = new Client();
-    $fullUrl = $this->getGDTServerUrl() . DS . $url;
+    $gdtServerHost = $this->getGDTServerUrl();
+    if(!$gdtServerHost) {
+      return ['state' => 'warning', 'msg' => 'gdt server not configured'];
+    }
+    $fullUrl = $gdtServerHost . DS . $url;
     $response = $http->post($this->getGDTServerUrl() . DS . $url, $transactionBody, ['type' => 'json']);
     $responseStatus = $response->getStatusCode();
     if($responseStatus != 200) {
@@ -125,7 +129,10 @@ class JsonRequestClientComponent extends Component
   static public function getGDTServerUrl()
   {
     $gdtServer = Configure::read('GDTServer');
-    return $gdtServer['host'];
+    if(isset($gdtServer['host'])) {
+      return $gdtServer['host'];
+    } 
+    return false;
   }
   
   static public function is_base64($s)
