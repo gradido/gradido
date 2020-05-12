@@ -142,18 +142,26 @@ int SigningTransaction::run() {
 
 	// send post request via https
 	// 443 = HTTPS Default
+	// or http via port 80 if it is a test server
 	// TODO: adding port into ServerConfig
 	try {
 		Profiler phpRequestTime;
-		Poco::Net::HTTPSClientSession httpsClientSession(ServerConfig::g_php_serverHost, 443);
+		Poco::Net::HTTPClientSession* clientSession = nullptr;
+		if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
+			ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
+			clientSession = new Poco::Net::HTTPSClientSession(ServerConfig::g_php_serverHost, 443);
+		}
+		else {
+			clientSession = new Poco::Net::HTTPClientSession(ServerConfig::g_php_serverHost, 80);
+		}
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
-		std::ostream& requestStream = httpsClientSession.sendRequest(request);
+		std::ostream& requestStream = clientSession->sendRequest(request);
 		requestJson.stringify(requestStream);
 
 		Poco::Net::HTTPResponse response;
-		std::istream& request_stream = httpsClientSession.receiveResponse(response);
+		std::istream& request_stream = clientSession->receiveResponse(response);
 		
 		// debugging answer
 		
@@ -199,6 +207,7 @@ int SigningTransaction::run() {
 			sendErrorsAsEmail();
 			return -10;
 		}
+		delete clientSession;
 		//printf("state: %s\n", stateString.data());
 		//int zahl = 1;
 	}
