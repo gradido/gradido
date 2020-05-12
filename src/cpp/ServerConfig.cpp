@@ -48,6 +48,7 @@ namespace ServerConfig {
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
+	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 
 #ifdef __linux__ 
 #include <stdio.h>      
