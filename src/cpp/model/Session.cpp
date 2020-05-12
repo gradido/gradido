@@ -862,8 +862,8 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 	keks.setPath("/");
 	// send cookie only via https, on linux, except in test builds 
 #ifndef WIN32
-	if (SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
-		SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
+	if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
+		ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
 		keks.setSecure(true);
 	}
 #endif
