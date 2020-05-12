@@ -168,12 +168,17 @@ class TransactionCreation extends TransactionBase {
       
       $existingCreations2->where([
                   'target_date IS NOT' => NULL,
-                  'EXTRACT(YEAR_MONTH FROM target_date) LIKE ' => $targetDateMonthYearConcat
+                  'EXTRACT(YEAR_MONTH FROM target_date) LIKE ' => $targetDateMonthYearConcat,
                   ]);
       
      $newSum2 = $this->getAmount();
      foreach($existingCreations2 as $creation) {
-       $newSum2 += $creation->amount;
+        $keyHex = bin2hex(stream_get_contents($creation->state_user->public_key));
+        //echo "\ncompare \n$keyHex\nwith: \n". $this->receiver_pubkey_hex."\n";
+        if($keyHex == $this->receiver_pubkey_hex) {
+          $newSum2 += $creation->amount;
+        }
+       //$newSum2 += $creation->amount;
      }
      
      /*if(!$existingCreations2->count()) {
