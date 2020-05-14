@@ -193,7 +193,10 @@ class StateBalancesController extends AppController
           //echo "gdtSum: $gdtSum<br>";
           $this->set('gdtSum', $gdtSum);
           $this->set('ownEntries', $ownEntries);
-          
+          $this->set('gdtSumPerEmail', $requestResult['data']['gdtSumPerEmail']);
+          $this->set('moreEntrysAsShown', $requestResult['data']['moreEntrysAsShown']);
+          $this->set('user', $user);
+         
           if(isset($requestResult['data']['publishers'])) {
             $publishers = $requestResult['data']['publishers'];
             $this->set('publishers', $publishers);
