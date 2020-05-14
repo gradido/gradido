@@ -200,7 +200,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 #line 97 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:"));
 	responseStream << "</label>\n";
-	responseStream << "                          <input type=\"text\" class=\"form-control\" name=\"email-verification-code\" id=\"email-verification-code\" placeholder=\"";
+	responseStream << "                          <input type=\"number\" class=\"form-control\" name=\"email-verification-code\" id=\"email-verification-code\" placeholder=\"";
 #line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Email Verification Code"));
 	responseStream << "\" ";

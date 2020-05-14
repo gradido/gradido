@@ -95,7 +95,7 @@ enum PageState
                 <div class="item-wrapper">
                         <div class="form-group">
                           <label for="email-verification-code"><%= langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:")%></label>
-                          <input type="text" class="form-control" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
+                          <input type="number" class="form-control" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary"><%= langCatalog->gettext("&Uuml;berpr&uuml;fe Code")%></button>
                 </div>
