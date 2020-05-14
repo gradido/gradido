@@ -60,13 +60,13 @@ class StateBalancesController extends AppController
 
         //var_dump($user);
         $gdtSum = 0;
-        if ('admin' === $user['role']) {
-            $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+        //if('admin' === $user['role']) {
+          $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
           //var_dump($gdtEntries);
-            if ('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-                $gdtSum = intval($gdtEntries['data']['sum']);
-            }
-        }
+          if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
+            $gdtSum = intval($gdtEntries['data']['sum']);
+          }
+        //}
         //
         //
 

@@ -19,6 +19,21 @@ if($gdtSum > 0) {
 $this->assign('header', $header);
 //var_dump($transactions);
 ?>
+
+<div class="row">
+  <div class="col-md-8 equel-grid">
+    <div class="grid">
+      <div class="grid-body py-3">
+        <h3><?= __('Aktueller Kontostand: ') ?></h3>
+        <h2><?= $this->element('printGradido', ['number' => $balance]) ?></h2>
+        <?php if($gdtSum > 0) : ?>
+        <h2><?= $this->Html->link($this->element('printGDT', ['number' => $gdtSum]), ['action' => 'overview_gdt'], ['escape' => false]) ?> <span class="gdt-text-color">(<?= __('Testphase')?>)</span></h2>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php if($transactionExecutingCount > 0) : ?>
 <div id="transaction-execute-display" class="">
 
