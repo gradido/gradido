@@ -28,7 +28,21 @@ $gdtSumFromEmails = 0;
 foreach($gdtSumPerEmail as $email => $gdt) {
   $gdtSumFromEmails += $gdt;
 }
+
+$ownEuroSum = 0;
+$ownGdtSum = 0;
+$publisherEuroSum = 0;
+$publisherGdtSum = 0;
 ?>
+<style type="text/css">
+  .font-smaller {
+    font-size:smaller;
+  }
+  .font-color-grey
+  {
+    color:grey;
+  }
+</style>
 <div class="row">
   <div class="col-md-8 equel-grid">
     <div class="grid">
@@ -64,11 +78,19 @@ foreach($gdtSumPerEmail as $email => $gdt) {
             </tr>
           </thead>
           <tbody>
-            <?php foreach($ownEntries as $entry) : ?>
+            <?php foreach($ownEntries as $entry) : 
+              $ownEuroSum += $entry['amount'];
+              $ownGdtSum += $entry['gdt'];
+              ?>
             <tr>
               <td>
                   <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
-                  <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
+                  <?php 
+                    if($entry['amount2']) {
+                      echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]);
+                      $ownEuroSum += $entry['amount2'];
+                    }
+                  ?>
               </td>
               <td>
                 <?= $this->Number->format($entry['factor']) ?> 
@@ -80,6 +102,12 @@ foreach($gdtSumPerEmail as $email => $gdt) {
               <td><?= new FrozenTime($entry['date']) ?></td>
               <td><?= h($entry['comment']) ?></td>
               <td><?= $entry['email'] ?></td>
+            </tr>
+            <tr class="font-smaller">
+                <td><i class="font-color-grey"><?= __('Zwischensumme') ?>:</i></td>
+                <td><i class="font-color-grey"><?= $this->element('printEuro', ['number' => $ownEuroSum]) ?></i></td>
+                <td></td>
+                <td><i class="font-color-grey"><?= $this->element('printGDT', ['number' => $ownGdtSum]) ?></i></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
@@ -112,6 +140,8 @@ foreach($gdtSumPerEmail as $email => $gdt) {
             <?php foreach($connectEntries as $entry) : 
               $elopageTransaction = $entry['connect']['elopage_transaction'];
               $gdtEntry = $entry['connect']['gdt_entry'];
+              $publisherEuroSum += $gdtEntry['amount'];
+              $publisherGdtSum  += $gdtEntry['gdt'];
               ?>
              <!-- <tr><td colspan="5">
                     <?= $elopageTransaction['email'] ?>
@@ -128,7 +158,12 @@ foreach($gdtSumPerEmail as $email => $gdt) {
                 <td><?= new FrozenTime($gdtEntry['date']) ?></td>
                 <td>
                     <?= $this->element('printEuro', ['number' => $gdtEntry['amount']]) ?>
-                    <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
+                    <?php 
+                      if($gdtEntry['amount2']) {
+                        echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]);
+                        $publisherEuroSum += $gdtEntry['amount2'];
+                      }
+                    ?>
                 </td>
                 <td>
                   <?= $this->Number->format($gdtEntry['factor']) ?> 
@@ -143,6 +178,12 @@ foreach($gdtSumPerEmail as $email => $gdt) {
                         <?= publisherLink($publisher, $this) ?>
                          <?php if($publisher['email'] == $user['email']) break ?>
                       <?php endforeach; ?>"><?= $elopageTransaction['email'] ?></td>
+              </tr>
+              <tr class="font-smaller">
+                <td><i class="font-color-grey"><?= __('Zwischensumme') ?>:</i></td>
+                <td><i class="font-color-grey"><?= $this->element('printEuro', ['number' => $publisherEuroSum]) ?></i></td>
+                <td></td>
+                <td><i class="font-color-grey"><?= $this->element('printGDT', ['number' => $publisherGdtSum]) ?></i></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
