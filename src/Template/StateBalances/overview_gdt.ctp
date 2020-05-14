@@ -70,10 +70,10 @@ $publisherGdtSum = 0;
         <table class="table table-hover table-sm">
           <thead>
             <tr class="solid-header">
-              <th class="pl-4"><?= __('Euro') ?></th>
+              <th class="pl-4"><?= __('Datum') ?></th>
+              <th><?= __('Euro') ?></th>
               <th><?= __('Factor')?></th>
               <th><?= __('GDT') ?></th>
-              <th><?= __('Datum') ?></th>
               <th><?= __('Kommentar') ?></th>
               <th><?= __('E-Mail') ?></th>
             </tr>
@@ -84,6 +84,7 @@ $publisherGdtSum = 0;
               $ownGdtSum += $entry['gdt'];
               ?>
             <tr>
+              <td><?= new FrozenTime($entry['date']) ?></td>
               <td>
                   <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
                   <?php 
@@ -100,7 +101,6 @@ $publisherGdtSum = 0;
                 <?php endif; ?>
               </td>
               <td><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></td>
-              <td><?= new FrozenTime($entry['date']) ?></td>
               <td><?= h($entry['comment']) ?></td>
               <td><?= $entry['email'] ?></td>
             </tr>
@@ -130,10 +130,10 @@ $publisherGdtSum = 0;
           <thead>
             <tr class="solid-header">
               <!--<th class="pl-4"><?= __('Einzahlender') ?></th>-->
-              <th class="pl-4"><?= __('Euro') ?></th>
+              <th class="pl-4"><th><?= __('Datum') ?></th>
+              <th><?= __('Euro') ?></th>
               <th><?= __('Factor') ?></th>
               <th><?= __('GDT')?></th>
-              <th><?= __('Datum') ?></th>
               <th><?= __('E-Mail') ?></th>
             </tr>
           </thead>
