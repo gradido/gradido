@@ -15,7 +15,7 @@ $this->assign('title', __('Kontoübersicht'));
         <h3><?= __('Aktueller Kontostand: ') ?></h3>
         <h2><?= $this->element('printGradido', ['number' => $balance]) ?></h2>
         <?php if($gdtSum > 0) : ?>
-          <h2><?= $this->Html->link($this->element('printGDT', ['number' => $gdtSum]), ['action' => 'overview_gdt'], ['escape' => false]) ?></h2>
+        <h2><?= $this->Html->link($this->element('printGDT', ['number' => $gdtSum]), ['action' => 'overview_gdt'], ['escape' => false]) ?> <span class="gdt-text-color">(<?= __('Testphase')?>)</span></h2>
         <?php endif; ?>
       </div>
     </div>
