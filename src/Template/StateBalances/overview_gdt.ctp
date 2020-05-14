@@ -24,6 +24,10 @@ function publisherLink($publisher, $the) {
 }
 
 $this->assign('title', __('GDT Kontoübersicht'));
+$gdtSumFromEmails = 0;
+foreach($gdtSumPerEmail as $email => $gdt) {
+  $gdtSumFromEmails += $gdt;
+}
 ?>
 <div class="row">
   <div class="col-md-8 equel-grid">
@@ -32,7 +36,10 @@ $this->assign('title', __('GDT Kontoübersicht'));
         overview
         <h3><?= __('Zur Verfügung: ') ?></h3>
         <?php if($gdtSum > 0) : ?>
-          <h2><?= $this->element('printGDT', ['number' => $gdtSum]) ?></h2>
+          <h2><?= $this->element('printGDT', ['number' => $gdtSumFromEmails]) ?></h2>
+        <?php endif; ?>
+        <?php if($moreEntrysAsShown) : ?>
+          <span><?= __('Nur die letzten 100 Einträge werden angezeigt!'); ?></span>
         <?php endif; ?>
       </div>
     </div>
@@ -49,20 +56,17 @@ $this->assign('title', __('GDT Kontoübersicht'));
         <table class="table table-hover table-sm">
           <thead>
             <tr class="solid-header">
-              <th class="pl-4"><?= __('E-Mail') ?></th>
-              <th><?= __('Datum') ?></th>
-              <th><?= __('Kommentar') ?></th>
-              <th><?= __('Euro') ?></th>
+              <th class="pl-4"><?= __('Euro') ?></th>
               <th><?= __('Factor')?></th>
               <th><?= __('GDT') ?></th>
+              <th><?= __('Datum') ?></th>
+              <th><?= __('Kommentar') ?></th>
+              <th><?= __('E-Mail') ?></th>
             </tr>
           </thead>
           <tbody>
             <?php foreach($ownEntries as $entry) : ?>
             <tr>
-              <td><?= $entry['email'] ?></td>
-              <td><?= new FrozenTime($entry['date']) ?></td>
-              <td><?= h($entry['comment']) ?></td>
               <td>
                   <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
                   <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
@@ -74,6 +78,9 @@ $this->assign('title', __('GDT Kontoübersicht'));
                 <?php endif; ?>
               </td>
               <td><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></td>
+              <td><?= new FrozenTime($entry['date']) ?></td>
+              <td><?= h($entry['comment']) ?></td>
+              <td><?= $entry['email'] ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
@@ -95,10 +102,11 @@ $this->assign('title', __('GDT Kontoübersicht'));
           <thead>
             <tr class="solid-header">
               <!--<th class="pl-4"><?= __('Einzahlender') ?></th>-->
-              <th class="pl-4"><?= __('Datum') ?></th>
-              <th><?= __('Euro') ?></th>
-              <th><?= __('Factor')?></th>
-              <th><?= __('GDT') ?></th>
+              <th class="pl-4"><?= __('Euro') ?></th>
+              <th><?= __('Factor') ?></th>
+              <th><?= __('GDT')?></th>
+              <th><?= __('Datum') ?></th>
+              <th><?= __('E-Mail') ?></th>
             </tr>
           </thead>
           <tbody>
@@ -106,14 +114,16 @@ $this->assign('title', __('GDT Kontoübersicht'));
               $elopageTransaction = $entry['connect']['elopage_transaction'];
               $gdtEntry = $entry['connect']['gdt_entry'];
               ?>
-              <tr><td colspan="5">
+             <!-- <tr><td colspan="5">
                     <?= $elopageTransaction['email'] ?>
                       <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
                          ->
                         <?= publisherLink($publisher, $this) ?>
+                        
+                        
                       <?php endforeach; ?>
                   </td>
-              </tr>
+              </tr>-->
               <tr>
                 <!--<td><?= h($elopageTransaction['email']) ?></td>-->
                 <td><?= new FrozenTime($gdtEntry['date']) ?></td>
@@ -128,6 +138,12 @@ $this->assign('title', __('GDT Kontoübersicht'));
                   <?php endif; ?>
                 </td>
                 <td><?= $this->element('printGDT', ['number' => $gdtEntry['gdt']]) ?></td>
+                <td data-tippy-content="<?= $elopageTransaction['email'] ?>
+                      <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
+                         -><br>
+                        <?= publisherLink($publisher, $this) ?>
+                         <?php if($publisher['email'] == $user['email']) break ?>
+                      <?php endforeach; ?>"><?= $elopageTransaction['email'] ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -138,3 +154,12 @@ $this->assign('title', __('GDT Kontoübersicht'));
 </div>
 <?php endif; ?>
 <?= $this->Html->css(['gdt.css']) ?>
+<?= $this->Html->script(['basic', 'popper.min', 'tippy-bundle.umd.min']) ?>
+<script type="text/javascript">
+  domIsReady(function() {
+    tippy('[data-tippy-content]', {
+      placement: 'top-start',
+      allowHTML: true,
+    });
+  });
+</script>
