@@ -653,7 +653,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		//mSessionUser = new User(email.data());
 	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
-		if (!mSessionUser->validatePwd(password, this)) {
+		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;
 		}
