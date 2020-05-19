@@ -42,7 +42,7 @@ int SigningTransaction::run() {
 	auto mm = MemoryManager::getInstance();
 
 	Error* transactionError = new Error("SigningTransaction", mProcessingeTransaction->mProtoMessageBase64.data());
-	addError(transactionError);
+	addError(transactionError, false);
 	
 	//= new Error("SigningTransaction start", mProcessingeTransaction->g)
 	if (mUser.isNull() || !mUser->hasCryptoKey()) {
@@ -127,7 +127,7 @@ int SigningTransaction::run() {
 		mm->releaseMemory(finalBase64Bin);
 		return -7;
 	}
-	addError(new Error("Signing transaction final", *finalBase64Bin));
+	addError(new Error("Signing transaction final", *finalBase64Bin), false);
 
 	// create json request
 
