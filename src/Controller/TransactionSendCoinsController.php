@@ -170,6 +170,7 @@ class TransactionSendCoinsController extends AppController
                 'ask' => ['user.pubkeyhex']
             ]), '/getUserInfos');
             if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+              // will be allways 64 byte long, even if it is empty
               $receiverPubKeyHex = $requestAnswear['data']['userData']['pubkeyhex'];
             } else {
               $this->addAdminError('TransactionSendCoins', 'create', $requestAnswear, $user['id']);
@@ -177,20 +178,30 @@ class TransactionSendCoinsController extends AppController
               $this->set('timeUsed', microtime(true) - $startTime);
                 return;
             }
-            if('' == $receiverPubKeyHex) {
+          
+            if(0 == ord($receiverPubKeyHex)) {
               $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
               $receiverUser = $stateUserTable
                        ->find('all')
                        ->select(['public_key'])
                        ->contain(false)
-                       ->where(['email' => $receiverEmail])->first();
-              //var_dump($receiverUser);
+                       ->where(['email' => $receiverEmail]);
+              
+              
               if(!$receiverUser) {
                 $this->Flash->error(__('Diese E-Mail ist mir nicht bekannt, hat dein Empfänger denn schon ein Gradido-Konto?'));
                 $this->set('timeUsed', microtime(true) - $startTime);
                 return;
               }
-               $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+               
+                if(isset($receiverUser->public_key)) {
+                  $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+                } else {
+                  $this->Flash->error(__('Das Konto mit der E-Mail: ' . $receiverEmail . ' wurde noch nicht aktiviert und kann noch keine GDD empfangen!'));
+                  $this->set('timeUsed', microtime(true) - $startTime);
+                  return;
+                }
+               
             }
             //var_dump($sessionStateUser);
             

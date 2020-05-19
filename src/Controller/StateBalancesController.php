@@ -164,6 +164,7 @@ class StateBalancesController extends AppController
         }
         $user = $session->read('StateUser');
         $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
+        //var_dump($requestResult);
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
           //var_dump(array_keys($requestResult['data']));
           $ownEntries = $requestResult['data']['ownEntries'];
