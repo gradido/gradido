@@ -40,6 +40,7 @@ class DashboardController extends AppController
         }
         $user = $session->read('StateUser');
         
+        //var_dump($user);
         $serverUser = $this->Auth->user('id');
         if($serverUser) {
           $adminErrorsTable = TableRegistry::getTableLocator()->get('AdminErrors');

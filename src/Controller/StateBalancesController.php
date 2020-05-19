@@ -49,7 +49,7 @@ class StateBalancesController extends AppController
         // sendRequestGDT
         // listPerEmailApi
         
-        //var_dump($user);
+        var_dump($user);
         $gdtSum = 0;
         //if('admin' === $user['role']) {
           $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
