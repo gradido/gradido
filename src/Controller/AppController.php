@@ -161,7 +161,6 @@ class AppController extends Controller
 
               $response = $http->get($url . '/login', ['session_id' => $session_id]);
               $json = $response->getJson();
-
               if(isset($json) && count($json) > 0) {
 
                 if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
@@ -226,9 +225,11 @@ class AppController extends Controller
                   }
                 } else {
                   if($json['state'] === 'not found' ) {
-                    $this->Flash->error(__('invalid session'));
-                    return $this->redirect(Router::url('/', true) . 'account/', 303);
+                    $this->Flash->error(__('invalid session'));                    
+                  } else {
+                    $this->Flash->error(__('Konto ist nicht aktiviert!'));
                   }
+                  return $this->redirect(Router::url('/', true) . 'account/', 303);
                 }
               }
             } catch(\Exception $e) {
@@ -276,13 +277,15 @@ class AppController extends Controller
         $adminErrorEntity->details = $returnTable['details'];
       }
       if(!$adminErrorTable->save($adminErrorEntity)) {
-        $this->Flash->error(__('Serious error, couldn\'t save to db, please write the admin: ' . $this->getAdminEmailLink()));
+        $this->Flash->error(
+                __('Serious error, couldn\'t save to db, please write the admin: ' . $this->getAdminEmailLink()),
+                ['escape' => false]);
       }
       return true;
     }
 
-    public function getAdminEmailLink($text) {
-      $serverAdminEmail = Configure::read('ServerAdminEmail');
+    public function getAdminEmailLink($text = '') {
+      $serverAdminEmail = Configure::read('ServerAdminEmail');    
       return '<a href="mailto:' . $serverAdminEmail . '">'. $serverAdminEmail . '</a>';
     }
 
