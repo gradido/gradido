@@ -1,0 +1,192 @@
+/* ============================================================
+
+  Screen styles.
+
+  Datei     :   screen.css
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+
+@font-face {
+    font-family: 'cakefont';
+    src: url('../font/cakedingbats-webfont.eot');
+    src: url('../font/cakedingbats-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../font/cakedingbats-webfont.woff2') format('woff2'),
+    url('../font/cakedingbats-webfont.woff') format('woff'),
+    url('../font/cakedingbats-webfont.ttf') format('truetype'),
+    url('../font/cakedingbats-webfont.svg#cake_dingbatsregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@media screen {
+
+    /* =======================
+        Basis
+       =======================*/
+    html,
+    body {
+        font-family: 'Roboto', sans-serif;
+        font-size: 87.5%; /* macht aus den Standard 16px 14px */
+        line-height: 27px;
+        color: #404041;
+        background-color: white;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* =======================
+        Kopfbereich
+       =======================*/
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 1em;
+        -webkit-box-shadow: 0px 5px 2px 0px rgba(0, 0, 0, 0.04);
+        -moz-box-shadow: 0px 5px 2px 0px rgba(0, 0, 0, 0.04);
+        box-shadow: 0px 5px 2px 0px rgba(0, 0, 0, 0.04);
+    }
+
+    .header img {
+        vertical-align: middle;
+        width: 150px;
+    }
+
+    .nav-horizontal > ul {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: baseline;
+        list-style-type: none;
+        gap: 5%;
+        padding: 1em;
+    }
+
+    .nav-horizontal li {
+        padding: .5em;
+    }
+
+    .nav-vertical > ul {
+        display: flex;
+        flex-direction: column;
+        list-style-type: none;
+        gap: 5%;
+        padding: 1em;
+    }
+
+    .nav-vertical li {
+        padding: .5em;
+    }
+
+    .nav-top > ul {
+        padding: 0;
+        padding-right: 2em;
+    }
+
+    .nav-bottom {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        list-style-type: none;
+        gap: 5%;
+        padding: 1em;
+    }
+
+    .nav-bottom p {
+        margin: 0;
+        font-size: .9em;
+        color: grey;
+    }
+
+    @media (max-width:619px) {
+    }
+
+    /* =======================
+        Hauptbereich
+       =======================*/
+    .sidebar1,
+    .sidebar2 {
+        padding: 1em;
+    }
+
+    .sidebar1 {
+        color: #4F4F4F;
+        font-weight: 700;
+        line-height: 2.5em;
+    }
+    .nav-icon {
+        font-size: 1.2em;
+        padding-right: 1em;
+        color: grey;
+    }
+
+    .sidebar1-header {
+        font-size: .75em;
+        font-style: italic;
+        color: grey;
+    }
+
+    @media (max-width:619px) {
+    }
+
+    /* =======================
+        Fußbereich
+       =======================*/
+    .footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-top: 10px;
+        font-size: 70%;
+        font-style: italic;
+    }
+
+    /* =======================
+        Sonstige
+       =======================*/
+
+    /* Hyperlinks */
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    main a {
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    a:link {
+        color: inherit;
+        /*color: #020202;*/
+    }
+
+    a:visited {
+        color: inherit;
+        /*color: #020202;*/
+    }
+
+    a:hover,
+    a:focus {
+        text-decoration: none;
+    }
+
+    a:active {
+        background-color: #fff;
+        color: black;
+    }
+
+    a:focus,
+    a:active {
+        outline: none;
+    }
+
+}
+
+/* Ende @media screen */

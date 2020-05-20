@@ -1,6 +1,5 @@
  <?php
 use Cake\Routing\Router;
-
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -14,20 +13,14 @@ use Cake\Routing\Router;
  * @since         0.10.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
-
-
-
 $cakeDescription = 'Gradido';
 $session = $this->getRequest()->getSession();
 $transactionPendings = $session->read('Transactions.pending');
 $errorCount = intval($session->read('StateUser.errorCount'));
 $balance = $session->read('StateUser.balance');
-//echo "balance: $balance<br>";
 if(!isset($balance)) {
   $balance = 0;
 }
-//echo "balance: $balance<br>";
-//echo "transactions pending: " . $transactionPendings;
 ?>
 <!DOCTYPE html>
 <html>
@@ -39,36 +32,60 @@ if(!isset($balance)) {
         <?= $this->fetch('title') ?>
     </title>
     <?= $this->Html->meta('icon') ?>
-
-    <!--<?= $this->Html->css('base.css') ?>-->
-    <?= $this->Html->css('styles.css') ?>
-
+    <?= $this->Html->css('main.css') ?>
+    <?= $this->Html->script('fa-all.min.js') ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>
 </head>
 <body>
-    <div class="versionstring dev-info">
-      <p class="grd_small">Community Server in Entwicklung</p>
-      <p class="grd_small">Alpha 0.9.0</p>
+  <div class="page">
+    <div class="header">
+      <?= $this->Html->image(
+        'logo_schrift.png',
+        ['alt' => 'Gradido'],
+        ['class' => 'logo']
+      )
+      ?>
+      <h1><?= $this->fetch('title') ?></h1>
+      <nav class="nav-top nav-horizontal">
+        <ul>
+          <li @click="showProfile">Mein Profil XXX</li>
+        </ul>
+      </nav>
     </div>
-    <nav class="grd-left-bar expanded" data-topbar role="navigation">
-        <div class="grd-left-bar-section">
-            <ul class="grd-no-style">
-              <?php if($errorCount > 0) : ?>
+    <div class="sidebar1">
+      <div>
+        <div class="sidebar1-header">
+            Navigation
+        </div>
+        <div class="nav-vertical">
+          <ul>
+            <?php if($errorCount > 0) : ?>
               <li>
-                <?= $this->Html->Link(__('Fehler '). "($errorCount)", ['controller' => 'StateErrors', 'action' => 'showForUser'], ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
+                <?= $this->Html->Link(
+                    __('Fehler '). "($errorCount)",
+                    ['controller' => 'StateErrors',
+                    'action' => 'showForUser'],
+                    ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
               </li>
               <?php endif; ?>
               <?php if(isset($balance)) : ?>
-                <li><?= $this->Html->link($this->element('printGradido', ['number' => $balance]), 
-                        ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn', 'escape' => false])
+                <li><i class="fa fa-list nav-icon"></i>
+                  <?= $this->Html->link(
+                    $this->element('printGradido', ['number' => $balance]),
+                      ['controller' => 'StateBalances', 'action' => 'overview'],
+                      ['class' => 'grd-nav-bn', 'escape' => false])
                     ?>
                 </li>
               <?php endif; ?>
-                <li><?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard', 'action' => 'index'], ['class' => 'grd-nav-bn'])?></li>
-              <!--<li><?= $this->Html->link(__('Kontostand'), ['controller' => 'StateBalances', 'action' => 'overview'], ['class' => 'grd-nav-bn']) ?>-->
-              <li>
+                <li><i class="fa fa-home nav-icon"></i>
+                  <?= $this->Html->link(
+                    __('Startseite'),
+                    ['controller' => 'Dashboard', 'action' => 'index'],
+                    ['class' => 'grd-nav-bn'])?>
+                </li>
+                <li><i class="fa fa-user-friends nav-icon"></i>
                   <a href="https://elopage.com/s/gradido/sign_in" target="_blank" class="grd-nav-bn">
                     <?= __("Mitgliederbereich") ?>
                   </a>
@@ -80,20 +97,37 @@ if(!isset($balance)) {
                   </a>
                 </li>
               <?php else: ?>
-                 <li><a href="<?= Router::url('./', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a></li>
+                <li><i class="fa fa-sign-out-alt nav-icon"></i>
+                  <a href="<?= Router::url('./', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a>
+                </li>
               <?php endif; ?>
-            </ul>
+          </ul>
         </div>
-    </nav>
-    <div class="grd_container">
-      <h1><?= $this->fetch('title') ?></h1>
+      </div>
+    </div>
+    <div class="content">
+      <!-- ??? flash-messages ??? -->
       <div class="flash-messages"><?= $this->Flash->render() ?></div>
       <?= $this->fetch('content') ?>
     </div>
-    <?php if(isset($timeUsed)) : ?>
-      <div class="grd-time-used dev-info">
-        <?=  round($timeUsed * 1000.0, 4) ?> ms
-      </div>
-    <?php endif; ?>
+    <div class="sidebar2">
+      Rechter Navigationsbereich
+    </div>
+    <div class="nav-bottom">
+      <p>Community Server in Entwicklung</p>
+      <p>Alpha 0.9.0</p>
+      <?php if(isset($timeUsed)) : ?>
+        <p>
+          <?=round($timeUsed * 1000.0, 4)?> ms
+        </p>
+      <?php endif; ?>
+    </div>
+    <div class="footer nav-horizontal">
+      <ul>
+        <li><a href="https://gradido.net/de/datenschutz/" target="_blank">Datenschutzerklärung</a></li>
+        <li><a href="https://gradido.net/de/impressum/" target="_blank">Impressum</a></li>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>

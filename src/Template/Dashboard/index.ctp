@@ -1,6 +1,6 @@
 <?php
 use Cake\Routing\Router;
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -11,16 +11,11 @@ if(isset($user)) {
 }
 $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']);
 ?>
-<style type="text/css">
-  .table-row {
-    display:table-row;
-  }
-</style>
 <?php if(isset($requestTime)) : ?>
   <span class='grd-second-timer'><?= round($requestTime * 1000.0) ?> ms</span>
 <?php endif; ?>
   <div class="grd_container_small">
-    
+
     <fieldset>
       <h3>Gradido ...</h3>
       <?= $this->Html->link(
@@ -29,8 +24,8 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
               ['class' => 'grd-nav-bn grd-nav-bn-large']
           );?>
       <?= $this->Html->link(
-              __('überweisen'), 
-              ['controller' => 'TransactionSendCoins', 'action' => 'create'], 
+              __('überweisen'),
+              ['controller' => 'TransactionSendCoins', 'action' => 'create'],
               ['class' => 'grd-nav-bn grd-nav-bn-large']
           ); ?>
     </fieldset>
@@ -58,7 +53,7 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
     <fieldset class="grd-margin-top-10 admin-border">
         <legend>Statistik</legend>
         <?= $this->Html->link(
-                __('Anmeldungen'), 
+                __('Anmeldungen'),
                 ['controller' => 'Users', 'action' => 'statistics'],
                 ['class' => 'grd-nav-bn grd-nav-bn-large']
           );?>
@@ -88,5 +83,5 @@ $this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbs
       </div>
     </fieldset>
     <?php endif; ?>
-    
+
   </div>

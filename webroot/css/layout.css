@@ -1,0 +1,28 @@
+/* ============================================================
+
+  Grid Layout Page
+
+  Datei     :   layout.css
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+.page {
+  display: grid;
+  grid-template-rows: 12vh 70vh 10vh 5vh;
+  grid-template-columns: 1fr 5fr 1fr;
+  grid-gap: .25em;
+  margin: 0;
+  padding: 0;
+}
+
+.header,
+.nav-bottom,
+.footer {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+
+
