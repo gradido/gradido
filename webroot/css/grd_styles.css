@@ -76,6 +76,13 @@
     font-style: italic;
   }
   /* =======================
+        Gradido
+       =======================*/
+  /* Gradido Transform */
+  .gdt-text-color {
+    color: #a27824;
+  }
+  /* =======================
         Sonstige
        =======================*/
   /* Hyperlinks */
@@ -103,6 +110,39 @@
   a:active {
     outline: none;
   }
+  a.grd_invisible_link {
+    color: black;
+    text-decoration: none;
+  }
+  a.grd_invisible_link:hover {
+    color: grey;
+  }
+  /* layout helper */
+  .grd_margin_5 {
+    margin: 5px;
+  }
+  .grd-margin-top-10 {
+    margin-top: 10px;
+  }
+  .grd-width-200 {
+    width: 200px;
+  }
+  .grd_margin-bottom {
+    margin-bottom: 5px;
+  }
+  .grd_right {
+    float: right;
+  }
+  .grd_clickable {
+    cursor: pointer;
+  }
+  .grd-no-style {
+    list-style: none;
+  }
+  .grd_small {
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
 }
 /* Ende @media screen */
 /* ============================================================
@@ -123,6 +163,22 @@
     line-height: 1.5em;
     padding: 1.5em;
     background-color: #f9fafb;
+  }
+  /* content container */
+  .grd_container {
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .grd_container_small {
+    max-width: 500px;
+  }
+  .grd_text {
+    max-width: 550px;
+    margin-bottom: 5px;
+  }
+  .grd_text-max-width {
+    max-width: 550px;
   }
 }
 @media screen and (max-width: 619px) {
@@ -537,66 +593,4 @@ and open the template in the editor.
     color: black;
     text-decoration: none;
   }
-}
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/*
-    Created on : 07.07.2019, 16:20:15
-    Author     : einhornimmond
-*/
-/* content container */
-.grd_container {
-  max-width: 820px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.grd_container_small {
-  max-width: 500px;
-}
-.grd_text {
-  max-width: 550px;
-  margin-bottom: 5px;
-}
-.grd_text-max-width {
-  max-width: 550px;
-}
-/* layout helper */
-.grd_margin_5 {
-  margin: 5px;
-}
-.grd-margin-top-10 {
-  margin-top: 10px;
-}
-.grd-width-200 {
-  width: 200px;
-}
-.grd_margin-bottom {
-  margin-bottom: 5px;
-}
-.grd_right {
-  float: right;
-}
-a.grd_invisible_link {
-  color: black;
-  text-decoration: none;
-}
-a.grd_invisible_link:hover {
-  color: grey;
-}
-.grd_clickable {
-  cursor: pointer;
-}
-ul.grd-no-style {
-  list-style: none;
-}
-p.grd_small {
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-/* Gradido Transform */
-.gdt-text-color {
-  color: #a27824;
 }

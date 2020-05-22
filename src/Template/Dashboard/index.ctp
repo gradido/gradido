@@ -15,10 +15,9 @@ $this->assign(
 );
 ?>
 <?php if(isset($requestTime)) : ?>
-  <span class='grd-second-timer'><?= round($requestTime * 1000.0) ?> ms</span>
+  <span><?= round($requestTime * 1000.0) ?> ms</span>
 <?php endif; ?>
   <div class="grd_container_small">
-
     <fieldset>
       <h3>Gradido ...</h3>
       <?= $this->Html->link(
