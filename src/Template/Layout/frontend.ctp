@@ -50,7 +50,7 @@ if(!isset($balance)) {
       <h1><?= $this->fetch('title') ?></h1>
       <nav class="nav-top nav-horizontal">
         <ul>
-          <li @click="showProfile">Mein Profil XXX</li>
+          <li>Mein Profil XXX</li>
         </ul>
       </nav>
     </div>
@@ -106,7 +106,6 @@ if(!isset($balance)) {
       </div>
     </div>
     <div class="content">
-      <!-- ??? flash-messages ??? -->
       <div class="flash-messages"><?= $this->Flash->render() ?></div>
       <?= $this->fetch('content') ?>
     </div>

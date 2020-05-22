@@ -9,7 +9,10 @@ use Cake\Routing\Router;
 if(isset($user)) {
   //var_dump($user);
 }
-$this->assign('title', __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']);
+$this->assign(
+  'title',
+  __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']
+);
 ?>
 <?php if(isset($requestTime)) : ?>
   <span class='grd-second-timer'><?= round($requestTime * 1000.0) ?> ms</span>

@@ -1,4 +1,4 @@
-<?php 
+<?php
 use Model\Navigation\NaviEntry;
 use Model\Navigation\NaviEntrySub;
 use Model\Navigation\NaviEntryAbsoluteLink;
@@ -13,8 +13,6 @@ if(!isset($balance)) {
   $balance = 0;
 }
 
-
-
 $navi = [];
 /*if($errorCount > 0) {
   $errorNaviEntry = new NaviEntry(__('Fehler '). "($errorCount)", 'mdi-alert-outline', 'StateErrors', 'showForUser');
@@ -24,8 +22,7 @@ $navi = [];
 }*/
 $balanceNaviEntry = new NaviEntry(
         __('Kontoübersicht') . ' (' . $this->element('printGradido', ['number' => $balance]) . ')',
-        //__('Kontoübersicht'),
-        'mdi-wallet-outline', 'StateBalances', 'overview'
+        'account_balance_wallet', 'StateBalances', 'overview'
 );
 if($balance < 0 ) {
   //$balanceNaviEntry->setIconColor('grd-alert-color');
@@ -33,9 +30,9 @@ if($balance < 0 ) {
   //$balanceNaviEntry->setIconColor('grd-success-color');
 }
 array_push($navi, $balanceNaviEntry);
-array_push($navi, new NaviEntry(__('Startseite'), 'mdi-gauge', 'Dashboard', 'index'));
-array_push($navi, new NaviEntry(__('Überweisung'), 'mdi-bank-transfer-out', 'TransactionSendCoins', 'create'));
-array_push($navi, new NaviEntryExternLink(__('Mitgliederbereich'), 'mdi-account-switch', 'https://elopage.com/s/gradido/sign_in'));
+array_push($navi, new NaviEntry(__('Startseite'), 'home', 'Dashboard', 'index'));
+array_push($navi, new NaviEntry(__('Überweisung'), 'account_balance', 'TransactionSendCoins', 'create'));
+array_push($navi, new NaviEntryExternLink(__('Mitgliederbereich'), 'people_alt', 'https://elopage.com/s/gradido/sign_in'));
 
 if(intval($transactionPendings) > 0) {
 /*  array_push($navi, new NaviEntryAbsoluteLink(
@@ -43,11 +40,11 @@ if(intval($transactionPendings) > 0) {
             'mdi-signature-freehand', 'account/checkTransactions'
          ));*/
 } else {
-  array_push($navi, new NaviEntryAbsoluteLink(__('Abmelden'), 'mdi-logout', 'account/logout'));
+  array_push($navi, new NaviEntryAbsoluteLink(__('Abmelden'), 'exit_to_app', 'account/logout'));
 }
 
-    
+
 ?>
-<ul class="navigation-menu">
+<ul>
   <?php foreach($navi as $n) echo $n; ?>
 </ul>

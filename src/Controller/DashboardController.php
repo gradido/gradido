@@ -14,7 +14,7 @@ use Cake\ORM\TableRegistry;
  */
 class DashboardController extends AppController
 {
-  
+
     public function initialize()
     {
         parent::initialize();
@@ -29,41 +29,38 @@ class DashboardController extends AppController
     public function index()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend');
+        $this->viewBuilder()->setLayout('frontend_ripple');
         $session = $this->getRequest()->getSession();
-        
-        
-        //return $this->redirect(Router::url('/', true) . 'account/', 303);
         $result = $this->requestLogin();
         if($result !== true) {
           return $result;
         }
         $user = $session->read('StateUser');
-        
+
         $serverUser = $this->Auth->user('id');
         if($serverUser) {
           $adminErrorsTable = TableRegistry::getTableLocator()->get('AdminErrors');
           $adminErrorCount = $adminErrorsTable->find('all')->count();
           $this->set('adminErrorCount', $adminErrorCount);
         }
-        
+
         $this->set('user', $user);
         $this->set('serverUser', $serverUser);
         $this->set('timeUsed', microtime(true) - $startTime);
-         
+
     }
-    
+
     public function serverIndex()
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $adminErrorsTable = TableRegistry::getTableLocator()->get('AdminErrors');
         $adminErrorCount = $adminErrorsTable->find('all')->count();
-        
+
         $this->set('adminErrorCount', $adminErrorCount);
         $this->set('timeUsed', microtime(true) - $startTime);
     }
-    
+
     public function errorHttpRequest()
     {
       $startTime = microtime(true);
@@ -71,5 +68,4 @@ class DashboardController extends AppController
       $this->set('timeUsed', microtime(true) - $startTime);
     }
 
-    
 }

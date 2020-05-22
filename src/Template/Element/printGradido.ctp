@@ -11,9 +11,9 @@ if($number < 0) {
 }
 
 ?><?php if(isset($raw) && true == $raw): ?>
-<?= 'Kontoübersicht (' . $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' GDD)';?>
+<?= $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' GDD';?>
 <?php else : ?>
 <span class="<?php echo $class;?>">
-  <?= 'Kontoübersicht (' . $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' GDD)';?>
+  <?= $this->Number->format(intval($number) / 10000.0, ['precision' => 2]) . ' GDD';?>
 </span>
 <?php endif; ?>
