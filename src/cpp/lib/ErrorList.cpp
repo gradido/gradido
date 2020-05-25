@@ -58,10 +58,11 @@ ErrorList::~ErrorList()
 
 void ErrorList::addError(Error* error, bool log/* = true */)
 {
+
 	if (log) {
 		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		mLogging.error("%s [ErrorList::addError] %s", dateTimeString.data(), error->getString(false));
-		
+		mLogging.error("%s [ErrorList::addError] %s", dateTimeString, error->getString(false));
+
 	}
 	mErrorStack.push(error);
 }
