@@ -1,0 +1,150 @@
+/* ============================================================
+
+  Screen styles.
+
+  Datei     :   screen.less
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+
+    /* =======================
+        Basis
+       =======================*/
+    html,
+    body {
+        font-family: 'Roboto', sans-serif;
+        font-size: @body-fs;
+        line-height: @body-lh;
+        color: @main-text;
+        background-color: @main-background;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* =======================
+        Kopfbereich
+       =======================*/
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 1em;
+        background-color: @menu-background;
+    }
+
+    .header img {
+        vertical-align: middle;
+        width: 150px;
+    }
+
+    /* =======================
+        Fußbereich
+       =======================*/
+    .footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-top: 10px;
+        font-size: @footer-fs;
+        font-style: italic;
+    }
+
+    .bottomleft {
+        background-color: @menu-background;
+        vertical-align: bottom;
+    }
+
+    /* =======================
+        Gradido
+       =======================*/
+
+    /* Gradido Transform */
+    .gdt-text-color {
+        color: @gdt-text;
+    }
+
+    /* =======================
+        Sonstige
+       =======================*/
+
+    /* Hyperlinks */
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    main a {
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    a:link,
+    a:visited {
+        color: inherit;
+    }
+
+    a:hover,
+    a:focus {
+        text-decoration: underline;
+    }
+
+    a:active {
+        background-color: @menu-background;
+        color: @main-link-text;
+    }
+
+    a:focus,
+    a:active {
+        outline: none;
+    }
+
+    a.grd_invisible_link {
+        color: @main-link-text;
+        text-decoration: none;
+    }
+
+    a.grd_invisible_link:hover {
+        color: @unobtrusive;
+    }
+
+    /* layout helper */
+    .grd_margin_5 {
+        margin: 5px;
+    }
+
+    .grd-margin-top-10 {
+        margin-top: 10px;
+    }
+
+    .grd-width-200 {
+        width: 200px;
+    }
+
+    .grd_margin-bottom {
+        margin-bottom: 5px;
+    }
+
+    .grd_right {
+        float: right;
+    }
+
+    .grd_clickable {
+        cursor: pointer;
+    }
+
+    .grd-no-style {
+        list-style: none;
+    }
+
+    .grd_small {
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+
+}
+
+/* Ende @media screen */

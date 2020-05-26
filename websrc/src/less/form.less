@@ -1,0 +1,86 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+/*
+    Created on : 30.10.2019, 14:41:57
+    Author     : einhornimmond
+*/
+
+/* Button */
+.grd-form-bn:hover,
+.grd-active {
+background-color: @button-background-active;
+  border-color: @button-border-color;
+}
+
+.grd-form-bn {
+  padding: 5px;
+  border: 1px solid @form-button-border;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  color: @form-button-text;
+}
+
+.grd-form-bn-small {
+}
+
+a.grd-form-bn,
+a.grd-form-bn:visited {
+  color: @button-text;
+  text-decoration: none;
+}
+
+.grd-form-bn-succeed {
+  background-color: @success-background;
+  color: @success;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+.grd-form-bn-succeed:not([disabled]):hover {
+  background-color: @success-background-hover;
+}
+
+.grd-form-bn-discard {
+  margin-left: 5px;
+  border: 1px solid @error;
+  color: @error;
+  cursor: pointer;
+}
+
+/* form elements */
+.grd_textarea {
+  border: 1px solid grey;
+  background-color: @form-text-background;
+  padding: 5px;
+  font-style: italic;
+}
+
+.grd-input label {
+  display: block;
+}
+
+input.grd-privkey {
+  width: 465px;
+}
+
+input.grd-pubkey {
+  width: 465px;
+}
+
+input.grd-non-der-keys {
+  width: 900px;
+}
+
+input:not([type='radio']) {
+  width: 200px;
+}
+
+label:not(.grd_radio_label) {
+  width: 80px;
+  display: inline-block;
+}

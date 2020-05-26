@@ -70,7 +70,7 @@ class NaviEntry extends NaviEntryBase {
         $str .= "<li";
         $class = "";
         if($this->hasChilds()) { $class .= "dropdown";}
-        if($this->isActive()) { $class .= " active"; }
+        if($this->isActive()) { $class .= " selected"; }
         if(strlen($class) > 0 ) $str .= " class='$class'";
         $str .=  ">";
 

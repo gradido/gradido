@@ -1,0 +1,66 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+/*
+    Created on : 12.07.2019, 07:59:32
+    Author     : einhornimmond
+*/
+
+
+div[role='grd_dialog'] {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: @dialog-background;
+  top: 0;
+  left: 0;
+}
+
+div.grd_modal-dialog {
+  margin-top: 100px;
+  min-height: 200px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: @dialog-background;
+  color: @dialog-text;
+  border: 1px solid @dialog-border;
+}
+
+div.grd_modal-dialog.grd_dialog-large {
+  margin-top: 5px;
+  width: 90%;
+}
+
+div.grd_modal-body {
+  padding: 25px;
+}
+
+div.grd_modal-header {
+  background-color: @dialog-background-extra;
+  padding: 5px;
+  padding-left: 15px;
+  border: 1px solid @dialog-border;
+  color: @dialog-text;
+}
+
+div.grd_modal-footer {
+  background-color: @dialog-background-extra;
+  height: 40px;
+}
+
+.grd_modal-footer a,
+.grd_modal-footer button {
+  float: right;
+  padding: 9px;
+  margin-right: 10px;
+  border: 1px solid @dialog-border;
+}
+
+.grd_modal-footer a:hover,
+.grd_modal-footer button:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}

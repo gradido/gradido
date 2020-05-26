@@ -39,7 +39,7 @@ if(!isset($balance)) {
     <?= $this->fetch('script') ?>
 </head>
 <body>
-  <div class="page">
+  <div class="layout">
     <div class="header">
       <?= $this->Html->image(
         'logo_schrift.png',
@@ -110,21 +110,23 @@ if(!isset($balance)) {
       <?= $this->fetch('content') ?>
     </div>
     <div class="sidebar2">
-      Rechter Navigationsbereich
+      <p><?= __("Community Server in Entwicklung") ?></p>
+      <p>Alpha 0.21.KW21.05</p>
     </div>
-    <div class="nav-bottom">
-      <p>Community Server in Entwicklung</p>
-      <p>Alpha 0.9.0</p>
+    <div class="bottomleft">
       <?php if(isset($timeUsed)) : ?>
         <p>
           <?=round($timeUsed * 1000.0, 4)?> ms
         </p>
       <?php endif; ?>
     </div>
+    <div class="nav-bottom">
+      <small class="">Copyright © 2020 Gradido</small>
+    </div>
     <div class="footer nav-horizontal">
       <ul>
-        <li><a href="https://gradido.net/de/datenschutz/" target="_blank">Datenschutzerklärung</a></li>
-        <li><a href="https://gradido.net/de/impressum/" target="_blank">Impressum</a></li>
+        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
+        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
       </ul>
     </div>
   </div>

@@ -1,0 +1,51 @@
+/* ============================================================
+
+  Grid Layout Page
+
+  Datei     :   layout.less
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+
+/* BREAKPOINTS */
+@maxMobile: ~"(max-width:619px)";
+
+/* GRID */
+.layout {
+  display: grid;
+  grid-template-rows: 12vh 70vh 10vh 5vh;
+  grid-template-columns: 1fr 6fr 1fr;  /*grid-gap: .25em;*/
+  grid-template-areas: "topleft topcenter topright"
+  "navleft center navright"
+  "bottomleft bottomcenter bottomright";
+  margin: 0;
+  padding: 0;
+}
+
+.header,
+.footer {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+.sidebar1 {
+  grid-area: navleft;
+}
+
+.content {
+  grid-area: center;
+}
+
+.sidebar2 {
+  grid-area: navright;
+}
+
+.bottomleft {
+  grid-area: bottomleft;
+}
+
+.nav-bottom {
+  grid-area: bottomcenter;
+}

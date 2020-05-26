@@ -1,0 +1,182 @@
+/* ============================================================
+
+  Navigation
+
+  Datei     :   navi.less
+  Datum     :   2020-04-30
+  Autor     :   einhornimmond / Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+
+/* TODO
+  dropdown
+  subnav
+  text-muted
+  block-btn (?)
+  caret (?)
+    -> für Kinder
+*/
+@media screen {
+
+  /*
+    SIDEBARS
+  */
+  .sidebar1,
+  .sidebar2 {
+    padding: 1em;
+  }
+
+  .sidebar1 {
+    color: @menu-link-text;
+    background-color: @menu-background;
+    font-weight: 500;
+    line-height: @sidebar1-lh;
+  }
+
+  .sidebar2 {
+    background-color: @main-background;
+  }
+
+  .nav-icon {
+    font-size: @nav-icon-fs;
+    padding-right: 1em;
+    color: @unobtrusive;
+  }
+
+  .sidebar1-header {
+    font-size: @sidebar1-header-fs;
+    font-style: italic;
+    color: @unobtrusive;
+  }
+
+  @media @maxMobile {
+  }
+
+  /* navbar */
+  .material-icons-outlined {
+    font-size: @nav-icons-fs !important;
+    vertical-align: middle;
+    padding-right: 1em;
+  }
+
+  .nav-main-button {
+    font-size: @nav-icon-main-fs !important;
+  }
+
+  .selected {
+    color: @menu-link-selected;
+  }
+
+  .link-title {
+    vertical-align: middle;
+    line-height: @link-title-lh;
+    background-color: transparent;
+  }
+
+  .nav-horizontal > ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: baseline;
+    list-style-type: none;
+    gap: 5%;
+    padding: 1em;
+  }
+
+  .nav-horizontal li {
+    padding: .5em;
+  }
+
+  .nav-vertical > ul {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    gap: 5%;
+    padding: 1em;
+  }
+
+  .nav-vertical li {
+    padding: .5em;
+  }
+
+  .nav-top > ul {
+    padding: 0;
+    padding-right: 2em;
+  }
+
+  .nav-bottom {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    gap: 5%;
+    padding: 1em;
+  }
+
+  .nav-bottom p {
+    font-size: @nav-bottom-fs;
+    color: @unobtrusive;
+    margin: 0;
+  }
+
+  @media @maxMobile {
+  }
+
+  nav {
+    &.grd-left-bar {
+      position: fixed;
+      top: 80.5px;
+    }
+
+    &.grd-left-bar-section {
+    }
+
+    .grd-nav-bn {
+      width: 100px;
+    }
+
+    ul {
+      margin-top: 0;
+      padding-left: 0;
+    }
+
+  }
+
+  /* buttons */
+  .grd-nav-bn:hover,
+  .grd-active {
+    background-color: @button-background-active;
+    border-color: @main-link-text;
+  }
+
+  .grd-nav-bn {
+    padding: 10px;
+    border: 1px solid @unobtrusive;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    color: @unobtrusive;
+  }
+
+  .grd-nav-bn-large {
+    width: 40vw;
+    height: 18vh;
+    font-size: @nav-btn-large-fs;
+  }
+
+  a.grd-nav-bn,
+  a.grd-nav-bn:visited {
+    color: @main-link-text;
+    text-decoration: none;
+  }
+
+  .grd-nav-bn-succeed {
+  }
+
+  .grd-nav-bn-discard {
+  }
+
+}

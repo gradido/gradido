@@ -70,7 +70,7 @@ class NaviEntryAbsoluteLink extends NaviEntryBase
             $class .= "dropdown";
         }
         if ($this->isActive()) {
-            $class .= " active";
+            $class .= " selected";
         }
         if (strlen($class) > 0) {
             $str .= " class='$class'";

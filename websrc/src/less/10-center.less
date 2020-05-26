@@ -1,0 +1,54 @@
+/* ============================================================
+
+  Screen styles for center part.
+
+  Datei     :   center.css
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .content {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    overflow: auto;
+    line-height: @content-lh;
+    padding: 1.5em;
+    background-color: @main-background;
+    width: 70%;
+    margin: auto;
+  }
+
+  @media @maxMobile {
+    .content {
+      flex-direction: column;
+    }
+
+  }
+
+  /* content container */
+  .grd_container {
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .grd_container_small {
+    max-width: 500px;
+    align-self: center;
+  }
+
+  .grd_text {
+    max-width: 550px;
+    margin-bottom: 5px;
+  }
+
+  .grd_text-max-width {
+    max-width: 550px;
+  }
+
+}
+
+/* Ende @media screen */

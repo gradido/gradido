@@ -40,8 +40,8 @@ $GLOBALS["self"] = $this;
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>
 </head>
-<body debug>
-  <div class="page">
+<body>
+  <div class="layout">
     <div class="header">
       <a href="/">
         <picture class="logo">
@@ -65,7 +65,7 @@ $GLOBALS["self"] = $this;
     <div class="sidebar1">
       <div>
         <div class="sidebar1-header">
-            Navigation
+            <i class="material-icons-outlined nav-main-button">menu</i>
             <i class="mdi mdi-menu"></i>
             <div class="flash-messages">
               <?= $this->Flash->render() ?>
@@ -81,24 +81,26 @@ $GLOBALS["self"] = $this;
       <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
       <?= $this->fetch('content') ?>
     </div>
-      <div class="sidebar2">
-        <p><?= __("Community Server in Entwicklung") ?></p>
-        <p>Alpha 0.21.KW21.05</p>
-        <?php if(isset($timeUsed)) : ?>
-          <p>
-            <?=round($timeUsed * 1000.0, 4)?> ms
-          </p>
-        <?php endif; ?>
-      </div>
-      <div class="nav-bottom">
-        <small class="">Copyright © 2020 Gradido</small>
-      </div>
-      <div class="footer nav-horizontal">
-        <ul>
-          <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
-          <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
-        </ul>
-      </div>
+    <div class="sidebar2">
+      <p><?= __("Community Server in Entwicklung") ?></p>
+      <p>Alpha 0.21.KW21.05</p>
     </div>
-  </body>
+    <div class="bottomleft">
+      <?php if(isset($timeUsed)) : ?>
+        <p class="grd-time-used">
+          <?=round($timeUsed * 1000.0, 4)?> ms
+        </p>
+      <?php endif; ?>
+    </div>
+    <div class="nav-bottom">
+      <small class="">Copyright © 2020 Gradido</small>
+    </div>
+    <div class="footer nav-horizontal">
+      <ul>
+        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
+        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
+      </ul>
+    </div>
+  </div>
+</body>
 </html>
