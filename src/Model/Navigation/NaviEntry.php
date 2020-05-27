@@ -58,8 +58,9 @@ class NaviEntry extends NaviEntryBase {
             );
         } else {
           return $self->Html->Link(
-                    '<i class="material-icons-outlined ' . $this->iconColor .'">'. $this->iconClass .'</i>'.
-                    '<span class="link-title">' . $this->title . '</span>',
+                    '<i class="material-icons-outlined nav-icon ' . $this->iconColor
+                    .'" title="' . $this->title . '">'. $this->iconClass .'</i>'
+                    .'<span class="link-title">' . $this->title . '</span>',
                     ['controller' => $this->controller, 'action' => $this->action, $this->param],
                     ['class' => $this->bgColorClass, 'escape' => false]);
         }

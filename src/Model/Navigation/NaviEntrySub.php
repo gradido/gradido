@@ -65,7 +65,8 @@ class NaviEntrySub extends NaviEntryBase
             return $self->Html->Link(
                 ''
                     .'<span class="link-title">' . $this->title . '</span>'
-                    .'<i class="material-icons-outlined ' . $this->iconColor .'">'. $this->iconClass .'</i>',
+                    .'<i class="material-icons-outlined nav-icon ' . $this->iconColor
+                    .'" title="' . $this->title . '">'. $this->iconClass .'</i>',
                 ['controller' => $this->controller, 'action' => $this->action, $this->param],
                 ['class' => $this->bgColorClass, 'escape' => false]
             );

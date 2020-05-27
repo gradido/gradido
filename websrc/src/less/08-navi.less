@@ -8,40 +8,51 @@
   Copyright :   Gradio
 
    ============================================================*/
-
-/* TODO
-  dropdown
-  subnav
-  text-muted
-  block-btn (?)
-  caret (?)
-    -> für Kinder
-*/
 @media screen {
+  @media @minDesktop {
+    .logo {
+      display: none;
+      vertical-align: middle;
+      height: 30px;
+      padding: .5em;
+    }
+
+    .logo.big.visible,
+    .logo.small.visible {
+      display: block !important;
+    }
+
+    .logo.small.visible {
+      padding-left: 83px;
+    }
+
+  }
+
+  @media @maxMobile {
+    .logo.big {
+      display: none;
+    }
+
+    .logo.small {
+      display: block;
+    }
+
+  }
 
   /*
     SIDEBARS
   */
-  .sidebar1,
-  .sidebar2 {
-    padding: 1em;
-  }
-
   .sidebar1 {
-    color: @menu-link-text;
     background-color: @menu-background;
     font-weight: 500;
     line-height: @sidebar1-lh;
+    padding: 0;
+    border-right: 1px solid @menu-border-color;
   }
 
   .sidebar2 {
+    padding: 1em;
     background-color: @main-background;
-  }
-
-  .nav-icon {
-    font-size: @nav-icon-fs;
-    padding-right: 1em;
-    color: @unobtrusive;
   }
 
   .sidebar1-header {
@@ -50,18 +61,107 @@
     color: @unobtrusive;
   }
 
-  @media @maxMobile {
-  }
-
-  /* navbar */
-  .material-icons-outlined {
+  /* set general icons size here! */
+  .nav-icon {
     font-size: @nav-icons-fs !important;
+    color: @menu-link-text;
     vertical-align: middle;
     padding-right: 1em;
   }
 
+  /* important! order matters! we need to overwrite the main button's size here */
   .nav-main-button {
     font-size: @nav-icon-main-fs !important;
+    color: @unobtrusive;
+    margin: .3em;
+  }
+
+  .nav-menu {
+    width: 210px;
+    height: 100%;
+  }
+
+  .nav-menu-maximized {
+    -webkit-animation: slide-out 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-out 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+
+  .nav-menu-minimized {
+    -webkit-animation: slide-in 0.1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-in 0.1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+
+  .nav-menu-minimized .link-title {
+    display: none;
+  }
+
+  .nav-menu-minimized .nav-icon,
+  .nav-menu-minimized .nav-main-button {
+    padding-left: 154px;
+  }
+
+  /**
+   * ----------------------------------------
+   * animations  slide-in / slide-out
+   * ----------------------------------------
+   */
+
+  /* slide-in */
+  @-webkit-keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+
+    100% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+      opacity: 1;
+    }
+
+  }
+
+  @keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+
+    100% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+      opacity: 1;
+    }
+
+  }
+
+  /* slide-out */
+  @-webkit-keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+    }
+
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
+
+  }
+
+  @keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+    }
+
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
+
   }
 
   .selected {
@@ -74,15 +174,19 @@
     background-color: transparent;
   }
 
-  .nav-horizontal > ul {
+  .nav-horizontal {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: baseline;
+    align-items: flex-end;
     list-style-type: none;
     gap: 5%;
     padding: 1em;
+  }
+
+  .nav-vertical {
+    margin-top: -2em;
   }
 
   .nav-horizontal li {
@@ -112,8 +216,6 @@
     justify-content: center;
     align-items: center;
     list-style-type: none;
-    gap: 5%;
-    padding: 1em;
   }
 
   .nav-bottom p {

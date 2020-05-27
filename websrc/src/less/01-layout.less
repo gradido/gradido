@@ -10,42 +10,40 @@
    ============================================================*/
 
 /* BREAKPOINTS */
-@maxMobile: ~"(max-width:619px)";
+@maxMobile: ~"(max-width:639px)";
+@minDesktop: ~"(min-width:640px)";
 
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: 12vh 70vh 10vh 5vh;
-  grid-template-columns: 1fr 6fr 1fr;  /*grid-gap: .25em;*/
-  grid-template-areas: "topleft topcenter topright"
-  "navleft center navright"
-  "bottomleft bottomcenter bottomright";
+  grid-template-rows: [top] 8vh [line2] 80vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 6fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-areas: "header header header header header"
+  "left . center center center"
+  "footer footer footer footer footer"
+  "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
 }
 
-.header,
-.footer {
-  grid-column-start: 1;
-  grid-column-end: 4;
-}
+/*.header {
+  grid-area: header;
+}*/
 
 .sidebar1 {
-  grid-area: navleft;
+  grid-area: left;
+  grid-row-start: top;
+  grid-row-end: end;
 }
 
 .content {
   grid-area: center;
 }
 
-.sidebar2 {
-  grid-area: navright;
-}
-
-.bottomleft {
-  grid-area: bottomleft;
+.footer {
+  grid-area: footer;
 }
 
 .nav-bottom {
-  grid-area: bottomcenter;
+  grid-area: bottom;
 }

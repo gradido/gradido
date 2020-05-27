@@ -18,8 +18,9 @@ class NaviEntryExternLink extends NaviEntryAbsoluteLink
         $self = $GLOBALS["self"];
 
         return '<a href="'.$this->link.'" class="' .$this->bgColorClass .'" target="_blank">'
-              . '<i class="material-icons-outlined ' . $this->iconColor .'">'. $this->iconClass .'</i>'
-              . '<span class="link-title">' . $this->title . '</span>'
+            .'<i class="material-icons-outlined nav-icon ' . $this->iconColor
+            .'" title="' . $this->title . '">'. $this->iconClass .'</i>'
+            . '<span class="link-title">' . $this->title . '</span>'
             . '</a>';
     }
 }

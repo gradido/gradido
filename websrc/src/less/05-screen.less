@@ -31,14 +31,10 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex: flex-grow;
         width: 100%;
         padding: 1em;
         background-color: @menu-background;
-    }
-
-    .header img {
-        vertical-align: middle;
-        width: 150px;
     }
 
     /* =======================
@@ -46,16 +42,32 @@
        =======================*/
     .footer {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        justify-content: flex-start;
         align-items: center;
-        padding-top: 10px;
         font-size: @footer-fs;
         font-style: italic;
     }
 
+    .bottomright {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        color: @unobtrusive;
+        font-size: @devinfo-fs;
+        line-height: 1.125em;
+        padding-right: 0.25em;
+        text-align: right;
+    }
+
     .bottomleft {
-        background-color: @menu-background;
-        vertical-align: bottom;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        color: @unobtrusive;
+        font-size: @devinfo-fs;
+        line-height: 1.125em;
+        padding-left: 0.25em;
     }
 
     /* =======================

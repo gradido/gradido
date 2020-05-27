@@ -55,7 +55,8 @@ class NaviEntryAbsoluteLink extends NaviEntryBase
             );
         } else {
             return '<a href="' . Router::url('./', true). $this->link.'" class="' .$this->bgColorClass .'" >'
-                  . '<i class="material-icons-outlined ' . $this->iconColor .'">'. $this->iconClass .'</i>'
+                    .'<i class="material-icons-outlined nav-icon ' . $this->iconColor
+                    .'" title="' . $this->title . '">'. $this->iconClass .'</i>'
                   . '<span class="link-title">' . $this->title . '</span>'
                 . '</a>';
         }

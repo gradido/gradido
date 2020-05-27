@@ -21,7 +21,9 @@ $navi = [];
   array_push($navi, $errorNaviEntry);
 }*/
 $balanceNaviEntry = new NaviEntry(
-        __('Kontoübersicht') . ' (' . $this->element('printGradido', ['number' => $balance]) . ')',
+        __('Kontoübersicht') . ' (' .
+        str_replace(array("\r", "\n"), '', strip_tags($this->element('printGradido', ['number' => $balance])))
+        . ' )',
         'account_balance_wallet', 'StateBalances', 'overview'
 );
 if($balance < 0 ) {

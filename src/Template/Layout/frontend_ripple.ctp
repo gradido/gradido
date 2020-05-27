@@ -42,64 +42,62 @@ $GLOBALS["self"] = $this;
 </head>
 <body>
   <div class="layout">
-    <div class="header">
-      <a href="/">
-        <picture class="logo">
-          <source srcset="/img/logo_schrift_half.webp" type="image/webp">
-          <source srcset="/img/logo_schrift_half.png" type="image/png">
-          <img src="/img/logo_schrift_half.png" class="logo" alt="Logo">
-        </picture>
-        <!--picture class="logo-mini">
-          <source srcset="/img/logo_half.webp" type="image/webp">
-          <source srcset="/img/logo_half.png" type="image/png">
-          <img src="/img/logo_half.png" class="logo-mini" alt="Logo">
-        </picture-->
-      </a>
+    <!--div class="header">
       <h1><?= $this->fetch('title') ?></h1>
       <nav class="nav-top nav-horizontal">
         <ul>
           <li>Mein Profil</li>
         </ul>
       </nav>
-    </div>
-    <div class="sidebar1">
+    </div-->
+    <!-- TODO save last state so that it remains unchanged, on reload! -->
+    <div class="sidebar1 nav-menu nav-menu-maximized">
+      <a href="/">
+        <picture class="logo big visible">
+          <source srcset="/img/logo_schrift_half.webp" type="image/webp">
+          <source srcset="/img/logo_schrift_half.png" type="image/png">
+          <img src="/img/logo_schrift_half.png" class="logo big visible" alt="Logo">
+        </picture>
+        <picture class="logo small">
+          <source srcset="/img/logo_half.webp" type="image/webp">
+          <source srcset="/img/logo_half.png" type="image/png">
+          <img src="/img/logo_half.png" class="logo small" alt="Logo">
+        </picture>
+      </a>
       <div>
-        <div class="sidebar1-header">
-            <i class="material-icons-outlined nav-main-button">menu</i>
-            <i class="mdi mdi-menu"></i>
-            <div class="flash-messages">
-              <?= $this->Flash->render() ?>
-            </div>
-            <?= $this->element('navi_header'); ?>
-        </div>
-        <div class="nav-vertical">
-          <?= $this->element('navi'); ?>
-        </div>
+        <i class="material-icons-outlined nav-main-button">menu</i>
+      </div>
+      <!--div class="sidebar1-header">
+          <div class="flash-messages">
+            <?= $this->Flash->render() ?>
+          </div>
+          <?= $this->element('navi_header'); ?>
+      </div-->
+      <div class="nav-vertical">
+        <?= $this->element('navi'); ?>
       </div>
     </div>
     <div class="content">
       <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
       <?= $this->fetch('content') ?>
     </div>
-    <div class="sidebar2">
-      <p><?= __("Community Server in Entwicklung") ?></p>
-      <p>Alpha 0.21.KW21.05</p>
-    </div>
-    <div class="bottomleft">
-      <?php if(isset($timeUsed)) : ?>
-        <p class="grd-time-used">
-          <?=round($timeUsed * 1000.0, 4)?> ms
-        </p>
-      <?php endif; ?>
+    <div class="footer">
+      <ul class="nav-horizontal">
+        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
+        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
+      </ul>
     </div>
     <div class="nav-bottom">
       <small class="">Copyright © 2020 Gradido</small>
     </div>
-    <div class="footer nav-horizontal">
-      <ul>
-        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
-        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
-      </ul>
+    <div class="bottomleft">
+      <?php if(isset($timeUsed)) : ?>
+        <?=round($timeUsed * 1000.0, 4)?> ms
+      <?php endif; ?>
+    </div>
+    <div class="bottomright">
+      <p><?= __("Community Server in Entwicklung") ?></p>
+      <p>Alpha 0.21.KW21.05</p>
     </div>
   </div>
 </body>

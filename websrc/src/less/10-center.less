@@ -11,14 +11,17 @@
 @media screen {
   .content {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
     overflow: auto;
     line-height: @content-lh;
-    padding: 1.5em;
     background-color: @main-background;
-    width: 70%;
-    margin: auto;
+    width: 100%;
+    letter-spacing: .03rem;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    padding-top: 5em;
   }
 
   @media @maxMobile {

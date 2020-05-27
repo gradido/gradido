@@ -12,32 +12,28 @@
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: 12vh 70vh 10vh 5vh;
-  grid-template-columns: 1fr 6fr 1fr;
-  /*grid-gap: .25em;*/
-  grid-template-areas: "topleft topcenter topright" "navleft center navright" "bottomleft bottomcenter bottomright";
+  grid-template-rows: [top] 8vh [line2] 80vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 6fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-areas: "header header header header header" "left . center center center" "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
 }
-.header,
-.footer {
-  grid-column-start: 1;
-  grid-column-end: 4;
-}
+/*.header {
+  grid-area: header;
+}*/
 .sidebar1 {
-  grid-area: navleft;
+  grid-area: left;
+  grid-row-start: top;
+  grid-row-end: end;
 }
 .content {
   grid-area: center;
 }
-.sidebar2 {
-  grid-area: navright;
-}
-.bottomleft {
-  grid-area: bottomleft;
+.footer {
+  grid-area: footer;
 }
 .nav-bottom {
-  grid-area: bottomcenter;
+  grid-area: bottom;
 }
 /* ============================================================
 
@@ -92,28 +88,40 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex: flex-grow;
     width: 100%;
     padding: 1em;
     background-color: #fff;
-  }
-  .header img {
-    vertical-align: middle;
-    width: 150px;
   }
   /* =======================
         Fußbereich
        =======================*/
   .footer {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
-    padding-top: 10px;
     font-size: 70%;
     font-style: italic;
   }
+  .bottomright {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    color: grey;
+    font-size: smaller;
+    line-height: 1.125em;
+    padding-right: 0.25em;
+    text-align: right;
+  }
   .bottomleft {
-    background-color: #fff;
-    vertical-align: bottom;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    color: grey;
+    font-size: smaller;
+    line-height: 1.125em;
+    padding-left: 0.25em;
   }
   /* =======================
         Gradido
@@ -195,49 +203,108 @@
   Copyright :   Gradio
 
    ============================================================*/
-/* TODO
-  dropdown
-  subnav
-  text-muted
-  block-btn (?)
-  caret (?)
-    -> für Kinder
-*/
 @media screen {
   /*
     SIDEBARS
   */
-  .sidebar1,
-  .sidebar2 {
-    padding: 1em;
-  }
   .sidebar1 {
-    color: #4F4F4F;
     background-color: #fff;
     font-weight: 500;
     line-height: 2.5em;
+    padding: 0;
+    border-right: 1px solid #f2f4f5;
   }
   .sidebar2 {
+    padding: 1em;
     background-color: #f9fafb;
-  }
-  .nav-icon {
-    font-size: 1.2em;
-    padding-right: 1em;
-    color: grey;
   }
   .sidebar1-header {
     font-size: 0.75em;
     font-style: italic;
     color: grey;
   }
-  /* navbar */
-  .material-icons-outlined {
+  /* set general icons size here! */
+  .nav-icon {
     font-size: 18px !important;
+    color: #4F4F4F;
     vertical-align: middle;
     padding-right: 1em;
   }
+  /* important! order matters! we need to overwrite the main button's size here */
   .nav-main-button {
-    font-size: 24px !important;
+    font-size: 32px !important;
+    color: grey;
+    margin: 0.3em;
+  }
+  .nav-menu {
+    width: 210px;
+    height: 100%;
+  }
+  .nav-menu-maximized {
+    -webkit-animation: slide-out 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-out 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .nav-menu-minimized {
+    -webkit-animation: slide-in 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-in 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .nav-menu-minimized .link-title {
+    display: none;
+  }
+  .nav-menu-minimized .nav-icon,
+  .nav-menu-minimized .nav-main-button {
+    padding-left: 154px;
+  }
+  /**
+   * ----------------------------------------
+   * animations  slide-in / slide-out
+   * ----------------------------------------
+   */
+  /* slide-in */
+  @-webkit-keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+      opacity: 1;
+    }
+  }
+  @keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+      opacity: 1;
+    }
+  }
+  /* slide-out */
+  @-webkit-keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+    }
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-154px);
+      transform: translateX(-154px);
+    }
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
   }
   .selected {
     color: #047006;
@@ -247,15 +314,18 @@
     line-height: normal;
     background-color: transparent;
   }
-  .nav-horizontal > ul {
+  .nav-horizontal {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: baseline;
+    align-items: flex-end;
     list-style-type: none;
     gap: 5%;
     padding: 1em;
+  }
+  .nav-vertical {
+    margin-top: -2em;
   }
   .nav-horizontal li {
     padding: 0.5em;
@@ -280,8 +350,6 @@
     justify-content: center;
     align-items: center;
     list-style-type: none;
-    gap: 5%;
-    padding: 1em;
   }
   .nav-bottom p {
     font-size: 0.9em;
@@ -324,6 +392,29 @@
     text-decoration: none;
   }
 }
+@media screen and (min-width:640px) {
+  .logo {
+    display: none;
+    vertical-align: middle;
+    height: 30px;
+    padding: 0.5em;
+  }
+  .logo.big.visible,
+  .logo.small.visible {
+    display: block !important;
+  }
+  .logo.small.visible {
+    padding-left: 83px;
+  }
+}
+@media screen and (max-width:639px) {
+  .logo.big {
+    display: none;
+  }
+  .logo.small {
+    display: block;
+  }
+}
 /* ============================================================
 
   Screen styles for center part.
@@ -337,14 +428,17 @@
 @media screen {
   .content {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
     overflow: auto;
     line-height: 1.5em;
-    padding: 1.5em;
     background-color: #f9fafb;
-    width: 70%;
-    margin: auto;
+    width: 100%;
+    letter-spacing: 0.03rem;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    padding-top: 5em;
   }
   /* content container */
   .grd_container {
@@ -364,7 +458,7 @@
     max-width: 550px;
   }
 }
-@media screen and (max-width:619px) {
+@media screen and (max-width:639px) {
   .content {
     flex-direction: column;
   }
@@ -548,22 +642,6 @@ input:not([type='radio']) {
 label:not(.grd_radio_label) {
   width: 80px;
   display: inline-block;
-}
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/*
-    Created on : 13.10.2019, 15:43:58
-    Author     : einhornimmond
-*/
-.grd-time-used {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  color: grey;
-  font-size: smaller;
 }
 /*
 To change this license header, choose License Headers in Project Properties.

@@ -1,4 +1,4 @@
-// cross browser dom is ready module from: 
+// cross browser dom is ready module from:
 // https://www.competa.com/blog/cross-browser-document-ready-with-vanilla-javascript/
 var domIsReady = (function(domIsReady) {
    var isBrowserIeOrNot = function() {
@@ -30,7 +30,7 @@ var domIsReady = (function(domIsReady) {
 // vanilla ajax request, json get
 function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction) {
   var xhr = new XMLHttpRequest();
-    
+
   xhr.onload = function(e) {
     var xhr = e.target;
     //console.log(xhr);
@@ -48,12 +48,12 @@ function getJson(basisUrl, method, successFunction, errorFunction, timeoutFuncti
   xhr.ontimeout = function(e) {
     timeoutFunction(e);
   }
-  
+
   var bustCache =  '&' + new Date().getTime();
   //oReq.open('GET', e.target.dataset.url + bustCache, true);
   xhr.open('GET', basisUrl + '?method='+method + bustCache, true);
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  xhr.responseType = 'json'; 
+  xhr.responseType = 'json';
   xhr.send();
 }
 
@@ -71,18 +71,28 @@ el.onclick = function() {
    domIsReady(function() {
       //console.log('My DOM is ready peeps!');
       //document.querySelector('#page').style.background = 'blue';
-      
+
       //var Body = $("body");
-      var DesktopToggler = document.querySelector('.t-header-desk-toggler');
+      var DesktopToggler = document.querySelector('.nav-main-button');
       var MobileToggler = document.querySelector('.t-header-mobile-toggler');
-      var HeaderToggle = document.querySelector('.t-header-toggler');      
-      
+      var HeaderToggle = document.querySelector('.t-header-toggler');
+
       // SIDEBAR TOGGLE FUNCTION FOR LARGE SCREENS (SCREEN "LG" AND UP)
       if(DesktopToggler) {
-        DesktopToggler.addEventListener('click', function () 
+        DesktopToggler.addEventListener('click', function ()
         {
+          console.log('toggler clicked / Desktop');
           //$(Body).toggleClass("sidebar-minimized");
-          document.body.classList.toggle('sidebar-minimized');
+          document.querySelector('.nav-menu').classList.toggle('nav-menu-minimized');
+          document.querySelector('.nav-menu').classList.toggle('nav-menu-maximized');
+          let big = document.querySelectorAll('.logo.big');
+          big.forEach(function(el) {
+            el.classList.toggle('visible');
+          });
+          let small = document.querySelectorAll('.logo.small');
+          small.forEach(function(el) {
+            el.classList.toggle('visible');
+          });
         });
       }
 
