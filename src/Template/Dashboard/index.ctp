@@ -11,79 +11,99 @@ if(isset($user)) {
 }
 $this->assign(
   'title',
-  __('Willkommen') . '&nbsp;' . $user['first_name'] . '&nbsp;' . $user['last_name']
+  __('Willkommen') . ', ' . $user['first_name'] . '&nbsp;' . $user['last_name'] . '!'
 );
 ?>
 <?php if(isset($requestTime)) : ?>
-  <span><?= round($requestTime * 1000.0) ?> ms</span>
+<span><?= round($requestTime * 1000.0) ?> ms</span>
 <?php endif; ?>
-  <div class="grd_container_small">
-    <fieldset>
-      <h3>Gradido ...</h3>
+<div class="content-region">
+  <h3>Gradido ...</h3>
+  <div class="horizontal-collection">
+    <div class="action-button">
+      <i class="material-icons-outlined">account_balance_wallet</i>
       <?= $this->Html->link(
-              __('übersicht'),
+              __('Kontoübersicht'),
               ['controller' => 'StateBalances', 'action' => 'overview'],
-              ['class' => 'grd-nav-bn grd-nav-bn-large']
+              ['class' => 'action-button-link']
           );?>
+    </div>
+    <div class="action-button">
+      <i class="material-icons-outlined">account_balance</i>
       <?= $this->Html->link(
-              __('überweisen'),
+              __('Überweisung'),
               ['controller' => 'TransactionSendCoins', 'action' => 'create'],
-              ['class' => 'grd-nav-bn grd-nav-bn-large']
+              ['class' => 'action-button-link']
           ); ?>
-    </fieldset>
-    <!--<fieldset class="grd-margin-top-10">
-      <h3>Account ...</h3>
-      <a class="grd-nav-bn" href="./account/user_delete"><?= __("löschen"); ?></a>
-    </fieldset>-->
-    <?php if($serverUser != null || $user['role'] == 'admin') : ?>
-    <h2 class="admin-border"><?= __('Adminbereich'); ?></h2>
-    <?php endif; ?>
-    <?php if($serverUser != null) : ?>
-    <fieldset class="grd-margin-top-10 admin-border">
-      <h3>Gradido ...</h3>
+    </div>
+  </div>
+</div>
+<!--
+  <h3>Account ...</h3>
+  <a class="action-button" href="./account/user_delete"><?= __("löschen"); ?></a>
+-->
+<?php if($serverUser != null || $user['role'] == 'admin') : ?>
+<div class="content-region">
+  <h2><?= __('Adminbereich'); ?></h2>
+<?php endif; ?>
+<?php if($serverUser != null) : ?>
+  <h3>Gradido ...</h3>
+  <div class="horizontal-collection">
+    <div class="action-button">
+      <i class="material-icons-outlined">add_box</i>
       <?= $this->Html->link(
               __('einzeln schöpfen'),
               ['controller' => 'TransactionCreations', 'action' => 'create'],
-              ['class' => 'grd-nav-bn grd-nav-bn-large']
+              ['class' => 'action-button-link']
           );?>
+    </div>
+    <div class="action-button">
+      <i class="material-icons-outlined">library_add</i>
       <?= $this->Html->link(
               __('viele schöpfen'),
               ['controller' => 'TransactionCreations', 'action' => 'createMulti'],
-              ['class' => 'grd-nav-bn grd-nav-bn-large']
+              ['class' => 'action-button-link']
           );?>
-    </fieldset>
-    <fieldset class="grd-margin-top-10 admin-border">
-        <legend>Statistik</legend>
-        <?= $this->Html->link(
-                __('Anmeldungen'),
-                ['controller' => 'Users', 'action' => 'statistics'],
-                ['class' => 'grd-nav-bn grd-nav-bn-large']
-          );?>
-    </fieldset>
-    <?= $this->Html->link(
-              __('Fehler') . ' (' . $adminErrorCount . ')',
-              ['controller' => 'AdminErrors'], ['class' => 'grd-nav-bn']);
-    ?>
-    <?php endif; ?>
-    <?php if($user['role'] == 'admin') : ?>
-    <fieldset class="grd-margin-top-10 admin-border">
-      <h3>Benutzer ...</h3>
-      <div class="table-row">
-        <?= $this->Html->link(
-                __('suchen'),
-                ['controller' => 'StateUsers', 'action' => 'search'],
-                ['class' => 'grd-nav-bn grd-nav-bn-large']
-                ); ?>
-        <a href="<?= Router::url('./', true) ?>account/adminRegister" class="grd-nav-bn grd-nav-bn-large">
-          <?= __("hinzufügen") ?>
-        </a>
-      </div>
-      <div class="table-row">
-        <a href="<?= Router::url('./', true) ?>account/adminUserPasswordReset" class="grd-nav-bn grd-nav-bn-large">
-          <?= __("hat sein Passwort und Passphrase vergessen") ?>
-        </a>
-      </div>
-    </fieldset>
-    <?php endif; ?>
-
+    </div>
   </div>
+</div>
+<div class="content-region">
+  <legend>Statistik</legend>
+  <div class="horizontal-collection">
+    <div class="info-item">
+      <i class="material-icons-outlined">cached</i>
+      <?= $this->Html->link(
+              __('Anmeldungen'),
+              ['controller' => 'Users', 'action' => 'statistics'],
+              ['class' => 'info-item-link']
+        );?>
+    </div>
+    <div class="info-item">
+      <i class="material-icons-outlined">error_outline</i>
+      <?= $this->Html->link(
+              __('Fehler') . ' (' . $adminErrorCount . ')',
+              ['controller' => 'AdminErrors'], ['class' => 'info-item-link']);
+      ?>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+<?php if($user['role'] == 'admin') : ?>
+<div class="content-region">
+  <h3>Benutzer ...</h3>
+  <i class="material-icons-outlined">search</i>
+  <?= $this->Html->link(
+          __('suchen'),
+          ['controller' => 'StateUsers', 'action' => 'search'],
+          ['class' => 'action-button']
+          ); ?>
+  <i class="material-icons-outlined">how_to_reg</i>
+  <a href="<?= Router::url('./', true) ?>account/adminRegister" class="action-button">
+    <?= __("hinzufügen") ?>
+  </a>
+  <i class="material-icons-outlined">enhanced_encryption</i>
+  <a href="<?= Router::url('./', true) ?>account/adminUserPasswordReset" class="action-button">
+    <?= __("hat sein Passwort und Passphrase vergessen") ?>
+  </a>
+</div>
+<?php endif; ?>

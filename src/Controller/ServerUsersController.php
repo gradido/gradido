@@ -18,7 +18,7 @@ class ServerUsersController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->deny('index');
     }
-    
+
     /**
      * Index method
      *
@@ -30,7 +30,7 @@ class ServerUsersController extends AppController
 
         $this->set(compact('serverUsers'));
     }
-    
+
     public function login()
     {
         if ($this->request->is('post')) {

@@ -29,12 +29,7 @@ $GLOBALS["self"] = $this;
         <?= $this->fetch('title') ?>
     </title>
     <?= $this->Html->meta('icon') ?>
-    <?= $this->Html->css(
-      [
-        'https://fonts.googleapis.com/icon?family=Material+Icons+Outlined',
-        'main.css'
-      ]
-    ) ?>
+    <?= $this->Html->css(['main.css']) ?>
     <?= $this->Html->script(['basic']) ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
@@ -42,16 +37,8 @@ $GLOBALS["self"] = $this;
 </head>
 <body>
   <div class="layout">
-    <!--div class="header">
-      <h1><?= $this->fetch('title') ?></h1>
-      <nav class="nav-top nav-horizontal">
-        <ul>
-          <li>Mein Profil</li>
-        </ul>
-      </nav>
-    </div-->
     <!-- TODO save last state so that it remains unchanged, on reload! -->
-    <div class="sidebar1 nav-menu nav-menu-maximized">
+    <div class="sidebar1 nav-menu initial">
       <a href="/">
         <picture class="logo big visible">
           <source srcset="/img/logo_schrift_half.webp" type="image/webp">
@@ -67,19 +54,26 @@ $GLOBALS["self"] = $this;
       <div>
         <i class="material-icons-outlined nav-main-button">menu</i>
       </div>
-      <!--div class="sidebar1-header">
-          <div class="flash-messages">
-            <?= $this->Flash->render() ?>
-          </div>
-          <?= $this->element('navi_header'); ?>
-      </div-->
+      <!-- XXX -->
+      <div class="flash-messages">
+        <?= $this->Flash->render() ?>
+      </div>
+      <?= $this->element('navi_header'); ?>
+      <!-- XXX -->
       <div class="nav-vertical">
         <?= $this->element('navi'); ?>
       </div>
     </div>
     <div class="content">
-      <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
-      <?= $this->fetch('content') ?>
+      <div class="nav-content">
+        <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
+      </div>
+      <div class="content-container info-container">
+        <h1><?= $this->fetch('title') ?></h1>
+      </div>
+      <div class="content-container main-container">
+        <?= $this->fetch('content') ?>
+      </div>
     </div>
     <div class="footer">
       <ul class="nav-horizontal">

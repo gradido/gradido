@@ -57,22 +57,9 @@ function getJson(basisUrl, method, successFunction, errorFunction, timeoutFuncti
   xhr.send();
 }
 
-
-/*
- * var el = document.querySelector('.toggle-me');
-
-el.onclick = function() {
-  el.classList.toggle('active');
-}
- */
-
 // cross browser dom is ready
 (function(document, window, domIsReady, undefined) {
    domIsReady(function() {
-      //console.log('My DOM is ready peeps!');
-      //document.querySelector('#page').style.background = 'blue';
-
-      //var Body = $("body");
       var DesktopToggler = document.querySelector('.nav-main-button');
       var MobileToggler = document.querySelector('.t-header-mobile-toggler');
       var HeaderToggle = document.querySelector('.t-header-toggler');
@@ -82,9 +69,13 @@ el.onclick = function() {
         DesktopToggler.addEventListener('click', function ()
         {
           console.log('toggler clicked / Desktop');
-          //$(Body).toggleClass("sidebar-minimized");
-          document.querySelector('.nav-menu').classList.toggle('nav-menu-minimized');
-          document.querySelector('.nav-menu').classList.toggle('nav-menu-maximized');
+          if(document.querySelector('.nav-menu').classList.contains('initial')){
+            document.querySelector('.nav-menu').classList.remove('initial');
+            document.querySelector('.nav-menu').classList.add('nav-menu-minimized');
+          } else {
+            document.querySelector('.nav-menu').classList.toggle('nav-menu-minimized');
+            document.querySelector('.nav-menu').classList.toggle('nav-menu-maximized');
+          }
           let big = document.querySelectorAll('.logo.big');
           big.forEach(function(el) {
             el.classList.toggle('visible');
