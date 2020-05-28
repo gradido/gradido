@@ -49,6 +49,7 @@ namespace ServerConfig {
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
+	std::string g_gRPCRelayServerFullURL;
 
 #ifdef __linux__ 
 #include <stdio.h>      
@@ -209,6 +210,8 @@ namespace ServerConfig {
 		//g_ServerSetupType 
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
+
+		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
 
 		return true;
 	}

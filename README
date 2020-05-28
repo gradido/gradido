@@ -16,12 +16,13 @@ cd ../../../
 cd dependencies/mariadb-connector-c
 mkdir build 
 cd build
-cmake ..
+cmake -DWITH_SSL=OFF ..
 cd ../../../
 
 
 # get more dependencies with conan (need conan from https://conan.io/)
 mkdir build && cd build
+conan remote add inexor https://api.bintray.com/conan/inexorgame/inexor-conan
 # conan install .. -s build_type=Debug
 conan install ..
 

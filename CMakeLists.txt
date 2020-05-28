@@ -31,6 +31,8 @@ FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
 FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h")
+FILE(GLOB PROTO_HEDERA "src/cpp/proto/hedera/*.cc" "src/cpp/proto/hedera/*.h")
+
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 
@@ -38,14 +40,15 @@ SET(LOCAL_SRCS
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
 	${JSONInterface} ${CRYPTO} ${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
-	${PROTO_GRADIDO}
+	${PROTO_GRADIDO} ${PROTO_HEDERA}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
 # src
 source_group("controller" FILES ${CONTROLLER})
-source_group("proto" FILES ${PROTO_GRADIDO})
+source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
+source_group("proto\\hedera" FILES ${PROTO_HEDERA})
 source_group("tinf" FILES ${TINF})
 source_group("crypto" FILES ${CRYPTO})
 source_group("tasks" FILES ${TASKS})

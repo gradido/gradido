@@ -58,6 +58,7 @@ namespace ServerConfig {
 	extern std::string g_versionString;
 	extern bool		   g_disableEmail;
 	extern ServerSetupType g_ServerSetupType;
+	extern std::string g_gRPCRelayServerFullURL;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

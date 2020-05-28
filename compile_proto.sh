@@ -7,3 +7,11 @@ if [ ! -d "./src/cpp/proto/gradido" ] ; then
 fi
 
 protoc --cpp_out=./src/cpp/proto/gradido --proto_path=./src/proto/gradido ./src/proto/gradido/*.proto
+
+if [ ! -d "./src/cpp/proto/hedera" ] ; then 
+	mkdir ./src/cpp/proto/hedera 
+fi
+
+
+protoc --cpp_out=./src/cpp/proto/hedera --proto_path=./src/proto/hedera/hedera-protobuf/src/main/proto ./src/proto/hedera/hedera-protobuf/src/main/proto/*.proto
+
