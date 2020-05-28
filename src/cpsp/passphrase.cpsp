@@ -210,6 +210,31 @@ enum PageState
 		</script>
 		<script src="<%= ServerConfig::g_php_serverPath %>js/ensurePassphrase.min.js" type="text/javascript"></script>
 	  <% } else if(state == PAGE_ASK_PASSPHRASE) { %>
+	  <style type="text/css">
+		.hidden-on-load {
+			display:none;
+		}
+	  </style>
+	  <noscript>
+		  <script type="text/css">
+			.hidden-on-load {
+				display:block;
+			}
+		  </script>
+	  </noscript>
+      <script type="text/javascript">
+		function showHidePassphraseCointainer(the) {
+			var passphraseContainer = document.getElementById('passphrase-existing-container');
+			//console.log(the.value);
+			if(the.value === 'no') {
+				passphraseContainer.classList.remove('hidden-on-load');
+			} else if(the.value === 'yes') {
+				passphraseContainer.classList.add('hidden-on-load');
+			}
+			//passphrase-existing-container
+			//var radioNewOn = document.getElementById('passphrase-new-no');
+		}
+	  </script>
 	  <div class="col-md-10 mx-auto">
 		<div class="form-group row showcase_row_area">
 		  <div class="col-md-12 col-lg-12 ">
@@ -219,28 +244,34 @@ enum PageState
 			<form method="POST" action="<%= uri_start %>/passphrase">
 				<div class="alert">
 				  <h5 class="alert-heading"><%= gettext("Neue Gradido Adresse anlegen / wiederherstellen") %></h5>
-				  <p><%= gettext("Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues anlegen?") %></p>
-				  <p><%= gettext("*Das Konto muss nach dem 01.09.2019 angelegt worden sein.") %></p>
+				  <p><%= gettext("Möchtest du ein neues Gradido-Konto anlegen oder ein bestehendes wiederherstellen?") %></p>
+				  
 				</div>
 				<div class="row">
 					<div class="col-md-9">
 						<div class="form-group">
 							<div class="radio">
 								<label for="passphrase-new-yes" class="radio-label mr-4">
-									<input id="passphrase-new-yes" name="passphrase" type="radio" value="yes" checked/>
-									<%= gettext("Nein, bitte ein neues erstellen!") %>
+									<input id="passphrase-new-yes" name="passphrase" type="radio" value="yes" onchange="showHidePassphraseCointainer(this);" checked/>
+									<%= gettext("Neues Konto anlegen") %>
 									<i class="input-frame"></i>
 								</label>
 							</div>
 							<div class="radio">
 								<label for="passphrase-new-no" class="radio-label mr-4">
-									<input id="passphrase-new-no" name="passphrase" type="radio" value="no"/>
-									<%= gettext("Ja, bitte wiederherstellen!") %>
+									<input id="passphrase-new-no" name="passphrase" type="radio" value="no" onchange="showHidePassphraseCointainer(this);"/>
+									<%= gettext("Bestehendes Konto wiederherstellen") %>
 									<i class="input-frame"></i>
 								</label>
 							</div>
 						</div>
-						<textarea class="form-control" name="passphrase-existing" cols="12" rows="5"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
+						<div id="passphrase-existing-container" class="hidden-on-load">
+							<label for="passphrase-existing">
+								<%= gettext("Falls du ein bestehendes Konto wiederherstellen willst, gib hier deine Passphrase ein:") %>
+								<i class="input-frame"></i>
+							</label>
+							<textarea id="passphrase-existing" class="form-control" name="passphrase-existing" cols="12" rows="5"><%= !form.empty() ? form.get("passphrase-existing", "") : "" %></textarea>
+						</div>
 						<button type="submit" class="btn btn-sm btn-primary pull-right" name="submit"><%= gettext("Weiter") %></button>
 					</div>
 				</div>

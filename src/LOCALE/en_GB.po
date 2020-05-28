@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 10:44+0100\n"
-"PO-Revision-Date: 2020-03-24 10:51+0100\n"
+"POT-Creation-Date: 2020-05-28 10:50+0200\n"
+"PO-Revision-Date: 2020-05-28 10:53+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 2.3.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:85
@@ -51,8 +51,8 @@ msgstr ""
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp:175
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:50
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp:54
-#: model/Session.cpp:158 model/Session.cpp:165 model/Session.cpp:204
-#: model/Session.cpp:229
+#: model/Session.cpp:163 model/Session.cpp:170 model/Session.cpp:209
+#: model/Session.cpp:234
 msgid "E-Mail"
 msgstr ""
 
@@ -81,7 +81,7 @@ msgid "Bitte gebe deinen E-Mail Verification Code ein:"
 msgstr "Please enter your E-Mail Verification Code:"
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp:98
-#: model/Session.cpp:181
+#: model/Session.cpp:186
 msgid "Email Verification Code"
 msgstr ""
 
@@ -123,7 +123,7 @@ msgstr "Please give your E-Mail Address."
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:26
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:94
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
-#: model/Session.cpp:491 model/Session.cpp:503 model/Session.cpp:511
+#: model/Session.cpp:495 model/Session.cpp:507 model/Session.cpp:515
 msgid "Passphrase"
 msgstr ""
 
@@ -177,6 +177,7 @@ msgid ""
 msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:27
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:256
 msgid "Neues Konto anlegen"
 msgstr "Create new Account"
 
@@ -191,7 +192,7 @@ msgid ""
 msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:114
-msgid "intern errorm please try again later"
+msgid "intern error please try again later"
 msgstr ""
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:129
@@ -246,9 +247,9 @@ msgstr ""
 "to achieve maximum security for you."
 
 #: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:165
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:244
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:249
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:262
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:275
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:280
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:293
 msgid "Weiter"
 msgstr "Next"
 
@@ -275,38 +276,37 @@ msgstr ""
 "Because you don't use javascript it goes straight on. Did you remember or "
 "write down your passphrase?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:217
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:242
 msgid "Deine E-Mail Adresse wurde erfolgreich bestätigt."
 msgstr "Your email address has been successfully confirmed."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:221
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:246
 msgid "Neue Gradido Adresse anlegen / wiederherstellen"
 msgstr "Create / restore new Gradido address"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:222
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:247
 msgid ""
-"Möchtest Du ein bestehendes* Gradido-Konto wiederherstellen oder ein neues "
-"anlegen?"
+"Möchtest du ein neues Gradido-Konto anlegen oder ein bestehendes "
+"wiederherstellen?"
 msgstr ""
-"Do you want to restore an existing * Gradido account or create a new one?"
+"Do you want to restore an existing Gradido account or create a new one?"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:223
-msgid "*Das Konto muss nach dem 01.09.2019 angelegt worden sein."
-msgstr "* The account must have been created after September 1st, 2019."
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:263
+msgid "Bestehendes Konto wiederherstellen"
+msgstr "Restore existing Account"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:231
-msgid "Nein, bitte ein neues erstellen!"
-msgstr "No, please create a new one!"
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:270
+msgid ""
+"Falls du ein bestehendes Konto wiederherstellen willst, gib hier deine "
+"Passphrase ein:"
+msgstr ""
+"If you want to restore an existing account, enter your passphrase here:"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:238
-msgid "Ja, bitte wiederherstellen!"
-msgstr "Yes, please restore !!"
-
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:257
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:288
 msgid "Konto wiederherstellen / Neues Passwort anlegen"
 msgstr "Restore account / create new password"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:258
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:289
 msgid ""
 "Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu "
 "können, tippe hier bitte die Wörter deiner Passphrase in der richtigen "
@@ -316,11 +316,11 @@ msgstr ""
 "in the words of your passphrase in the correct order, which you have written "
 "down."
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:272
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:303
 msgid "Fehler"
 msgstr "Erro"
 
-#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:273
+#: F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp:304
 msgid ""
 "Ungültige Seite, wenn du das siehst stimmt hier etwas nicht. Bitte wende "
 "dich an den Server-Admin."
@@ -328,88 +328,94 @@ msgstr ""
 "Invalid page, if you see that something is wrong here. Please contact the "
 "server admin."
 
-#: model/Session.cpp:144 model/Session.cpp:175 model/Session.cpp:696
-#: model/Session.cpp:702 model/Session.cpp:998
+#: model/Session.cpp:149 model/Session.cpp:180 model/Session.cpp:700
+#: model/Session.cpp:706 model/Session.cpp:1005
 msgid "Benutzer"
 msgstr "User"
 
-#: model/Session.cpp:144
+#: model/Session.cpp:149
 msgid "Eingeloggter Benutzer ist kein Admin"
 msgstr "Logged in user is not admin"
 
-#: model/Session.cpp:150 model/Session.cpp:196
+#: model/Session.cpp:155 model/Session.cpp:201
 msgid "Vorname"
 msgstr "Firstname"
 
-#: model/Session.cpp:150 model/Session.cpp:154 model/Session.cpp:196
-#: model/Session.cpp:200
+#: model/Session.cpp:155 model/Session.cpp:159 model/Session.cpp:201
+#: model/Session.cpp:205
 msgid ""
 "Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen "
 "<>&;"
 msgstr "Please enter your Name. At least 3 Character, without <>& and ;"
 
-#: model/Session.cpp:154 model/Session.cpp:200
+#: model/Session.cpp:159 model/Session.cpp:205
 msgid "Nachname"
 msgstr "Lastname"
 
-#: model/Session.cpp:158 model/Session.cpp:204
+#: model/Session.cpp:163 model/Session.cpp:209
 msgid "Bitte gebe eine g&uuml;ltige E-Mail Adresse an."
 msgstr "Please enter a valid email."
 
-#: model/Session.cpp:165 model/Session.cpp:229
+#: model/Session.cpp:170 model/Session.cpp:234
 msgid "F&uuml;r diese E-Mail Adresse gibt es bereits einen Account"
 msgstr "This email has an account already."
 
-#: model/Session.cpp:175 model/Session.cpp:181
+#: model/Session.cpp:180 model/Session.cpp:186
 msgid "Fehler beim speichern!"
-msgstr ""
+msgstr "Error while saving!"
 
-#: model/Session.cpp:374 model/Session.cpp:433 model/Session.cpp:874
-#: model/Session.cpp:882
+#: model/Session.cpp:379 model/Session.cpp:438 model/Session.cpp:881
+#: model/Session.cpp:889
 msgid "E-Mail Verification"
 msgstr ""
 
-#: model/Session.cpp:374
+#: model/Session.cpp:379
 msgid "Du hast dein Konto bereits aktiviert!"
 msgstr "You already activated your account!"
 
-#: model/Session.cpp:433
+#: model/Session.cpp:438
 msgid "Falscher Code f&uuml;r aktiven Login"
 msgstr "Wrong Code for active Login."
 
-#: model/Session.cpp:491
+#: model/Session.cpp:495
 msgid "Deine Passphrase ist ung&uuml;tig"
-msgstr ""
+msgstr "Your passphrase is invalid"
 
-#: model/Session.cpp:503
+#: model/Session.cpp:507
 msgid "Ein Fehler trat auf, bitte versuche es erneut"
-msgstr ""
+msgstr "An error occurred, please try again"
 
-#: model/Session.cpp:511
+#: model/Session.cpp:515
 msgid "Das ist nicht die richtige Passphrase."
 msgstr "This is not the correct passphrase."
 
-#: model/Session.cpp:696
+#: model/Session.cpp:700
 msgid "Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus."
 msgstr "Couldn't connect to the community server, send E-Mail to admin."
 
-#: model/Session.cpp:702
+#: model/Session.cpp:706
 msgid ""
 "Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und "
 "versuche es nochmal."
 msgstr "Error by deleting the account. Please re-login and try again."
 
-#: model/Session.cpp:874
+#: model/Session.cpp:881
 msgid "Konnte kein passendes Konto finden."
 msgstr "This Account didn't seem to exist."
 
-#: model/Session.cpp:882
+#: model/Session.cpp:889
 msgid "Fehler beim laden des Benutzers."
 msgstr ""
 
-#: model/Session.cpp:998
+#: model/Session.cpp:1005
 msgid "Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein."
 msgstr "Invalid User, please re-login."
+
+#~ msgid "*Das Konto muss nach dem 01.09.2019 angelegt worden sein."
+#~ msgstr "* The account must have been created after September 1st, 2019."
+
+#~ msgid "Nein, bitte ein neues erstellen!"
+#~ msgstr "No, please create a new one!"
 
 #~ msgid "Deine Passphrase"
 #~ msgstr "Your passphrase"
