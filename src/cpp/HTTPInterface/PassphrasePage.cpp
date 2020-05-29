@@ -574,14 +574,14 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t  <div class=\"col-md-10 mx-auto\">\n";
 	responseStream << "\t\t<div class=\"form-group row showcase_row_area\">\n";
 	responseStream << "\t\t  <div class=\"col-md-12 col-lg-12 \">\n";
-	responseStream << "\t\t\t<div class=\"col-lg-12 col-md-12 mx-auto alert alert-primary\" style=\"text-align:center\">\n";
-	responseStream << "\t\t\t  <h5 class=\"alert-heading\">";
-#line 295 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
+	responseStream << "\t\t\t<h5 class=\"alert-heading\">";
+#line 294 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
 	responseStream << ( gettext("Konto wiederherstellen / Neues Passwort anlegen") );
 	responseStream << "</h5>\n";
+	responseStream << "\t\t\t<div class=\"col-lg-12 col-md-12 mx-auto alert alert-primary\" style=\"text-align:center\">\n";
 	responseStream << "\t\t\t  <p>";
 #line 296 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\passphrase.cpsp"
-	responseStream << ( gettext("Um dein Konto wiederherzustellen, dir ein Neues Passwort auswählen zu können, tippe hier bitte die Wörter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast.") );
+	responseStream << ( gettext("Um dein Konto wiederherzustellen und dir ein Neues Passwort auswählen zu können, tippe hier bitte die Wörter deiner Passphrase in der richtigen Reihenfolge ein, welche du dir aufgeschrieben hast.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t<form method=\"POST\" action=\"";

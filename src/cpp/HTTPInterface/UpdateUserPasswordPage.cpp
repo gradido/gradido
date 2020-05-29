@@ -78,6 +78,9 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 					if(sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
 						state = PAGE_STATE_SUCCEED;
 						mSession->updateState(SESSION_STATE_RESET_PASSWORD_SUCCEED);
+						sm->deleteLoginCookies(request, response, mSession);
+						sm->releaseSession(mSession);
+						mSession = nullptr;
 					} else {
 						response.redirect(uri_start + "/passphrase");
 						return;
@@ -86,9 +89,11 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 			}
 		}
 	}
-	getErrors(mSession);
+	if(mSession) {
+		getErrors(mSession);
+	}
 	getErrors(user);
-	printf("session state end [UpdateUserPassword Page]: %s\n", mSession->getSessionStateString());
+	//printf("session state end [UpdateUserPassword Page]: %s\n", mSession->getSessionStateString());
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
@@ -159,11 +164,11 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 72 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
  if(PAGE_STATE_ASK_PASSWORD == state ) { 	responseStream << "\n";
 	responseStream << "\t<h1>Passwort bestimmen</h1>\n";
 	responseStream << "\t";
-#line 74 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\t\n";
@@ -184,15 +189,15 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed grd_clickable\" type=\"submit\" name=\"submit\" value=\"&Auml;nderung(en) speichern\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 97 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
  } else if(PAGE_STATE_SUCCEED == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Deine Daten werden jetzt mit dem neuen Passwort verschl&uuml;sselt. Du kannst dich in etwa 1 Minute mit deinem neuen Passwort einloggen</p>\n";
 	responseStream << "\t\t<a href=\"";
-#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/login\" class=\"grd-form-bn grd-form-bn-succeed\">Zum Login</a>\n";
 	responseStream << "\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

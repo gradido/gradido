@@ -652,15 +652,16 @@ bool User::updatePassword(const std::string& newPassword, const std::string& pas
 	bool passwordHashedCalculated = false;
 
 	// no previous password set
-	if (!mPasswordHashed) {
+
+	//if (!mPasswordHashed) {
 		duplicate();
 		lock(functionName);
 		//printf("[User::setNewPassword] start create crypto key task with this: %d\n", this);
 		mCreateCryptoKeyTask = new UserCreateCryptoKey(this, newUser, newPassword, ServerConfig::g_CPUScheduler);
 		mCreateCryptoKeyTask->scheduleTask(mCreateCryptoKeyTask);
 		unlock();
-	}
-	else {
+	//}
+	/*else {
 		// compare with previous password
 		auto cryptoKey = createCryptoKey(newPassword);
 		auto passwordHash = createPasswordHashed(cryptoKey);
@@ -678,7 +679,7 @@ bool User::updatePassword(const std::string& newPassword, const std::string& pas
 		}
 		mCryptoKey = cryptoKey;
 		unlock();
-	}
+	}*/
 
 	duplicate();
 	UniLib::controller::TaskPtr savePassword(nullptr);
