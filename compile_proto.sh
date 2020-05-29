@@ -6,7 +6,7 @@ if [ ! -d "./src/cpp/proto/gradido" ] ; then
 	mkdir ./src/cpp/proto/gradido
 fi
 
-protoc --cpp_out=./src/cpp/proto/gradido --proto_path=./src/proto/gradido ./src/proto/gradido/*.proto
+protoc --cpp_out=./src/cpp/proto --proto_path=./src/proto ./src/proto/gradido/*.proto
 
 if [ ! -d "./src/cpp/proto/hedera" ] ; then 
 	mkdir ./src/cpp/proto/hedera 

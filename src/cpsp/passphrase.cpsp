@@ -141,6 +141,9 @@ enum PageState
 <% if(state == PAGE_ASK_ENSURE_PASSPHRASE) { %></div> <% } %>
 <div class="row mb-3" <% if(state != PAGE_ASK_ENSURE_PASSPHRASE) { %> style="margin-top:70px;" <% } %>>
 	<h2 class="mx-auto"><%= pageTitle %>: <%= pageSubtitle %></h2>
+	<% if(state == PAGE_SHOW_PASSPHRASE) { %>
+		<h4 class="mx-auto"><%= gettext("Passphrase abschreiben") %></h4>
+	<% } %>
 </div>
 <div class="item-wrapper">
 	<div class="row mb-3">
@@ -150,17 +153,20 @@ enum PageState
 			<form method="POST" action="<%= uri_start %>/passphrase">
 			  <div class="col-md-12 col-lg-12 ">
 				<div class="alert">
-				  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
-				  <p><%= gettext("Schreibe dir deine Passphrase auf und packe sie gut weg. Du brauchst sie um deine Adresse wiederherzustellen. Wenn du sie verlierst, sind auch deine Gradidos verloren.") %></p>
+				  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
+				  <p><%= gettext("Deine Passphrase besteht aus den im grünen Feld angezeigten Wörtern.") %></p>
+				  <p><%= gettext("Sie dient deiner Sicherheit.") %></p>
+				  <p><%= gettext("Du brauchst deine Passphrase um dein Konto wiederherzustellen, wenn du mal dein Passwort vergessen haben solltest.") %></p>
 				</div>
+				<h5 class="alert-heading"><%= gettext("Deine Passphrase (Groß/Kleinschreibung beachten)") %>:</h5>
 				<div class="col-lg-12 col-md-12 mx-auto alert alert-primary" style="text-align:center">
-				  <h5 class="alert-heading"><%= gettext("Deine Passphrase (Groß/Kleinschreibung beachten)") %>:</h5>
 				  <p><%= mSession->getPassphrase() %></p>
 				</div>
 				<div class="alert">
-				  <h5 class="alert-heading"><%= gettext("Was ist eine Passphrase?") %></h5>
-				  <p><%= gettext("Die Passphrase kommt aus dem Crypto-Bereich und ist ein Weg einen komplizierte kryptografischen Schlüssel in einer lesbaren Form darzustellen.") %></p>
-				  <p><%= gettext("Der neue Gradido basiert technisch auf einer Kryptowährung (wie z.B. Bitcoin) um maximale Sicherheit zu erreichen.") %></p>
+				  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
+				  <p><%= gettext("Schreibe dir die obenstehende Passphrase <b>von Hand</b> auf ein Blatt Papier!") %></p>
+				  <p><%= gettext("Speichere sie auf keinen Fall auf deinem Rechner oder Mobilgerät!!") %></p>
+				  <p><%= gettext("Bewahre sie an einem sicheren Ort auf!") %></p>
 				</div>
 				<input type="submit" class="btn btn-sm btn-primary pull-right" name="nextEnsure" value="<%= gettext("Weiter") %>"/>
 			  </div>
@@ -189,6 +195,7 @@ enum PageState
 							<p><%= gettext("Hast du dir deine Passphrase gemerkt?") %></p>
 							<p><%= gettext("Dann zeig es mir. Zur Unterstützung gebe ich dir deine Wörter aber in anderer Reihenfolge.") %><p>
 							<p><%= gettext("Klicke sie an um sie einzusetzen.") %></p>
+							<p><%= gettext("Überprüfe dabei, ob du alle Wörter richtig geschrieben hast!") %></p>
 						  </div>
 						  <div id="gradido-mithril-passphrase"></div>
 						  <noscript>

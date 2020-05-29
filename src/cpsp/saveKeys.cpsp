@@ -117,8 +117,10 @@ enum PageState
 	</form>
 	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
 		<div class="grd_text">
+			<p><%= gettext("Daten gespeichert!") %></p>
+			<p><%= gettext("Deine Daten wurden verschlüsselt und gespeichert.") %></p>
 			<!--<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>-->
-			<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>
+			<!--<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>-->
 			<!--<p>Deine Gradido Adresse (Hex): </p>
 			<p class="grd_textarea">
 				<%= mSession->getUser()->getPublicKeyHex() %>

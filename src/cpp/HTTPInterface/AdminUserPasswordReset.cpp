@@ -231,7 +231,7 @@ void AdminUserPasswordReset::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << ( user->getModel()->getFirstName() );
 	responseStream << ",\n";
 	responseStream << "\n";
-	responseStream << "hier findst du deine Passphrase mit dessen Hilfe du dir ein neues Passwort einstellen kannst.\n";
+	responseStream << "hier findest du deine Passphrase mit dessen Hilfe du dir ein neues Passwort einstellen kannst.\n";
 	responseStream << "Bitte schreibe sie dir auf und packe sie gut weg.\n";
 	responseStream << "\n";
 #line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
@@ -239,7 +239,7 @@ void AdminUserPasswordReset::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\n";
 	responseStream << " \n";
 	responseStream << "\n";
-	responseStream << "Unter diesem Link kannst du dir mit hilfe der Passphrase ein neues Passwort setzen:\n";
+	responseStream << "Unter diesem Link kannst du dir mit Hilfe der Passphrase ein neues Passwort setzen:\n";
 #line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
 	responseStream << ( code->getLink() );
 	responseStream << "\n";

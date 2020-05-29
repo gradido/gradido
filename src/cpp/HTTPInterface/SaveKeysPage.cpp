@@ -216,32 +216,40 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 #line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } else if(state == PAGE_SHOW_PUBKEY) { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
+	responseStream << "\t\t\t<p>";
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+	responseStream << ( gettext("Daten gespeichert!") );
+	responseStream << "</p>\n";
+	responseStream << "\t\t\t<p>";
+#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+	responseStream << ( gettext("Deine Daten wurden verschlüsselt und gespeichert.") );
+	responseStream << "</p>\n";
 	responseStream << "\t\t\t<!--<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>-->\n";
-	responseStream << "\t\t\t<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>\n";
+	responseStream << "\t\t\t<!--<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>-->\n";
 	responseStream << "\t\t\t<!--<p>Deine Gradido Adresse (Hex): </p>\n";
 	responseStream << "\t\t\t<p class=\"grd_textarea\">\n";
 	responseStream << "\t\t\t\t";
-#line 124 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( mSession->getUser()->getPublicKeyHex() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</p>-->\n";
 	responseStream << "\t\t\t<a class=\"grd-form-bn\" href=\"";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "\">Zur&uuml;ck zur Startseite</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } else if(state == PAGE_ERROR) { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\t<p>Ein Fehler trat auf, bitte versuche es erneut oder wende dich an den Server-Admin</p>\n";
 	responseStream << "\t\t\t";
-#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

@@ -255,16 +255,17 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<p><input type=\"submit\" style=\"width:auto\" name=\"transfer\" value=\"Guthaben auf neue Adresse &uuml;berweisen!\"></p>\n";
 	responseStream << "\t\t</form>\n";
+	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t";
-#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } else if(PAGE_STATE_SUCCESS == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Gradidos wurden erfolgreich überwiesen.</p>\n";
 	responseStream << "\t\t<a href=\"";
-#line 158 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 159 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/passphrased_transaction\">Weitere Gradidos überweisen</a>\n";
 	responseStream << "\t";
-#line 159 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
