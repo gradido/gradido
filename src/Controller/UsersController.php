@@ -29,7 +29,7 @@ class UsersController extends AppController
     public function statistics()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $users = $this->Users->find('all')->select(['id']);
         
         //$newUsersThisMonth

@@ -14,6 +14,7 @@
 </nav>
 <div class="stateBalances index large-9 medium-8 columns content">
     <h3><?= __('State Balances') ?></h3>
+    index
     <table cellpadding="0" cellspacing="0">
         <thead>
             <tr>

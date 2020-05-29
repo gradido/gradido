@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -29,6 +29,7 @@ $this->assign('title', __('GDT Kontoübersicht'));
   <div class="col-md-8 equel-grid">
     <div class="grid">
       <div class="grid-body py-3">
+        overview
         <h3><?= __('Zur Verfügung: ') ?></h3>
         <?php if($gdtSum > 0) : ?>
           <h2><?= $this->element('printGDT', ['number' => $gdtSum]) ?></h2>
@@ -67,8 +68,8 @@ $this->assign('title', __('GDT Kontoübersicht'));
                   <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
               </td>
               <td>
-                <?= $this->Number->format($entry['factor']) ?> 
-                <?php if($entry['factor2'] != '1') : ?> x 
+                <?= $this->Number->format($entry['factor']) ?>
+                <?php if($entry['factor2'] != '1') : ?> x
                   <?= $this->Number->format($entry['factor2']) ?>
                 <?php endif; ?>
               </td>
@@ -101,14 +102,14 @@ $this->assign('title', __('GDT Kontoübersicht'));
             </tr>
           </thead>
           <tbody>
-            <?php foreach($connectEntries as $entry) : 
+            <?php foreach($connectEntries as $entry) :
               $elopageTransaction = $entry['connect']['elopage_transaction'];
               $gdtEntry = $entry['connect']['gdt_entry'];
               ?>
               <tr><td colspan="5">
                     <?= $elopageTransaction['email'] ?>
                       <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
-                         -> 
+                         ->
                         <?= publisherLink($publisher, $this) ?>
                       <?php endforeach; ?>
                   </td>
@@ -121,8 +122,8 @@ $this->assign('title', __('GDT Kontoübersicht'));
                     <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
                 </td>
                 <td>
-                  <?= $this->Number->format($gdtEntry['factor']) ?> 
-                  <?php if($gdtEntry['factor2'] != '1') : ?> x 
+                  <?= $this->Number->format($gdtEntry['factor']) ?>
+                  <?php if($gdtEntry['factor2'] != '1') : ?> x
                     <?= $this->Number->format($gdtEntry['factor2']) ?>
                   <?php endif; ?>
                 </td>

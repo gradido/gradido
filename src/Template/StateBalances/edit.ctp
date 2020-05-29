@@ -20,6 +20,7 @@
 </nav>
 <div class="stateBalances form large-9 medium-8 columns content">
     <?= $this->Form->create($stateBalance) ?>
+    edit
     <fieldset>
         <legend><?= __('Edit State Balance') ?></legend>
         <?php

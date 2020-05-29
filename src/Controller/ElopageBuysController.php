@@ -34,7 +34,7 @@ class ElopageBuysController extends AppController
     
     public function statistics()
     {
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $connection = ConnectionManager::get('loginServer');
         $dates = $connection->execute('SELECT success_date FROM elopage_buys group by CAST(success_date as DATE)')->fetchAll('assoc');
        

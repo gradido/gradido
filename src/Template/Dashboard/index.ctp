@@ -13,14 +13,18 @@ $this->assign(
   'title',
   __('Willkommen') . ', ' . $user['first_name'] . '&nbsp;' . $user['last_name'] . '!'
 );
+$this->assign(
+  'header',
+  '<h1>'.__('Willkommen') . ', ' . $user['first_name'] . '&nbsp;' . $user['last_name'] . '!</h1>'
+);
 ?>
 <?php if(isset($requestTime)) : ?>
 <span><?= round($requestTime * 1000.0) ?> ms</span>
 <?php endif; ?>
 <div class="content-region">
   <h3>Gradido ...</h3>
-  <div class="horizontal-collection">
-    <div class="action-button">
+  <div class="content-collection">
+    <div class="content-item action-button">
       <i class="material-icons-outlined">account_balance_wallet</i>
       <?= $this->Html->link(
               __('Kontoübersicht'),
@@ -28,7 +32,7 @@ $this->assign(
               ['class' => 'action-button-link']
           );?>
     </div>
-    <div class="action-button">
+    <div class="content-item action-button">
       <i class="material-icons-outlined">account_balance</i>
       <?= $this->Html->link(
               __('Überweisung'),
@@ -45,11 +49,9 @@ $this->assign(
 <?php if($serverUser != null || $user['role'] == 'admin') : ?>
 <div class="content-region">
   <h2><?= __('Adminbereich'); ?></h2>
-<?php endif; ?>
-<?php if($serverUser != null) : ?>
   <h3>Gradido ...</h3>
-  <div class="horizontal-collection">
-    <div class="action-button">
+  <div class="content-collection">
+    <div class="content-item action-button">
       <i class="material-icons-outlined">add_box</i>
       <?= $this->Html->link(
               __('einzeln schöpfen'),
@@ -57,7 +59,7 @@ $this->assign(
               ['class' => 'action-button-link']
           );?>
     </div>
-    <div class="action-button">
+    <div class="content-item action-button">
       <i class="material-icons-outlined">library_add</i>
       <?= $this->Html->link(
               __('viele schöpfen'),
@@ -69,8 +71,8 @@ $this->assign(
 </div>
 <div class="content-region">
   <legend>Statistik</legend>
-  <div class="horizontal-collection">
-    <div class="info-item">
+  <div class="content-collection">
+    <div class="content-item info-item">
       <i class="material-icons-outlined">cached</i>
       <?= $this->Html->link(
               __('Anmeldungen'),
@@ -78,32 +80,42 @@ $this->assign(
               ['class' => 'info-item-link']
         );?>
     </div>
-    <div class="info-item">
+    <?php if($serverUser != null) : ?>
+    <div class="content-item info-item">
       <i class="material-icons-outlined">error_outline</i>
       <?= $this->Html->link(
               __('Fehler') . ' (' . $adminErrorCount . ')',
               ['controller' => 'AdminErrors'], ['class' => 'info-item-link']);
       ?>
     </div>
+    <?php endif; ?>
   </div>
 </div>
 <?php endif; ?>
 <?php if($user['role'] == 'admin') : ?>
 <div class="content-region">
   <h3>Benutzer ...</h3>
-  <i class="material-icons-outlined">search</i>
-  <?= $this->Html->link(
-          __('suchen'),
-          ['controller' => 'StateUsers', 'action' => 'search'],
-          ['class' => 'action-button']
-          ); ?>
-  <i class="material-icons-outlined">how_to_reg</i>
-  <a href="<?= Router::url('./', true) ?>account/adminRegister" class="action-button">
-    <?= __("hinzufügen") ?>
-  </a>
-  <i class="material-icons-outlined">enhanced_encryption</i>
-  <a href="<?= Router::url('./', true) ?>account/adminUserPasswordReset" class="action-button">
-    <?= __("hat sein Passwort und Passphrase vergessen") ?>
-  </a>
+  <div class="content-collection">
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">search</i>
+      <?= $this->Html->link(
+              __('suchen'),
+              ['controller' => 'StateUsers', 'action' => 'search'],
+              ['class' => 'info-item-link']
+              ); ?>
+    </div>
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">how_to_reg</i>
+      <a href="<?= Router::url('./', true) ?>account/adminRegister" class="info-item-link">
+        <?= __("hinzufügen") ?>
+      </a>
+    </div>
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">enhanced_encryption</i>
+      <a href="<?= Router::url('./', true) ?>account/adminUserPasswordReset" class="info-item-link">
+        <?= __("hat sein Passwort und Passphrase vergessen") ?>
+      </a>
+    </div>
+  </div>
 </div>
 <?php endif; ?>

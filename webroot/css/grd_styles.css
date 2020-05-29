@@ -28,12 +28,18 @@
 }
 .content {
   grid-area: center;
+  grid-row-start: line2;
+  grid-row-end: footer1;
 }
 .footer {
   grid-area: footer;
+  grid-row-start: footer1;
+  grid-row-end: footer2;
 }
 .nav-bottom {
   grid-area: bottom;
+  grid-row-start: footer2;
+  grid-row-end: end;
 }
 /* ============================================================
 
@@ -48,7 +54,8 @@
 /* MAIN */
 /* MENU */
 /* CONTENT */
-/*  */
+/* CONTENT-ITEMS */
+/* XXX TODO XXX */
 /*rgba(0, 0, 0, 0.5) ??? */
 /* https://www.w3schools.com/colors/colors_shades.asp */
 /* ============================================================
@@ -152,13 +159,6 @@
     padding-left: 0.25em;
   }
   /* =======================
-        Gradido
-       =======================*/
-  /* Gradido Transform */
-  .gdt-text-color {
-    color: #a27824;
-  }
-  /* =======================
         Sonstige
        =======================*/
   /* Hyperlinks */
@@ -193,31 +193,19 @@
   a.grd_invisible_link:hover {
     color: grey;
   }
-  /* layout helper */
-  .grd_margin_5 {
-    margin: 5px;
+  /* =======================
+        Gradido
+       =======================*/
+  /* Gradido */
+  .grd-negative-currency {
+    color: red;
   }
-  .grd-margin-top-10 {
-    margin-top: 10px;
-  }
-  .grd-width-200 {
-    width: 200px;
-  }
-  .grd_margin-bottom {
-    margin-bottom: 5px;
-  }
-  .grd_right {
-    float: right;
+  /* Gradido Transform */
+  .gdt-text-color {
+    color: #a27824;
   }
   .grd_clickable {
     cursor: pointer;
-  }
-  .grd-no-style {
-    list-style: none;
-  }
-  .grd_small {
-    margin-top: 2px;
-    margin-bottom: 2px;
   }
 }
 /* Ende @media screen */
@@ -265,7 +253,7 @@
     margin: 0.3em;
   }
   .nav-menu {
-    width: 210px;
+    width: 280px;
     height: 100%;
   }
   .nav-menu-maximized {
@@ -281,7 +269,7 @@
   }
   .nav-menu-minimized .nav-icon,
   .nav-menu-minimized .nav-main-button {
-    padding-left: 154px;
+    padding-left: 224px;
   }
   /**
    * ----------------------------------------
@@ -296,8 +284,8 @@
       opacity: 0;
     }
     100% {
-      -webkit-transform: translateX(-154px);
-      transform: translateX(-154px);
+      -webkit-transform: translateX(-224px);
+      transform: translateX(-224px);
       opacity: 1;
     }
   }
@@ -308,16 +296,16 @@
       opacity: 0;
     }
     100% {
-      -webkit-transform: translateX(-154px);
-      transform: translateX(-154px);
+      -webkit-transform: translateX(-224px);
+      transform: translateX(-224px);
       opacity: 1;
     }
   }
   /* slide-out */
   @-webkit-keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-154px);
-      transform: translateX(-154px);
+      -webkit-transform: translateX(-224px);
+      transform: translateX(-224px);
     }
     100% {
       -webkit-transform: translateX(0);
@@ -326,8 +314,8 @@
   }
   @keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-154px);
-      transform: translateX(-154px);
+      -webkit-transform: translateX(-224px);
+      transform: translateX(-224px);
     }
     100% {
       -webkit-transform: translateX(0);
@@ -432,7 +420,7 @@
     display: block !important;
   }
   .logo.small.visible {
-    padding-left: 83px;
+    padding-left: 118px;
   }
 }
 @media screen and (max-width:639px) {
@@ -467,6 +455,7 @@
     font-weight: 500;
     font-size: 1rem;
     padding-top: 6em;
+    padding-right: 10em;
   }
   /* content container */
   .nav-content {
@@ -488,33 +477,31 @@
   .main-container {
     max-width: 100%;
   }
-  .horizontal-collection {
-    display: flex;
-  }
   .content-region {
     border-bottom: 1px dashed #F5F5F5;
     padding: 1em;
+  }
+  .content-collection {
+    display: flex;
+    flex-direction: column;
+  }
+  .content-item {
+    margin: 0.5em 0;
+    width: 150px;
+    padding: 1em 2em;
+  }
+  .action-button {
+    background: #f9fafb;
+    border-left: 3px solid #047006;
+  }
+  .info-item {
+    border-left: 2px solid grey;
   }
   .info-item i,
   .info-item-link,
   .action-button i,
   .action-button-link {
     vertical-align: middle;
-  }
-  .action-button {
-    margin: 0 0.75em;
-    background: green;
-    width: 150px;
-    padding: 1em;
-    text-align: center;
-    border-radius: 16px;
-    color: white;
-  }
-  .info-item {
-    margin: 0 0.75em;
-    width: 150px;
-    padding: 1em;
-    text-align: center;
   }
 }
 @media screen and (max-width:639px) {

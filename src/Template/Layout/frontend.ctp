@@ -1,4 +1,4 @@
- <?php
+<?php
 use Cake\Routing\Router;
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
@@ -14,13 +14,10 @@ use Cake\Routing\Router;
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 $cakeDescription = 'Gradido';
-$session = $this->getRequest()->getSession();
-$transactionPendings = $session->read('Transactions.pending');
-$errorCount = intval($session->read('StateUser.errorCount'));
-$balance = $session->read('StateUser.balance');
-if(!isset($balance)) {
-  $balance = 0;
-}
+$GLOBALS["self"] = $this;
+
+//echo "balance: $balance<br>";
+//echo "transactions pending: " . $transactionPendings;
 ?>
 <!DOCTYPE html>
 <html>
@@ -32,102 +29,71 @@ if(!isset($balance)) {
         <?= $this->fetch('title') ?>
     </title>
     <?= $this->Html->meta('icon') ?>
-    <?= $this->Html->css('main.css') ?>
-    <?= $this->Html->script('fa-all.min.js') ?>
+    <?= $this->Html->css(['main.css']) ?>
+    <?= $this->Html->script(['basic']) ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>
 </head>
 <body>
   <div class="layout">
-    <div class="header">
-      <?= $this->Html->image(
-        'logo_schrift.png',
-        ['alt' => 'Gradido'],
-        ['class' => 'logo']
-      )
-      ?>
-      <h1><?= $this->fetch('title') ?></h1>
-      <nav class="nav-top nav-horizontal">
-        <ul>
-          <li>Mein Profil XXX</li>
-        </ul>
-      </nav>
-    </div>
-    <div class="sidebar1">
+    <!-- TODO save last state so that it remains unchanged, on reload! -->
+    <div class="sidebar1 nav-menu initial">
+      <a href="/">
+        <picture class="logo big visible">
+          <source srcset="/img/logo_schrift_half.webp" type="image/webp">
+          <source srcset="/img/logo_schrift_half.png" type="image/png">
+          <img src="/img/logo_schrift_half.png" class="logo big visible" alt="Logo">
+        </picture>
+        <picture class="logo small">
+          <source srcset="/img/logo_half.webp" type="image/webp">
+          <source srcset="/img/logo_half.png" type="image/png">
+          <img src="/img/logo_half.png" class="logo small" alt="Logo">
+        </picture>
+      </a>
       <div>
-        <div class="sidebar1-header">
-            Navigation
-        </div>
-        <div class="nav-vertical">
-          <ul>
-            <?php if($errorCount > 0) : ?>
-              <li>
-                <?= $this->Html->Link(
-                    __('Fehler '). "($errorCount)",
-                    ['controller' => 'StateErrors',
-                    'action' => 'showForUser'],
-                    ['class' => 'grd-nav-bn grd-nav-bn-discard']) ?>
-              </li>
-              <?php endif; ?>
-              <?php if(isset($balance)) : ?>
-                <li><i class="fa fa-list nav-icon"></i>
-                  <?= $this->Html->link(
-                    $this->element('printGradido', ['number' => $balance]),
-                      ['controller' => 'StateBalances', 'action' => 'overview'],
-                      ['class' => 'grd-nav-bn', 'escape' => false])
-                    ?>
-                </li>
-              <?php endif; ?>
-                <li><i class="fa fa-home nav-icon"></i>
-                  <?= $this->Html->link(
-                    __('Startseite'),
-                    ['controller' => 'Dashboard', 'action' => 'index'],
-                    ['class' => 'grd-nav-bn'])?>
-                </li>
-                <li><i class="fa fa-user-friends nav-icon"></i>
-                  <a href="https://elopage.com/s/gradido/sign_in" target="_blank" class="grd-nav-bn">
-                    <?= __("Mitgliederbereich") ?>
-                  </a>
-              </li>
-              <?php if(intval($transactionPendings) > 0) : ?>
-                <li>
-                  <a href="<?= Router::url('./', true) ?>account/checkTransactions" class="grd-nav-bn">
-                    <?= __("Transaktionen unterzeichnen") . '&nbsp;(' . intval($transactionPendings) . ')'?>
-                  </a>
-                </li>
-              <?php else: ?>
-                <li><i class="fa fa-sign-out-alt nav-icon"></i>
-                  <a href="<?= Router::url('./', true) ?>account/logout" class="grd-nav-bn"><?= __("Logout"); ?></a>
-                </li>
-              <?php endif; ?>
-          </ul>
-        </div>
+        <i class="material-icons-outlined nav-main-button">menu</i>
+      </div>
+      <!-- XXX -->
+      <div class="flash-messages">
+        <?= $this->Flash->render() ?>
+      </div>
+      <?= $this->element('navi_header'); ?>
+      <!-- XXX -->
+      <div class="nav-vertical">
+        <?= $this->element('navi'); ?>
       </div>
     </div>
     <div class="content">
-      <div class="flash-messages"><?= $this->Flash->render() ?></div>
-      <?= $this->fetch('content') ?>
+      <div class="nav-content">
+        <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
+      </div>
+      <?php if ($this->fetch('header')): ?>
+      <div class="content-container info-container">
+        <?= $this->fetch('header') ?>
+      </div>
+      <?php endif;?>
+      <div class="content-container main-container">
+        <?= $this->fetch('content') ?>
+      </div>
     </div>
-    <div class="sidebar2">
-      <p><?= __("Community Server in Entwicklung") ?></p>
-      <p>Alpha 0.21.KW21.05</p>
-    </div>
-    <div class="bottomleft">
-      <?php if(isset($timeUsed)) : ?>
-        <p>
-          <?=round($timeUsed * 1000.0, 4)?> ms
-        </p>
-      <?php endif; ?>
+    <div class="footer">
+      <ul class="nav-horizontal">
+        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
+        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
+      </ul>
     </div>
     <div class="nav-bottom">
       <small class="">Copyright © 2020 Gradido</small>
     </div>
-    <div class="footer nav-horizontal">
-      <ul>
-        <li><a href="https://gradido.net/de/datenschutz/" target="_blank"><?= __("Datenschutzerklärung") ?></a></li>
-        <li><a href="https://gradido.net/de/impressum/" target="_blank"><?= __("Impressum") ?></a></li>
-      </ul>
+    <div class="bottomleft">
+      <?php if(isset($timeUsed)) : ?>
+        <?=round($timeUsed * 1000.0, 4)?> ms
+      <?php endif; ?>
+    </div>
+    <div class="bottomright">
+      <p><?= __("Community Server in Entwicklung") ?></p>
+      <p>Alpha 0.21.KW21.05</p>
     </div>
   </div>
 </body>

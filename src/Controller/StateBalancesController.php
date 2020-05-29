@@ -13,7 +13,7 @@ use App\Controller\AppController;
  */
 class StateBalancesController extends AppController
 {
-  
+
     public function initialize()
     {
         parent::initialize();
@@ -35,11 +35,11 @@ class StateBalancesController extends AppController
 
         $this->set(compact('stateBalances'));
     }
-    
-    public function overview() 
+
+    public function overview()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
         if($result !== true) {
@@ -48,7 +48,7 @@ class StateBalancesController extends AppController
         $user = $session->read('StateUser');
         // sendRequestGDT
         // listPerEmailApi
-        
+
         //var_dump($user);
         $gdtSum = 0;
         if('admin' === $user['role']) {
@@ -60,21 +60,21 @@ class StateBalancesController extends AppController
         }
         //
         //
-        
+
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable
                 ->find('all')
                 ->where(['state_user_id' => $user['id']])
                 ->contain(['Transactions']);
-        
+
         $transferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
         $transferTransactions = $transferTable
                 ->find('all')
                 ->where(['OR' => ['state_user_id' => $user['id'], 'receiver_user_id' => $user['id']]])
                 ->contain(['Transactions']);
-        
+
         $involvedUserIds = [];
-        
+
         foreach($transferTransactions as $sendCoins) {
           //var_dump($sendCoins);
           if($sendCoins->state_user_id != $user['id']) {
@@ -83,7 +83,7 @@ class StateBalancesController extends AppController
               array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
           }
         }
-        
+
         /*echo "state user from sendCoins: $sendCoins->state_user_id<br>";
         echo "receiver user from sendCoins: $sendCoins->receiver_user_id<br>";
         echo "user id from logged in user: ".$user['id']. '<br>';
@@ -95,7 +95,7 @@ class StateBalancesController extends AppController
         $involvedUserIds = array_flip($involvedUser_temp);
         $userTable = TableRegistry::getTableLocator()->get('StateUsers');
         $involvedUser = $userTable->find('all', [
-            'contain' => false, 
+            'contain' => false,
             'where' => ['id IN' => $involvedUserIds],
             'fields' => ['id', 'first_name', 'last_name', 'email']
           ]);
@@ -104,27 +104,27 @@ class StateBalancesController extends AppController
         foreach($involvedUser as $involvedUser) {
           $involvedUserIndices[$involvedUser->id] = $involvedUser;
         }
-        
+
         // sender or receiver when user has sended money
         // group name if creation
         // type: gesendet / empfangen / geschöpft
         // transaktion nr / id
         // date
         // balance
-        
+
         $transactions = [];
         foreach($creationTransactions as $creation) {
           //var_dump($creation);
           array_push($transactions, [
-              'name' => 'Gradido Akademie', 
-              'type' => 'creation', 
-              'transaction_id' => $creation->transaction_id, 
-              'date' => $creation->transaction->received, 
+              'name' => 'Gradido Akademie',
+              'type' => 'creation',
+              'transaction_id' => $creation->transaction_id,
+              'date' => $creation->transaction->received,
               'balance' => $creation->amount,
               'memo' => $creation->transaction->memo
           ]);
         }
-        
+
         foreach($transferTransactions as $sendCoins) {
           $type = '';
           $otherUser = null;
@@ -145,18 +145,18 @@ class StateBalancesController extends AppController
              'memo' => $sendCoins->transaction->memo
           ]);
         }
-        uasort($transactions, array($this, 'sortTransactions')); 
+        uasort($transactions, array($this, 'sortTransactions'));
         $this->set('transactions', $transactions);
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('gdtSum', $gdtSum);
     }
-    
+
     public function overviewGdt()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
         if($result !== true) {
@@ -167,33 +167,33 @@ class StateBalancesController extends AppController
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
           //var_dump(array_keys($requestResult['data']));
           $ownEntries = $requestResult['data']['ownEntries'];
-          
-          
-          
+
+
+
           //$gdtEntries = $requestResult['data']['entries'];
-          
+
           $gdtSum = 0;
           foreach($ownEntries as $i => $gdtEntry) {
             $gdtSum += $gdtEntry['gdt'];
             //echo "index: $i<br>";
             //var_dump($gdtEntry);
-            
+
           }
           if(isset($requestResult['data']['connectEntrys'])) {
             $connectEntries = $requestResult['data']['connectEntrys'];
-          
+
             foreach($connectEntries as $entry) {
               //if(!$count) var_dump($entry);
               //$count++;
-              $gdtSum += $entry['connect']['gdt_entry']['gdt']; 
+              $gdtSum += $entry['connect']['gdt_entry']['gdt'];
             }
             $this->set('connectEntries', $connectEntries);
           }
-          
+
           //echo "gdtSum: $gdtSum<br>";
           $this->set('gdtSum', $gdtSum);
           $this->set('ownEntries', $ownEntries);
-          
+
           if(isset($requestResult['data']['publishers'])) {
             $publishers = $requestResult['data']['publishers'];
             $this->set('publishers', $publishers);
@@ -201,15 +201,15 @@ class StateBalancesController extends AppController
         } else {
           $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }
-        
+
     }
-    
+
     public function sortTransactions($a, $b) {
       if ($a['date'] == $b['date']) {
         return 0;
       }
       return ($a['date'] > $b['date']) ? -1 : 1;
-      
+
     }
 
     /**

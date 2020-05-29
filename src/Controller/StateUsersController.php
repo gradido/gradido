@@ -73,7 +73,7 @@ class StateUsersController extends AppController
     {
         $startTime = microtime(true);
         I18n::setLocale('de_DE');
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
         if($result !== true) {

@@ -17,6 +17,7 @@
 </nav>
 <div class="stateBalances view large-9 medium-8 columns content">
     <h3><?= h($stateBalance->id) ?></h3>
+    view
     <table class="vertical-table">
         <tr>
             <th scope="row"><?= __('State User') ?></th>

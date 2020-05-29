@@ -14,6 +14,7 @@
 </nav>
 <div class="stateBalances form large-9 medium-8 columns content">
     <?= $this->Form->create($stateBalance) ?>
+    add
     <fieldset>
         <legend><?= __('Add State Balance') ?></legend>
         <?php

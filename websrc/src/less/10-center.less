@@ -22,6 +22,7 @@
     font-weight: 500;
     font-size: 1rem;
     padding-top: 6em;
+    padding-right: 10em;
   }
 
   @media @maxMobile {
@@ -55,13 +56,33 @@
     max-width: 100%;
   }
 
-  .horizontal-collection {
-    display: flex;
+  .content-region {
+    border-bottom: 1px dashed @light;
+    padding: 1em;
   }
 
-  .content-region {
-    border-bottom: 1px dashed @verylight;
-    padding: 1em;
+  .content-collection {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-item {
+    margin: .5em 0;
+    width: 150px;
+    padding: 1em 2em;
+  }
+
+  .action-button {
+    background: @action-button-background;
+    border-left: 3px solid @action-button-border;
+  }
+
+  .info-item {
+    border-left: 2px solid @info-item-border;
+  }
+
+  .action-form {
+
   }
 
   .info-item i,
@@ -69,23 +90,6 @@
   .action-button i,
   .action-button-link {
     vertical-align: middle;
-  }
-
-  .action-button {
-    margin: 0 .75em;
-    background: green;
-    width: 150px;
-    padding: 1em;
-    text-align: center;
-    border-radius: 16px;
-    color: white;
-  }
-
-  .info-item {
-    margin: 0 .75em;
-    width: 150px;
-    padding: 1em;
-    text-align: center;
   }
 
 }

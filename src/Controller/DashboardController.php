@@ -29,7 +29,7 @@ class DashboardController extends AppController
     public function index()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
         if($result !== true) {

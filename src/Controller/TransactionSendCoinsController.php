@@ -124,7 +124,7 @@ class TransactionSendCoinsController extends AppController
         echo "locale: $locale, default locale: $defaultLocale<br>";
          * */
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $user = $session->read('StateUser');
 //        var_dump($user);
@@ -266,7 +266,7 @@ class TransactionSendCoinsController extends AppController
     public function createRaw()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend_ripple');
+        $this->viewBuilder()->setLayout('frontend');
         
         $transferRawForm = new TransferRawForm();
         $this->set('transferRawForm', $transferRawForm);
