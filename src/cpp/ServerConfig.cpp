@@ -161,7 +161,7 @@ namespace ServerConfig {
 				}
 				break;
 			case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES:
-				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_german, g_mnemonic_german2_original_size, g_mnemonic_german2_compressed_size);
+				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_german2, g_mnemonic_german2_original_size, g_mnemonic_german2_compressed_size);
 				if (iResult) {
 					printf("[%s] error init german mnemonic set 2, error nr: %d\n", __FUNCTION__, iResult);
 					return false;

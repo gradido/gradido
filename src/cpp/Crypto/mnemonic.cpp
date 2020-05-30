@@ -68,6 +68,18 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 				word_end = i;
 
 				u32 word_size = word_end - word_begin;
+				if (word_size < 3) {
+					printf("[%s] ERROR! word is smaller than 3, word size: %d, index: %d \n", 
+						__FUNCTION__, word_size, cursor
+					);
+					char acBuffer[22]; memset(acBuffer, 0, 22);
+					int _start = word_end - 10;
+					if (_start < 0) {
+						_start = 0;
+					}
+					memcpy(acBuffer, &uncompressed_buffer[_start], 20);
+					printf("word_end: %d, word_begin: %d, part: %s\n", word_end, word_begin, acBuffer);
+				}
 				if (word_end < word_begin) {
 					//printf("%c %c %c\n", uncompressed_buffer[i - 1], uncompressed_buffer[i], uncompressed_buffer[i + 1]);
 					//printf("%s\n", uncompressed_buffer);
