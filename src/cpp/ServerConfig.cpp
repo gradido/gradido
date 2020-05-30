@@ -1,5 +1,6 @@
 #include "ServerConfig.h"
 #include "Crypto/mnemonic_german.h"
+#include "Crypto/mnemonic_german2.h"
 #include "Crypto/mnemonic_bip0039.h"
 #include "Crypto/DRRandom.h"
 #include "sodium.h"
@@ -155,6 +156,17 @@ namespace ServerConfig {
 					return false;
 				}
 				g_Mnemonic_WordLists[i].printToFile("de_words.txt");
+				for (int iWord = 750; iWord < 755; iWord++) {
+					printf("%d: %s\n", iWord, g_Mnemonic_WordLists[i].getWord(iWord));
+				}
+				break;
+			case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES:
+				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_german, g_mnemonic_german2_original_size, g_mnemonic_german2_compressed_size);
+				if (iResult) {
+					printf("[%s] error init german mnemonic set 2, error nr: %d\n", __FUNCTION__, iResult);
+					return false;
+				}
+				g_Mnemonic_WordLists[i].printToFile("de_words2.txt");
 				for (int iWord = 750; iWord < 755; iWord++) {
 					printf("%d: %s\n", iWord, g_Mnemonic_WordLists[i].getWord(iWord));
 				}
