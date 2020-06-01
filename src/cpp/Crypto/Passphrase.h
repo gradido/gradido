@@ -1,0 +1,37 @@
+#ifndef __GRADIDO_LOGIN_SERVER_CRYPTO_PASSPHRASE_H
+#define __GRADIDO_LOGIN_SERVER_CRYPTO_PASSPHRASE_H
+
+//#include <string>
+#include "mnemonic.h"
+#include "../SingletonManager/MemoryManager.h"
+
+class Passphrase 
+{
+public:
+	Passphrase(const std::string& passphrase, const Mnemonic* wordSource);
+
+	static Poco::SharedPtr<Passphrase> create(const MemoryBin* wordIndices, const Mnemonic* wordSource);
+	static const Mnemonic* detectMnemonic(const std::string& passphrase, const MemoryBin* publicKey = nullptr);
+
+	//! \brief transform passphrase into another language/mnemonic source
+	Poco::SharedPtr<Passphrase> transform(const Mnemonic* targetWordSource);
+
+	//! \brief replace utf8 characters with html special character encoding
+	//! 
+	//! TODO: add more utf8 chars for other languages as they needed
+	static std::string filter(const std::string& passphrase);
+	
+	bool checkIfValid();
+
+	const Poco::UInt16* getWordIndices();
+
+protected:
+	bool createWordIndices();
+	
+	std::string			mPassphraseString;
+	const Mnemonic*		mWordSource;
+	Poco::UInt16		mWordIndices[PHRASE_WORD_COUNT];
+};
+
+#endif // __GRADIDO_LOGIN_SERVER_CRYPTO_PASSPHRASE
+

@@ -52,12 +52,19 @@ protected:
 
 private:
 	// 32 Byte
+	//! \brief ed25519 ref10 private key
 	MemoryBin* mPrivateKey;
+
 	// 64 Byte
+	//! \brief ed25519 libsodium private key
 	MemoryBin* mSodiumSecret;
+
 	// 32 Byte
+	//! \brief ed25519 ref10 public key
 	unsigned char mPublicKey[ed25519_pubkey_SIZE];
+
 	// 32 Byte
+	//! \brief ed25519 libsodium public key
 	unsigned char mSodiumPublic[crypto_sign_PUBLICKEYBYTES];
 };
 

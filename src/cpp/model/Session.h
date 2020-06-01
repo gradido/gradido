@@ -73,8 +73,8 @@ public:
 	inline Poco::AutoPtr<controller::User> getNewUser() { return mNewUser; }
 
 	// ----------------  User functions ----------------------------
-	// TODO: automatic redirect after some time, median profiled time for register
 	// TODO: register state: written into db, mails sended, update state only if new state is higher as old state
+	// create User send e-mail activation link
 	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
 
 	// adminRegister without passwort

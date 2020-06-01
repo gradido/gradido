@@ -39,6 +39,7 @@ public:
 	inline operator size_t() const { return static_cast<size_t>(mSize); }
 
 	inline unsigned char* data() { return mData; }
+	inline const unsigned char* data() const { return mData; }
 
 protected:
 	MemoryBin(Poco::UInt32 size);

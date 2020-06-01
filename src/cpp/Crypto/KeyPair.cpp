@@ -12,15 +12,8 @@
 
 using namespace Poco::Data::Keywords;
 
-
 #define STR_BUFFER_SIZE 25
 
-static std::vector<Poco::Tuple<int, std::string>> g_specialChars = {
-	{ 0xa4, "auml" },{ 0x84, "Auml" },
-	{ 0xbc, "uuml" },{ 0x9c, "Uuml" },
-	{ 0xb6, "ouml" },{ 0x96, "Ouml" },
-	{ 0x9f, "szlig" }
-};
 
 
 KeyPair::KeyPair()
