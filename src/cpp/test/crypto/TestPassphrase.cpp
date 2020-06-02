@@ -47,6 +47,8 @@ void PassphraseTest::SetUp()
 		ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER,
 		"d62f14173ae5d66b06753cc9d69d5471913ffc6053feedac2acf901eef3582a9"
 	));
+
+	ServerConfig::loadMnemonicWordLists();
 }
 
 TEST_F(PassphraseTest, detectMnemonic) {
