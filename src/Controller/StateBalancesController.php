@@ -4,6 +4,9 @@ namespace App\Controller;
 use Cake\ORM\TableRegistry;
 use App\Controller\AppController;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 /**
  * StateBalances Controller
  *
@@ -20,6 +23,12 @@ class StateBalancesController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['overview', 'overviewGdt']);
         $this->loadComponent('JsonRequestClient');
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
+            add(new NaviHierarchyEntry(__('Kontoübersicht'), 'StateBalances', 'overview', true))
+        );
     }
     /**
      * Index method
@@ -42,8 +51,8 @@ class StateBalancesController extends AppController
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
-        if($result !== true) {
-          return $result;
+        if ($result !== true) {
+            return $result;
         }
         $user = $session->read('StateUser');
         // sendRequestGDT
@@ -51,12 +60,12 @@ class StateBalancesController extends AppController
 
         //var_dump($user);
         $gdtSum = 0;
-        if('admin' === $user['role']) {
-          $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+        if ('admin' === $user['role']) {
+            $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
           //var_dump($gdtEntries);
-          if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-            $gdtSum = intval($gdtEntries['data']['sum']);
-          }
+            if ('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
+                $gdtSum = intval($gdtEntries['data']['sum']);
+            }
         }
         //
         //
@@ -75,13 +84,13 @@ class StateBalancesController extends AppController
 
         $involvedUserIds = [];
 
-        foreach($transferTransactions as $sendCoins) {
+        foreach ($transferTransactions as $sendCoins) {
           //var_dump($sendCoins);
-          if($sendCoins->state_user_id != $user['id']) {
-              array_push($involvedUserIds, intval($sendCoins->state_user_id));
-          } else if($sendCoins->receiver_user_id != $user['id']) {
-              array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
-          }
+            if ($sendCoins->state_user_id != $user['id']) {
+                array_push($involvedUserIds, intval($sendCoins->state_user_id));
+            } else if ($sendCoins->receiver_user_id != $user['id']) {
+                array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
+            }
         }
 
         /*echo "state user from sendCoins: $sendCoins->state_user_id<br>";
@@ -101,8 +110,8 @@ class StateBalancesController extends AppController
           ]);
         //var_dump($involvedUser->toArray());
         $involvedUserIndices = [];
-        foreach($involvedUser as $involvedUser) {
-          $involvedUserIndices[$involvedUser->id] = $involvedUser;
+        foreach ($involvedUser as $involvedUser) {
+            $involvedUserIndices[$involvedUser->id] = $involvedUser;
         }
 
         // sender or receiver when user has sended money
@@ -113,29 +122,29 @@ class StateBalancesController extends AppController
         // balance
 
         $transactions = [];
-        foreach($creationTransactions as $creation) {
+        foreach ($creationTransactions as $creation) {
           //var_dump($creation);
-          array_push($transactions, [
+            array_push($transactions, [
               'name' => 'Gradido Akademie',
               'type' => 'creation',
               'transaction_id' => $creation->transaction_id,
               'date' => $creation->transaction->received,
               'balance' => $creation->amount,
               'memo' => $creation->transaction->memo
-          ]);
+            ]);
         }
 
-        foreach($transferTransactions as $sendCoins) {
-          $type = '';
-          $otherUser = null;
-          if($sendCoins->state_user_id == $user['id']) {
-            $type = 'send';
-            $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
-          } else if($sendCoins->receiver_user_id == $user['id']) {
-            $type = 'receive';
-            $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
-          }
-          array_push($transactions, [
+        foreach ($transferTransactions as $sendCoins) {
+            $type = '';
+            $otherUser = null;
+            if ($sendCoins->state_user_id == $user['id']) {
+                $type = 'send';
+                $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
+            } else if ($sendCoins->receiver_user_id == $user['id']) {
+                $type = 'receive';
+                $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+            }
+            array_push($transactions, [
              'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
              'email' => $otherUser->email,
              'type' => $type,
@@ -143,7 +152,7 @@ class StateBalancesController extends AppController
              'date' => $sendCoins->transaction->received,
              'balance' => $sendCoins->amount,
              'memo' => $sendCoins->transaction->memo
-          ]);
+            ]);
         }
         uasort($transactions, array($this, 'sortTransactions'));
         $this->set('transactions', $transactions);
@@ -159,57 +168,55 @@ class StateBalancesController extends AppController
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
-        if($result !== true) {
-          return $result;
+        if ($result !== true) {
+            return $result;
         }
         $user = $session->read('StateUser');
         $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
-        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
+        if ('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
           //var_dump(array_keys($requestResult['data']));
-          $ownEntries = $requestResult['data']['ownEntries'];
+            $ownEntries = $requestResult['data']['ownEntries'];
 
 
 
           //$gdtEntries = $requestResult['data']['entries'];
 
-          $gdtSum = 0;
-          foreach($ownEntries as $i => $gdtEntry) {
-            $gdtSum += $gdtEntry['gdt'];
-            //echo "index: $i<br>";
-            //var_dump($gdtEntry);
-
-          }
-          if(isset($requestResult['data']['connectEntrys'])) {
-            $connectEntries = $requestResult['data']['connectEntrys'];
-
-            foreach($connectEntries as $entry) {
-              //if(!$count) var_dump($entry);
-              //$count++;
-              $gdtSum += $entry['connect']['gdt_entry']['gdt'];
+            $gdtSum = 0;
+            foreach ($ownEntries as $i => $gdtEntry) {
+                $gdtSum += $gdtEntry['gdt'];
+              //echo "index: $i<br>";
+              //var_dump($gdtEntry);
             }
-            $this->set('connectEntries', $connectEntries);
-          }
+            if (isset($requestResult['data']['connectEntrys'])) {
+                $connectEntries = $requestResult['data']['connectEntrys'];
+
+                foreach ($connectEntries as $entry) {
+                  //if(!$count) var_dump($entry);
+                  //$count++;
+                    $gdtSum += $entry['connect']['gdt_entry']['gdt'];
+                }
+                $this->set('connectEntries', $connectEntries);
+            }
 
           //echo "gdtSum: $gdtSum<br>";
-          $this->set('gdtSum', $gdtSum);
-          $this->set('ownEntries', $ownEntries);
+            $this->set('gdtSum', $gdtSum);
+            $this->set('ownEntries', $ownEntries);
 
-          if(isset($requestResult['data']['publishers'])) {
-            $publishers = $requestResult['data']['publishers'];
-            $this->set('publishers', $publishers);
-          }
+            if (isset($requestResult['data']['publishers'])) {
+                $publishers = $requestResult['data']['publishers'];
+                $this->set('publishers', $publishers);
+            }
         } else {
-          $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
+            $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }
-
     }
 
-    public function sortTransactions($a, $b) {
-      if ($a['date'] == $b['date']) {
-        return 0;
-      }
-      return ($a['date'] > $b['date']) ? -1 : 1;
-
+    public function sortTransactions($a, $b)
+    {
+        if ($a['date'] == $b['date']) {
+            return 0;
+        }
+        return ($a['date'] > $b['date']) ? -1 : 1;
     }
 
     /**

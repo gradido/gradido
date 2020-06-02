@@ -24,12 +24,12 @@ $this->assign('header', $header);
 
 </div>
 <?php endif; ?>
-<div class="content-region">
-  <p class="">Überweisungen</p>
-  <table class="table table-hover table-sm">
+<div class="content-list">
+  <p class="content-list-name">Überweisungen</p>
+  <table class="content-list-table">
     <thead>
-      <tr class="solid-header">
-        <th colspan="2" class="pl-4"><?= __('Absender') . ' / ' . ('Empfänger') ?></th>
+      <tr class="content-list-table-header">
+        <th colspan="2"><?= __('Absender') . ' / ' . ('Empfänger') ?></th>
         <th><?= __('Verwendungszweck') ?></th>
         <th><?= __('Datum') ?></th>
         <th><?= __('Betrag') ?></th>

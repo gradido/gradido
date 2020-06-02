@@ -5,6 +5,9 @@ use App\Controller\AppController;
 //use Cake\Routing\Router;
 use Cake\ORM\TableRegistry;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 /**
  * StateUsers Controller
  *
@@ -20,6 +23,11 @@ class DashboardController extends AppController
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['index', 'errorHttpRequest']);
+        $this->set(
+          'naviHierarchy',
+          (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', true))
+        );
     }
     /**
      * Index method

@@ -12,6 +12,9 @@ use Cake\I18n\I18n;
 use App\Form\TransferForm;
 use App\Form\TransferRawForm;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 use Model\Transactions\TransactionTransfer;
 use Model\Transactions\TransactionBody;
 use Model\Transactions\Transaction;
@@ -25,7 +28,7 @@ use Model\Transactions\Transaction;
  */
 class TransactionSendCoinsController extends AppController
 {
-  
+
     public function initialize()
     {
         parent::initialize();
@@ -34,8 +37,14 @@ class TransactionSendCoinsController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('create');
         $this->Auth->allow('createRaw');
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
+            add(new NaviHierarchyEntry(__('Überweisung'), 'TransactionSendCoins', 'create', true))
+        );
     }
-    
+
     /**
      * Index method
      *
@@ -116,7 +125,7 @@ class TransactionSendCoinsController extends AppController
         $receiverUsers = $this->TransactionSendCoins->ReceiverUsers->find('list', ['limit' => 200]);
         $this->set(compact('transactionSendCoin', 'transactions', 'stateUsers', 'receiverUsers'));
     }
-    
+
     public function create()
     {
         /*$locale = I18n::getLocale();
@@ -136,28 +145,28 @@ class TransactionSendCoinsController extends AppController
           }
           $user = $session->read('StateUser');
         }
-        
+
         $transferForm = new TransferForm();
         $this->set('transferForm', $transferForm);
         $this->set('timeUsed', microtime(true) - $startTime);
-        
+
         if ($this->request->is('post')) {
-          //$this->Flash->error(__('Wird zurzeit noch entwickelt!'));          
-          
+          //$this->Flash->error(__('Wird zurzeit noch entwickelt!'));
+
           $requestData = $this->request->getData();
           $mode = 'next';
           if(isset($requestData['add'])) {$mode = 'add'; }
           if($transferForm->validate($requestData)) {
-            
+
             $receiverPubKeyHex = '';
             $senderPubKeyHex = $user['public_hex'];
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
-            
+
             if(!isset($user['balance']) || $amountCent > $user['balance']) {
               $this->Flash->error(__('Du hast nicht genug Geld!'));
               return;
             }
-            
+
             $receiverEmail = $requestData['email'];
             if($receiverEmail === $user['email']) {
               $this->Flash->error(__('Du kannst dir leider nicht selbst Geld schicken!'));
@@ -193,27 +202,27 @@ class TransactionSendCoinsController extends AppController
                $receiverPubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
             }
             //var_dump($sessionStateUser);
-            
+
             $builderResult = TransactionTransfer::build(
-                    $amountCent, 
-                    $requestData['memo'], 
+                    $amountCent,
+                    $requestData['memo'],
                     $receiverPubKeyHex,
                     $senderPubKeyHex
             );
             if($builderResult['state'] === 'success') {
-              
+
               $http = new Client();
               try {
                 $loginServer = Configure::read('LoginServer');
                 $url = $loginServer['host'] . ':' . $loginServer['port'];
                 $session_id = $session->read('session_id');
                 /*
-                 * 
+                 *
                  *  $response = $http->post(
                  *    'http://example.com/tasks',
                  *    json_encode($data),
                  *    ['type' => 'json']
-                 *  ); 
+                 *  );
                  */
                 $response = $http->post($url . '/checkTransaction', json_encode([
                     'session_id' => $session_id,
@@ -244,43 +253,43 @@ class TransactionSendCoinsController extends AppController
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }
                 }
-                
+
               } catch(\Exception $e) {
                   $msg = $e->getMessage();
                   $this->Flash->error(__('error http request: ') . $msg);
               }
-              
+
             } else {
               $this->Flash->error(__('No Valid Receiver Public given: ' . $receiverPubKeyHex));
             }
-           
+
 //           */
           } else {
             $this->Flash->error(__('Something was invalid, please try again!'));
           }
         }
-        
+
         $this->set('timeUsed', microtime(true) - $startTime);
     }
-    
+
     public function createRaw()
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
-        
+
         $transferRawForm = new TransferRawForm();
         $this->set('transferRawForm', $transferRawForm);
-        
+
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
           if($transferRawForm->validate($requestData)) {
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
             $sender = ['priv' => $requestData['sender_privkey_hex'], 'pub' => $requestData['sender_pubkey_hex']];
             $reciver = ['pub' => $requestData['receiver_pubkey_hex']];
-            
+
             $builderResult = TransactionTransfer::build(
-                    $amountCent, 
-                    $requestData['memo'], 
+                    $amountCent,
+                    $requestData['memo'],
                     $reciver['pub'],
                     $sender['pub']
             );
@@ -299,14 +308,14 @@ class TransactionSendCoinsController extends AppController
             } else {
               $this->Flash->error(__('Error building transaction'));
             }
-            
+
           }
           //var_dump($requestData);
           //
           //var_dump($data);
-          
+
         }
-        
+
         $this->set('timeUsed', microtime(true) - $startTime);
     }
 

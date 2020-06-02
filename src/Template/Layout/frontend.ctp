@@ -66,7 +66,7 @@ $GLOBALS["self"] = $this;
     </div>
     <div class="content">
       <div class="nav-content">
-        <?= $this->Html->link(__('Startseite'), ['controller' => 'Dashboard']); ?>
+        <?= $this->element('navi_center'); ?>
       </div>
       <?php if ($this->fetch('header')): ?>
       <div class="content-container info-container">
