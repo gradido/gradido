@@ -131,7 +131,7 @@ if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
-target_link_libraries(Gradido_LoginServer libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
+target_link_libraries(Gradido_LoginServer libmariadb protoc protobuf -pthread)
 endif(WIN32)
 
 # install 
@@ -161,7 +161,7 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
+	target_link_libraries(Gradido_LoginServer_Test libmariadb protoc protobuf -pthread)
 endif(WIN32)
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
