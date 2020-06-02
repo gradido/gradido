@@ -79,9 +79,9 @@ namespace controller {
 				}
 			}
 		}
-		else {
-			return "<invalid passphrase>";
-		}
+		
+		return "<invalid passphrase>";
+		
 	}
 
 	std::string UserBackups::formatPassphrase(std::string passphrase, int targetLinesCount/* = 5*/) 

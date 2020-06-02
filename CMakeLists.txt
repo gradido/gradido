@@ -36,6 +36,7 @@ FILE(GLOB PROTO_HEDERA "src/cpp/proto/hedera/*.cc" "src/cpp/proto/hedera/*.h")
 
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
+FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
 
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
@@ -61,6 +62,7 @@ source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
 source_group("lib" FILES ${LIB_SRC})
 source_group("HTTP-Interface" FILES ${HTTPInterface})
 source_group("Json-Interface" FILES ${JSONInterface})
+source_group("Test\\crypto" FILES ${TEST_CRYPTO})
 source_group("Test" FILES ${TEST})
 endif(MSVC)
 
@@ -150,7 +152,7 @@ enable_testing()
 #_TEST_BUILD
 
 
-add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${TEST})
+add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${TEST} ${TEST_CRYPTO})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})
@@ -161,3 +163,5 @@ if(WIN32)
 else(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test libmariadb PocoNet PocoUtil PocoJSON PocoFoundation PocoData PocoNetSSL protoc protobuf -pthread)
 endif(WIN32)
+
+add_test(NAME main COMMAND Gradido_LoginServer_Test)

@@ -1,6 +1,7 @@
 
 #include "main.h"
 #include <list>
+#include "gtest/gtest.h"
 
 std::list<Test*> gTests;
 
@@ -9,6 +10,7 @@ void fillTests()
 	gTests.push_back(new TestTasks());
 	gTests.push_back(new TestHash());
 	gTests.push_back(new TestRegExp());
+	gTests.push_back(new TestPassphrase());
 	//	gTests.push_back(new LoginTest());
 }
 
@@ -53,5 +55,7 @@ int main(int argc, char** argv)
 	load();
 	run();
 	ende();
-	return 42;
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+	//return 42;
 }

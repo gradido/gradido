@@ -41,6 +41,12 @@ public:
 	inline unsigned char* data() { return mData; }
 	inline const unsigned char* data() const { return mData; }
 
+	std::string convertToHex(); 
+	//! \return 0 if ok
+	//!        -1 if bin is to small
+	//!        -2 if hex is invalid
+	int convertFromHex(const std::string& hex);
+
 protected:
 	MemoryBin(Poco::UInt32 size);
 	~MemoryBin();

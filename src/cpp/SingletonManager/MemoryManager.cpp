@@ -1,5 +1,6 @@
 #include "MemoryManager.h"
 #include "ErrorManager.h"
+#include "sodium.h"
 
 #define _DEFAULT_PAGE_SIZE 10
 
@@ -15,6 +16,40 @@ MemoryBin::~MemoryBin()
 		free(mData);
 		mData = nullptr;
 	}
+}
+
+std::string MemoryBin::convertToHex()
+{
+	auto mm = MemoryManager::getInstance();
+	
+	Poco::UInt32 hexSize = mSize * 2 + 1;
+	auto hexMem = mm->getFreeMemory(hexSize);
+	//char* hexString = (char*)malloc(hexSize);
+	memset(*hexMem, 0, hexSize);
+	sodium_bin2hex(*hexMem, hexSize, mData, mSize);
+	std::string hex = (char*)*hexMem;
+	//	free(hexString);
+	mm->releaseMemory(hexMem);
+
+	return hex;
+}
+
+int MemoryBin::convertFromHex(const std::string& hex)
+{
+	auto mm = MemoryManager::getInstance();
+	size_t hexSize = hex.size();
+	size_t binSize = (hexSize) / 2;
+	if (binSize > mSize) {
+		return -1;
+	}
+	memset(mData, 0, mSize);
+
+	size_t resultBinSize = 0;
+
+	if (0 != sodium_hex2bin(mData, binSize, hex.data(), hexSize, nullptr, &resultBinSize, nullptr)) {
+		return -2;
+	}
+	return 0;
 }
 
 

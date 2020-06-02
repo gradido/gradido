@@ -96,8 +96,9 @@ std::string Passphrase::filter(const std::string& passphrase)
 	return filteredPassphrase;
 }
 
-Poco::SharedPtr<Passphrase> Passphrase::transform(const Mnemonic* targetWordSource)
+Poco::AutoPtr<Passphrase> Passphrase::transform(const Mnemonic* targetWordSource)
 {
+
 	/*
 	if (!currentWordSource || !targetWordSource) {
 		return "";
@@ -112,16 +113,34 @@ Poco::SharedPtr<Passphrase> Passphrase::transform(const Mnemonic* targetWordSour
 
 	return createClearPassphraseFromWordIndices(word_indices, targetWordSource);*/
 //	Poco::SharedPtr<Passphrase> transformedPassphrase = new Passphrase()
+
+	if (!targetWordSource || mWordSource) {
+		return nullptr;
+	}
+	if (targetWordSource == mWordSource) {
+		return this;
+	}
+	if (createWordIndices()) {
+		return create(mWordIndices, targetWordSource);
+	}
+	return nullptr;
 }
 
-Poco::SharedPtr<Passphrase> Passphrase::create(const MemoryBin* wordIndices, const Mnemonic* wordSource)
+Poco::AutoPtr<Passphrase> Passphrase::create(const MemoryBin* wordIndices, const Mnemonic* wordSource)
 {
-	//Poco::SharedPtr<Passphrase> passphrase = new Passphrase()
-	const Poco::UInt64* word_indices_p = (const Poco::UInt64*)wordIndices->data();
+	if (PHRASE_WORD_COUNT * sizeof(Poco::UInt16) >= wordIndices->size()) {
+		return nullptr;
+	}
+
+	const Poco::UInt16* word_indices_p = (const Poco::UInt16*)wordIndices->data();
+	return create(word_indices_p, wordSource);
+}
+
+Poco::AutoPtr<Passphrase> Passphrase::create(const Poco::UInt16 wordIndices[PHRASE_WORD_COUNT], const Mnemonic* wordSource)
+{
 	std::string clearPassphrase;
 	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
-		if (i * sizeof(Poco::UInt64) >= wordIndices->size()) break;
-		auto word = wordSource->getWord(word_indices_p[i]);
+		auto word = wordSource->getWord(wordIndices[i]);
 		if (word) {
 			clearPassphrase += word;
 			clearPassphrase += " ";

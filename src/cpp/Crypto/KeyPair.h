@@ -8,8 +8,6 @@
 #include "ed25519/ed25519.h"
 #include <sodium.h>
 
-
-
 class UserWriteKeysIntoDB;
 class UserGenerateKeys;
 class DebugPassphrasePage;
