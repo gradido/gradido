@@ -6,8 +6,16 @@
 
 #include "../lib/BinHexConverter.h"
 
+#include "Passphrase.h"
+
 KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey, const unsigned char* publicKey)
 	: mSodiumSecret(privateKey)
+{
+	memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
+}
+
+KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey)
+	: mSodiumSecret(nullptr)
 {
 	memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
 }
@@ -96,6 +104,7 @@ MemoryBin* KeyPairEd25519::sign(const MemoryBin* message)
 {
 	
 	if (!message || !message->size()) return nullptr;
+	if (!mSodiumSecret) return nullptr;
 	auto messageSize = message->size();
 	auto mm = MemoryManager::getInstance();
 	auto em = ErrorManager::getInstance();

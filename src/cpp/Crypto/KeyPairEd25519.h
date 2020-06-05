@@ -11,9 +11,9 @@
  * \brief: Key Pairs class for ed25519 keys, used for default gradido transactions
 */
 
-#include "../SingletonManager/MemoryManager.h"
 #include "sodium.h"
-#include "Passphrase.h"
+
+class Passphrase;
 
 class KeyPairEd25519 : public IKeyPair
 {
@@ -21,6 +21,7 @@ public:
 	//! \param privateKey: take ownership, release after object destruction
 	//! \param publicKey: copy
 	KeyPairEd25519(MemoryBin* privateKey, const unsigned char* publicKey);
+	KeyPairEd25519(const unsigned char* publicKey);
 
 	~KeyPairEd25519();
 
@@ -33,8 +34,19 @@ public:
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 
+	inline bool isTheSame(const KeyPairEd25519& b) const {
+		return 0 == sodium_memcmp(mSodiumPublic, b.mSodiumPublic, crypto_sign_PUBLICKEYBYTES);
+	}
+
+	inline bool operator == (const KeyPairEd25519& b) const { return isTheSame(b);  }
+	inline bool operator != (const KeyPairEd25519& b) const { return !isTheSame(b); }
+
+	inline bool hasPrivateKey() const { return mSodiumSecret != nullptr; }
+
 protected:	
 	KeyPairEd25519();
+
+
 private:
 	// 64 Byte
 	//! \brief ed25519 libsodium private key
