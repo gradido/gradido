@@ -156,9 +156,6 @@ namespace ServerConfig {
 					return false;
 				}
 				g_Mnemonic_WordLists[i].printToFile("de_words.txt");
-				for (int iWord = 750; iWord < 755; iWord++) {
-					printf("%d: %s\n", iWord, g_Mnemonic_WordLists[i].getWord(iWord));
-				}
 				break;
 			case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES:
 				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_german2, g_mnemonic_german2_original_size, g_mnemonic_german2_compressed_size);
@@ -167,9 +164,6 @@ namespace ServerConfig {
 					return false;
 				}
 				g_Mnemonic_WordLists[i].printToFile("de_words2.txt");
-				for (int iWord = 750; iWord < 755; iWord++) {
-					printf("%d: %s\n", iWord, g_Mnemonic_WordLists[i].getWord(iWord));
-				}
 				break;
 			case MNEMONIC_BIP0039_SORTED_ORDER:
 				iResult = g_Mnemonic_WordLists[i].init(populate_mnemonic_bip0039, g_mnemonic_bip0039_original_size, g_mnemonic_bip0039_compressed_size);
