@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstring>
 #include <assert.h>
+#include <mutex> 
 #include "../dependencies/tinf/src/tinf.h"
 
 #include "DRRandom.h"
@@ -23,7 +24,7 @@ Mnemonic::~Mnemonic()
 
 int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size)
 {
-	Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	std::unique_lock<std::shared_mutex> _lock(mWorkingMutex);
 	clear();
 
 	unsigned char* buffer = (unsigned char*)malloc(compressed_size);
@@ -152,8 +153,9 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 	return -5;
 }
 
-short Mnemonic::getWordIndex(const char* word) const 
+short Mnemonic::getWordIndex(const char* word) 
 { 
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	DHASH word_hash = DRMakeStringHash(word); 
 	auto it = mWordHashIndices.find(word_hash);
 	if (it != mWordHashIndices.end()) {
@@ -193,6 +195,7 @@ void Mnemonic::clear()
 
 std::string Mnemonic::getCompleteWordList()
 {
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	std::string result("");
 	for (int i = 0; i < 2048; i++) {
 		if (mWords[i]) {
@@ -207,6 +210,7 @@ std::string Mnemonic::getCompleteWordList()
 
 void Mnemonic::printToFile(const char* filename)
 {
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	FILE* f = fopen(filename, "wt");
 	auto words = getCompleteWordList();
 	fwrite(words.data(), 1, words.size(), f);
@@ -215,6 +219,7 @@ void Mnemonic::printToFile(const char* filename)
 
 Poco::JSON::Array Mnemonic::getSortedWordList()
 {
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	std::list<std::string> words;
 	for (auto it = mWordHashIndices.begin(); it != mWordHashIndices.end(); it++) {
 		words.push_back(mWords[it->second]);

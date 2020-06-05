@@ -12,8 +12,8 @@
  */
 
 #include "../lib/DRHashList.h"
-#include "Poco/Mutex.h"
 #include <string>
+#include <shared_mutex>
 #include <map>
 #include <list>
 
@@ -30,9 +30,16 @@ public:
 
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
-	inline const char* getWord(short index) const {  if (index < 2048 && index >= 0) return mWords[index]; return nullptr; }
-	short getWordIndex(const char* word) const;
-	inline bool isWordExist(const std::string& word) const { return getWordIndex(word.data()) != -1; }
+	inline const char* getWord(short index) { 
+		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex); 
+		if (index < 2048 && index >= 0) return mWords[index]; 
+		return nullptr; 
+	}
+	short getWordIndex(const char* word);
+	inline bool isWordExist(const std::string& word) {
+		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+		return getWordIndex(word.data()) != -1; 
+	}
 	// using only for debugging
 	std::string getCompleteWordList();
 
@@ -55,7 +62,7 @@ protected:
 	typedef std::pair<std::string, unsigned short> HashCollideWordEntry;
 	std::map<DHASH, unsigned short> mWordHashIndices;
 	std::map<DHASH, std::map<std::string, unsigned short>> mHashCollisionWords;
-	Poco::Mutex mWorkingMutex;
+	std::shared_mutex mWorkingMutex;
 
 };
 
