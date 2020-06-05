@@ -9,6 +9,8 @@ MemoryBin* convertBase64ToBin(const std::string& base64String);
 
 std::string convertBinToBase64(const MemoryBin* data);
 std::string convertBinToHex(const MemoryBin* data);
+//! \param pubkey pointer to array with crypto_sign_PUBLICKEYBYTES size
+std::string convertPubkeyToHex(const unsigned char* pubkey);
 
 
 

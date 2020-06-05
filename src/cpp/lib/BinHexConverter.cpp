@@ -113,3 +113,21 @@ std::string convertBinToHex(const MemoryBin* data)
 	mm->releaseMemory(hex);
 	return hexString;
 }
+
+std::string convertPubkeyToHex(const unsigned char* pubkey)
+{
+	auto mm = MemoryManager::getInstance();
+	size_t hexSize = crypto_sign_PUBLICKEYBYTES * 2 + 1;
+	size_t binSize = crypto_sign_PUBLICKEYBYTES;
+
+	MemoryBin* hex = mm->getFreeMemory(hexSize);
+	memset(*hex, 0, hexSize);
+
+	size_t resultBinSize = 0;
+
+	sodium_bin2hex(*hex, hexSize, pubkey, binSize);
+
+	std::string hexString((const char*)*hex, hexSize);
+	mm->releaseMemory(hex);
+	return hexString;
+}
