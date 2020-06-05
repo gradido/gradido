@@ -26,9 +26,8 @@ void AutoPtrContainer::duplicate()
 void AutoPtrContainer::release()
 {
 	Poco::ScopedLock<Poco::FastMutex> lock(mReferenceCountMutex);
-
+	assert(mReferenceCount > 0);
 	mReferenceCount--;
-	assert(mReferenceCount >= 0);
 	if (0 == mReferenceCount) {
 		delete this;
 	}
