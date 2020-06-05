@@ -153,7 +153,7 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 	return -5;
 }
 
-short Mnemonic::getWordIndex(const char* word) 
+short Mnemonic::getWordIndex(const char* word) const 
 { 
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	DHASH word_hash = DRMakeStringHash(word); 
