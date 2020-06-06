@@ -9,6 +9,10 @@
 
    ============================================================*/
 @media screen {
+
+  /* =========
+      CONTENT
+     =========*/
   .content {
     display: flex;
     justify-content: flex-start;
@@ -25,15 +29,16 @@
     padding-right: 10em;
   }
 
-  @media @maxMobile {
+  @media @phone-down {
     .content {
       flex-direction: column;
     }
 
   }
 
-  /* content container */
+  /* Center Navigation Top */
   .nav-content {
+    color: @content-nav;
     margin: 0 .25em;
     margin-bottom: 1em;
   }
@@ -49,6 +54,7 @@
     margin: 0 1em;
   }
 
+  /* Center Content Container */
   .content-container {
     background-color: @container-background;
     color: @container-text;
@@ -57,30 +63,33 @@
     border: 1px solid @container-border;
   }
 
+  /* Top Info Above Main */
   .info-container {
     max-width: 70%;
-    padding: 20px 25px;
+    padding: .5em 25px;
     margin: 1em .25em;
   }
 
+  /* Main Container */
   .main-container {
-    max-width: 100%;
+    width: 100%;
   }
 
+  /* Generic Content */
   .content-region {
     border-bottom: 1px dashed @light;
-    padding: 20px 25px;
+    padding: 0 25px;
     margin: 1em .25em;
   }
 
   .content-collection {
-    display: flex;/*    flex-direction: column;*/
+    display: flex;
   }
 
   .content-item {
     margin: .5em 0;
     margin-right: 5em;
-    width: 150px;
+    width: 160px;
     padding: 1em 2em;
   }
 
@@ -93,31 +102,72 @@
     border-left: 2px solid @info-item-border;
   }
 
+  /* List Content */
   .content-list {
     width: 100%;
   }
 
-  .content-list-name {
+  .content-list-title {
+    font-size: 1rem;
     margin: 0;
     padding: 20px 25px;
-    color: #313131;
+    color: @content-table-title;
   }
+
   .content-list-table {
-    display: block;
+    display: grid;
     width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-    border-spacing: 0;
+    overflow: auto;
+    font-size: 16px;
     color: #212529;
   }
-  .content-list-table-header {
-    background-color: #fafafa;
-    border-top: 1px solid #f2f4f9;
+
+  .header-cell {
+    padding: 1em 2em;
+    border-top: 1px solid @content-table-header-border;
+    background-color: @content-table-header-bg;
+    color: @content-table-header;
   }
 
+  .content-list-table img,
+  .content-list-table i {
+    vertical-align: middle;
+  }
+
+  .content-list-table > span {
+    font-size: .8em;
+    padding: .5em 2em;
+    vertical-align: middle;
+  }
+
+  /* Individual Tables */
+  .wiretransfer {
+    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+
+  /* Form Content */
   .action-form {
+    width: 100%;
   }
 
+  .form-header {
+    border-left: 3px solid @form-header-border;
+    background: @form-header-background;
+    padding: 15px 20px;
+    margin: 0;
+    margin-bottom: 15px;
+    border-radius: 0 6px 0 0;
+  }
+
+  .form-body {
+    margin: 36px 75px;
+  }
+
+  .form-group {
+    display: flex;
+  }
+
+  /* OTHER */
   .info-item i,
   .info-item-link,
   .action-button i,

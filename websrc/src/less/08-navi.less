@@ -9,26 +9,23 @@
 
    ============================================================*/
 @media screen {
-  @media @minDesktop {
-    .logo {
-      display: none;
-      vertical-align: middle;
-      height: 30px;
-      padding: .5em;
-    }
-
-    .logo.big.visible,
-    .logo.small.visible {
-      display: block !important;
-    }
-
-    .logo.small.visible {
-      padding-left: 118px;
-    }
-
+  .logo {
+    display: none;
+    vertical-align: middle;
+    height: 30px;
+    padding: .5em;
   }
 
-  @media @maxMobile {
+  .logo.big.visible,
+  .logo.small.visible {
+    display: block !important;
+  }
+
+  .logo.small.visible {
+    padding-left: 118px;
+  }
+
+  @media @phone-down {
     .logo.big {
       display: none;
     }
@@ -44,6 +41,7 @@
   */
   .sidebar1 {
     background-color: @menu-background;
+    font-size: @nav-fs;
     font-weight: 500;
     line-height: @sidebar1-lh;
     padding: 0;
@@ -224,7 +222,7 @@
     margin: 0;
   }
 
-  @media @maxMobile {
+  @media @phone-down {
   }
 
   nav {

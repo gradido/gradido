@@ -9,15 +9,22 @@
 
    ============================================================*/
 
-/* BREAKPOINTS */
-@maxMobile: ~"(max-width:639px)";
-@minDesktop: ~"(min-width:640px)";
+/*====================================
+=            BREAK POINTS            =
+====================================*/
+
+/* https://scotch.io/courses/getting-started-with-less/responsive-and-media-queries */
+@wide-screen-down: ~'(max-width:1199px)';
+@desktop-down: ~'(max-width:991px)';
+@tablet-down: ~'(max-width:767px)';
+@phone-down: ~'(max-width:480px)';
+@small-phone-down: ~'(max-width:320px)';
 
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: [top] 8vh [line2] 80vh [footer1] 7vh [footer2] 5vh [end];
-  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 6fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-rows: [top] 2vh [line2] 86vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 8fr [right3] 1fr [right2] 1fr [right1];
   grid-template-areas: "header header header header header"
   "left . center . ."
   "footer footer footer footer footer"
@@ -29,7 +36,6 @@
 /*.header {
   grid-area: header;
 }*/
-
 .sidebar1 {
   grid-area: left;
   grid-row-start: top;

@@ -8,12 +8,15 @@
   Copyright :   Gradio
 
    ============================================================*/
-/* BREAKPOINTS */
+/*====================================
+=            BREAK POINTS            =
+====================================*/
+/* https://scotch.io/courses/getting-started-with-less/responsive-and-media-queries */
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: [top] 8vh [line2] 80vh [footer1] 7vh [footer2] 5vh [end];
-  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 6fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-rows: [top] 2vh [line2] 86vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 8fr [right3] 1fr [right2] 1fr [right1];
   grid-template-areas: "header header header header header" "left . center . ." "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
@@ -54,7 +57,10 @@
 /* MAIN */
 /* MENU */
 /* CONTENT */
+/* CONTENT-NAV */
 /* CONTENT-ITEMS */
+/* CONTENT-TABLE */
+/* VARIOUS INDIVIDUAL */
 /* XXX TODO XXX */
 /*rgba(0, 0, 0, 0.5) ??? */
 /* https://www.w3schools.com/colors/colors_shades.asp */
@@ -68,7 +74,6 @@
   Copyright :   Gradio
 
    ============================================================*/
-/* macht aus den Standard 16px 14px */
 /* ============================================================
 
   Screen styles.
@@ -109,7 +114,7 @@
   html,
   body {
     font-family: 'Roboto', sans-serif;
-    font-size: 87.5%;
+    font-size: 100%;
     line-height: 27px;
     color: #212529;
     background-color: #f9fafb;
@@ -204,6 +209,9 @@
   .gdt-text-color {
     color: #a27824;
   }
+  .grd-orange-color {
+    color: #ffa600;
+  }
   .grd_clickable {
     cursor: pointer;
   }
@@ -220,11 +228,25 @@
 
    ============================================================*/
 @media screen {
+  .logo {
+    display: none;
+    vertical-align: middle;
+    height: 30px;
+    padding: 0.5em;
+  }
+  .logo.big.visible,
+  .logo.small.visible {
+    display: block !important;
+  }
+  .logo.small.visible {
+    padding-left: 118px;
+  }
   /*
     SIDEBARS
   */
   .sidebar1 {
     background-color: #fff;
+    font-size: 0.8em;
     font-weight: 500;
     line-height: 2.5em;
     padding: 0;
@@ -408,22 +430,7 @@
     text-decoration: none;
   }
 }
-@media screen and (min-width:640px) {
-  .logo {
-    display: none;
-    vertical-align: middle;
-    height: 30px;
-    padding: 0.5em;
-  }
-  .logo.big.visible,
-  .logo.small.visible {
-    display: block !important;
-  }
-  .logo.small.visible {
-    padding-left: 118px;
-  }
-}
-@media screen and (max-width:639px) {
+@media screen and (max-width:480px) {
   .logo.big {
     display: none;
   }
@@ -442,6 +449,9 @@
 
    ============================================================*/
 @media screen {
+  /* =========
+      CONTENT
+     =========*/
   .content {
     display: flex;
     justify-content: flex-start;
@@ -457,8 +467,9 @@
     padding-top: 6em;
     padding-right: 10em;
   }
-  /* content container */
+  /* Center Navigation Top */
   .nav-content {
+    color: #565656;
     margin: 0 0.25em;
     margin-bottom: 1em;
   }
@@ -471,6 +482,7 @@
   .nav-content-separator {
     margin: 0 1em;
   }
+  /* Center Content Container */
   .content-container {
     background-color: #fff;
     color: #212529;
@@ -478,27 +490,29 @@
     box-shadow: 0 0 10px 0 rgba(183, 192, 206, 0.2);
     border: 1px solid rgba(238, 238, 238, 0.75);
   }
+  /* Top Info Above Main */
   .info-container {
     max-width: 70%;
-    padding: 20px 25px;
+    padding: 0.5em 25px;
     margin: 1em 0.25em;
   }
+  /* Main Container */
   .main-container {
-    max-width: 100%;
+    width: 100%;
   }
+  /* Generic Content */
   .content-region {
     border-bottom: 1px dashed #F5F5F5;
-    padding: 20px 25px;
+    padding: 0 25px;
     margin: 1em 0.25em;
   }
   .content-collection {
     display: flex;
-    /*    flex-direction: column;*/
   }
   .content-item {
     margin: 0.5em 0;
     margin-right: 5em;
-    width: 150px;
+    width: 160px;
     padding: 1em 2em;
   }
   .action-button {
@@ -508,26 +522,61 @@
   .info-item {
     border-left: 2px solid grey;
   }
+  /* List Content */
   .content-list {
     width: 100%;
   }
-  .content-list-name {
+  .content-list-title {
+    font-size: 1rem;
     margin: 0;
     padding: 20px 25px;
     color: #313131;
   }
   .content-list-table {
-    display: block;
+    display: grid;
     width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-    border-spacing: 0;
+    overflow: auto;
+    font-size: 16px;
     color: #212529;
   }
-  .content-list-table-header {
-    background-color: #fafafa;
+  .header-cell {
+    padding: 1em 2em;
     border-top: 1px solid #f2f4f9;
+    background-color: #fafafa;
+    color: #101010;
   }
+  .content-list-table img,
+  .content-list-table i {
+    vertical-align: middle;
+  }
+  .content-list-table > span {
+    font-size: 0.8em;
+    padding: 0.5em 2em;
+    vertical-align: middle;
+  }
+  /* Individual Tables */
+  .wiretransfer {
+    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+  /* Form Content */
+  .action-form {
+    width: 100%;
+  }
+  .form-header {
+    border-left: 3px solid #047006;
+    background: #f9fafb;
+    padding: 15px 20px;
+    margin: 0;
+    margin-bottom: 15px;
+    border-radius: 0 6px 0 0;
+  }
+  .form-body {
+    margin: 36px 75px;
+  }
+  .form-group {
+    display: flex;
+  }
+  /* OTHER */
   .info-item i,
   .info-item-link,
   .action-button i,
@@ -535,7 +584,7 @@
     vertical-align: middle;
   }
 }
-@media screen and (max-width:639px) {
+@media screen and (max-width:480px) {
   .content {
     flex-direction: column;
   }

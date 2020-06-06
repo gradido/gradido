@@ -25,72 +25,64 @@ $this->assign('header', $header);
 </div>
 <?php endif; ?>
 <div class="content-list">
-  <p class="content-list-name">Überweisungen</p>
-  <table class="content-list-table">
-    <thead>
-      <tr class="content-list-table-header">
-        <th colspan="2"><?= __('Absender') . ' / ' . ('Empfänger') ?></th>
-        <th><?= __('Verwendungszweck') ?></th>
-        <th><?= __('Datum') ?></th>
-        <th><?= __('Betrag') ?></th>
-        <th title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach($transactions as $transaction):
-        $send = $transaction['type'] == 'send';
-        $balance = $transaction['balance'];
-        $memoShort = $transaction['memo'];
-        if(strlen($memoShort) > 30) {
-          $memoShort = substr($memoShort, 0, 30) . '...';
-        }
-        $cellColorClass = 'grd-success-color';
-        if($send) {
-          $balance = -$balance;
-          $cellColorClass = 'grd-alert-color';
-        } else if($transaction['type'] == 'creation') {
-          $cellColorClass = 'grd-orange-color';
-        }
-      ?>
-      <tr>
-        <td class="pr-0 pl-4">
-          <?= $this->Html->image('50x50.png', ['class' => 'profile-img img-sm', 'alt' => 'profile image']) ?>
-        </td>
-        <td class="pl-md-0">
-          <?php if(isset($transaction['email']) && $transaction['email'] != ''): ?>
-          <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
-            <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
-          </a>
-          <?php else : ?>
+  <p class="content-list-title">Überweisungen</p>
+  <div class="content-list-table wiretransfer">
+    <span class="header-cell"><?= __('Absender') . ' / ' . ('Empfänger') ?></span>
+    <span class="header-cell"><?= __('Verwendungszweck') ?></span>
+    <span class="header-cell"><?= __('Datum') ?></span>
+    <span class="header-cell"><?= __('Betrag') ?></span>
+    <span class="header-cell" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></span>
+    <?php foreach($transactions as $transaction):
+      $send = $transaction['type'] == 'send';
+      $balance = $transaction['balance'];
+      $memoShort = $transaction['memo'];
+      if(strlen($memoShort) > 30) {
+        $memoShort = substr($memoShort, 0, 30) . '...';
+      }
+      $cellColorClass = 'grd-success-color';
+      if($send) {
+        $balance = -$balance;
+        $cellColorClass = 'grd-alert-color';
+      } else if($transaction['type'] == 'creation') {
+        $cellColorClass = 'grd-orange-color';
+      }
+    ?>
+      <span>
+        <?= $this->Html->image('50x50.png', ['class' => 'profile-img img-sm', 'alt' => 'profile image']) ?>
+        <?php if(isset($transaction['email']) && $transaction['email'] != ''): ?>
+        <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
           <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
+        </a>
+        <?php else : ?>
+        <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
+        <?php endif; ?>
+        <span class=" <?= $cellColorClass ?>">
+          <?php if($transaction['type'] == 'creation') : ?>
+          <i class="material-icons-outlined grd-orange-color">create</i>
+            <?= __('Geschöpft')?>
+          <?php elseif($transaction['type'] == 'send') : ?>
+          <i class="material-icons-outlined">arrow_right_alt</i>
+            <?= __('Gesendet') ?>
+          <?php elseif($transaction['type'] == 'receive') : ?>
+          <i class="material-icons-outlined">arrow_left_alt</i>
+            <?= __('Empfangen') ?>
           <?php endif; ?>
-          <span class=" <?= $cellColorClass ?>">
-            <?php if($transaction['type'] == 'creation') : ?>
-            <i class="mdi mdi-creation grd-orange-color"></i>&nbsp;<?= __('Geschöpft')?>
-            <?php elseif($transaction['type'] == 'send') : ?>
-            <i class="mdi mdi-arrow-right-bold"></i>&nbsp;<?= __('Gesendet') ?>
-            <?php elseif($transaction['type'] == 'receive') : ?>
-            <i class="mdi mdi-arrow-left-bold"></i>&nbsp;<?= __('Empfangen') ?>
-            <?php endif; ?>
-          </span>
-        </td>
-        <td><span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
-          <?php if(strlen($transaction['memo']) > 30): ?>
-            <?= substr($memoShort, 0, 30) . '...' ?>
-          <?php else : ?>
-            <?= $transaction['memo'] ?>
-          <?php endif;?>
-          </span>
-        </td>
-        <td> <?= $transaction['date']->nice() ?> </td>
-        <td><?= $this->element('printGradido', ['number' => $balance]) ?></td>
-        <td>
-          <small><?= $transaction['transaction_id'] ?></small>
-        </td>
-      </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
+        </span>
+      </span>
+      <span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
+      <?php if(strlen($transaction['memo']) > 30): ?>
+        <?= substr($memoShort, 0, 30) . '...' ?>
+      <?php else : ?>
+        <?= $transaction['memo'] ?>
+      <?php endif;?>
+      </span>
+      <span><?= $transaction['date']->nice() ?></span>
+      <span><?= $this->element('printGradido', ['number' => $balance]) ?></span>
+      <span>
+        <?= $transaction['transaction_id'] ?>
+      </span>
+    <?php endforeach; ?>
+  </div>
 </div>
 <!--<a class="border-top px-3 py-2 d-block text-gray" href="#"><small class="font-weight-medium"><i class="mdi mdi-chevron-down mr-2"></i>View All Order History</small></a>-->
 <!--?= $this->Html->css(['gdt.css']) ?-->
