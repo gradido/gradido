@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(Gradido_LoginServer C CXX)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin" )
 
-add_definitions("-std=c++11")
+SET ( CMAKE_CXX_FLAGS "-std=c++17" )
 
 include_directories(
 	"dependencies" 

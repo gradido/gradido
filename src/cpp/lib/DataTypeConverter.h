@@ -4,6 +4,7 @@
 #include <string>
 #include "../SingletonManager/MemoryManager.h"
 
+
 namespace DataTypeConverter {
 
 	enum NumberParseState

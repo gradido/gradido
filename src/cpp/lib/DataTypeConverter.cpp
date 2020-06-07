@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include "sodium.h"
 
+// needed for memset in linux
+#include <string.h>
+
 namespace DataTypeConverter
 {
 	NumberParseState strToInt(const std::string& input, int& result)
