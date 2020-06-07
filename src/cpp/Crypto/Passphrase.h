@@ -4,10 +4,10 @@
 //#include <string>
 #include "mnemonic.h"
 #include "../SingletonManager/MemoryManager.h"
-
-
 #include "../lib/AutoPtrContainer.h"
 #include "Poco/AutoPtr.h"
+
+class KeyPairEd25519;
 
 class Passphrase : public AutoPtrContainer
 {
@@ -16,10 +16,17 @@ public:
 
 	static Poco::AutoPtr<Passphrase> create(const Poco::UInt16 wordIndices[PHRASE_WORD_COUNT], const Mnemonic* wordSource);
 	static Poco::AutoPtr<Passphrase> create(const MemoryBin* wordIndices, const Mnemonic* wordSource);
-	static const Mnemonic* detectMnemonic(const std::string& passphrase, const MemoryBin* publicKey = nullptr);
+	static const Mnemonic* detectMnemonic(const std::string& passphrase, const KeyPairEd25519* keyPair = nullptr);
 
 	//! \brief transform passphrase into another language/mnemonic source
+	//! \return this if targetWordSource is the same as mWordSource
 	Poco::AutoPtr<Passphrase> transform(const Mnemonic* targetWordSource);
+
+	//! \brief create clear passphrase from word indices from bitcoin word list (bip0039)
+	//! 
+	//! Used by hashing function to get really the same string,
+	//! even user has typed in some not filtered character
+	std::string createClearPassphrase() const;
 
 	//! \brief replace utf8 characters with html special character encoding
 	//! 
@@ -29,10 +36,16 @@ public:
 	bool checkIfValid();
 
 	const Poco::UInt16* getWordIndices();
+	const Poco::UInt16* getWordIndices() const;
 
-protected:
 	//! \return true if ok
 	bool createWordIndices();
+
+	//! \brief please handle with care! should be only seen by user and admin
+	const std::string& getString() const { return mPassphraseString; }
+
+protected:
+	
 	
 	std::string			mPassphraseString;
 	const Mnemonic*		mWordSource;

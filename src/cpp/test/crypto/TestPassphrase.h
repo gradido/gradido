@@ -28,12 +28,18 @@ protected:
 
 	struct PassphraseDataSet
 	{
-		PassphraseDataSet(std::string _passphrase, ServerConfig::Mnemonic_Types _type, std::string _pubkeyHex)
-			: passphrase(_passphrase), mnemonicType(_type), pubkeyHex(_pubkeyHex) {}
+		PassphraseDataSet(std::string _passphrases[ServerConfig::MNEMONIC_MAX], ServerConfig::Mnemonic_Types _type, std::string _pubkeyHex, Poco::UInt16 _wordIndices[PHRASE_WORD_COUNT])
+			: mnemonicType(_type), pubkeyHex(_pubkeyHex) {
+			memcpy(wordIndices, _wordIndices, PHRASE_WORD_COUNT * sizeof(Poco::UInt16));
+			for (int i = 0; i < ServerConfig::MNEMONIC_MAX; i++) {
+				passphrases[i] = _passphrases[i];
+			}
+		}
 	
-		std::string passphrase;
+		std::string passphrases[ServerConfig::MNEMONIC_MAX];
 		ServerConfig::Mnemonic_Types mnemonicType;
 		std::string pubkeyHex;
+		Poco::UInt16 wordIndices[PHRASE_WORD_COUNT];
 	};
 
 	std::vector<PassphraseDataSet> mPassphrasesForTesting;

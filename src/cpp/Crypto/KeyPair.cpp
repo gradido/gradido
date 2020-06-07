@@ -11,6 +11,7 @@
 #include "Passphrase.h"
 
 #include "../ServerConfig.h"
+#include "../lib/Profiler.h"
 
 using namespace Poco::Data::Keywords;
 
@@ -71,10 +72,16 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	if (!word_indices) {
 		return false;
 	}
+	printf("word indices:      ");
+	const Poco::UInt64* word_data = (const Poco::UInt64*)word_indices->data();
+	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
+		printf("%d ", word_data[i]);
+	}
+	printf("\n");
 	std::string clearPassphrase =
 		createClearPassphraseFromWordIndices(word_indices, &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 
-	
+	printf("clear passphrase: %s\n", clearPassphrase.data());
 	sha_context state;
 
 	unsigned char hash[SHA_512_SIZE];
@@ -82,7 +89,10 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	size_t word_index_size = sizeof(word_indices);
 	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
 	sha512_init(&state);
+
+	Profiler timeUsed;
 	sha512_update(&state, *word_indices, word_indices->size());
+	printf("time used in one step: %s\n", timeUsed.string().data());
 	sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
 	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
 	sha512_final(&state, hash);

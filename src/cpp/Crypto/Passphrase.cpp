@@ -5,6 +5,8 @@
 
 #include "../SingletonManager/ErrorManager.h"
 
+#include "KeyPairEd25519.h"
+
 #include "../ServerConfig.h"
 
 #define STR_BUFFER_SIZE 25
@@ -114,10 +116,11 @@ Poco::AutoPtr<Passphrase> Passphrase::transform(const Mnemonic* targetWordSource
 	return createClearPassphraseFromWordIndices(word_indices, targetWordSource);*/
 //	Poco::SharedPtr<Passphrase> transformedPassphrase = new Passphrase()
 
-	if (!targetWordSource || mWordSource) {
+	if (!targetWordSource || !mWordSource) {
 		return nullptr;
 	}
 	if (targetWordSource == mWordSource) {
+		duplicate();
 		return this;
 	}
 	if (createWordIndices()) {
@@ -134,6 +137,21 @@ Poco::AutoPtr<Passphrase> Passphrase::create(const MemoryBin* wordIndices, const
 
 	const Poco::UInt16* word_indices_p = (const Poco::UInt16*)wordIndices->data();
 	return create(word_indices_p, wordSource);
+}
+
+std::string Passphrase::createClearPassphrase() const
+{
+	auto word_indices = getWordIndices();
+	std::string clear_passphrase;
+	auto word_source = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
+	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
+		auto word = word_source->getWord(word_indices[i]);
+		if (word) {
+			clear_passphrase += word;
+			clear_passphrase += " ";
+		}
+	}
+	return clear_passphrase;
 }
 
 Poco::AutoPtr<Passphrase> Passphrase::create(const Poco::UInt16 wordIndices[PHRASE_WORD_COUNT], const Mnemonic* wordSource)
@@ -216,6 +234,11 @@ const Poco::UInt16* Passphrase::getWordIndices()
 	return mWordIndices;
 }
 
+const Poco::UInt16* Passphrase::getWordIndices() const
+{
+	return mWordIndices;
+}
+
 bool Passphrase::checkIfValid()
 {
 	std::istringstream iss(mPassphraseString);
@@ -231,7 +254,7 @@ bool Passphrase::checkIfValid()
 	}
 	return true;
 }
-const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const MemoryBin* publicKey /* = nullptr*/)
+const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const KeyPairEd25519* keyPair /* = nullptr*/)
 {
 	std::istringstream iss(passphrase);
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
@@ -249,8 +272,20 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 			}
 		}
 		if (existAll) {
-			if (publicKey) {
-
+			if (keyPair) {
+				auto test_passphrase = new Passphrase(passphrase, &m);
+				test_passphrase->createWordIndices();
+				auto key_pair = KeyPairEd25519::create(test_passphrase);
+				delete test_passphrase;
+				if (key_pair) {
+					if (*key_pair != *keyPair) {
+						delete key_pair;
+						continue;
+					}
+					else {
+						delete key_pair;
+					}
+				}
 			}
 			return &ServerConfig::g_Mnemonic_WordLists[i];
 		}

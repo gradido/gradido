@@ -13,8 +13,15 @@ TEST_F(PassphraseTest, TestEd25519KeyPair) {
 
 		auto word_indices = tr->getWordIndices();
 
+		printf("word indices test: ");
+		for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
+			printf("%d ", word_indices[i]);
+		}
+		printf("\n");
+
 		auto key_pair_ed25519 = KeyPairEd25519::create(tr);
 		KeyPair key_pair;
+		
 		key_pair.generateFromPassphrase(test_data_set.passphrases[test_data_set.mnemonicType].data(), mnemonic);
 		
 		EXPECT_EQ(key_pair.getPubkeyHex(), test_data_set.pubkeyHex);
