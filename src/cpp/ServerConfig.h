@@ -10,7 +10,7 @@
 #include "tasks/CPUSheduler.h"
 
 #include "SingletonManager/LanguageManager.h"
-
+#include "SingletonManager/MemoryManager.h"
 
 #define DISABLE_EMAIL
 
@@ -60,6 +60,7 @@ namespace ServerConfig {
 	extern bool		   g_disableEmail;
 	extern ServerSetupType g_ServerSetupType;
 	extern std::string g_gRPCRelayServerFullURL;
+	extern MemoryBin*  g_CryptoAppSecret;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

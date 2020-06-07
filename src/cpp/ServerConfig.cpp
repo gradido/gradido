@@ -3,6 +3,7 @@
 #include "Crypto/mnemonic_german2.h"
 #include "Crypto/mnemonic_bip0039.h"
 #include "Crypto/DRRandom.h"
+#include "lib/DataTypeConverter.h"
 #include "sodium.h"
 
 
@@ -51,6 +52,7 @@ namespace ServerConfig {
 	bool		g_disableEmail = false;
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 	std::string g_gRPCRelayServerFullURL;
+	MemoryBin*  g_CryptoAppSecret = nullptr;
 
 #ifdef __linux__ 
 #include <stdio.h>      
@@ -217,6 +219,14 @@ namespace ServerConfig {
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
 
+		// app secret for encrypt user private keys
+		// TODO: encrypt with server admin key
+		auto app_secret_string = cfg.getString("crypto.app_secret", "");
+		if ("" != app_secret_string) {
+			g_CryptoAppSecret = DataTypeConverter::hexToBin(app_secret_string);
+		}
+		//g_CryptoAppSecret
+
 		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
 
 		return true;
@@ -282,6 +292,10 @@ namespace ServerConfig {
 
 		if (g_CryptoCPUScheduler) {
 			delete g_CryptoCPUScheduler;
+		}
+		if (g_CryptoAppSecret) {
+			MemoryManager::getInstance()->releaseMemory(g_CryptoAppSecret);
+			g_CryptoAppSecret = nullptr;
 		}
 	}
 
