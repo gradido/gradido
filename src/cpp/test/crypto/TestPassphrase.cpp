@@ -41,9 +41,9 @@ void PassphraseTest::SetUp()
 		157, 1629, 1619, 1100, 2032, 1185, 1767, 1787, 1325, 963, 1906, 680, 1127, 252, 1547, 853, 414, 1569, 1767, 990, 755, 1593, 431, 722
 	};
 	std::string passphrases1[] = {
-		"Fichte Heuschrecke Botschafter G&ouml;ttingen Leasing losfliegen simpel enorm erk&auml;mpft Werk Wolke vorhanden jene Slums stagnieren Verifizieren insgesamt Hanau simpel Inspiration delegieren umtauschen ablegen suggerieren",
-		"ankommt gesamt gestorben m&uuml;de Argument stolz diskutiert Kette Leonardo riesig Igor berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml; hig diskutiert erwidern Hanau Plage Fossilien ethnisch",
-		"beauty slight skill maze wrap neither table term pizza journey unusual fence mind buzz scrap height critic service table knock fury shrimp curious fog"
+		"Fichte Heuschrecke Botschafter G&ouml;ttingen Leasing losfliegen simpel enorm erk&auml;mpft Werk Wolke vorhanden jene Slums stagnieren Verifizieren insgesamt Hanau simpel Inspiration delegieren umtauschen ablegen suggerieren ",
+		"ankommt gesamt gestorben m&uuml;de Argument stolz diskutiert Kette Leonardo riesig Igor berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml;hig diskutiert erwidern Hanau Plage Fossilien ethnisch ",
+		"beauty slight skill maze wrap neither table term pizza journey unusual fence mind buzz scrap height critic service table knock fury shrimp curious fog "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
 		passphrases1,
@@ -57,9 +57,9 @@ void PassphraseTest::SetUp()
 		742, 837, 269, 1067, 310, 1169, 1272, 365, 44, 619, 719, 108, 1750, 464, 1607, 663, 815, 343, 1784, 85, 510, 1809, 66, 1559
 	};
 	std::string passphrases2[] = {
-		"oftmals bist bietet spalten Datenbank Masse str&auml;flich hervor Derartig Hallo christlich Brief iPhone einpendeln telefonieren musizieren gigantisch Orchester zirkulieren essen gilt Erich Dollar money",
-		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Umkehrschluss Fidel jeder Heinrich Engagement leihen gezogen Disziplin zufolge raffen Iris J&auml;ger",
-		"fresh hamster canvas lyrics chat mutual pair color airport estate fly assault suspect deliver similar fancy grass cliff tenant apple divert timber analyst seed"
+		"oftmals bist bietet spalten Datenbank Masse str&auml;flich hervor Derartig Hallo christlich Brief iPhone einpendeln telefonieren musizieren gigantisch Orchester zirkulieren essen gilt Erich Dollar money ",
+		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Umkehrschluss Fidel jeder Heinrich Engagement leihen gezogen Disziplin zufolge raffen Iris J&auml;ger ",
+		"fresh hamster canvas lyrics chat mutual pair color airport estate fly assault suspect deliver similar fancy grass cliff tenant apple divert timber analyst seed "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
 		passphrases2,
@@ -73,9 +73,9 @@ void PassphraseTest::SetUp()
 		1412, 777, 1270, 905, 673, 670, 1780, 143, 546, 452, 505, 977, 1616, 916, 1635, 1318, 364, 1229, 1078, 1850, 514, 361, 990, 632
 	};
 	std::string passphrases3[] = {
-		"tief Acker Abgaben jenseits Revolution verdeckt Entdeckung Sanktion sammeln Umdrehung regulieren murmeln Erkenntnis hart zwar zuspitzen indem fegen bomber zw&ouml;lf Mobbing divers Inspiration Krieg",
-		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel spalten unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich R&uuml; cken Finnland sehen erwidern Abs&auml;tze",
-		"rack gentle paddle illness feature fatigue teach ball dust decade dish kick skate income small pill collect often man trap doctor coffee knock excuse"
+		"tief Acker Abgaben jenseits Revolution verdeckt Entdeckung Sanktion sammeln Umdrehung regulieren murmeln Erkenntnis hart zwar zuspitzen indem fegen bomber zw&ouml;lf Mobbing divers Inspiration Krieg ",
+		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel spalten unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich R&uuml;cken Finnland sehen erwidern Abs&auml;tze ",
+		"rack gentle paddle illness feature fatigue teach ball dust decade dish kick skate income small pill collect often man trap doctor coffee knock excuse "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
 		passphrases3,
@@ -181,13 +181,18 @@ TEST_F(PassphraseTest, createAndTransform) {
 		EXPECT_TRUE(tr->checkIfValid());
 		auto tr_english = tr->transform(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 		ASSERT_FALSE(tr_english.isNull());
-		printf("english: %s\n", tr_english->getString().data());
+		EXPECT_EQ(tr_english->getString(), test_data_set.passphrases[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+		//printf("english: %s\n", tr_english->getString().data());
+
 		auto tr_german1 = tr->transform(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
 		ASSERT_FALSE(tr_german1.isNull());
-		printf("german 1: %s\n", tr_german1->getString().data());
+		EXPECT_EQ(tr_german1->getString(), test_data_set.passphrases[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
+		//printf("german 1: %s\n", tr_german1->getString().data());
+
 		auto tr_german2 = tr->transform(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES]);
 		ASSERT_FALSE(tr_german2.isNull());
-		printf("german 2: %s\n\n", tr_german2->getString().data());
+		EXPECT_EQ(tr_german2->getString(), test_data_set.passphrases[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES]);
+		//printf("german 2: %s\n\n", tr_german2->getString().data());
 	}
 }
 

@@ -31,7 +31,7 @@ int run()
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
 		//printf("running: %s\n", it->getName());
-		printf("running test: %s", (*it)->getName());
+		printf("running test: %s\n", (*it)->getName());
 		if (!(*it)->test()) printf("success\n");
 	}
 	return 0;
