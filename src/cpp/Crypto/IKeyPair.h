@@ -11,6 +11,8 @@
  *
  */
 
+#include "../SingletonManager/MemoryManager.h"
+
 class IKeyPair 
 {
 public:

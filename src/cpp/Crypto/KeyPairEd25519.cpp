@@ -4,7 +4,7 @@
 
 #include "../SingletonManager/ErrorManager.h"
 
-#include "../lib/BinHexConverter.h"
+#include "../lib/DataTypeConverter.h"
 
 #include "Passphrase.h"
 
@@ -83,7 +83,7 @@ KeyPairEd25519* KeyPairEd25519::create(const Passphrase* passphrase)
 	//*/
 
 	KeyPairEd25519* key_pair = new KeyPairEd25519;
-	if (key_pair->mSodiumSecret) {
+	if (!key_pair->mSodiumSecret) {
 		key_pair->mSodiumSecret = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
 	}
 
@@ -116,7 +116,7 @@ MemoryBin* KeyPairEd25519::sign(const MemoryBin* message)
 
 	if (crypto_sign_detached(*signBinBuffer, &actualSignLength, *message, messageSize, *mSodiumSecret)) {
 		em->addError(new Error(functionName, "sign failed"));
-		auto messageHex = convertBinToHex(message);
+		auto messageHex = DataTypeConverter::binToHex(message);
 		em->addError(new ParamError(functionName, "message as hex", messageHex));
 		mm->releaseMemory(signBinBuffer);
 		return nullptr;
@@ -126,7 +126,7 @@ MemoryBin* KeyPairEd25519::sign(const MemoryBin* message)
 		// Incorrect signature! 
 		//printf("c[KeyBuffer::%s] sign verify failed\n", __FUNCTION__);
 		em->addError(new Error(functionName, "sign verify failed"));
-		auto messageHex = convertBinToHex(message);
+		auto messageHex = DataTypeConverter::binToHex(message);
 		em->addError(new ParamError(functionName, "message as hex", messageHex));
 		mm->releaseMemory(signBinBuffer);
 		return nullptr;
