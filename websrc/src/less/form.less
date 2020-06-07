@@ -4,25 +4,113 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 */
 
-/*
-    Created on : 30.10.2019, 14:41:57
-    Author     : einhornimmond
-*/
+/* ============================================================
 
-/* Button */
+  Screen styles for forms.
+
+  Datei     :   form.css
+  Datum     :   2020-06-07
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+
+  /* =========
+      FORMS
+     =========*/
+
+  /* Form Content */
+  .action-form {
+    width: 100%;
+  }
+
+  .form-header {
+    border-left: 3px solid @form-header-border;
+    background: @form-header-background;
+    padding: 15px 20px;
+    margin: 0;
+    margin-bottom: 15px;
+    border-radius: 0 6px 0 0;
+  }
+
+  .form-body form {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    margin: 36px 75px;
+    grid-gap: 1em;
+  }
+
+  .form-label {
+    grid-column: 1 / 2;
+    font-weight: 400;
+    text-align: right;
+  }
+
+  .form-control {
+    grid-column: 2 / 3;
+    display: block;
+    width: 100%;
+    height: calc(1.5em + .75rem + 2px);
+    margin: 0;
+    padding: .375rem .75rem;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: rgba(16, 16, 16, .8);
+    display: block;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #6c757d;
+    background-color: #f6f7f9;
+    background-clip: padding-box;
+    border: 1px solid #f0f2f5;
+    border-radius: .25rem;
+    -webkit-transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  }
+
+  .form-button {
+    cursor: pointer;
+    font: 600 13.3333px Arial;
+    font-size: .875rem;
+    line-height: 1.5;
+    text-align: center;
+    vertical-align: middle;
+    color: #fff;
+    background-color: #047006;
+    border-color: #047006;
+    border: 1px solid transparent;
+    border-radius: .2rem;
+    height: 35px;
+    max-height: 35px;
+    padding: 4px 15px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .2);
+  }
+
+  .form-button:hover {
+    color: #fff;
+    background-color: #034b04;
+    border-color: #023f03;
+  }
+
+}
+
+/*
+ Button
 .grd-form-bn:hover,
 .grd-active {
 background-color: @button-background-active;
-  border-color: @button-border-color;
+border-color: @button-border-color;
 }
 
 .grd-form-bn {
-  padding: 5px;
-  border: 1px solid @form-button-border;
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
-  color: @form-button-text;
+padding: 5px;
+border: 1px solid @form-button-border;
+display: table-cell;
+text-align: center;
+vertical-align: middle;
+color: @form-button-text;
 }
 
 .grd-form-bn-small {
@@ -30,57 +118,58 @@ background-color: @button-background-active;
 
 a.grd-form-bn,
 a.grd-form-bn:visited {
-  color: @button-text;
-  text-decoration: none;
+color: @button-text;
+text-decoration: none;
 }
 
 .grd-form-bn-succeed {
-  background-color: @success-background;
-  color: @success;
-  margin-top: 3px;
-  margin-bottom: 3px;
+background-color: @success-background;
+color: @success;
+margin-top: 3px;
+margin-bottom: 3px;
 }
 
 .grd-form-bn-succeed:not([disabled]):hover {
-  background-color: @success-background-hover;
+background-color: @success-background-hover;
 }
 
 .grd-form-bn-discard {
-  margin-left: 5px;
-  border: 1px solid @error;
-  color: @error;
-  cursor: pointer;
+margin-left: 5px;
+border: 1px solid @error;
+color: @error;
+cursor: pointer;
 }
 
-/* form elements */
+ form elements
 .grd_textarea {
-  border: 1px solid grey;
-  background-color: @form-text-background;
-  padding: 5px;
-  font-style: italic;
+border: 1px solid grey;
+background-color: @form-text-background;
+padding: 5px;
+font-style: italic;
 }
 
 .grd-input label {
-  display: block;
+display: block;
 }
 
 input.grd-privkey {
-  width: 465px;
+width: 465px;
 }
 
 input.grd-pubkey {
-  width: 465px;
+width: 465px;
 }
 
 input.grd-non-der-keys {
-  width: 900px;
+width: 900px;
 }
 
 input:not([type='radio']) {
-  width: 200px;
+width: 200px;
 }
 
 label:not(.grd_radio_label) {
-  width: 80px;
-  display: inline-block;
+width: 80px;
+display: inline-block;
 }
+*/
