@@ -1,13 +1,10 @@
 
 #include "KeyPairEd25519.h"
 #include <assert.h>
-// using sha512 from iroha-ed because it need half the time as sodium
-#include "ed25519/ed25519.h"
 
 #include "../SingletonManager/ErrorManager.h"
 
 #include "../lib/DataTypeConverter.h"
-#include "../lib/Profiler.h"
 
 #include "Passphrase.h"
 
@@ -44,50 +41,32 @@ KeyPairEd25519* KeyPairEd25519::create(const Passphrase* passphrase)
 	assert(passphrase);
 	// libsodium doc: https://libsodium.gitbook.io/doc/advanced/hmac-sha2
 	// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
-	//crypto_auth_hmacsha512_keygen
+	
 	auto word_indices = passphrase->getWordIndices();
-	//auto word_indices = createWordIndices(passphrase, word_source);
+	
 	if (!word_indices) {
 		return nullptr;
 	}
 	std::string clear_passphrase = passphrase->createClearPassphrase();
 	
-	crypto_hash_sha512_state state;
-	//sha_context state;
 
 	unsigned char hash[crypto_hash_sha512_BYTES];
-	//crypto_auth_hmacsha512_state state;
-	size_t word_index_size = sizeof(word_indices);
-	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
-	Profiler timeSum;
-	crypto_hash_sha512_init(&state);
-	//sha512_init(&state);
-	Profiler timeUsed;
-	//Poco::UInt64 valueBuffer[PHRASE_WORD_COUNT];
-	auto value_buffer = mm->getFreeMemory(PHRASE_WORD_COUNT * sizeof(Poco::UInt64));
-	Poco::UInt64* value_buffer_p = (Poco::UInt64*)value_buffer->data();
-	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
-		value_buffer_p[i] = word_indices[i];
-	}
-	auto betweenTime = timeUsed.string();
-	//crypto_hash_sha512_update(&state, *value_buffer, sizeof(Poco::UInt64) * PHRASE_WORD_COUNT);
-	//sha512_update(&state, *value_buffer, sizeof(Poco::UInt64) * PHRASE_WORD_COUNT);
-	Profiler timeUsed2;
-	//sha512_update(&state, (const unsigned char*)value_buffer_p, value_buffer->size());
-	crypto_hash_sha512_update(&state, (const unsigned char*)value_buffer_p, value_buffer->size());
-	//sha512_update(&state, *value_buffer, value_buffer->size());
-	auto timeUsed2String = timeUsed2.string();
-	//crypto_hash_sha512_update(&state, (const unsigned char*)word_indices, PHRASE_WORD_COUNT * sizeof(Poco::UInt16));
-	crypto_hash_sha512_update(&state, (unsigned char*)clear_passphrase.data(), clear_passphrase.size());
-	//sha512_update(&state, (unsigned char*)clear_passphrase.data(), clear_passphrase.size());
-	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
-	//crypto_hash_sha512_final(&state, hash);
-	//sha512_final(&state, hash);
-	crypto_hash_sha512_final(&state, hash);
-	printf("timeSum: %s\n", timeSum.string().data());
-	printf("time used in for loop: %s (between: %s)\n", timeUsed2String.data(), betweenTime.data());
-	//crypto_auth_hmacsha512_final(&state, hash);
 
+	crypto_hash_sha512_state state;
+	crypto_hash_sha512_init(&state);
+
+	// ****  convert word indices into uint64  ****
+	// To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
+	auto valueSize = sizeof(Poco::UInt64);
+	Poco::UInt64 value = 0;
+	for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
+		value = word_indices[i];
+		crypto_hash_sha512_update(&state, (const unsigned char*)&value, valueSize);
+	}	
+	// **** end converting into uint64 *****
+	crypto_hash_sha512_update(&state, (unsigned char*)clear_passphrase.data(), clear_passphrase.size());
+	crypto_hash_sha512_final(&state, hash);
+	
 	/*
 	// debug passphrase
 	printf("\passsphrase: <%s>\n", passphrase);

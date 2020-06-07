@@ -13,12 +13,6 @@ TEST_F(PassphraseTest, TestEd25519KeyPair) {
 
 		auto word_indices = tr->getWordIndices();
 
-		printf("word indices test: ");
-		for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
-			printf("%d ", word_indices[i]);
-		}
-		printf("\n");
-
 		auto key_pair_ed25519 = KeyPairEd25519::create(tr);
 		KeyPair key_pair;
 		
