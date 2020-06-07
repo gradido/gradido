@@ -88,14 +88,17 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 	//crypto_auth_hmacsha512_state state;
 	size_t word_index_size = sizeof(word_indices);
 	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
+	Profiler timeSum;
 	sha512_init(&state);
-
 	Profiler timeUsed;
 	sha512_update(&state, *word_indices, word_indices->size());
-	printf("time used in one step: %s\n", timeUsed.string().data());
+	auto timeUsedString = timeUsed.string();
+	
 	sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
 	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
 	sha512_final(&state, hash);
+	printf("timeSum: %s\n", timeSum.string().data());
+	printf("time used in one step: %s\n", timeUsedString.data());
 	//crypto_auth_hmacsha512_final(&state, hash);
 	
 	/*

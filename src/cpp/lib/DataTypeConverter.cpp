@@ -165,7 +165,7 @@ namespace DataTypeConverter
 
 		sodium_bin2hex(*hex, hexSize, pubkey, binSize);
 
-		std::string hexString((const char*)*hex, hexSize);
+		std::string hexString((const char*)*hex, hexSize-1);
 		mm->releaseMemory(hex);
 		return hexString;
 	}
