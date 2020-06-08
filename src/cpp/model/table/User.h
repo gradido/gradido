@@ -67,7 +67,8 @@ namespace model {
 			inline void setLastName(const std::string& last_name) { mLastName = last_name; }
 			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { mPasswordHashed = passwordHashed; }
 			void setPublicKey(const unsigned char* publicKey);
-			// copy data, didn't move memory bin
+			//! \brief set encrypted private key
+			//! \param privateKey copy data, didn't move memory bin
 			void setPrivateKey(const MemoryBin* privateKey);
 			inline void setEmailChecked(bool emailChecked) { mEmailChecked = emailChecked; }
 			inline void setLanguageKey(const std::string& languageKey) { mLanguageKey = languageKey; }
