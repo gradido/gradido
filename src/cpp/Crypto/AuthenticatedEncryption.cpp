@@ -30,6 +30,8 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 	auto mm = MemoryManager::getInstance();
 	auto app_secret = ServerConfig::g_CryptoAppSecret;
 
+	assert(app_secret);
+
 	std::unique_lock<std::shared_mutex> _lock(mWorkingMutex);
 	
 	// use hash512 because existing data where calculated with that, but could be also changed to hash256
@@ -45,7 +47,9 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 
 	//unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
 	//ObfusArray* key = new ObfusArray(crypto_box_SEEDBYTES);
-	auto mEncryptionKey = mm->getFreeMemory(crypto_box_SEEDBYTES);
+	if (!mEncryptionKey) {
+		mEncryptionKey = mm->getFreeMemory(crypto_box_SEEDBYTES);
+	}
 	//Bin32Bytes* key = mm->get32Bytes();
 
 	// generate encryption key, should take a bit longer to make brute force attacks hard
@@ -58,6 +62,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 
 	// generate hash from key for compare
 	assert(sizeof(KeyHashed) >= crypto_shorthash_BYTES);
+	assert(ServerConfig::g_ServerCryptoKey);
 	crypto_shorthash((unsigned char*)&mEncryptionKeyHash, *mEncryptionKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 
 	return AUTH_ENCRYPT_OK;

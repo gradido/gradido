@@ -47,7 +47,7 @@ public:
 		return mEncryptionKeyHash == b.getKeyHashed();
 	}
 
-	inline bool hasKey() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return !mEncryptionKey; }
+	inline bool hasKey() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKey != nullptr; }
 
 	//! \brief generate encryption key, with default parameter use ca. 300 ms 
 	//! 

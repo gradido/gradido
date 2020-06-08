@@ -56,6 +56,8 @@ int main(int argc, char** argv)
 	run();
 	ende();
 	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-	//return 42;
+
+	auto result = RUN_ALL_TESTS();
+	ServerConfig::unload();
+	return result;
 }
