@@ -27,11 +27,11 @@ $this->assign('header', $header);
 <div class="content-list">
   <p class="content-list-title">Überweisungen</p>
   <div class="content-list-table wiretransfer">
-    <span class="header-cell"><?= __('Absender') . ' / ' . ('Empfänger') ?></span>
-    <span class="header-cell"><?= __('Verwendungszweck') ?></span>
-    <span class="header-cell"><?= __('Datum') ?></span>
-    <span class="header-cell"><?= __('Betrag') ?></span>
-    <span class="header-cell" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></span>
+    <div class="cell header-cell"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>
+    <div class="cell header-cell"><?= __('Verwendungszweck') ?></div>
+    <div class="cell header-cell"><?= __('Datum') ?></div>
+    <div class="cell header-cell"><?= __('Betrag') ?></div>
+    <div class="cell header-cell" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></div>
     <?php foreach($transactions as $transaction):
       $send = $transaction['type'] == 'send';
       $balance = $transaction['balance'];
@@ -47,14 +47,14 @@ $this->assign('header', $header);
         $cellColorClass = 'grd-orange-color';
       }
     ?>
-      <span>
-        <?= $this->Html->image('50x50.png', ['class' => 'profile-img img-sm', 'alt' => 'profile image']) ?>
+      <div class="cell">
+        <?= $this->Html->image('50x50.png', ['class' => 'profile-img', 'alt' => 'profile image']) ?>
         <?php if(isset($transaction['email']) && $transaction['email'] != ''): ?>
         <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
-          <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
+          <small class="tx-email"><?= $transaction['name'] ?></small>
         </a>
         <?php else : ?>
-        <small class="text-black font-weight-medium d-block"><?= $transaction['name'] ?></small>
+        <small class="tx-email"><?= $transaction['name'] ?></small>
         <?php endif; ?>
         <span class=" <?= $cellColorClass ?>">
           <?php if($transaction['type'] == 'creation') : ?>
@@ -68,19 +68,19 @@ $this->assign('header', $header);
             <?= __('Empfangen') ?>
           <?php endif; ?>
         </span>
-      </span>
-      <span data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
+      </div>
+      <div class="cell" data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
       <?php if(strlen($transaction['memo']) > 30): ?>
         <?= substr($memoShort, 0, 30) . '...' ?>
       <?php else : ?>
         <?= $transaction['memo'] ?>
       <?php endif;?>
-      </span>
-      <span><?= $transaction['date']->nice() ?></span>
-      <span><?= $this->element('printGradido', ['number' => $balance]) ?></span>
-      <span>
+      </div>
+      <div class="cell"><?= $transaction['date']->nice() ?></div>
+      <div class="cell"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
+      <div class="cell">
         <?= $transaction['transaction_id'] ?>
-      </span>
+      </div>
     <?php endforeach; ?>
   </div>
 </div>

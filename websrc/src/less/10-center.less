@@ -13,6 +13,12 @@
   /* =========
       CONTENT
      =========*/
+  .content-default {
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+  }
+
   .content {
     display: flex;
     justify-content: flex-start;
@@ -62,6 +68,10 @@
     box-shadow: 0 0 10px 0 @container-shadow;
     border: 1px solid @container-border;
     margin: 1em .25em;
+  }
+
+  .content-default .content-container {
+    min-width: 800px;
   }
 
   /* Top Info Above Main */
@@ -123,8 +133,11 @@
     color: #212529;
   }
 
+  .cell {
+    padding: 1em 1.5em;
+  }
+
   .header-cell {
-    padding: 1em 2em;
     border-top: 1px solid @content-table-header-border;
     background-color: @content-table-header-bg;
     color: @content-table-header;
@@ -144,6 +157,32 @@
   /* Individual Tables */
   .wiretransfer {
     grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+
+  .error-list {
+    grid-template-columns: 2fr 2fr 5fr 1fr;
+  }
+
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .2);
+    overflow: hidden;
+    vertical-align: middle;
+    border-style: none;
+    box-sizing: border-box;
+  }
+
+  .tx-email {
+    cursor: pointer;
+    display: block;
+    color: @content-table-header;
+  }
+
+  .small {
+    font-size: 80%;
+    font-weight: 400;
   }
 
   /* OTHER */

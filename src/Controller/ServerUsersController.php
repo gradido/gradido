@@ -27,12 +27,12 @@ class ServerUsersController extends AppController
     public function index()
     {
         $serverUsers = $this->paginate($this->ServerUsers);
-
         $this->set(compact('serverUsers'));
     }
 
     public function login()
     {
+        $startTime = microtime(true);
         if ($this->request->is('post')) {
             $user = $this->Auth->identify();
             if ($user) {
@@ -41,6 +41,7 @@ class ServerUsersController extends AppController
             }
             $this->Flash->error(__('Invalid username or password, try again'));
         }
+        $this->set('timeUsed', microtime(true) - $startTime);
     }
 
     public function logout()

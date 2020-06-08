@@ -47,6 +47,4 @@ if(intval($transactionPendings) > 0) {
 
 
 ?>
-<ul>
 <?php foreach($navi as $n) echo $n; ?>
-</ul>

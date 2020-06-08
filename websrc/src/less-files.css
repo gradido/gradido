@@ -453,6 +453,11 @@
   /* =========
       CONTENT
      =========*/
+  .content-default {
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+  }
   .content {
     display: flex;
     justify-content: flex-start;
@@ -491,6 +496,9 @@
     box-shadow: 0 0 10px 0 rgba(183, 192, 206, 0.2);
     border: 1px solid rgba(238, 238, 238, 0.75);
     margin: 1em 0.25em;
+  }
+  .content-default .content-container {
+    min-width: 800px;
   }
   /* Top Info Above Main */
   .info-container {
@@ -541,8 +549,10 @@
     font-size: 16px;
     color: #212529;
   }
+  .cell {
+    padding: 1em 1.5em;
+  }
   .header-cell {
-    padding: 1em 2em;
     border-top: 1px solid #f2f4f9;
     background-color: #fafafa;
     color: #101010;
@@ -559,6 +569,28 @@
   /* Individual Tables */
   .wiretransfer {
     grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+  .error-list {
+    grid-template-columns: 2fr 2fr 5fr 1fr;
+  }
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    vertical-align: middle;
+    border-style: none;
+    box-sizing: border-box;
+  }
+  .tx-email {
+    cursor: pointer;
+    display: block;
+    color: #101010;
+  }
+  .small {
+    font-size: 80%;
+    font-weight: 400;
   }
   /* OTHER */
   .info-item i,
@@ -715,12 +747,6 @@ and open the template in the editor.
     margin-bottom: 15px;
     border-radius: 0 6px 0 0;
   }
-  .form-body form {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    margin: 36px 75px;
-    grid-gap: 1em;
-  }
   .form-label {
     grid-column: 0.5;
     font-weight: 400;
@@ -768,6 +794,22 @@ and open the template in the editor.
     color: #fff;
     background-color: #034b04;
     border-color: #023f03;
+  }
+  /* CENTER FORM SPECIFICS */
+  .form-body form {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    margin: 36px 75px;
+    grid-gap: 1em;
+  }
+  .center-form {
+    width: 450px;
+  }
+  .center-form .form-control {
+    width: 90%;
+  }
+  .center-form fieldset {
+    margin-bottom: 1em;
   }
 }
 /*

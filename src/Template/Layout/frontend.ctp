@@ -58,10 +58,12 @@ $GLOBALS["self"] = $this;
       <div class="flash-messages">
         <?= $this->Flash->render() ?>
       </div>
-      <?= $this->element('navi_header'); ?>
       <!-- XXX -->
       <div class="nav-vertical">
+        <ul>
+        <?= $this->element('navi_header'); ?>
         <?= $this->element('navi'); ?>
+        </ul>
       </div>
     </div>
     <div class="content">

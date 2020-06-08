@@ -25,37 +25,29 @@ $cakeDescription = 'Gradido';
         <?= $this->fetch('title') ?>
     </title>
     <?= $this->Html->meta('icon') ?>
-
-    <?= $this->Html->css('base.css') ?>
-    <?= $this->Html->css('style.css') ?>
-
+    <?= $this->Html->css(['main.css']) ?>
+    <?= $this->Html->script(['basic']) ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>
 </head>
 <body>
-    <nav class="top-bar expanded" data-topbar role="navigation">
-        <ul class="title-area large-3 medium-4 columns">
-            <li class="name">
-                <h1><a href=""><?= $this->fetch('title') ?></a></h1>
-            </li>
-        </ul>
-        <div class="top-bar-section">
-            <ul class="right">
-              <li><?= $this->html->link(__('Logout'), ['controller' => 'ServerUsers', 'action' => 'logout'])?></li>
-              <li><a target="_blank" href="https://book.cakephp.org/3.0/">Documentation</a></li>
-              <li><a target="_blank" href="https://api.cakephp.org/3.0/">API</a></li>
+    <div class="content-default">
+        <div class="content-container info-container">
+            <h1><a href=""><?= $this->fetch('title') ?></a></h1>
+            <ul class="nav-horizontal">
+                <li><?= $this->html->link(__('Logout'), ['controller' => 'ServerUsers', 'action' => 'logout'])?></li>
+                <li><a target="_blank" href="https://book.cakephp.org/3.0/">Documentation</a></li>
+                <li><a target="_blank" href="https://api.cakephp.org/3.0/">API</a></li>
             </ul>
+            <?= $this->Flash->render() ?>
+            <?= $this->fetch('content') ?>
         </div>
-    </nav>
-    <?= $this->Flash->render() ?>
-    <div class="container clearfix">
-        <?= $this->fetch('content') ?>
+        <?php if(isset($timeUsed)) : ?>
+        <div class="bottomleft">
+            <?=  round($timeUsed * 1000.0, 4) ?> ms
+        </div>
+        <?php endif;?>
     </div>
-    <?php if(isset($timeUsed)) : ?>
-      <div class="grd-time-used dev-info">
-      <?=  round($timeUsed * 1000.0, 4) ?> ms
-      </div>
-    <?php endif;?>
 </body>
 </html>

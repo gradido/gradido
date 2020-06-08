@@ -3,6 +3,9 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 /**
  * StateErrors Controller
  *
@@ -12,13 +15,19 @@ use App\Controller\AppController;
  */
 class StateErrorsController extends AppController
 {
-  
+
    public function initialize()
     {
         parent::initialize();
         $this->Auth->allow(['showForUser', 'deleteForUser']);
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
+            add(new NaviHierarchyEntry(__('Fehler'), 'StateErrors', 'ShowForUser', true))
+        );
     }
-    
+
     /**
      * Index method
      *
@@ -33,8 +42,8 @@ class StateErrorsController extends AppController
 
         $this->set(compact('stateErrors'));
     }
-    
-    public function showForUser() 
+
+    public function showForUser()
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
@@ -47,15 +56,15 @@ class StateErrorsController extends AppController
           }
           $user = $session->read('StateUser');
         }
-        
+
         $errors = $this->StateErrors->find('all')->where(['state_user_id' => $user['id']])->contain(false);
         $transactionTypes = $this->StateErrors->TransactionTypes->find('all')->select(['id', 'name', 'text'])->order(['id']);
-        
+
         $this->set('errors', $errors);
         $this->set('transactionTypes', $transactionTypes->toList());
         $this->set('timeUsed', microtime(true) - $startTime);
     }
-    
+
     public function deleteForUser($id = null)
     {
         $this->request->allowMethod(['post', 'delete', 'get']);
@@ -76,7 +85,7 @@ class StateErrorsController extends AppController
         }
         return $this->redirect(['action' => 'showForUser']);
     }
-            
+
 
     /**
      * View method

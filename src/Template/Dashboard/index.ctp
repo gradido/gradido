@@ -52,15 +52,7 @@ $this->assign(
   <h3>Gradido ...</h3>
   <div class="content-collection">
     <div class="content-item action-button">
-      <i class="material-icons-outlined">add_box</i>
-      <?= $this->Html->link(
-              __('einzeln schöpfen'),
-              ['controller' => 'TransactionCreations', 'action' => 'create'],
-              ['class' => 'action-button-link']
-          );?>
-    </div>
-    <div class="content-item action-button">
-      <i class="material-icons-outlined">library_add</i>
+      <i class="material-icons-outlined">redeem</i>
       <?= $this->Html->link(
               __('viele schöpfen'),
               ['controller' => 'TransactionCreations', 'action' => 'createMulti'],
