@@ -12,6 +12,7 @@
 */
 
 #include "sodium.h"
+#include "AuthenticatedEncryption.h"
 
 class Passphrase;
 
@@ -30,7 +31,7 @@ public:
 	static KeyPairEd25519* create(const Passphrase* passphrase);
 
 	//! \return caller take ownership of return value
-	MemoryBin* sign(const MemoryBin* message);
+	MemoryBin* sign(const MemoryBin* message) const;
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 
@@ -43,7 +44,11 @@ public:
 
 	inline bool hasPrivateKey() const { return mSodiumSecret != nullptr; }
 
+	//! \brief only way to get a private key.. encrypted
+	MemoryBin* getCryptedPrivKey(const AuthenticatedEncryption* password) const;
+
 protected:	
+	
 	KeyPairEd25519();
 
 

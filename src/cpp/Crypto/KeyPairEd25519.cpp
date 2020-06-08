@@ -105,7 +105,7 @@ KeyPairEd25519* KeyPairEd25519::create(const Passphrase* passphrase)
 	// using 
 }
 
-MemoryBin* KeyPairEd25519::sign(const MemoryBin* message)
+MemoryBin* KeyPairEd25519::sign(const MemoryBin* message) const
 {
 	
 	if (!message || !message->size()) return nullptr;
@@ -145,5 +145,20 @@ MemoryBin* KeyPairEd25519::sign(const MemoryBin* message)
 	*/
 
 	return signBinBuffer;
+
+}
+
+MemoryBin* KeyPairEd25519::getCryptedPrivKey(const AuthenticatedEncryption* password) const
+{
+	if (!password) return nullptr;
+	if (!mSodiumSecret) return nullptr;
+
+	MemoryBin* encryptedKey = nullptr;
+	if (AuthenticatedEncryption::AUTH_ENCRYPT_OK == password->encrypt(mSodiumSecret, &encryptedKey)) {
+		return encryptedKey;
+	}
+	else {
+		return nullptr;
+	}
 
 }

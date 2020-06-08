@@ -56,11 +56,11 @@ public:
 	//! \return AUTH_CREATE_ENCRYPTION_KEY_FAILED call strerror(errno) for more details 
 	ResultType createKey(const std::string& salt_parameter, const std::string& passwd);
 
-	ResultType encrypt(const MemoryBin* message, MemoryBin** encryptedMessage);
+	ResultType encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const;
 
-	ResultType decrypt(const MemoryBin* encryptedMessage, MemoryBin** message);
+	ResultType decrypt(const MemoryBin* encryptedMessage, MemoryBin** message) const;
 
-	const char* getErrorMessage(ResultType type);
+	static const char* getErrorMessage(ResultType type);
 
 protected:
 	// algorithms parameter
@@ -74,5 +74,7 @@ protected:
 
 	mutable std::shared_mutex mWorkingMutex;
 };
+
+
 
 #endif //__GRADIDO_LOGIN_SERVER_CRYPTO_AUTHENTICATED_ENCRYPTION_H

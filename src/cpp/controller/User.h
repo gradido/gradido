@@ -2,7 +2,9 @@
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_USER_INCLUDE
 
 #include "../model/table/User.h"
+#include "../Crypto/AuthenticatedEncryption.h"
 
+#include <shared_mutex>
 
 #include "TableControllerBase.h"
 
@@ -34,17 +36,32 @@ namespace controller {
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
-
 		std::string getEmailWithNames();
 		const std::string& getPublicHex();
-		
 
+		
+		// ***********************************************************************************
+		// password related
+		//! \brief 
+		//! \param passwd take owner ship 
+		inline void setPassword(AuthenticatedEncryption* passwd) { 
+			std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+			if (mPassword) delete passwd;
+			mPassword = passwd; 
+		}
+
+		inline const AuthenticatedEncryption* getPassword() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mPassword;
+		}
 	protected:
 		User(model::table::User* dbModel);
 		
 		std::string mPublicHex;
 
+		AuthenticatedEncryption* mPassword;
 
+		mutable std::shared_mutex mSharedMutex;
 	};
 }
 

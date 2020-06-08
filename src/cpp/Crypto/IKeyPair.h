@@ -17,7 +17,7 @@ class IKeyPair
 {
 public:
 	//! \return caller take ownership of return value
-	virtual MemoryBin* sign(const MemoryBin* message) = 0;
+	virtual MemoryBin* sign(const MemoryBin* message) const = 0 ;
 
 
 };

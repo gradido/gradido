@@ -68,7 +68,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 	return AUTH_ENCRYPT_OK;
 }
 
-AuthenticatedEncryption::ResultType AuthenticatedEncryption::encrypt(const MemoryBin* message, MemoryBin** encryptedMessage)
+AuthenticatedEncryption::ResultType AuthenticatedEncryption::encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const
 {
 	assert(message && encryptedMessage);
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
@@ -100,7 +100,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::encrypt(const Memor
 	return AUTH_ENCRYPT_OK;
 }
 
-AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const MemoryBin* encryptedMessage, MemoryBin** message)
+AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const MemoryBin* encryptedMessage, MemoryBin** message) const
 {
 	assert(message && encryptedMessage);
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);

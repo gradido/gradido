@@ -6,12 +6,16 @@
 
 namespace controller {
 	User::User(model::table::User* dbModel)
+		: mPassword(nullptr)
 	{
 		mDBModel = dbModel;
 	}
 
 	User::~User()
 	{
+		if (mPassword) {
+			delete mPassword;
+		}
 	}
 
 
