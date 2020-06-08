@@ -21,7 +21,7 @@ class KeyPairEd25519 : public IKeyPair
 public:
 	//! \param privateKey: take ownership, release after object destruction
 	//! \param publicKey: copy
-	KeyPairEd25519(MemoryBin* privateKey, const unsigned char* publicKey);
+	KeyPairEd25519(MemoryBin* privateKey);
 	KeyPairEd25519(const unsigned char* publicKey);
 
 	~KeyPairEd25519();
@@ -38,9 +38,15 @@ public:
 	inline bool isTheSame(const KeyPairEd25519& b) const {
 		return 0 == sodium_memcmp(mSodiumPublic, b.mSodiumPublic, crypto_sign_PUBLICKEYBYTES);
 	}
+	inline bool isTheSame(const unsigned char* pubkey) const {
+		return 0 == sodium_memcmp(mSodiumPublic, pubkey, crypto_sign_PUBLICKEYBYTES);
+	}
 
 	inline bool operator == (const KeyPairEd25519& b) const { return isTheSame(b);  }
 	inline bool operator != (const KeyPairEd25519& b) const { return !isTheSame(b); }
+
+	inline bool operator == (const unsigned char* b) const { return isTheSame(b); }
+	inline bool operator != (const unsigned char* b) const { return !isTheSame(b); }
 
 	inline bool hasPrivateKey() const { return mSodiumSecret != nullptr; }
 

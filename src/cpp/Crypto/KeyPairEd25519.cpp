@@ -8,10 +8,12 @@
 
 #include "Passphrase.h"
 
-KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey, const unsigned char* publicKey)
+KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
 	: mSodiumSecret(privateKey)
 {
-	memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
+	//memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
+	// read pubkey from private key, so we are sure it is the correct pubkey for the private key
+	crypto_sign_ed25519_sk_to_pk(*privateKey, mSodiumPublic);
 }
 
 KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey)

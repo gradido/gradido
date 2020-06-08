@@ -2,7 +2,8 @@
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_USER_INCLUDE
 
 #include "../model/table/User.h"
-#include "../Crypto/AuthenticatedEncryption.h"
+//#include "../Crypto/AuthenticatedEncryption.h"
+#include "../Crypto/KeyPairEd25519.h"
 
 #include <shared_mutex>
 
@@ -42,13 +43,12 @@ namespace controller {
 		
 		// ***********************************************************************************
 		// password related
-		//! \brief 
+		//! \brief set authenticated encryption and save hash in db, should also re encrypt private key if exist
 		//! \param passwd take owner ship 
-		inline void setPassword(AuthenticatedEncryption* passwd) { 
-			std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
-			if (mPassword) delete passwd;
-			mPassword = passwd; 
-		}
+		//! \return 0 = new and current passwords are the same
+		//! \return 1 = password changed, private key re-encrypted and saved into db
+		//! \return -1 = stored pubkey and private key didn't match
+		int setPassword(AuthenticatedEncryption* passwd); 
 
 		inline const AuthenticatedEncryption* getPassword() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
@@ -60,6 +60,7 @@ namespace controller {
 		std::string mPublicHex;
 
 		AuthenticatedEncryption* mPassword;
+		KeyPairEd25519*          mGradidoKeyPair;
 
 		mutable std::shared_mutex mSharedMutex;
 	};

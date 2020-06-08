@@ -5,6 +5,7 @@
 #include "../SingletonManager/MemoryManager.h"
 
 #include <shared_mutex>
+#include <vector>
 
 /*! 
  * 
@@ -59,6 +60,11 @@ public:
 	ResultType encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const;
 
 	ResultType decrypt(const MemoryBin* encryptedMessage, MemoryBin** message) const;
+	//! \brief same as the other decrypt only in other format
+	//! \param encryptedMessage format from Poco Binary Data from DB, like returned from model/table/user for encrypted private key
+	//! 
+	//! double code, I don't know how to prevent without unnecessary copy of encryptedMessage
+	ResultType decrypt(const std::vector<unsigned char>& encryptedMessage, MemoryBin** message) const;
 
 	static const char* getErrorMessage(ResultType type);
 

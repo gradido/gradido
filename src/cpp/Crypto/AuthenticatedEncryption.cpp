@@ -128,6 +128,34 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const Memor
 	return AUTH_DECRYPT_OK;
 }
 
+AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const std::vector<unsigned char>& encryptedMessage, MemoryBin** message) const
+{
+	assert(message);
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+
+	if (!mEncryptionKey) {
+		return AUTH_NO_KEY;
+	}
+
+	size_t decryptSize = encryptedMessage.size() - crypto_secretbox_MACBYTES;
+	//unsigned char* decryptBuffer = (unsigned char*)malloc(decryptSize);
+	auto mm = MemoryManager::getInstance();
+	//ObfusArray* decryptedData = new ObfusArray(decryptSize);
+	auto decryptedData = mm->getFreeMemory(decryptSize);
+	unsigned char nonce[crypto_secretbox_NONCEBYTES];
+	// we use a hardcoded value for nonce
+	// TODO: use a dynamic value, save it along with the other parameters
+	memset(nonce, 31, crypto_secretbox_NONCEBYTES);
+
+	if (crypto_secretbox_open_easy(*decryptedData, encryptedMessage.data(), encryptedMessage.size(), nonce, *mEncryptionKey)) {
+		mm->releaseMemory(decryptedData);
+		return AUTH_DECRYPT_MESSAGE_FAILED;
+	}
+	*message = decryptedData;
+
+	return AUTH_DECRYPT_OK;
+}
+
 const char* AuthenticatedEncryption::getErrorMessage(ResultType type)
 {
 	switch (type) {

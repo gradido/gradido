@@ -3,10 +3,12 @@
 #include "sodium.h"
 
 #include "../SingletonManager/SessionManager.h"
+#include "../lib/DataTypeConverter.h"
+
 
 namespace controller {
 	User::User(model::table::User* dbModel)
-		: mPassword(nullptr)
+		: mPassword(nullptr), mGradidoKeyPair(nullptr)
 	{
 		mDBModel = dbModel;
 	}
@@ -15,6 +17,11 @@ namespace controller {
 	{
 		if (mPassword) {
 			delete mPassword;
+			mPassword = nullptr;
+		}
+		if (mGradidoKeyPair) {
+			delete mGradidoKeyPair;
+			mGradidoKeyPair = nullptr;
 		}
 	}
 
@@ -113,6 +120,47 @@ namespace controller {
 			json.set("public_hex", pubkey);
 		}
 		return json;
+	}
+
+	int User::setPassword(AuthenticatedEncryption* passwd) 
+	{
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		auto model = getModel();
+		const static char* function_name = "controller::User::setPassword";
+
+		if (mPassword) 
+		{
+			if (mPassword == passwd) return 0;
+			// if password exist but gradido key pair not, try to load key pair
+			if ((!mGradidoKeyPair || !mGradidoKeyPair->hasPrivateKey()) && model->hasPrivateKeyEncrypted()) {
+				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
+				MemoryBin* clear_private_key = nullptr;
+				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+					if (mGradidoKeyPair) delete mGradidoKeyPair;
+					mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
+					
+					// check if saved pubkey and from private key extracted pubkey match
+					if (*mGradidoKeyPair != model->getPublicKey()) {
+						delete mGradidoKeyPair;
+						mGradidoKeyPair = nullptr;
+						return -1;
+					}
+				}
+			}
+
+			delete passwd;
+		}
+		// replace old password with new
+		mPassword = passwd;
+
+		// set new encrypted password and hash
+		model->setPasswordHashed(mPassword->getKeyHashed());
+		auto encryptedPrivateKey = mGradidoKeyPair->getCryptedPrivKey(mPassword);
+		model->setPrivateKey(encryptedPrivateKey);
+		MemoryManager::getInstance()->releaseMemory(encryptedPrivateKey);
+
+		// save changes to db
+		return model->updatePrivkeyAndPasswordHash();
 	}
 
 }

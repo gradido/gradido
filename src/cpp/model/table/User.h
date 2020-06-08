@@ -45,7 +45,7 @@ namespace model {
 			// specific db operation
 			size_t updatePrivkey();
 			size_t updatePublickey();
-			
+			size_t updatePrivkeyAndPasswordHash();
 
 			// default getter unlocked
 			inline const std::string& getEmail() const { return mEmail; }
@@ -56,8 +56,8 @@ namespace model {
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
 			std::string getPublicKeyHex() const;
 
-			inline bool existPrivateKeyCrypted() const { return !mPrivateKey.isNull(); }
-			inline const std::vector<unsigned char>& getPrivateKeyCrypted() const { return mPrivateKey.value().content(); }
+			inline bool hasPrivateKeyEncrypted() const { return !mPrivateKey.isNull(); }
+			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
 			inline bool isEmailChecked() const { return mEmailChecked; }
 			inline const std::string& getLanguageKey() const { return mLanguageKey; }
 

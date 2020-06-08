@@ -143,7 +143,10 @@ namespace model {
 		size_t User::updatePrivkey() 
 		{ 
 			lock(); 
-			if (mPrivateKey.isNull()) return 0;
+			if (mPrivateKey.isNull()) {
+				unlock();
+				return 0;
+			}
 			auto result = updateIntoDB("privkey", mPrivateKey.value()); 
 			unlock(); 
 			return result; 
@@ -151,10 +154,43 @@ namespace model {
 		size_t User::updatePublickey()
 		{
 			lock();
-			if (mPublicKey.isNull()) return 0;
+			if (mPublicKey.isNull()) {
+				unlock();
+				return 0;
+			}
 			auto result = updateIntoDB("pubkey", mPublicKey.value());
 			unlock();
 			return result;
+		}
+
+		size_t User::updatePrivkeyAndPasswordHash()
+		{
+			lock();
+			if (mPrivateKey.isNull() || !mPasswordHashed || !mID) {
+				unlock();
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE users SET password = ?, privkey = ? where id = ?;",
+				bind(mPasswordHashed), use(mPrivateKey), use(mID);
+			
+
+			size_t resultCount = 0;
+			try {
+				return update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock("User::updatePrivkeyAndPasswordHash");
+				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+				unlock();
+			}
+			//printf("data valid: %s\n", toString().data());
+			return 0;
 		}
 
 
