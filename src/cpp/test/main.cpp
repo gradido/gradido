@@ -3,6 +3,10 @@
 #include <list>
 #include "gtest/gtest.h"
 
+#include "Poco/Util/PropertyFileConfiguration.h"
+
+
+
 std::list<Test*> gTests;
 
 void fillTests()
@@ -16,6 +20,21 @@ void fillTests()
 
 int load() {
 	// init server config, init seed array
+
+	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
+	auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");
+	test_config->add(cfg);
+
+	if (!ServerConfig::initServerCrypto(*test_config)) {
+		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
+		printf("[load] error init server crypto");
+		return -1;
+	}
+	if (!ServerConfig::loadMnemonicWordLists()) {
+		printf("[load] error in loadMnemonicWordLists");
+		return -2;
+	}
+
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
