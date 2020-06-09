@@ -39,7 +39,7 @@ FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
 FILE(GLOB TEST_MODEL "src/cpp/test/model/*.cpp" "src/cpp/test/model/*.h")
 FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/table/*.h")
-FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/tes/controller/*.h")
+FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
 
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
