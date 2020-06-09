@@ -4,7 +4,9 @@
 #include "gtest/gtest.h"
 
 #include "Poco/Util/PropertyFileConfiguration.h"
+#include "Poco/Environment.h"
 
+#include "../SingletonManager/ConnectionManager.h"
 
 
 std::list<Test*> gTests;
@@ -34,6 +36,24 @@ int load() {
 		printf("[load] error in loadMnemonicWordLists");
 		return -2;
 	}
+
+	// start cpu scheduler
+	uint8_t worker_count = Poco::Environment::processorCount();
+
+	ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
+	ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
+
+	// load up connection configs
+	// register MySQL connector
+	Poco::Data::MySQL::Connector::registerConnector();
+	//Poco::Data::MySQL::Connector::KEY;
+	auto conn = ConnectionManager::getInstance();
+	//conn->setConnection()
+	//printf("try connect login server mysql db\n");
+	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+	//printf("try connect php server mysql \n");
+	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
+
 
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)

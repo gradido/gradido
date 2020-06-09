@@ -40,13 +40,23 @@ namespace controller {
 		std::string getEmailWithNames();
 		const std::string& getPublicHex();
 
+		//! \brief check if password match saved password, long duration 
+		//! \return 1 logged in
+		//! \return 2 already logged in
+		//! \return 0 password didn't match
+		//! \return -1 error saved public key didn't match with private key
+		//! - create authenticated encryption key from password and email
+		//! - compare hash with in db saved hash
+		
+		int login(const std::string& password);
 		
 		// ***********************************************************************************
 		// password related
-		//! \brief set authenticated encryption and save hash in db, should also re encrypt private key if exist
+		//! \brief set authenticated encryption and save hash in db, also re encrypt private key if exist
 		//! \param passwd take owner ship 
 		//! \return 0 = new and current passwords are the same
 		//! \return 1 = password changed, private key re-encrypted and saved into db
+		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
 		int setPassword(AuthenticatedEncryption* passwd); 
 
@@ -54,8 +64,14 @@ namespace controller {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
+		inline const KeyPairEd25519* getGradidoKeyPair() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mGradidoKeyPair;
+		}
 	protected:
 		User(model::table::User* dbModel);
+
+		
 		
 		std::string mPublicHex;
 

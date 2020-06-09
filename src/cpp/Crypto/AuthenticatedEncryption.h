@@ -47,6 +47,9 @@ public:
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 		return mEncryptionKeyHash == b.getKeyHashed();
 	}
+	inline bool operator == (const KeyHashed& hash) const {
+		return mEncryptionKeyHash == hash;
+	}
 
 	inline bool hasKey() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKey != nullptr; }
 

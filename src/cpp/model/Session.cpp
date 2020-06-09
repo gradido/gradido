@@ -631,6 +631,7 @@ bool Session::isPwdValid(const std::string& pwd)
 
 UserStates Session::loadUser(const std::string& email, const std::string& password)
 {
+	static const char* functionName = "Session::loadUser";
 	auto observer = SingletonTaskObserver::getInstance();
 	if (email != "") {
 		if (observer->getTaskCount(email, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
@@ -638,7 +639,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}
 	}
 	//Profiler usedTime;
-	lock("Session::loadUser");
+	lock(functionName);
 	if (mSessionUser && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
@@ -653,6 +654,20 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		//mSessionUser = new User(email.data());
 	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
+		int loginResult = mNewUser->login(password);
+		
+		if (-1 == loginResult) {
+			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
+			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
+			sendErrorsAsEmail();
+			//unlock();
+			//return USER_KEYS_DONT_MATCH;
+		}
+		if (0 == loginResult) {
+			unlock();
+			return USER_PASSWORD_INCORRECT;
+		}
+		// can be removed if session user isn't used any more
 		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;

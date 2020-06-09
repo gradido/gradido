@@ -13,7 +13,8 @@ KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
 {
 	//memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
 	// read pubkey from private key, so we are sure it is the correct pubkey for the private key
-	crypto_sign_ed25519_sk_to_pk(*privateKey, mSodiumPublic);
+
+	crypto_sign_ed25519_sk_to_pk(mSodiumPublic, *privateKey);
 }
 
 KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey)
@@ -95,6 +96,7 @@ KeyPairEd25519* KeyPairEd25519::create(const Passphrase* passphrase)
 	}
 
 	crypto_sign_seed_keypair(key_pair->mSodiumPublic, *key_pair->mSodiumSecret, hash);
+	
 	return key_pair;
 
 	// print hex for all keys for debugging
