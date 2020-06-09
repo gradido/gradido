@@ -158,6 +158,15 @@ namespace controller {
 		return 0;
 	}
 
+	void User::setGradidoKeyPair(KeyPairEd25519* gradidoKeyPair)
+	{
+		assert(gradidoKeyPair);
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		if (mGradidoKeyPair) delete mGradidoKeyPair;
+		mGradidoKeyPair = gradidoKeyPair;
+		getModel()->setPublicKey(mGradidoKeyPair->getPublicKey());
+	}
+
 	int User::setPassword(AuthenticatedEncryption* passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);

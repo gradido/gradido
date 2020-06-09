@@ -25,7 +25,7 @@
 				response.addCookie(session->getLoginCookie());
 			}
 			
-			userReturned = session->createUser(
+			userReturned = session->createUserDirect(
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),

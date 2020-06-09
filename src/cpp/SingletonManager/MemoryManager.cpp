@@ -118,6 +118,7 @@ MemoryManager::MemoryManager()
 	mMemoryPageStacks[2] = new MemoryPageStack(65); // pubkey hex
 	mMemoryPageStacks[3] = new MemoryPageStack(96); // privkey encrypted
 	mMemoryPageStacks[4] = new MemoryPageStack(161); // privkey hex 
+	mMemoryPageStacks[5] = new MemoryPageStack(48); // word indices
 }
 
 MemoryManager::~MemoryManager()
@@ -135,6 +136,7 @@ Poco::Int8 MemoryManager::getMemoryStackIndex(Poco::UInt16 size)
 	case 65: return 2;
 	case 96: return 3;
 	case 161: return 4;
+	case 48: return 5;
 	default: return -1;
 	}
 	return -1;

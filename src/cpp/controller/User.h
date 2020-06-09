@@ -64,6 +64,10 @@ namespace controller {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
+		//! \brief set key pair, public in model, private with next setPassword call into model
+		//! \param gradidoKeyPair take owner ship
+		void setGradidoKeyPair(KeyPairEd25519* gradidoKeyPair);
+
 		inline const KeyPairEd25519* getGradidoKeyPair() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mGradidoKeyPair;
