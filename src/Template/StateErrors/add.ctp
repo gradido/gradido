@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\StateError $stateError
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('List State Errors'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List State Users'), ['controller' => 'StateUsers', 'action' => 'index']) ?></li>

@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\TransactionCreation $transactionCreation
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit Transaction Creation'), ['action' => 'edit', $transactionCreation->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete Transaction Creation'), ['action' => 'delete', $transactionCreation->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionCreation->id)]) ?> </li>

@@ -5,7 +5,7 @@
  */
 ?>
 <nav class="large-2 medium-3 columns" id="actions-sidebar">
-    <ul class="side-nav">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit State User'), ['action' => 'edit', $stateUser->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete State User'), ['action' => 'delete', $stateUser->id], ['confirm' => __('Are you sure you want to delete # {0}?', $stateUser->id)]) ?> </li>

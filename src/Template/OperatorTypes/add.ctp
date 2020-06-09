@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\OperatorType $operatorType
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('List Operator Types'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Operators'), ['controller' => 'Operators', 'action' => 'index']) ?></li>

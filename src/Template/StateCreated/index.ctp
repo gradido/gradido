@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\StateCreated[]|\Cake\Collection\CollectionInterface $stateCreated
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New State Created'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Transactions'), ['controller' => 'Transactions', 'action' => 'index']) ?></li>

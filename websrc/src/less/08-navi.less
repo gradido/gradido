@@ -175,12 +175,36 @@
   .nav-horizontal {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: flex-end;
     list-style-type: none;
     gap: 5%;
     padding: 1em;
+  }
+
+  .nav-top-smaller {
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-smaller {
+    justify-content: left;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0;
+  }
+
+  .nav-smaller li {
+    padding: 0 !important;
+    padding: .2em .5em !important;
+    border: 1px solid @action-button-border;
+    margin: .1em .3em;
+    border-radius: 12px;
+  }
+
+  .nav-smaller .heading {
+    font-weight: bold;
   }
 
   .nav-vertical {

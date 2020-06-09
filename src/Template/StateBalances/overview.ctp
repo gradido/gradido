@@ -27,11 +27,13 @@ $this->assign('header', $header);
 <div class="content-list">
   <p class="content-list-title">Überweisungen</p>
   <div class="content-list-table wiretransfer">
-    <div class="cell header-cell"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>
-    <div class="cell header-cell"><?= __('Verwendungszweck') ?></div>
-    <div class="cell header-cell"><?= __('Datum') ?></div>
-    <div class="cell header-cell"><?= __('Betrag') ?></div>
-    <div class="cell header-cell" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></div>
+    <div class="row">
+      <div class="cell header-cell c4"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>
+      <div class="cell header-cell c0"><?= __('Verwendungszweck') ?></div>
+      <div class="cell header-cell c2"><?= __('Datum') ?></div>
+      <div class="cell header-cell c2"><?= __('Betrag') ?></div>
+      <div class="cell header-cell c1" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></div>
+    </div>
     <?php foreach($transactions as $transaction):
       $send = $transaction['type'] == 'send';
       $balance = $transaction['balance'];
@@ -47,39 +49,43 @@ $this->assign('header', $header);
         $cellColorClass = 'grd-orange-color';
       }
     ?>
-      <div class="cell">
-        <?= $this->Html->image('50x50.png', ['class' => 'profile-img', 'alt' => 'profile image']) ?>
-        <?php if(isset($transaction['email']) && $transaction['email'] != ''): ?>
-        <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
-          <small class="tx-email"><?= $transaction['name'] ?></small>
-        </a>
+      <div class="row">
+        <div class="cell c4">
+          <?= $this->Html->image('50x50.png', ['class' => 'profile-img', 'alt' => 'profile image']) ?>
+          <div>
+            <?php if(isset($transaction['email']) && $transaction['email'] != ''): ?>
+            <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
+              <small class="tx-email"><?= $transaction['name'] ?></small>
+            </a>
+            <?php else : ?>
+            <small class="tx-email"><?= $transaction['name'] ?></small>
+            <?php endif; ?>
+            <span class=" <?= $cellColorClass ?>">
+              <?php if($transaction['type'] == 'creation') : ?>
+              <i class="material-icons-outlined grd-orange-color">redeem</i>
+                <?= __('Geschöpft')?>
+              <?php elseif($transaction['type'] == 'send') : ?>
+              <i class="material-icons-outlined">arrow_right_alt</i>
+                <?= __('Gesendet') ?>
+              <?php elseif($transaction['type'] == 'receive') : ?>
+              <i class="material-icons-outlined">arrow_left_alt</i>
+                <?= __('Empfangen') ?>
+              <?php endif; ?>
+            </span>
+          </div>
+        </div>
+        <div class="cell c0" data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
+        <?php if(strlen($transaction['memo']) > 30): ?>
+          <?= substr($memoShort, 0, 30) . '...' ?>
         <?php else : ?>
-        <small class="tx-email"><?= $transaction['name'] ?></small>
-        <?php endif; ?>
-        <span class=" <?= $cellColorClass ?>">
-          <?php if($transaction['type'] == 'creation') : ?>
-          <i class="material-icons-outlined grd-orange-color">create</i>
-            <?= __('Geschöpft')?>
-          <?php elseif($transaction['type'] == 'send') : ?>
-          <i class="material-icons-outlined">arrow_right_alt</i>
-            <?= __('Gesendet') ?>
-          <?php elseif($transaction['type'] == 'receive') : ?>
-          <i class="material-icons-outlined">arrow_left_alt</i>
-            <?= __('Empfangen') ?>
-          <?php endif; ?>
-        </span>
-      </div>
-      <div class="cell" data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
-      <?php if(strlen($transaction['memo']) > 30): ?>
-        <?= substr($memoShort, 0, 30) . '...' ?>
-      <?php else : ?>
-        <?= $transaction['memo'] ?>
-      <?php endif;?>
-      </div>
-      <div class="cell"><?= $transaction['date']->nice() ?></div>
-      <div class="cell"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
-      <div class="cell">
-        <?= $transaction['transaction_id'] ?>
+          <?= $transaction['memo'] ?>
+        <?php endif;?>
+        </div>
+        <div class="cell c2"><?= $transaction['date']->nice() ?></div>
+        <div class="cell c2"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
+        <div class="cell c1">
+          <?= $transaction['transaction_id'] ?>
+        </div>
       </div>
     <?php endforeach; ?>
   </div>

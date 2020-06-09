@@ -34,12 +34,12 @@ $cakeDescription = 'Gradido';
 <body>
     <div class="content-default">
         <div class="content-container info-container">
-            <h1><a href=""><?= $this->fetch('title') ?></a></h1>
-            <ul class="nav-horizontal">
+            <ul class="nav-horizontal nav-top-smaller">
                 <li><?= $this->html->link(__('Logout'), ['controller' => 'ServerUsers', 'action' => 'logout'])?></li>
                 <li><a target="_blank" href="https://book.cakephp.org/3.0/">Documentation</a></li>
                 <li><a target="_blank" href="https://api.cakephp.org/3.0/">API</a></li>
             </ul>
+            <h1><a href=""><?= $this->fetch('title') ?></a></h1>
             <?= $this->Flash->render() ?>
             <?= $this->fetch('content') ?>
         </div>

@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\Transaction[]|\Cake\Collection\CollectionInterface $transactions
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Transaction'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List State Groups'), ['controller' => 'StateGroups', 'action' => 'index']) ?></li>
@@ -28,31 +28,21 @@
         <li><?= $this->Html->link(__('New Transaction Signature'), ['controller' => 'TransactionSignatures', 'action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="transactions index large-9 medium-8 columns content">
-    <h3><?= __('Transactions') ?></h3>
-    <table cellpadding="0" cellspacing="0" style="table-layout: auto">
-        <thead>
-            <tr>
-                <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('memo') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('transaction_type_id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('received') ?></th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($transactions as $transaction): ?>
-            <tr>
-                <td><?= $this->Number->format($transaction->id) ?></td>
-                <td><?= h($transaction->memo) ?></td>
-                <td><?= $transaction->has('transaction_type') ? $this->Html->link(__($transaction->transaction_type->name), ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></td>
-                <td><?= h($transaction->received) ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+<div class="content-list transactions">
+    <div class="content-list-table transactions">
+        <div class="cell header-cell"><?= $this->Paginator->sort('id') ?></div>
+        <div class="cell header-cell"><?= $this->Paginator->sort('memo') ?></div>
+        <div class="cell header-cell"><?= $this->Paginator->sort('transaction_type_id') ?></div>
+        <div class="cell header-cell"><?= $this->Paginator->sort('received') ?></div>
+        <?php foreach ($transactions as $transaction): ?>
+            <div class="cell"><?= $this->Number->format($transaction->id) ?></div>
+            <div class="cell"><?= h($transaction->memo) ?></div>
+            <div class="cell"><?= $transaction->has('transaction_type') ? $this->Html->link(__($transaction->transaction_type->name), ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></div>
+            <div class="cell"><?= h($transaction->received) ?></div>
+        <?php endforeach; ?>
+    </div>
     <div class="paginator">
-        <ul class="pagination">
+        <ul class="nav-horizontal pagination">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>
             <?= $this->Paginator->numbers() ?>

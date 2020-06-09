@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\TransactionSendCoin $transactionSendCoin
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit Transaction Send Coin'), ['action' => 'edit', $transactionSendCoin->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete Transaction Send Coin'), ['action' => 'delete', $transactionSendCoin->id], ['confirm' => __('Are you sure you want to delete # {0}?', $transactionSendCoin->id)]) ?> </li>

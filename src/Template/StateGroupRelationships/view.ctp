@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\StateGroupRelationship $stateGroupRelationship
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit State Group Relationship'), ['action' => 'edit', $stateGroupRelationship->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete State Group Relationship'), ['action' => 'delete', $stateGroupRelationship->id], ['confirm' => __('Are you sure you want to delete # {0}?', $stateGroupRelationship->id)]) ?> </li>

@@ -4,9 +4,9 @@
  * @var \App\Model\Entity\TransactionSendCoin[]|\Cake\Collection\CollectionInterface $transactionSendCoins
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav id="actions-sidebar">
     index.ctp
-    <ul class="side-nav">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Transaction Send Coin'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Transactions'), ['controller' => 'Transactions', 'action' => 'index']) ?></li>

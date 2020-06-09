@@ -4,13 +4,13 @@
  * @var \App\Model\Entity\ServerUser[]|\Cake\Collection\CollectionInterface $serverUsers
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Server User'), ['action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="serverUsers index large-9 medium-8 columns content">
+<div class="serverUsers">
     <h3><?= __('Server Users') ?></h3>
     <table cellpadding="0" cellspacing="0">
         <thead>

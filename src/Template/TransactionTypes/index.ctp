@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\TransactionType[]|\Cake\Collection\CollectionInterface $transactionTypes
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Transaction Type'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Transactions'), ['controller' => 'Transactions', 'action' => 'index']) ?></li>

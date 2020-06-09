@@ -356,12 +356,32 @@
   .nav-horizontal {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: flex-end;
     list-style-type: none;
     gap: 5%;
     padding: 1em;
+  }
+  .nav-top-smaller {
+    margin: 0;
+    padding: 0;
+  }
+  .nav-smaller {
+    justify-content: left;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0;
+  }
+  .nav-smaller li {
+    padding: 0 !important;
+    padding: 0.2em 0.5em !important;
+    border: 1px solid #047006;
+    margin: 0.1em 0.3em;
+    border-radius: 12px;
+  }
+  .nav-smaller .heading {
+    font-weight: bold;
   }
   .nav-vertical {
     margin-top: -2em;
@@ -456,7 +476,7 @@
   .content-default {
     display: flex;
     justify-content: center;
-    padding-top: 50px;
+    max-width: 90%;
   }
   .content {
     display: flex;
@@ -497,9 +517,6 @@
     border: 1px solid rgba(238, 238, 238, 0.75);
     margin: 1em 0.25em;
   }
-  .content-default .content-container {
-    min-width: 800px;
-  }
   /* Top Info Above Main */
   .info-container {
     max-width: 70%;
@@ -531,66 +548,6 @@
   }
   .info-item {
     border-left: 2px solid grey;
-  }
-  /* List Content */
-  .content-list {
-    width: 100%;
-  }
-  .content-list-title {
-    font-size: 1rem;
-    margin: 0;
-    padding: 20px 25px;
-    color: #313131;
-  }
-  .content-list-table {
-    display: grid;
-    width: 100%;
-    overflow: auto;
-    font-size: 16px;
-    color: #212529;
-  }
-  .cell {
-    padding: 1em 1.5em;
-  }
-  .header-cell {
-    border-top: 1px solid #f2f4f9;
-    background-color: #fafafa;
-    color: #101010;
-  }
-  .content-list-table img,
-  .content-list-table i {
-    vertical-align: middle;
-  }
-  .content-list-table > span {
-    font-size: 0.8em;
-    padding: 0.5em 2em;
-    vertical-align: middle;
-  }
-  /* Individual Tables */
-  .wiretransfer {
-    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
-  }
-  .error-list {
-    grid-template-columns: 2fr 2fr 5fr 1fr;
-  }
-  .profile-img {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    vertical-align: middle;
-    border-style: none;
-    box-sizing: border-box;
-  }
-  .tx-email {
-    cursor: pointer;
-    display: block;
-    color: #101010;
-  }
-  .small {
-    font-size: 80%;
-    font-weight: 400;
   }
   /* OTHER */
   .info-item i,
@@ -889,6 +846,111 @@ width: 80px;
 display: inline-block;
 }
 */
+/* ============================================================
+
+  Screen styles for lists.
+
+  Datei     :   list.css
+  Datum     :   2020-06-09
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  /* =========
+        LISTS
+       =========*/
+  /* List Content */
+  .content-list {
+    width: 100%;
+  }
+  .content-list-title {
+    font-size: 1rem;
+    margin: 0;
+    padding: 20px 25px;
+    color: #313131;
+  }
+  .content-list-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+    font-size: 16px;
+    color: #212529;
+  }
+  .row {
+    display: flex;
+    width: 100%;
+  }
+  .cell {
+    display: flex;
+    align-items: center;
+    padding: 1em 1.5em;
+  }
+  .c0 {
+    flex-grow: 5;
+  }
+  .c1 {
+    width: 80px;
+    flex: 0 0 80px;
+  }
+  .c2 {
+    width: 160px;
+    flex: 0 0 160px;
+  }
+  .c3 {
+    width: 240px;
+    flex: 0 0 240px;
+  }
+  .c4 {
+    width: 320px;
+    flex: 0 0 320px;
+  }
+  .header-cell {
+    border-top: 1px solid #f2f4f9;
+    background-color: #fafafa;
+    color: #101010;
+  }
+  .content-list-table img,
+  .content-list-table i {
+    vertical-align: middle;
+  }
+  .content-list-table > span {
+    font-size: 0.8em;
+    padding: 0.5em 2em;
+    vertical-align: middle;
+  }
+  /* Individual Tables */
+  .wiretransfer {
+    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+  .error-list {
+    grid-template-columns: 2fr 2fr 5fr 1fr;
+  }
+  .transactions {
+    grid-template-columns: 1fr 4fr 2fr 2fr;
+  }
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
+    margin-right: 40px;
+  }
+  .tx-email {
+    cursor: pointer;
+    display: block;
+    color: #101010;
+    font-weight: 400;
+  }
+  .small {
+    font-size: 80%;
+    font-weight: 400;
+  }
+}
 /*
 To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates

@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\ElopageBuy $elopageBuy
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit Elopage Buy'), ['action' => 'edit', $elopageBuy->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete Elopage Buy'), ['action' => 'delete', $elopageBuy->id], ['confirm' => __('Are you sure you want to delete # {0}?', $elopageBuy->id)]) ?> </li>

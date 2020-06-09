@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\AddressType[]|\Cake\Collection\CollectionInterface $addressTypes
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
+<nav id="actions-sidebar">
+    <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Address Type'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List State Group Addresses'), ['controller' => 'StateGroupAddresses', 'action' => 'index']) ?></li>

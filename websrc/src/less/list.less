@@ -1,0 +1,126 @@
+/* ============================================================
+
+  Screen styles for lists.
+
+  Datei     :   list.css
+  Datum     :   2020-06-09
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+
+    /* =========
+        LISTS
+       =========*/
+
+    /* List Content */
+    .content-list {
+        width: 100%;
+    }
+
+    .content-list-title {
+        font-size: 1rem;
+        margin: 0;
+        padding: 20px 25px;
+        color: @content-table-title;
+    }
+
+    .content-list-table {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        overflow: auto;
+        font-size: 16px;
+        color: #212529;
+    }
+
+    .row {
+        display: flex;
+        width: 100%;
+    }
+
+    .cell {
+        display: flex;
+        align-items: center;
+        padding: 1em 1.5em;
+    }
+
+    .c0 {
+        flex-grow: 5;
+    }
+
+    .c1 {
+        width: 80px;
+        flex: 0 0 80px;
+    }
+
+    .c2 {
+        width: 160px;
+        flex: 0 0 160px;
+    }
+
+    .c3 {
+        width: 240px;
+        flex: 0 0 240px;
+    }
+
+    .c4 {
+        width: 320px;
+        flex: 0 0 320px;
+    }
+
+    .header-cell {
+        border-top: 1px solid @content-table-header-border;
+        background-color: @content-table-header-bg;
+        color: @content-table-header;
+    }
+
+    .content-list-table img,
+    .content-list-table i {
+        vertical-align: middle;
+    }
+
+    .content-list-table > span {
+        font-size: .8em;
+        padding: .5em 2em;
+        vertical-align: middle;
+    }
+
+    /* Individual Tables */
+    .wiretransfer {
+        grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+    }
+
+    .error-list {
+        grid-template-columns: 2fr 2fr 5fr 1fr;
+    }
+
+    .transactions {
+        grid-template-columns: 1fr 4fr 2fr 2fr;
+    }
+
+    .profile-img {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        box-shadow: 0 0 2px 0 rgba(0, 0, 0, .2);
+        overflow: hidden;
+        border-style: none;
+        box-sizing: border-box;
+        margin-right: 40px;
+    }
+
+    .tx-email {
+        cursor: pointer;
+        display: block;
+        color: @content-table-header;
+        font-weight: 400;
+    }
+
+    .small {
+        font-size: 80%;
+        font-weight: 400;
+    }
+
+}
