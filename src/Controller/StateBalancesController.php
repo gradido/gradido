@@ -57,7 +57,11 @@ class StateBalancesController extends AppController
           if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
             $gdtSum = intval($gdtEntries['data']['sum']);
           } else {
-            $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user->id);
+            if($user) {
+              $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id']);
+            } else {
+              $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, 0);
+            }
           }
         //}
         //
@@ -205,7 +209,7 @@ class StateBalancesController extends AppController
             $this->set('publishers', $publishers);
           }
         } else {
-          $this->addAdminError('StateBalancesController', 'overviewGdt', $requestResult, $user->id);
+          $this->addAdminError('StateBalancesController', 'overviewGdt', $requestResult, $user['id']);
           $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }
         
