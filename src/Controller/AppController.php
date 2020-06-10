@@ -259,7 +259,7 @@ class AppController extends Controller
 
     public function addAdminError($controller, $action, array $returnTable, $state_user_id) {
       if(!is_array($returnTable)) {
-        $this->addAdminError('AppController', 'addAdminError', ['state' => 'error', 'msg' => 'returnTable isn\'t array', 'details' => gettype($returnTable)]);
+        $this->addAdminError('AppController', 'addAdminError', ['state' => 'error', 'msg' => 'returnTable isn\'t array', 'details' => gettype($returnTable)], $state_user_id);
         return false;
       }
       $adminErrorTable = TableRegistry::getTableLocator()->get('AdminErrors');
@@ -280,6 +280,7 @@ class AppController extends Controller
         $this->Flash->error(
                 __('Serious error, couldn\'t save to db, please write the admin: ' . $this->getAdminEmailLink()),
                 ['escape' => false]);
+        
       }
       return true;
     }
