@@ -37,12 +37,18 @@ FILE(GLOB PROTO_HEDERA "src/cpp/proto/hedera/*.cc" "src/cpp/proto/hedera/*.h")
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
+FILE(GLOB TEST_MODEL "src/cpp/test/model/*.cpp" "src/cpp/test/model/*.h")
+FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/table/*.h")
+FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
 
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
 	${JSONInterface} ${CRYPTO} ${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
 	${PROTO_GRADIDO} ${PROTO_HEDERA}
+)
+SET(LOCAL_TEST_SRC
+	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
@@ -63,6 +69,9 @@ source_group("lib" FILES ${LIB_SRC})
 source_group("HTTP-Interface" FILES ${HTTPInterface})
 source_group("Json-Interface" FILES ${JSONInterface})
 source_group("Test\\crypto" FILES ${TEST_CRYPTO})
+source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
+source_group("Test\\model" FILES ${TEST_MODEL})
+source_group("Test\\controller" FILES ${TEST_CONTROLLER})
 source_group("Test" FILES ${TEST})
 endif(MSVC)
 
@@ -152,7 +161,7 @@ enable_testing()
 #_TEST_BUILD
 
 
-add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${TEST} ${TEST_CRYPTO})
+add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})

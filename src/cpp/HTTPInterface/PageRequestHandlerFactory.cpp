@@ -26,7 +26,7 @@
 #include "TranslatePassphrase.h"
 #include "PassphrasedTransaction.h"
 #include "AdminUserPasswordReset.h"
-
+#include "RegisterDirectPage.h"
 
 #include "DecodeTransactionPage.h"
 #include "RepairDefectPassphrase.h"
@@ -116,6 +116,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 	if (url_first_part == "/register") {
 		auto pageRequestHandler = new RegisterPage;
+		pageRequestHandler->setProfiler(timeUsed);
+		return pageRequestHandler;
+	}
+	if (url_first_part == "/registerDirect") {
+		auto pageRequestHandler = new RegisterDirectPage;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
 	}

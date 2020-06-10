@@ -30,11 +30,7 @@ public:
 
 	int init(void(*fill_words_func)(unsigned char*), unsigned int original_size, unsigned int compressed_size);
 
-	inline const char* getWord(short index) const { 
-		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex); 
-		if (index < 2048 && index >= 0) return mWords[index]; 
-		return nullptr; 
-	}
+	const char* getWord(short index) const;
 	short getWordIndex(const char* word) const;
 	inline bool isWordExist(const std::string& word) const {
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);

@@ -16,6 +16,8 @@ public:
 
 	static Poco::AutoPtr<Passphrase> create(const Poco::UInt16 wordIndices[PHRASE_WORD_COUNT], const Mnemonic* wordSource);
 	static Poco::AutoPtr<Passphrase> create(const MemoryBin* wordIndices, const Mnemonic* wordSource);
+	//! \brief generate new passphrase with random
+	static Poco::AutoPtr<Passphrase> generate(const Mnemonic* wordSource);
 	static const Mnemonic* detectMnemonic(const std::string& passphrase, const KeyPairEd25519* keyPair = nullptr);
 
 	//! \brief transform passphrase into another language/mnemonic source

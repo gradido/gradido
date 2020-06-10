@@ -100,6 +100,9 @@
 				}
 				response.redirect(ServerConfig::g_serverPath + "/passphrase");
 				return;
+			case USER_KEYS_DONT_MATCH: 
+				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
+				break;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
 				auto referer = request.find("Referer");

@@ -426,8 +426,8 @@ User::User(Poco::AutoPtr<controller::User> ctrl_user)
 		mPublicHex = std::string((char*)(*hexStringTemp));
 		mm->releaseMemory(hexStringTemp);
 	}
-	if (model->existPrivateKeyCrypted()) {
-		auto privKeyVetor = model->getPrivateKeyCrypted();
+	if (model->hasPrivateKeyEncrypted()) {
+		auto privKeyVetor = model->getPrivateKeyEncrypted();
 		mPrivateKey = mm->getFreeMemory(privKeyVetor.size());
 		memcpy(*mPrivateKey, privKeyVetor.data(), privKeyVetor.size());
 	}

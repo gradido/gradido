@@ -3,15 +3,26 @@
 #include "sodium.h"
 
 #include "../SingletonManager/SessionManager.h"
+#include "../lib/DataTypeConverter.h"
+
 
 namespace controller {
 	User::User(model::table::User* dbModel)
+		: mPassword(nullptr), mGradidoKeyPair(nullptr)
 	{
 		mDBModel = dbModel;
 	}
 
 	User::~User()
 	{
+		if (mPassword) {
+			delete mPassword;
+			mPassword = nullptr;
+		}
+		if (mGradidoKeyPair) {
+			delete mGradidoKeyPair;
+			mGradidoKeyPair = nullptr;
+		}
 	}
 
 
@@ -109,6 +120,108 @@ namespace controller {
 			json.set("public_hex", pubkey);
 		}
 		return json;
+	}
+
+	int User::login(const std::string& password)
+	{
+		if (mPassword && mPassword->hasKey()) {
+			return 2;
+		}
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		auto authenticated_encryption = new AuthenticatedEncryption();
+		auto model = getModel();
+		assert(authenticated_encryption && model);
+
+		authenticated_encryption->createKey(model->getEmail(), password);
+		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) {
+			MemoryBin* clear_private_key = nullptr;
+			auto priv_key_encrypted = model->getPrivateKeyEncrypted();
+			auto priv_key_bin = MemoryManager::getInstance()->getFreeMemory(priv_key_encrypted.size());
+			memcpy(*priv_key_bin, priv_key_encrypted.data(), priv_key_encrypted.size());
+			if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(priv_key_bin, &clear_private_key)) {
+				auto gradido_key_pair = new KeyPairEd25519(clear_private_key);
+				if (*gradido_key_pair != model->getPublicKey()) {
+					delete authenticated_encryption;
+					delete gradido_key_pair;
+					return -1;
+				}
+				if (mGradidoKeyPair) delete mGradidoKeyPair;
+				mGradidoKeyPair = gradido_key_pair;
+				if (mPassword) delete mPassword;
+				mPassword = authenticated_encryption;
+				return 1;
+			}
+		}
+		delete authenticated_encryption;
+
+		// password didn't match
+		return 0;
+	}
+
+	void User::setGradidoKeyPair(KeyPairEd25519* gradidoKeyPair)
+	{
+		assert(gradidoKeyPair);
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		if (mGradidoKeyPair) delete mGradidoKeyPair;
+		mGradidoKeyPair = gradidoKeyPair;
+		getModel()->setPublicKey(mGradidoKeyPair->getPublicKey());
+	}
+
+	int User::setPassword(AuthenticatedEncryption* passwd) 
+	{
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		auto model = getModel();
+		const static char* function_name = "controller::User::setPassword";
+
+		if (mPassword) 
+		{
+			// if keys matched
+			if (*mPassword == *passwd) {
+				// but separate objects
+				if (mPassword != passwd) {
+					delete passwd;
+				}
+				return 0;
+			}
+			// if password exist but gradido key pair not, try to load key pair
+			if ((!mGradidoKeyPair || !mGradidoKeyPair->hasPrivateKey()) && model->hasPrivateKeyEncrypted()) {
+				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
+				MemoryBin* clear_private_key = nullptr;
+				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+					if (mGradidoKeyPair) delete mGradidoKeyPair;
+					mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
+					
+					// check if saved pubkey and from private key extracted pubkey match
+					if (*mGradidoKeyPair != model->getPublicKey()) {
+						delete mGradidoKeyPair;
+						mGradidoKeyPair = nullptr;
+						delete passwd;
+						return -1;
+					}
+				}
+			}
+		}
+		// replace old password with new
+		if (mPassword && mPassword != passwd) {
+			delete mPassword;
+		}
+		mPassword = passwd;
+
+		// set new encrypted password and hash
+		model->setPasswordHashed(mPassword->getKeyHashed());
+		int result = 2;
+		if (mGradidoKeyPair && mGradidoKeyPair->hasPrivateKey()) {
+			auto encryptedPrivateKey = mGradidoKeyPair->getCryptedPrivKey(mPassword);
+			model->setPrivateKey(encryptedPrivateKey);
+			MemoryManager::getInstance()->releaseMemory(encryptedPrivateKey);
+
+			result = model->updatePrivkeyAndPasswordHash();
+		}
+		else {
+			model->updateIntoDB("password", mPassword->getKeyHashed());
+		}
+		// save changes to db
+		return result;
 	}
 
 }

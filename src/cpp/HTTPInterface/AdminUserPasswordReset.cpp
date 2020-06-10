@@ -207,7 +207,7 @@ void AdminUserPasswordReset::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</li>\n";
 	responseStream << "\t\t\t<li>Private Key verschlüsselt: ";
 #line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"
-	responseStream << ( std::to_string(userModel->existPrivateKeyCrypted()) );
+	responseStream << ( std::to_string(userModel->hasPrivateKeyEncrypted()) );
 	responseStream << "</li>\n";
 	responseStream << "\t\t\t<li>Passwort gesetzt: ";
 #line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminUserPasswordReset.cpsp"

@@ -9,13 +9,6 @@
 
 void TestAuthenticatedEncryption::SetUp()
 {
-	if (!ServerConfig::g_CryptoAppSecret) {
-		ServerConfig::g_CryptoAppSecret = DataTypeConverter::hexToBin("21ffbbc616fe");
-	}
-	if (!ServerConfig::g_ServerCryptoKey) {
-		auto serverKey = DataTypeConverter::hexToBin("a51ef8ac7ef1abf162fb7a65261acd7a");
-		ServerConfig::g_ServerCryptoKey = new ObfusArray(serverKey->size(), *serverKey);
-	}
 }
 
 TEST_F(TestAuthenticatedEncryption, encryptDecryptTest) {

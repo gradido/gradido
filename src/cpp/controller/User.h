@@ -2,7 +2,10 @@
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_USER_INCLUDE
 
 #include "../model/table/User.h"
+//#include "../Crypto/AuthenticatedEncryption.h"
+#include "../Crypto/KeyPairEd25519.h"
 
+#include <shared_mutex>
 
 #include "TableControllerBase.h"
 
@@ -34,17 +37,52 @@ namespace controller {
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }
 
-
 		std::string getEmailWithNames();
 		const std::string& getPublicHex();
-		
 
+		//! \brief check if password match saved password, long duration 
+		//! \return 1 logged in
+		//! \return 2 already logged in
+		//! \return 0 password didn't match
+		//! \return -1 error saved public key didn't match with private key
+		//! - create authenticated encryption key from password and email
+		//! - compare hash with in db saved hash
+		
+		int login(const std::string& password);
+		
+		// ***********************************************************************************
+		// password related
+		//! \brief set authenticated encryption and save hash in db, also re encrypt private key if exist
+		//! \param passwd take owner ship 
+		//! \return 0 = new and current passwords are the same
+		//! \return 1 = password changed, private key re-encrypted and saved into db
+		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+		//! \return -1 = stored pubkey and private key didn't match
+		int setPassword(AuthenticatedEncryption* passwd); 
+
+		inline const AuthenticatedEncryption* getPassword() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mPassword;
+		}
+		//! \brief set key pair, public in model, private with next setPassword call into model
+		//! \param gradidoKeyPair take owner ship
+		void setGradidoKeyPair(KeyPairEd25519* gradidoKeyPair);
+
+		inline const KeyPairEd25519* getGradidoKeyPair() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mGradidoKeyPair;
+		}
 	protected:
 		User(model::table::User* dbModel);
+
+		
 		
 		std::string mPublicHex;
 
+		AuthenticatedEncryption* mPassword;
+		KeyPairEd25519*          mGradidoKeyPair;
 
+		mutable std::shared_mutex mSharedMutex;
 	};
 }
 

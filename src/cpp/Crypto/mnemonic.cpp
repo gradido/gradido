@@ -9,6 +9,13 @@
 
 #include "DRRandom.h"
 
+#include "../SingletonManager/ErrorManager.h"
+#include "../ServerConfig.h"
+
+#include "Poco/RegularExpression.h"
+
+static Poco::RegularExpression g_checkValidWord("^[a-zA-Zƒ÷‹‰ˆ¸ﬂ&;]*$");
+
 Mnemonic::Mnemonic()
 {
 	memset(mWords, 0, 2048);
@@ -179,6 +186,49 @@ bool Mnemonic::isWordExist(const std::string& word) const
 	//return mWordHashIndices.find(word_hash) != mWordHashIndices.end(); 
 }
 */
+
+const char* Mnemonic::getWord(short index) const {
+	//std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+	
+	if (index < 2048 && index >= 0) {
+		std::string word;
+		{
+			std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+			word = mWords[index];
+		}
+
+		if (!g_checkValidWord.match(word, 0, Poco::RegularExpression::RE_NOTEMPTY)) {
+			auto em = ErrorManager::getInstance();
+			const char* function_name = "Mnemonic::getWord";
+			em->addError(new ParamError(function_name, "invalid word", word));
+			em->addError(new Error(function_name, "try to reload mnemonic word list, but this error is maybe evidence for a serious memory problem!!!"));
+
+			if (!ServerConfig::loadMnemonicWordLists()) {
+				em->addError(new Error(function_name, "error reloading mnemonic word lists"));
+				em->sendErrorsAsEmail();
+				return nullptr;
+			}
+
+			{
+				std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+				word = mWords[index];
+			}
+			if (!g_checkValidWord.match(word, 0, Poco::RegularExpression::RE_NOTEMPTY)) {
+				em->addError(new Error(function_name, "word invalid after reload mnemonic word lists"));
+				em->sendErrorsAsEmail();
+				return nullptr;
+			}
+			em->sendErrorsAsEmail();
+
+		}
+
+		{
+			std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+			return mWords[index];
+		}
+	}
+	return nullptr;
+}
 
 void Mnemonic::clear()
 {

@@ -84,7 +84,7 @@ void PassphraseTest::SetUp()
 		wordIndices3
 	));
 
-	ServerConfig::loadMnemonicWordLists();
+	
 }
 
 TEST_F(PassphraseTest, detectMnemonic) {

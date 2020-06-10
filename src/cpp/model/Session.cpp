@@ -15,8 +15,12 @@
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
 #include "../tasks/SigningTransaction.h"
+#include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 
 #include "../lib/JsonRequest.h"
+
+#include "../Crypto/Passphrase.h"
+
 
 #include "../controller/User.h"
 #include "../controller/UserBackups.h"
@@ -309,6 +313,65 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	// send email
 	
 	//printf("[Session::createUser] time: %s\n", usedTime.string().data());
+
+	return true;
+}
+
+bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
+{
+	static const char* function_name = "Session::createUserDirect";
+	auto sm = SessionManager::getInstance();
+	auto em = ErrorManager::getInstance();
+
+	if (!sm->isValid(first_name, VALIDATE_NAME)) {
+		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
+		return false;
+	}
+	if (!sm->isValid(last_name, VALIDATE_NAME)) {
+		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
+		return false;
+	}
+	if (!sm->isValid(email, VALIDATE_EMAIL)) {
+		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
+		return false;
+	}
+	if (!sm->checkPwdValidation(password, this)) {
+		return false;
+	}
+
+	// check if email already exist
+	auto user = controller::User::create();
+	if (user->load(email) >= 1) {
+		addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits ein Konto")), false);
+		return false;
+	}
+
+	mNewUser = controller::User::create(email, first_name, last_name);
+	auto user_model = mNewUser->getModel();
+	user_model->insertIntoDB(true);
+	auto user_id = user_model->getID();
+	
+
+	// one retry in case of connection error
+	if (!user_id) {
+		user_model->insertIntoDB(true);
+		auto user_id = user_model->getID();
+		if (!user_id) {
+			em->addError(new ParamError(function_name, "error saving new user in db, after one retry with email", email));
+			em->sendErrorsAsEmail();
+			addError(new Error(gettext("Server"), gettext("Fehler beim speichen des Kontos bitte versuche es später noch einmal")), false);
+			return false;
+		}
+	}
+	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES]);
+	if (passphrase.isNull()) {
+		em->addError(new ParamError(function_name, "error generating passphrase for", email));
+		em->sendErrorsAsEmail();
+	}
+	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
+	mNewUser->setGradidoKeyPair(gradido_key_pair);
+	UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(mNewUser, password);
+	create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
 
 	return true;
 }
@@ -631,6 +694,7 @@ bool Session::isPwdValid(const std::string& pwd)
 
 UserStates Session::loadUser(const std::string& email, const std::string& password)
 {
+	static const char* functionName = "Session::loadUser";
 	auto observer = SingletonTaskObserver::getInstance();
 	if (email != "") {
 		if (observer->getTaskCount(email, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
@@ -638,7 +702,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}
 	}
 	//Profiler usedTime;
-	lock("Session::loadUser");
+	lock(functionName);
 	if (mSessionUser && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
@@ -653,6 +717,20 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		//mSessionUser = new User(email.data());
 	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
+		int loginResult = mNewUser->login(password);
+		
+		if (-1 == loginResult) {
+			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
+			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
+			sendErrorsAsEmail();
+			//unlock();
+			//return USER_KEYS_DONT_MATCH;
+		}
+		if (0 == loginResult) {
+			unlock();
+			return USER_PASSWORD_INCORRECT;
+		}
+		// can be removed if session user isn't used any more
 		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;

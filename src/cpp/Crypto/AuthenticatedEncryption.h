@@ -5,6 +5,7 @@
 #include "../SingletonManager/MemoryManager.h"
 
 #include <shared_mutex>
+#include <vector>
 
 /*! 
  * 
@@ -46,6 +47,9 @@ public:
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 		return mEncryptionKeyHash == b.getKeyHashed();
 	}
+	inline bool operator == (const KeyHashed& hash) const {
+		return mEncryptionKeyHash == hash;
+	}
 
 	inline bool hasKey() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKey != nullptr; }
 
@@ -56,11 +60,16 @@ public:
 	//! \return AUTH_CREATE_ENCRYPTION_KEY_FAILED call strerror(errno) for more details 
 	ResultType createKey(const std::string& salt_parameter, const std::string& passwd);
 
-	ResultType encrypt(const MemoryBin* message, MemoryBin** encryptedMessage);
+	ResultType encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const;
 
-	ResultType decrypt(const MemoryBin* encryptedMessage, MemoryBin** message);
+	ResultType decrypt(const MemoryBin* encryptedMessage, MemoryBin** message) const;
+	//! \brief same as the other decrypt only in other format
+	//! \param encryptedMessage format from Poco Binary Data from DB, like returned from model/table/user for encrypted private key
+	//! 
+	//! double code, I don't know how to prevent without unnecessary copy of encryptedMessage
+	ResultType decrypt(const std::vector<unsigned char>& encryptedMessage, MemoryBin** message) const;
 
-	const char* getErrorMessage(ResultType type);
+	static const char* getErrorMessage(ResultType type);
 
 protected:
 	// algorithms parameter
@@ -74,5 +83,7 @@ protected:
 
 	mutable std::shared_mutex mWorkingMutex;
 };
+
+
 
 #endif //__GRADIDO_LOGIN_SERVER_CRYPTO_AUTHENTICATED_ENCRYPTION_H
