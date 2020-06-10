@@ -38,6 +38,13 @@
     .row {
         display: flex;
         width: 100%;
+        border-top: 1px solid #f2f4f9;
+        -webkit-transition-duration: .5s;
+        transition-duration: .5s;
+    }
+
+    .row:hover {
+        background-color: #f6f7f9;
     }
 
     .cell {
@@ -87,7 +94,7 @@
         vertical-align: middle;
     }
 
-    /* Individual Tables */
+    /* Individual Tables XXX rm!! */
     .wiretransfer {
         grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
     }

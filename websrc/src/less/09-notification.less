@@ -1,0 +1,181 @@
+/* ============================================================
+
+  Notification
+
+  Datei     :   notification.css
+  Datum     :   2020-06-10
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+    .header-notify {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        padding-left: 0;
+        margin-bottom: 0;
+        list-style: none;
+    }
+
+    .nav-link {
+        display: block;
+        padding: .5rem 1rem;
+        color: #525c5d;
+    }
+
+    .notification-indicator {
+        display: block;
+        width: 7px;
+        height: 7px;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        border-radius: 100%;
+        z-index: 99000;
+    }
+
+    .notification-indicator:before {
+        content: "";
+        display: block;
+        width: 26px;
+        height: 26px;
+        z-index: 99000;
+        border-radius: 100%;
+        opacity: 0;
+        -webkit-transform-origin: 50% 50%;
+        transform-origin: 50% 50%;
+        mix-blend-mode: screen;
+        -webkit-animation: blink 1.2s ease-out;
+        animation: blink 1.2s ease-out;
+        -webkit-animation-iteration-count: infinite;
+        animation-iteration-count: infinite
+    }
+
+    @-webkit-keyframes blink {
+        0%,
+        35% {
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 1
+        }
+
+        50% {
+            -webkit-transform: scale(.6);
+            transform: scale(.6);
+            opacity: .8
+        }
+
+        100% {
+            opacity: 0;
+            -webkit-transform: scale(1.2);
+            transform: scale(1.2)
+        }
+
+    }
+
+    @keyframes blink {
+        0%,
+        35% {
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 1
+        }
+
+        50% {
+            -webkit-transform: scale(.6);
+            transform: scale(.6);
+            opacity: .8
+        }
+
+        100% {
+            opacity: 0;
+            -webkit-transform: scale(1.2);
+            transform: scale(1.2)
+        }
+
+    }
+
+    .notification-indicator-primary {
+        background: #047006
+    }
+
+    .notification-indicator-primary:before {
+        content: "";
+        background: rgba(4, 112, 6, .5)
+    }
+
+    .notification-indicator-warning {
+        background: #f0825f
+    }
+
+    .notification-indicator-warning:before {
+        content: "";
+        background: rgba(240, 130, 95, .5)
+    }
+
+    /*    .notification-indicator-secondary {
+            background: grey
+        }
+
+        .notification-indicator-secondary:before {
+            content: "";
+            background: rgba(128, 128, 128, .5)
+        }
+
+        .notification-indicator-success {
+            background: #00e093
+        }
+
+        .notification-indicator-success:before {
+            content: "";
+            background: rgba(0, 224, 147, .5)
+        }
+
+        .notification-indicator-info {
+            background: #6c61f6
+        }
+
+        .notification-indicator-info:before {
+            content: "";
+            background: rgba(108, 97, 246, .5)
+        }
+
+
+        .notification-indicator-danger {
+            background: #ff5f66
+        }
+
+        .notification-indicator-danger:before {
+            content: "";
+            background: rgba(255, 95, 102, .5)
+        }
+
+        .notification-indicator-light {
+            background: #dfdfdf
+        }
+
+        .notification-indicator-light:before {
+            content: "";
+            background: rgba(223, 223, 223, .5)
+        }
+
+        .notification-indicator-dark {
+            background: #74767b
+        }
+
+        .notification-indicator-dark:before {
+            content: "";
+            background: rgba(116, 118, 123, .5)
+        }
+
+        .notification-indicator-white {
+            background: #fff
+        }
+
+        .notification-indicator-white:before {
+            content: "";
+            background: rgba(255, 255, 255, .5)
+        }
+    */
+}

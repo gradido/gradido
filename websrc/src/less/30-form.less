@@ -43,12 +43,10 @@ and open the template in the editor.
   .form-control {
     grid-column: 2 / 3;
     display: block;
-    width: 100%;
-    height: calc(1.5em + .75rem + 2px);
-    margin: 0;
-    padding: .375rem .75rem;
+    padding: .4em .75em;
     padding-left: 20px;
     padding-right: 20px;
+    margin: 0;
     color: rgba(16, 16, 16, .8);
     display: block;
     font-size: 1rem;
@@ -61,6 +59,42 @@ and open the template in the editor.
     border-radius: .25rem;
     -webkit-transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  }
+
+  .form-control:focus {
+    color: #495057;
+    background-color: #f6f7f9;
+    border-color: #d7dee5;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: .45rem 1rem;
+    font-size: 80%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+    -webkit-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+  }
+
+  .badge-warning {
+    color: @badge-color-warning;
+    background-color: @badge-background-warning;
+  }
+
+  .badge-error {
+    color: @badge-color-error;
+    background-color: @badge-background-error;
   }
 
   .form-button {
@@ -102,6 +136,7 @@ and open the template in the editor.
   .center-form .form-control {
     width: 90%;
   }
+
   .center-form fieldset {
     margin-bottom: 1em;
   }

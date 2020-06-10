@@ -32,8 +32,8 @@ $this->loadHelper('Form', [
 
     $('textarea').maxlength({
         alwaysShow: true,
-        warningClass: "badge mt-1 badge-success",
-        limitReachedClass: "badge mt-1 badge-danger"
+        warningClass: "badge badge-warning",
+        limitReachedClass: "badge badge-error"
     });
 })(jQuery);
 </script>

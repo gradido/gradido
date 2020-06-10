@@ -23,7 +23,7 @@
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: [top] 2vh [line2] 86vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-rows: [top] 6vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
   grid-template-columns: [left1] 1fr [left2] 1fr [left3] 8fr [right3] 1fr [right2] 1fr [right1];
   grid-template-areas: "header header header header header"
   "left . center . ."
@@ -33,9 +33,12 @@
   padding: 0;
 }
 
-/*.header {
+.header-notify {
   grid-area: header;
-}*/
+  grid-column-start: right3;
+  grid-column-end: right2;
+}
+
 .sidebar1 {
   grid-area: left;
   grid-row-start: top;

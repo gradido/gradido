@@ -24,20 +24,20 @@ class NavHeaderEntry
 */
 ?>
 <?php if($errorCount > 0) : ?>
-<li>
    <?= $this->Html->link(
-           '<i class="mdi mdi-alert-outline grd-alert-color mdi-1x"></i>'
-         . '<span class="notification-indicator notification-indicator-warning notification-indicator-ripple"></span>',
+           '<i class="material-icons-outlined grd-alert-color">announcement</i>'
+          . '<span class="notification-indicator notification-indicator-warning">ss</span>',
            ['controller' => 'StateErrors', 'action' => 'ShowForUser'],
            ['class' => 'nav-link', 'escape' => false, 'title' => "$errorCount " . __('Fehler')]) ?>
-</li>
 <?php endif; ?>
 <?php if($transactionPendings > 0) : ?>
-<li>
   <a class="nav-link" title="<?= "$transactionPendings " . __('Transaktionen sind noch zu unterzeichnen')?>" href="<?= Router::url('./', true) ?>account/checkTransactions">
-    <i class="mdi mdi-signature-freehand mdi-1x"></i>
+    <i class="material-icons-outlined">verified_user</i>
+    <!--
+      fingerprint
+      today
+    -->
     <!--(<?= $transactionPendings ?>)-->
-    <span class="notification-indicator notification-indicator-primary notification-indicator-ripple"></span>
+    <span class="notification-indicator notification-indicator-primary">ss</span>
   </a>
-</li>
 <?php endif; ?>

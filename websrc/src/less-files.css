@@ -15,15 +15,17 @@
 /* GRID */
 .layout {
   display: grid;
-  grid-template-rows: [top] 2vh [line2] 86vh [footer1] 7vh [footer2] 5vh [end];
+  grid-template-rows: [top] 6vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
   grid-template-columns: [left1] 1fr [left2] 1fr [left3] 8fr [right3] 1fr [right2] 1fr [right1];
   grid-template-areas: "header header header header header" "left . center . ." "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
 }
-/*.header {
+.header-notify {
   grid-area: header;
-}*/
+  grid-column-start: right3;
+  grid-column-end: right2;
+}
 .sidebar1 {
   grid-area: left;
   grid-row-start: top;
@@ -77,7 +79,7 @@
    ============================================================*/
 /* ============================================================
 
-  Screen styles.
+  Basic screen styles.
 
   Datei     :   screen.less
   Datum     :   2020-04-30
@@ -144,6 +146,7 @@
     align-items: center;
     font-size: 70%;
     font-style: italic;
+    line-height: 0;
   }
   .bottomright {
     position: fixed;
@@ -210,6 +213,12 @@
   .gdt-text-color {
     color: #a27824;
   }
+  .grd-alert-color {
+    color: #ff5f66;
+  }
+  .grd-success-color {
+    color: #047006;
+  }
   .grd-orange-color {
     color: #ffa600;
   }
@@ -225,7 +234,7 @@
   Datei     :   navi.less
   Datum     :   2020-04-30
   Autor     :   einhornimmond / Christine Slotty
-  Copyright :   Gradio
+  Copyright :   Gradido
 
    ============================================================*/
 @media screen {
@@ -363,6 +372,11 @@
     gap: 5%;
     padding: 1em;
   }
+  .footer .nav-horizontal {
+    gap: 0;
+    padding: 0 1em;
+    padding-inline-start: 0 !important;
+  }
   .nav-top-smaller {
     margin: 0;
     padding: 0;
@@ -458,6 +472,171 @@
   .logo.small {
     display: block;
   }
+}
+/* ============================================================
+
+  Notification
+
+  Datei     :   notification.css
+  Datum     :   2020-06-10
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .header-notify {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+  }
+  .nav-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #525c5d;
+  }
+  .notification-indicator {
+    display: block;
+    width: 7px;
+    height: 7px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border-radius: 100%;
+    z-index: 99000;
+  }
+  .notification-indicator:before {
+    content: "";
+    display: block;
+    width: 26px;
+    height: 26px;
+    z-index: 99000;
+    border-radius: 100%;
+    opacity: 0;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    mix-blend-mode: screen;
+    -webkit-animation: blink 1.2s ease-out;
+    animation: blink 1.2s ease-out;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+  }
+  @-webkit-keyframes blink {
+    0%,
+    35% {
+      -webkit-transform: scale(0);
+      transform: scale(0);
+      opacity: 1;
+    }
+    50% {
+      -webkit-transform: scale(0.6);
+      transform: scale(0.6);
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0;
+      -webkit-transform: scale(1.2);
+      transform: scale(1.2);
+    }
+  }
+  @keyframes blink {
+    0%,
+    35% {
+      -webkit-transform: scale(0);
+      transform: scale(0);
+      opacity: 1;
+    }
+    50% {
+      -webkit-transform: scale(0.6);
+      transform: scale(0.6);
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0;
+      -webkit-transform: scale(1.2);
+      transform: scale(1.2);
+    }
+  }
+  .notification-indicator-primary {
+    background: #047006;
+  }
+  .notification-indicator-primary:before {
+    content: "";
+    background: rgba(4, 112, 6, 0.5);
+  }
+  .notification-indicator-warning {
+    background: #f0825f;
+  }
+  .notification-indicator-warning:before {
+    content: "";
+    background: rgba(240, 130, 95, 0.5);
+  }
+  /*    .notification-indicator-secondary {
+            background: grey
+        }
+
+        .notification-indicator-secondary:before {
+            content: "";
+            background: rgba(128, 128, 128, .5)
+        }
+
+        .notification-indicator-success {
+            background: #00e093
+        }
+
+        .notification-indicator-success:before {
+            content: "";
+            background: rgba(0, 224, 147, .5)
+        }
+
+        .notification-indicator-info {
+            background: #6c61f6
+        }
+
+        .notification-indicator-info:before {
+            content: "";
+            background: rgba(108, 97, 246, .5)
+        }
+
+
+        .notification-indicator-danger {
+            background: #ff5f66
+        }
+
+        .notification-indicator-danger:before {
+            content: "";
+            background: rgba(255, 95, 102, .5)
+        }
+
+        .notification-indicator-light {
+            background: #dfdfdf
+        }
+
+        .notification-indicator-light:before {
+            content: "";
+            background: rgba(223, 223, 223, .5)
+        }
+
+        .notification-indicator-dark {
+            background: #74767b
+        }
+
+        .notification-indicator-dark:before {
+            content: "";
+            background: rgba(116, 118, 123, .5)
+        }
+
+        .notification-indicator-white {
+            background: #fff
+        }
+
+        .notification-indicator-white:before {
+            content: "";
+            background: rgba(255, 255, 255, .5)
+        }
+    */
 }
 /* ============================================================
 
@@ -565,113 +744,114 @@
 /* Ende @media screen */
 /* ============================================================
 
-  Print styles.
+  Screen styles for lists.
 
-  Datei     :   print.css
-  Datum     :   2020-04-30
+  Datei     :   list.css
+  Datum     :   2020-06-09
   Autor     :   Christine Slotty
   Copyright :   Gradio
 
    ============================================================*/
-/* ---------------------------------------------------------
-   Print styles
-   ---------------------------------------------------------*/
-@media print {
-  * {
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    background: transparent !important;
+@media screen {
+  /* =========
+        LISTS
+       =========*/
+  /* List Content */
+  .content-list {
+    width: 100%;
   }
-  html {
-    background-color: #111;
+  .content-list-title {
+    font-size: 1rem;
+    margin: 0;
+    padding: 20px 25px;
+    color: #313131;
   }
-  /* Hide navigation */
-  nav {
-    display: none;
+  .content-list-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+    font-size: 16px;
+    color: #212529;
   }
-  /* Show link destinations in brackets after the link text */
-  a[href]:after {
-    content: " (" attr(href) ") ";
+  .row {
+    display: flex;
+    width: 100%;
+    border-top: 1px solid #f2f4f9;
+    -webkit-transition-duration: 0.5s;
+    transition-duration: 0.5s;
   }
-  a[href] {
-    font-weight: bold;
-    text-decoration: underline;
-    color: #06c;
-    border: none;
+  .row:hover {
+    background-color: #f6f7f9;
   }
-  /* Don't show link destinations for JavaScript or internal links */
-  a[href^="javascript:"]:after,
-  a[href^="#"]:after {
-    content: "";
+  .cell {
+    display: flex;
+    align-items: center;
+    padding: 1em 1.5em;
   }
-  /* Show abbr title value in brackets after the text */
-  abbr[title]:after {
-    content: " (" attr(title) ")";
+  .c0 {
+    flex-grow: 5;
   }
-  figure {
-    margin-bottom: 1em;
+  .c1 {
+    width: 80px;
+    flex: 0 0 80px;
+  }
+  .c2 {
+    width: 160px;
+    flex: 0 0 160px;
+  }
+  .c3 {
+    width: 240px;
+    flex: 0 0 240px;
+  }
+  .c4 {
+    width: 320px;
+    flex: 0 0 320px;
+  }
+  .header-cell {
+    border-top: 1px solid #f2f4f9;
+    background-color: #fafafa;
+    color: #101010;
+  }
+  .content-list-table img,
+  .content-list-table i {
+    vertical-align: middle;
+  }
+  .content-list-table > span {
+    font-size: 0.8em;
+    padding: 0.5em 2em;
+    vertical-align: middle;
+  }
+  /* Individual Tables XXX rm!! */
+  .wiretransfer {
+    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
+  }
+  .error-list {
+    grid-template-columns: 2fr 2fr 5fr 1fr;
+  }
+  .transactions {
+    grid-template-columns: 1fr 4fr 2fr 2fr;
+  }
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
+    margin-right: 40px;
   }
-  figure img {
-    border: 1px solid #000;
+  .tx-email {
+    cursor: pointer;
+    display: block;
+    color: #101010;
+    font-weight: 400;
   }
-}
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/*
-    Created on : 12.07.2019, 07:59:32
-    Author     : einhornimmond
-*/
-div[role='grd_dialog'] {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-  top: 0;
-  left: 0;
-}
-div.grd_modal-dialog {
-  margin-top: 100px;
-  min-height: 200px;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #fff;
-  color: #000;
-  border: 1px solid grey;
-}
-div.grd_modal-dialog.grd_dialog-large {
-  margin-top: 5px;
-  width: 90%;
-}
-div.grd_modal-body {
-  padding: 25px;
-}
-div.grd_modal-header {
-  background-color: rgba(0, 0, 0, 0.1);
-  padding: 5px;
-  padding-left: 15px;
-  border: 1px solid grey;
-  color: #000;
-}
-div.grd_modal-footer {
-  background-color: rgba(0, 0, 0, 0.1);
-  height: 40px;
-}
-.grd_modal-footer a,
-.grd_modal-footer button {
-  float: right;
-  padding: 9px;
-  margin-right: 10px;
-  border: 1px solid grey;
-}
-.grd_modal-footer a:hover,
-.grd_modal-footer button:hover {
-  background-color: rgba(255, 255, 255, 0.5);
+  .small {
+    font-size: 80%;
+    font-weight: 400;
+  }
 }
 /*
 To change this license header, choose License Headers in Project Properties.
@@ -711,12 +891,10 @@ and open the template in the editor.
   }
   .form-control {
     grid-column: 0.66666667;
-    width: 100%;
-    height: calc(1.5em + 0.75rem + 2px);
-    margin: 0;
-    padding: 0.375rem 0.75rem;
+    padding: 0.4em 0.75em;
     padding-left: 20px;
     padding-right: 20px;
+    margin: 0;
     color: rgba(16, 16, 16, 0.8);
     display: block;
     font-size: 1rem;
@@ -729,6 +907,37 @@ and open the template in the editor.
     border-radius: 0.25rem;
     -webkit-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  .form-control:focus {
+    color: #495057;
+    background-color: #f6f7f9;
+    border-color: #d7dee5;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  textarea {
+    resize: vertical;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    font-size: 80%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    -webkit-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  .badge-warning {
+    color: #fff;
+    background-color: #00e093;
+  }
+  .badge-error {
+    color: #fff;
+    background-color: #ff5f66;
   }
   .form-button {
     cursor: pointer;
@@ -848,108 +1057,113 @@ display: inline-block;
 */
 /* ============================================================
 
-  Screen styles for lists.
+  Print styles.
 
-  Datei     :   list.css
-  Datum     :   2020-06-09
+  Datei     :   print.css
+  Datum     :   2020-04-30
   Autor     :   Christine Slotty
   Copyright :   Gradio
 
    ============================================================*/
-@media screen {
-  /* =========
-        LISTS
-       =========*/
-  /* List Content */
-  .content-list {
-    width: 100%;
+/* ---------------------------------------------------------
+   Print styles
+   ---------------------------------------------------------*/
+@media print {
+  * {
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: transparent !important;
   }
-  .content-list-title {
-    font-size: 1rem;
-    margin: 0;
-    padding: 20px 25px;
-    color: #313131;
+  html {
+    background-color: #111;
   }
-  .content-list-table {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow: auto;
-    font-size: 16px;
-    color: #212529;
+  /* Hide navigation */
+  nav {
+    display: none;
   }
-  .row {
-    display: flex;
-    width: 100%;
+  /* Show link destinations in brackets after the link text */
+  a[href]:after {
+    content: " (" attr(href) ") ";
   }
-  .cell {
-    display: flex;
-    align-items: center;
-    padding: 1em 1.5em;
+  a[href] {
+    font-weight: bold;
+    text-decoration: underline;
+    color: #06c;
+    border: none;
   }
-  .c0 {
-    flex-grow: 5;
+  /* Don't show link destinations for JavaScript or internal links */
+  a[href^="javascript:"]:after,
+  a[href^="#"]:after {
+    content: "";
   }
-  .c1 {
-    width: 80px;
-    flex: 0 0 80px;
+  /* Show abbr title value in brackets after the text */
+  abbr[title]:after {
+    content: " (" attr(title) ")";
   }
-  .c2 {
-    width: 160px;
-    flex: 0 0 160px;
-  }
-  .c3 {
-    width: 240px;
-    flex: 0 0 240px;
-  }
-  .c4 {
-    width: 320px;
-    flex: 0 0 320px;
-  }
-  .header-cell {
-    border-top: 1px solid #f2f4f9;
-    background-color: #fafafa;
-    color: #101010;
-  }
-  .content-list-table img,
-  .content-list-table i {
-    vertical-align: middle;
-  }
-  .content-list-table > span {
-    font-size: 0.8em;
-    padding: 0.5em 2em;
-    vertical-align: middle;
-  }
-  /* Individual Tables */
-  .wiretransfer {
-    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
-  }
-  .error-list {
-    grid-template-columns: 2fr 2fr 5fr 1fr;
-  }
-  .transactions {
-    grid-template-columns: 1fr 4fr 2fr 2fr;
-  }
-  .profile-img {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+  figure {
+    margin-bottom: 1em;
     overflow: hidden;
-    border-style: none;
-    box-sizing: border-box;
-    margin-right: 40px;
   }
-  .tx-email {
-    cursor: pointer;
-    display: block;
-    color: #101010;
-    font-weight: 400;
+  figure img {
+    border: 1px solid #000;
   }
-  .small {
-    font-size: 80%;
-    font-weight: 400;
-  }
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : 12.07.2019, 07:59:32
+    Author     : einhornimmond
+*/
+div[role='grd_dialog'] {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  top: 0;
+  left: 0;
+}
+div.grd_modal-dialog {
+  margin-top: 100px;
+  min-height: 200px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid grey;
+}
+div.grd_modal-dialog.grd_dialog-large {
+  margin-top: 5px;
+  width: 90%;
+}
+div.grd_modal-body {
+  padding: 25px;
+}
+div.grd_modal-header {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  padding-left: 15px;
+  border: 1px solid grey;
+  color: #000;
+}
+div.grd_modal-footer {
+  background-color: rgba(0, 0, 0, 0.1);
+  height: 40px;
+}
+.grd_modal-footer a,
+.grd_modal-footer button {
+  float: right;
+  padding: 9px;
+  margin-right: 10px;
+  border: 1px solid grey;
+}
+.grd_modal-footer a:hover,
+.grd_modal-footer button:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 /*
 To change this license header, choose License Headers in Project Properties.

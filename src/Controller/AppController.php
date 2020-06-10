@@ -21,6 +21,7 @@ use Cake\Routing\Router;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\I18n\Time;
+use Cake\I18n\I18n;
 
 /**
  * Application Controller
@@ -72,16 +73,16 @@ class AppController extends Controller
               ]
             ]
         ]);
-        
+
         $this->Auth->deny(['index']);
-         
+
         /*
          * Enable the following component for recommended CakePHP security settings.
          * see https://book.cakephp.org/3.0/en/controllers/components/security.html
          */
         //$this->loadComponent('Security');
-        
-        
+
+
         // load current balance
         $session = $this->getRequest()->getSession();
         $state_user_id = $session->read('StateUser.id');
@@ -98,7 +99,7 @@ class AppController extends Controller
             //echo "stateUser.balance: " . $session->read('StateUser.balance');
           }
         }
-        
+
         // load error count
         if($state_user_id) {
           $stateErrorsTable = TableRegistry::getTableLocator()->get('stateErrors');
@@ -110,8 +111,8 @@ class AppController extends Controller
           $session->write('StateUser.errorCount', $stateErrorQuery->count());
         }
         //echo "initialize";
-        
-        
+
+
         // put current page into global for navi
         $GLOBALS["passed"] = null;
         $side = $this->request->getParam('controller');
@@ -122,14 +123,14 @@ class AppController extends Controller
             $GLOBALS["passed"] = $passedArguments[0];
         }
         $GLOBALS["subside"] = $subside;
-        
+
         // server login
         if($this->Auth->user('id')) {
           $GLOBALS['ServerUser'] = $this->Auth->user();
         }
 
     }
-    
+
     protected function requestLogin()
     {
         $session = $this->getRequest()->getSession();
@@ -144,20 +145,20 @@ class AppController extends Controller
         // login server cannot detect host ip
         // TODO: update login server, recognize nginx real ip header
         $loginServer = Configure::read('LoginServer');
-        
+
         if($session_id != 0) {
           $userStored = $session->read('StateUser');
           $transactionPendings = $session->read('Transactions.pending');
           $transactionExecutings = $session->read('Transaction.executing');
-          if($session->read('session_id') != $session_id || 
+          if($session->read('session_id') != $session_id ||
              ( $userStored && !isset($userStored['id'])) ||
               intval($transactionPendings) > 0 ||
               intval($transactionExecutings) > 0) {
             $http = new Client();
-            
+
             try {
               $url = $loginServer['host'] . ':' . $loginServer['port'];
-              
+
               $response = $http->get($url . '/login', ['session_id' => $session_id]);
               $json = $response->getJson();
 
@@ -165,7 +166,7 @@ class AppController extends Controller
 
                 if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
                   //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
-                  if($session->read('session_id') != $session_id || 
+                  if($session->read('session_id') != $session_id ||
                     ( $userStored && !isset($userStored['id']))) {
                     $session->destroy();
                   }
@@ -247,20 +248,20 @@ class AppController extends Controller
         }
         return true;
     }
-    
+
     /*
     public function beforeFilter(Event $event)
     {
       //$this->Auth->allow(['display']);
     }
      */
-    
+
     public function addAdminError($controller, $action, array $returnTable, $state_user_id) {
       if(!is_array($returnTable)) {
         $this->addAdminError('AppController', 'addAdminError', ['state' => 'error', 'msg' => 'returnTable isn\'t array', 'details' => gettype($returnTable)]);
         return false;
       }
-      $adminErrorTable = TableRegistry::getTableLocator()->get('AdminErrors');      
+      $adminErrorTable = TableRegistry::getTableLocator()->get('AdminErrors');
       $adminErrorEntity = $adminErrorTable->newEntity();
       $adminErrorEntity->state_user_id = $state_user_id;
       $adminErrorEntity->controller = $controller;
@@ -268,6 +269,8 @@ class AppController extends Controller
       $adminErrorEntity->state = $returnTable['state'];
       if(isset($returnTable['msg'])) {
         $adminErrorEntity->msg = $returnTable['msg'];
+      } else {
+        $adminErrorEntity->msg = __('(Leere Message)');
       }
       if(isset($returnTable['details'])) {
         $adminErrorEntity->details = $returnTable['details'];
@@ -277,25 +280,25 @@ class AppController extends Controller
       }
       return true;
     }
-    
+
     public function getAdminEmailLink($text) {
-      $serverAdminEmail = Configure::read('ServerAdminEmail');    
+      $serverAdminEmail = Configure::read('ServerAdminEmail');
       return '<a href="mailto:' . $serverAdminEmail . '">'. $serverAdminEmail . '</a>';
     }
-    
+
     public function returnJsonEncoded($json) {
       $this->autoRender = false;
       $response = $this->response->withType('application/json');
       return $response->withStringBody($json);
     }
-    
+
     public function returnJson($array) {
       $this->autoRender = false;
       $response = $this->response->withType('application/json');
       return $response->withStringBody(json_encode($array));
     }
-    
-    public function getStartEndForMonth($month, $year) 
+
+    public function getStartEndForMonth($month, $year)
     {
       $timeString = $year . '-' . $month . '-01 00:00';
       $firstDay = new Time($timeString);
@@ -303,5 +306,5 @@ class AppController extends Controller
       $lastDay = $lastDay->addMonth(1);
       return [$firstDay, $lastDay];
     }
-            
+
 }

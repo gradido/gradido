@@ -38,6 +38,9 @@ $GLOBALS["self"] = $this;
 <body>
   <div class="layout">
     <!-- TODO save last state so that it remains unchanged, on reload! -->
+    <div class="header-notify">
+      <?= $this->element('navi_notify'); ?>
+    </div>
     <div class="sidebar1 nav-menu initial">
       <a href="/">
         <picture class="logo big visible">
@@ -61,7 +64,6 @@ $GLOBALS["self"] = $this;
       <!-- XXX -->
       <div class="nav-vertical">
         <ul>
-        <?= $this->element('navi_header'); ?>
         <?= $this->element('navi'); ?>
         </ul>
       </div>
