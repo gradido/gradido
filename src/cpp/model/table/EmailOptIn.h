@@ -13,7 +13,8 @@ namespace model {
 		enum EmailOptInType {
 			EMAIL_OPT_IN_EMPTY = 0,
 			EMAIL_OPT_IN_REGISTER = 1,
-			EMAIL_OPT_IN_RESET_PASSWORD = 2
+			EMAIL_OPT_IN_RESET_PASSWORD = 2,
+			EMAIL_OPT_IN_REGISTER_DIRECT = 3
 		};
 
 		typedef Poco::Tuple<int, int, Poco::UInt64, int> EmailOptInTuple;

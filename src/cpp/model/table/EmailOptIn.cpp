@@ -126,6 +126,7 @@ namespace model {
 			switch (type) {
 			case EMAIL_OPT_IN_REGISTER: return "register";
 			case EMAIL_OPT_IN_RESET_PASSWORD: return "resetPassword";
+			case EMAIL_OPT_IN_REGISTER_DIRECT: return "registerDirect";
 			default: return "<unknown>";
 			}
 		}

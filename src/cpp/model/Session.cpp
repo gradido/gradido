@@ -322,6 +322,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	static const char* function_name = "Session::createUserDirect";
 	auto sm = SessionManager::getInstance();
 	auto em = ErrorManager::getInstance();
+	auto email_manager = EmailManager::getInstance();
 
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
 		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
@@ -346,6 +347,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 		return false;
 	}
 
+	// user
 	mNewUser = controller::User::create(email, first_name, last_name);
 	auto user_model = mNewUser->getModel();
 	user_model->insertIntoDB(true);
@@ -363,15 +365,31 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 			return false;
 		}
 	}
+
+	// passphrase
 	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES]);
 	if (passphrase.isNull()) {
 		em->addError(new ParamError(function_name, "error generating passphrase for", email));
 		em->sendErrorsAsEmail();
 	}
+	auto user_backup = controller::UserBackups::create(user_id, passphrase->getString());
+	user_backup->getModel()->insertIntoDB(false);
+
+	// keys
 	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
 	mNewUser->setGradidoKeyPair(gradido_key_pair);
+	// save pubkey in db
+	user_model->updatePublickey();
+
+	// calculate encryption key, could need some time, will save encrypted privkey to db
 	UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(mNewUser, password);
 	create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
+
+	// email verification code
+	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
+	email_verification->getModel()->insertIntoDB(false);
+
+	email_manager->addEmail(new model::Email(email_verification, mNewUser, model::EMAIL_USER_VERIFICATION_CODE));
 
 	return true;
 }
