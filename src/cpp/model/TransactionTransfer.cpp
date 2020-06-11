@@ -143,6 +143,7 @@ const std::string& TransactionTransfer::getKontoNameCell(int index)
 
 	return mKontoTable[index].kontoNameCell;
 }
+
 const std::string& TransactionTransfer::getAmountCell(int index)
 {
 	lock();
@@ -154,3 +155,4 @@ const std::string& TransactionTransfer::getAmountCell(int index)
 
 	return mKontoTable[index].amountCell;
 }
+

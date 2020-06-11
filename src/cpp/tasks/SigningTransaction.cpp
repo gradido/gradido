@@ -147,7 +147,10 @@ int SigningTransaction::run() {
 	try {
 		Profiler phpRequestTime;
 		Poco::Net::HTTPClientSession* clientSession = nullptr;
-		if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
+		if (ServerConfig::g_serverPort) {
+			clientSession = new Poco::Net::HTTPSClientSession(ServerConfig::g_php_serverHost, ServerConfig::g_serverPort);
+		}
+		else if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
 			ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
 			clientSession = new Poco::Net::HTTPSClientSession(ServerConfig::g_php_serverHost, 443);
 		}

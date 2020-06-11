@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gradido Login Server: <%= pageName %></title>
+    <link href="<%= ServerConfig::g_php_serverPath %>favicon.ico" type="image/x-icon" rel="icon" />
+    <link href="<%= ServerConfig::g_php_serverPath %>favicon.ico" type="image/x-icon" rel="shortcut icon" />
+    <link rel="stylesheet" href="<%= ServerConfig::g_php_serverPath %>css/main.css" />
+    <script src="<%= ServerConfig::g_php_serverPath %>js/basic.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+        <div class="header-notify">
+        </div>
+        <div class="sidebar1 nav-menu initial">
+            <a href="<%= ServerConfig::g_php_serverPath %>">
+                <picture class="logo big visible">
+                    <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift_half.webp" type="image/webp">
+                    <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift_half.png" type="image/png">
+                    <img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift_half.png" class="logo big visible" alt="Logo">
+                </picture>
+                <picture class="logo small">
+                    <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_half.webp" type="image/webp">
+                    <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_half.png" type="image/png">
+                    <img src="<%= ServerConfig::g_php_serverPath %>img/logo_half.png" class="logo small" alt="Logo">
+                </picture>
+            </a>
+            <div>
+                <i class="material-icons-outlined nav-main-button">menu</i>
+            </div>
+            <div class="flash-messages"><%= getErrorsHtml() %></div>
+            <div class="nav-vertical">
+                <ul>
+                    <li><a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span
+                                class="link-title">Kontoübersicht ( <%= TransactionBase::amountToString(userBalance) %> GDD )</span></a></li>
+                    <li><a href="<%= ServerConfig::g_php_serverPath %>dashboard/index" class=""><i class="material-icons-outlined nav-icon " title="Startseite">home</i><span
+                                class="link-title">Startseite</span></a></li>
+                    <li class=' selected'><a href="<%= ServerConfig::g_php_serverPath %>transaction-send-coins/create" class=""><i class="material-icons-outlined nav-icon "
+                                title="Überweisung">account_balance</i><span class="link-title">Überweisung</span></a></li>
+                    <li><a href="https://elopage.com/s/gradido/sign_in" class="" target="_blank"><i class="material-icons-outlined nav-icon "
+                                title="Mitgliederbereich">people_alt</i><span class="link-title">Mitgliederbereich</span></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="content">
+            <div class="nav-content">
+                <ul class='nav-content-list'>
+                    <li><a href="/" class=""><span class="link-title">Startseite</span></a></li>
+                    <li class='nav-content-separator'>-</li>
+                    <li class='selected'><span class="link-title"><%= pageName %></span></li>
+                </ul>
+            </div>

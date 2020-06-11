@@ -30,7 +30,9 @@ public:
 
 protected:
 	const static std::string mInvalidIndexMessage;
-	struct KontoTableEntry {
+
+	struct KontoTableEntry 
+	{
 	public:
 		KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount = false);
 		KontoTableEntry(const std::string& pubkeyHex, google::protobuf::int64 amount, bool negativeAmount = false);

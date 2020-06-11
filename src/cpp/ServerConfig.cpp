@@ -43,6 +43,7 @@ namespace ServerConfig {
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;
+	int		   g_serverPort = 0;
 	Languages g_default_locale;
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
@@ -209,6 +210,7 @@ namespace ServerConfig {
 		g_serverPath = cfg.getString("loginServer.path", "");
 		replaceZeroIPWithLocalhostIP(g_serverPath);
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
+		g_serverPort = cfg.getInt("loginServer.port", 0);
 		// replace 0.0.0.0 with actual server ip
 
 		g_php_serverPath = cfg.getString("phpServer.url", "");

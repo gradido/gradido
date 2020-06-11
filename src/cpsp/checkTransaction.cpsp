@@ -82,7 +82,82 @@ enum PageState {
 	
 	
 
-%><%@ include file="header_navi.cpsp" %>
+%><%@ include file="header_navi_chr.cpsp" %>
+<div class="col-md-10 equel-grid mb-3">
+	<small class="text-gray d-block mt-3">
+	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
+		<% if(notReadyTransactions > 0) { %> 
+			<%= sumTransactions - notReadyTransactions %> <%= gettext("von") %> <%= sumTransactions %> <%= gettext("Transaktionen sind bereit zum best&auml;tigen") %>
+		<% } else { %>
+			<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
+		<% } %>
+	<% } %>
+	<% if(state == PAGE_NO_TRANSACTIONS) { %>
+		<% if(sumTransactions == 0) { %>
+			<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
+		<% } else { %>
+			<%= gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") %>
+		<% } %>
+    <% } %>
+	</small>
+</div>
+<div class="content-container main-container">
+	<div class="action-form">
+		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
+		<% if(state == PAGE_TRANSACTION_TRANSFER) { 
+			auto transferTransaction = processingTransaction->getTransferTransaction();
+			memo = transferTransaction->getMemo();
+		%>
+		<div class="form-content">
+			<p><%= gettext("&Uuml;berweisung") %></p>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell"><%= gettext("Konto") %></span>
+				<span class="content-cell"><%= gettext("Gradido") %></span>
+			  </div>
+			  <% for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { %>					
+					<%= transferTransaction->getKontoNameCellChr(i) %>
+					<%= transferTransaction->getAmountCellChr(i) %>
+			  <% } %>
+			  <div class="content-row content-row-bg">
+				<span class="content-cell">Normaler&nbsp;User&nbsp;&lt;info@software-labor.de&gt;</span>
+				<span class="content-cell alert-color">-10 GDD</span>
+			  </div>
+			  <div class="content-row">
+				<span class="content-cell">dario&nbsp;frodo&nbsp;&lt;dariofrodo@gmx.de&gt;</span>
+				<span class="content-cell success-color">10 GDD</span>
+			  </div>
+			</div>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell">Aktives Konto</span>
+			  </div>
+			  <div class="content-row">
+				<span class="content-cell">Normaler User &lt;info@software-labor.de&gt;</span>
+			  </div>
+			</div>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell">Verwendungszweck</span>
+			  </div>
+			  <div class="content-row content-row-bg">
+				<span class="content-cell">&nbsp;</span>
+			  </div>
+			</div>
+			<form>
+				<button type="submit" class="form-button" name="ok" value="ok">
+					<i class="material-icons-outlined">verified_user</i>
+					Transaktion unterzeichnen
+				</button>
+				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
+					<i class="material-icons-outlined">delete</i>
+					Transaktion verwerfen
+				</button>
+			</form>
+		</div>
+	</div>
+</div>
+			
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
@@ -125,7 +200,7 @@ enum PageState {
 						<%= transferTransaction->getKontoNameCell(i) %>
 						<%= transferTransaction->getAmountCell(i) %>
 					</tr>
-					<% } %>
+				  <% } %>
 				  </tbody>
 				</table>
 			  </div>
@@ -194,4 +269,4 @@ enum PageState {
 	  </div>
 	</div>
 </div>
-<% } %><%@ include file="footer_ripple.cpsp" %>
+<% } %><%@ include file="footer_chr.cpsp" %>
