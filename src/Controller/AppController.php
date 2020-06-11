@@ -294,7 +294,7 @@ class AppController extends Controller
       }
       return true;
     }
-
+	
     public function getAdminEmailLink($text = '') {
       $serverAdminEmail = Configure::read('ServerAdminEmail');    
       return '<a href="mailto:' . $serverAdminEmail . '">'. $serverAdminEmail . '</a>';
