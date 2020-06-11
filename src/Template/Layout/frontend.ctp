@@ -37,11 +37,11 @@ $GLOBALS["self"] = $this;
 </head>
 <body>
   <div class="layout">
-    <!-- TODO save last state so that it remains unchanged, on reload! -->
     <div class="header-notify">
       <?= $this->element('navi_notify'); ?>
     </div>
     <div class="sidebar1 nav-menu initial">
+    <!-- TODO save last sidebar state so that it remains unchanged, on reload! -->
       <a href="/">
         <picture class="logo big visible">
           <source srcset="/img/logo_schrift_half.webp" type="image/webp">

@@ -48,7 +48,9 @@
 }
 /* ============================================================
 
-  Color Definitions
+  Generic Color Definitions
+
+  Vars and some generic CSS rules.
 
   Datei     :   colors.less
   Datum     :   2020-05-26
@@ -66,7 +68,17 @@
 /* VARIOUS INDIVIDUAL */
 /* XXX TODO XXX */
 /*rgba(0, 0, 0, 0.5) ??? */
+/* NOTIFICATION */
 /* https://www.w3schools.com/colors/colors_shades.asp */
+.alert-color {
+  color: #ff5f66;
+}
+.success-color {
+  color: #047006;
+}
+.orange-color {
+  color: #ffa600;
+}
 /* ============================================================
 
   Typography Definitions
@@ -103,6 +115,7 @@
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
+  vertical-align: middle;
   display: inline-block;
   white-space: nowrap;
   word-wrap: normal;
@@ -212,15 +225,6 @@
   /* Gradido Transform */
   .gdt-text-color {
     color: #a27824;
-  }
-  .grd-alert-color {
-    color: #ff5f66;
-  }
-  .grd-success-color {
-    color: #047006;
-  }
-  .grd-orange-color {
-    color: #ffa600;
   }
   .grd_clickable {
     cursor: pointer;
@@ -485,95 +489,65 @@
    ============================================================*/
 @media screen {
   .header-notify {
-    position: relative;
     display: flex;
     flex-wrap: wrap;
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
   }
-  .nav-link {
+  .notify {
     display: block;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.3rem;
     color: #525c5d;
+    animation: blinkingNotifySymbol 1.2s infinite;
   }
-  .notification-indicator {
-    display: block;
-    width: 7px;
-    height: 7px;
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    border-radius: 100%;
-    z-index: 99000;
+  .notify-alert {
+    color: #ff5f66;
+    animation: blinkingAlertSymbol 1.2s infinite;
   }
-  .notification-indicator:before {
-    content: "";
-    display: block;
-    width: 26px;
-    height: 26px;
-    z-index: 99000;
-    border-radius: 100%;
-    opacity: 0;
-    -webkit-transform-origin: 50% 50%;
-    transform-origin: 50% 50%;
-    mix-blend-mode: screen;
-    -webkit-animation: blink 1.2s ease-out;
-    animation: blink 1.2s ease-out;
-    -webkit-animation-iteration-count: infinite;
-    animation-iteration-count: infinite;
-  }
-  @-webkit-keyframes blink {
-    0%,
-    35% {
-      -webkit-transform: scale(0);
-      transform: scale(0);
-      opacity: 1;
+  @keyframes blinkingNotifySymbol {
+    0% {
+      color: #525c5d;
     }
-    50% {
-      -webkit-transform: scale(0.6);
-      transform: scale(0.6);
-      opacity: 0.8;
+    49% {
+      color: #525c5d;
+    }
+    60% {
+      color: #525c5d82;
+    }
+    99% {
+      color: #525c5d82;
     }
     100% {
-      opacity: 0;
-      -webkit-transform: scale(1.2);
-      transform: scale(1.2);
+      color: #525c5d;
     }
   }
-  @keyframes blink {
-    0%,
-    35% {
-      -webkit-transform: scale(0);
-      transform: scale(0);
-      opacity: 1;
+  @keyframes blinkingAlertSymbol {
+    0% {
+      color: #ff5f66;
     }
-    50% {
-      -webkit-transform: scale(0.6);
-      transform: scale(0.6);
-      opacity: 0.8;
+    49% {
+      color: #ff5f66;
+    }
+    60% {
+      color: #ff5f669e;
+    }
+    99% {
+      color: #ff5f669e;
     }
     100% {
-      opacity: 0;
-      -webkit-transform: scale(1.2);
-      transform: scale(1.2);
+      color: #ff5f66;
     }
   }
-  .notification-indicator-primary {
-    background: #047006;
-  }
-  .notification-indicator-primary:before {
-    content: "";
-    background: rgba(4, 112, 6, 0.5);
-  }
-  .notification-indicator-warning {
-    background: #f0825f;
-  }
-  .notification-indicator-warning:before {
-    content: "";
-    background: rgba(240, 130, 95, 0.5);
-  }
-  /*    .notification-indicator-secondary {
+  /*
+    .notification-indicator-primary {
+        background: #047006;
+    }
+
+    .notification-indicator-warning {
+        background: #f0825f
+    }
+       .notification-indicator-secondary {
             background: grey
         }
 
@@ -852,6 +826,41 @@
     font-size: 80%;
     font-weight: 400;
   }
+  /* =====================================
+        FORM TOP CONTENT (checkTransaction)
+       =====================================*/
+  .form-content {
+    padding: 35px;
+    padding-top: 20px;
+    max-width: 80%;
+    margin: auto;
+  }
+  .content-table {
+    border: 1px solid #f2f4f9;
+    border-top: none;
+    margin-bottom: 1.5rem;
+  }
+  .content-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 400;
+    border-top: 1px solid #f2f4f9;
+  }
+  .content-row-header {
+    font-weight: 500;
+    color: #101010;
+  }
+  .content-row-bg {
+    background-color: #f0f2f5;
+  }
+  .content-cell {
+    display: block;
+    border-collapse: collapse;
+    padding: 10px 15px;
+  }
+  .form-button .material-icons-outlined {
+    font-size: 1.25em;
+  }
 }
 /*
 To change this license header, choose License Headers in Project Properties.
@@ -960,6 +969,14 @@ and open the template in the editor.
     color: #fff;
     background-color: #034b04;
     border-color: #023f03;
+  }
+  .button-cancel {
+    background-color: #f0825f;
+    border-color: #f0825f;
+  }
+  .button-cancel:hover {
+    background-color: #ec5e30;
+    border-color: #eb5425;
   }
   /* CENTER FORM SPECIFICS */
   .form-body form {
@@ -1186,13 +1203,13 @@ and open the template in the editor.
 }
 .grd-success {
   padding: 5px;
-  color: green;
+  color: #047006;
 }
 .flash-messages .message {
   padding: 5px;
 }
 .flash-messages .success {
-  color: green;
+  color: #047006;
 }
 .flash-messages .error {
   color: red;

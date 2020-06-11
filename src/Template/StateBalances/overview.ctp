@@ -41,12 +41,12 @@ $this->assign('header', $header);
       if(strlen($memoShort) > 30) {
         $memoShort = substr($memoShort, 0, 30) . '...';
       }
-      $cellColorClass = 'grd-success-color';
+      $cellColorClass = 'success-color';
       if($send) {
         $balance = -$balance;
-        $cellColorClass = 'grd-alert-color';
+        $cellColorClass = 'alert-color';
       } else if($transaction['type'] == 'creation') {
-        $cellColorClass = 'grd-orange-color';
+        $cellColorClass = 'orange-color';
       }
     ?>
       <div class="row">
@@ -62,7 +62,7 @@ $this->assign('header', $header);
             <?php endif; ?>
             <span class=" <?= $cellColorClass ?>">
               <?php if($transaction['type'] == 'creation') : ?>
-              <i class="material-icons-outlined grd-orange-color">redeem</i>
+              <i class="material-icons-outlined orange-color">redeem</i>
                 <?= __('Geschöpft')?>
               <?php elseif($transaction['type'] == 'send') : ?>
               <i class="material-icons-outlined">arrow_right_alt</i>

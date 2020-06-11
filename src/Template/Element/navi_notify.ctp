@@ -23,21 +23,19 @@ class NavHeaderEntry
 }
 */
 ?>
-<?php if($errorCount > 0) : ?>
-   <?= $this->Html->link(
-           '<i class="material-icons-outlined grd-alert-color">announcement</i>'
-          . '<span class="notification-indicator notification-indicator-warning">ss</span>',
-           ['controller' => 'StateErrors', 'action' => 'ShowForUser'],
-           ['class' => 'nav-link', 'escape' => false, 'title' => "$errorCount " . __('Fehler')]) ?>
-<?php endif; ?>
 <?php if($transactionPendings > 0) : ?>
-  <a class="nav-link" title="<?= "$transactionPendings " . __('Transaktionen sind noch zu unterzeichnen')?>" href="<?= Router::url('./', true) ?>account/checkTransactions">
-    <i class="material-icons-outlined">verified_user</i>
+  <a class="notify-link" title="<?= "$transactionPendings " . __('Transaktionen sind noch zu unterzeichnen')?>" href="<?= Router::url('./', true) ?>account/checkTransactions">
+    <i class="material-icons-outlined notify">verified_user</i>
     <!--
       fingerprint
       today
     -->
     <!--(<?= $transactionPendings ?>)-->
-    <span class="notification-indicator notification-indicator-primary">ss</span>
   </a>
+<?php endif; ?>
+<?php if($errorCount > 0) : ?>
+   <?= $this->Html->link(
+           '<i class="material-icons-outlined notify notify-alert">announcement</i>',
+           ['controller' => 'StateErrors', 'action' => 'ShowForUser'],
+           ['class' => 'notify-link', 'escape' => false, 'title' => "$errorCount " . __('Fehler')]) ?>
 <?php endif; ?>
