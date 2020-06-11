@@ -1,5 +1,5 @@
 <?php
-$class = 'alert-primary';
+$class = '';
 if (!empty($params['class'])) {
     $class .= ' ' . $params['class'];
 }
@@ -8,6 +8,6 @@ if (!isset($params['escape']) || $params['escape'] !== false) {
 }
 ?>
 <!--<div class="<?= h($class) ?>" onclick="this.classList.add('hidden');"><?= $message ?></div>-->
-<div class="alert <?= h($class) ?>" onclick="this.classList.add('hidden')" role="alert">
+<div class="alert <?= h($class) ?>" role="alert">
   <?= $message ?>
 </div>

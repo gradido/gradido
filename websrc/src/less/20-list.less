@@ -49,8 +49,17 @@
 
     .cell {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         padding: 1em 1.5em;
+    }
+
+    .cell-dense {
+        padding: .1em .5em;
+    }
+
+    .centered {
+        justify-content: center;
     }
 
     .c0 {
@@ -58,22 +67,27 @@
     }
 
     .c1 {
-        width: 80px;
-        flex: 0 0 80px;
+        min-width: 40px;
+        flex: 0 0 40px;
     }
 
     .c2 {
-        width: 160px;
-        flex: 0 0 160px;
+        min-width: 80px;
+        flex: 0 0 80px;
     }
 
     .c3 {
-        width: 240px;
-        flex: 0 0 240px;
+        min-width: 160px;
+        flex: 0 0 160px;
     }
 
     .c4 {
-        width: 320px;
+        min-width: 240px;
+        flex: 0 0 240px;
+    }
+
+    .c5 {
+        min-width: 320px;
         flex: 0 0 320px;
     }
 
@@ -128,6 +142,16 @@
     .small {
         font-size: 80%;
         font-weight: 400;
+    }
+
+    /*,
+    .cell-icon .material-icons-outlined */
+    .cell-icon {
+
+        /*noch ungeklärt - icon ist nicht aligned */
+
+        /*font-size: 1.25em;*/
+        vertical-align: middle;
     }
 
     /* =====================================

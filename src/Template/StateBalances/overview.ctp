@@ -30,9 +30,9 @@ $this->assign('header', $header);
     <div class="row">
       <div class="cell header-cell c4"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>
       <div class="cell header-cell c0"><?= __('Verwendungszweck') ?></div>
-      <div class="cell header-cell c2"><?= __('Datum') ?></div>
-      <div class="cell header-cell c2"><?= __('Betrag') ?></div>
-      <div class="cell header-cell c1" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></div>
+      <div class="cell header-cell c4"><?= __('Datum') ?></div>
+      <div class="cell header-cell c3"><?= __('Betrag') ?></div>
+      <div class="cell header-cell c2" title="<?= __('Transaktions Nr.') ?>"><?= __('Nr') ?></div>
     </div>
     <?php foreach($transactions as $transaction):
       $send = $transaction['type'] == 'send';
@@ -60,18 +60,20 @@ $this->assign('header', $header);
             <?php else : ?>
             <small class="tx-email"><?= $transaction['name'] ?></small>
             <?php endif; ?>
-            <span class=" <?= $cellColorClass ?>">
+            <!-- noch ungeklärt - icon ist nicht aligned -->
+            <div class="cell-icon <?= $cellColorClass ?>">
               <?php if($transaction['type'] == 'creation') : ?>
               <i class="material-icons-outlined orange-color">redeem</i>
+              <!-- insights / redeem -->
                 <?= __('Geschöpft')?>
               <?php elseif($transaction['type'] == 'send') : ?>
-              <i class="material-icons-outlined">arrow_right_alt</i>
+              <i class="material-icons-outlined">arrow_back</i>
                 <?= __('Gesendet') ?>
               <?php elseif($transaction['type'] == 'receive') : ?>
-              <i class="material-icons-outlined">arrow_left_alt</i>
+              <i class="material-icons-outlined">arrow_forward</i>
                 <?= __('Empfangen') ?>
               <?php endif; ?>
-            </span>
+            </div>
           </div>
         </div>
         <div class="cell c0" data-toggle="tooltip" data-placement="bottom" title="<?= $transaction['memo'] ?>">
@@ -81,9 +83,9 @@ $this->assign('header', $header);
           <?= $transaction['memo'] ?>
         <?php endif;?>
         </div>
-        <div class="cell c2"><?= $transaction['date']->nice() ?></div>
-        <div class="cell c2"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
-        <div class="cell c1">
+        <div class="cell c4"><?= $transaction['date']->nice() ?></div>
+        <div class="cell c3"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
+        <div class="cell c2">
           <?= $transaction['transaction_id'] ?>
         </div>
       </div>

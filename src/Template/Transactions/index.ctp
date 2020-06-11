@@ -41,7 +41,7 @@
             <div class="cell"><?= h($transaction->received) ?></div>
         <?php endforeach; ?>
     </div>
-    <div class="paginator">
+    <div>
         <ul class="nav-horizontal pagination">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>

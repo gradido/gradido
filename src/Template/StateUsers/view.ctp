@@ -4,7 +4,7 @@
  * @var \App\Model\Entity\StateUser $stateUser
  */
 ?>
-<nav class="large-2 medium-3 columns" id="actions-sidebar">
+<nav id="actions-sidebar">
     <ul class="nav-horizontal nav-smaller">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit State User'), ['action' => 'edit', $stateUser->id]) ?> </li>

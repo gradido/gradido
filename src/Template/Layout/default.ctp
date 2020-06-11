@@ -33,21 +33,21 @@ $cakeDescription = 'Gradido';
 </head>
 <body>
     <div class="content-default">
-        <div class="content-container info-container">
-            <ul class="nav-horizontal nav-top-smaller">
-                <li><?= $this->html->link(__('Logout'), ['controller' => 'ServerUsers', 'action' => 'logout'])?></li>
-                <li><a target="_blank" href="https://book.cakephp.org/3.0/">Documentation</a></li>
-                <li><a target="_blank" href="https://api.cakephp.org/3.0/">API</a></li>
-            </ul>
-            <h1><a href=""><?= $this->fetch('title') ?></a></h1>
-            <?= $this->Flash->render() ?>
-            <?= $this->fetch('content') ?>
-        </div>
-        <?php if(isset($timeUsed)) : ?>
-        <div class="bottomleft">
-            <?=  round($timeUsed * 1000.0, 4) ?> ms
-        </div>
-        <?php endif;?>
+      <div class="content-container default-container">
+        <ul class="nav-horizontal nav-top-smaller">
+            <li><?= $this->html->link(__('Logout'), ['controller' => 'ServerUsers', 'action' => 'logout'])?></li>
+            <li><a target="_blank" href="https://book.cakephp.org/3.0/">Documentation</a></li>
+            <li><a target="_blank" href="https://api.cakephp.org/3.0/">API</a></li>
+        </ul>
+        <h1><a href=""><?= $this->fetch('title') ?></a></h1>
+        <?= $this->Flash->render() ?>
+        <?= $this->fetch('content') ?>
+      </div>
     </div>
+    <?php if(isset($timeUsed)) : ?>
+    <div class="bottomleft">
+        <?=  round($timeUsed * 1000.0, 4) ?> ms
+    </div>
+    <?php endif;?>
 </body>
 </html>

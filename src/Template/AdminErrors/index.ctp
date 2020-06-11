@@ -12,44 +12,41 @@
         <li><?= $this->Html->link(__('New State User'), ['controller' => 'StateUsers', 'action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="adminErrors index large-9 medium-8 columns content">
-    <h3><?= __('Admin Errors') ?></h3>
-    <table cellpadding="0" cellspacing="0">
-        <thead>
-            <tr>
-                <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('state_user_id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('controller') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('action') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('state') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('msg') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('details') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('created') ?></th>
-                <th scope="col" class="actions"><?= __('Actions') ?></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($adminErrors as $adminError): ?>
-            <tr>
-                <td><?= $this->Number->format($adminError->id) ?></td>
-                <td><?= $adminError->has('state_user') ? $this->Html->link($adminError->state_user->id, ['controller' => 'StateUsers', 'action' => 'view', $adminError->state_user->id]) : '' ?></td>
-                <td><?= h($adminError->controller) ?></td>
-                <td><?= h($adminError->action) ?></td>
-                <td><?= h($adminError->state) ?></td>
-                <td><?= h($adminError->msg) ?></td>
-                <td><?= h($adminError->details) ?></td>
-                <td><?= h($adminError->created) ?></td>
-                <td class="actions">
-                    <?= $this->Html->link(__('View'), ['action' => 'view', $adminError->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['action' => 'edit', $adminError->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $adminError->id], ['confirm' => __('Are you sure you want to delete # {0}?', $adminError->id)]) ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <div class="paginator">
-        <ul class="pagination">
+<div class="content-list">
+    <div class="content-list-table">
+        <div class="row">
+            <div class="cell cell-dense header-cell centered c1"><?= $this->Paginator->sort('id') ?></div>
+            <div class="cell cell-dense header-cell c1"><?= $this->Paginator->sort('state_user_id') ?></div>
+            <div class="cell cell-dense header-cell c4"><?= $this->Paginator->sort('controller') ?></div>
+            <div class="cell cell-dense header-cell c2"><?= $this->Paginator->sort('action') ?></div>
+            <div class="cell cell-dense header-cell c2"><?= $this->Paginator->sort('state') ?></div>
+            <div class="cell cell-dense header-cell c0"><?= $this->Paginator->sort('msg') ?></div>
+            <div class="cell cell-dense header-cell c3"><?= $this->Paginator->sort('details') ?></div>
+            <div class="cell cell-dense header-cell c3"><?= $this->Paginator->sort('created') ?></div>
+            <div class="cell cell-dense header-cell c3"><?= __('Actions') ?></div>
+        </div>
+        <?php foreach ($adminErrors as $adminError): ?>
+        <div class="row">
+            <div class="cell cell-dense centered c1"><?= $this->Number->format($adminError->id) ?></div>
+            <div class="cell cell-dense c1"><?= $adminError->has('state_user') ? $this->Html->link($adminError->state_user->id, ['controller' => 'StateUsers', 'action' => 'view', $adminError->state_user->id]) : '' ?></div>
+            <div class="cell cell-dense c4"><?= h($adminError->controller) ?></div>
+            <div class="cell cell-dense c2"><?= h($adminError->action) ?></div>
+            <div class="cell cell-dense c2"><?= h($adminError->state) ?></div>
+            <div class="cell cell-dense c0"><?= h($adminError->msg) ?></div>
+            <div class="cell cell-dense c3"><?= h($adminError->details) ?></div>
+            <div class="cell cell-dense c3"><?= h($adminError->created) ?></div>
+            <div class="cell cell-dense c3">
+                <?= $this->Html->link(__('View'), ['action' => 'view', $adminError->id]) ?>
+                &nbsp;
+                <?= $this->Html->link(__('Edit'), ['action' => 'edit', $adminError->id]) ?>
+                &nbsp;
+                <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $adminError->id], ['confirm' => __('Are you sure you want to delete # {0}?', $adminError->id)]) ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <div>
+        <ul class="nav-horizontal">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>
             <?= $this->Paginator->numbers() ?>

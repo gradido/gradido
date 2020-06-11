@@ -1,0 +1,78 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+/* ============================================================
+
+  Screen styles for flash messages.
+
+  Datei     :   messages.css
+  Datum     :   30.10.2019, 16:04:16
+  Autor     :   einhornimmond, Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .flash-messages {
+    width: 30%;
+    position: absolute;
+    top: 57px;
+    left: 241px;
+    text-align: center;
+
+    .alert {
+      margin: 0;
+      padding: 1em;
+      vertical-align: middle;
+      border-radius: 5px;
+    }
+
+    .alert-success {
+      color: @alert-color !important;
+      background-color: @success;
+      border: 1px solid @success-border;
+    }
+    .alert-error {
+      color: @alert-color !important;
+      background-color: @error;
+      border: 1px solid @error-border;
+    }
+
+    .message {
+      padding: 5px;
+    }
+
+    .success {
+      color: @success;
+    }
+
+    .error {
+      color: @error;
+    }
+
+  }
+
+  .flash-messages.hidden {
+    display: none;
+  }
+
+  /* messages, update flash */
+  .grd-error {
+    color: @error;
+    border: 1px solid @error-border;
+    padding: 5px;
+  }
+
+  .grd-info {
+    border: 1px dotted @info-border;
+    padding: 5px;
+  }
+
+  .grd-success {
+    padding: 5px;
+    color: @success;
+  }
+
+}

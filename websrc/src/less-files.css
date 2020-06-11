@@ -231,6 +231,72 @@
   }
 }
 /* Ende @media screen */
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* ============================================================
+
+  Screen styles for flash messages.
+
+  Datei     :   messages.css
+  Datum     :   30.10.2019, 16:04:16
+  Autor     :   einhornimmond, Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .flash-messages {
+    width: 30%;
+    position: absolute;
+    top: 57px;
+    left: 241px;
+    text-align: center;
+  }
+  .flash-messages .alert {
+    margin: 0;
+    padding: 1em;
+    vertical-align: middle;
+    border-radius: 5px;
+  }
+  .flash-messages .alert-success {
+    color: #fff !important;
+    background-color: #047006;
+    border: 1px solid #04700675;
+  }
+  .flash-messages .alert-error {
+    color: #fff !important;
+    background-color: red;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+  }
+  .flash-messages .message {
+    padding: 5px;
+  }
+  .flash-messages .success {
+    color: #047006;
+  }
+  .flash-messages .error {
+    color: red;
+  }
+  .flash-messages.hidden {
+    display: none;
+  }
+  /* messages, update flash */
+  .grd-error {
+    color: red;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+    padding: 5px;
+  }
+  .grd-info {
+    border: 1px dotted gray;
+    padding: 5px;
+  }
+  .grd-success {
+    padding: 5px;
+    color: #047006;
+  }
+}
 /* ============================================================
 
   Navigation
@@ -494,6 +560,7 @@
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
+    z-index: 10;
   }
   .notify {
     display: block;
@@ -643,14 +710,14 @@
     font-family: Roboto, sans-serif;
     font-weight: 500;
     font-size: 1rem;
-    padding-top: 6em;
+    /*padding-top: 2em;*/
     padding-right: 10em;
   }
   /* Center Navigation Top */
   .nav-content {
+    position: relative;
     color: #565656;
     margin: 0 0.25em;
-    margin-bottom: 1em;
   }
   .nav-content-list {
     display: flex;
@@ -678,6 +745,11 @@
   /* Main Container */
   .main-container {
     width: 100%;
+  }
+  .default-container {
+    width: 90%;
+    margin: auto;
+    padding: 1em;
   }
   /* Generic Content */
   .content-region {
@@ -760,26 +832,37 @@
   }
   .cell {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     padding: 1em 1.5em;
+  }
+  .cell-dense {
+    padding: 0.1em 0.5em;
+  }
+  .centered {
+    justify-content: center;
   }
   .c0 {
     flex-grow: 5;
   }
   .c1 {
-    width: 80px;
-    flex: 0 0 80px;
+    min-width: 40px;
+    flex: 0 0 40px;
   }
   .c2 {
-    width: 160px;
-    flex: 0 0 160px;
+    min-width: 80px;
+    flex: 0 0 80px;
   }
   .c3 {
-    width: 240px;
-    flex: 0 0 240px;
+    min-width: 160px;
+    flex: 0 0 160px;
   }
   .c4 {
-    width: 320px;
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+  .c5 {
+    min-width: 320px;
     flex: 0 0 320px;
   }
   .header-cell {
@@ -825,6 +908,13 @@
   .small {
     font-size: 80%;
     font-weight: 400;
+  }
+  /*,
+    .cell-icon .material-icons-outlined */
+  .cell-icon {
+    /*noch ungeklärt - icon ist nicht aligned */
+    /*font-size: 1.25em;*/
+    vertical-align: middle;
   }
   /* =====================================
         FORM TOP CONTENT (checkTransaction)
@@ -966,11 +1056,11 @@ and open the template in the editor.
     box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
   }
   .form-button:hover {
-    color: #fff;
     background-color: #034b04;
     border-color: #023f03;
   }
   .button-cancel {
+    color: #fff !important;
     background-color: #f0825f;
     border-color: #f0825f;
   }
@@ -1181,36 +1271,4 @@ div.grd_modal-footer {
 .grd_modal-footer a:hover,
 .grd_modal-footer button:hover {
   background-color: rgba(255, 255, 255, 0.5);
-}
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/*
-    Created on : 30.10.2019, 16:04:16
-    Author     : einhornimmond
-*/
-/* messages, update flash */
-.grd-error {
-  color: red;
-  border: 1px solid rgba(255, 0, 0, 0.5);
-  padding: 5px;
-}
-.grd-info {
-  border: 1px dotted gray;
-  padding: 5px;
-}
-.grd-success {
-  padding: 5px;
-  color: #047006;
-}
-.flash-messages .message {
-  padding: 5px;
-}
-.flash-messages .success {
-  color: #047006;
-}
-.flash-messages .error {
-  color: red;
 }

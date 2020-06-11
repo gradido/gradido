@@ -274,6 +274,8 @@ class AppController extends Controller
       }
       if(isset($returnTable['details'])) {
         $adminErrorEntity->details = $returnTable['details'];
+      } else {
+        $adminErrorEntity->details = __('(Leere Details)');
       }
       if(!$adminErrorTable->save($adminErrorEntity)) {
         $this->Flash->error(__('Serious error, couldn\'t save to db, please write the admin: ' . $this->getAdminEmailLink()));
