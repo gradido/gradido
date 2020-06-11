@@ -16,11 +16,13 @@ $this->assign('title', __('Fehlermeldungen'));
 ?>
 <div class="content-list">
   <p class="content-list-title">Fehler</p>
-  <div class="content-list-table error-list">
-    <span class="header-cell">Transaktion Typ</span>
-    <span class="header-cell">Datum</span>
-    <span class="header-cell">Fehler</span>
-    <span class="header-cell">Aktionen</span>
+  <div class="content-list-table">
+    <div class="row">
+      <div class="cell header-cell c2">Transaktion Typ</div>
+      <div class="cell header-cell c2">Datum</div>
+      <div class="cell header-cell c0">Fehler</div>
+      <div class="cell header-cell c1">Aktionen</div>
+    </div>
     <?php foreach($errors as $error) :
       $type = $transactionTypes[$error->transaction_type_id-1];
       $errorMessage = "";
@@ -33,10 +35,17 @@ $this->assign('title', __('Fehlermeldungen'));
         $errorMessage = $error->message_json;
       }
     ?>
-    <span title="<?= $type->text ?>"><?= $type->name ?></span>
-    <span><?= $error->created ?></span>
-    <span><?= $errorMessage ?></span>
-    <span><?= $this->Html->link(__('Delete'), ['action' => 'deleteForUser', $error->id], ['class' => 'grd-form-bn grd-form-bn-discard']) ?></span>
+    <div class="row">
+      <div class="cell c3" title="<?= $type->text ?>"><?= $type->name ?></div>
+      <div class="cell c3"><?= $error->created ?></div>
+      <div class="cell c0"><?= $errorMessage ?></div>
+      <div class="cell c2">
+        <?= $this->Html->link(
+          __('Delete'),
+          ['action' => 'deleteForUser', $error->id],
+          ['class' => 'form-button button-cancel']
+          ) ?></div>
+    </div>
     <?php endforeach; ?>
   </div>
 </div>

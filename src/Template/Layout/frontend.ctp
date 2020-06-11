@@ -57,11 +57,6 @@ $GLOBALS["self"] = $this;
       <div>
         <i class="material-icons-outlined nav-main-button">menu</i>
       </div>
-      <!-- XXX -->
-      <div class="flash-messages">
-        <?= $this->Flash->render() ?>
-      </div>
-      <!-- XXX -->
       <div class="nav-vertical">
         <ul>
         <?= $this->element('navi'); ?>
@@ -70,6 +65,9 @@ $GLOBALS["self"] = $this;
     </div>
     <div class="content">
       <div class="nav-content">
+        <div class="flash-messages" onclick="this.classList.add('hidden')">
+          <?= $this->Flash->render() ?>
+        </div>
         <?= $this->element('navi_center'); ?>
       </div>
       <?php if ($this->fetch('header')): ?>
