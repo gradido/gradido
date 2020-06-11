@@ -8,7 +8,7 @@
 
 ?>
 <?php if(isset($errors) && count($errors) > 0) : ?>
-<div class="grd-alert-color">
+<div class="alert-color">
   <ul>
     <?php foreach($errors as $error) : ?>
     <li>

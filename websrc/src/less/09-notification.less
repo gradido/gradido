@@ -10,7 +10,6 @@
    ============================================================*/
 @media screen {
     .header-notify {
-        position: relative;
         display: flex;
         flex-wrap: wrap;
         padding-left: 0;
@@ -18,103 +17,73 @@
         list-style: none;
     }
 
-    .nav-link {
+    .notify {
         display: block;
-        padding: .5rem 1rem;
-        color: #525c5d;
+        padding: .5rem .3rem;
+        color: @notify;
+        animation: blinkingNotifySymbol 1.2s infinite;
     }
 
-    .notification-indicator {
-        display: block;
-        width: 7px;
-        height: 7px;
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        border-radius: 100%;
-        z-index: 99000;
+    .notify-alert {
+        color: @alert;
+        animation: blinkingAlertSymbol 1.2s infinite;
     }
 
-    .notification-indicator:before {
-        content: "";
-        display: block;
-        width: 26px;
-        height: 26px;
-        z-index: 99000;
-        border-radius: 100%;
-        opacity: 0;
-        -webkit-transform-origin: 50% 50%;
-        transform-origin: 50% 50%;
-        mix-blend-mode: screen;
-        -webkit-animation: blink 1.2s ease-out;
-        animation: blink 1.2s ease-out;
-        -webkit-animation-iteration-count: infinite;
-        animation-iteration-count: infinite
-    }
-
-    @-webkit-keyframes blink {
-        0%,
-        35% {
-            -webkit-transform: scale(0);
-            transform: scale(0);
-            opacity: 1
+    @keyframes blinkingNotifySymbol {
+        0% {
+            color: @notify;
         }
 
-        50% {
-            -webkit-transform: scale(.6);
-            transform: scale(.6);
-            opacity: .8
+        49% {
+            color: @notify;
+        }
+
+        60% {
+            color: @notify-blink;
+        }
+
+        99% {
+            color: @notify-blink;
         }
 
         100% {
-            opacity: 0;
-            -webkit-transform: scale(1.2);
-            transform: scale(1.2)
+            color: @notify;
         }
 
     }
 
-    @keyframes blink {
-        0%,
-        35% {
-            -webkit-transform: scale(0);
-            transform: scale(0);
-            opacity: 1
+    @keyframes blinkingAlertSymbol {
+        0% {
+            color: @alert;
         }
 
-        50% {
-            -webkit-transform: scale(.6);
-            transform: scale(.6);
-            opacity: .8
+        49% {
+            color: @alert;
+        }
+
+        60% {
+            color: @alert-blink;
+        }
+
+        99% {
+            color: @alert-blink;
         }
 
         100% {
-            opacity: 0;
-            -webkit-transform: scale(1.2);
-            transform: scale(1.2)
+            color: @alert;
         }
 
     }
 
+    /*
     .notification-indicator-primary {
-        background: #047006
-    }
-
-    .notification-indicator-primary:before {
-        content: "";
-        background: rgba(4, 112, 6, .5)
+        background: #047006;
     }
 
     .notification-indicator-warning {
         background: #f0825f
     }
-
-    .notification-indicator-warning:before {
-        content: "";
-        background: rgba(240, 130, 95, .5)
-    }
-
-    /*    .notification-indicator-secondary {
+       .notification-indicator-secondary {
             background: grey
         }
 

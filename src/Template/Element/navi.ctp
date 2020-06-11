@@ -17,7 +17,7 @@ $navi = [];
 /*if($errorCount > 0) {
   $errorNaviEntry = new NaviEntry(__('Fehler '). "($errorCount)", 'mdi-alert-outline', 'StateErrors', 'showForUser');
   $errorNaviEntry->setBGColor('bg-inverse-danger')
-                 ->setIconColor('grd-alert-color');
+                 ->setIconColor('alert-color');
   array_push($navi, $errorNaviEntry);
 }*/
 $balanceNaviEntry = new NaviEntry(
@@ -27,9 +27,9 @@ $balanceNaviEntry = new NaviEntry(
         'account_balance_wallet', 'StateBalances', 'overview'
 );
 if($balance < 0 ) {
-  //$balanceNaviEntry->setIconColor('grd-alert-color');
+  //$balanceNaviEntry->setIconColor('alert-color');
 } else if($balance > 0) {
-  //$balanceNaviEntry->setIconColor('grd-success-color');
+  //$balanceNaviEntry->setIconColor('success-color');
 }
 array_push($navi, $balanceNaviEntry);
 array_push($navi, new NaviEntry(__('Startseite'), 'home', 'Dashboard', 'index'));

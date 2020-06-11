@@ -1,6 +1,8 @@
 /* ============================================================
 
-  Color Definitions
+  Generic Color Definitions
+
+  Vars and some generic CSS rules.
 
   Datei     :   colors.less
   Datum     :   2020-05-26
@@ -20,11 +22,12 @@
 @menu-link-selected: #047006;
 @menu-border-color: #f2f4f5;
 
+
 /* CONTENT */
 @container-background: #fff;
 @container-text: #212529;
-@container-shadow: rgba(183,192,206,.2);
-@container-border: rgba(238,238,238,.75);
+@container-shadow: rgba(183, 192, 206, .2);
+@container-border: rgba(238, 238, 238, .75);
 
 /* CONTENT-NAV */
 @content-nav: #565656;
@@ -41,6 +44,7 @@
 @content-table-header: #101010;
 @content-table-header-bg: #fafafa;
 @content-table-header-border: #f2f4f9;
+@content-row-bg: #f0f2f5;
 
 /* FORMS */
 @form-label: #212529;
@@ -50,40 +54,53 @@
 @badge-background-error: #ff5f66;
 
 /* VARIOUS INDIVIDUAL */
-@grd-orange: #ffa600;
+@orange: #ffa600;
 
 /* XXX TODO XXX */
 @dialog-background: #fff;
+
 /*rgba(0, 0, 0, 0.5) ??? */
 @dialog-text: #000;
 @dialog-background-extra: rgba(0, 0, 0, 0.1);
 @dialog-border: grey;
-
-@form-text-background: rgba(0,0,0,0.05);
+@form-text-background: rgba(0, 0, 0, 0.05);
 @form-button-border: grey;
 @form-button-text: #444;
-
 @button-text: #000;
 @button-border-color: #000;
 @button-background-active: lightgray;
-
 @print-background: #111;
 @print-text: #000;
 @print-link-text: #06c;
-
 @gdt-text: #a27824;
 
+
+/* NOTIFICATION */
 @info-border: gray;
 @success: green;
 @success-background: lightcyan;
 @success-background-hover: lightgreen;
 @error: red;
 @error-border: rgba(255, 0, 0, 0.5);
-
-@grd-alert: #ff5f66;
-@grd-success: #047006;
+@success: #047006;
+@alert: #ff5f66;
+@alert-blink: #ff5f669e;
+@notify: #525c5d;
+@notify-blink: #525c5d82;
 
 /* https://www.w3schools.com/colors/colors_shades.asp */
 @unobtrusive: grey;
 @light: #F5F5F5;
 @verylight: #fbfbfb;
+
+.alert-color {
+    color: @alert;
+}
+
+.success-color {
+    color: @success;
+}
+
+.orange-color {
+    color: @orange
+}
