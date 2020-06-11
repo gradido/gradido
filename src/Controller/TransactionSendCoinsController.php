@@ -244,7 +244,7 @@ class TransactionSendCoinsController extends AppController
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
-                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    return $this->redirect($this->loginServerUrl . 'account', 303);
                     //$this->Flash->error(__('session not found, please login again'));
                   } else {
                     $this->Flash->error(__('login server return error: ' . json_encode($json)));
@@ -259,7 +259,7 @@ class TransactionSendCoinsController extends AppController
                   $session->write('Transactions.pending', $pendingTransactionCount);
                   //echo "pending: " . $pendingTransactionCount;
                   if($mode === 'next') {
-                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                    return $this->redirect($this->loginServerUrl . 'account/checkTransactions', 303);
                   } else {
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }

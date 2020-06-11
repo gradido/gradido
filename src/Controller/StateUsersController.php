@@ -109,7 +109,7 @@ class StateUsersController extends AppController
               if($dataJson['state'] != 'success') {
                   if($dataJson['msg'] == 'session not found') {
                     $session->destroy();
-                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    return $this->redirect($this->loginServerUrl . 'account', 303);
                   }
               }
               //var_dump($dataJson);

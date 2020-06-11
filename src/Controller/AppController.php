@@ -33,7 +33,8 @@ use Cake\I18n\I18n;
  */
 class AppController extends Controller
 {
-
+  
+    var $loginServerUrl = '';
     /**
      * Initialization hook method.
      *
@@ -128,6 +129,15 @@ class AppController extends Controller
         if($this->Auth->user('id')) {
           $GLOBALS['ServerUser'] = $this->Auth->user();
         }
+        
+        // login server url 
+       $loginServer = Configure::read('LoginServer');
+       if($loginServer && isset($loginServer['url'])) {
+         $this->loginServerUrl = $loginServer['url'] . '/';
+       } else {
+         $this->loginServerUrl = Router::url('/', true);
+       }
+       
 
     }
 
@@ -221,7 +231,7 @@ class AppController extends Controller
                     // we haven't get a pubkey? something seems to gone wrong on the login-server
                     $this->Flash->error(__('no pubkey'));
                     //var_dump($json);
-                    return $this->redirect(Router::url('/', true) . 'account/error500/noPubkey', 303);
+                    return $this->redirect($this->loginServerUrl . 'account/error500/noPubkey', 303);
                   }
                 } else {
                   if($json['state'] === 'not found' ) {
@@ -229,7 +239,7 @@ class AppController extends Controller
                   } else {
                     $this->Flash->error(__('Konto ist nicht aktiviert!'));
                   }
-                  return $this->redirect(Router::url('/', true) . 'account/', 303);
+                  return $this->redirect($this->loginServerUrl . 'account/', 303);
                 }
               }
             } catch(\Exception $e) {
@@ -244,7 +254,7 @@ class AppController extends Controller
           if(isset($loginServer['path'])) {
             return $this->redirect($loginServer['path'], 303);
           } else {
-            return $this->redirect(Router::url('/', true) . 'account/', 303);
+            return $this->redirect($this->loginServerUrl . 'account/', 303);
           }
         }
         return true;

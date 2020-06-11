@@ -151,7 +151,7 @@ class TransactionCreationsController extends AppController
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
-                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    return $this->redirect($this->loginServerUrl . 'account', 303);
                   } else {
                     $this->addAdminError('TransactionCreations', 'create', $json, $user['id']);
                     $this->Flash->error(__('Login Server Error, please wait for the admin to fix it'));
@@ -166,7 +166,7 @@ class TransactionCreationsController extends AppController
                   $session->write('Transactions.pending', $pendingTransactionCount);
                   //echo "pending: " . $pendingTransactionCount;
                   if($mode === 'next') {
-                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                    return $this->redirect($this->loginServerUrl . 'account/checkTransactions', 303);
                   } else {
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }
@@ -392,7 +392,7 @@ class TransactionCreationsController extends AppController
                 if($json['state'] != 'success') {
                   if($json['msg'] == 'session not found') {
                     $session->destroy();
-                    return $this->redirect(Router::url('/', true) . 'account', 303);
+                    return $this->redirect($this->loginServerUrl . 'account', 303);
                   } else {
                     $this->addAdminError('TransactionCreations', 'createMulti', $json, $user['id']);
                     $this->Flash->error(__('Login Server Error, please wait for the admin to fix it'));
@@ -407,7 +407,7 @@ class TransactionCreationsController extends AppController
                   $session->write('Transactions.pending', $pendingTransactionCount);
                   //echo "pending: " . $pendingTransactionCount;
                   if($mode === 'next') {
-                    return $this->redirect(Router::url('/', true) . 'account/checkTransactions', 303);
+                    return $this->redirect($this->loginServerUrl . 'account/checkTransactions', 303);
                   } else {
                     $this->Flash->success(__('Transaction submitted for review.'));
                   }
