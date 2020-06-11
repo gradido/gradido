@@ -144,10 +144,17 @@ class StateBalancesController extends AppController
             $otherUser = null;
             if ($sendCoins->state_user_id == $user['id']) {
                 $type = 'send';
-                $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
+                if(isset($involvedUserIndices[$sendCoins->receiver_user_id])) {
+                  $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
+                }
             } else if ($sendCoins->receiver_user_id == $user['id']) {
                 $type = 'receive';
-                $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+                if(isset($involvedUserIndices[$sendCoins->state_user_id])) {
+                  $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+                }
+            }
+            if(null == $otherUser) {
+              $otherUser = $this->StateBalances->StateUsers->newEntity();
             }
             array_push($transactions, [
              'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
