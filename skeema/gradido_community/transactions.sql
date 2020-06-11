@@ -1,6 +1,6 @@
 CREATE TABLE `transactions` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `state_group_id` int(11) NOT NULL,
+  `state_group_id` int(11) DEFAULT NULL,
   `transaction_type_id` int(11) NOT NULL,
   `tx_hash` binary(32) NOT NULL,
   `memo` varchar(255) COLLATE utf8_bin NOT NULL,
