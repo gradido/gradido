@@ -8,6 +8,7 @@ CREATE TABLE `users` (
   `privkey` binary(80) DEFAULT NULL,
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   `email_checked` tinyint(1) NOT NULL DEFAULT 0,
+  `passphrase_shown` tinyint(1) NOT NULL DEFAULT 0,
   `language` varchar(4) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'de',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
