@@ -6,6 +6,7 @@
 #include "Poco/Util/LayeredConfiguration.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Types.h"
+#include "Poco/Util/Timer.h"
 
 #include "tasks/CPUSheduler.h"
 
@@ -48,6 +49,7 @@ namespace ServerConfig {
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 	extern UniLib::controller::CPUSheduler* g_CryptoCPUScheduler;
 	extern Poco::Net::Context::Ptr g_SSL_CLient_Context;
+	extern Poco::Util::Timer	   g_CronJobsTimer;
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
 	extern std::string g_serverPath;

@@ -29,7 +29,16 @@ namespace controller {
 
 		static std::vector<User*> search(const std::string& searchString);
 
+		//! \brief go through whole db and search users with email_checked = false and schedule resend 7 days after email_opt_in created date
+		//! 
+		//! Should be only called by server start, later it aren't necessary, because register function schedule resend tasks by himself.
+		//! By users which has registered long time ago and haven't activated there account and haven't get a second email send verification email with duration at once
+		// TODO: instead scheduling all, scheduling only for next day and run this function every day (own task for that)
+		static int checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer);
+
 		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
+		//! \brief try to load user from db via user_id
+		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
 		int load(const unsigned char* pubkey_array);
 		Poco::JSON::Object getJson();

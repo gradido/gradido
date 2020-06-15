@@ -9,6 +9,8 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 
+#include "controller/User.h"
+
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/HTTPServer.h"
@@ -192,7 +194,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
-		
+		// schedule email verification resend
+		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 
 		// HTTP Interface Server
 		// set-up a server socket

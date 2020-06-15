@@ -40,6 +40,7 @@ namespace ServerConfig {
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
 	UniLib::controller::CPUSheduler* g_CryptoCPUScheduler = nullptr;
 	Context::Ptr g_SSL_CLient_Context = nullptr;
+	Poco::Util::Timer	   g_CronJobsTimer;
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
 	std::string g_serverPath;

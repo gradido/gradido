@@ -16,6 +16,7 @@
 #include "../tasks/SendEmailTask.h"
 #include "../tasks/SigningTransaction.h"
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
+#include "../tasks/VerificationEmailResendTask.h"
 
 #include "../lib/JsonRequest.h"
 
@@ -388,6 +389,9 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 	email_verification->getModel()->insertIntoDB(false);
+
+	auto _7days_later = Poco::DateTime() + Poco::Timespan(7, 0, 0, 0, 0);
+	ServerConfig::g_CronJobsTimer.schedule(new VerificationEmailResendTimerTask(user_id), Poco::Timestamp(_7days_later.microsecond()));
 
 	email_manager->addEmail(new model::Email(email_verification, mNewUser, model::EMAIL_USER_VERIFICATION_CODE));
 
