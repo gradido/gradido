@@ -142,6 +142,8 @@ namespace controller {
 		authenticated_encryption->createKey(model->getEmail(), password);
 		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) {
 			MemoryBin* clear_private_key = nullptr;
+
+			if (!model->hasPrivateKeyEncrypted()) return 1; 
 			auto priv_key_encrypted = model->getPrivateKeyEncrypted();
 			auto priv_key_bin = MemoryManager::getInstance()->getFreeMemory(priv_key_encrypted.size());
 			memcpy(*priv_key_bin, priv_key_encrypted.data(), priv_key_encrypted.size());
