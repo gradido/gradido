@@ -4,6 +4,9 @@
 #include <string>
 #include "../SingletonManager/MemoryManager.h"
 
+#include "Poco/Timespan.h"
+#include "../SingletonManager/LanguageManager.h"
+
 
 namespace DataTypeConverter {
 
@@ -27,6 +30,9 @@ namespace DataTypeConverter {
 
 
 	const char* numberParseStateToString(NumberParseState state);
+
+	//! \brief convert duration in string showing seconds, minutes, hours or days
+	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
 };
 
 #endif // __GRADIDO_LOGIN_SERVER_LIB_DATA_TYPE_CONVERTER_H

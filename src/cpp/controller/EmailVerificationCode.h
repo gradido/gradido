@@ -24,6 +24,7 @@ namespace controller {
 		inline Poco::AutoPtr<model::table::EmailOptIn> getModel() { return _getModel<model::table::EmailOptIn>(); }
 
 		std::string getLink();
+		inline Poco::Timespan getAge() { return Poco::DateTime() - getModel()->getCreated(); }
 
 	protected:
 		EmailVerificationCode(model::table::EmailOptIn* dbModel);

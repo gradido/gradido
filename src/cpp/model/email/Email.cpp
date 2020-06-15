@@ -5,6 +5,8 @@
 
 #include "../TransactionBase.h"
 
+#include "../lib/DataTypeConverter.h"
+
 namespace model {
 
 const static char EmailText_emailVerification[] = {u8"\
@@ -17,6 +19,28 @@ oder kopiere den obigen Link in Dein Browserfenster.\n\
 Mit freundlichen Grüßen\n\
 Dario, Gradido Server Admin\n\
 "};
+
+const static char EmailText_emailVerificationResend[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Du oder jemand anderes hat sich vor 7 Tagen mit dieser E-Mail Adresse bei Gradido registriert.\n\
+Wenn du es warst, klicke bitte auf den Link: [link]\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+" };
+
+const static char EmailText_emailVerificationResendAfterLongTime[] = { u8"\
+Hallo [first_name] [last_name],\n\
+\n\
+Du oder jemand anderes hat sich vor [duration] mit dieser E-Mail Adresse bei Gradido registriert.\n\
+Wenn du es warst, klicke bitte auf den Link: [link] um dein Konto zu aktivieren\n\
+oder kopiere den obigen Link in Dein Browserfenster.\n\
+\n\
+Mit freundlichen Grüßen\n\
+Dario, Gradido Server Admin\n\
+" };
 
 const static char EmailText_emailVerificationOldElopageTransaction[] = { u8"\
 Hallo [first_name] [last_name],\n\
@@ -132,6 +156,7 @@ Gradido Login-Server\n\
 		mt.setParameter("charset", "utf-8");
 
 		const char* messageTemplate = nullptr;
+		std::string content_string;
 
 		switch (mType) {
 		case EMAIL_DEFAULT: 
@@ -147,6 +172,8 @@ Gradido Login-Server\n\
 			break;
 		
 		case EMAIL_USER_VERIFICATION_CODE:
+		case EMAIL_USER_VERIFICATION_CODE_RESEND:
+		case EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME:
 		case EMAIL_USER_REGISTER_OLD_ELOPAGE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND:
@@ -162,7 +189,13 @@ Gradido Login-Server\n\
 			mailMessage->setSubject(langCatalog->gettext_str("Gradido: E-Mail Verification"));
 
 			messageTemplate = EmailText_emailVerification;
-			if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE) {
+			if (EMAIL_USER_VERIFICATION_CODE_RESEND == mType) {
+				messageTemplate = EmailText_emailVerificationResend;
+			}
+			else if (EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME == mType) {
+				messageTemplate = EmailText_emailVerificationResendAfterLongTime;
+			}
+			else if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE) {
 				messageTemplate = EmailText_adminEmailVerification;
 			}
 			else if (mType == EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND) {
@@ -172,14 +205,17 @@ Gradido Login-Server\n\
 				messageTemplate = EmailText_emailVerificationOldElopageTransaction;
 			}
 
-			mailMessage->addContent(
-				new Poco::Net::StringPartSource(replaceUserNamesAndLink(
-					langCatalog->gettext(messageTemplate),
-					userTableModel->getFirstName(), 
-					userTableModel->getLastName(),
-					mEmailVerificationCode->getLink()
-				), mt.toString())
+			content_string = replaceUserNamesAndLink(
+				langCatalog->gettext(messageTemplate),
+				userTableModel->getFirstName(),
+				userTableModel->getLastName(),
+				mEmailVerificationCode->getLink()
 			);
+			if (EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME == mType) {
+				content_string = replaceDuration(content_string, mEmailVerificationCode->getAge(), langCatalog);
+			}
+			mailMessage->addContent(new Poco::Net::StringPartSource(content_string, mt.toString()));
+
 			break;
 		case EMAIL_USER_RESET_PASSWORD:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
@@ -290,6 +326,19 @@ Gradido Login-Server\n\
 			addError(new Error(functionName, "no amount placeholder found"));
 		}
 		return result;
+	}
+
+	std::string Email::replaceDuration(std::string src, Poco::Timespan duration, LanguageCatalog* lang)
+	{
+		static const char* functionName = "Email::replaceDuration";
+		int findPos = src.find("[duration]");
+		if (findPos != src.npos) {
+			src.replace(findPos, 10, DataTypeConverter::convertTimespanToLocalizedString(duration, lang));
+		}
+		else {
+			addError(new Error(functionName, "no duration placeholder found"));
+		}
+		return src;
 	}
 
 	EmailType Email::convertTypeFromInt(int type)

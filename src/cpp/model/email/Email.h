@@ -24,17 +24,19 @@ namespace model {
 
 	enum EmailType 
 	{
-		EMAIL_DEFAULT = 1,
-		EMAIL_ERROR = 2,
-		EMAIL_USER_VERIFICATION_CODE = 3,
-		EMAIL_ADMIN_USER_VERIFICATION_CODE = 4,
-		EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND = 5,
-		EMAIL_USER_RESET_PASSWORD = 6,
-		EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE = 7,
-		EMAIL_NOTIFICATION_TRANSACTION_CREATION = 8,
-		EMAIL_NOTIFICATION_TRANSACTION_TRANSFER = 9,
-		EMAIL_USER_REGISTER_OLD_ELOPAGE = 10,
-		EMAIL_MAX = 11
+		EMAIL_DEFAULT,
+		EMAIL_ERROR,
+		EMAIL_USER_VERIFICATION_CODE,
+		EMAIL_USER_VERIFICATION_CODE_RESEND,
+		EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME,
+		EMAIL_ADMIN_USER_VERIFICATION_CODE,
+		EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND,
+		EMAIL_USER_RESET_PASSWORD,
+		EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE,
+		EMAIL_NOTIFICATION_TRANSACTION_CREATION,
+		EMAIL_NOTIFICATION_TRANSACTION_TRANSFER,
+		EMAIL_USER_REGISTER_OLD_ELOPAGE,
+		EMAIL_MAX
 	};
 
 	class Email: public ErrorList
@@ -57,6 +59,7 @@ namespace model {
 		std::string replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link);
 		std::string replaceEmail(const char* src, const std::string& email);
 		std::string replaceAmount(const char* src, Poco::Int64 gradido_cent);
+		std::string replaceDuration(std::string src, Poco::Timespan duration, LanguageCatalog* lang);
 
 		AutoPtr<controller::EmailVerificationCode> mEmailVerificationCode;
 		AutoPtr<controller::User> mUser;
