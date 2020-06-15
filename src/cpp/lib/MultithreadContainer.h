@@ -24,6 +24,7 @@
  
  \brief Container Wrapper class for mutex protected container
    changed to poco mutex for gradido login server
+   default mutex from poco is recursive so it is some heavy thing
 
  \author Dario Rekowski
 
@@ -50,8 +51,8 @@ namespace UniLib {
 
 			inline const std::string& getLastSucceededLock() { return mLastSucceededLock; }
 		protected:
+			mutable Poco::Mutex mWorkMutex;
 		private:
-			Poco::Mutex mWorkMutex;
 			std::string mLastSucceededLock;
 		};
 	}

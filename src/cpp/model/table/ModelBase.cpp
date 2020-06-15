@@ -42,6 +42,7 @@ namespace model {
 		{
 			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 
 			size_t resultCount = 0;
@@ -53,11 +54,9 @@ namespace model {
 						try {
 							return select.execute() == 1;
 						}
-						catch (Poco::Exception& ex) {
-							lock("ModelBase::insertIntoDB");
+						catch (Poco::Exception& ex) {							
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
 							addError(new ParamError(getTableName(), "data set: ", toString().data()));
-							unlock();
 						}
 					}
 					else {
@@ -66,10 +65,8 @@ namespace model {
 				}
 			}
 			catch (Poco::Exception& ex) {
-				lock("ModelBase::insertIntoDB2");
 				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "data set: ", toString().data()));
-				unlock();
 			}
 			//printf("data valid: %s\n", toString().data());
 			return false;
@@ -77,10 +74,9 @@ namespace model {
 
 		bool ModelBase::deleteFromDB()
 		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mID == 0) {
-				lock();
 				addError(new Error(getTableName(), "id is zero, couldn't delete from db"));
-				unlock();
 				return false;
 			}
 			auto cm = ConnectionManager::getInstance();
@@ -102,23 +98,21 @@ namespace model {
 
 		void ModelBase::duplicate()
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			mReferenceCount++;
 			//printf("[ModelBase::duplicate] new value: %d\n", mReferenceCount);
-			unlock();
 		}
 
 		void ModelBase::release()
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			mReferenceCount--;
 			//printf("[ModelBase::release] new value: %d\n", mReferenceCount);
 			if (0 == mReferenceCount) {
-				unlock();
+				
 				delete this;
 				return;
 			}
-			unlock();
 
 		}
 

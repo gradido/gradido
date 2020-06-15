@@ -7,25 +7,25 @@ using namespace Poco::Data::Keywords;
 namespace model {
 	namespace table {
 		EmailOptIn::EmailOptIn(const Poco::UInt64& code, int user_id, EmailOptInType type/* = EMAIL_OPT_IN_REGISTER*/)
-			: mUserId(user_id), mEmailVerificationCode(code), mType(type)
+			: mUserId(user_id), mEmailVerificationCode(code), mType(type), mResendCount(0)
 		{
 			
 		}
 
 		EmailOptIn::EmailOptIn(const Poco::UInt64& code, EmailOptInType type/* = EMAIL_OPT_IN_REGISTER*/)
-			: mUserId(0), mEmailVerificationCode(code), mType(type)
+			: mUserId(0), mEmailVerificationCode(code), mType(type), mResendCount(0)
 		{
 
 		}
 
 		EmailOptIn::EmailOptIn()
-			: mUserId(0), mEmailVerificationCode(0)
+			: mUserId(0), mEmailVerificationCode(0), mResendCount(0)
 		{
 
 		}
 
 		EmailOptIn::EmailOptIn(const EmailOptInTuple& tuple)
-			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mEmailVerificationCode(tuple.get<2>()), mType(tuple.get<3>())
+			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mEmailVerificationCode(tuple.get<2>()), mType(tuple.get<3>()), mResendCount(tuple.get<4>())
 		{
 
 		}
@@ -42,8 +42,8 @@ namespace model {
 
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, verification_code, email_opt_in_type_id) VALUES(?,?,?)"
-				, use(mUserId), use(mEmailVerificationCode), bind(mType);
+				<< " (user_id, verification_code, email_opt_in_type_id, resend_count) VALUES(?,?,?,?)"
+				, use(mUserId), use(mEmailVerificationCode), bind(mType), bind(mResendCount);
 			unlock();
 			return insert;
 		}
@@ -53,9 +53,9 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, resend_count FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mEmailVerificationCode), into(mType);
+				, into(mID), into(mUserId), into(mEmailVerificationCode), into(mType), into(mResendCount);
 
 
 			return select;
@@ -76,7 +76,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, resend_count FROM " << getTableName()
 				<< " where " << fieldName << " = ?";
 
 
@@ -90,7 +90,7 @@ namespace model {
 				throw Poco::NullValueException("EmailOptIn::_loadFromDB fieldNames empty or contain only one field");
 			}
 
-			select << "SELECT user_id, verification_code, email_opt_in_type_id FROM " << getTableName()
+			select << "SELECT user_id, verification_code, email_opt_in_type_id, resend_count FROM " << getTableName()
 				<< " where " << fieldNames[0] << " = ? ";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -106,10 +106,17 @@ namespace model {
 				addError(new ParamError("EmailOptIn::_loadFromDB", "condition type not implemented", conditionType));
 			}
 				//<< " where " << fieldName << " = ?"
-			select , into(mUserId), into(mEmailVerificationCode), into(mType);
+			select , into(mUserId), into(mEmailVerificationCode), into(mType), into(mResendCount);
 
 
 			return select;
+		}
+
+		size_t EmailOptIn::addResendCountAndUpdate()
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			mResendCount++;
+			return updateIntoDB("resend_count", mResendCount);
 		}
 
 		std::string EmailOptIn::toString()

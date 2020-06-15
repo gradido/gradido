@@ -13,6 +13,7 @@
 
 #include "Poco/JSON/Object.h"
 
+#include <shared_mutex>
 //using namespace Poco::Data::Keywords;
 
 namespace model {
@@ -68,7 +69,7 @@ namespace model {
 			int mID;
 
 			// for poco auto ptr
-			int mReferenceCount;
+			int mReferenceCount;			
 
 		};
 
@@ -76,6 +77,7 @@ namespace model {
 		size_t ModelBase::loadFromDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldName);
 			select, Poco::Data::Keywords::useRef(fieldValue);
 
@@ -84,10 +86,8 @@ namespace model {
 				resultCount = select.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by selecting", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
-				unlock();
 			}
 			return resultCount;
 		}
@@ -96,6 +96,7 @@ namespace model {
 		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select(session);
 			int id;
@@ -122,6 +123,7 @@ namespace model {
 		{
 			//printf("ModelBase::loadFromDB multi\n");
 			std::vector<Tuple> results;
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			//return results;
 			if (expectedResults > 0) {
 				results.reserve(expectedResults);
@@ -147,7 +149,7 @@ namespace model {
 		std::vector<Tuple> ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const std::vector<WhereFieldType>& fieldValues, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/, int expectedResults/* = 0*/)
 		{
 			std::vector<Tuple> results;
-			
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (fieldNames.size() != fieldValues.size() || fieldNames.size() <= 1) {
 				lock();
 				addError(new Error(getTableName(), "fieldNames and fieldValues size don't match or smaller as 1"));
@@ -183,6 +185,7 @@ namespace model {
 		size_t ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
 		{
 			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldNames, conditionType);
 			select, Poco::Data::Keywords::useRef(field1Value), Poco::Data::Keywords::useRef(field2Value);
 
@@ -207,6 +210,7 @@ namespace model {
 		size_t ModelBase::updateIntoDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement update(session);
 
