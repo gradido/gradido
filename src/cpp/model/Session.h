@@ -142,6 +142,10 @@ public:
 	inline SessionStates getSessionState() { SessionStates s; lock("Session::getSessionState"); s = mState; unlock(); return s; }
 
 	inline Poco::UInt64 getEmailVerificationCode() { if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); }
+	inline model::table::EmailOptInType getEmailVerificationType() {
+		if (mEmailVerificationCodeObject.isNull()) return model::table::EMAIL_OPT_IN_EMPTY;
+		return mEmailVerificationCodeObject->getModel()->getType();
+	}
 
 	inline bool isActive() { bool bret = false; lock("Session::isActive"); bret = mActive; unlock(); return bret; }
 	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }

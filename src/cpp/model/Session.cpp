@@ -422,62 +422,66 @@ bool Session::ifUserExist(const std::string& email)
 int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
 	const static char* funcName = "Session::updateEmailVerification";
-	lock(funcName);
+	
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	Profiler usedTime;
 	
 	auto em = ErrorManager::getInstance();
 	if (mEmailVerificationCodeObject.isNull()) {
 		em->addError(new Error(funcName, "email verification object is zero"));
 		em->sendErrorsAsEmail();
-		unlock();
+	
 		return -2;
 	}
-	auto emailVerificationCodeModel = mEmailVerificationCodeObject->getModel();
-	if(emailVerificationCodeModel->getCode() == emailVerificationCode) {
+	auto email_verification_code_model = mEmailVerificationCodeObject->getModel();
+	if(email_verification_code_model->getCode() == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
 			//addError(new Error("E-Mail Verification", "Benutzer wurde nicht richtig gespeichert, bitte wende dich an den Server-Admin"));
 			em->addError(new Error(funcName, "user exist with 0 as id"));
 			em->sendErrorsAsEmail();
-			unlock();
+			
 			//return false;
 			return -2;
 		}
 		
 		// load correct user from db
-		if (mNewUser.isNull() || mNewUser->getModel()->getID() != emailVerificationCodeModel->getUserId()) {
+		if (mNewUser.isNull() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
 			mNewUser = controller::User::create();
-			if (1 != mNewUser->load(emailVerificationCodeModel->getUserId())) {
-				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", emailVerificationCodeModel->getUserId()));
+			if (1 != mNewUser->load(email_verification_code_model->getUserId())) {
+				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", email_verification_code_model->getUserId()));
 				em->sendErrorsAsEmail();
-				unlock();
+				
 				return -2;
 			}
 		}
 
-		auto userModel = mNewUser->getModel();
-		bool firstEmailActivation = false;
-		if (emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_REGISTER || emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_EMPTY) {
-			firstEmailActivation = true;
+		auto user_model = mNewUser->getModel();
+		bool first_email_activation = false;
+		auto verification_type = email_verification_code_model->getType();
+		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type || 
+			model::table::EMAIL_OPT_IN_EMPTY == verification_type    ||
+			model::table::EMAIL_OPT_IN_REGISTER_DIRECT == verification_type) {
+			first_email_activation = true;
 		}
-		if (firstEmailActivation && userModel->isEmailChecked()) {
+		if (first_email_activation && user_model->isEmailChecked()) {
 			mSessionUser = new User(mNewUser);
 			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")), false);
-			unlock();
+			
 			return 1;
 		}
-		if (firstEmailActivation) {
-			userModel->setEmailChecked(true);
-			userModel->updateIntoDB("email_checked", 1);
-			if (userModel->errorCount() > 0) {
-				userModel->sendErrorsAsEmail();
+		if (first_email_activation) {
+			user_model->setEmailChecked(true);
+			user_model->updateIntoDB("email_checked", 1);
+			if (user_model->errorCount() > 0) {
+				user_model->sendErrorsAsEmail();
 			}
-			unlock();
+			
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			return 0;
 		}
 
-		if (emailVerificationCodeModel->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
-			unlock();
+		if (email_verification_code_model->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
+			
 			if (mEmailVerificationCodeObject->deleteFromDB()) {
 				mEmailVerificationCodeObject.assign(nullptr);
 			}
@@ -493,7 +497,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 
 		em->addError(new Error(funcName, "invalid code path"));
 		em->sendErrorsAsEmail();
-		unlock();
+		
 		return -2;
 		
 		/*if (updated_rows == 1) {
@@ -522,11 +526,11 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
 		//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-		unlock();
+		
 		return -1;
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-	unlock();
+	
 	return 0;
 }
 

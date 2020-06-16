@@ -367,8 +367,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 
 		if (0 == retUpdateEmailVerification) {
 			//printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
+			SessionHTTPRequestHandler* pageRequestHandler = nullptr;
+			if (model::table::EMAIL_OPT_IN_REGISTER_DIRECT == session->getEmailVerificationType()) {
+				pageRequestHandler = new CheckEmailPage(session);
+			} else {
+				pageRequestHandler = new PassphrasePage(session);
+			}
 			
-			auto pageRequestHandler = new PassphrasePage(session);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 			

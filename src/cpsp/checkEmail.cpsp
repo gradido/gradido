@@ -12,6 +12,7 @@ enum PageState
 {
 	MAIL_NOT_SEND,
 	ASK_VERIFICATION_CODE,
+	EMAIL_ACTIVATED,
 	KONTO_ALREADY_EXIST
 };
 %>
@@ -23,36 +24,45 @@ enum PageState
 	auto langCatalog = lm->getFreeCatalog(lang);
 	unsigned long long verificationCode = 0;
 	
-	if(!form.empty()) {
-		auto langBtn = form.get("lang-btn", "");
-		auto verficationCodeStr = form.get("email-verification-code", "0");
-		try {
-			verificationCode = stoull(verficationCodeStr);
-		} catch(...) {
-			verificationCode = 0;
-		}
-		auto updatedLang = LANG_NULL;
-		if(langBtn != "") {
-			lang = chooseLanguage(request, langBtn);
-			langCatalog = lm->getFreeCatalog(lang);
-		}
-	}
-	
-	// remove old cookies if exist
-	auto sm = SessionManager::getInstance();
-	sm->deleteLoginCookies(request, response, mSession);
 	PageState state = ASK_VERIFICATION_CODE;
-	if(mSession) {
-		getErrors(mSession);
-		if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
-			//state = MAIL_NOT_SEND;
+	
+	if(mSession && model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType()) 
+	{
+		state = EMAIL_ACTIVATED;
+	} 
+	else
+	{
+	
+		if(!form.empty()) {
+			auto langBtn = form.get("lang-btn", "");
+			auto verficationCodeStr = form.get("email-verification-code", "0");
+			try {
+				verificationCode = stoull(verficationCodeStr);
+			} catch(...) {
+				verificationCode = 0;
+			}
+			auto updatedLang = LANG_NULL;
+			if(langBtn != "") {
+				lang = chooseLanguage(request, langBtn);
+				langCatalog = lm->getFreeCatalog(lang);
+			}
+		}
+		
+		// remove old cookies if exist
+		auto sm = SessionManager::getInstance();
+		sm->deleteLoginCookies(request, response, mSession);
+		
+		if(mSession) {
+			getErrors(mSession);
+			if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
+				//state = MAIL_NOT_SEND;
+			}
+		}
+		auto hasErrors = errorCount() > 0;
+		if(!verificationCode) {
+			verificationCode = getLastGetAsU64(request.getURI());
 		}
 	}
-	auto hasErrors = errorCount() > 0;
-	if(!verificationCode) {
-		verificationCode = getLastGetAsU64(request.getURI());
-	}
-
 %><%@ include file="header.cpsp" %>
 <div class="authentication-theme auth-style_1">
       <div class="row">
@@ -92,6 +102,10 @@ enum PageState
                     </div>
                   </div>
                 </div>
+				<% if(EMAIL_ACTIVATED == state) { %>
+					<p><%= langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") %></p>
+					<a class="btn btn-sm btn-primary" href="<%= ServerConfig::g_php_serverPath %>"><%= langCatalog->gettext("Zur Startseite") %></a>
+				<% } else { %>
                 <div class="item-wrapper">
                         <div class="form-group">
                           <label for="email-verification-code"><%= langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:")%></label>
@@ -109,6 +123,7 @@ enum PageState
 				<%= langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: ")%><br>
                 <b><a href="mailto:coin@gradido.net?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: <%= verificationCode %> funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%= langCatalog->gettext("E-Mail an Support schicken")%></a></b>
 			  </p>
+			  <% } %>
             </div>
           </div>
         </div>
