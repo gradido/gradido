@@ -173,7 +173,7 @@ class AppController extends Controller
               $json = $response->getJson();
               if(isset($json) && count($json) > 0) {
 
-                if($json['state'] === 'success' && intval($json['user']['email_checked']) === 1) {
+                if($json['state'] === 'success') {
                   //echo "email checked: " . $json['user']['email_checked'] . "; <br>";
                   if($session->read('session_id') != $session_id ||
                     ( $userStored && !isset($userStored['id']))) {
