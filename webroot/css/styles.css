@@ -1,0 +1,347 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 30.10.2019, 09:26:42
+    Author     : einhornimmond
+*/
+.dev-info {
+  position: fixed;
+  color: grey;
+  font-size: smaller;
+  left: 8px;
+}
+.grd-time-used {
+  bottom: 0;
+}
+.versionstring {
+  top: 0;
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 12.07.2019, 07:59:32
+    Author     : einhornimmond
+*/
+div[role='grd_dialog'] {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+}
+div.grd_modal-dialog {
+  margin-top: 100px;
+  min-height: 200px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: white;
+  color: black;
+  border: 1px solid grey;
+}
+div.grd_modal-dialog.grd_dialog-large {
+  margin-top: 5px;
+  width: 90%;
+}
+div.grd_modal-body {
+  padding: 25px;
+}
+div.grd_modal-header {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  padding-left: 15px;
+  border: 1px solid grey;
+  color: black;
+}
+div.grd_modal-footer {
+  background-color: rgba(0, 0, 0, 0.1);
+  height: 40px;
+}
+.grd_modal-footer a,
+.grd_modal-footer button {
+  float: right;
+  padding: 9px;
+  margin-right: 10px;
+  border: 1px solid grey;
+}
+.grd_modal-footer a:hover,
+.grd_modal-footer button:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 30.10.2019, 14:41:57
+    Author     : einhornimmond
+*/
+/* Button */
+/*a.grd_bn,a.grd_bn:visited  {
+ color:black;
+ text-decoration: none;
+}
+*/
+.grd-form-bn:hover,
+.grd-active {
+  background-color: lightgray;
+  border-color: black;
+}
+.grd-form-bn {
+  padding: 5px;
+  border: 1px solid grey;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  color: #444;
+}
+a.grd-form-bn,
+a.grd-form-bn:visited {
+  color: black;
+  text-decoration: none;
+}
+.grd-form-bn-succeed {
+  background-color: lightcyan;
+  color: green;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+.grd-form-bn-succeed:not([disabled]):hover {
+  background-color: lightgreen;
+}
+.grd-form-bn-discard {
+  margin-left: 5px;
+  border: 1px solid red;
+  color: red;
+  cursor: pointer;
+}
+/*
+.grd_large-bn {
+  width:100vw;
+  height:25vh;
+  font-size: 8vh;
+}
+
+.grd_bg-bn {
+  width:50vw;
+  height:25vh;
+  font-size: 7vh;
+}
+
+.gr_md-bn {
+  width:50vw;
+  height:25vh;
+  font-size: 6vh;
+}
+*/
+/* form elements */
+.grd_textarea {
+  border: 1px solid grey;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 5px;
+  font-style: italic;
+}
+.grd-input label {
+  display: block;
+}
+input.grd-privkey {
+  width: 465px;
+}
+input.grd-pubkey {
+  width: 465px;
+}
+input.grd-non-der-keys {
+  width: 900px;
+}
+input:not([type='radio']) {
+  width: 200px;
+}
+label:not(.grd_radio_label) {
+  width: 80px;
+  display: inline-block;
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 13.10.2019, 15:43:58
+    Author     : einhornimmond
+*/
+.grd-time-used {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  color: grey;
+  font-size: smaller;
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 30.10.2019, 16:04:16
+    Author     : einhornimmond
+*/
+/* messages, update flash */
+.grd-error {
+  color: red;
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  padding: 5px;
+}
+.grd-info {
+  border: 1px dotted gray;
+  padding: 5px;
+}
+.grd-success {
+  padding: 5px;
+  color: green;
+}
+.flash-messages .message {
+  padding: 5px;
+}
+.flash-messages .success {
+  color: green;
+}
+.flash-messages .error {
+  color: red;
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 30.10.2019, 14:16:16
+    Author     : einhornimmond
+*/
+/* navbar */
+nav.grd-left-bar {
+  position: fixed;
+  top: 80.5px;
+}
+nav .grd-nav-bn {
+  width: 120px;
+}
+nav ul {
+  margin-top: 0;
+  padding-left: 0;
+}
+/* buttons */
+.grd-nav-bn:hover,
+.grd-active {
+  background-color: lightgray;
+  border-color: black;
+}
+.grd-nav-bn {
+  padding: 10px;
+  border: 1px solid grey;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  color: grey;
+}
+.grd-nav-without-border {
+  border: none;
+}
+.grd-nav-bn-large {
+  width: 40vw;
+  height: 18vh;
+  font-size: 35px;
+}
+a.grd-nav-bn,
+a.grd-nav-bn:visited {
+  color: black;
+  text-decoration: none;
+}
+.grd-nav-bn-discard {
+  color: darkred !important;
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 07.07.2019, 16:20:15
+    Author     : einhornimmond
+*/
+/* content container */
+.grd_container {
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.grd_container_small {
+  max-width: 500px;
+}
+.grd_text {
+  max-width: 550px;
+  margin-bottom: 5px;
+}
+.grd_text-max-width {
+  max-width: 550px;
+}
+/* layout helper */
+.grd_margin_5 {
+  margin: 5px;
+}
+.grd-margin-top-10 {
+  margin-top: 10px;
+}
+.grd-width-200 {
+  width: 200px;
+}
+.grd-padding-top-bottom-5 {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.grd-padding-top-bottom-10 {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.grd_margin-bottom {
+  margin-bottom: 5px;
+}
+.grd_right {
+  float: right;
+}
+a.grd_invisible_link {
+  color: black;
+  text-decoration: none;
+}
+a.grd_invisible_link:hover {
+  color: grey;
+}
+.grd_clickable {
+  cursor: pointer;
+}
+ul.grd-no-style {
+  list-style: none;
+}
+p.grd_small {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.grd-default-currency {
+  color: grey;
+}
+.grd-positive-currency {
+  color: green;
+}
+.grd-negative-currency {
+  color: red;
+}
+.admin-border {
+  border-color: #ffa600;
+}
