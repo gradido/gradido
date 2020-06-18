@@ -87,21 +87,6 @@
 			case USER_PASSWORD_ENCRYPTION_IN_PROCESS: 
 				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
 				break;
-				/*
-			case USER_EMAIL_NOT_ACTIVATED: 
-				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")), false);
-				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
-				return;
-			case USER_NO_KEYS: 
-			    if(mSession->getSessionState() == SESSION_STATE_PASSPHRASE_WRITTEN) {
-					//mSession->addError(new Error(langCatalog->ge)
-					em->addError(new Error("LoginPage", "user has no keys, but passphrase is written"));
-					em->addError(new ParamError("LoginPage", "user email", email));
-					em->sendErrorsAsEmail();
-				}
-				response.redirect(ServerConfig::g_serverPath + "/passphrase");
-				return;
-				*/
 			case USER_KEYS_DONT_MATCH: 
 				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
 				break;
