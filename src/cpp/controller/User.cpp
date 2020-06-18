@@ -274,7 +274,7 @@ namespace controller {
 				// younger than 7 days, schedule for created + 7 days
 				else {
 					auto runDateTime = created + Poco::Timespan(7, 0, 0, 0, 0);
-					ServerConfig::g_CronJobsTimer.schedule(new VerificationEmailResendTimerTask(user_id), Poco::Timestamp(runDateTime.microsecond()));
+					ServerConfig::g_CronJobsTimer.schedule(new VerificationEmailResendTimerTask(user_id), Poco::Timestamp(runDateTime.timestamp()));
 					count_scheduled++;
 				}
 			}
