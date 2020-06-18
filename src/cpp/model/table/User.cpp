@@ -193,6 +193,36 @@ namespace model {
 			return 0;
 		}
 
+		size_t User::updatePubkeyAndPrivkey()
+		{
+			lock();
+			if (mPrivateKey.isNull() || !mPublicKey || !mID) {
+				unlock();
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE users SET pubkey = ?, privkey = ? where id = ?;",
+				use(mPublicKey), use(mPrivateKey), use(mID);
+
+
+			size_t resultCount = 0;
+			try {
+				return update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock("User::updatePrivkeyAndPasswordHash");
+				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+				unlock();
+			}
+			//printf("data valid: %s\n", toString().data());
+			return 0;
+		}
+
 
 		/*
 		std::string mEmail;

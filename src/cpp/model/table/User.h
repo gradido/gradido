@@ -46,6 +46,7 @@ namespace model {
 			size_t updatePrivkey();
 			size_t updatePublickey();
 			size_t updatePrivkeyAndPasswordHash();
+			size_t updatePubkeyAndPrivkey();
 
 			// default getter unlocked
 			inline const std::string& getEmail() const { return mEmail; }

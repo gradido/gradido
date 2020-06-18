@@ -32,6 +32,10 @@
 				form.get("register-password", "")
 			);
 			getErrors(session);
+			if(!errorCount()) {
+				response.redirect(ServerConfig::g_php_serverPath + "/");
+				return;
+			}
 		}
 		
 	} else {
@@ -43,14 +47,6 @@
 <div class="grd_container">
 	<h1>Einen neuen Account anlegen</h1>
 	<%= getErrorsHtml() %>
-	<% if(!form.empty() && userReturned) {%>
-		<div class="grd_text-max-width">
-			<div class="grd_text">
-				Deine Anmeldung wird verarbeitet und es wird dir eine E-Mail zugeschickt. 
-				Wenn sie da ist, befolge ihren Anweisungen. 
-			</div>
-		</div>
-	<% } else { %>
 	<form method="POST">
 		
 		<fieldset class="grd_container_small">
@@ -80,6 +76,5 @@
 		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Anmelden">
 		
 	</form>
-	<% } %>
 </div>
 <%@ include file="footer.cpsp" %>

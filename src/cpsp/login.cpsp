@@ -78,7 +78,7 @@
 			
 			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
-			
+			printf("user state: %d\n", userState);
 			switch(userState) {
 			case USER_EMPTY: 
 			case USER_PASSWORD_INCORRECT:
@@ -87,6 +87,7 @@
 			case USER_PASSWORD_ENCRYPTION_IN_PROCESS: 
 				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
 				break;
+				/*
 			case USER_EMAIL_NOT_ACTIVATED: 
 				mSession->addError(new Error(langCatalog->gettext("Account"), langCatalog->gettext("E-Mail Address not checked, do you already get one?")), false);
 				response.redirect(ServerConfig::g_serverPath +  "/checkEmail");
@@ -100,11 +101,16 @@
 				}
 				response.redirect(ServerConfig::g_serverPath + "/passphrase");
 				return;
+				*/
 			case USER_KEYS_DONT_MATCH: 
 				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
 				break;
+			case USER_NO_KEYS:
+				mSession->generateKeys(true, true);
+				// no break, correct, if user has no keys, he will be redirect also to dashboard after login
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
+			case USER_EMAIL_NOT_ACTIVATED:
 				auto referer = request.find("Referer");
 				std::string refererString;
 				if (referer != request.end()) {

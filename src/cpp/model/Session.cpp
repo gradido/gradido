@@ -367,20 +367,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 		}
 	}
 
-	// passphrase
-	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES]);
-	if (passphrase.isNull()) {
-		em->addError(new ParamError(function_name, "error generating passphrase for", email));
-		em->sendErrorsAsEmail();
-	}
-	auto user_backup = controller::UserBackups::create(user_id, passphrase->getString());
-	user_backup->getModel()->insertIntoDB(false);
-
-	// keys
-	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
-	mNewUser->setGradidoKeyPair(gradido_key_pair);
-	// save pubkey in db
-	user_model->updatePublickey();
+	generateKeys(true, true);
 
 	// calculate encryption key, could need some time, will save encrypted privkey to db
 	UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(mNewUser, password);
@@ -1074,6 +1061,8 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 */
 bool Session::generatePassphrase()
 {
+	if (mNewUser.isNull()) return false;
+	
 	auto lang = getLanguage();
 	if (lang == LANG_EN) {
 		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
@@ -1088,6 +1077,57 @@ bool Session::generatePassphrase()
 
 bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 {
+	if (mNewUser.isNull()) {
+		addError(new Error(gettext("Benutzer"), gettext("Kein g&uuml;ltiger Benutzer, bitte logge dich erneut ein.")));
+		return false;
+	}
+	static const char* function_name = "Session::generateKeys";
+	auto lang = getLanguage();
+	auto user_model = mNewUser->getModel();
+	auto mnemonic_type = ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+	if (LANG_DE == lang) {
+		mnemonic_type = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES;
+	}
+
+	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+	if (!passphrase) {
+		addError(new ParamError(function_name, "Error generating passphrase with mnemonic: ", mnemonic_type));
+		addError(new ParamError(function_name, "user email: ", mNewUser->getModel()->getEmail()));
+		sendErrorsAsEmail();
+		addError(new Error(gettext("Benutzer"), gettext("Fehler beim generieren der Passphrase, der Admin bekommt eine E-Mail. ")));
+		return false;
+	}
+
+	if (savePassphrase) {
+		auto user_backup = controller::UserBackups::create(user_model->getID(), passphrase->getString());
+		// sync version
+		//user_backup->getModel()->insertIntoDB(false);	
+
+		// async version
+		UniLib::controller::TaskPtr save_user_backup_task = new model::table::ModelInsertTask(user_backup->getModel(), false, true);
+		save_user_backup_task->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_PASSPHRASE_WRITTEN, this));
+		save_user_backup_task->scheduleTask(save_user_backup_task);
+	}
+
+	// keys
+	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
+	auto set_key_result = mNewUser->setGradidoKeyPair(gradido_key_pair);
+	if (1 == set_key_result && savePrivkey) {
+		// save public key and private key in db
+		user_model->updatePubkeyAndPrivkey();
+	}
+	else {
+		// save public key in db
+		user_model->updatePublickey();
+	}
+	if (user_model->errorCount()) {
+		user_model->sendErrorsAsEmail();
+		addError(new Error(gettext("Benutzer"), gettext("Fehler beim speichern der Keys, der Admin bekommt eine E-Mail. ")));
+		return false;
+	}
+	return true;
+	/*
+
 	bool validUser = true;
 	if (mSessionUser) {
 		if (!mSessionUser->generateKeys(savePrivkey, mPassphrase, this)) {
@@ -1113,4 +1153,5 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	mPassphrase.clear();
 
 	return true;
+	*/
 }
