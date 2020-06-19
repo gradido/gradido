@@ -21,19 +21,12 @@
     display: block !important;
   }
 
-  .logo.small.visible {
-    padding-left: 118px;
+  .logo.mobile {
+    display: none;
   }
 
-  @media @phone-down {
-    .logo.big {
-      display: none;
-    }
-
-    .logo.small {
-      display: block;
-    }
-
+  .logo.small.visible {
+    padding-left: 118px;
   }
 
   /*
@@ -72,6 +65,11 @@
     font-size: @nav-icon-main-fs !important;
     color: @unobtrusive;
     margin: .3em;
+  }
+
+  /* Hide mobile menu button! */
+  .nav-main-button.mobile {
+    display: none;
   }
 
   .nav-menu {
@@ -162,6 +160,137 @@
 
   }
 
+  /*
+    NAVI MOBILE
+  */
+  @media @tablet-down {
+    .logo.big,
+    .logo.small {
+      display: none;
+    }
+
+    .logo.visible {
+      padding: 0 !important;
+    }
+
+    .logo,
+    .logo.mobile,
+    .logo.mobile.visible {
+      display: block;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+    }
+
+    .logo.big,
+    .logo.big.visible {
+      display: none !important;
+    }
+
+    .nav-main-button {
+      display: none;
+    }
+
+    .nav-main-button.mobile {
+      display: block;
+      position: fixed;
+      top: 2px;
+      right: 0px;
+      z-index: 3;
+    }
+
+    .nav-menu {
+      width: 280px;
+      height: 300px;
+    }
+
+    .nav-menu-minimized .link-title {
+      display: inherit;
+    }
+
+    .nav-menu-minimized .nav-icon,
+    .nav-menu-minimized .nav-main-button {
+      padding-left: 0;
+    }
+
+    /* Here we "revert' maximized / minimized and change the animation */
+    .nav-menu-maximized {
+      -webkit-animation: slide-down 0.1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+      animation: slide-down 0.1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+
+    .nav-menu-minimized {
+      -webkit-animation: slide-up 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+      animation: slide-up 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+
+    /**
+     * ----------------------------------------
+     * animations  slide-down / slide-up
+     * ----------------------------------------
+     */
+
+    /* slide-down */
+    @-webkit-keyframes slide-down {
+      0% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+        opacity: 0;
+      }
+
+      100% {
+        -webkit-transform: translateY(300px);
+        transform: translateX(300px);
+        opacity: 1;
+      }
+
+    }
+
+    @keyframes slide-down {
+      0% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+        opacity: 0;
+      }
+
+      100% {
+        -webkit-transform: translateY(300px);
+        transform: translateY(300px);
+        opacity: 1;
+      }
+
+    }
+
+    /* slide-up */
+    @-webkit-keyframes slide-up {
+      0% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+      }
+
+      100% {
+        -webkit-transform: translateY(-300px);
+        transform: translateY(-300px);
+      }
+
+    }
+
+    @keyframes slide-up {
+      0% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+      }
+
+      100% {
+        -webkit-transform: translateY(-300px);
+        transform: translateY(-300px);
+      }
+
+    }
+
+  }
+
+  /* END navi mobile base */
   .selected {
     color: @menu-link-selected;
   }
@@ -238,6 +367,13 @@
     padding-right: 2em;
   }
 
+  @media @tablet-down {
+    .nav-vertical {
+      margin-top: 55px;
+    }
+
+  }
+
   .nav-bottom {
     display: flex;
     flex-direction: column;
@@ -250,9 +386,6 @@
     font-size: @nav-bottom-fs;
     color: @unobtrusive;
     margin: 0;
-  }
-
-  @media @phone-down {
   }
 
   nav {

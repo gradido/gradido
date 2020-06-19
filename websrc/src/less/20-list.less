@@ -43,6 +43,13 @@
         transition-duration: .5s;
     }
 
+    @media @tablet-down {
+        .row {
+            flex-direction: column;
+        }
+
+    }
+
     .row:hover {
         background-color: #f6f7f9;
     }
@@ -89,6 +96,33 @@
     .c5 {
         min-width: 320px;
         flex: 0 0 320px;
+    }
+
+    @media @tablet-down {
+        .cell {
+            padding: .25em 1.5em;
+        }
+
+        .c1 {
+            flex-basis: auto;
+        }
+
+        .c2 {
+            flex-basis: auto;
+        }
+
+        .c3 {
+            flex-basis: auto;
+        }
+
+        .c4 {
+            flex-basis: auto;
+        }
+
+        .c5 {
+            flex-basis: auto;
+        }
+
     }
 
     .header-cell {
@@ -151,7 +185,7 @@
     }
 
     /* =====================================
-        FORM TOP CONTENT (checkTransaction)
+    FORM TOP CONTENT (checkTransaction)
        =====================================*/
     .form-content {
         padding: 35px;
