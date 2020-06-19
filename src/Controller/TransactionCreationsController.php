@@ -10,6 +10,9 @@ use Cake\Core\Configure;
 use Cake\I18n\FrozenDate;
 use Cake\Datasource\ConnectionManager;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 use App\Form\CreationForm;
 // protobuf transactions
 //use Model\Messages\Gradido\TransactionCreation;
@@ -24,7 +27,7 @@ use Model\Transactions\TransactionCreation;
  */
 class TransactionCreationsController extends AppController
 {
-  
+
     public function initialize()
     {
         parent::initialize();
@@ -32,6 +35,11 @@ class TransactionCreationsController extends AppController
         $this->loadComponent('JsonRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         //$this->Auth->allow('create');
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->add(new NaviHierarchyEntry(__('Gradido schöpfen'), 'TransactionCreations', 'create-multi', true))
+        );
     }
     /**
      * Index method
@@ -68,7 +76,7 @@ class TransactionCreationsController extends AppController
 
         $this->set('transactionCreation', $transactionCreation);
     }
-    
+
     public function create()
     {
         $startTime = microtime(true);
@@ -87,8 +95,8 @@ class TransactionCreationsController extends AppController
         $creationForm = new CreationForm();
         $transactionCreation = $this->TransactionCreations->newEntity();
         $transactionCreation->state_user_id  = $user['id'];
-        
-        // adding possible addresses + input field for copy 
+
+        // adding possible addresses + input field for copy
         $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
         $stateUsers = $stateUserTable->find('all')->contain(false);
         $receiverProposal = [];
@@ -103,13 +111,13 @@ class TransactionCreationsController extends AppController
         }
         $timeUsed = microtime(true) - $startTime;
         $this->set(compact('transactionCreation', 'timeUsed', 'receiverProposal', 'creationForm'));
-        
+
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
           $mode = 'next';
           if(isset($requestData['add'])) {$mode = 'add'; }
           if($creationForm->validate($requestData)) {
-            
+
             $pubKeyHex = '';
             $identHash = '';
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
@@ -121,14 +129,14 @@ class TransactionCreationsController extends AppController
               //echo "identHash: $identHash for " . $receiverProposal[$receiverIndex]['email'];
             }
             $builderResult = TransactionCreation::build(
-                    $amountCent, 
-                    $requestData['memo'], 
+                    $amountCent,
+                    $requestData['memo'],
                     $pubKeyHex,
                     $identHash
             );
 //            echo "builder result state: " . $builderResult['state'] . '<br>';
             if($builderResult['state'] == 'success') {
-              
+
               $user_balance = 0;
               if(isset($user['balance'])) {
                 $user_balance = $user['balance'];
@@ -181,7 +189,7 @@ class TransactionCreationsController extends AppController
           }
         }
     }
-    
+
     public function createMulti($page = 0)
     {
         $startTime = microtime(true);
@@ -193,9 +201,9 @@ class TransactionCreationsController extends AppController
           return $result;
         }
         $user = $session->read('StateUser');
-        
+
         $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-        
+
         $connection = ConnectionManager::get('default');
         $transactionActiveMonth = $connection->execute(
                 'SELECT id, received FROM transactions '
@@ -209,7 +217,7 @@ class TransactionCreationsController extends AppController
         foreach($transactionActiveMonth as $t) {
           $transactionActiveMonthSortedById[$t['id']] = $t['received'];
         }
-        $firstDayLastMonth = new FrozenDate(); 
+        $firstDayLastMonth = new FrozenDate();
         $firstDayLastMonth = $firstDayLastMonth->day(1)->subMonth(1);
         $transactionsLastMonthTargeDate = $this->TransactionCreations
                 ->find('all')
@@ -218,15 +226,15 @@ class TransactionCreationsController extends AppController
                 ->group(['state_user_id'])
                 ->contain([]);
         $transactionsLastMonthTargeDate->select([
-            'state_user_id', 
+            'state_user_id',
             'sum_amount' => $transactionsLastMonthTargeDate->func()->sum('amount')
         ]);
-        
+
         $transactionsLastMonthTargetDateSortedByStateUserId = [];
         foreach($transactionsLastMonthTargeDate as $transactionCreation) {
           $transactionsLastMonthTargetDateSortedByStateUserId[$transactionCreation->state_user_id] = $transactionCreation->sum_amount;
         }
-        
+
         $stateUsers = $stateUserTable
                 ->find('all')
                 ->select(['id', 'first_name', 'last_name', 'email'])
@@ -238,7 +246,7 @@ class TransactionCreationsController extends AppController
                         'TransactionCreations.state_user_id'
                     ]
                 ]]);
-        
+
         //var_dump($stateUsers->toArray());
         $possibleReceiver = [];
         $countUsers = 0;
@@ -257,9 +265,9 @@ class TransactionCreationsController extends AppController
             if(isset($transactionActiveMonthSortedById[$transactionCreation->transaction_id])) {
               $sumAmount += $transactionCreation->amount;
             }
-            
+
           }
-          
+
           //if($sumAmount < 20000000) {
             array_push($possibleReceiver, [
                 'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
@@ -277,10 +285,10 @@ class TransactionCreationsController extends AppController
         });
         //var_dump($possibleReceiver);
         $creationForm = new CreationForm();
-        
+
         $timeUsed = microtime(true) - $startTime;
         $this->set(compact('timeUsed', 'stateUsers', 'creationForm', 'possibleReceiver'));
-        
+
         $this->set('firstDayLastMonth', $firstDayLastMonth);
         $this->set('activeUser', $user);
         $this->set('creationForm', $creationForm);
@@ -289,7 +297,7 @@ class TransactionCreationsController extends AppController
         $this->set('countUsers', $countUsers);
         $this->set('limit', $limit);
         $this->set('page', $page);
-        
+
         if ($this->request->is('post')) {
           $requestData = $this->request->getData();
           //var_dump($requestData);
@@ -302,7 +310,7 @@ class TransactionCreationsController extends AppController
           $targetDate = $requestData['target_date'];
           $mode = 'next';
           if(isset($requestData['add'])) {$mode = 'add'; }
-          
+
           if(!isset($requestData['user']) || count($requestData['user']) == 0) {
             $this->Flash->error(__('no user choosen'));
           } else {
@@ -348,8 +356,8 @@ class TransactionCreationsController extends AppController
               //echo "output: "; var_dump($localTargetDateFrozen);
               //die('a');
               $builderResult = TransactionCreation::build(
-                    $localAmountCent, 
-                    $memo, 
+                    $localAmountCent,
+                    $memo,
                     $pubKeyHex,
                     $identHash,
                     $localTargetDateFrozen
@@ -413,7 +421,7 @@ class TransactionCreationsController extends AppController
                   }
                 }
               }
-            }           
+            }
           }
         }
     }
@@ -425,7 +433,7 @@ class TransactionCreationsController extends AppController
      */
     public function add()
     {
-        
+
         $transactionCreation = $this->TransactionCreations->newEntity();
         if ($this->request->is('post')) {
             $transactionCreation = $this->TransactionCreations->patchEntity($transactionCreation, $this->request->getData());

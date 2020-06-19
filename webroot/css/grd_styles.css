@@ -70,14 +70,46 @@
 /*rgba(0, 0, 0, 0.5) ??? */
 /* NOTIFICATION */
 /* https://www.w3schools.com/colors/colors_shades.asp */
-.alert-color {
-  color: #ff5f66;
+.info-color {
+  color: grey;
 }
 .success-color {
   color: #047006;
 }
+.alert-color {
+  color: #ff5f66;
+}
 .orange-color {
   color: #ffa600;
+}
+.unobtrusive {
+  color: grey;
+}
+.info-icon {
+  color: grey;
+  background-color: #80808026;
+}
+.success-icon {
+  color: #047006;
+  background-color: rgba(4, 112, 6, 0.2);
+}
+.alert-icon {
+  color: #ff5f66;
+  background-color: #ff5f662e;
+}
+/* =======================
+    Gradido
+   =======================*/
+/* Gradido */
+.grd-negative-currency {
+  color: red;
+}
+/* Gradido Transform */
+.gdt-text-color {
+  color: #a27824;
+}
+.grd_clickable {
+  cursor: pointer;
 }
 /* ============================================================
 
@@ -89,6 +121,10 @@
   Copyright :   Gradio
 
    ============================================================*/
+.small-font {
+  font-size: 0.75em;
+  font-weight: 300;
+}
 /* ============================================================
 
   Basic screen styles.
@@ -214,20 +250,6 @@
   }
   a.grd_invisible_link:hover {
     color: grey;
-  }
-  /* =======================
-        Gradido
-       =======================*/
-  /* Gradido */
-  .grd-negative-currency {
-    color: red;
-  }
-  /* Gradido Transform */
-  .gdt-text-color {
-    color: #a27824;
-  }
-  .grd_clickable {
-    cursor: pointer;
   }
 }
 /* Ende @media screen */
@@ -737,6 +759,11 @@ and open the template in the editor.
     border: 1px solid rgba(238, 238, 238, 0.75);
     margin: 1em 0.25em;
   }
+  /* Block Container Above Main */
+  .block-container {
+    width: 100%;
+    display: flex;
+  }
   /* Top Info Above Main */
   .info-container {
     max-width: 70%;
@@ -750,6 +777,31 @@ and open the template in the editor.
     width: 90%;
     margin: auto;
     padding: 1em;
+  }
+  /* Content Block */
+  .content-block {
+    width: 170px;
+    padding: 20px 25px 20px;
+    border: 1px dashed grey;
+    border-radius: 16px;
+    margin: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+  }
+  .block-img {
+    width: 40px;
+    height: 40px;
+    line-height: 20px;
+    font-size: 24px;
+    padding: 8px;
+    border-radius: 20px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
   }
   /* Generic Content */
   .content-region {
@@ -880,9 +932,6 @@ and open the template in the editor.
     vertical-align: middle;
   }
   /* Individual Tables XXX rm!! */
-  .wiretransfer {
-    grid-template-columns: 5fr 4fr 3fr 2fr 1fr;
-  }
   .error-list {
     grid-template-columns: 2fr 2fr 5fr 1fr;
   }

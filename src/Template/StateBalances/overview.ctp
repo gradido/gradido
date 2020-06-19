@@ -27,7 +27,7 @@ $this->assign('header', $header);
 <?php endif; ?>
 <div class="content-list">
   <p class="content-list-title">Überweisungen</p>
-  <div class="content-list-table wiretransfer">
+  <div class="content-list-table">
     <div class="row">
       <div class="cell header-cell c4"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>
       <div class="cell header-cell c0"><?= __('Verwendungszweck') ?></div>

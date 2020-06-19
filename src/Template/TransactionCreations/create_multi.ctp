@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -23,34 +23,34 @@ use Cake\I18n\FrozenTime;
   input[type='checkbox'] {
     width:25px;
   }
-  
+
   .grd_big_checkbox {
     border:1px dotted black;
     padding:4px;
     margin-bottom:5px;
   }
-  
+
   .grd_margin-bottom_50 {
     margin-bottom:50px;
   }
-  
+
   .grd_margin-bottom_100 {
     margin-bottom:100px;
   }
-  
+
   .grd_margin-bottom_120 {
     margin-bottom:120px;
   }
-  
+
   .grd_smaller {
     font-size:smaller;
     color:blue;
   }
-  
+
   .color-orange {
     color:#6400d9;
   }
-  
+
   .flowing-bottom {
     position:fixed;
     bottom:0px;
@@ -60,10 +60,9 @@ use Cake\I18n\FrozenTime;
     padding-bottom:10px;
     background-color:rgba(255,255,255,0.5);
   }
-  
+
 </style>
 <div class="grd_container_small grd_margin-bottom_120">
-  
   <button type="button" onclick="checkAll()" >Alle auswählen</button>
   <button type="button" onclick="uncheckAll()">Alle abwählen</button>
   <div style="margin-bottom:5px"></div>
@@ -74,8 +73,8 @@ use Cake\I18n\FrozenTime;
   <fieldset>
     <?= $this->Form->control('memo'); ?>
     <?= $this->Form->control('amount', ['required' => false]); ?>
-    <?php 
-      $firstDayLastMonth = new FrozenTime(); 
+    <?php
+      $firstDayLastMonth = new FrozenTime();
       $firstDayLastMonth = $firstDayLastMonth->day(1)->subMonth(1);
     ?>
     <?= $this->Form->control('target_date', ['value' => $firstDayLastMonth]); ?>
@@ -94,7 +93,7 @@ use Cake\I18n\FrozenTime;
         <span style="color:grey" title="Du kannst leider nicht für dich selbst schöpfen.">
       <?php endif; ?>
           <a style="color:black;text-decoration: none;" target="_blank" href="/state-users/view/<?= $possibleReceiver['id'] ?>">
-      <?= $possibleReceiver['name'] ?>   
+      <?= $possibleReceiver['name'] ?>
         <?php if($possibleReceiver['email'] != '') : ?>
           &lt;<?= $possibleReceiver['email'] ?>&gt;
         <?php endif; ?></a><br>
@@ -129,17 +128,17 @@ use Cake\I18n\FrozenTime;
     <!--<?= $this->Form->control('receiver_pubkey_hex', []) ?>-->
   </fieldset>
   <div class="flowing-bottom">
-    <?php if($countUsers > $limit) : 
+    <?php if($countUsers > $limit) :
     ?><p><?= $countUsers ?> Benutzer insgesamt</p>
-    <p>Seiten: 
+    <p>Seiten:
       <?php for($i = 0; $i < ceil($countUsers/$limit); $i++) {
-          if($i > 0) echo ', ';     
+          if($i > 0) echo ', ';
           if($i != $page) {
             echo $this->Html->link($i, ['action' => 'create_multi', $i]);
           } else {
             echo $i;
           }
-      } 
+      }
       ?>
     </p><?php endif ?>
     <?= $this->Form->button(__('Transaktion(en) abschließen'), ['name' => 'next', 'class' => 'grd-form-bn grd-form-bn-succeed  grd_clickable grd-width-200']) ?>
@@ -154,21 +153,21 @@ use Cake\I18n\FrozenTime;
     var inputs = document.getElementsByTagName("input");
     for(var i = 0; i < inputs.length; i++) {
       if(inputs[i].type == "checkbox") {
-          inputs[i].checked = true; 
-      }  
-    } 
+          inputs[i].checked = true;
+      }
+    }
   }
-  
+
   function uncheckAll()
   {
     var inputs = document.getElementsByTagName("input");
     for(var i = 0; i < inputs.length; i++) {
       if(inputs[i].type == "checkbox") {
-          inputs[i].checked = false; 
-      }  
+          inputs[i].checked = false;
+      }
     }
   }
-  
+
 (function(document, window, domIsReady, undefined) {
    domIsReady(function() {
       var userAmountInputs = document.getElementsByClassName("user_amount");
@@ -188,15 +187,15 @@ use Cake\I18n\FrozenTime;
    });
 })(document, window, domIsReady);
 
-  // 
-  
+  //
+
 </script>
 <?php if($transactionExecutingCount > 0) : ?>
 <script type="text/javascript">
   //function getJson(basisUrl, method, successFunction, errorFunction, timeoutFunction)
   g_transactionExecutionCount = <?= $transactionExecutingCount ?>;
   g_updateExecutionDisplayInterval = null;
-  
+
   function updateTransactionExecutingDisplay(count) {
     var display = document.getElementById('transaction-execute-display');
     if(count > 0) {
@@ -210,10 +209,10 @@ use Cake\I18n\FrozenTime;
       display.innerHTML =  '<?= __('Alle Transaktionen abgeschlossen!') ?> <button class="grd-form-bn grd_clickable" onclick="location.reload()">Seite neuladen</button>';
     }
   }
-  
+
   function checkTransactionExecuting() {
-    
-    
+
+
     getJson('<?= $this->Url->build(["controller" => "JsonRequestHandler"]);?>', 'getRunningUserTasks',
       // success
       function(json) {
@@ -240,7 +239,7 @@ use Cake\I18n\FrozenTime;
       }
     )
   }
-  
+
   (function(document, window, domIsReady, undefined) {
    domIsReady(function() {
       updateTransactionExecutingDisplay(g_transactionExecutionCount);
