@@ -5,6 +5,9 @@ use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
 use Cake\I18n\Time;
 
+use Model\Navigation\NaviHierarchy;
+use Model\Navigation\NaviHierarchyEntry;
+
 /**
  * Users Controller
  *
@@ -14,6 +17,16 @@ use Cake\I18n\Time;
  */
 class UsersController extends AppController
 {
+    public function initialize()
+    {
+        parent::initialize();
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->add(new NaviHierarchyEntry(__('Benutzerstatistiken'), 'Users', 'statistics', true))
+        );
+    }
+
     /**
      * Index method
      *
@@ -25,13 +38,13 @@ class UsersController extends AppController
 
         $this->set(compact('users'));
     }
-    
+
     public function statistics()
     {
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $users = $this->Users->find('all')->select(['id']);
-        
+
         //$newUsersThisMonth
         $now = new Time();
         $sortDate = $this->getStartEndForMonth($now->month, $now->year);
@@ -44,11 +57,11 @@ class UsersController extends AppController
         $newUsersLastMonth = $this->Users->find('all')
                                          ->select(['id'])
                                          ->where(['created >=' => $prevSortDate[0], 'created <' => $prevSortDate[1]]);
-        
+
         // new user sorted after date
         $connection = ConnectionManager::get('loginServer');
         $newAccountsPerDay = $connection->execute('SELECT count(id) as count, created FROM users GROUP BY CAST(created as DATE) ORDER BY created DESC ')->fetchAll('assoc');
-        
+
         $newAccountsTree = [];
         foreach($newAccountsPerDay as $entry) {
           $created = new Time($entry['created']);
@@ -61,12 +74,12 @@ class UsersController extends AppController
           array_push($newAccountsTree[$created->year][$created->month]['days'], $entry);
           $newAccountsTree[$created->year][$created->month]['count'] += intval($entry['count']);
         }
-        
+
         // last 5 new users
         $lastUsers = $this->Users->find('all')->order(['created DESC'])->limit(5);
-        
+
         $timeUsed = microtime(true) - $startTime;
-        
+
         $this->set(compact(
                 'users', 'newUsersThisMonth', 'newUsersLastMonth',
                 'timeUsed', 'newAccountsTree', 'lastUsers'));

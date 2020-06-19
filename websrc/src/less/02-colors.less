@@ -74,16 +74,21 @@
 @gdt-text: #a27824;
 
 /* NOTIFICATION */
+@info: grey;
 @info-border: gray;
-@success: green;
-@success-background: lightcyan;
-@success-background-hover: lightgreen;
-@alert-color: #fff;
+@info-background: #80808026;
+@info-background-icon: #80808026;
 @error: red;
 @error-border: rgba(255, 0, 0, 0.5);
 @success: #047006;
 @success-border: #04700675;
+@success-background: rgba(4, 112, 6, 0.2);
+@success-background-icon: rgba(4, 112, 6, 0.2);
+@success-background-hover: lightgreen;
 @alert: #ff5f66;
+@alert-color: #fff;
+@alert-background: #ff5f669e;
+@alert-background-icon: #ff5f662e;
 @alert-blink: #ff5f669e;
 @notify: #525c5d;
 @notify-blink: #525c5d82;
@@ -93,14 +98,55 @@
 @light: #F5F5F5;
 @verylight: #fbfbfb;
 
-.alert-color {
-    color: @alert;
+.info-color {
+    color: @info;
 }
 
 .success-color {
     color: @success;
 }
 
+.alert-color {
+    color: @alert;
+}
+
 .orange-color {
     color: @orange
+}
+
+.unobtrusive {
+    color: @unobtrusive;
+}
+
+.info-icon {
+    color: @info;
+    background-color: @info-background-icon;
+}
+
+.success-icon {
+    color: @success;
+    background-color: @success-background-icon;
+}
+
+.alert-icon {
+    color: @alert;
+    background-color: @alert-background-icon;
+}
+
+/* =======================
+    Gradido
+   =======================*/
+
+/* Gradido */
+.grd-negative-currency {
+    color: red;
+}
+
+/* Gradido Transform */
+.gdt-text-color {
+    color: @gdt-text;
+}
+
+.grd_clickable {
+    cursor: pointer;
 }
