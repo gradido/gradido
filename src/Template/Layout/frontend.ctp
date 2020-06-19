@@ -40,6 +40,14 @@ $GLOBALS["self"] = $this;
     <div class="header-notify">
       <?= $this->element('navi_notify'); ?>
     </div>
+    <div>
+      <i id="nav-action-mobile" class="material-icons-outlined nav-main-button mobile">menu</i>
+    </div>
+    <picture class="logo mobile">
+      <source srcset="/img/logo_half.webp" type="image/webp">
+      <source srcset="/img/logo_half.png" type="image/png">
+      <img src="/img/logo_half.png" class="logo" alt="Logo">
+    </picture>
     <div class="sidebar1 nav-menu initial">
     <!-- TODO save last sidebar state so that it remains unchanged, on reload! -->
       <a href="/">
@@ -55,7 +63,7 @@ $GLOBALS["self"] = $this;
         </picture>
       </a>
       <div>
-        <i class="material-icons-outlined nav-main-button">menu</i>
+        <i id="nav-action" class="material-icons-outlined nav-main-button">menu</i>
       </div>
       <div class="nav-vertical">
         <ul>

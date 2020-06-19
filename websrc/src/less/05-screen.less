@@ -81,9 +81,26 @@
         right: 0;
         color: @unobtrusive;
         font-size: @devinfo-fs;
-        line-height: 1.125em;
-        padding-right: 0.25em;
+        line-height: .125em;
+        padding-right: .25em;
         text-align: right;
+    }
+
+    @media @tablet-down {
+        .bottomright {
+            font-size: @devinfo-fs-mobile;
+            font-weight: 300;
+            line-height: 1em;
+            width: 100px;
+        }
+
+        .bottomright p {
+            margin-block-start: 0;
+            margin-block-end: 2px;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+        }
+
     }
 
     .bottomleft {
