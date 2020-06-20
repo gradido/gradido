@@ -73,6 +73,13 @@ namespace controller {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
+		inline bool hasPassword() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mPassword;
+		}
+		inline bool hasPublicKey() {
+			return getModel()->getPublicKey();
+		}
 		//! \brief set key pair, public in model, private if password exist else with next setPassword call into model
 		//! \param gradidoKeyPair take owner ship
 		//! \param return 0 if public key set

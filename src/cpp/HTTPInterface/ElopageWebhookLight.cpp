@@ -19,6 +19,10 @@ void ElopageWebhookLight::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	std::ostream& _responseStream = response.send();
 	_responseStream << "200 OK";
 
+	// don't use it anymore, register now direct 
+	// elopage request are only logged from gpt server
+	return;
+
 	std::istream& stream = request.stream();
 	std::string completeRequest;
 	Poco::Net::NameValueCollection elopageRequestData;

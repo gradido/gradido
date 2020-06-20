@@ -115,12 +115,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return handleCheckEmail(s, uri, request, timeUsed);
 		}
 	}
-	if (url_first_part == "/register") {
+	/*if (url_first_part == "/register") {
 		auto pageRequestHandler = new RegisterPage;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
-	}
-	if (url_first_part == "/registerDirect") {
+	}*/
+	if (url_first_part.size() >= 9 && url_first_part.substr(0,9) == "/register") {
+	//if (url_first_part == "/register" || url_first_part == "/registerDirect" ) {
 		auto pageRequestHandler = new RegisterDirectPage;
 		pageRequestHandler->setProfiler(timeUsed);
 		return pageRequestHandler;
@@ -146,10 +147,16 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (externReferer != "") {
 			s->setLastReferer(externReferer);
 		}
+		model::table::User* userModel = nullptr;
 		auto user = s->getUser();
-		if (s->errorCount() || (!user.isNull() && user->errorCount())) {
+		auto newUser = s->getNewUser();
+		if (newUser) userModel = newUser->getModel();
+		if (s->errorCount() || (!user.isNull() && user->errorCount()) || (userModel && userModel->errorCount())) {
 			if (!user.isNull() && user->errorCount()) {
 				s->getErrors(user);
+			}
+			if (userModel && userModel->errorCount()) {
+				s->getErrors(userModel);
 			}
 			s->sendErrorsAsEmail();
 			auto pageRequestHandler = new Error500Page(s);
@@ -171,7 +178,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
-		if (s->getNewUser()->getModel()->getRole() == model::table::ROLE_ADMIN) {
+		if (userModel && userModel->getRole() == model::table::ROLE_ADMIN) {
 			if (url_first_part == "/adminRegister") {
 				auto pageRequestHandler = new RegisterAdminPage(s);
 				pageRequestHandler->setProfiler(timeUsed);
@@ -229,7 +236,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return pageRequestHandler;
 
 		}
-		if (s && !user.isNull() && user->hasCryptoKey()) {
+		if(s && newUser && newUser->hasPassword() && newUser->hasPublicKey()) {
 			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			auto pageRequestHandler = new DashboardPage(s);
 			pageRequestHandler->setProfiler(timeUsed);

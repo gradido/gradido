@@ -31,8 +31,13 @@
 				form.get("register-email", ""),
 				form.get("register-password", "")
 			);
+			
 			getErrors(session);
+			
 			if(!errorCount()) {
+				auto user_host = request.clientAddress().host();
+				session->setClientIp(user_host);
+				response.addCookie(session->getLoginCookie());
 				response.redirect(ServerConfig::g_php_serverPath + "/");
 				return;
 			}
