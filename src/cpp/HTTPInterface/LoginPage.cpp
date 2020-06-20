@@ -321,17 +321,22 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 #line 180 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") );
 	responseStream << "</p>\n";
-	responseStream << "                      <a href=\"https://gradido.com\">";
+	responseStream << "                      <a href=\"";
 #line 181 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/registerDirect\">\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 182 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Create New Account") );
-	responseStream << "</a>\n";
+	responseStream << "\n";
+	responseStream << "\t\t\t\t\t  </a>\n";
 	responseStream << "                    </div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"reset-pwd-link\">\n";
 	responseStream << "\t\t\t\t\t\t<a href=\"";
-#line 184 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/resetPassword\">";
-#line 184 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Passwort vergessen") );
 	responseStream << "</a>\n";
 	responseStream << "\t\t\t\t\t</div>\n";

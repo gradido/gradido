@@ -19,6 +19,7 @@ namespace DataTypeConverter {
 	};
 
 	NumberParseState strToInt(const std::string& input, int& result);
+	NumberParseState strToInt(const std::string& input, unsigned long long& result);
 
 	MemoryBin* hexToBin(const std::string& hexString);
 	MemoryBin* base64ToBin(const std::string& base64String);

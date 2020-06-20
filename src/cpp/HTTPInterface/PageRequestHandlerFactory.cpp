@@ -35,6 +35,7 @@
 #include "../SingletonManager/SessionManager.h"
 
 #include "../lib/Profiler.h"
+#include "../lib/DataTypeConverter.h"
 
 #include "../ServerConfig.h"
 #include "../Crypto/DRRandom.h"
@@ -216,30 +217,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}			
 		}
 		auto sessionState = s->getSessionState();
-		printf("session state: %s\n", s->getSessionStateString());
-		if (url_first_part == "/updateUserPassword" && sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
-			auto pageRequestHandler = new UpdateUserPasswordPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
-		}
 		//printf("session state: %s\n", s->getSessionStateString());
-		if(sessionState == SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED || 
-		   sessionState == SESSION_STATE_PASSPHRASE_GENERATED ||
-		   sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
-		//if (url_first_part == "/passphrase") {
-			//return handlePassphrase(s, request);
-			auto pageRequestHandler = new PassphrasePage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
-		}
-		else if(sessionState == SESSION_STATE_PASSPHRASE_SHOWN) {
-		//else if (uri == "/saveKeys") {
-			auto pageRequestHandler = new SaveKeysPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
-		}
-		else if (sessionState == SESSION_STATE_RESET_PASSWORD_REQUEST) {
-			// 
+		if (url_first_part == "/updateUserPassword") {
 			auto pageRequestHandler = new UpdateUserPasswordPage(s);
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
@@ -293,20 +272,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	// try to get code from uri parameter
 	if (!verificationCode) {
 		size_t pos = uri.find_last_of("/");
-		try {
-			auto str = uri.substr(pos + 1);
-			verificationCode = stoull(uri.substr(pos + 1));
-		} catch (const std::invalid_argument& ia) {
-			std::cerr << __FUNCTION__ << " Invalid argument: " << ia.what() << ", str: " << uri.substr(pos + 1) << '\n';
-		} catch (const std::out_of_range& oor) {
-			std::cerr << __FUNCTION__ << " Out of Range error: " << oor.what() << '\n';
-		}
-		catch (const std::logic_error & ler) {
-			std::cerr << __FUNCTION__ << " Logical error: " << ler.what() << '\n';
-		}
-		catch (...) {
-			std::cerr << __FUNCTION__ << " Unknown error" << '\n';
-		}
+		auto str = uri.substr(pos + 1);
+		DataTypeConverter::strToInt(str, verificationCode);
 	}
 
 	// if no verification code given or error with given code, show form

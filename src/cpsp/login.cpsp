@@ -178,7 +178,9 @@
                     <button type="submit" name="submit" class="btn btn-primary btn-block"><%= langCatalog->gettext(" Login ") %></button>
                     <div class="signup-link">
                       <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
-                      <a href="https://gradido.com"><%= langCatalog->gettext("Create New Account") %></a>
+                      <a href="<%= ServerConfig::g_serverPath %>/registerDirect">
+						<%= langCatalog->gettext("Create New Account") %>
+					  </a>
                     </div>
 					<div class="reset-pwd-link">
 						<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
