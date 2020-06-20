@@ -143,22 +143,29 @@ namespace controller {
 		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) {
 			MemoryBin* clear_private_key = nullptr;
 
-			if (!model->hasPrivateKeyEncrypted()) return 1; 
-			auto priv_key_encrypted = model->getPrivateKeyEncrypted();
-			auto priv_key_bin = MemoryManager::getInstance()->getFreeMemory(priv_key_encrypted.size());
-			memcpy(*priv_key_bin, priv_key_encrypted.data(), priv_key_encrypted.size());
-			if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(priv_key_bin, &clear_private_key)) {
-				auto gradido_key_pair = new KeyPairEd25519(clear_private_key);
-				if (*gradido_key_pair != model->getPublicKey()) {
-					delete authenticated_encryption;
-					delete gradido_key_pair;
-					return -1;
-				}
-				if (mGradidoKeyPair) delete mGradidoKeyPair;
-				mGradidoKeyPair = gradido_key_pair;
-				if (mPassword) delete mPassword;
-				mPassword = authenticated_encryption;
+			if (mPassword) delete mPassword;
+			mPassword = authenticated_encryption;
+
+			if (!model->hasPrivateKeyEncrypted()) {
 				return 1;
+			}
+			else {
+				auto priv_key_encrypted = model->getPrivateKeyEncrypted();
+				auto priv_key_bin = MemoryManager::getInstance()->getFreeMemory(priv_key_encrypted.size());
+				memcpy(*priv_key_bin, priv_key_encrypted.data(), priv_key_encrypted.size());
+				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(priv_key_bin, &clear_private_key)) {
+					auto gradido_key_pair = new KeyPairEd25519(clear_private_key);
+					if (*gradido_key_pair != model->getPublicKey()) {
+						delete mPassword; 
+						mPassword = nullptr;
+						delete gradido_key_pair;
+						return -1;
+					}
+					if (mGradidoKeyPair) delete mGradidoKeyPair;
+					mGradidoKeyPair = gradido_key_pair;
+			
+					return 1;
+				}
 			}
 		}
 		delete authenticated_encryption;

@@ -1112,17 +1112,20 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	// keys
 	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
 	auto set_key_result = mNewUser->setGradidoKeyPair(gradido_key_pair);
+	size_t result_save_key = 0;
 	if (1 == set_key_result && savePrivkey) {
 		// save public key and private key in db
-		user_model->updatePubkeyAndPrivkey();
+		result_save_key = user_model->updatePubkeyAndPrivkey();
 	}
 	else {
 		// save public key in db
-		user_model->updatePublickey();
+		result_save_key = user_model->updatePublickey();
 	}
-	if (user_model->errorCount()) {
+	if (!result_save_key) {
+		user_model->addError(new Error(function_name, "Error saving new generated pubkey"));
+		user_model->addError(new ParamError(function_name, "e-mail: ", user_model->getEmail()));
 		user_model->sendErrorsAsEmail();
-		addError(new Error(gettext("Benutzer"), gettext("Fehler beim speichern der Keys, der Admin bekommt eine E-Mail. ")));
+		addError(new Error(gettext("Benutzer"), gettext("Fehler beim Speichern der Keys, der Admin bekommt eine E-Mail. Evt. nochmal versuchen oder abwarten!")));
 		return false;
 	}
 	return true;

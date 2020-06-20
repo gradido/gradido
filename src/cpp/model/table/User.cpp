@@ -142,32 +142,27 @@ namespace model {
 
 		size_t User::updatePrivkey() 
 		{ 
-			lock(); 
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mPrivateKey.isNull()) {
-				unlock();
 				return 0;
 			}
 			auto result = updateIntoDB("privkey", mPrivateKey.value()); 
-			unlock(); 
 			return result; 
 		}
 		size_t User::updatePublickey()
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mPublicKey.isNull()) {
-				unlock();
 				return 0;
 			}
 			auto result = updateIntoDB("pubkey", mPublicKey.value());
-			unlock();
 			return result;
 		}
 
 		size_t User::updatePrivkeyAndPasswordHash()
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mPrivateKey.isNull() || !mPasswordHashed || !mID) {
-				unlock();
 				return 0;
 			}
 			auto cm = ConnectionManager::getInstance();
@@ -184,10 +179,8 @@ namespace model {
 				return update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock("User::updatePrivkeyAndPasswordHash");
 				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "data set: ", toString().data()));
-				unlock();
 			}
 			//printf("data valid: %s\n", toString().data());
 			return 0;
@@ -195,9 +188,8 @@ namespace model {
 
 		size_t User::updatePubkeyAndPrivkey()
 		{
-			lock();
-			if (mPrivateKey.isNull() || !mPublicKey || !mID) {
-				unlock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			if (mPrivateKey.isNull() || mPublicKey.isNull() || !mID) {
 				return 0;
 			}
 			auto cm = ConnectionManager::getInstance();
@@ -214,10 +206,8 @@ namespace model {
 				return update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock("User::updatePrivkeyAndPasswordHash");
 				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "data set: ", toString().data()));
-				unlock();
 			}
 			//printf("data valid: %s\n", toString().data());
 			return 0;
