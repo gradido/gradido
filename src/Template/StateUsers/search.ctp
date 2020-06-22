@@ -12,7 +12,10 @@ $this->loadHelper('Form', [
     'templates' => 'horizontal_form',
 ]);
 ?>
-<?= $this->Html->css(['loginServer/style.css']) ?>
+<?= $this->Html->css([
+  'loginServer/style.css',
+  'rippleUI/style.css'
+]) ?>
 <style type="text/css">
   td.actions {
     padding: 10px 30px;
@@ -56,3 +59,6 @@ $this->loadHelper('Form', [
 
 </script>
 <?= $this->Html->script('userSearch') ?>
+<!-- npm run build im mithril client! -->
+<!-- keybase://team/gradido/gradido_mithril_user_search -->
+

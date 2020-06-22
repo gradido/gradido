@@ -50,6 +50,9 @@
     top: -300px;
     right: 0px;
   }
+  .header-notify {
+    grid-area: header;
+  }
 }
 .content {
   grid-area: center;
@@ -351,6 +354,14 @@ and open the template in the editor.
   .grd-success {
     padding: 5px;
     color: #047006;
+  }
+}
+@media screen and (max-width:767px) {
+  .flash-messages {
+    width: 90%;
+    top: 0;
+    left: 0;
+    text-align: center;
   }
 }
 /* ============================================================
@@ -837,6 +848,12 @@ and open the template in the editor.
         }
     */
 }
+@media screen and (max-width:767px) {
+  .header-notify {
+    justify-content: flex-end;
+    margin-right: 70px;
+  }
+}
 /* ============================================================
 
   Screen styles for center part.
@@ -985,7 +1002,7 @@ and open the template in the editor.
 }
 @media screen and (max-width:767px) {
   .main-container {
-    max-width: 100%;
+    max-width: 97%;
   }
 }
 @media screen and (max-width:767px) {
@@ -1318,6 +1335,16 @@ and open the template in the editor.
   }
   .center-form fieldset {
     margin-bottom: 1em;
+  }
+}
+@media screen and (max-width:767px) {
+  .form-body form {
+    grid-template-columns: 1fr;
+    margin: 20px;
+    grid-gap: 0.25em;
+  }
+  .form-label {
+    text-align: left;
   }
 }
 /*

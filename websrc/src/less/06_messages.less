@@ -34,6 +34,7 @@ and open the template in the editor.
       background-color: @success;
       border: 1px solid @success-border;
     }
+
     .alert-error {
       color: @alert-color !important;
       background-color: @error;
@@ -56,6 +57,16 @@ and open the template in the editor.
 
   .flash-messages.hidden {
     display: none;
+  }
+
+  @media @tablet-down {
+    .flash-messages {
+      width: 90%;
+      top: 0;
+      left: 0;
+      text-align: center;
+    }
+
   }
 
   /* messages, update flash */
