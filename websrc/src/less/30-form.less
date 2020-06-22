@@ -151,6 +151,19 @@ and open the template in the editor.
     margin-bottom: 1em;
   }
 
+  @media @tablet-down {
+    .form-body form {
+      grid-template-columns: 1fr;
+      margin: 20px;
+      grid-gap: .25em;
+    }
+
+    .form-label {
+      text-align: left;
+    }
+
+  }
+
 }
 
 /*
