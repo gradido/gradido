@@ -171,6 +171,7 @@ class AppController extends Controller
 
               $response = $http->get($url . '/login', ['session_id' => $session_id]);
               $json = $response->getJson();
+
               if(isset($json) && count($json) > 0) {
 
                 if($json['state'] === 'success') {
@@ -190,7 +191,7 @@ class AppController extends Controller
                   $session->write('Transaction.executing', $transactionExecuting);
                   $session->write('session_id', $session_id);
                   $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-                  //var_dump($json);
+                  
                   if(isset($json['user']['public_hex']) && $json['user']['public_hex'] != '') {
                     $public_key_bin = hex2bin($json['user']['public_hex']);
                     $stateUserQuery = $stateUserTable
