@@ -24,116 +24,84 @@ function publisherLink($publisher, $the) {
 }
 
 $this->assign('title', __('GDT Kontoübersicht'));
+
+$header = '<h3>' . __('Zur Verfügung: ') . '</h3>';
+if($gdtSum > 0){
+  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSum]).'</h2>';
+}
+$this->assign('header', $header);
 ?>
-<div class="row">
-  <div class="col-md-8 equel-grid">
-    <div class="grid">
-      <div class="grid-body py-3">
-        overview
-        <h3><?= __('Zur Verfügung: ') ?></h3>
-        <?php if($gdtSum > 0) : ?>
-          <h2><?= $this->element('printGDT', ['number' => $gdtSum]) ?></h2>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</div>
 <?php if(isset($ownEntries) && count($ownEntries) > 0) :?>
-<div class="row">
-  <div class="col-md-12 equel-grid">
-    <div class="grid">
-      <div class="grid-body py-3">
-        <p class="card-title ml-n1"><?= __('Eigene Einzahlungen') ?></p>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-hover table-sm">
-          <thead>
-            <tr class="solid-header">
-              <th class="pl-4"><?= __('E-Mail') ?></th>
-              <th><?= __('Datum') ?></th>
-              <th><?= __('Kommentar') ?></th>
-              <th><?= __('Euro') ?></th>
-              <th><?= __('Factor')?></th>
-              <th><?= __('GDT') ?></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach($ownEntries as $entry) : ?>
-            <tr>
-              <td><?= $entry['email'] ?></td>
-              <td><?= new FrozenTime($entry['date']) ?></td>
-              <td><?= h($entry['comment']) ?></td>
-              <td>
-                  <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
-                  <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
-              </td>
-              <td>
-                <?= $this->Number->format($entry['factor']) ?>
-                <?php if($entry['factor2'] != '1') : ?> x
-                  <?= $this->Number->format($entry['factor2']) ?>
-                <?php endif; ?>
-              </td>
-              <td><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></td>
-            </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
+<div class="content-list">
+  <p class="content-list-title"><?= __('Eigene Einzahlungen') ?></p>
+  <div class="content-list-table">
+    <div class="row">
+      <div class="cell header-cell c3"><?= __('E-Mail') ?></div>
+      <div class="cell header-cell c3"><?= __('Datum') ?></div>
+      <div class="cell header-cell c0"><?= __('Kommentar') ?></div>
+      <div class="cell header-cell c3"><?= __('Euro') ?></div>
+      <div class="cell header-cell c2"><?= __('Factor')?></div>
+      <div class="cell header-cell c3"><?= __('GDT') ?></div>
     </div>
+    <?php foreach($ownEntries as $entry) : ?>
+    <div class="row">
+      <div class="cell c3"><?= $entry['email'] ?></div>
+      <div class="cell c3"><?= new FrozenTime($entry['date']) ?></div>
+      <div class="cell c0"><?= h($entry['comment']) ?></div>
+      <div class="cell c3">
+        <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
+        <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
+      </div>
+      <div class="cell c2">
+      <?= $this->Number->format($entry['factor']) ?>
+      <?php if($entry['factor2'] != '1') : ?> x
+        <?= $this->Number->format($entry['factor2']) ?>
+      <?php endif; ?>
+      </div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></div>
+    </div>
+    <?php endforeach; ?>
   </div>
 </div>
 <?php endif; ?>
 <?php if(isset($connectEntries) && count($connectEntries) > 0) : ?>
-<div class="row">
-  <div class="col-md-12 equel-grid">
-    <div class="grid">
-      <div class="grid-body py-3">
-        <p class="card-title ml-n1"><?= __('Einzahlungen anderer (Publisherprogramm)') ?></p>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-hover table-sm">
-          <thead>
-            <tr class="solid-header">
-              <!--<th class="pl-4"><?= __('Einzahlender') ?></th>-->
-              <th class="pl-4"><?= __('Datum') ?></th>
-              <th><?= __('Euro') ?></th>
-              <th><?= __('Factor')?></th>
-              <th><?= __('GDT') ?></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach($connectEntries as $entry) :
-              $elopageTransaction = $entry['connect']['elopage_transaction'];
-              $gdtEntry = $entry['connect']['gdt_entry'];
-              ?>
-              <tr><td colspan="5">
-                    <?= $elopageTransaction['email'] ?>
-                      <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
-                         ->
-                        <?= publisherLink($publisher, $this) ?>
-                      <?php endforeach; ?>
-                  </td>
-              </tr>
-              <tr>
-                <!--<td><?= h($elopageTransaction['email']) ?></td>-->
-                <td><?= new FrozenTime($gdtEntry['date']) ?></td>
-                <td>
-                    <?= $this->element('printEuro', ['number' => $gdtEntry['amount']]) ?>
-                    <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
-                </td>
-                <td>
-                  <?= $this->Number->format($gdtEntry['factor']) ?>
-                  <?php if($gdtEntry['factor2'] != '1') : ?> x
-                    <?= $this->Number->format($gdtEntry['factor2']) ?>
-                  <?php endif; ?>
-                </td>
-                <td><?= $this->element('printGDT', ['number' => $gdtEntry['gdt']]) ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
+<div class="content-list">
+  <p class="content-list-title"><?= __('Einzahlungen anderer (Publisherprogramm)') ?></p>
+  <div class="content-list-table">
+    <div class="row">
+      <div class="cell header-cell c0"><?= __('Einzahlender') ?></div>
+      <div class="cell header-cell c3"><?= __('Datum') ?></div>
+      <div class="cell header-cell c3"><?= __('Euro') ?></div>
+      <div class="cell header-cell c2"><?= __('Factor')?></div>
+      <div class="cell header-cell c3"><?= __('GDT') ?></div>
     </div>
+    <?php foreach($connectEntries as $entry) :
+      $elopageTransaction = $entry['connect']['elopage_transaction'];
+      $gdtEntry = $entry['connect']['gdt_entry'];
+    ?>
+    <div class="row">
+      <div class="cell c0">
+        <?= $elopageTransaction['email'] ?>
+        <?php foreach($entry['publishersPath'] as $c => $publisher) : ?>
+           ->
+          <?= publisherLink($publisher, $this) ?>
+        <?php endforeach; ?>
+      </div>
+      <!--<div class="cell c0"><?= h($elopageTransaction['email']) ?></div>-->
+      <div class="cell c3"><?= new FrozenTime($gdtEntry['date']) ?></div>
+      <div class="cell c3">
+          <?= $this->element('printEuro', ['number' => $gdtEntry['amount']]) ?>
+          <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
+      </div>
+      <div class="cell c2">
+        <?= $this->Number->format($gdtEntry['factor']) ?>
+        <?php if($gdtEntry['factor2'] != '1') : ?> x
+          <?= $this->Number->format($gdtEntry['factor2']) ?>
+        <?php endif; ?>
+      </div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $gdtEntry['gdt']]) ?></div>
+    </div>
+    <?php endforeach; ?>
   </div>
 </div>
 <?php endif; ?>
