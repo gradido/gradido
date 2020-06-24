@@ -177,7 +177,7 @@ class StateBalancesController extends AppController
     public function overviewGdt()
     {
         $startTime = microtime(true);
-        $this->viewBuilder()->setLayout('frontend');
+        $this->viewBuilder()->setLayout('frontend_ripple');
         $session = $this->getRequest()->getSession();
         $result = $this->requestLogin();
         if ($result !== true) {

@@ -124,7 +124,9 @@ $this->assign('header', $header);
              g_transactionExecutionCount = newCount;
              location.reload();
              //updateTransactionExecutingDisplay(g_transactionExecutionCount);
-           }
+           } else {
+             setTimeout(checkTransactionExecuting, 100);
+           } 
         }
       },
       // error

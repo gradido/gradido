@@ -32,9 +32,9 @@ $GLOBALS["self"] = $this;
         <?= $this->fetch('title') ?>
     </title>
     <?= $this->Html->meta('icon') ?>
-    <!--<?= $this->Html->css(['main.css']) ?>-->
     <?= $this->Html->css(['rippleUI/style.css', 'materialdesignicons.min.css']) ?>
     <?= $this->Html->script(['basic']) ?>
+    <!--<?= $this->Html->css(['main.css']) ?>-->
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>

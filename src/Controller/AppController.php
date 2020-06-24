@@ -240,6 +240,7 @@ class AppController extends Controller
                   } else {
                     $this->Flash->error(__('Konto ist nicht aktiviert!'));
                   }
+                  //die(json_encode($json));
                   return $this->redirect($this->loginServerUrl . 'account/', 303);
                 }
               }
