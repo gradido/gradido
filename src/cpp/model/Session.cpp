@@ -743,6 +743,10 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			unlock();
 			return USER_PASSWORD_INCORRECT;
 		}
+		// error decrypting private key
+		if (-2 == loginResult) {
+
+		}
 		// can be removed if session user isn't used any more
 		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();

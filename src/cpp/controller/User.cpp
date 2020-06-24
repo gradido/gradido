@@ -22,10 +22,6 @@ namespace controller {
 
 	User::~User()
 	{
-		if (mPassword) {
-			delete mPassword;
-			mPassword = nullptr;
-		}
 		if (mGradidoKeyPair) {
 			delete mGradidoKeyPair;
 			mGradidoKeyPair = nullptr;
@@ -131,46 +127,63 @@ namespace controller {
 
 	int User::login(const std::string& password)
 	{
-		if (mPassword && mPassword->hasKey()) {
+		if (!mPassword.isNull() && mPassword->hasKey()) {
 			return 2;
 		}
+		
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
-		auto authenticated_encryption = new AuthenticatedEncryption();
+		assert(mPassword.isNull());
+
+		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
 		auto model = getModel();
-		assert(authenticated_encryption && model);
+		assert(!authenticated_encryption.isNull() && model);
 
 		authenticated_encryption->createKey(model->getEmail(), password);
-		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) {
+		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) 
+		{
+		//	printf("[User::login] password key hashed is the same as saved password hash\n");
 			MemoryBin* clear_private_key = nullptr;
 
-			if (mPassword) delete mPassword;
-			mPassword = authenticated_encryption;
-
+			// additional check if saved private key found, decrypt and derive public key and compare with saved public key
 			if (!model->hasPrivateKeyEncrypted()) {
+				mPassword = authenticated_encryption;
 				return 1;
 			}
-			else {
-				auto priv_key_encrypted = model->getPrivateKeyEncrypted();
-				auto priv_key_bin = MemoryManager::getInstance()->getFreeMemory(priv_key_encrypted.size());
-				memcpy(*priv_key_bin, priv_key_encrypted.data(), priv_key_encrypted.size());
-				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(priv_key_bin, &clear_private_key)) {
-					auto gradido_key_pair = new KeyPairEd25519(clear_private_key);
-					if (*gradido_key_pair != model->getPublicKey()) {
-						delete mPassword; 
-						mPassword = nullptr;
-						delete gradido_key_pair;
+			else 
+			{
+				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+					if (mGradidoKeyPair) {
+						if (mGradidoKeyPair->isTheSame(clear_private_key) == 0) {
+							mPassword = authenticated_encryption;
+							return 1;
+						}
+						else {
+							delete mGradidoKeyPair;
+							mGradidoKeyPair = nullptr;
+						}
+					}
+					mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
+					if (!mGradidoKeyPair->isTheSame(model->getPublicKey())) {
+						delete mGradidoKeyPair;
+						mGradidoKeyPair = nullptr;
+						//printf("pubkeys don't match\n");
 						return -1;
 					}
-					if (mGradidoKeyPair) delete mGradidoKeyPair;
-					mGradidoKeyPair = gradido_key_pair;
-			
+					//printf("correct pwd\n");
+					mPassword = authenticated_encryption;
 					return 1;
 				}
+				else {
+					//printf("decrypt error\n");
+					return -2;
+				}
+
 			}
 		}
-		delete authenticated_encryption;
-
+		
 		// password didn't match
+		//printf("password hashed key: %ull, model pwd hashed keys: %ull\n", authenticated_encryption->getKeyHashed(), model->getPasswordHashed());
+		//printf("password: %d\n", (int)(mPassword.get()));
 		return 0;
 	}
 
@@ -189,20 +202,15 @@ namespace controller {
 		return 0;
 	}
 
-	int User::setPassword(AuthenticatedEncryption* passwd) 
+	int User::setPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		auto model = getModel();
-		const static char* function_name = "controller::User::setPassword";
 
-		if (mPassword) 
+		if (!mPassword.isNull() && !passwd.isNull()) 
 		{
 			// if keys matched
-			if (*mPassword == *passwd) {
-				// but separate objects
-				if (mPassword != passwd) {
-					delete passwd;
-				}
+			if (mPassword->isTheSame(passwd)) {
 				return 0;
 			}
 			// if password exist but gradido key pair not, try to load key pair
@@ -210,23 +218,26 @@ namespace controller {
 				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
 				MemoryBin* clear_private_key = nullptr;
 				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
-					if (mGradidoKeyPair) delete mGradidoKeyPair;
-					mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
+					if (mGradidoKeyPair && mGradidoKeyPair->isTheSame(clear_private_key) != 0) 
+					{
+						delete mGradidoKeyPair; 
+						mGradidoKeyPair = nullptr;
+					}
+					if (!mGradidoKeyPair) 
+					{
+						mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
+					}
 					
 					// check if saved pubkey and from private key extracted pubkey match
 					if (*mGradidoKeyPair != model->getPublicKey()) {
 						delete mGradidoKeyPair;
 						mGradidoKeyPair = nullptr;
-						delete passwd;
 						return -1;
 					}
 				}
 			}
 		}
 		// replace old password with new
-		if (mPassword && mPassword != passwd) {
-			delete mPassword;
-		}
 		mPassword = passwd;
 
 		// set new encrypted password and hash
@@ -245,6 +256,7 @@ namespace controller {
 		// save changes to db
 		return result;
 	}
+
 
 	int User::checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer)
 	{

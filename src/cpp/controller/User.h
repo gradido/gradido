@@ -9,6 +9,7 @@
 
 #include "TableControllerBase.h"
 
+
 namespace controller {
 
 	/*enum UserLoadedRole {
@@ -54,6 +55,7 @@ namespace controller {
 		//! \return 2 already logged in
 		//! \return 0 password didn't match
 		//! \return -1 error saved public key didn't match with private key
+		//! \return -2 error decrypting private key
 		//! - create authenticated encryption key from password and email
 		//! - compare hash with in db saved hash
 		
@@ -67,15 +69,16 @@ namespace controller {
 		//! \return 1 = password changed, private key re-encrypted and saved into db
 		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
-		int setPassword(AuthenticatedEncryption* passwd); 
+		int setPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd);
 
-		inline const AuthenticatedEncryption* getPassword() {
+		//! \brief return AuthenticatedEncryption Auto Pointer
+		inline const Poco::AutoPtr<AuthenticatedEncryption> getPassword() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
 		inline bool hasPassword() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
-			return mPassword;
+			return !mPassword.isNull();
 		}
 		inline bool hasPublicKey() {
 			return getModel()->getPublicKey();
@@ -86,18 +89,19 @@ namespace controller {
 		//! \param return 1 if also private key set (and password exist)
 		int setGradidoKeyPair(KeyPairEd25519* gradidoKeyPair);
 
+		//! \brief return gradido key pair pointer, !!! make sure controller::user stay alive while using it
 		inline const KeyPairEd25519* getGradidoKeyPair() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mGradidoKeyPair;
 		}
+		
 	protected:
-		User(model::table::User* dbModel);
 
-		
-		
+		User(model::table::User* dbModel);
+				
 		std::string mPublicHex;
 
-		AuthenticatedEncryption* mPassword;
+	 	Poco::AutoPtr<AuthenticatedEncryption> mPassword;
 		KeyPairEd25519*          mGradidoKeyPair;
 
 		mutable std::shared_mutex mSharedMutex;
