@@ -75,7 +75,8 @@
 			}
 			auto userState = mSession->loadUser(email, password);
 			auto user = mSession->getNewUser();
-			if(!user->getModel()->getPublicKey()) {
+			
+			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				mSession->generateKeys(true, true);
 			} else {
 				printf("pubkey exist: %d\n",user->getModel()->getPublicKey()); 
@@ -84,7 +85,9 @@
 			
 			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
-
+			
+			printf("userState: %d\n", userState);
+		
 			switch(userState) {
 			case USER_EMPTY: 
 			case USER_PASSWORD_INCORRECT:
@@ -109,8 +112,10 @@
 				} else if(refererString != "" && 
 				          refererString.find("login") == std::string::npos && 
 						  refererString.find("logout") == std::string::npos &&
-						  refererString.find("user_delete") == std::string::npos ) {
-					printf("redirect to: %s\n", refererString.data());
+						  refererString.find("user_delete") == std::string::npos &&
+						  refererString != ServerConfig::g_serverPath + request.getURI()) {
+					std::string uri = request.getURI();
+					printf("request uri: %s, redirect to: %s\n", uri.data(), refererString.data());
 					response.redirect(refererString);
 				} else {
 					response.redirect(ServerConfig::g_php_serverPath + "/");
