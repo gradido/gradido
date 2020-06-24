@@ -11,6 +11,7 @@
  * \brief: Key Pairs class for ed25519 keys, used for default gradido transactions
 */
 
+
 #include "sodium.h"
 #include "AuthenticatedEncryption.h"
 
@@ -40,6 +41,14 @@ public:
 	}
 	inline bool isTheSame(const unsigned char* pubkey) const {
 		return 0 == sodium_memcmp(mSodiumPublic, pubkey, crypto_sign_PUBLICKEYBYTES);
+	}
+	//! \return 0 if the same
+	//! \return -1 if not the same
+	//! \return 1 if hasn't private key
+	inline int isTheSame(const MemoryBin* privkey) const {
+		if (!mSodiumSecret) return 1;
+		if (privkey->size() != mSodiumSecret->size()) return -1;
+		return sodium_memcmp(*mSodiumSecret, *privkey, privkey->size());
 	}
 
 	inline bool operator == (const KeyPairEd25519& b) const { return isTheSame(b);  }
