@@ -7,12 +7,12 @@
 namespace model {
 	namespace table {
 
-		typedef Poco::Tuple<int, int, std::string> UserBackupsTuple;
+		typedef Poco::Tuple<int, int, std::string, int> UserBackupsTuple;
 
 		class UserBackups : public ModelBase
 		{
 		public:
-			UserBackups(int user_id, const std::string& passphrase);
+			UserBackups(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
 			UserBackups(const UserBackupsTuple& tuple);
 			UserBackups();
 			~UserBackups();
@@ -23,6 +23,7 @@ namespace model {
 
 			inline int getUserId() const { return mUserId; }
 			inline const std::string& getPassphrase() const { return mPassphrase; }
+			inline int getMnemonicType() const { return mMnemonicType; }
 
 			inline void setUserId(int user_Id) { mUserId = user_Id; }
 
@@ -35,6 +36,7 @@ namespace model {
 
 			int			 mUserId;
 			std::string  mPassphrase;
+			int			 mMnemonicType;
 
 		};
 

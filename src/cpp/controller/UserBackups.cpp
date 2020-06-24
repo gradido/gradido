@@ -15,10 +15,10 @@ namespace controller {
 
 	//  ---------------   static members ----------------------------- 
 
-	Poco::AutoPtr<UserBackups> UserBackups::create(int user_id, const std::string& passphrase)
+	Poco::AutoPtr<UserBackups> UserBackups::create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type)
 	{
 		
-		auto db = new model::table::UserBackups(user_id, passphrase);
+		auto db = new model::table::UserBackups(user_id, passphrase, type);
 		return Poco::AutoPtr<UserBackups>(new UserBackups(db));
 	}
 
@@ -57,6 +57,11 @@ namespace controller {
 		
 		mKeyPair->generateFromPassphrase(passphrase);
 		return mKeyPair;
+	}
+
+	KeyPairEd25519* UserBackups::createGradidoKeyPair()
+	{
+
 	}
 
 	std::string UserBackups::getPassphrase(ServerConfig::Mnemonic_Types type)

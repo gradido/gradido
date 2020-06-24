@@ -3,6 +3,7 @@
 
 #include "../model/table/UserBackups.h"
 #include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 
 #include "Poco/SharedPtr.h"
 
@@ -15,7 +16,7 @@ namespace controller {
 
 		~UserBackups();
 
-		static Poco::AutoPtr<UserBackups> create(int user_id, const std::string& passphrase);
+		static Poco::AutoPtr<UserBackups> create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
 
 		static std::vector<Poco::AutoPtr<UserBackups>> load(int user_id);
 
@@ -23,8 +24,13 @@ namespace controller {
 
 		inline Poco::AutoPtr<model::table::UserBackups> getModel() { return _getModel<model::table::UserBackups>(); }
 
+		//! depracted
 		//! \return create keyPair from passphrase if not exist, else return existing pointer
 		Poco::SharedPtr<KeyPair> getKeyPair();
+
+		//! \return newly created key pair from passphrase or nullptr if not possible, caller becomes owner of pointer
+		KeyPairEd25519* createGradidoKeyPair();
+
 		//! \brief adding newlines to make block format
 		static std::string formatPassphrase(std::string passphrase, int targetLinesCount = 5);
 
