@@ -3,8 +3,10 @@
 
 
 #include "../SingletonManager/MemoryManager.h"
+#include "../lib/AutoPtrContainer.h"
 #include <shared_mutex>
 #include <vector>
+
 
 /*! 
  * 
@@ -18,7 +20,7 @@
 
 typedef Poco::UInt64 KeyHashed;
 
-class AuthenticatedEncryption
+class AuthenticatedEncryption : public AutoPtrContainer
 {
 public:
 
@@ -42,9 +44,10 @@ public:
 
 
 	inline KeyHashed getKeyHashed() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKeyHash; }
-	inline bool operator == (const AuthenticatedEncryption& b) const {
+	inline bool operator == (const Poco::AutoPtr<AuthenticatedEncryption>& b) const {
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
-		return mEncryptionKeyHash == b.getKeyHashed();
+		if (b.isNull()) return false;
+		return mEncryptionKeyHash == b->getKeyHashed();
 	}
 	inline bool operator == (const KeyHashed& hash) const {
 		return mEncryptionKeyHash == hash;

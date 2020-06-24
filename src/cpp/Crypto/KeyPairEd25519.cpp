@@ -37,11 +37,11 @@ KeyPairEd25519::~KeyPairEd25519()
 	}
 }
 
-KeyPairEd25519* KeyPairEd25519::create(const Passphrase* passphrase)
+KeyPairEd25519* KeyPairEd25519::create(const Poco::AutoPtr<Passphrase> passphrase)
 {
 	//auto er = ErrorManager::getInstance();
 	auto mm = MemoryManager::getInstance();
-	assert(passphrase);
+	assert(!passphrase.isNull());
 	// libsodium doc: https://libsodium.gitbook.io/doc/advanced/hmac-sha2
 	// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 	
@@ -152,9 +152,9 @@ MemoryBin* KeyPairEd25519::sign(const MemoryBin* message) const
 
 }
 
-MemoryBin* KeyPairEd25519::getCryptedPrivKey(const AuthenticatedEncryption* password) const
+MemoryBin* KeyPairEd25519::getCryptedPrivKey(const Poco::AutoPtr<AuthenticatedEncryption> password) const
 {
-	if (!password) return nullptr;
+	if (password.isNull()) return nullptr;
 	if (!mSodiumSecret) return nullptr;
 
 	MemoryBin* encryptedKey = nullptr;
