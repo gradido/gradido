@@ -4,6 +4,9 @@
 
 #include "../SingletonManager/MemoryManager.h"
 #include "../lib/AutoPtrContainer.h"
+
+#include "Poco/AutoPtr.h"
+
 #include <shared_mutex>
 #include <vector>
 
@@ -45,6 +48,9 @@ public:
 
 	inline KeyHashed getKeyHashed() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKeyHash; }
 	inline bool operator == (const Poco::AutoPtr<AuthenticatedEncryption>& b) const {
+		return isTheSame(b);
+	}
+	inline bool isTheSame(const Poco::AutoPtr<AuthenticatedEncryption>& b) const {
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 		if (b.isNull()) return false;
 		return mEncryptionKeyHash == b->getKeyHashed();

@@ -352,10 +352,9 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 		}
 		if (existAll) {
 			if (keyPair) {
-				auto test_passphrase = new Passphrase(passphrase, &m);
+				Poco::AutoPtr<Passphrase> test_passphrase = new Passphrase(passphrase, &m);
 				test_passphrase->createWordIndices();
 				auto key_pair = KeyPairEd25519::create(test_passphrase);
-				delete test_passphrase;
 				if (key_pair) {
 					if (*key_pair != *keyPair) {
 						delete key_pair;
