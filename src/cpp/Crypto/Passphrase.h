@@ -35,6 +35,7 @@ public:
 	//! TODO: add more utf8 chars for other languages as they needed
 	static std::string filter(const std::string& passphrase);
 	
+	//! \return true if all words in passphrase existing in mWordSource
 	bool checkIfValid();
 
 	const Poco::UInt16* getWordIndices();
