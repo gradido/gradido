@@ -32,7 +32,9 @@ public:
 	static KeyPairEd25519* create(const Poco::AutoPtr<Passphrase> passphrase);
 
 	//! \return caller take ownership of return value
-	MemoryBin* sign(const MemoryBin* message) const;
+	MemoryBin* sign(const MemoryBin* message) const { return sign(message->data(), message->size()); }
+	inline MemoryBin* sign(const std::string& bodyBytes) const { return sign((const unsigned char*)bodyBytes.data(), bodyBytes.size()); }
+	MemoryBin* sign(const unsigned char* message, size_t messageSize) const;
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 

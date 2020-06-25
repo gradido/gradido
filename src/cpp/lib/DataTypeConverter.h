@@ -25,7 +25,10 @@ namespace DataTypeConverter {
 	MemoryBin* base64ToBin(const std::string& base64String);
 
 	std::string binToBase64(const MemoryBin* data);
-	std::string binToHex(const MemoryBin* data);
+	
+	std::string binToHex(const unsigned char* data, size_t size);
+	inline std::string binToHex(const MemoryBin* data) { return binToHex(data->data(), data->size());}
+
 	//! \param pubkey pointer to array with crypto_sign_PUBLICKEYBYTES size
 	std::string pubkeyToHex(const unsigned char* pubkey);
 

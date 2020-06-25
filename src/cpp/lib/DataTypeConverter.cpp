@@ -159,17 +159,17 @@ namespace DataTypeConverter
 		return base64String;
 	}
 
-	std::string binToHex(const MemoryBin* data)
+	std::string binToHex(const unsigned char* data, size_t size)
 	{
 		auto mm = MemoryManager::getInstance();
-		size_t hexSize = data->size() * 2 + 1;
-		size_t binSize = data->size();
+		size_t hexSize = size * 2 + 1;
+		size_t binSize = size;
 		MemoryBin* hex = mm->getFreeMemory(hexSize);
 		memset(*hex, 0, hexSize);
 
 		size_t resultBinSize = 0;
 
-		sodium_bin2hex(*hex, hexSize, *data, binSize);
+		sodium_bin2hex(*hex, hexSize, data, binSize);
 
 		std::string hexString((const char*)*hex, hexSize);
 		mm->releaseMemory(hex);

@@ -20,22 +20,38 @@
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 
-SigningTransaction::SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<User> user)
-	: mProcessingeTransaction(processingeTransaction), mUser(user)
+SigningTransaction::SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser)
+	: mProcessingeTransaction(processingeTransaction), mNewUser(newUser)
 {
 	auto ob = SingletonTaskObserver::getInstance();
-	if (!mUser.isNull() && mUser->getEmail() != "") {
-		ob->addTask(mUser->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
+	auto email = getUserEmail();
+
+	if (email != "") { 
+		ob->addTask(email, TASK_OBSERVER_SIGN_TRANSACTION); 
 	}
 }
 
 SigningTransaction::~SigningTransaction()
 {
 	auto ob = SingletonTaskObserver::getInstance();
-	//Poco::Thread::sleep(10000);
-	if (!mUser.isNull() && mUser->getEmail() != "") {
-		ob->removeTask(mUser->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
+	auto email = getUserEmail();
+
+	if (email != "") {
+		ob->removeTask(email, TASK_OBSERVER_SIGN_TRANSACTION);
 	}
+}
+
+std::string SigningTransaction::getUserEmail()
+{
+	model::table::User* user_model = nullptr;
+
+	if (!mNewUser.isNull()) {
+		user_model = mNewUser->getModel();
+	}
+	if (user_model) {
+		return user_model->getEmail();
+	}
+	return "";
 }
 
 int SigningTransaction::run() {
@@ -45,16 +61,17 @@ int SigningTransaction::run() {
 	addError(transactionError, false);
 	
 	//= new Error("SigningTransaction start", mProcessingeTransaction->g)
-	if (mUser.isNull() || !mUser->hasCryptoKey()) {
+	//if (mUser.isNull() || !mUser->hasCryptoKey()) {
+	if(mNewUser.isNull() || !mNewUser->hasPassword()) {
 		addError(new Error("SigningTransaction", "user hasn't crypto key or is null"));
 		sendErrorsAsEmail();
 		return -1;
 	}
 
 	//auto privKey = mUser->getPrivKey();
-	if (!mUser->hasPrivKey()) {
-		getErrors(mUser);
-		addError(new Error("SigningTransaction", "couldn't get user priv key"));
+	//if (!mUser->hasPrivKey()) {
+	if(!mNewUser->canDecryptPrivateKey()) {
+		addError(new Error("SigningTransaction", "user cannot decrypt private key"));
 		sendErrorsAsEmail();
 		return -2;
 	}
@@ -68,14 +85,14 @@ int SigningTransaction::run() {
 		return -3;
 	}
 	// sign
-	auto sign = mUser->sign((const unsigned char*)bodyBytes->data(), bodyBytes->size());
+	//auto sign = mUser->sign((const unsigned char*)bodyBytes->data(), bodyBytes->size());
+	auto sign = mNewUser->getGradidoKeyPair()->sign(*bodyBytes);
 	if (!sign) {
-		getErrors(mUser);
+		ErrorManager::getInstance()->sendErrorsAsEmail();
 		sendErrorsAsEmail();
 		mm->releaseMemory(sign);
 		return -4;
 	}
-	auto pubkeyHex = mUser->getPublicKeyHex();
 	
 	// pubkey for signature
 	/*auto pubkeyBin = mm->getFreeMemory(ed25519_pubkey_SIZE);
@@ -93,7 +110,7 @@ int SigningTransaction::run() {
 	auto sigPair = sigMap->add_sigpair();
 
 	auto pubkeyBytes = sigPair->mutable_pubkey();
-	auto pubkeyBin = mUser->getPublicKey();
+	auto pubkeyBin = mNewUser->getModel()->getPublicKey();
 	*pubkeyBytes = std::string((const char*)pubkeyBin, crypto_sign_PUBLICKEYBYTES);
 	
 

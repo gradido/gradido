@@ -6,6 +6,7 @@
 #include "../lib/ErrorList.h"
 #include "../model/TransactionBase.h"
 #include "../model/User.h"
+#include "../controller/User.h"
 
 #include "../proto/gradido/Transaction.pb.h"
 
@@ -21,7 +22,7 @@
 class SigningTransaction : public UniLib::controller::CPUTask, public ErrorList
 {
 public:
-	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<User> user);
+	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser);
 	virtual ~SigningTransaction();
 
 	int run();
@@ -32,9 +33,11 @@ public:
 
 protected:
 	Poco::AutoPtr<ProcessingTransaction> mProcessingeTransaction;
-	Poco::AutoPtr<User>	mUser;
-	
+	Poco::AutoPtr<controller::User> mNewUser;
+
 private:
+
+	std::string getUserEmail();
 
 };
 
