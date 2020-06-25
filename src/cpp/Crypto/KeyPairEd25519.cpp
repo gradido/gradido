@@ -6,7 +6,7 @@
 
 #include "../lib/DataTypeConverter.h"
 
-#include "Passphrase.h"
+
 
 KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
 	: mSodiumSecret(privateKey)

@@ -14,8 +14,7 @@
 
 #include "sodium.h"
 #include "AuthenticatedEncryption.h"
-
-class Passphrase;
+#include "Passphrase.h"
 
 class KeyPairEd25519 : public IKeyPair
 {
