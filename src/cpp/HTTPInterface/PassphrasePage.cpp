@@ -123,7 +123,7 @@ void PassphrasePage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	}
 	
 	// double check passphrase
-	auto passphrase = mSession->getPassphrase();
+	auto passphrase = mSession->getOldPassphrase();
 	auto langWordSource = wordSource;
 	if("" != passphrase && !User::validatePassphrase(passphrase, &wordSource)) {
 		addError(new Error("PassphrasePage", "Invalid Passphrase after double check"));

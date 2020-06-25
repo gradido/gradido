@@ -55,7 +55,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	   auto btnGenerate = form.get("btnGenerate", "");
 	   if("" != btnGenerate) {
 			mSession->generatePassphrase();
-			localPassphrase = mSession->getPassphrase();
+			localPassphrase = mSession->getOldPassphrase();
 			inputPassphrase = localPassphrase;
 	   }
 	   

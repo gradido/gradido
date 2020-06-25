@@ -8,6 +8,7 @@
 #line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
 
 #include "../SingletonManager/SessionManager.h"
+#include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 #include "Poco/Net/HTTPCookie.h"
 
 enum PageState {
@@ -34,10 +35,10 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 16 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
+#line 17 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\UpdateUserPassword.cpsp"
 
 	const char* pageName = "Passwort bestimmen";
-	auto user = mSession->getUser();
+	auto user = mSession->getNewUser();
 	auto sm = SessionManager::getInstance();
 	auto uri_start = ServerConfig::g_serverPath;
 	PageState state = PAGE_STATE_ASK_PASSWORD;
@@ -55,8 +56,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 			} else if(SessionManager::getInstance()->checkPwdValidation(pwd, mSession)) {
 			    auto sessionState = mSession->getSessionState();
 				
-				
-				if(user->updatePassword(pwd, mSession->getPassphrase(), mSession->getNewUser())) {
+				if(user->setNewPassword(pwd) >= 0) {
 					//std::string referUri = request.get("Referer", uri_start + "/");
 					//printf("[updateUserPasswordPage] redirect to referUri: %s\n", referUri.data());
 					
@@ -70,7 +70,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 					if(code) {
 						retUpdateEmailCode = mSession->updateEmailVerification(mSession->getEmailVerificationCode());
 					}
-					mSession->getErrors(user);
+					//mSession->getErrors(user);
 					if(-2 == retUpdateEmailCode || -1 == retUpdateEmailCode || 1 == retUpdateEmailCode) {
 						response.redirect(uri_start + "/error500");
 						return;
@@ -92,7 +92,7 @@ void UpdateUserPasswordPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	if(mSession) {
 		getErrors(mSession);
 	}
-	getErrors(user);
+	//getErrors(user);
 	//printf("session state end [UpdateUserPassword Page]: %s\n", mSession->getSessionStateString());
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);

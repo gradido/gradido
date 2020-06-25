@@ -9,6 +9,7 @@
 AuthenticatedEncryptionCreateKeyTask::AuthenticatedEncryptionCreateKeyTask(Poco::AutoPtr<controller::User> user, const std::string& passwd)
 	: UniLib::controller::CPUTask(ServerConfig::g_CryptoCPUScheduler), mUser(user), mPassword(passwd)
 {
+	assert(!mUser.isNull());
 	SingletonTaskObserver::getInstance()->addTask(mUser->getModel()->getEmail(), TASK_OBSERVER_PASSWORD_CREATION);
 }
 
@@ -32,7 +33,7 @@ int AuthenticatedEncryptionCreateKeyTask::run()
 	}
 	printf("create password time: %s\n", timeUsed.string().data());
 	timeUsed.reset();
-	mUser->setPassword(authenticated_encryption);
+	mUser->setNewPassword(authenticated_encryption);
 	printf("set password time: %s\n", timeUsed.string().data());
 
 	return 0;

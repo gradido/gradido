@@ -34,7 +34,7 @@
 	   auto btnGenerate = form.get("btnGenerate", "");
 	   if("" != btnGenerate) {
 			mSession->generatePassphrase();
-			localPassphrase = mSession->getPassphrase();
+			localPassphrase = mSession->getOldPassphrase();
 			inputPassphrase = localPassphrase;
 	   }
 	   
