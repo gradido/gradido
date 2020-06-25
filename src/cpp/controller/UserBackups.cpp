@@ -1,5 +1,7 @@
 #include "UserBackups.h"
 
+#include "../Crypto/Passphrase.h"
+
 namespace controller {
 	UserBackups::UserBackups(model::table::UserBackups* dbModel)
 	{
@@ -61,7 +63,12 @@ namespace controller {
 
 	KeyPairEd25519* UserBackups::createGradidoKeyPair()
 	{
-
+		auto model = getModel();
+		auto mnemonicType = model->getMnemonicType();
+		assert(mnemonicType >= 0 && mnemonicType < ServerConfig::MNEMONIC_MAX);
+		auto wordSource = &ServerConfig::g_Mnemonic_WordLists[mnemonicType];
+		Poco::AutoPtr<Passphrase> passphrase = new Passphrase(model->getPassphrase(), wordSource);
+		return KeyPairEd25519::create(passphrase);
 	}
 
 	std::string UserBackups::getPassphrase(ServerConfig::Mnemonic_Types type)

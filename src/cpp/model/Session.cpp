@@ -665,7 +665,7 @@ void Session::finalizeTransaction(bool sign, bool reject)
 	
 	if (!reject) {
 		if (sign) {
-			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mSessionUser));
+			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mNewUser));
 			signingTransaction->scheduleTask(signingTransaction);
 		}
 	}
@@ -745,7 +745,27 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}
 		// error decrypting private key
 		if (-2 == loginResult) {
-
+			// check if we have access to the passphrase, if so we can reencrypt the private key
+			auto user_model = mNewUser->getModel();
+			auto user_backups = controller::UserBackups::load(user_model->getID());
+			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
+				auto key = (*it)->createGradidoKeyPair();
+				if (key->isTheSame(user_model->getPublicKey())) {
+					auto crypted_private_key = key->getCryptedPrivKey(mNewUser->getPassword());
+					if (crypted_private_key) {
+						user_model->setPrivateKey(crypted_private_key);
+						MemoryManager::getInstance()->releaseMemory(crypted_private_key);
+					}
+					else {
+						auto em = ErrorManager::getInstance();
+						em->addError(new Error(functionName, "error reencrypt private key"));
+						em->addError(new ParamError(functionName, "for user with email", user_model->getEmail()));
+						em->sendErrorsAsEmail();
+					}
+					break;
+				}
+				delete key;
+			}
 		}
 		// can be removed if session user isn't used any more
 		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
@@ -1103,7 +1123,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	}
 
 	if (savePassphrase) {
-		auto user_backup = controller::UserBackups::create(user_model->getID(), passphrase->getString());
+		auto user_backup = controller::UserBackups::create(user_model->getID(), passphrase->getString(), mnemonic_type);
 		// sync version
 		//user_backup->getModel()->insertIntoDB(false);	
 

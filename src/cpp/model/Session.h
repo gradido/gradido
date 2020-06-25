@@ -125,9 +125,12 @@ public:
 
 	// ------------------------ Passphrase functions ----------------------------
 	
+	inline void setPassphrase(Poco::AutoPtr<Passphrase> passphrase) { mNewPassphrase = passphrase; }
+	inline Poco::AutoPtr<Passphrase> getPassphrase() { return mNewPassphrase; }
+
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
 	
-	inline const std::string& getPassphrase() { return mPassphrase; }
+	inline const std::string& getOldPassphrase() { return mPassphrase; }
 	bool generatePassphrase();
 	bool generateKeys(bool savePrivkey, bool savePassphrase);
 
@@ -187,6 +190,7 @@ private:
 	Poco::AutoPtr<User> mSessionUser;
 	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
+	Poco::AutoPtr<Passphrase> mNewPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
 	std::string          mLastExternReferer;

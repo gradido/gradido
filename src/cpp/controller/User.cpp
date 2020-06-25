@@ -4,6 +4,7 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/SingletonTaskObserver.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -15,7 +16,7 @@
 
 namespace controller {
 	User::User(model::table::User* dbModel)
-		: mPassword(nullptr), mGradidoKeyPair(nullptr)
+		: mPassword(nullptr), mGradidoKeyPair(nullptr), mCanDecryptPrivateKey(false)
 	{
 		mDBModel = dbModel;
 	}
@@ -130,15 +131,23 @@ namespace controller {
 		if (!mPassword.isNull() && mPassword->hasKey()) {
 			return 2;
 		}
+		auto observer = SingletonTaskObserver::getInstance();
 		
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		assert(mPassword.isNull());
 
-		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
 		auto model = getModel();
+		auto email_hash = observer->makeHash(model->getEmail());
+		if (observer->getTaskCount(email_hash, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
+			return -3;
+		}
+		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
+		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
 		assert(!authenticated_encryption.isNull() && model);
-
 		authenticated_encryption->createKey(model->getEmail(), password);
+
+		observer->removeTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
+
 		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) 
 		{
 		//	printf("[User::login] password key hashed is the same as saved password hash\n");
@@ -155,6 +164,7 @@ namespace controller {
 					if (mGradidoKeyPair) {
 						if (mGradidoKeyPair->isTheSame(clear_private_key) == 0) {
 							mPassword = authenticated_encryption;
+							mCanDecryptPrivateKey = true;
 							return 1;
 						}
 						else {
@@ -171,6 +181,7 @@ namespace controller {
 					}
 					//printf("correct pwd\n");
 					mPassword = authenticated_encryption;
+					mCanDecryptPrivateKey = true;
 					return 1;
 				}
 				else {
@@ -193,16 +204,30 @@ namespace controller {
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		if (mGradidoKeyPair) delete mGradidoKeyPair;
 		mGradidoKeyPair = gradidoKeyPair;
-		getModel()->setPublicKey(mGradidoKeyPair->getPublicKey());
+		auto model = getModel();
+		model->setPublicKey(mGradidoKeyPair->getPublicKey());
 		if (mPassword && mPassword->hasKey()) {
-			auto model = getModel();
 			model->setPrivateKey(mGradidoKeyPair->getCryptedPrivKey(mPassword));
 			return 1;
 		}
 		return 0;
 	}
+	int User::setNewPassword(const std::string& password)
+	{
+		auto observer = SingletonTaskObserver::getInstance();
+		auto model = getModel();
+		auto email_hash = observer->makeHash(model->getEmail());
 
-	int User::setPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
+		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
+		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
+		assert(!authenticated_encryption.isNull() && model);
+		authenticated_encryption->createKey(model->getEmail(), password);
+
+		observer->removeTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
+		return setNewPassword(authenticated_encryption);
+	}
+
+	int User::setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		auto model = getModel();
@@ -232,6 +257,7 @@ namespace controller {
 					if (*mGradidoKeyPair != model->getPublicKey()) {
 						delete mGradidoKeyPair;
 						mGradidoKeyPair = nullptr;
+						mCanDecryptPrivateKey = false;
 						return -1;
 					}
 				}
@@ -249,6 +275,7 @@ namespace controller {
 			MemoryManager::getInstance()->releaseMemory(encryptedPrivateKey);
 
 			result = model->updatePrivkeyAndPasswordHash();
+			mCanDecryptPrivateKey = true;
 		}
 		else {
 			model->updateIntoDB("password", mPassword->getKeyHashed());

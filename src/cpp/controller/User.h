@@ -50,12 +50,13 @@ namespace controller {
 		std::string getEmailWithNames();
 		const std::string& getPublicHex();
 
-		//! \brief check if password match saved password, long duration 
+		//! \brief check if password match saved password, long duration, load Key pair
 		//! \return 1 logged in
 		//! \return 2 already logged in
 		//! \return 0 password didn't match
 		//! \return -1 error saved public key didn't match with private key
 		//! \return -2 error decrypting private key
+		//! \return -3 password key creation already running
 		//! - create authenticated encryption key from password and email
 		//! - compare hash with in db saved hash
 		
@@ -69,7 +70,16 @@ namespace controller {
 		//! \return 1 = password changed, private key re-encrypted and saved into db
 		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
-		int setPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd);
+		int setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd);
+
+
+		//! \brief set authenticated encryption and save hash in db, also re encrypt private key if exist
+		//! \param password as string
+		//! \return 0 = new and current passwords are the same
+		//! \return 1 = password changed, private key re-encrypted and saved into db
+		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+		//! \return -1 = stored pubkey and private key didn't match
+		int setNewPassword(const std::string& password);
 
 		//! \brief return AuthenticatedEncryption Auto Pointer
 		inline const Poco::AutoPtr<AuthenticatedEncryption> getPassword() {
@@ -80,10 +90,14 @@ namespace controller {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return !mPassword.isNull();
 		}
+		inline bool canDecryptPrivateKey() {
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			return mCanDecryptPrivateKey;
+		}
 		inline bool hasPublicKey() {
 			return getModel()->getPublicKey();
 		}
-		//! \brief set key pair, public in model, private if password exist else with next setPassword call into model
+		//! \brief set key pair, public in model, private if password exist else with next setPassword call into model, overwrite existing key pair, not saving into db
 		//! \param gradidoKeyPair take owner ship
 		//! \param return 0 if public key set
 		//! \param return 1 if also private key set (and password exist)
@@ -103,6 +117,8 @@ namespace controller {
 
 	 	Poco::AutoPtr<AuthenticatedEncryption> mPassword;
 		KeyPairEd25519*          mGradidoKeyPair;
+
+		bool					 mCanDecryptPrivateKey;
 
 		mutable std::shared_mutex mSharedMutex;
 	};
