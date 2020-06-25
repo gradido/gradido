@@ -10,6 +10,9 @@
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/EmailManager.h"
 #include "../Crypto/KeyPair.h"
+#include "../Crypto/Passphrase.h"
+#include "../Crypto/KeyPairEd25519.h"
+#include "../lib/DataTypeConverter.h"
 #include "../controller/UserBackups.h"
 #include "../tasks/SigningTransaction.h"
 #include "../ServerConfig.h"
@@ -19,6 +22,8 @@
 #include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
+
+#include <memory>
 
 enum PageState 
 {
@@ -48,14 +53,14 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 31 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 36 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 
 	auto mm = MemoryManager::getInstance();
 	auto em = EmailManager::getInstance();
-	auto user = mSession->getUser();
-	auto privKey = user->getPrivKey();
+	auto new_user = mSession->getNewUser();
+	auto user_model = new_user->getModel();
 	auto adminEmail =  em->getAdminReceiver();
-	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 	std::string pageName = "Repariere Defekte Passphrase";
 	
 	std::string errorString = "";
@@ -71,52 +76,46 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 		printf("btn: %s\n", btn.data());
 		printf("btn2: %s\n", btn2.data());
 		if(btn == "Neue Passphrase generieren!") 
-		{
-			if(!mSession->generatePassphrase()) 
+		{	
+			auto passphrase = Passphrase::generate(wordSource);
+			if(!passphrase->checkIfValid()) 
 			{
-				addError(new Error("Passphrase", "Fehler beim generieren der Passphrase, evt. erneut versuchen!"));
+				addError(new Error("Passphrase", "Fehler beim generieren oder validieren der Passphrase, evt. erneut versuchen!"));
 			} 
 			else 
-			{
-				auto newPassphrase = mSession->getPassphrase();
-				if(!User::validatePassphrase(newPassphrase, &wordSource)) 
-				{
-					addError(new Error("Passphrase", "Fehler beim validieren der Passphrase"));
-				} 
-				else
-				{
-					KeyPair keys; 
-					if(!keys.generateFromPassphrase(newPassphrase.data(), wordSource)) 
-					{
-						addError(new Error("Passphrase", "Konnte keine Keys aus der Passphrase generieren"));
-					} 
-					else 
-					{
-						auto newPassphraseModel = controller::UserBackups::create(user->getDBId(), newPassphrase);
-						auto result = newPassphraseModel->getModel()->insertIntoDB(false);
-						//state = SHOW_PASSPHRASE;
-						if(result) {
-							state = SHOW_PASSPHRASE;
-						} else {
-							addError(new Error("Speichern", "Fehler beim speichern der neuen Passphrase, evt. erneut versuchen!"));
-						}//*/
-					}
+			{	
+				mSession->setPassphrase(passphrase);
+				auto newPassphraseModel = controller::UserBackups::create(
+					user_model->getID(),
+					passphrase->getString(),
+					ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES
+				);
+				auto result = newPassphraseModel->getModel()->insertIntoDB(false);
+				//state = SHOW_PASSPHRASE;
+				if(result) {
+					state = SHOW_PASSPHRASE;
+				} else {
+					addError(new Error("Speichern", "Fehler beim speichern der neuen Passphrase, evt. erneut versuchen!"));
 				}
 			}
 		} 
 		else if("" != btn2) 
 		{
-			KeyPair keys;
-			auto newPassphrase = mSession->getPassphrase();
 			
-			if(!User::validatePassphrase(newPassphrase, &wordSource) || !keys.generateFromPassphrase(mSession->getPassphrase().data(), wordSource)) {
+			auto passphrase = mSession->getPassphrase();
+			auto new_gradido_key_pair = std::unique_ptr<KeyPairEd25519>(KeyPairEd25519::create(passphrase));
+			
+			if(passphrase.isNull() || !passphrase->checkIfValid()) {
 				addError(new Error("Passphrase", "Ungültige Passphrase, bitte neuladen"));
+			}
+			if(!new_gradido_key_pair) {
+				addError(new Error("Keys", "Konnte keine Keys erstellen, bitte neuladen"));
 			}
 			// create payload
 			Poco::JSON::Object requestJson;
 			Poco::JSON::Object pubkeys;
-			pubkeys.set("sender", user->getPublicKeyHex());
-			pubkeys.set("receiver", keys.getPubkeyHex());
+			pubkeys.set("sender", user_model->getPublicKeyHex());
+			pubkeys.set("receiver", DataTypeConverter::pubkeyToHex(new_gradido_key_pair->getPublicKey()));
 			requestJson.set("method", "moveTransaction");
 			requestJson.set("pubkeys", pubkeys);
 			requestJson.set("memo", form.get("memo", ""));
@@ -169,24 +168,21 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 					if(!currentActiveTransaction->isTransfer()) {
 						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
 					} else {
-						auto signing = new SigningTransaction(currentActiveTransaction, user);
+						auto signing = new SigningTransaction(currentActiveTransaction, new_user);
 						printf("[repairDefectPassphrase] before running sign\n");
 						if(!signing->run()) {
-							auto newUser = mSession->getNewUser();
-							auto newUserModel = newUser->getModel();
-							auto cryptedPrivKey = user->encrypt(keys.getPrivateKey());
-							newUserModel->setPublicKey(keys.getPublicKey());
-							newUserModel->setPrivateKey(cryptedPrivKey);
-							mm->releaseMemory(cryptedPrivKey);
-							if(!newUserModel->updatePrivkey() || !newUserModel->updatePublickey()) {
-								printf("[repairDefectPassphrase] error saving keys\n");
-								addError(new Error("Speichern", "Fehler beim speichern der neuen Keys in die Datenbank, bitte erneut versuchen (Seite neuladen)"));
+							
+							if(new_user->setGradidoKeyPair(new_gradido_key_pair.release()) != 1) {
+								addError(new Error("Neues Schl&uuml;sselpaar", "Neuer Private Key konnte nicht verschlüsselt werden!"));
 							} else {
-								//response.redirect(ServerConfig::g_serverPath + "/logout");
-								//return;
-								printf("[repairDefectPassphrase] set state to FINISH\n");
-								state = FINISH;
+								if(user_model->updatePubkeyAndPrivkey() != 1) {
+									addError(new Error("Speichern", "Fehler beim speichern der neuen Keys in die Datenbank, bitte erneut versuchen (Seite neuladen)"));
+								} else {
+									//printf("[repairDefectPassphrase] set state to FINISH\n");
+									state = FINISH;
+								}
 							}
+							
 						} else {
 							addError(new Error("Transaction", "Fehler beim signieren, bitter erneut versuchen"));
 						}
@@ -204,7 +200,7 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 			//state = CREATE_TRANSACTION;
 		}
 	}
-	mm->releaseMemory(privKey);
+	
 	
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
@@ -274,55 +270,55 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	// end include header_old.cpsp
 	responseStream << "\n";
-#line 189 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 185 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  if("" != errorString) { 	responseStream << "\n";
 	responseStream << "\t";
-#line 190 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 	responseStream << ( errorString );
 	responseStream << "\n";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 187 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 189 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<h1>Konto reparieren</h1>\n";
 	responseStream << "\t<p>Der Login-Server hat festgestellt das die gespeicherte Passphrase nicht zu deinem Konto passt.</p>\n";
 	responseStream << "\t";
-#line 196 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  if(GENERATE_PASSPHRASE == state) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
- if(privKey) { 	responseStream << "\n";
+#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+ if(new_user->canDecryptPrivateKey()) { 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Dein Privat Key konnte noch entschlüsselt werden. Es könnte also eine neue Passphrase generiert werden und dein aktueller Kontostand\n";
 	responseStream << "\t\t\tauf die neue Adresse transferiert werden. </p>\n";
 	responseStream << "\t\t\t<form method=\"POST\">\n";
 	responseStream << "\t\t\t\t<input type=\"submit\" style=\"width:auto;\" name=\"generate\" value=\"Neue Passphrase generieren!\">\n";
 	responseStream << "\t\t\t</form>\n";
 	responseStream << "\t\t";
-#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 199 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } else {	responseStream << "\n";
 	responseStream << "\t\t\t<p>Dein Privat Key konnte nicht entschlüsselt werden. Bitte wende dich an den Admin: <a href=\"mailto:";
-#line 204 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 	responseStream << ( adminEmail);
 	responseStream << "\">";
-#line 204 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 	responseStream << ( adminEmail );
 	responseStream << "</a></p>\n";
 	responseStream << "\t\t";
-#line 205 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 201 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } else if(SHOW_PASSPHRASE == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Deine neue Passphrase, bitte schreibe sie dir auf (am besten auf einen Zettel) und hebe sie gut auf. \n";
 	responseStream << "\t\tDu brauchst sie wenn du dein Passwort vergessen hast oder dein Konto umziehen möchtest:</p>\n";
 	responseStream << "\t\t<fieldset><legend>Deine neue Passphrase:</legend>\n";
 	responseStream << "\t\t\t<div class=\"grd_container_small grd_container\">\n";
 	responseStream << "\t\t\t\t";
-#line 211 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
-	responseStream << ( mSession->getPassphrase() );
+#line 207 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+	responseStream << ( mSession->getPassphrase()->getString() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</fieldset>\n";
@@ -332,15 +328,15 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t<p><input type=\"submit\" style=\"width:auto\" name=\"transfer\" value=\"Guthaben auf neue Adresse &uuml;berweisen!\"></p>\n";
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t";
-#line 219 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 215 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } else if(FINISH == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Neue Daten erfolgreich gespeichert, bitte logge dich nun aus. Danach kannst du dich gerne wieder einloggen und müsstest dein Guthaben wieder auf deinem Konto haben.</p>\n";
 	responseStream << "\t\t<a class=\"grd-nav-bn\" href=\"";
-#line 221 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 217 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
 	responseStream << ( ServerConfig::g_serverPath + "/logout" );
 	responseStream << "\">Ausloggen</a>\n";
 	responseStream << "\t";
-#line 222 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
+#line 218 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\repairDefectPassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
