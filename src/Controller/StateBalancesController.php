@@ -23,12 +23,6 @@ class StateBalancesController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['overview', 'overviewGdt']);
         $this->loadComponent('JsonRequestClient');
-        $this->set(
-            'naviHierarchy',
-            (new NaviHierarchy())->
-            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
-            add(new NaviHierarchyEntry(__('Kontoübersicht'), 'StateBalances', 'overview', true))
-        );
     }
     /**
      * Index method
@@ -47,6 +41,12 @@ class StateBalancesController extends AppController
 
     public function overview()
     {
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
+            add(new NaviHierarchyEntry(__('Kontoübersicht'), 'StateBalances', 'overview', true))
+        );
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
@@ -93,7 +93,7 @@ class StateBalancesController extends AppController
           //var_dump($sendCoins);
             if ($sendCoins->state_user_id != $user['id']) {
                 array_push($involvedUserIds, intval($sendCoins->state_user_id));
-            } else if ($sendCoins->receiver_user_id != $user['id']) {
+            } elseif ($sendCoins->receiver_user_id != $user['id']) {
                 array_push($involvedUserIds, intval($sendCoins->receiver_user_id));
             }
         }
@@ -144,6 +144,7 @@ class StateBalancesController extends AppController
             $otherUser = null;
             if ($sendCoins->state_user_id == $user['id']) {
                 $type = 'send';
+                
                 if(isset($involvedUserIndices[$sendCoins->receiver_user_id])) {
                   $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
                 }
@@ -176,6 +177,12 @@ class StateBalancesController extends AppController
 
     public function overviewGdt()
     {
+        $this->set(
+            'naviHierarchy',
+            (new NaviHierarchy())->
+            add(new NaviHierarchyEntry(__('Startseite'), 'Dashboard', 'index', false))->
+            add(new NaviHierarchyEntry(__('GDT Kontoübersicht'), 'StateBalances', 'overviewGdt', true))
+        );
         $startTime = microtime(true);
         $this->viewBuilder()->setLayout('frontend');
         $session = $this->getRequest()->getSession();
@@ -188,10 +195,9 @@ class StateBalancesController extends AppController
 
         //var_dump($requestResult);
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
+
           //var_dump(array_keys($requestResult['data']));
             $ownEntries = $requestResult['data']['ownEntries'];
-
-
           //$gdtEntries = $requestResult['data']['entries'];
 
             $gdtSum = 0;

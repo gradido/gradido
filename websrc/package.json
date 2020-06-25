@@ -8,7 +8,7 @@
     "watch:css": "gulp watchStyles",
     "prebuild": "browserify ./src/js/app.js -t [ babelify --presets [ @babel/preset-env ] ] -o ./public/app.rl.js -v",
     "build": "gulp compressStyles && browserify ./public/app.rl.js -g uglifyify -p bundle-collapser/plugin | uglifyjs --compress --mangle toplevel,eval > ../webroot/js/app.min.js",
-    "build:css" : "gulp compressStyles"
+    "build:css": "gulp compressStyles"
   },
   "author": "Dario Rekowski",
   "license": "ISC",
