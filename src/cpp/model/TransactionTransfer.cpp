@@ -2,7 +2,7 @@
 
 const std::string TransactionTransfer::mInvalidIndexMessage("invalid index");
 
-TransactionTransfer::KontoTableEntry::KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount/* = false*/)
+TransactionTransfer::KontoTableEntry::KontoTableEntry(model::table::User* user, google::protobuf::int64 amount, bool negativeAmount/* = false*/)
 {
 	if (!user) return;
 
@@ -80,13 +80,14 @@ int TransactionTransfer::prepare()
 			unlock();
 			return -3;
 		}
-		User user((const unsigned char*)pubkey.data());
-		if (user.getUserState() == USER_EMPTY) {
+		//User user((const unsigned char*)pubkey.data());
+		auto user = controller::User::create();
+		if (!user->load((const unsigned char*)pubkey.data())) {
 			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)pubkey.data(), pubkey.size());
 			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, senderAmount.amount(), true));
 		}
 		else {
-			mKontoTable.push_back(KontoTableEntry(&user, senderAmount.amount(), true));
+			mKontoTable.push_back(KontoTableEntry(user->getModel(), senderAmount.amount(), true));
 		}
 	}
 	for (int i = 0; i < mProtoTransfer.receiveramounts_size(); i++) {
@@ -98,13 +99,13 @@ int TransactionTransfer::prepare()
 			unlock();
 			return -4;
 		}
-		User user((const unsigned char*)pubkey.data());
-		if (user.getUserState() == USER_EMPTY) {
+		auto user = controller::User::create();
+		if (!user->load((const unsigned char*)pubkey.data())) {
 			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)pubkey.data(), pubkey.size());
 			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, receiverAmount.amount(), false));
 		}
 		else {
-			mKontoTable.push_back(KontoTableEntry(&user, receiverAmount.amount(), false));
+			mKontoTable.push_back(KontoTableEntry(user->getModel(), receiverAmount.amount(), false));
 		}
 	}
 	if (senderSum != receiverSum) {

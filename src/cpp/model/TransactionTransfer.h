@@ -14,7 +14,7 @@
 #include "TransactionBase.h"
 #include "../proto/gradido/Transfer.pb.h"
 
-#include "User.h"
+#include "../controller/User.h"
 
 class TransactionTransfer : public TransactionBase
 {
@@ -34,7 +34,7 @@ protected:
 	struct KontoTableEntry 
 	{
 	public:
-		KontoTableEntry(User* user, google::protobuf::int64 amount, bool negativeAmount = false);
+		KontoTableEntry(model::table::User* user, google::protobuf::int64 amount, bool negativeAmount = false);
 		KontoTableEntry(const std::string& pubkeyHex, google::protobuf::int64 amount, bool negativeAmount = false);
 		// first name, last name and email or pubkey hex if no user in db found
 		std::string kontoNameCell;
