@@ -153,9 +153,10 @@ namespace controller {
 		//	printf("[User::login] password key hashed is the same as saved password hash\n");
 			MemoryBin* clear_private_key = nullptr;
 
+			mPassword = authenticated_encryption;
+
 			// additional check if saved private key found, decrypt and derive public key and compare with saved public key
-			if (!model->hasPrivateKeyEncrypted()) {
-				mPassword = authenticated_encryption;
+			if (!model->hasPrivateKeyEncrypted()) {	
 				return 1;
 			}
 			else 
@@ -163,7 +164,6 @@ namespace controller {
 				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair) {
 						if (mGradidoKeyPair->isTheSame(clear_private_key) == 0) {
-							mPassword = authenticated_encryption;
 							mCanDecryptPrivateKey = true;
 							return 1;
 						}
@@ -180,7 +180,6 @@ namespace controller {
 						return -1;
 					}
 					//printf("correct pwd\n");
-					mPassword = authenticated_encryption;
 					mCanDecryptPrivateKey = true;
 					return 1;
 				}
@@ -208,6 +207,7 @@ namespace controller {
 		model->setPublicKey(mGradidoKeyPair->getPublicKey());
 		if (mPassword && mPassword->hasKey()) {
 			model->setPrivateKey(mGradidoKeyPair->getCryptedPrivKey(mPassword));
+			mCanDecryptPrivateKey = true;
 			return 1;
 		}
 		return 0;

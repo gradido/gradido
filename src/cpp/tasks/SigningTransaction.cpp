@@ -70,7 +70,8 @@ int SigningTransaction::run() {
 
 	//auto privKey = mUser->getPrivKey();
 	//if (!mUser->hasPrivKey()) {
-	if(!mNewUser->canDecryptPrivateKey()) {
+	auto gradido_key_pair = mNewUser->getGradidoKeyPair();
+	if(!gradido_key_pair || !gradido_key_pair->hasPrivateKey()) {
 		addError(new Error("SigningTransaction", "user cannot decrypt private key"));
 		sendErrorsAsEmail();
 		return -2;
@@ -86,7 +87,7 @@ int SigningTransaction::run() {
 	}
 	// sign
 	//auto sign = mUser->sign((const unsigned char*)bodyBytes->data(), bodyBytes->size());
-	auto sign = mNewUser->getGradidoKeyPair()->sign(*bodyBytes);
+	auto sign = gradido_key_pair->sign(*bodyBytes);
 	if (!sign) {
 		ErrorManager::getInstance()->sendErrorsAsEmail();
 		sendErrorsAsEmail();

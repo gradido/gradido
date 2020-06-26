@@ -749,12 +749,14 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			auto user_model = mNewUser->getModel();
 			auto user_backups = controller::UserBackups::load(user_model->getID());
 			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
-				auto key = (*it)->createGradidoKeyPair();
-				if (key->isTheSame(user_model->getPublicKey())) {
-					auto crypted_private_key = key->getCryptedPrivKey(mNewUser->getPassword());
-					if (crypted_private_key) {
-						user_model->setPrivateKey(crypted_private_key);
-						MemoryManager::getInstance()->releaseMemory(crypted_private_key);
+				auto key = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
+				if (key->isTheSame(user_model->getPublicKey())) 
+				{
+					
+					// set valid key pair
+					if (1 == mNewUser->setGradidoKeyPair(key.release())) {
+						// save new encrypted private key
+						user_model->updatePrivkey();
 					}
 					else {
 						auto em = ErrorManager::getInstance();
@@ -764,7 +766,6 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 					}
 					break;
 				}
-				delete key;
 			}
 		}
 		// can be removed if session user isn't used any more
