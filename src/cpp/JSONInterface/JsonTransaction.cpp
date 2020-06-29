@@ -37,6 +37,10 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 						if (u) {
 							u->setBalance(balance);
 						}
+						auto nu = session->getNewUser();
+						if (!nu.isNull()) {
+							nu->setBalance(balance);
+						}
 					}
 				}
 

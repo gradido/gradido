@@ -108,6 +108,9 @@ namespace controller {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mGradidoKeyPair;
 		}
+
+		inline void setBalance(int gradidoBalance) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mGradidoCurrentBalance = gradidoBalance; }
+		inline int getBalance() { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mGradidoCurrentBalance; }
 		
 	protected:
 
@@ -119,6 +122,10 @@ namespace controller {
 		KeyPairEd25519*          mGradidoKeyPair;
 
 		bool					 mCanDecryptPrivateKey;
+
+		//! get this from community-server, later maybe from gradido-node
+		//! use it for showing balance in menu in check transaction
+		int					     mGradidoCurrentBalance;
 
 		mutable std::shared_mutex mSharedMutex;
 	};
