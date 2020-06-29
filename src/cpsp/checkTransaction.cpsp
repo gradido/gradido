@@ -7,6 +7,7 @@
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
+#include "../SingletonManager/EmailManager.h"
 #include "../model/TransactionCreation.h"
 #include "../model/TransactionTransfer.h"
 
@@ -15,17 +16,27 @@
 enum PageState {
 	PAGE_TRANSACTION_CREATION,
 	PAGE_TRANSACTION_TRANSFER,
-	PAGE_NO_TRANSACTIONS
+	PAGE_NO_TRANSACTIONS,
+	PAGE_USER_DATA_CORRUPTED
 };
 
 %>
 <%% 
 	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
-	auto accountUser = mSession->getUser();
-	auto userBalance = accountUser->getBalance();
+	auto account_user = mSession->getNewUser();
+	auto user_model = account_user->getModel();
+	auto em = EmailManager::getInstance();
+	auto userBalance = account_user->getBalance();
 	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
+	
+	PageState state = PAGE_NO_TRANSACTIONS;
+	
+	if(!user_model->isEmailChecked()) {
+		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
+		hasErrors = true;
+	}
 	
 	if(!form.empty()) {
 		auto ok = form.get("ok", "");
@@ -33,11 +44,24 @@ enum PageState {
 		if(abort != "") {
 			mSession->finalizeTransaction(false, true);
 		} else if(ok != "") {
-			if(!accountUser->hasCryptoKey()) {
+			if(!account_user->hasPassword()) {
 				auto pwd = form.get("sign-password", "");
-				if(!mSession->isPwdValid(pwd)) {
+				auto loginResult = account_user->login(pwd);
+				switch(loginResult) {
+				case 0: 
 					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
 					hasErrors = true;
+					break;
+				case -1: 
+				case -2:
+					addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
+					hasErrors = true;
+					state = PAGE_USER_DATA_CORRUPTED;
+					break;
+				case -3: 
+					addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
+					hasErrors = true;
+					break;
 				}
 			}
 			if(!hasErrors) {
@@ -46,7 +70,7 @@ enum PageState {
 		}
 	}
 	
-	PageState state = PAGE_NO_TRANSACTIONS;
+	
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
@@ -72,7 +96,7 @@ enum PageState {
 	if(sumTransactions > 0) {
 		enableLogout = false;
 	}
-	if(!processingTransaction.isNull()) {
+	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull()) {
 		auto transactionType = processingTransaction->getType();
 		switch(transactionType) {
 			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
@@ -104,11 +128,11 @@ enum PageState {
 <div class="content-container main-container">
 	<div class="action-form">
 		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
+		<div class="form-content">
 		<% if(state == PAGE_TRANSACTION_TRANSFER) { 
 			auto transferTransaction = processingTransaction->getTransferTransaction();
 			memo = transferTransaction->getMemo();
 		%>
-		<div class="form-content">
 			<p><%= gettext("&Uuml;berweisung") %></p>
 			<div class="content-table">
 			  <div class="content-row content-row-header">
@@ -116,24 +140,47 @@ enum PageState {
 				<span class="content-cell"><%= gettext("Gradido") %></span>
 			  </div>
 			  <% for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { %>					
-					<%= transferTransaction->getKontoNameCellChr(i) %>
-					<%= transferTransaction->getAmountCellChr(i) %>
+					<% if((i+1) % 2 == 0) { %>
+						<div class="content-row content-row">
+					<% } else { %>
+						<div class="content-row content-row-bg">
+					<% } %>
+						<%= transferTransaction->getKontoNameCell(i) %>
+						<%= transferTransaction->getAmountCell(i) %>
+					</div>
 			  <% } %>
-			  <div class="content-row content-row-bg">
-				<span class="content-cell">Normaler&nbsp;User&nbsp;&lt;info@software-labor.de&gt;</span>
-				<span class="content-cell alert-color">-10 GDD</span>
-			  </div>
-			  <div class="content-row">
-				<span class="content-cell">dario&nbsp;frodo&nbsp;&lt;dariofrodo@gmx.de&gt;</span>
-				<span class="content-cell success-color">10 GDD</span>
-			  </div>
 			</div>
+			 <% } else if(PAGE_TRANSACTION_CREATION == state) { 
+					auto creationTransaction = processingTransaction->getCreationTransaction();
+					auto transactionUser = creationTransaction->getUser();
+					memo = creationTransaction->getMemo();
+			 %>
+				<p><%= gettext("Sch&ouml;pfung") %></p>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell"><%= gettext("Konto") %></span>
+					<span class="content-cell"><%= gettext("Zieldatum") %></span>
+					<span class="content-cell"><%= gettext("Gradido") %></span>
+				  </div>
+				  <div class="content-row content-row-bg">
+					<% if(transactionUser) { %>
+						<span class="content-cell">><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
+					<% } else { %>
+						<span class="content-cell">0x<%= creationTransaction->getPublicHex() %></span>
+					<% } %>
+					<span class="content-cell"><%= creationTransaction->getTargetDateString() %></span>
+					<span class="content-cell success-color"><%= creationTransaction->getAmountString() %> GDD</span>
+				  </div>
+				</div>
+			 <% } else if(PAGE_USER_DATA_CORRUPTED == state) { %>
+				<p class="alert-color"><%= gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den")%><a href="mailto:<%= em->getAdminReceiver()%>?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%=gettext("Support") %></a></p>
+			 <% } %>
 			<div class="content-table">
 			  <div class="content-row content-row-header">
 				<span class="content-cell">Aktives Konto</span>
 			  </div>
 			  <div class="content-row">
-				<span class="content-cell">Normaler User &lt;info@software-labor.de&gt;</span>
+				<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
 			  </div>
 			</div>
 			<div class="content-table">
@@ -141,132 +188,28 @@ enum PageState {
 				<span class="content-cell">Verwendungszweck</span>
 			  </div>
 			  <div class="content-row content-row-bg">
-				<span class="content-cell">&nbsp;</span>
+				<span class="content-cell"><%= memo %></span>
 			  </div>
 			</div>
 			<form>
-				<button type="submit" class="form-button" name="ok" value="ok">
-					<i class="material-icons-outlined">verified_user</i>
-					Transaktion unterzeichnen
-				</button>
-				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
-					<i class="material-icons-outlined">delete</i>
-					Transaktion verwerfen
-				</button>
-			</form>
-		</div>
-	</div>
-</div>
-			
-<div class="col-md-10 equel-grid mb-3">
-	<small class="text-gray d-block mt-3">
-	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
-		<% if(notReadyTransactions > 0) { %> 
-			<%= sumTransactions - notReadyTransactions %> <%= gettext("von") %> <%= sumTransactions %> <%= gettext("Transaktionen sind bereit zum best&auml;tigen") %>
-		<% } else { %>
-			<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
-		<% } %>
-	<% } %>
-	<% if(state == PAGE_NO_TRANSACTIONS) { %>
-		<% if(sumTransactions == 0) { %>
-			<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
-		<% } else { %>
-			<%= gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") %>
-		<% } %>
-    <% } %>
-	</small>
-</div>
-<% if(state != PAGE_NO_TRANSACTIONS) { %>
-<div class="col-md-10 equel-grid">
-	<div class="grid">
-	  <p class="grid-header"><%= gettext("Transaktion Unterzeichnen") %></p>
-	  <div class="grid-body">
-		<div class="item-wrapper">
-		  <div class="row mb-3">
-			<div class="col-md-10 mx-auto">
-			<% if(state == PAGE_TRANSACTION_TRANSFER) { 
-				auto transferTransaction = processingTransaction->getTransferTransaction();
-				memo = transferTransaction->getMemo();
-			%>
-			  <p class="card-title ml-n1 mb-3"><%= gettext("&Uuml;berweisung") %></p>
-			  <div class="table-responsive mb-4">
-				<table class="table info-table table-striped table-bordered">
-				  <thead>
-					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Gradido") %></th></tr>
-				  </thead>
-				  <tbody>
-				  <% for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { %>
-					<tr>
-						<%= transferTransaction->getKontoNameCell(i) %>
-						<%= transferTransaction->getAmountCell(i) %>
-					</tr>
-				  <% } %>
-				  </tbody>
-				</table>
-			  </div>
-			  
-			  <% } else if(state == PAGE_TRANSACTION_CREATION) { 
-					auto creationTransaction = processingTransaction->getCreationTransaction();
-					auto transactionUser = creationTransaction->getUser();
-					memo = creationTransaction->getMemo();
-			  %>
-			  <p class="card-title ml-n1 mb-3"><%= gettext("Sch&ouml;pfung") %></p>
-			  <div class="table-responsive mb-4">
-				<table class="table info-table table-striped table-bordered">
-				  <thead>
-					<tr><th><%= gettext("Konto") %></th><th><%= gettext("Zieldatum") %></th><th><%= gettext("Gradido") %></th></tr>
-				  </thead>
-				  <tbody>
-					<tr>
-						<% if(transactionUser) { %>
-							<td><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</td>
-						<% } else { %>
-							<td class="small">0x<%= creationTransaction->getPublicHex() %></td>
-						<% } %>
-						<td><%= creationTransaction->getTargetDateString() %></td>
-						<td class="grd-success-color"><%= creationTransaction->getAmountString() %> GDD</td>
-					</tr>
-				  </tbody>
-				</table>
-			  </div>
-			  <% } %>
-			  <div class="table-responsive mb-4">
-				<table class="table info-table table-bordered table-auto-break">
-				  <thead><tr><th><%= gettext("Aktives Konto") %></th></tr></thead>
-				  <tbody><tr><td><%= accountUser->getFirstName() %> <%= accountUser->getLastName() %> &lt;<%= accountUser->getEmail() %>&gt;</td></tr></tbody>
-				</table>
-			  </div>
-			  <div class="table-responsive mb-4">
-				<table class="table info-table table-bordered table-auto-break tab-container">
-				  <thead><tr><th><%= gettext("Verwendungszweck") %></th></tr></thead>
-				  <tbody><tr>
-					  <td class="tab-content"><%= memo %></td></tr></tbody>
-				</table>
-			  </div>
-			</div>
-		  </div>
-			<form>
-			  <div class="row mb-3">
-				<div class="col-md-10 mx-auto">
-				 <% if(!accountUser->hasCryptoKey()) {%>
+				<% if(!account_user->hasPassword()) {%>
 				 <div class="form-group">
 					  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
 					  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
 				 </div>
 				<% } %>
-				  <button type="submit" class="btn btn-sm btn-primary" name="ok" value="ok">
-					<i class="mdi mdi-signature-freehand"></i>
-					<%= gettext("Transaktion unterzeichnen") %>
-				  </button>
-				  <button type="submit" class="btn btn-sm btn-warning" name="abort" value="abort">
-					<i class="mdi mdi-delete"></i>
+				<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
+					<button type="submit" class="form-button" name="ok" value="ok">
+						<i class="material-icons-outlined">verified_user</i>
+						<%= gettext("Transaktion unterzeichnen") %>
+					</button>
+				<% } %>
+				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
+					<i class="material-icons-outlined">delete</i>
 					<%= gettext("Transaktion verwerfen") %>
-				  </button>
-				</div>
-			  </div>
+				</button>
 			</form>
 		</div>
-	  </div>
 	</div>
 </div>
-<% } %><%@ include file="footer_chr.cpsp" %>
+<%@ include file="footer_chr.cpsp" %>

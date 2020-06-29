@@ -9,6 +9,7 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
+#include "../SingletonManager/EmailManager.h"
 #include "../model/TransactionCreation.h"
 #include "../model/TransactionTransfer.h"
 
@@ -17,13 +18,10 @@
 enum PageState {
 	PAGE_TRANSACTION_CREATION,
 	PAGE_TRANSACTION_TRANSFER,
-	PAGE_NO_TRANSACTIONS
+	PAGE_NO_TRANSACTIONS,
+	PAGE_USER_DATA_CORRUPTED
 };
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
- 
-#include "../ServerConfig.h"
-#include "../model/TransactionBase.h"	
 
 
 CheckTransactionPage::CheckTransactionPage(Session* arg):
@@ -40,14 +38,23 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  
 	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
-	auto accountUser = mSession->getUser();
-	auto userBalance = accountUser->getBalance();
+	auto account_user = mSession->getNewUser();
+	auto user_model = account_user->getModel();
+	auto em = EmailManager::getInstance();
+	auto userBalance = account_user->getBalance();
 	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
+	
+	PageState state = PAGE_NO_TRANSACTIONS;
+	
+	if(!user_model->isEmailChecked()) {
+		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
+		hasErrors = true;
+	}
 	
 	if(!form.empty()) {
 		auto ok = form.get("ok", "");
@@ -55,11 +62,24 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 		if(abort != "") {
 			mSession->finalizeTransaction(false, true);
 		} else if(ok != "") {
-			if(!accountUser->hasCryptoKey()) {
+			if(!account_user->hasPassword()) {
 				auto pwd = form.get("sign-password", "");
-				if(!mSession->isPwdValid(pwd)) {
+				auto loginResult = account_user->login(pwd);
+				switch(loginResult) {
+				case 0: 
 					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
 					hasErrors = true;
+					break;
+				case -1: 
+				case -2:
+					addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
+					hasErrors = true;
+					state = PAGE_USER_DATA_CORRUPTED;
+					break;
+				case -3: 
+					addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
+					hasErrors = true;
+					break;
 				}
 			}
 			if(!hasErrors) {
@@ -68,7 +88,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 		}
 	}
 	
-	PageState state = PAGE_NO_TRANSACTIONS;
+	
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
 	if(sumTransactions == 0) {
@@ -94,7 +114,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	if(sumTransactions > 0) {
 		enableLogout = false;
 	}
-	if(!processingTransaction.isNull()) {
+	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull()) {
 		auto transactionType = processingTransaction->getType();
 		switch(transactionType) {
 			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
@@ -108,442 +128,406 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
-	// begin include header_navi.cpsp
-	responseStream << "\n";
+	// begin include header_navi_chr.cpsp
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
+	responseStream << "\n";
 	responseStream << "<head>\n";
-	responseStream << "<meta charset=\"UTF-8\">\n";
-	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
-	responseStream << "<title>Gradido Login Server: ";
-#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "    <meta charset=\"UTF-8\">\n";
+	responseStream << "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
+	responseStream << "    <title>Gradido Login Server: ";
+#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
-	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "    <link href=\"";
+#line 8 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "css/rippleUI/style.css\">\n";
-	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "favicon.ico\" type=\"image/x-icon\" rel=\"icon\" />\n";
+	responseStream << "    <link href=\"";
+#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "css/materialdesignicons.min.css\">\n";
+	responseStream << "favicon.ico\" type=\"image/x-icon\" rel=\"shortcut icon\" />\n";
+	responseStream << "    <link rel=\"stylesheet\" href=\"";
+#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "css/main.css\" />\n";
+	responseStream << "    <script src=\"";
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "js/basic.js\"></script>\n";
 	responseStream << "</head>\n";
-	responseStream << "<body class=\"header-fixed\">\n";
-	responseStream << "<div class=\"versionstring dev-info\">\n";
-	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
-	responseStream << "\t<p class=\"grd_small\">Alpha ";
-#line 17 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
-	responseStream << ( ServerConfig::g_versionString );
-	responseStream << "</p>\n";
-	responseStream << "</div>\n";
-	responseStream << "<nav class=\"t-header\">\n";
-	responseStream << "      <div class=\"t-header-brand-wrapper\">\n";
-	responseStream << "        <a href=\"";
-#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "\n";
+	responseStream << "<body>\n";
+	responseStream << "    <div class=\"layout\">\n";
+	responseStream << "        <div class=\"header-notify\">\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"sidebar1 nav-menu initial\">\n";
+	responseStream << "            <a href=\"";
+#line 19 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\">\n";
-	responseStream << "          <img class=\"logo\" src=\"";
-#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "                <picture class=\"logo big visible\">\n";
+	responseStream << "                    <source srcset=\"";
+#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "img/logo_schrift_half.webp\" alt=\"Logo\">\n";
-	responseStream << "          <img class=\"logo-mini\" src=\"";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "img/logo_schrift_half.webp\" type=\"image/webp\">\n";
+	responseStream << "                    <source srcset=\"";
+#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "img/logo_half.webp\" alt=\"Logo\">\n";
-	responseStream << "        </a>\n";
-	responseStream << "        <button class=\"t-header-toggler t-header-desk-toggler d-none d-lg-block\">\n";
-	responseStream << "          <svg class=\"logo\" viewBox=\"0 0 200 200\">\n";
-	responseStream << "            <path class=\"top\" d=\"\n";
-	responseStream << "                M 40, 80\n";
-	responseStream << "                C 40, 80 120, 80 140, 80\n";
-	responseStream << "                C180, 80 180, 20  90, 80\n";
-	responseStream << "                C 60,100  30,120  30,120\n";
-	responseStream << "              \"></path>\n";
-	responseStream << "            <path class=\"middle\" d=\"\n";
-	responseStream << "                M 40,100\n";
-	responseStream << "                L140,100\n";
-	responseStream << "              \"></path>\n";
-	responseStream << "            <path class=\"bottom\" d=\"\n";
-	responseStream << "                M 40,120\n";
-	responseStream << "                C 40,120 120,120 140,120\n";
-	responseStream << "                C180,120 180,180  90,120\n";
-	responseStream << "                C 60,100  30, 80  30, 80\n";
-	responseStream << "              \"></path>\n";
-	responseStream << "          </svg>\n";
-	responseStream << "        </button>\n";
-	responseStream << "      </div>\n";
-	responseStream << "      <div class=\"t-header-content-wrapper\">\n";
-	responseStream << "        <div class=\"t-header-content\">\n";
-	responseStream << "          <button class=\"t-header-toggler t-header-mobile-toggler d-block d-lg-none\">\n";
-	responseStream << "            <i class=\"mdi mdi-menu\"></i>\n";
-	responseStream << "          </button>\n";
-	responseStream << "          <div class=\"flash-messages\" style=\"margin-left:20px; margin-top:30px;\">";
-#line 51 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "img/logo_schrift_half.png\" type=\"image/png\">\n";
+	responseStream << "                    <img src=\"";
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_schrift_half.png\" class=\"logo big visible\" alt=\"Logo\">\n";
+	responseStream << "                </picture>\n";
+	responseStream << "                <picture class=\"logo small\">\n";
+	responseStream << "                    <source srcset=\"";
+#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_half.webp\" type=\"image/webp\">\n";
+	responseStream << "                    <source srcset=\"";
+#line 27 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_half.png\" type=\"image/png\">\n";
+	responseStream << "                    <img src=\"";
+#line 28 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_half.png\" class=\"logo small\" alt=\"Logo\">\n";
+	responseStream << "                </picture>\n";
+	responseStream << "            </a>\n";
+	responseStream << "            <div>\n";
+	responseStream << "                <i class=\"material-icons-outlined nav-main-button\">menu</i>\n";
+	responseStream << "            </div>\n";
+	responseStream << "            <div class=\"flash-messages\">";
+#line 34 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "</div>\n";
-	responseStream << "        </div>\n";
-	responseStream << "      </div>\n";
-	responseStream << "    </nav>\n";
-	responseStream << "    <div class=\"page-body\">\n";
-	responseStream << "      <!-- partial:partials/_sidebar.html -->\n";
-	responseStream << "      <div class=\"sidebar\">\n";
-	responseStream << "        <ul class=\"navigation-menu\">\n";
-	responseStream << "          <li>\n";
-	responseStream << "            <a href=\"";
-#line 60 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "            <div class=\"nav-vertical\">\n";
+	responseStream << "                <ul>\n";
+	responseStream << "                    <li><a href=\"";
+#line 37 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "state-balances/overview\" title=\"Kontoübersicht\">\n";
-	responseStream << "              <span class=\"link-title\">Kontoübersicht (";
-#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "state-balances/overview\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Kontoübersicht (  ";
+#line 37 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( TransactionBase::amountToString(userBalance) );
-	responseStream << " GDD)</span>\n";
-	responseStream << "              <i class=\"mdi mdi-wallet-outline link-icon\"></i>\n";
-	responseStream << "            </a>\n";
-	responseStream << "          </li>\n";
-	responseStream << "          <li>\n";
-	responseStream << "            <a href=\"";
-#line 66 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << " GDD )\">account_balance_wallet</i><span\n";
+	responseStream << "                                class=\"link-title\">Kontoübersicht ( ";
+#line 38 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( TransactionBase::amountToString(userBalance) );
+	responseStream << " GDD )</span></a></li>\n";
+	responseStream << "                    <li><a href=\"";
+#line 39 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "\">\n";
-	responseStream << "              <span class=\"link-title\">Startseite</span>\n";
-	responseStream << "              <i class=\"mdi mdi-gauge link-icon\"></i>\n";
-	responseStream << "            </a>\n";
-	responseStream << "          </li>\n";
-	responseStream << "          <li>\n";
-	responseStream << "            <a href=\"";
-#line 72 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "dashboard/index\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Startseite\">home</i><span\n";
+	responseStream << "                                class=\"link-title\">Startseite</span></a></li>\n";
+	responseStream << "                    <li class=' selected'><a href=\"";
+#line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "transaction-send-coins/create\">\n";
-	responseStream << "              <span class=\"link-title\">Überweisen</span>\n";
-	responseStream << "              <i class=\"mdi mdi-bank-transfer-out link-icon\"></i>\n";
-	responseStream << "            </a>\n";
-	responseStream << "          </li>\n";
-	responseStream << "        </ul>\n";
-	responseStream << "      </div>\n";
-	responseStream << "      <div class=\"page-content-wrapper\">\n";
-	responseStream << "        <div class=\"page-content-wrapper-inner\">\n";
-	responseStream << "          <div class=\"viewport-header\">\n";
-	responseStream << "            <nav aria-label=\"breadcrumb\">\n";
-	responseStream << "              <ol class=\"breadcrumb has-arrow\">\n";
-	responseStream << "                <li class=\"breadcrumb-item\">\n";
-	responseStream << "                  <a href=\"";
-#line 85 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "\">Startseite</a>\n";
-	responseStream << "                </li>\n";
-	responseStream << "                <li class=\"breadcrumb-item active\" aria-current=\"page\">";
-#line 87 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi.cpsp"
+	responseStream << "transaction-send-coins/create\" class=\"\"><i class=\"material-icons-outlined nav-icon \"\n";
+	responseStream << "                                title=\"Überweisung\">account_balance</i><span class=\"link-title\">Überweisung</span></a></li>\n";
+	responseStream << "                    <li><a href=\"https://elopage.com/s/gradido/sign_in\" class=\"\" target=\"_blank\"><i class=\"material-icons-outlined nav-icon \"\n";
+	responseStream << "                                title=\"Mitgliederbereich\">people_alt</i><span class=\"link-title\">Mitgliederbereich</span></a></li>\n";
+	responseStream << "                </ul>\n";
+	responseStream << "            </div>\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"content\">\n";
+	responseStream << "            <div class=\"nav-content\">\n";
+	responseStream << "                <ul class='nav-content-list'>\n";
+	responseStream << "                    <li><a href=\"/\" class=\"\"><span class=\"link-title\">Startseite</span></a></li>\n";
+	responseStream << "                    <li class='nav-content-separator'>-</li>\n";
+	responseStream << "                    <li class='selected'><span class=\"link-title\">";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( pageName );
-	responseStream << "</li>\n";
-	responseStream << "              </ol>\n";
-	responseStream << "            </nav>\n";
-	responseStream << "          </div>\n";
-	responseStream << "          <div class=\"content-viewport\">";
-	// end include header_navi.cpsp
+	responseStream << "</span></li>\n";
+	responseStream << "                </ul>\n";
+	responseStream << "            </div>";
+	// end include header_navi_chr.cpsp
 	responseStream << "\n";
 	responseStream << "<div class=\"col-md-10 equel-grid mb-3\">\n";
 	responseStream << "\t<small class=\"text-gray d-block mt-3\">\n";
 	responseStream << "\t";
-#line 88 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(notReadyTransactions > 0) { 	responseStream << " \n";
 	responseStream << "\t\t\t";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions - notReadyTransactions );
 	responseStream << " ";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("von") );
 	responseStream << " ";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions );
 	responseStream << " ";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktionen sind bereit zum best&auml;tigen") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 91 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions );
 	responseStream << " ";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktionen warten darauf best&auml;tigt zu werden.") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 117 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(state == PAGE_NO_TRANSACTIONS) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(sumTransactions == 0) { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 97 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 122 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 124 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "    ";
-#line 101 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 125 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t</small>\n";
 	responseStream << "</div>\n";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- if(state != PAGE_NO_TRANSACTIONS) { 	responseStream << "\n";
-	responseStream << "<div class=\"col-md-10 equel-grid\">\n";
-	responseStream << "\t<div class=\"grid\">\n";
-	responseStream << "\t  <p class=\"grid-header\">";
-#line 107 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "<div class=\"content-container main-container\">\n";
+	responseStream << "\t<div class=\"action-form\">\n";
+	responseStream << "\t\t<p class=\"form-header\">";
+#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktion Unterzeichnen") );
 	responseStream << "</p>\n";
-	responseStream << "\t  <div class=\"grid-body\">\n";
-	responseStream << "\t\t<div class=\"item-wrapper\">\n";
-	responseStream << "\t\t  <div class=\"row mb-3\">\n";
-	responseStream << "\t\t\t<div class=\"col-md-10 mx-auto\">\n";
-	responseStream << "\t\t\t";
-#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "\t\t<div class=\"form-content\">\n";
+	responseStream << "\t\t";
+#line 132 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(state == PAGE_TRANSACTION_TRANSFER) { 
-				auto transferTransaction = processingTransaction->getTransferTransaction();
-				memo = transferTransaction->getMemo();
-				responseStream << "\n";
-	responseStream << "\t\t\t  <p class=\"card-title ml-n1 mb-3\">";
-#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+			auto transferTransaction = processingTransaction->getTransferTransaction();
+			memo = transferTransaction->getMemo();
+			responseStream << "\n";
+	responseStream << "\t\t\t<p>";
+#line 136 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("&Uuml;berweisung") );
 	responseStream << "</p>\n";
-	responseStream << "\t\t\t  <div class=\"table-responsive mb-4\">\n";
-	responseStream << "\t\t\t\t<table class=\"table info-table table-striped table-bordered\">\n";
-	responseStream << "\t\t\t\t  <thead>\n";
-	responseStream << "\t\t\t\t\t<tr><th>";
-#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "\t\t\t<div class=\"content-table\">\n";
+	responseStream << "\t\t\t  <div class=\"content-row content-row-header\">\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">";
+#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Konto") );
-	responseStream << "</th><th>";
-#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">";
+#line 140 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Gradido") );
-	responseStream << "</th></tr>\n";
-	responseStream << "\t\t\t\t  </thead>\n";
-	responseStream << "\t\t\t\t  <tbody>\n";
-	responseStream << "\t\t\t\t  ";
-#line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t<tr>\n";
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t  </div>\n";
+	responseStream << "\t\t\t  ";
+#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { 	responseStream << "\t\t\t\t\t\n";
+	responseStream << "\t\t\t\t\t";
+#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ if((i+1) % 2 == 0) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<div class=\"content-row content-row\">\n";
+	responseStream << "\t\t\t\t\t";
+#line 145 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } else { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<div class=\"content-row content-row-bg\">\n";
+	responseStream << "\t\t\t\t\t";
+#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t";
-#line 125 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transferTransaction->getKontoNameCell(i) );
 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transferTransaction->getAmountCell(i) );
 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t</tr>\n";
-	responseStream << "\t\t\t\t\t";
-#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t\t  </tbody>\n";
-	responseStream << "\t\t\t\t</table>\n";
-	responseStream << "\t\t\t  </div>\n";
-	responseStream << "\t\t\t  \n";
+	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "\t\t\t  ";
-#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } else if(state == PAGE_TRANSACTION_CREATION) { 
+#line 151 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t</div>\n";
+	responseStream << "\t\t\t ";
+#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } else if(PAGE_TRANSACTION_CREATION == state) { 
 					auto creationTransaction = processingTransaction->getCreationTransaction();
 					auto transactionUser = creationTransaction->getUser();
 					memo = creationTransaction->getMemo();
-			  	responseStream << "\n";
-	responseStream << "\t\t\t  <p class=\"card-title ml-n1 mb-3\">";
-#line 138 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+			 	responseStream << "\n";
+	responseStream << "\t\t\t\t<p>";
+#line 158 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Sch&ouml;pfung") );
 	responseStream << "</p>\n";
-	responseStream << "\t\t\t  <div class=\"table-responsive mb-4\">\n";
-	responseStream << "\t\t\t\t<table class=\"table info-table table-striped table-bordered\">\n";
-	responseStream << "\t\t\t\t  <thead>\n";
-	responseStream << "\t\t\t\t\t<tr><th>";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "\t\t\t\t<div class=\"content-table\">\n";
+	responseStream << "\t\t\t\t  <div class=\"content-row content-row-header\">\n";
+	responseStream << "\t\t\t\t\t<span class=\"content-cell\">";
+#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Konto") );
-	responseStream << "</th><th>";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t\t<span class=\"content-cell\">";
+#line 162 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Zieldatum") );
-	responseStream << "</th><th>";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t\t<span class=\"content-cell\">";
+#line 163 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Gradido") );
-	responseStream << "</th></tr>\n";
-	responseStream << "\t\t\t\t  </thead>\n";
-	responseStream << "\t\t\t\t  <tbody>\n";
-	responseStream << "\t\t\t\t\t<tr>\n";
-	responseStream << "\t\t\t\t\t\t";
-#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t  </div>\n";
+	responseStream << "\t\t\t\t  <div class=\"content-row content-row-bg\">\n";
+	responseStream << "\t\t\t\t\t";
+#line 166 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(transactionUser) { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t\t<td>";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "\t\t\t\t\t\t<span class=\"content-cell\">>";
+#line 167 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transactionUser->getFirstName() );
 	responseStream << " ";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 167 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transactionUser->getLastName() );
 	responseStream << " &lt;";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 167 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transactionUser->getEmail() );
-	responseStream << "&gt;</td>\n";
-	responseStream << "\t\t\t\t\t\t";
-#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } else { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t\t<td class=\"small\">0x";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( creationTransaction->getPublicHex() );
-	responseStream << "</td>\n";
-	responseStream << "\t\t\t\t\t\t";
-#line 150 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t<td>";
-#line 151 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( creationTransaction->getTargetDateString() );
-	responseStream << "</td>\n";
-	responseStream << "\t\t\t\t\t\t<td class=\"grd-success-color\">";
-#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( creationTransaction->getAmountString() );
-	responseStream << " GDD</td>\n";
-	responseStream << "\t\t\t\t\t</tr>\n";
-	responseStream << "\t\t\t\t  </tbody>\n";
-	responseStream << "\t\t\t\t</table>\n";
-	responseStream << "\t\t\t  </div>\n";
-	responseStream << "\t\t\t  ";
-#line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t  <div class=\"table-responsive mb-4\">\n";
-	responseStream << "\t\t\t\t<table class=\"table info-table table-bordered table-auto-break\">\n";
-	responseStream << "\t\t\t\t  <thead><tr><th>";
-#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( gettext("Aktives Konto") );
-	responseStream << "</th></tr></thead>\n";
-	responseStream << "\t\t\t\t  <tbody><tr><td>";
-#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( accountUser->getFirstName() );
-	responseStream << " ";
-#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( accountUser->getLastName() );
-	responseStream << " &lt;";
-#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( accountUser->getEmail() );
-	responseStream << "&gt;</td></tr></tbody>\n";
-	responseStream << "\t\t\t\t</table>\n";
-	responseStream << "\t\t\t  </div>\n";
-	responseStream << "\t\t\t  <div class=\"table-responsive mb-4\">\n";
-	responseStream << "\t\t\t\t<table class=\"table info-table table-bordered table-auto-break tab-container\">\n";
-	responseStream << "\t\t\t\t  <thead><tr><th>";
-#line 166 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( gettext("Verwendungszweck") );
-	responseStream << "</th></tr></thead>\n";
-	responseStream << "\t\t\t\t  <tbody><tr>\n";
-	responseStream << "\t\t\t\t\t  <td class=\"tab-content\">";
+	responseStream << "&gt;</span>\n";
+	responseStream << "\t\t\t\t\t";
 #line 168 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
-	responseStream << ( memo );
-	responseStream << "</td></tr></tbody>\n";
-	responseStream << "\t\t\t\t</table>\n";
+ } else { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<span class=\"content-cell\">0x";
+#line 169 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( creationTransaction->getPublicHex() );
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t\t";
+#line 170 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<span class=\"content-cell\">";
+#line 171 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( creationTransaction->getTargetDateString() );
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t\t\t<span class=\"content-cell success-color\">";
+#line 172 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( creationTransaction->getAmountString() );
+	responseStream << " GDD</span>\n";
+	responseStream << "\t\t\t\t  </div>\n";
+	responseStream << "\t\t\t\t</div>\n";
+	responseStream << "\t\t\t ";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } else if(PAGE_USER_DATA_CORRUPTED == state) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t<p class=\"alert-color\">";
+#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den"));
+	responseStream << "<a href=\"mailto:";
+#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( em->getAdminReceiver());
+	responseStream << "?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A\">";
+#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << (gettext("Support") );
+	responseStream << "</a></p>\n";
+	responseStream << "\t\t\t ";
+#line 177 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t<div class=\"content-table\">\n";
+	responseStream << "\t\t\t  <div class=\"content-row content-row-header\">\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">Aktives Konto</span>\n";
+	responseStream << "\t\t\t  </div>\n";
+	responseStream << "\t\t\t  <div class=\"content-row\">\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">";
+#line 183 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( user_model->getNameWithEmailHtml() );
+	responseStream << "</span>\n";
 	responseStream << "\t\t\t  </div>\n";
 	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t  </div>\n";
+	responseStream << "\t\t\t<div class=\"content-table\">\n";
+	responseStream << "\t\t\t  <div class=\"content-row content-row-header\">\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">Verwendungszweck</span>\n";
+	responseStream << "\t\t\t  </div>\n";
+	responseStream << "\t\t\t  <div class=\"content-row content-row-bg\">\n";
+	responseStream << "\t\t\t\t<span class=\"content-cell\">";
+#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << ( memo );
+	responseStream << "</span>\n";
+	responseStream << "\t\t\t  </div>\n";
+	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t<form>\n";
-	responseStream << "\t\t\t  <div class=\"row mb-3\">\n";
-	responseStream << "\t\t\t\t<div class=\"col-md-10 mx-auto\">\n";
-	responseStream << "\t\t\t\t ";
-#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- if(!accountUser->hasCryptoKey()) {	responseStream << "\n";
+	responseStream << "\t\t\t\t";
+#line 195 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ if(!account_user->hasPassword()) {	responseStream << "\n";
 	responseStream << "\t\t\t\t <div class=\"form-group\">\n";
 	responseStream << "\t\t\t\t\t  <label for=\"sign-password\">";
-#line 178 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Ich brauche nochmal dein Passwort") );
 	responseStream << "</label>\n";
 	responseStream << "\t\t\t\t\t  <input type=\"password\" class=\"form-control\" id=\"sign-password\" name=\"sign-password\" placeholder=\"";
-#line 179 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Passwort") );
 	responseStream << "\">\n";
 	responseStream << "\t\t\t\t </div>\n";
 	responseStream << "\t\t\t\t";
-#line 181 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
-	responseStream << "\t\t\t\t  <button type=\"submit\" class=\"btn btn-sm btn-primary\" name=\"ok\" value=\"ok\">\n";
-	responseStream << "\t\t\t\t\t<i class=\"mdi mdi-signature-freehand\"></i>\n";
-	responseStream << "\t\t\t\t\t";
-#line 184 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+	responseStream << "\t\t\t\t";
+#line 201 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<button type=\"submit\" class=\"form-button\" name=\"ok\" value=\"ok\">\n";
+	responseStream << "\t\t\t\t\t\t<i class=\"material-icons-outlined\">verified_user</i>\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 204 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktion unterzeichnen") );
 	responseStream << "\n";
-	responseStream << "\t\t\t\t  </button>\n";
-	responseStream << "\t\t\t\t  <button type=\"submit\" class=\"btn btn-sm btn-warning\" name=\"abort\" value=\"abort\">\n";
-	responseStream << "\t\t\t\t\t<i class=\"mdi mdi-delete\"></i>\n";
+	responseStream << "\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t";
+#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t<button type=\"submit\" class=\"form-button button-cancel\" name=\"abort\" value=\"abort\">\n";
+	responseStream << "\t\t\t\t\t<i class=\"material-icons-outlined\">delete</i>\n";
 	responseStream << "\t\t\t\t\t";
-#line 188 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
+#line 209 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktion verwerfen") );
 	responseStream << "\n";
-	responseStream << "\t\t\t\t  </button>\n";
-	responseStream << "\t\t\t\t</div>\n";
-	responseStream << "\t\t\t  </div>\n";
+	responseStream << "\t\t\t\t</button>\n";
 	responseStream << "\t\t\t</form>\n";
 	responseStream << "\t\t</div>\n";
-	responseStream << "\t  </div>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</div>\n";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
- } 	// begin include footer_ripple.cpsp
-	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t</div>\n";
-	responseStream << "        <!-- content viewport ends -->\n";
-	responseStream << "        <!-- partial:partials/_footer.html -->\n";
-	responseStream << "        <footer class=\"footer\">\n";
-	responseStream << "          <div class=\"row\">\n";
-	responseStream << "            <div class=\"col-sm-6 text-center text-sm-right order-sm-1\">\n";
-	responseStream << "              <ul class=\"text-gray\">\n";
-	responseStream << "\t\t\t\t<li><a href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\">Datenschutzerkl&auml;rung</a></li>\n";
-	responseStream << "                <li><a href=\"https://gradido.net/de/impressum/\" target=\"_blank\">Impressum</a></li>\n";
-	responseStream << "              </ul>\n";
-	responseStream << "            </div>\n";
-	responseStream << "            <div class=\"col-sm-6 text-center text-sm-left mt-3 mt-sm-0\">\n";
-	responseStream << "              <small class=\"text-muted d-block\">Copyright © 2020 Gradido</small>\n";
-	responseStream << "            </div>\n";
-	responseStream << "          </div>\n";
-	responseStream << "        </footer>\n";
-	responseStream << "        <!-- partial -->\n";
-	responseStream << "      </div>\n";
-	responseStream << "      <!-- page content ends -->\n";
+	// begin include footer_chr.cpsp
+	responseStream << "</div>\n";
 	responseStream << "    </div>\n";
-	responseStream << "    <div class=\"grd-time-used dev-info\">\n";
+	responseStream << "    <div class=\"footer\">\n";
+	responseStream << "        <ul class=\"nav-horizontal\">\n";
+	responseStream << "            <li><a href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\">Datenschutzerklärung</a></li>\n";
+	responseStream << "            <li><a href=\"https://gradido.net/de/impressum/\" target=\"_blank\">Impressum</a></li>\n";
+	responseStream << "        </ul>\n";
+	responseStream << "    </div>\n";
+	responseStream << "    <div class=\"nav-bottom\">\n";
+	responseStream << "        <small class=\"\">Copyright © 2020 Gradido</small>\n";
+	responseStream << "    </div>\n";
+	responseStream << "    <div class=\"bottomleft\">\n";
 	responseStream << "        ";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_ripple.cpsp"
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_chr.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "    </div>\n";
-	responseStream << "    <!--page body ends -->\n";
-	responseStream << "    <!-- SCRIPT LOADING START FORM HERE /////////////-->\n";
-	responseStream << "    <!-- plugins:js -->\n";
-	responseStream << "    <!--<script src=\"../../../assets/vendors/js/core.js\"></script>-->\n";
-	responseStream << "    <!--<script src=\"../../../assets/vendors/js/vendor.addons.js\"></script>-->\n";
-	responseStream << "    <!-- endinject -->\n";
-	responseStream << "    <!-- Vendor Js For This Page Ends-->\n";
-	responseStream << "    <!--<script src=\"../../../assets/vendors/chartjs/Chart.min.js\"></script>-->\n";
-	responseStream << "    <!-- Vendor Js For This Page Ends-->\n";
-	responseStream << "    <!-- build:js -->\n";
-	responseStream << "    <!--<script src=\"../../../assets/js/template.js\"></script>-->\n";
-	responseStream << "    <script src=\"";
-#line 36 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_ripple.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
-	responseStream << "/js/basic.js\"></script>\n";
-	responseStream << "    <!--<script src=\"../../../assets/js/dashboard.js\"></script>-->\n";
-	responseStream << "    <!-- endbuild -->\n";
-	responseStream << "  </body>\n";
-	responseStream << "</html>\n";
-	responseStream << "   ";
-	// end include footer_ripple.cpsp
+	responseStream << "    <div class=\"bottomright\">\n";
+	responseStream << "        <p>Community Server in Entwicklung</p>\n";
+	responseStream << "        <p>Alpha ";
+#line 17 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_chr.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
+	responseStream << "    </div>\n";
+	responseStream << "    </div>\n";
+	responseStream << "</body>\n";
+	responseStream << "\n";
+	responseStream << "</html>";
+	// end include footer_chr.cpsp
 	if (_compressResponse) _gzipStream.close();
 }

@@ -4,35 +4,44 @@ const std::string TransactionTransfer::mInvalidIndexMessage("invalid index");
 
 TransactionTransfer::KontoTableEntry::KontoTableEntry(model::table::User* user, google::protobuf::int64 amount, bool negativeAmount/* = false*/)
 {
+	//<span class="content-cell">Normaler&nbsp;User&nbsp;&lt;info@software-labor.de&gt;</span>
 	if (!user) return;
 
 	composeAmountCellString(amount, negativeAmount);
 
-	kontoNameCell = "<td>";
+	/*kontoNameCell = "<td>";
 	kontoNameCell += user->getFirstName();
 	kontoNameCell += "&nbsp;";
 	kontoNameCell += user->getLastName();
 	kontoNameCell += "&nbsp;&lt;";
 	kontoNameCell += user->getEmail();
-	kontoNameCell += "&gt;</td>";
+	kontoNameCell += "&gt;</td>";*/
+	kontoNameCell = "<span class=\"content-cell\">";
+	kontoNameCell += user->getNameWithEmailHtml();
+	kontoNameCell += "</span>";
 }
 
 TransactionTransfer::KontoTableEntry::KontoTableEntry(const std::string& pubkeyHex, google::protobuf::int64 amount, bool negativeAmount/* = false*/)
 {
 	composeAmountCellString(amount, negativeAmount);
-	kontoNameCell = "<td class=\"small\">0x" + pubkeyHex + "</td>";
+	//kontoNameCell = "<td class=\"small\">0x" + pubkeyHex + "</td>";
+	kontoNameCell = "<span class = \"content-cell\">" + pubkeyHex + "</span>";
 }
 
 void TransactionTransfer::KontoTableEntry::composeAmountCellString(google::protobuf::int64 amount, bool negativeAmount)
 {
+	//<span class="content-cell alert-color">-10 GDD</span>
+	//<span class="content-cell success-color">10 GDD</span>
+	amountCell = "<span class=\"content-cell ";
 	if (negativeAmount) {
-		amountCell = "<td class =\"grd-alert-color\">-";
+		amountCell += "alert-color\">-";
 	}
 	else {
-		amountCell = "<td class=\"grd-success-color\">";
+		amountCell += "success-color\">";
 	}
 	amountCell += amountToString(amount);
-	amountCell += " GDD</td>";
+	//amountCell += " GDD</td>";
+	amountCell += " GDD</span>";
 }
 
 // ********************************************************************************************************************************
