@@ -52,6 +52,7 @@ namespace model {
 			inline const std::string& getEmail() const { return mEmail; }
 			inline const std::string& getFirstName() const { return mFirstName; }
 			inline const std::string& getLastName() const { return mLastName; }
+			inline std::string getNameWithEmailHtml() const { return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
 			inline const Poco::UInt64& getPasswordHashed() const { return mPasswordHashed; }
 			inline RoleType getRole() const { if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
