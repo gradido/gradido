@@ -1110,9 +1110,9 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	auto lang = getLanguage();
 	auto user_model = mNewUser->getModel();
 	auto mnemonic_type = ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-	if (LANG_DE == lang) {
+	/*if (LANG_DE == lang) {
 		mnemonic_type = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES;
-	}
+	}*/
 
 	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
 	if (!passphrase) {
