@@ -37,6 +37,17 @@ namespace controller {
 		// TODO: instead scheduling all, scheduling only for next day and run this function every day (own task for that)
 		static int checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer);
 
+		//! \brief try to find correct passphrase for this user from db
+		//! 
+		//! select entries from user_backups db table belonging to user
+		//! calculate resulting public key 
+		//! compare with public key from user
+		//! 
+		//! \return -1 no matching entry found
+		//! \return -2 user id invalid or net set
+		//! \return  0 matching entry found, load as gradido key pair
+		int tryLoadPassphraseUserBackup();
+
 		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
 		//! \brief try to load user from db via user_id
 		//! \return count of found rows, should be 1 or 0

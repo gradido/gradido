@@ -123,7 +123,7 @@ namespace model {
 				auto user = controller::User::create();
 				if (1 == user->load(mUserId)) {
 					auto user_model = user->getModel();
-					KeyPairEd25519 user_key(user_model->getPublicKey);
+					KeyPairEd25519 user_key(user_model->getPublicKey());
 					auto mnemonic = Passphrase::detectMnemonic(mPassphrase, &user_key);
 
 					for (int i = 0; i < ServerConfig::MNEMONIC_MAX; i++) {

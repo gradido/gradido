@@ -1,4 +1,5 @@
 #include "User.h"
+#include "UserBackups.h"
 
 #include "sodium.h"
 
@@ -13,6 +14,8 @@
 #include "../ServerConfig.h"
 
 #include "Poco/Timestamp.h"
+
+
 
 namespace controller {
 	User::User(model::table::User* dbModel)
@@ -227,6 +230,7 @@ namespace controller {
 		return setNewPassword(authenticated_encryption);
 	}
 
+
 	int User::setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
@@ -282,6 +286,26 @@ namespace controller {
 		}
 		// save changes to db
 		return result;
+	}
+
+	//! \return -1 no matching entry found
+	//! \return -2 if user id is not set or invalid
+	//! \return  0 matching entry found, load as gradido key pair
+	int User::tryLoadPassphraseUserBackup()
+	{
+		auto user_model = getModel();
+		if (user_model->getID() <= 0) return -2;
+
+		auto backups = UserBackups::load(user_model->getID());
+		if (backups.size() == 0) return -1;
+		for (auto it = backups.begin(); it != backups.end(); it++) {
+			auto key_pair = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
+			if (key_pair->isTheSame(user_model->getPublicKey())) {
+				setGradidoKeyPair(key_pair.release());
+				return 0;
+			}
+		}
+		return -1;
 	}
 
 
