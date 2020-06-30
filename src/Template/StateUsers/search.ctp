@@ -15,7 +15,7 @@ $this->loadHelper('Form', [
 <?= $this->Html->css([
   'loginServer/style.css',
   'rippleUI/style.css',
-//  'materialdesignicons.min.css'  
+  'materialdesignicons.min.css'  
 ]) ?>
 <style type="text/css">
   td.actions {
