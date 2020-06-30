@@ -100,7 +100,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				mSession->generateKeys(true, true);
 			} else {
-				printf("pubkey exist: %d\n",user->getModel()->getPublicKey()); 
+				printf("pubkey exist: %p\n",user->getModel()->getPublicKey()); 
 			}
 			getErrors(mSession);
 			
