@@ -103,7 +103,7 @@ $GLOBALS["self"] = $this;
     </div>
     <div class="bottomright">
       <p><?= __("Community Server in Entwicklung") ?></p>
-      <p>Alpha 0.21.KW21.05</p>
+      <p>Alpha 0.20.06.03</p>
     </div>
   </div>
 </body>
