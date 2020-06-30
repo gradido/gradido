@@ -27,7 +27,17 @@ namespace model {
 
 			inline void setUserId(int user_Id) { mUserId = user_Id; }
 
+
 		protected:
+
+			//! \brief call from constructor if mMnemonicType -1
+			//! 
+			//! for repairing db entries after db update
+			//! load user from users, find by user_id
+			//! create key pair from passphrase with all mnemonics and find key pair witch matching public key
+			//! attention! for invalid mnemonic it will be run every time
+			void detectMnemonic();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
