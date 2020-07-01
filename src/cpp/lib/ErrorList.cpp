@@ -130,6 +130,26 @@ std::string ErrorList::getErrorsHtml()
 	return res;
 }
 
+std::string ErrorList::getErrorsHtmlNewFormat()
+{
+	std::string html;
+	
+	while (mErrorStack.size() > 0) {
+		auto error = std::unique_ptr<Error>(mErrorStack.top());
+		mErrorStack.pop();
+		html += "<div class=\"alert alert-error\" role=\"alert\">";
+		html += error->getHtmlString();
+		html += "</div>";
+	}
+	return html;
+}
+/*
+<div class="alert alert-error" role="alert">
+<i class="material-icons-outlined">report_problem</i>
+<span>Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?</span>
+</div>
+*/
+
 
 void ErrorList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 {

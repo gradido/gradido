@@ -31,7 +31,7 @@
             <div>
                 <i class="material-icons-outlined nav-main-button">menu</i>
             </div>
-            <div class="flash-messages"><%= getErrorsHtml() %></div>
+            <div class="flash-messages" onclick="this.classList.add('hidden')"><%= getErrorsHtmlNewFormat() %></div>
             <div class="nav-vertical">
                 <ul>
                     <li><a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span

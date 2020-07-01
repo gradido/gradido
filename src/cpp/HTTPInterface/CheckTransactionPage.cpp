@@ -198,9 +198,9 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "            <div>\n";
 	responseStream << "                <i class=\"material-icons-outlined nav-main-button\">menu</i>\n";
 	responseStream << "            </div>\n";
-	responseStream << "            <div class=\"flash-messages\">";
+	responseStream << "            <div class=\"flash-messages\" onclick=\"this.classList.add('hidden')\">";
 #line 34 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
-	responseStream << ( getErrorsHtml() );
+	responseStream << ( getErrorsHtmlNewFormat() );
 	responseStream << "</div>\n";
 	responseStream << "            <div class=\"nav-vertical\">\n";
 	responseStream << "                <ul>\n";

@@ -43,6 +43,7 @@ public:
 
 	void printErrors();
 	std::string getErrorsHtml();
+	std::string getErrorsHtmlNewFormat();
 
 	void sendErrorsAsEmail(std::string rawHtml = "");
 
