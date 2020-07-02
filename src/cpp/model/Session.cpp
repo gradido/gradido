@@ -636,7 +636,7 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 	}
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
 		if (working && !(*it)->isTaskFinished()) {
-			*working++;
+			(*working)++;
 		}
 		if (mCurrentActiveProcessingTransaction.isNull() && (*it)->isTaskFinished()) {
 			if (!working) {
