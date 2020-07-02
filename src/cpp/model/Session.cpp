@@ -458,6 +458,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		}
 		if (first_email_activation) {
 			user_model->setEmailChecked(true);
+
 			user_model->updateIntoDB("email_checked", 1);
 			if (user_model->errorCount() > 0) {
 				user_model->sendErrorsAsEmail();
@@ -522,7 +523,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 }
 
 
-int Session::resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
+int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
 {
 	mNewUser = user;
 	mSessionUser = new User(user);
@@ -1134,7 +1135,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		save_user_backup_task->scheduleTask(save_user_backup_task);
 	}
 
-	// keys
+	// keys	
 	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
 	auto set_key_result = mNewUser->setGradidoKeyPair(gradido_key_pair);
 	size_t result_save_key = 0;

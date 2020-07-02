@@ -290,7 +290,7 @@ namespace controller {
 
 	//! \return -1 no matching entry found
 	//! \return -2 if user id is not set or invalid
-	//! \return  0 matching entry found, load as gradido key pair
+	//! \return  0 matching entry found
 	int User::tryLoadPassphraseUserBackup()
 	{
 		auto user_model = getModel();
@@ -299,9 +299,12 @@ namespace controller {
 		auto backups = UserBackups::load(user_model->getID());
 		if (backups.size() == 0) return -1;
 		for (auto it = backups.begin(); it != backups.end(); it++) {
-			auto key_pair = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
+			auto user_backup = *it;
+			if (-1 == user_backup->getModel()->getMnemonicType()) {
+				continue;
+			}
+			auto key_pair = std::unique_ptr<KeyPairEd25519>(user_backup->createGradidoKeyPair());
 			if (key_pair->isTheSame(user_model->getPublicKey())) {
-				setGradidoKeyPair(key_pair.release());
 				return 0;
 			}
 		}

@@ -164,7 +164,7 @@ enum PageState {
 				  </div>
 				  <div class="content-row content-row-bg">
 					<% if(transactionUser) { %>
-						<span class="content-cell">><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
+						<span class="content-cell"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
 					<% } else { %>
 						<span class="content-cell">0x<%= creationTransaction->getPublicHex() %></span>
 					<% } %>

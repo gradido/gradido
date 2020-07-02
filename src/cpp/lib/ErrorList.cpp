@@ -138,7 +138,10 @@ std::string ErrorList::getErrorsHtmlNewFormat()
 		auto error = std::unique_ptr<Error>(mErrorStack.top());
 		mErrorStack.pop();
 		html += "<div class=\"alert alert-error\" role=\"alert\">";
+		html += "<i class=\"material-icons-outlined\">report_problem</i>";
+		html += "<span>";
 		html += error->getHtmlString();
+		html += "</span>";
 		html += "</div>";
 	}
 	return html;

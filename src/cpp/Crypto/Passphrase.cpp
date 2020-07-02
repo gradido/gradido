@@ -10,6 +10,8 @@
 
 #include "../ServerConfig.h"
 
+#include "../lib/DataTypeConverter.h"
+
 #define STR_BUFFER_SIZE 25
 
 static std::vector<Poco::Tuple<int, std::string>> g_specialChars = {
@@ -23,6 +25,7 @@ Passphrase::Passphrase(const std::string& passphrase, const Mnemonic* wordSource
 	: mPassphraseString(filter(passphrase)), mWordSource(wordSource)
 {
 	memset(mWordIndices, 0, PHRASE_WORD_COUNT * sizeof(Poco::UInt16));
+	getWordIndices();
 }
 
 
@@ -339,6 +342,14 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
 		std::istream_iterator<std::string>());
 
+
+	std::string user_public_key_hex;
+
+	if (keyPair) {
+		user_public_key_hex = DataTypeConverter::pubkeyToHex(keyPair->getPublicKey());
+		printf("user public key hex: %s\n", user_public_key_hex.data());
+	}
+
 	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
 		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
 		bool existAll = true;
@@ -356,6 +367,9 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 				test_passphrase->createWordIndices();
 				auto key_pair = KeyPairEd25519::create(test_passphrase);
 				if (key_pair) {
+					std::string current_key_pair = DataTypeConverter::pubkeyToHex(key_pair->getPublicKey());
+					printf("public key hex to compare: %s\n", current_key_pair.data());
+
 					if (*key_pair != *keyPair) {
 						delete key_pair;
 						continue;

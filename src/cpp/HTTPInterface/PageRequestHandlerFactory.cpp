@@ -344,6 +344,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			SessionHTTPRequestHandler* pageRequestHandler = nullptr;
 			if (model::table::EMAIL_OPT_IN_REGISTER_DIRECT == session->getEmailVerificationType()) {
 				pageRequestHandler = new CheckEmailPage(session);
+			} else if(SESSION_STATE_RESET_PASSWORD_REQUEST == session->getSessionState()) {
+				pageRequestHandler = new UpdateUserPasswordPage(session);
 			} else {
 				pageRequestHandler = new PassphrasePage(session);
 			}

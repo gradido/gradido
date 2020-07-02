@@ -47,7 +47,7 @@ KeyPairEd25519* KeyPairEd25519::create(const Poco::AutoPtr<Passphrase> passphras
 	
 	auto word_indices = passphrase->getWordIndices();
 	
-	if (!word_indices) {
+	if (!word_indices || (!word_indices[0] && !word_indices[1] && !word_indices[2] && !word_indices[3])) {
 		return nullptr;
 	}
 	std::string clear_passphrase = passphrase->createClearPassphrase();

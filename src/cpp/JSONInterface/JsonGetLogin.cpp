@@ -47,8 +47,8 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	}
 	
 	auto userNew = session->getNewUser();
-	auto user = session->getUser();
-	if (user.isNull()) {
+	//auto user = session->getUser();
+	if (userNew.isNull()) {
 		return customStateError("not found", "Session didn't contain user");
 	}
 	auto userModel = userNew->getModel();
@@ -78,6 +78,8 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	}
 	result->set("Transaction.executing", executing);
 	//printf("pending: %d\n", session->getProcessingTransactionCount());
+	std::string user_string = userModel->toString();
+	printf("[JsonGetLogin] %s\n", user_string.data());
 	return result;
 
 }

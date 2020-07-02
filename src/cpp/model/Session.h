@@ -110,7 +110,7 @@ public:
 	// called from page with same name
 	//! \return 1 = reset password email already send
 	//! \return 0 = ok
-	int resetPassword(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
+	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
 	// 
 	//! \return 0 = not the same
 	//! \return 1 = same
@@ -147,7 +147,9 @@ public:
 
 	inline Poco::UInt64 getEmailVerificationCode() { if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); }
 	inline model::table::EmailOptInType getEmailVerificationType() {
-		if (mEmailVerificationCodeObject.isNull()) return model::table::EMAIL_OPT_IN_EMPTY;
+		if (mEmailVerificationCodeObject.isNull()) {
+			return model::table::EMAIL_OPT_IN_EMPTY;
+		}
 		return mEmailVerificationCodeObject->getModel()->getType();
 	}
 

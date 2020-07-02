@@ -390,7 +390,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t\t\t\t";
 #line 166 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
  if(transactionUser) { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t<span class=\"content-cell\">>";
+	responseStream << "\t\t\t\t\t\t<span class=\"content-cell\">";
 #line 167 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( transactionUser->getFirstName() );
 	responseStream << " ";
