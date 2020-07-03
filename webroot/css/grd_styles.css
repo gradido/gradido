@@ -16,7 +16,7 @@
 .layout {
   display: grid;
   grid-template-rows: [top] 6vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
-  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 12fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-columns: [left1] auto [left2] 1fr [left3] 12fr [right3] 1fr [right2] auto [right1];
   grid-template-areas: "header header header header header" "left . center . ." "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
@@ -25,7 +25,7 @@
   .layout {
     position: relative;
     display: grid;
-    grid-template-rows: [top] 12vh [line2] 86vh [footer1] 3vh [footer2] 8vh [end];
+    grid-template-rows: [top] 12vh [line2] 80vh [footer1] 3vh [footer2] 8vh [end];
     grid-template-columns: [left1] 100vw [right1];
     grid-template-areas: "header" "center" "footer" "bottom";
     margin: 0;
@@ -36,6 +36,11 @@
   grid-area: header;
   grid-column-start: right3;
   grid-column-end: right2;
+}
+.header-user {
+  grid-area: header;
+  grid-column-start: right2;
+  grid-column-end: right1;
 }
 .sidebar1 {
   grid-area: left;
@@ -50,6 +55,7 @@
     top: -300px;
     right: 0px;
   }
+  .header-user,
   .header-notify {
     grid-area: header;
   }
@@ -366,6 +372,84 @@ and open the template in the editor.
 }
 /* ============================================================
 
+  User Menu
+
+  Datei     :   user.less
+  Datum     :   2020-07-03
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .header-user {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    align-content: center;
+    background-color: #fff;
+    padding: 0.75em;
+    border-radius: 0 0 0 18px;
+    z-index: 2;
+  }
+  .user-name {
+    display: block;
+    font-size: 0.8em;
+    font-weight: 300;
+    line-height: 1em;
+    text-align: right;
+    padding-right: 0.25em;
+  }
+  .user-icon {
+    display: block;
+  }
+  .nav-vertical.user-menu {
+    position: fixed;
+    top: 0;
+    right: 33px;
+    background-color: #fff;
+    margin-top: 1em;
+    z-index: -1;
+    font-size: 0.9em;
+    border-radius: 0 0 16px 16px;
+  }
+  .nav-vertical.user-menu > ul {
+    padding: 1em 2em;
+    margin-block-end: 0;
+  }
+  .nav-vertical.user-menu li {
+    padding: 0.0125em;
+  }
+  .nav-top > ul {
+    padding: 0;
+    padding-right: 2em;
+  }
+}
+@media screen and (max-width:767px) {
+  .header-user {
+    align-items: flex-start;
+    align-content: flex-start;
+    background-color: transparent;
+    padding: 0.75em;
+    z-index: 15;
+  }
+  .user-name {
+    display: none;
+  }
+  .nav-vertical {
+    margin-top: 55px;
+  }
+  .nav-vertical.user-menu {
+    top: 0;
+    right: 3px;
+    margin-top: 0;
+  }
+  .nav-vertical.user-menu > ul {
+    padding: 1em 1em;
+    padding-top: 2em;
+  }
+}
+/* ============================================================
+
   Navigation
 
   Datei     :   navi.less
@@ -389,7 +473,7 @@ and open the template in the editor.
     display: none;
   }
   .logo.small.visible {
-    padding-left: 118px;
+    padding-left: 41px;
   }
   /*
     SIDEBARS
@@ -428,8 +512,12 @@ and open the template in the editor.
   .nav-main-button.mobile {
     display: none;
   }
-  .nav-menu {
+  .nav-menu.nav-menu-maximized {
     width: 280px;
+    height: 100%;
+  }
+  .nav-menu.nav-menu-minimized {
+    width: 120px;
     height: 100%;
   }
   .nav-menu-maximized {
@@ -445,7 +533,7 @@ and open the template in the editor.
   }
   .nav-menu-minimized .nav-icon,
   .nav-menu-minimized .nav-main-button {
-    padding-left: 224px;
+    padding-left: 72px;
   }
   /**
    * ----------------------------------------
@@ -460,8 +548,8 @@ and open the template in the editor.
       opacity: 0;
     }
     100% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
       opacity: 1;
     }
   }
@@ -472,16 +560,16 @@ and open the template in the editor.
       opacity: 0;
     }
     100% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
       opacity: 1;
     }
   }
   /* slide-out */
   @-webkit-keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
     }
     100% {
       -webkit-transform: translateX(0);
@@ -490,8 +578,8 @@ and open the template in the editor.
   }
   @keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
     }
     100% {
       -webkit-transform: translateX(0);
@@ -640,15 +728,13 @@ and open the template in the editor.
     display: block;
     position: fixed;
     top: 2px;
-    right: 0px;
+    right: 46px;
     z-index: 3;
   }
-  .nav-menu {
+  .nav-menu.nav-menu-minimized,
+  .nav-menu.nav-menu-maximized {
     width: 280px;
     height: 300px;
-  }
-  .nav-menu-minimized .link-title {
-    display: inherit;
   }
   .nav-menu-minimized .nav-icon,
   .nav-menu-minimized .nav-main-button {
@@ -710,6 +796,12 @@ and open the template in the editor.
 @media screen and (max-width:767px) {
   .nav-vertical {
     margin-top: 55px;
+  }
+}
+@media screen and (max-width:767px) {
+  .nav-bottom p {
+    font-size: 0.8em;
+    margin-top: -10px;
   }
 }
 /* ============================================================
@@ -851,7 +943,8 @@ and open the template in the editor.
 @media screen and (max-width:767px) {
   .header-notify {
     justify-content: flex-end;
-    margin-right: 70px;
+    margin-right: 93px;
+    margin-top: 8px;
   }
 }
 /* ============================================================
@@ -1424,113 +1517,3 @@ width: 80px;
 display: inline-block;
 }
 */
-/* ============================================================
-
-  Print styles.
-
-  Datei     :   print.css
-  Datum     :   2020-04-30
-  Autor     :   Christine Slotty
-  Copyright :   Gradio
-
-   ============================================================*/
-/* ---------------------------------------------------------
-   Print styles
-   ---------------------------------------------------------*/
-@media print {
-  * {
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    background: transparent !important;
-  }
-  html {
-    background-color: #111;
-  }
-  /* Hide navigation */
-  nav {
-    display: none;
-  }
-  /* Show link destinations in brackets after the link text */
-  a[href]:after {
-    content: " (" attr(href) ") ";
-  }
-  a[href] {
-    font-weight: bold;
-    text-decoration: underline;
-    color: #06c;
-    border: none;
-  }
-  /* Don't show link destinations for JavaScript or internal links */
-  a[href^="javascript:"]:after,
-  a[href^="#"]:after {
-    content: "";
-  }
-  /* Show abbr title value in brackets after the text */
-  abbr[title]:after {
-    content: " (" attr(title) ")";
-  }
-  figure {
-    margin-bottom: 1em;
-    overflow: hidden;
-  }
-  figure img {
-    border: 1px solid #000;
-  }
-}
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/*
-    Created on : 12.07.2019, 07:59:32
-    Author     : einhornimmond
-*/
-div[role='grd_dialog'] {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-  top: 0;
-  left: 0;
-}
-div.grd_modal-dialog {
-  margin-top: 100px;
-  min-height: 200px;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #fff;
-  color: #000;
-  border: 1px solid grey;
-}
-div.grd_modal-dialog.grd_dialog-large {
-  margin-top: 5px;
-  width: 90%;
-}
-div.grd_modal-body {
-  padding: 25px;
-}
-div.grd_modal-header {
-  background-color: rgba(0, 0, 0, 0.1);
-  padding: 5px;
-  padding-left: 15px;
-  border: 1px solid grey;
-  color: #000;
-}
-div.grd_modal-footer {
-  background-color: rgba(0, 0, 0, 0.1);
-  height: 40px;
-}
-.grd_modal-footer a,
-.grd_modal-footer button {
-  float: right;
-  padding: 9px;
-  margin-right: 10px;
-  border: 1px solid grey;
-}
-.grd_modal-footer a:hover,
-.grd_modal-footer button:hover {
-  background-color: rgba(255, 255, 255, 0.5);
-}

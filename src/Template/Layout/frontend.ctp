@@ -40,6 +40,9 @@ $GLOBALS["self"] = $this;
     <div class="header-notify">
       <?= $this->element('navi_notify'); ?>
     </div>
+    <div class="header-user">
+      <?= $this->element('user_menu'); ?>
+    </div>
     <div>
       <i id="nav-action-mobile" class="material-icons-outlined nav-main-button mobile">menu</i>
     </div>
@@ -94,7 +97,7 @@ $GLOBALS["self"] = $this;
       </ul>
     </div>
     <div class="nav-bottom">
-      <small class="">Copyright © 2020 Gradido</small>
+      <p>Copyright © 2020 Gradido</p>
     </div>
     <div class="bottomleft">
       <?php if(isset($timeUsed)) : ?>

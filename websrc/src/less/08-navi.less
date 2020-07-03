@@ -26,7 +26,7 @@
   }
 
   .logo.small.visible {
-    padding-left: 118px;
+    padding-left: 41px;
   }
 
   /*
@@ -72,8 +72,13 @@
     display: none;
   }
 
-  .nav-menu {
+  .nav-menu.nav-menu-maximized {
     width: 280px;
+    height: 100%;
+  }
+
+  .nav-menu.nav-menu-minimized {
+    width: 120px;
     height: 100%;
   }
 
@@ -93,7 +98,7 @@
 
   .nav-menu-minimized .nav-icon,
   .nav-menu-minimized .nav-main-button {
-    padding-left: 224px;
+    padding-left: 72px;
   }
 
   /**
@@ -111,8 +116,8 @@
     }
 
     100% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
       opacity: 1;
     }
 
@@ -126,8 +131,8 @@
     }
 
     100% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
       opacity: 1;
     }
 
@@ -136,8 +141,8 @@
   /* slide-out */
   @-webkit-keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
     }
 
     100% {
@@ -149,8 +154,8 @@
 
   @keyframes slide-out {
     0% {
-      -webkit-transform: translateX(-224px);
-      transform: translateX(-224px);
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
     }
 
     100% {
@@ -195,19 +200,20 @@
       display: block;
       position: fixed;
       top: 2px;
-      right: 0px;
+      right: 46px;
       z-index: 3;
     }
 
-    .nav-menu {
+    .nav-menu.nav-menu-minimized,
+    .nav-menu.nav-menu-maximized {
       width: 280px;
       height: 300px;
     }
 
-    .nav-menu-minimized .link-title {
-      display: inherit;
-    }
-
+    /*    .nav-menu-minimized .link-title {
+        display: inherit;
+      }
+    */
     .nav-menu-minimized .nav-icon,
     .nav-menu-minimized .nav-main-button {
       padding-left: 0;
@@ -388,13 +394,18 @@
     margin: 0;
   }
 
+  @media @tablet-down {
+    .nav-bottom p {
+      font-size: @nav-bottom-fs-mobile;
+      margin-top: -10px;
+    }
+
+  }
+
   nav {
     &.grd-left-bar {
       position: fixed;
       top: 80.5px;
-    }
-
-    &.grd-left-bar-section {
     }
 
     .grd-nav-bn {
@@ -434,12 +445,6 @@
   a.grd-nav-bn:visited {
     color: @main-link-text;
     text-decoration: none;
-  }
-
-  .grd-nav-bn-succeed {
-  }
-
-  .grd-nav-bn-discard {
   }
 
 }

@@ -4,3 +4,7 @@ src/GPBMetadata/
 tmp/
 vendor/
 composer.lock
+websrc/node_modules/
+websrc/gulpfile.js
+websrc/package-lock.json
+mithril_client/

@@ -24,7 +24,7 @@
 .layout {
   display: grid;
   grid-template-rows: [top] 6vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
-  grid-template-columns: [left1] 1fr [left2] 1fr [left3] 12fr [right3] 1fr [right2] 1fr [right1];
+  grid-template-columns: [left1] auto [left2] 1fr [left3] 12fr [right3] 1fr [right2] auto [right1];
   grid-template-areas: "header header header header header"
   "left . center . ."
   "footer footer footer footer footer"
@@ -37,7 +37,7 @@
   .layout {
     position: relative;
     display: grid;
-    grid-template-rows: [top] 12vh [line2] 86vh [footer1] 3vh [footer2] 8vh [end];
+    grid-template-rows: [top] 12vh [line2] 80vh [footer1] 3vh [footer2] 8vh [end];
     grid-template-columns: [left1] 100vw [right1];
     grid-template-areas: "header"
     "center"
@@ -55,6 +55,12 @@
   grid-column-end: right2;
 }
 
+.header-user {
+  grid-area: header;
+  grid-column-start: right2;
+  grid-column-end: right1;
+}
+
 .sidebar1 {
   grid-area: left;
   grid-row-start: top;
@@ -70,10 +76,10 @@
     right: 0px;
   }
 
+  .header-user,
   .header-notify {
     grid-area: header;
   }
-
 }
 
 .content {

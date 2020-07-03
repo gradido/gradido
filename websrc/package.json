@@ -7,8 +7,7 @@
     "watch:js": "watchify ./src/js/app.js -t [ babelify --presets [ @babel/preset-env ] ] -o ../webroot/js/app.js -v",
     "watch:css": "gulp watchStyles",
     "prebuild": "browserify ./src/js/app.js -t [ babelify --presets [ @babel/preset-env ] ] -o ./public/app.rl.js -v",
-    "build": "gulp compressStyles && browserify ./public/app.rl.js -g uglifyify -p bundle-collapser/plugin | uglifyjs --compress --mangle toplevel,eval > ../webroot/js/app.min.js",
-    "build:css": "gulp compressStyles"
+    "build": "gulp compressStyles && browserify ./public/app.rl.js -g uglifyify -p bundle-collapser/plugin | uglifyjs --compress --mangle toplevel,eval > ../webroot/js/app.min.js"
   },
   "author": "Dario Rekowski",
   "license": "ISC",
@@ -24,7 +23,7 @@
     "bs58check": "^2.1.2",
     "bundle-collapser": "^1.3.0",
     "gulp": "^4.0.2",
-    "gulp-clean-css": "^4.2.0",
+    "gulp-clean-css": "^4.3.0",
     "gulp-concat": "^2.6.1",
     "gulp-less": "^4.0.1",
     "gulp-minify": "^3.1.0",
