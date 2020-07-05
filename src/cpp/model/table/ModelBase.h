@@ -195,9 +195,9 @@ namespace model {
 			}
 			catch (Poco::Exception& ex) {
 				lock();
-				addError(new ParamError(getTableName(), "mysql error by selecting", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "mysql error by selecting", ex.displayText()));
 				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
-					addError(new ParamError(getTableName(), "field name for select: ", it->data()));
+					addError(new ParamError(getTableName(), "field name for select: ", *it));
 				}
 				//addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
 				unlock();

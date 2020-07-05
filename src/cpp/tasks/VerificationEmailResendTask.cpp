@@ -33,9 +33,12 @@ int VerificationEmailResendTask::run()
 			email_verification = controller::EmailVerificationCode::create(mUserId, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 			email_verification->getModel()->insertIntoDB(false);
 		}
+		else {
+			email_verification->getModel()->addResendCountAndUpdate();
+		}
 		auto em = EmailManager::getInstance();
 		em->addEmail(new model::Email(email_verification, user, model::EMAIL_USER_VERIFICATION_CODE_RESEND));
-		email_verification->getModel()->addResendCountAndUpdate();
+		
 	}
 	return 0;
 }

@@ -337,7 +337,7 @@ namespace controller {
 			em->sendErrorsAsEmail();
 			//return -1;
 		}
-		printf("result_count: %d\n", result_count);
+		//printf("result_count: %d\n", result_count);
 		if (result_count > 0) {
 			auto now = Poco::DateTime();
 
