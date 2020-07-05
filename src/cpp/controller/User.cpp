@@ -321,22 +321,33 @@ namespace controller {
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(session);
 		std::vector<Poco::Tuple<int,Poco::DateTime>> results;
+		int email_checked = 0;
+		int resend_count = 1;
 		select << "select u.id, v.created from users as u "
 			<< "LEFT JOIN email_opt_in as v ON(u.id = v.user_id) "
-			<< "where u.email_checked = 0 "
-			<< "AND v.resend_count <= 1", Poco::Data::Keywords::into(results)
+			<< "where u.email_checked = ? "
+			<< "AND v.resend_count <= ?", Poco::Data::Keywords::use(email_checked), Poco::Data::Keywords::use(resend_count), Poco::Data::Keywords::into(results)
 		;
-
+		int result_count = 0;
 		try {
+			result_count = select.execute();
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError(function_name, "mysql error by select", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+			//return -1;
+		}
+		printf("result_count: %d\n", result_count);
+		if (result_count > 0) {
 			auto now = Poco::DateTime();
-			select.execute();
+
 			int count_scheduled_at_once = 0;
 			int count_scheduled = 0;
 
 			for (auto it = results.begin(); it != results.end(); it++) {
 				auto user_id = it->get<0>();
 				auto created = it->get<1>();
-				
+
 				auto age = now - created;
 				// older than 7 days, schedule at once
 				if (age.days() > 7) {
@@ -351,13 +362,8 @@ namespace controller {
 					count_scheduled++;
 				}
 			}
-			if(count_scheduled_at_once) printf("scheduled %d verification email resend at once\n", count_scheduled_at_once);
-			if(count_scheduled) printf("scheduled %d verification email resend in the next 7 days\n", count_scheduled);
-		}
-		catch (Poco::Exception& ex) {
-			em->addError(new ParamError(function_name, "mysql error by select", ex.displayText().data()));
-			em->sendErrorsAsEmail();
-			return -1;
+			if (count_scheduled_at_once) printf("scheduled %d verification email resend at once\n", count_scheduled_at_once);
+			if (count_scheduled) printf("scheduled %d verification email resend in the next 7 days\n", count_scheduled);
 		}
 		return 0;
 	}
