@@ -116,7 +116,7 @@ class StateUsersController extends AppController
               if($dataJson['state'] != 'success') {
                   if($dataJson['msg'] == 'session not found') {
                     $session->destroy();
-                    return $this->redirect($this->loginServerUrl . 'account', 303);
+                    return $this->redirect(Router::url('/', true) . 'account', 303);
                   }
               }
               //var_dump($dataJson);
@@ -155,7 +155,7 @@ class StateUsersController extends AppController
               if(!isset($pubkeySorted[$pubkey_hex])) {
                 $pubkeySorted[$pubkey_hex] = ['login' => [], 'community' => []];
               }
-              array_push($pubkeySorted[$u['public_hex']]['community'], $u);
+              array_push($pubkeySorted[$pubkey_hex]['community'], $u);
             }
             $finalUserEntrys = [];
             // detect states
@@ -188,23 +188,25 @@ class StateUsersController extends AppController
                 if($user['login'][0]['email_checked'] == true) {
                   $state = 'email activated';
                   $color = 'primary';
-                  $l_user = $user['login'][0];
-                  $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
-                  $finalUser['first_name'] = $l_user['first_name'];
-                  $finalUser['last_name'] = $l_user['last_name'];
-                  $finalUser['email'] = $l_user['email'];
-                  $finalUser['created'] =  new FrozenTime($l_user['created']);
+                  
                   if(count($user['community']) == 1) {
                     $state = 'account copied to community';
                     $color = 'success';
                     //var_dump($user['community'][0]->state_balances[0]['amount']);
-
                   }
 
                 } else {
                   $state = 'email not activated';
                   $color = 'warning';
                 }
+                
+                $l_user = $user['login'][0];
+                $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
+                $finalUser['first_name'] = $l_user['first_name'];
+                $finalUser['last_name'] = $l_user['last_name'];
+                $finalUser['email'] = $l_user['email'];
+                $finalUser['created'] =  new FrozenTime($l_user['created']);
+                  
               } else {
                 $state = 'account multiple times on login-server';
                 $color = 'danger';
