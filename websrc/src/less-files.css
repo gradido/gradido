@@ -387,6 +387,7 @@ and open the template in the editor.
     align-items: center;
     align-content: center;
     background-color: #fff;
+    border: 1px solid #f2f4f5;
     padding: 0.75em;
     border-radius: 0 0 0 18px;
     z-index: 2;
@@ -401,20 +402,30 @@ and open the template in the editor.
   }
   .user-icon {
     display: block;
+    cursor: pointer;
   }
   .nav-vertical.user-menu {
     position: fixed;
-    top: 0;
-    right: 33px;
+    display: none;
+    top: 25px;
+    right: 0;
     background-color: #fff;
-    margin-top: 1em;
-    z-index: -1;
-    font-size: 0.9em;
+    border-left: 1px solid #f2f4f5;
+    border-bottom: 1px solid #f2f4f5;
     border-radius: 0 0 16px 16px;
+    z-index: -1;
+    margin-top: 1em;
+    font-size: 0.9em;
+  }
+  .nav-vertical.user-menu.visible {
+    display: inherit;
   }
   .nav-vertical.user-menu > ul {
-    padding: 1em 2em;
+    padding: 2em;
+    padding-top: 0.5em;
+    padding-bottom: 1em;
     margin-block-end: 0;
+    margin-block-start: 0;
   }
   .nav-vertical.user-menu li {
     padding: 0.0125em;
@@ -422,6 +433,12 @@ and open the template in the editor.
   .nav-top > ul {
     padding: 0;
     padding-right: 2em;
+  }
+  .material-icons-outlined.user-info {
+    color: grey;
+  }
+  .material-icons-outlined.user-info.success {
+    color: #047006;
   }
 }
 @media screen and (max-width:767px) {
@@ -439,13 +456,12 @@ and open the template in the editor.
     margin-top: 55px;
   }
   .nav-vertical.user-menu {
-    top: 0;
-    right: 3px;
+    top: 1px;
     margin-top: 0;
   }
   .nav-vertical.user-menu > ul {
     padding: 1em 1em;
-    padding-top: 2em;
+    padding-top: 3em;
   }
 }
 /* ============================================================
@@ -1099,6 +1115,9 @@ and open the template in the editor.
   }
 }
 @media screen and (max-width:767px) {
+  .content-region {
+    padding-left: 5px;
+  }
   .content-collection {
     flex-direction: column;
     align-items: center;
@@ -1111,6 +1130,59 @@ and open the template in the editor.
   }
 }
 /* Ende @media screen */
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* ============================================================
+
+  Screen styles for plain facts.
+
+  Datei     :   facts.css
+  Datum     :   08.07.2020
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .fact-list {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    width: 100%;
+    padding-inline-start: 0;
+    font-weight: 300;
+  }
+  .fact {
+    display: inline-block;
+    padding-left: 1em;
+  }
+  .label {
+    width: 150px;
+    text-align: right;
+    font-weight: bold;
+  }
+}
+@media screen and (max-width:767px) {
+  .fact-list {
+    margin-block-start: 0;
+    margin-block-end: 0;
+  }
+  li.fact {
+    display: flex;
+    flex-direction: column;
+  }
+  .fact {
+    padding-left: 0.5em;
+  }
+  .label {
+    width: 250px;
+    text-align: left;
+    font-size: 0.9em;
+    font-weight: normal;
+  }
+}
 /* ============================================================
 
   Screen styles for lists.

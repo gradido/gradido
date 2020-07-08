@@ -15,6 +15,7 @@
     align-items: center;
     align-content: center;
     background-color: @container-background;
+    border: 1px solid @menu-border-color;
     padding: .75em;
     border-radius: 0 0 0 18px;
     z-index: 2;
@@ -31,22 +32,33 @@
 
   .user-icon {
     display: block;
+    cursor: pointer;
   }
 
   .nav-vertical.user-menu {
     position: fixed;
-    top: 0;
-    right: 33px;
+    display: none;
+    top: 25px;
+    right: 0;
     background-color: @container-background;
-    margin-top: 1em;
-    z-index: -1;
-    font-size: .9em;
+    border-left: 1px solid @menu-border-color;
+    border-bottom: 1px solid @menu-border-color;
     border-radius: 0 0 16px 16px;
+    z-index: -1;
+    margin-top: 1em;
+    font-size: .9em;
+  }
+
+  .nav-vertical.user-menu.visible {
+    display: inherit;
   }
 
   .nav-vertical.user-menu > ul {
-    padding: 1em 2em;
+    padding: 2em;
+    padding-top: .5em;
+    padding-bottom: 1em;
     margin-block-end: 0;
+    margin-block-start: 0;
   }
 
   .nav-vertical.user-menu li {
@@ -56,6 +68,13 @@
   .nav-top > ul {
     padding: 0;
     padding-right: 2em;
+  }
+
+  .material-icons-outlined.user-info {
+    color: @unobtrusive;
+  }
+  .material-icons-outlined.user-info.success {
+    color: @success;
   }
 
   @media @tablet-down {
@@ -76,14 +95,13 @@
     }
 
     .nav-vertical.user-menu {
-      top: 0;
-      right: 3px;
+      top: 1px;
       margin-top: 0;
     }
 
     .nav-vertical.user-menu > ul {
       padding: 1em 1em;
-      padding-top: 2em;
+      padding-top: 3em;
     }
 
   }
