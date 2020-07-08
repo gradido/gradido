@@ -100,7 +100,7 @@ Poco::JSON::Object* JsonAdminEmailVerificationResend::handle(Poco::Dynamic::Var 
 	if (emailVerification.isNull()) {
 		return stateError("no email verification code found");
 	}
-		
+	emailVerification->getModel()->insertIntoDB(false);
 	em->addEmail(new model::Email(emailVerification, receiverUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND));
 	return stateSuccess();
 
