@@ -253,7 +253,7 @@ class AppController extends Controller
           }
         } else {
           // no login
-          die("no login");
+          //die("no login");
           if(isset($loginServer['path'])) {
             return $this->redirect($loginServer['path'], 303);
           } else {
