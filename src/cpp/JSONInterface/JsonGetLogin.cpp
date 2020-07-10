@@ -78,8 +78,8 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	}
 	result->set("Transaction.executing", executing);
 	//printf("pending: %d\n", session->getProcessingTransactionCount());
-	std::string user_string = userModel->toString();
-	printf("[JsonGetLogin] %s\n", user_string.data());
+	//std::string user_string = userModel->toString();
+	//printf("[JsonGetLogin] %s\n", user_string.data());
 	return result;
 
 }

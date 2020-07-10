@@ -79,14 +79,14 @@
 			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				mSession->generateKeys(true, true);
 			} else {
-				printf("pubkey exist: %p\n",user->getModel()->getPublicKey()); 
+				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey()); 
 			}
 			getErrors(mSession);
 			
 			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
 			
-			printf("userState: %d\n", userState);
+			//printf("userState: %d\n", userState);
 		
 			switch(userState) {
 			case USER_EMPTY: 
