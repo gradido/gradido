@@ -30,12 +30,16 @@ $this->assign(
         <span class="fact"><?=$user['email']?></span>
       </li>
       <li class="fact">
+        <span class="fact label">Benutzername:</span>
+        <span class="fact"><?=$user['user_name']?></span><!-- xxx editable -->
+      </li>
+      <li class="fact">
         <span class="fact label">Vorname:</span>
-        <span class="fact"><?=$user['first_name']?></span>
+        <span class="fact"><?=$user['first_name']?></span><!-- xxx editable -->
       </li>
       <li class="fact">
         <span class="fact label">Nachname:</span>
-        <span class="fact"><?=$user['last_name']?></span>
+        <span class="fact"><?=$user['last_name']?></span><!-- xxx editable -->
       </li>
     </ul>
   </div>
