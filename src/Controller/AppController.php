@@ -158,14 +158,16 @@ class AppController extends Controller
 
         if($session_id != 0) {
           $userStored = $session->read('StateUser');
+          
           $transactionPendings = $session->read('Transactions.pending');
           $transactionExecutings = $session->read('Transaction.executing');
           if($session->read('session_id') != $session_id ||
-             ( $userStored && !isset($userStored['id'])) ||
+             ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
-              intval($transactionExecutings) > 0) {
+              intval($transactionExecutings) > 0 ) {
+          
             $http = new Client();
-
+            
             try {
               $url = $loginServer['host'] . ':' . $loginServer['port'];
 
@@ -240,7 +242,7 @@ class AppController extends Controller
                   } else {
                     $this->Flash->error(__('Konto ist nicht aktiviert!'));
                   }
-                  die(json_encode($json));
+                  //die(json_encode($json));
                   return $this->redirect($this->loginServerUrl . 'account/', 303);
                 }
               }
