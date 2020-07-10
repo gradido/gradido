@@ -1,7 +1,7 @@
-<%! 
-#include "../ServerConfig.h"	
-%><%% 
-	bool withMaterialIcons = false; 
+<%!
+#include "../ServerConfig.h"
+%><%%
+	bool withMaterialIcons = false;
 %>
 <!DOCTYPE html>
 <html>
@@ -9,21 +9,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Gradido Login Server: <%= pageName %></title>
-<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/loginServer/style.css">
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/main.css">
 <% if(withMaterialIcons) { %>
 <link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/materialdesignicons.min.css">
 <% } %>
 </head>
-<body class="header-fixed">
-<div class="versionstring dev-info">
-	<p class="grd_small">Login Server in Entwicklung</p>
-	<p class="grd_small">Alpha <%= ServerConfig::g_versionString %></p>
-</div>
-<!--<nav class="grd-left-bar expanded" data-topbar role="navigation">
-	<div class="grd-left-bar-section">
-		<ul class="grd-no-style">
-		  <li><a href="<%= ServerConfig::g_php_serverPath %>" class="grd-nav-bn">Startseite</a>
-		  <li><a href="./account/logout" class="grd-nav-bn">Logout</a></li>
-		</ul>
-	</div>
-</nav>-->
+<body>
+    <div class="layout">
+        <div class="center-form-single">
+            <div class="center-form-header">
+                <a href="<%= ServerConfig::g_php_serverPath %>" class="center-logo">
+                    <picture>
+                        <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" type="image/webp">
+                        <source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" type="image/png">
+                        <img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" alt="logo" />
+                    </picture>
+                </a>
+            </div>
+            <%= getErrorsHtml() %>
