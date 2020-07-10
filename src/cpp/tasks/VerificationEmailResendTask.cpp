@@ -33,6 +33,10 @@ int VerificationEmailResendTask::run()
 			email_verification = controller::EmailVerificationCode::create(mUserId, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 			email_verification->getModel()->insertIntoDB(false);
 		}
+		else if (email_verification->getModel()->getResendCount() > 1) {
+			// if email was already send maybe by another process, we can exit
+			return 1;
+		}
 		else {
 			email_verification->getModel()->addResendCountAndUpdate();
 		}

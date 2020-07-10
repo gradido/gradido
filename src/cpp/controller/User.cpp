@@ -326,7 +326,9 @@ namespace controller {
 		select << "select u.id, v.created from users as u "
 			<< "LEFT JOIN email_opt_in as v ON(u.id = v.user_id) "
 			<< "where u.email_checked = ? "
-			<< "AND v.resend_count <= ?", Poco::Data::Keywords::use(email_checked), Poco::Data::Keywords::use(resend_count), Poco::Data::Keywords::into(results)
+			<< "AND v.resend_count <= ? "
+			<< "ORDER BY u.id, v.created " , 
+			Poco::Data::Keywords::use(email_checked), Poco::Data::Keywords::use(resend_count), Poco::Data::Keywords::into(results)
 		;
 		int result_count = 0;
 		try {
@@ -344,22 +346,41 @@ namespace controller {
 			int count_scheduled_at_once = 0;
 			int count_scheduled = 0;
 
+			int last_user_id = 0;
+			// add 1 for resend task scheduled at once
+			// add 2 for resend task scheduled in the future
+			// reset if new user_id came up
+			int scheduledResendTask = 0;
+			// results sorted by user_id
+			//printf("results count: %d\n", results.size());
 			for (auto it = results.begin(); it != results.end(); it++) {
 				auto user_id = it->get<0>();
 				auto created = it->get<1>();
 
+				//auto created_str = Poco::DateTimeFormatter::format(created, "%f.%m.%y %H:%M");
+				//printf("user_id: %d, created: %s\n", user_id, created_str.data());
+
+				if (user_id != last_user_id) {
+					assert(user_id > last_user_id);
+					last_user_id = user_id;
+					scheduledResendTask = 0;
+				}
+				if (scheduledResendTask == 3) continue;
+
 				auto age = now - created;
 				// older than 7 days, schedule at once
-				if (age.days() > 7) {
+				if (age.days() > 7 && !(scheduledResendTask & 1)) {
 					UniLib::controller::TaskPtr verificationResendTask(new VerificationEmailResendTask(user_id));
 					verificationResendTask->scheduleTask(verificationResendTask);
 					count_scheduled_at_once++;
+					scheduledResendTask |= 1;
 				}
 				// younger than 7 days, schedule for created + 7 days
-				else {
+				else if(!(scheduledResendTask & 2)) {
 					auto runDateTime = created + Poco::Timespan(7, 0, 0, 0, 0);
 					ServerConfig::g_CronJobsTimer.schedule(new VerificationEmailResendTimerTask(user_id), Poco::Timestamp(runDateTime.timestamp()));
 					count_scheduled++;
+					scheduledResendTask |= 2;
 				}
 			}
 			if (count_scheduled_at_once) printf("scheduled %d verification email resend at once\n", count_scheduled_at_once);
