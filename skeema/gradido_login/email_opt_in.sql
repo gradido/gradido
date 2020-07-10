@@ -5,7 +5,7 @@ CREATE TABLE `email_opt_in` (
   `email_opt_in_type_id` int(11) NOT NULL,
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   `resend_count` int(11) DEFAULT 0,
-  `updated` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated` DATETIME on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `verification_code` (`verification_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
