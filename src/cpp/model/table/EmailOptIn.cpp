@@ -25,7 +25,9 @@ namespace model {
 		}
 
 		EmailOptIn::EmailOptIn(const EmailOptInTuple& tuple)
-			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mEmailVerificationCode(tuple.get<2>()), mType(tuple.get<3>()), mCreated(tuple.get<4>()), mResendCount(tuple.get<5>())
+			: ModelBase(tuple.get<0>()), 
+			mUserId(tuple.get<1>()), mEmailVerificationCode(tuple.get<2>()), mType(tuple.get<3>()), 
+			mCreated(tuple.get<4>()), mResendCount(tuple.get<5>()), mUpdated(tuple.get<6>())
 		{
 
 		}
@@ -45,6 +47,8 @@ namespace model {
 				<< " (user_id, verification_code, email_opt_in_type_id, resend_count) VALUES(?,?,?,?)"
 				, use(mUserId), use(mEmailVerificationCode), bind(mType), bind(mResendCount);
 			unlock();
+			mUpdated = Poco::DateTime();
+			mCreated = Poco::DateTime();
 			return insert;
 		}
 
@@ -53,9 +57,9 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count, updated FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mEmailVerificationCode), into(mType), into(mCreated), into(mResendCount);
+				, into(mID), into(mUserId), into(mEmailVerificationCode), into(mType), into(mCreated), into(mResendCount), into(mUpdated);
 
 
 			return select;
@@ -76,7 +80,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count, updated FROM " << getTableName()
 				<< " where " << fieldName << " = ?";
 
 
@@ -90,7 +94,7 @@ namespace model {
 				throw Poco::NullValueException("EmailOptIn::_loadFromDB fieldNames empty or contain only one field");
 			}
 
-			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count FROM " << getTableName()
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count, updated FROM " << getTableName()
 				<< " where " << fieldNames[0] << " = ? ";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -106,7 +110,7 @@ namespace model {
 				addError(new ParamError("EmailOptIn::_loadFromDB", "condition type not implemented", conditionType));
 			}
 				//<< " where " << fieldName << " = ?"
-			select , into(mID), into(mUserId), into(mEmailVerificationCode), into(mType), into(mCreated), into(mResendCount);
+			select , into(mID), into(mUserId), into(mEmailVerificationCode), into(mType), into(mCreated), into(mResendCount), into(mUpdated);
 
 
 			return select;
@@ -116,6 +120,7 @@ namespace model {
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			mResendCount++;
+			mUpdated = Poco::DateTime();
 			return updateIntoDB("resend_count", mResendCount);
 		}
 

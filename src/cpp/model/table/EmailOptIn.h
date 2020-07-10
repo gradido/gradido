@@ -17,7 +17,7 @@ namespace model {
 			EMAIL_OPT_IN_REGISTER_DIRECT = 3
 		};
 
-		typedef Poco::Tuple<int, int, Poco::UInt64, int, Poco::DateTime, int> EmailOptInTuple;
+		typedef Poco::Tuple<int, int, Poco::UInt64, int, Poco::DateTime, int, Poco::DateTime> EmailOptInTuple;
 
 		class EmailOptIn : public ModelBase
 		{
@@ -36,6 +36,7 @@ namespace model {
 			inline int getUserId() const { return mUserId; }
 			inline int getResendCount() const { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);  return mResendCount; }
 			inline Poco::DateTime getCreated() const { return mCreated;  }
+			inline Poco::DateTime getUpdated() const { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mUpdated; }
 			inline EmailOptInType getType() const { return static_cast<EmailOptInType>(mType);}
 			inline void setCode(Poco::UInt64 code) { mEmailVerificationCode = code; }
 			inline void setUserId(int user_Id) { mUserId = user_Id; }
@@ -56,6 +57,7 @@ namespace model {
 			int			 mType;
 			Poco::DateTime mCreated;
 			int			 mResendCount;
+			Poco::DateTime mUpdated;
 			
 		};
 
