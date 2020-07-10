@@ -36,6 +36,7 @@ enum SessionValidationTypes {
 
 
 // TODO: cleanup timeouted sessions
+// TODO: only one session per user allowed, delete active session by new login?
 class SessionManager
 {
 public:
@@ -55,7 +56,8 @@ public:
 	// try to find existing session, return nullptr if not found
 	Session* getSession(int handle);
 	Session* getSession(const Poco::Net::HTTPServerRequest& request);
-	Session* findByEmailVerificationCode(long long emailVerificationCode);
+	Session* findByEmailVerificationCode(const Poco::UInt64& emailVerificationCode);
+	Session* findByUserId(int userId);
 
 	bool init();
 	void deinitalize();

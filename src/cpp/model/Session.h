@@ -27,7 +27,7 @@
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/HTTPCookie.h"
 
-
+#include <mutex>
 
 
 class WriteEmailVerification;
@@ -109,6 +109,7 @@ public:
 
 	// called from page with same name
 	//! \return 1 = reset password email already send
+	//! \return 2 = reset password email already shortly before
 	//! \return 0 = ok
 	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
 	// 
@@ -145,8 +146,16 @@ public:
 	const char* getSessionStateString();
 	inline SessionStates getSessionState() { SessionStates s; lock("Session::getSessionState"); s = mState; unlock(); return s; }
 
-	inline Poco::UInt64 getEmailVerificationCode() { if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); }
+	inline Poco::UInt64 getEmailVerificationCode() { 
+		std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+		if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); 
+	}
+	inline void setEmailVerificationCodeObject(Poco::AutoPtr<controller::EmailVerificationCode> emailVerficationObject) {
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		mEmailVerificationCodeObject = emailVerficationObject;
+	}
 	inline model::table::EmailOptInType getEmailVerificationType() {
+		std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 		if (mEmailVerificationCodeObject.isNull()) {
 			return model::table::EMAIL_OPT_IN_EMPTY;
 		}
@@ -197,6 +206,7 @@ private:
 	Poco::Net::IPAddress mClientLoginIP;
 	std::string          mLastExternReferer;
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
+	std::shared_mutex	 mSharedMutex;
 
 
 	SessionStates mState;

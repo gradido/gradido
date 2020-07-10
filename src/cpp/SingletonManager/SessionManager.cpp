@@ -2,6 +2,7 @@
 #include "ErrorManager.h"
 #include "../ServerConfig.h"
 #include "../Crypto/DRRandom.h"
+#include "../controller/EmailVerificationCode.h"
 
 #include <sodium.h>
 
@@ -342,30 +343,42 @@ Session* SessionManager::getSession(int handle)
 	return result;
 }
 
-Session* SessionManager::findByEmailVerificationCode(long long emailVerificationCode)
+Session* SessionManager::findByEmailVerificationCode(const Poco::UInt64& emailVerificationCode)
 {
-	Session* result = nullptr;
+
+	auto email_verification = controller::EmailVerificationCode::load(emailVerificationCode);
+	if (email_verification.isNull()) return nullptr;
+	auto email_verification_model = email_verification->getModel();
+	assert(email_verification_model->getUserId() > 0);
+
+	auto session = findByUserId(email_verification_model->getUserId());
+	if (session) {
+		session->setEmailVerificationCodeObject(email_verification);
+	}
+
+	return session;
+}
+
+Session* SessionManager::findByUserId(int userId)
+{
+	assert(userId > 0);
 	try {
 		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 	}
 	catch (Poco::TimeoutException &ex) {
-		printf("[SessionManager::findByEmailVerificationCode] exception timout mutex: %s\n", ex.displayText().data());
-		return result;
+		printf("[SessionManager::findByUserId] exception timout mutex: %s\n", ex.displayText().data());
+		return nullptr;
 	}
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-		if (it->second->getEmailVerificationCode() == emailVerificationCode) {
-			result = it->second;
-			if (!result->isActive()) {
-				result = nullptr;
-				continue;
-			}
-			break;
+		auto user = it->second->getNewUser();
+		if (userId == user->getModel()->getID()) {
+			return it->second;
 		}
 	}
 	//mWorkingMutex.unlock();
 
-	return result;
+	return nullptr;
 }
 
 void SessionManager::checkTimeoutSession()

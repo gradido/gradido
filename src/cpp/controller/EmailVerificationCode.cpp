@@ -41,7 +41,7 @@ namespace controller {
 		return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(db));
 	}
 
-	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::load(Poco::UInt64 code)
+	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::load(const Poco::UInt64& code)
 	{ 
 		auto db = new model::table::EmailOptIn();
 		if (db->loadFromDB("verification_code", code) == 1) {

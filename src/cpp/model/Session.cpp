@@ -108,7 +108,7 @@ void Session::reset()
 {
 	//printf("[Session::reset]\n");
 	lock("Session::reset");
-	
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mSessionUser.assign(nullptr);
 	mNewUser.assign(nullptr);
 	mEmailVerificationCodeObject.assign(nullptr);
@@ -141,6 +141,7 @@ void Session::updateTimeout()
 Poco::AutoPtr<controller::EmailVerificationCode> Session::getEmailVerificationCodeObject()
 {
 	lock("Session::getEmailVerificationCodeObject");
+	std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 	auto ret = mEmailVerificationCodeObject;
 	unlock();
 	return ret;
@@ -186,18 +187,21 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 		return false;
 	}
 
-	auto emailVerificationCode = controller::EmailVerificationCode::create(newUserModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-	if (!emailVerificationCode->getModel()->insertIntoDB(false)) {
+	auto email_verification_code = controller::EmailVerificationCode::create(newUserModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+	if (!email_verification_code->getModel()->insertIntoDB(false)) {
 		addError(new Error(gettext("Email Verification Code"), gettext("Fehler beim speichern!")));
 		return false;
 	}
 	
-	EmailManager::getInstance()->addEmail(new model::Email(emailVerificationCode, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
+	EmailManager::getInstance()->addEmail(new model::Email(email_verification_code, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
+
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+	mEmailVerificationCodeObject = email_verification_code;
 	
 
 	return true;
 }
-
+//
 bool Session::createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
 {
 	Profiler usedTime;
@@ -263,7 +267,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	writeUserIntoDB->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_USER_WRITTEN, this));
 	writeUserIntoDB->scheduleTask(writeUserIntoDB);
 
-	
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mEmailVerificationCodeObject = controller::EmailVerificationCode::create(model::table::EMAIL_OPT_IN_REGISTER);
 	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, mEmailVerificationCodeObject, ServerConfig::g_CPUScheduler, 1));
 	
@@ -320,6 +324,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 
 bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
 {
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	static const char* function_name = "Session::createUserDirect";
 	auto sm = SessionManager::getInstance();
 	auto em = ErrorManager::getInstance();
@@ -376,6 +381,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 	email_verification->getModel()->insertIntoDB(false);
+	mEmailVerificationCodeObject = email_verification;
 
 	auto _7days_later = Poco::DateTime() + Poco::Timespan(7, 0, 0, 0, 0);
 	ServerConfig::g_CronJobsTimer.schedule(new VerificationEmailResendTimerTask(user_id), Poco::Timestamp(_7days_later.timestamp()));
@@ -411,6 +417,8 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	const static char* funcName = "Session::updateEmailVerification";
 	
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	// new mutex, will replace the Poco Mutex complete in the future
+	std::unique_lock<std::shared_mutex> _lock_shared(mSharedMutex);
 	Profiler usedTime;
 	
 	auto em = ErrorManager::getInstance();
@@ -529,27 +537,41 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	mSessionUser = new User(user);
 	auto em = EmailManager::getInstance();
 
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+
 	// creating email verification code also for user without passphrase
 	// first check if already exist		
-	mEmailVerificationCodeObject = controller::EmailVerificationCode::create(mNewUser->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
-	auto foundCount = mEmailVerificationCodeObject->load(user->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
-	auto emailVerificationModel = mEmailVerificationCodeObject->getModel();
+	// check if email was already send shortly before
+	bool frequent_resend = false;
+	bool email_already_send = false;
 
-	UniLib::controller::TaskPtr insertEmailVerificationCode(
-		new model::table::ModelInsertTask(emailVerificationModel, true, true)
-	);
-	insertEmailVerificationCode->scheduleTask(insertEmailVerificationCode);
-
-	if (passphraseMemorized) {
-		em->addEmail(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_RESET_PASSWORD));
+	mEmailVerificationCodeObject = controller::EmailVerificationCode::load(user->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+	if (mEmailVerificationCodeObject.isNull()) {
+		mEmailVerificationCodeObject = controller::EmailVerificationCode::create(mNewUser->getModel()->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+		mEmailVerificationCodeObject->getModel()->insertIntoDB(false);
 	}
 	else {
-		em->addEmail(new model::Email(user, model::EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE));
+		email_already_send = true;
+	}
+	auto email_verification_model = mEmailVerificationCodeObject->getModel();
+	if (email_already_send) {
+		auto time_elapsed = Poco::DateTime() - email_verification_model->getUpdated();
+		if (time_elapsed.totalHours() < 1) {
+			frequent_resend = true;
+		}
 	}
 
-	if (foundCount) {
-		return 1;
+	if (!frequent_resend) {
+		if (passphraseMemorized) {
+			em->addEmail(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_RESET_PASSWORD));
+		}
+		else {
+			em->addEmail(new model::Email(user, model::EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE));
+		}
 	}
+
+	if (frequent_resend) return 2;
+	if (email_already_send) return 1;
 
 	return 0;
 }
@@ -882,7 +904,7 @@ void Session::detectSessionState()
 				resetPasswd = i;
 			}
 		}
-
+		std::unique_lock<std::shared_mutex> _lock_shared(mSharedMutex);
 		if (resetPasswd != -1) {
 			mEmailVerificationCodeObject = emailVerificationCodeObjects[resetPasswd];
 		}
@@ -992,7 +1014,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 {
 	Profiler usedTime;
 	auto em = ErrorManager::getInstance();
-
+	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mEmailVerificationCodeObject = controller::EmailVerificationCode::load(emailVerificationCode);
 	if (mEmailVerificationCodeObject.isNull()) {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Konnte kein passendes Konto finden.")));

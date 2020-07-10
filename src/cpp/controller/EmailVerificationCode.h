@@ -15,7 +15,7 @@ namespace controller {
 		static Poco::AutoPtr<EmailVerificationCode> create(int user_id, model::table::EmailOptInType type = model::table::EMAIL_OPT_IN_REGISTER);
 		static Poco::AutoPtr<EmailVerificationCode> create(model::table::EmailOptInType type = model::table::EMAIL_OPT_IN_REGISTER);
 
-		static Poco::AutoPtr<EmailVerificationCode> load(Poco::UInt64 code);
+		static Poco::AutoPtr<EmailVerificationCode> load(const Poco::UInt64& code);
 		static std::vector<Poco::AutoPtr<EmailVerificationCode>>   load(int user_id);
 		static Poco::AutoPtr<EmailVerificationCode> load(int user_id, model::table::EmailOptInType type); 
 
