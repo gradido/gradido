@@ -36,7 +36,7 @@ class StateUser extends Entity
         'email' => true,
         'first_name' => true,
         'last_name' => true,
-        'user_name' => true,
+        'username' => true,
         'index' => true,
         'state_group' => true,
         'state_balances' => true,

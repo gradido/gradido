@@ -1,0 +1,151 @@
+/* ============================================================
+
+  Screen styles for the simple center form. (login etc)
+
+  Datei     :   center-form-single.css
+  Datum     :   2020-07-10
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .center-form-single {
+    width: 50%;
+    margin: auto;
+  }
+
+  .center-form-header {
+    margin-bottom: 50px;
+  }
+
+  .center-logo {
+    display: block;
+    margin: 0 auto;
+    width: 280px;
+  }
+
+  .center-logo img {
+    width: 100%;
+    vertical-align: middle;
+    border-style: none;
+  }
+
+  .center-form-container {
+    display: flex;
+    flex-direction: column;
+    padding: 2em 8em;
+    background-color: @container-background;
+    border-radius: 6px;
+    box-shadow: 0 0 10px 0 rgba(183, 192, 206, .2);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(238, 238, 238, .75);
+  }
+
+  @media @tablet-down {
+    .center-form-header {
+      margin-bottom: 30px;
+      margin-top: -50px;
+    }
+
+    .center-form-single {
+      width: 97%;
+      margin: auto;
+    }
+
+    .center-form-container {
+      padding: 1em .5em;
+    }
+
+  }
+
+  .center-form-title {
+  }
+
+  .center-form-selectors {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 38px;
+    padding: 5px 0;
+  }
+
+  .center-form-form .form-control {
+    margin: auto;
+  }
+
+  .center-form-submit {
+    display: block;
+    width: 96%;
+    margin: auto;
+  }
+
+  .reset-pwd-link,
+  .signup-link {
+    padding: 0 20px;
+
+    & a {
+      color: @action-button-background1;
+    }
+
+    & p {
+      display: inline-block;
+      margin-block-start: 0;
+      margin-block-end: 0;
+    }
+
+  }
+
+  .center-bottom {
+    color: @unobtrusive;
+    text-align: center;
+    padding-top: 30px;
+  }
+
+  .flag-btn {
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px 11px;
+  }
+
+  .flag {
+    display: block;
+  }
+
+  .flag-germany {
+    background: red;
+    border-top: 9px solid #000;
+    border-bottom: 9px solid #fc0;
+    width: 40px;
+    height: 10px;
+  }
+
+  .flag-england {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGlkPSJmbGFnLWljb24tY3NzLWdiIiB2aWV3Qm94PSIwIDAgNjQwIDQ4MCI+CiAgPHBhdGggZmlsbD0iIzAxMjE2OSIgZD0iTTAgMGg2NDB2NDgwSDB6Ii8+CiAgPHBhdGggZmlsbD0iI0ZGRiIgZD0iTTc1IDBsMjQ0IDE4MUw1NjIgMGg3OHY2Mkw0MDAgMjQxbDI0MCAxNzh2NjFoLTgwTDMyMCAzMDEgODEgNDgwSDB2LTYwbDIzOS0xNzhMMCA2NFYwaDc1eiIvPgogIDxwYXRoIGZpbGw9IiNDODEwMkUiIGQ9Ik00MjQgMjgxbDIxNiAxNTl2NDBMMzY5IDI4MWg1NXptLTE4NCAyMGw2IDM1TDU0IDQ4MEgwbDI0MC0xNzl6TTY0MCAwdjNMMzkxIDE5MWwyLTQ0TDU5MCAwaDUwek0wIDBsMjM5IDE3NmgtNjBMMCA0MlYweiIvPgogIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0yNDEgMHY0ODBoMTYwVjBIMjQxek0wIDE2MHYxNjBoNjQwVjE2MEgweiIvPgogIDxwYXRoIGZpbGw9IiNDODEwMkUiIGQ9Ik0wIDE5M3Y5Nmg2NDB2LTk2SDB6TTI3MyAwdjQ4MGg5NlYwaC05NnoiLz4KPC9zdmc+Cg==);
+    background-size: cover;
+    width: 40px;
+    height: 28px;
+  }
+
+  .group {
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .group-is-invalid {
+    background-color: rgba(240, 130, 95, .2);
+    border-color: #dc3545;
+    padding-right: calc(1.5em + .75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns=!string!fill=!string!viewBox=!string!%3e%3cpath stroke=!string!d=!string!/%3e%3ccircle r=!string!/%3e%3ccircle cx=!string!r=!string!/%3e%3ccircle cy=!string!r=!string!/%3e%3ccircle cx=!string!cy=!string!r=!string!/%3e%3c/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center right calc(.375em + .1875rem);
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem)
+  }
+
+  .group-is-invalid .radio label .input-frame::before {
+    border-color: red;
+  }
+
+}
+
+/* Ende @media screen */

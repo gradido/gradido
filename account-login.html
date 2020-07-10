@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gradido Login Server: Login</title>
+    <link rel="stylesheet" type="text/css" href="http://192.168.178.52/css/main.css">
+</head>
+
+<body>
+    <div class="layout">
+        <div class="center-form-single">
+            <div class="center-form-header">
+                <a href="http://192.168.178.52/" class="center-logo">
+                    <picture>
+                        <source srcset="http://192.168.178.52/img/logo_schrift.webp" type="image/webp">
+                        <source srcset="http://192.168.178.52/img/logo_schrift.png" type="image/png">
+                        <img src="http://192.168.178.52/img/logo_schrift.png" alt="logo" />
+                    </picture>
+                </a>
+            </div>
+            <div class="center-form-container">
+                <div class="center-form-selectors">
+                    <form method="GET" action="">
+                        <button id="flag-germany" name="lang" value="de" title="Deutsch" type="submit" class="flag-btn">
+                            <span class="flag flag-germany"></span>
+                        </button>
+                        <button id="flag-england" name="lang" value="en" title="English" type="submit" class="flag-btn">
+                            <span class="flag flag-england"></span>
+                        </button>
+                    </form>
+                </div>
+                <div class="center-form-form">
+                    <form action="http://192.168.178.52/account/" method="POST">
+                        <input type="text" class="form-control" name="login-email" placeholder="E-Mail" value="" />
+                        <input type="password" class="form-control" name="login-password" placeholder="Passwort" />
+                        <button type="submit" name="submit" class="center-form-submit form-button">Anmeldung</button>
+                    </form>
+                </div>
+                <div class="center-form-bottom">
+                    <div class="signup-link">
+                        <p>Du hast noch kein Gradido-Konto?</p>
+                        <a href="http://192.168.178.52/account/registerDirect">
+                            Neues Konto erstellen
+                        </a>
+                    </div>
+                    <div class="reset-pwd-link">
+                        <a href="http://192.168.178.52/account/resetPassword">Passwort vergessen</a>
+                    </div>
+                </div>
+            </div>
+            <div class="center-bottom">
+                <p>Copyright © Gradido 2020</p>
+            </div>
+        </div>
+        <div class="bottomleft">
+            428 micro s
+        </div>
+        <div class="bottomright">
+            <p>Login Server in Entwicklung</p>
+            <p>Alpha 0.20.07.10</p>
+        </div>
+    </div>
+</body>
+
+</html>
