@@ -75,7 +75,7 @@ namespace model {
 			inline void setEmailChecked(bool emailChecked) { mEmailChecked = emailChecked; }
 			inline void setLanguageKey(const std::string& languageKey) { mLanguageKey = languageKey; }
 
-			Poco::JSON::Object getJson();
+			Poco::JSON::Object getJson();			
 
 		protected:
 

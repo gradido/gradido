@@ -368,6 +368,7 @@ namespace controller {
 				if (scheduledResendTask == 3) continue;
 
 				auto age = now - created;
+				//printf("age: %d\n", age.days());
 				// older than 7 days, schedule at once
 				if (age.days() > 7 && !(scheduledResendTask & 1)) {
 					UniLib::controller::TaskPtr verificationResendTask(new VerificationEmailResendTask(user_id));

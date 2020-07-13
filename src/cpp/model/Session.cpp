@@ -471,6 +471,8 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			if (user_model->errorCount() > 0) {
 				user_model->sendErrorsAsEmail();
 			}
+
+			// no find all active sessions
 			
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			return 0;

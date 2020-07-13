@@ -57,7 +57,9 @@ public:
 	Session* getSession(int handle);
 	Session* getSession(const Poco::Net::HTTPServerRequest& request);
 	Session* findByEmailVerificationCode(const Poco::UInt64& emailVerificationCode);
+	Session* findByEmail(const std::string& email);
 	Session* findByUserId(int userId);
+	std::vector<Session*> findAllByUserId(int userId);
 
 	bool init();
 	void deinitalize();
@@ -88,6 +90,7 @@ protected:
 	// validations
 	Poco::RegularExpression*  mValidations[VALIDATE_MAX];
 };
+
 
 class CheckSessionTimeouted : public UniLib::controller::CPUTask
 {

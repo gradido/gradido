@@ -381,6 +381,53 @@ Session* SessionManager::findByUserId(int userId)
 	return nullptr;
 }
 
+std::vector<Session*> SessionManager::findAllByUserId(int userId)
+{
+	assert(userId > 0);
+	std::vector<Session*> result;
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::findAllByUserId] exception timout mutex: %s\n", ex.displayText().data());
+		return result;
+	}
+	//mWorkingMutex.lock();
+	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		auto user = it->second->getNewUser();
+		if (userId == user->getModel()->getID()) {
+			//return it->second;
+			result.push_back(it->second);
+		}
+	}
+	//mWorkingMutex.unlock();
+
+	return result;
+}
+
+Session* SessionManager::findByEmail(const std::string& email)
+{
+	assert(email.size() > 0);
+	
+	try {
+		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
+	}
+	catch (Poco::TimeoutException &ex) {
+		printf("[SessionManager::findByEmail] exception timout mutex: %s\n", ex.displayText().data());
+		return nullptr;
+	}
+	//mWorkingMutex.lock();
+	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		auto user = it->second->getNewUser();
+		if (email == user->getModel()->getEmail()) {
+			return it->second;
+		}
+	}
+	//mWorkingMutex.unlock();
+
+	return nullptr;
+}
+
 void SessionManager::checkTimeoutSession()
 {
 	

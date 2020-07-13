@@ -111,9 +111,11 @@ int EmailManager::ThreadFunction()
 			if (email->draft(&mailMessage, catalogs[lang_code])) {
 				
 				mailClientSession.sendMessage(mailMessage);
-				// add for debugginh
-				auto user_model = email->getUser()->getModel();
-				printf("send email to %s\n", user_model->getEmail().data());
+				// add for debugging
+				if (email->getUser()) {
+					auto user_model = email->getUser()->getModel();
+					printf("send email to %s\n", user_model->getEmail().data());
+				}
 			}
 			else {
 				// error drafting email, shouldn't happend
