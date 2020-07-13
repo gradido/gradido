@@ -48,6 +48,7 @@ namespace ServerConfig {
 	Languages g_default_locale;
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
+	int        g_phpServerPort;
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
@@ -212,6 +213,7 @@ namespace ServerConfig {
 		replaceZeroIPWithLocalhostIP(g_serverPath);
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
 		g_serverPort = cfg.getInt("loginServer.port", 0);
+		g_phpServerPort = cfg.getInt("phpServer.port", 0);
 		// replace 0.0.0.0 with actual server ip
 
 		g_php_serverPath = cfg.getString("phpServer.url", "");
