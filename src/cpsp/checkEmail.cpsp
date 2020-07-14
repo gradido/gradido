@@ -8,7 +8,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/EmailManager.h"
-enum PageState 
+enum PageState
 {
 	MAIL_NOT_SEND,
 	ASK_VERIFICATION_CODE,
@@ -20,20 +20,20 @@ enum PageState
 	const char* pageName = "Email Verification";
 	auto lm = LanguageManager::getInstance();
 	auto em = EmailManager::getInstance();
-	
+
 	auto lang = chooseLanguage(request);
 	auto langCatalog = lm->getFreeCatalog(lang);
 	unsigned long long verificationCode = 0;
-	
+
 	PageState state = ASK_VERIFICATION_CODE;
-	
-	if(mSession && model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType()) 
+
+	if(mSession && model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType())
 	{
 		state = EMAIL_ACTIVATED;
-	} 
+	}
 	else
 	{
-	
+
 		if(!form.empty()) {
 			auto langBtn = form.get("lang-btn", "");
 			auto verficationCodeStr = form.get("email-verification-code", "0");
@@ -48,11 +48,11 @@ enum PageState
 				langCatalog = lm->getFreeCatalog(lang);
 			}
 		}
-		
+
 		// remove old cookies if exist
 		auto sm = SessionManager::getInstance();
 		sm->deleteLoginCookies(request, response, mSession);
-		
+
 		if(mSession) {
 			getErrors(mSession);
 			if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
@@ -65,30 +65,12 @@ enum PageState
 		}
 	}
 %><%@ include file="header.cpsp" %>
-<div class="authentication-theme auth-style_1">
-      <div class="row">
-        <div class="col-12 logo-section">
-          <a href="<%= ServerConfig::g_php_serverPath %>" class="logo">
-            <picture>
-				<source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" type="image/webp">
-				<source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" type="image/png"> 
-				<img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" alt="logo" />
-			</picture>
-          </a>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-5 col-md-7 col-sm-9 col-11 mx-auto">
-          <div class="grid">
-            <div class="center-ul-container">
-              <%= getErrorsHtml() %>
-            </div>
             <div class="grid-body">
               <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
                 <div class="row pull-right-row">
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% } 
+                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% }
 						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-england"></span>
                         </button>
@@ -96,7 +78,7 @@ enum PageState
                   </div>
                   <div class="equel-grid pull-right">
                     <div class="grid-body-small text-center">
-                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% } 
+                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% }
 						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
                           <span class="flag-germany"></span>
                         </button>
@@ -116,7 +98,7 @@ enum PageState
                 </div>
                 </form>
               <!--<p class="margin-top-10">
-				<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br> 
+				<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br>
 				<%= langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)")%>
 			  </p>-->
               <p class="margin-top-10">
@@ -129,8 +111,4 @@ enum PageState
           </div>
         </div>
       </div>
-      <div class="auth_footer">
-        <p class="text-muted text-center">© Gradido 2019</p>
-      </div>
-    </div>
 <%@ include file="footer.cpsp" %>
