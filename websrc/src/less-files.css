@@ -1175,20 +1175,34 @@ and open the template in the editor.
     margin-bottom: 1.5rem;
     border: 1px solid rgba(238, 238, 238, 0.75);
   }
+  .center-form-title h1 {
+    margin-block-start: 0;
+  }
   .center-form-selectors {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     height: 38px;
     padding: 5px 0;
+    margin-bottom: 2em;
+  }
+  .center-form-form,
+  .center-form-form form {
+    display: flex;
+    flex-direction: column;
+  }
+  .center-form-form .form-label {
+    text-align: left;
   }
   .center-form-form .form-control {
+    width: 100%;
     margin: auto;
+    box-sizing: border-box;
+    margin-bottom: 0.5em;
   }
   .center-form-submit {
-    display: block;
-    width: 96%;
-    margin: auto;
+    width: 100%;
+    margin: 1em 0;
   }
   .reset-pwd-link,
   .signup-link {
@@ -1617,6 +1631,17 @@ and open the template in the editor.
     background-color: #ec5e30;
     border-color: #eb5425;
   }
+  .link-button {
+    display: inline-block;
+    background: #f9fafb;
+    color: #fff;
+    height: 17px;
+    padding: 1em 2em;
+    line-height: 1em;
+    border-radius: 6px;
+    text-align: center;
+    vertical-align: middle;
+  }
   /* CENTER FORM SPECIFICS */
   .form-body form {
     display: grid;
@@ -1627,7 +1652,6 @@ and open the template in the editor.
   .center-form {
     width: 450px;
   }
-  .center-form-form .form-control,
   .center-form .form-control {
     width: 90%;
   }

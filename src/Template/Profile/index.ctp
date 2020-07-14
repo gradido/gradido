@@ -23,7 +23,7 @@ $this->assign(
     <i class="material-icons-outlined user-info">assignment_ind</i>
     Meine Daten
   </h3>
-  <div class="content-collection">
+  <div class="content-collection"><!-- xxx make form with email disabled / oder "ändern" button und extraseite -->
     <ul class="fact-list">
       <li class="fact">
         <span class="fact label">E-Mail Adresse:</span>
@@ -39,7 +39,7 @@ $this->assign(
       </li>
     </ul>
   </div>
-  <h3>
+  <!--<h3>
     <i class="material-icons-outlined user-info success">check_circle</i>
     Zustand meines Kontos
   </h3>
@@ -54,7 +54,7 @@ $this->assign(
         <span class="fact"></span>
       </li>
     </ul>
-  </div>
+  </div>-->
   <h3>
     <i class="material-icons-outlined user-info">vpn_key</i>
     Passwort ändern

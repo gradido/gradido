@@ -58,7 +58,8 @@
 
   }
 
-  .center-form-title {
+  .center-form-title h1 {
+    margin-block-start: 0;
   }
 
   .center-form-selectors {
@@ -67,16 +68,28 @@
     align-items: center;
     height: 38px;
     padding: 5px 0;
+    margin-bottom: 2em;
   }
 
+  .center-form-form,
+  .center-form-form form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .center-form-form .form-label {
+    text-align: left;
+  }
   .center-form-form .form-control {
+    width: 100%;
     margin: auto;
+    box-sizing: border-box;
+    margin-bottom: .5em;
   }
 
   .center-form-submit {
-    display: block;
-    width: 96%;
-    margin: auto;
+    width: 100%;
+    margin: 1em 0;
   }
 
   .reset-pwd-link,
