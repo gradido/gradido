@@ -159,7 +159,7 @@ namespace controller {
 			mPassword = authenticated_encryption;
 
 			// additional check if saved private key found, decrypt and derive public key and compare with saved public key
-			if (!model->hasPrivateKeyEncrypted()) {	
+			if (!model->hasPrivateKeyEncrypted()) {
 				return 1;
 			}
 			else 
@@ -176,7 +176,11 @@ namespace controller {
 						}
 					}
 					mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
-					if (!mGradidoKeyPair->isTheSame(model->getPublicKey())) {
+					if (!model->getPublicKey()) {
+						model->setPublicKey(mGradidoKeyPair->getPublicKey());
+						model->updatePublickey();
+					}
+					else if (!mGradidoKeyPair->isTheSame(model->getPublicKey())) {
 						delete mGradidoKeyPair;
 						mGradidoKeyPair = nullptr;
 						//printf("pubkeys don't match\n");

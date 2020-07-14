@@ -41,6 +41,8 @@ public:
 		return 0 == sodium_memcmp(mSodiumPublic, b.mSodiumPublic, crypto_sign_PUBLICKEYBYTES);
 	}
 	inline bool isTheSame(const unsigned char* pubkey) const {
+		if (!pubkey) 
+			return false;
 		return 0 == sodium_memcmp(mSodiumPublic, pubkey, crypto_sign_PUBLICKEYBYTES);
 	}
 	//! \return 0 if the same

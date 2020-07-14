@@ -35,6 +35,7 @@
 	{
 			switch(type) {
 			case ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER: return "de";
+			case ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES: return "de";
 			case ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER: return "en";
 			}
 		return "unknown";
@@ -58,7 +59,7 @@ void DebugMnemonicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 42 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 
 	const char* pageName = "Debug Mnemonic";
 	WordChecked checkedWord;
@@ -189,7 +190,7 @@ void DebugMnemonicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Debug Mnemonic</h1>\n";
 	responseStream << "\t";
-#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
@@ -198,20 +199,20 @@ void DebugMnemonicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"word\">Word</label>\n";
 	responseStream << "\t\t\t\t<input id=\"word\" type=\"text\" name=\"word\" value=\"";
-#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 	responseStream << ( form.get("word", "") );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<input type=\"submit\" name=\"check_word\" value=\"Wort &uuml;berpr&uuml;fen\"/>\n";
 	responseStream << "\t\t\t";
-#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  if(checkedWord.bSet)  { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>";
-#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 	responseStream << ( checkedWord.print() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
@@ -219,30 +220,30 @@ void DebugMnemonicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"index\">Index</label>\n";
 	responseStream << "\t\t\t\t<input id=\"index\" type=\"text\" name=\"index\" value=\"";
-#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 	responseStream << ( form.get("index", "") );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<input type=\"submit\" name=\"check_index\" value=\"Index &uuml;berpr&uuml;fen\"/>\n";
 	responseStream << "\t\t\t";
-#line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 124 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  if(checkedIndex[0].bSet) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t\t\t";
-#line 125 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  for (int i = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t<li>\n";
 	responseStream << "\t\t\t\t\t";
-#line 127 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 	responseStream << ( checkedIndex[i].print() );
 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t</li>\n";
 	responseStream << "\t\t\t\t";
-#line 129 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t</ul>\n";
 	responseStream << "\t\t\t";
-#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
+#line 132 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t</form>\n";

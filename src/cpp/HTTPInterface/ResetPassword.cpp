@@ -91,7 +91,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 					sendUserEmail = true;
 				}
 			}
-			printf("userExist: %d, sendUserEmail: %d\n", user_exist, sendUserEmail);
+			
 			if(!errorCount()) 
 			{
 				// send reset password email
@@ -99,7 +99,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 				if(user_exist) {
 					result = session->sendResetPasswordEmail(user, sendUserEmail);
 				}
-				printf("result: %d\n", result);
+			
 				if(2 == result) {
 					state = PAGE_EMAIL_ALREADY_SEND;
 				} else if(sendUserEmail) {
