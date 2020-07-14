@@ -323,7 +323,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 	if (session) {
 		auto user_host = request.clientAddress().host();
 		session->setClientIp(user_host);
-
+		assert(session->getUser());
 		if (session->getUser()->isEmptyPassword()) {
 			// user has no password, maybe account created from elopage webhook
 			auto pageRequestHandler = new UpdateUserPasswordPage(session);

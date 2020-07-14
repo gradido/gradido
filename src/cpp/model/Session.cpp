@@ -429,6 +429,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		return -2;
 	}
 	auto email_verification_code_model = mEmailVerificationCodeObject->getModel();
+	assert(email_verification_code_model);
 	if(email_verification_code_model->getCode() == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
 			//addError(new Error("E-Mail Verification", "Benutzer wurde nicht richtig gespeichert, bitte wende dich an den Server-Admin"));
@@ -440,7 +441,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		}
 		
 		// load correct user from db
-		if (mNewUser.isNull() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
+		if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
 			mNewUser = controller::User::create();
 			if (1 != mNewUser->load(email_verification_code_model->getUserId())) {
 				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", email_verification_code_model->getUserId()));
@@ -451,6 +452,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		}
 
 		auto user_model = mNewUser->getModel();
+		assert(user_model);
 		bool first_email_activation = false;
 		auto verification_type = email_verification_code_model->getType();
 		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type || 
@@ -1024,6 +1026,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 	}
 
 	mNewUser = controller::User::create();
+	assert(mEmailVerificationCodeObject->getModel() && mEmailVerificationCodeObject->getModel()->getUserId());
 	mNewUser->load(mEmailVerificationCodeObject->getModel()->getUserId());
 	if (mNewUser->getModel()->errorCount() > 0) {
 		mNewUser->getModel()->sendErrorsAsEmail();

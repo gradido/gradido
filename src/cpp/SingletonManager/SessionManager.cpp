@@ -349,7 +349,7 @@ Session* SessionManager::findByEmailVerificationCode(const Poco::UInt64& emailVe
 	auto email_verification = controller::EmailVerificationCode::load(emailVerificationCode);
 	if (email_verification.isNull()) return nullptr;
 	auto email_verification_model = email_verification->getModel();
-	assert(email_verification_model->getUserId() > 0);
+	assert(email_verification_model && email_verification_model->getUserId() > 0);
 
 	auto session = findByUserId(email_verification_model->getUserId());
 	if (session) {
@@ -372,6 +372,7 @@ Session* SessionManager::findByUserId(int userId)
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		auto user = it->second->getNewUser();
+		assert(user && user->getModel() && user->getModel()->getID());
 		if (userId == user->getModel()->getID()) {
 			return it->second;
 		}
