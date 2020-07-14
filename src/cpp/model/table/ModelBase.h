@@ -222,7 +222,7 @@ namespace model {
 			}
 
 			update << "UPDATE " << getTableName() << " SET " << fieldName << " = ? where id = ?",
-				Poco::Data::Keywords::useRef(fieldValue), Poco::Data::Keywords::use(mID);
+				Poco::Data::Keywords::bind(fieldValue), Poco::Data::Keywords::bind(mID);
 
 			size_t resultCount = 0;
 			try {

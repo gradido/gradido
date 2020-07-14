@@ -3,6 +3,7 @@
 #include "sodium.h"
 #include "../ServerConfig.h"
 #include <assert.h>
+#include "../lib/Profiler.h"
 
 AuthenticatedEncryption::AuthenticatedEncryption()
 	: mOpsLimit(10), mMemLimit(33554432), mAlgo(2), mEncryptionKey(nullptr), mEncryptionKeyHash(0)
@@ -31,8 +32,12 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 	auto app_secret = ServerConfig::g_CryptoAppSecret;
 
 	assert(app_secret);
-
+	Profiler timeUsed;
 	std::unique_lock<std::shared_mutex> _lock(mWorkingMutex);
+	if (timeUsed.millis() > 10) {
+		printf("[AuthenticatedEncryption::createKey] wait %s on getting lock\n", timeUsed.string().data());
+		timeUsed.reset();
+	}
 	
 	// use hash512 because existing data where calculated with that, but could be also changed to hash256
 	auto hash512_salt = mm->getFreeMemory(crypto_hash_sha512_BYTES); // need at least crypto_pwhash_SALTBYTES 16U
@@ -44,6 +49,10 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 	crypto_hash_sha512_update(&state, *app_secret, app_secret->size());
 	crypto_hash_sha512_final(&state, *hash512_salt);
 
+	if (timeUsed.millis() > 200) {
+		printf("[AuthenticatedEncryption::createKey] %s calculating sha512\n", timeUsed.string().data());
+		timeUsed.reset();
+	}
 
 	//unsigned char* key = (unsigned char *)malloc(crypto_box_SEEDBYTES); // 32U
 	//ObfusArray* key = new ObfusArray(crypto_box_SEEDBYTES);
@@ -59,7 +68,9 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 
 		return AUTH_CREATE_ENCRYPTION_KEY_FAILED;
 	}
-
+	if (timeUsed.millis() > 400) {
+		printf("[AuthenticatedEncryption::createKey] %s calculating pwd hash\n", timeUsed.string().data());
+	}
 	// generate hash from key for compare
 	assert(sizeof(KeyHashed) >= crypto_shorthash_BYTES);
 	assert(ServerConfig::g_ServerCryptoKey);
