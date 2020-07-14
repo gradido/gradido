@@ -36,6 +36,8 @@ public:
 	}
 
 	inline Poco::Data::Session getConnection(ConnectionType type) {
+		Poco::ScopedLock<Poco::FastMutex> _lock(mWorkingMutex);
+
 		switch (type)
 		{
 		case CONNECTION_MYSQL_LOGIN_SERVER: 
@@ -55,6 +57,7 @@ protected:
 private:
 	std::string mSessionPoolNames[CONNECTION_MAX];
 	Poco::Data::SessionPoolContainer mSessionPools;
+	Poco::FastMutex  mWorkingMutex;
 };
 
 #endif //GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_CONNECTION_MANAGER_INCLUDE
