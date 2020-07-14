@@ -143,7 +143,7 @@ namespace model {
 		size_t User::updatePrivkey() 
 		{ 
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			if (mPrivateKey.isNull()) {
+			if (mPrivateKey.isNull() || !mPrivateKey.value().size()) {
 				return 0;
 			}
 			auto result = updateIntoDB("privkey", mPrivateKey.value()); 
@@ -152,7 +152,7 @@ namespace model {
 		size_t User::updatePublickey()
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			if (mPublicKey.isNull()) {
+			if (mPublicKey.isNull() || !mPublicKey.value().size()) {
 				return 0;
 			}
 			auto result = updateIntoDB("pubkey", mPublicKey.value());
