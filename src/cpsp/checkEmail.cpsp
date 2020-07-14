@@ -65,50 +65,33 @@ enum PageState
 		}
 	}
 %><%@ include file="header.cpsp" %>
-            <div class="grid-body">
-              <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
-                <div class="row pull-right-row">
-                  <div class="equel-grid pull-right">
-                    <div class="grid-body-small text-center">
-                        <button id="flag-england" name="lang-btn" value="en" title="English" type="submit" <% if(lang != LANG_EN) { %>class="btn btn-outline-secondary flag-btn"<% }
-						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-                          <span class="flag-england"></span>
-                        </button>
-                    </div>
-                  </div>
-                  <div class="equel-grid pull-right">
-                    <div class="grid-body-small text-center">
-                        <button id="flag-germany" name="lang-btn" value="de" title="Deutsch" type="submit" <% if(lang != LANG_DE) { %>class="btn btn-outline-secondary flag-btn"<% }
-						else { %>class="btn btn-secondary disabled flag-btn" disabled<% } %>>
-                          <span class="flag-germany"></span>
-                        </button>
-                    </div>
-                  </div>
-                </div>
-				<% if(EMAIL_ACTIVATED == state) { %>
-					<p><%= langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") %></p>
-					<a class="btn btn-sm btn-primary" href="<%= ServerConfig::g_php_serverPath %>"><%= langCatalog->gettext("Zur Startseite") %></a>
-				<% } else { %>
-                <div class="item-wrapper">
-                        <div class="form-group">
-                          <label for="email-verification-code"><%= langCatalog->gettext("Bitte gebe deinen E-Mail Verification Code ein:")%></label>
-                          <input type="number" class="form-control" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-primary"><%= langCatalog->gettext("&Uuml;berpr&uuml;fe Code")%></button>
-                </div>
-                </form>
-              <!--<p class="margin-top-10">
-				<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br>
-				<%= langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)")%>
-			  </p>-->
-              <p class="margin-top-10">
-				<%= langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?")%><br>
-				<%= langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: ")%><br>
-                <b><a href="mailto:<%= em->getAdminReceiver()%>?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: <%= verificationCode %> funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%= langCatalog->gettext("E-Mail an Support schicken")%></a></b>
-			  </p>
-			  <% } %>
-            </div>
-          </div>
-        </div>
-      </div>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+    <%@ include file="flags.cpsp" %>
+    <div class="center-form-title">
+        <h1><%= langCatalog->gettext("E-Mail verifizieren") %></h1>
+    </div>
+    <div class="center-form-form">
+      <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
+	<% if(EMAIL_ACTIVATED == state) { %>
+		<p><%= langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") %></p>
+		<a class="link-button" href="<%= ServerConfig::g_php_serverPath %>"><%= langCatalog->gettext("Zur Startseite") %></a>
+	<% } else { %>
+        <label class="form-label" for="email-verification-code"><%= langCatalog->gettext("Bitte gib deinen E-Mail Verification Code ein:")%></label>
+        <input class="form-control" type="number" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
+        <button type="submit" class="center-form-submit form-button"><%= langCatalog->gettext("&Uuml;berpr&uuml;fe Code")%></button>
+      </form>
+  <!--<p>
+	<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br>
+	<%= langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)")%>
+  </p>-->
+      <p>
+		<%= langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?")%><br>
+		<%= langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: ")%><br>
+        <b><a href="mailto:<%= em->getAdminReceiver()%>?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: <%= verificationCode %> funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%= langCatalog->gettext("E-Mail an Support schicken")%></a></b>
+	  </p>
+    </form>
+  <% } %>
+</div>
+</div>
 <%@ include file="footer.cpsp" %>

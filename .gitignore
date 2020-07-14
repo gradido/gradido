@@ -1,0 +1,7 @@
+src/cpsp/lib*
+src/cpsp/cpspc
+src/cpsp/compile_unix.sh
+src/cpsp/*.h
+src/cpsp/*.cpp
+src/cpp/proto/
+build*/

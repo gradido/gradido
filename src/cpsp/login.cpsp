@@ -4,7 +4,7 @@
 <%@ page ctorArg="Session*" %>
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%@	page compressed="true" %>
-<%! 
+<%!
 #include "../gettext.h"
 
 #include "Poco/Net/HTTPCookie.h"
@@ -13,25 +13,25 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/ErrorManager.h"
-	
+
 %>
-<%% 
+<%%
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
 	auto lm = LanguageManager::getInstance();
 	auto em = ErrorManager::getInstance();
-	
+
 	auto lang = chooseLanguage(request);
 	//printf("choose language return: %d\n", lang);
 	auto langCatalog = lm->getFreeCatalog(lang);
-	
+
 	std::string presetEmail("");
 	if(mSession && mSession->getUser()) {
 		presetEmail = mSession->getUser()->getEmail();
 	}
-	
+
 	if(!form.empty()) {
-		
+
 		bool langUpdatedByBtn = false;
 		auto langBtn = form.get("lang", "");
 		if(langBtn != "") {
@@ -46,7 +46,7 @@
 		} else if(langInput != "") {
 			updatedLang = chooseLanguage(request, langInput);
 		}
-		
+
 		if(updatedLang != LANG_NULL && updatedLang != lang) {
 			lang = updatedLang;
 			langCatalog = lm->getFreeCatalog(lang);
@@ -54,12 +54,12 @@
 		 */
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
-		
+
 		if(email != "" && password != "") {
 			//auto session = sm->getSession(request);
 			//if(!mSession) mSession = sm->findByEmail(email);
 			if(!mSession) {
-				mSession = sm->getNewSession();		
+				mSession = sm->getNewSession();
 				mSession->setLanguageCatalog(langCatalog);
 				// get language
 				// first check url, second check language header
@@ -77,30 +77,30 @@
 			}
 			auto userState = mSession->loadUser(email, password);
 			auto user = mSession->getNewUser();
-			
+
 			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				if(mSession->generateKeys(true, true)) {
 					userState = USER_COMPLETE;
 				}
 			} else {
-				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey()); 
+				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey());
 			}
 			getErrors(mSession);
-			
+
 			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
-			
+
 			//printf("userState: %d\n", userState);
-		
+
 			switch(userState) {
-			case USER_EMPTY: 
+			case USER_EMPTY:
 			case USER_PASSWORD_INCORRECT:
 				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")), false);
 				break;
-			case USER_PASSWORD_ENCRYPTION_IN_PROCESS: 
+			case USER_PASSWORD_ENCRYPTION_IN_PROCESS:
 				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
 				break;
-			case USER_KEYS_DONT_MATCH: 
+			case USER_KEYS_DONT_MATCH:
 				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
 				break;
 			case USER_NO_PRIVATE_KEY:
@@ -114,8 +114,8 @@
 				if(lastExternReferer != "") {
 					//printf("redirect to: %s\n", lastExternReferer.data());
 					response.redirect(lastExternReferer);
-				} else if(refererString != "" && 
-				          refererString.find("login") == std::string::npos && 
+				} else if(refererString != "" &&
+				          refererString.find("login") == std::string::npos &&
 						  refererString.find("logout") == std::string::npos &&
 						  refererString.find("user_delete") == std::string::npos &&
 						  refererString != ServerConfig::g_serverPath + request.getURI()) {
@@ -128,13 +128,13 @@
 				}
 				return;
 			}
-			
+
 		} else if(!langUpdatedByBtn) {
 			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")), false);
 		}
-		
+
 	} else {
-		
+
 		// on enter login page with empty form
 		//auto session = sm->getSession(request);
 		// remove old cookies and session if exist
@@ -143,69 +143,30 @@
 			sm->releaseSession(mSession);
 		}
 		sm->deleteLoginCookies(request, response);
-	}	
-	
+	}
+
 %><%@ include file="header.cpsp" %>
-<style type="text/css">
-@media (max-width: 400px) {
-	.authentication-theme.auth-style_1 .signup-link {
-		position:relative;
-	}
-	.authentication-theme .signup-link {
-		isplay:initial;
-	}
-}	
-</style>
-<div class="authentication-theme auth-style_1">
-      <div class="row">
-        <div class="col-12 logo-section">
-          <a href="<%= ServerConfig::g_php_serverPath %>" class="logo">
-			<picture>
-				<source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.webp" type="image/webp">
-				<source srcset="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" type="image/png"> 
-				<img src="<%= ServerConfig::g_php_serverPath %>img/logo_schrift.png" alt="logo" />
-			</picture>
-          </a>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-5 col-md-7 col-sm-9 col-11 mx-auto">
-          <div class="grid">
-			<div class="center-ul-container">
-				<%= getErrorsHtml() %>	  
-			</div>
-            <div class="grid-body">
-              
-			  <!--<input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">-->
-			  <%@ include file="flags.cpsp" %>
-			  <form action="<%= ServerConfig::g_serverPath %>/" method="POST">
-                <div class="row display-block">
-                  <div class="col-lg-7 col-md-8 col-sm-9 col-12 mx-auto form-wrapper">
-                    <div class="form-group input-rounded">
-                      <input type="text" class="form-control" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" value="<%= presetEmail %>"/>
-                    </div>
-                    <div class="form-group input-rounded">
-                      <input type="password" class="form-control" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />
-                    </div>
-                    <button type="submit" name="submit" class="btn btn-primary btn-block"><%= langCatalog->gettext(" Login ") %></button>
-                    <div class="signup-link">
-                      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
-                      <a href="<%= ServerConfig::g_serverPath %>/registerDirect">
-						<%= langCatalog->gettext("Create New Account") %>
-					  </a>
-                    </div>
-					<div class="reset-pwd-link">
-						<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
-					</div>
-                  </div>
-                </div>
-			  </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="auth_footer">
-        <p class="text-muted text-center">© Gradido 2019</p>
-      </div>
+<%= getErrorsHtml() %>
+<!--<input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">-->
+<div class="center-form-container">
+    <%@ include file="flags.cpsp" %>
+    <div class="center-form-form">
+		<form action="<%= ServerConfig::g_serverPath %>/" method="POST">
+			<input class="form-control" type="text" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" value="<%= presetEmail %>"/>
+			<input class="form-control" type="password" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />
+		    <button type="submit" name="submit" class="center-form-submit form-button"><%= langCatalog->gettext(" Login ") %></button>
+		</form>
     </div>
+    <div class="center-form-bottom">
+        <div class="signup-link">
+	      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
+	      <a href="<%= ServerConfig::g_serverPath %>/registerDirect">
+			<%= langCatalog->gettext("Create New Account") %>
+		  </a>
+	    </div>
+		<div class="reset-pwd-link">
+			<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
+		</div>
+	</div>
+</div>
 <%@ include file="footer.cpsp" %>
