@@ -1,4 +1,4 @@
-#include "Session.h"
+Ôªø#include "Session.h"
 #include "../lib/Profiler.h"
 #include "../ServerConfig.h"
 
@@ -299,7 +299,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
 	ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
 	ss << std::endl;
-	ss << "Mit freundlichen " << u8"Gr¸ﬂen" << std::endl;
+	ss << "Mit freundlichen " << u8"Gr√º√üen" << std::endl;
 	ss << "Dario, Gradido Server Admin" << std::endl;
 	
 
@@ -367,7 +367,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 		if (!user_id) {
 			em->addError(new ParamError(function_name, "error saving new user in db, after one retry with email", email));
 			em->sendErrorsAsEmail();
-			addError(new Error(gettext("Server"), gettext("Fehler beim speichen des Kontos bitte versuche es sp‰ter noch einmal")), false);
+			addError(new Error(gettext("Server"), gettext("Fehler beim speichen des Kontos bitte versuche es sp√§ter noch einmal")), false);
 			return false;
 		}
 	}
