@@ -415,7 +415,6 @@ bool Session::ifUserExist(const std::string& email)
 int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 {
 	const static char* funcName = "Session::updateEmailVerification";
-	
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	// new mutex, will replace the Poco Mutex complete in the future
 	std::unique_lock<std::shared_mutex> _lock_shared(mSharedMutex);
@@ -796,10 +795,12 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			}
 		}
 		// can be removed if session user isn't used any more
-		if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
+		// don't calculate password two times anymore
+		mSessionUser->login(mNewUser);
+		/*if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;
-		}
+		}*/
 	}
 	else {
 		User::fakeCreateCryptoKey();

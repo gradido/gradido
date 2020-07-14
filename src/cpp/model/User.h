@@ -77,6 +77,8 @@ public:
 
 	~User();
 
+	void login(Poco::AutoPtr<controller::User> newUser);
+
 	static std::string generateNewPassphrase(Mnemonic* word_source);
 	static bool validatePassphrase(const std::string& passphrase, Mnemonic** wordSource = nullptr);
 	static const char* userStateToString(UserStates state);

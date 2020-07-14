@@ -773,6 +773,25 @@ bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrin
 	return false;
 }
 
+void User::login(Poco::AutoPtr<controller::User> newUser)
+{
+	assert(!newUser.isNull());
+	assert(newUser->getModel());
+
+	lock("User::validatePwd");
+	mPasswordHashed = newUser->getModel()->getPasswordHashed();
+	auto mm = MemoryManager::getInstance();
+	if (mCryptoKey) {
+		mm->releaseMemory(mCryptoKey);
+		mCryptoKey = nullptr;
+	}
+	auto keyPair = newUser->getGradidoKeyPair();
+	if (keyPair) {
+		mCryptoKey = keyPair->getCryptedPrivKey(newUser->getPassword());
+	}
+	unlock();
+}
+
 bool User::validateIdentHash(HASH hash)
 {
 	lock("User::validateIdentHash");
