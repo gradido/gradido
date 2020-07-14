@@ -355,10 +355,13 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			
 		}
 		else if (1 == retUpdateEmailVerification) {
-			auto user = session->getUser();
-			LoginPage* loginPage = new LoginPage(session);
-			loginPage->setProfiler(timeUsed);
-			return loginPage;
+			//auto user = session->getUser();
+			//LoginPage* loginPage = new LoginPage(session);
+			//loginPage->setProfiler(timeUsed);
+			CheckEmailPage* check_email_page = new CheckEmailPage(session);
+			check_email_page->setProfiler(timeUsed);
+			return check_email_page;
+			//return loginPage;
 		}
 		else if (-1 == retUpdateEmailVerification) {
 			auto checkEmail = new CheckEmailPage(session);
