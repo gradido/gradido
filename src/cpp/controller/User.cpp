@@ -295,7 +295,7 @@ namespace controller {
 	//! \return -1 no matching entry found
 	//! \return -2 if user id is not set or invalid
 	//! \return  0 matching entry found
-	int User::tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair = nullptr)
+	int User::tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair/* = nullptr*/)
 	{
 		auto user_model = getModel();
 		if (user_model->getID() <= 0) return -2;
