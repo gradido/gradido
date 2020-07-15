@@ -111,9 +111,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	
 	if (url_first_part == "/checkEmail") {
 		//return new CheckEmailPage(s);
-		if (!s || s->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED) {
+		//printf("url checkEmail\n");
+//		if (!s) {
 			return handleCheckEmail(s, uri, request, timeUsed);
-		}
+	//	}
+		//printf("skip handleCheckEmail\n");
 	}
 	/*if (url_first_part == "/register") {
 		auto pageRequestHandler = new RegisterPage;
@@ -338,11 +340,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		*/
 		// update session, mark as verified 
 		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
-
+		printf("[%s] return from update email verification: %d\n", __FUNCTION__, retUpdateEmailVerification);
 		if (0 == retUpdateEmailVerification) {
 			//printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
 			SessionHTTPRequestHandler* pageRequestHandler = nullptr;
 			if (model::table::EMAIL_OPT_IN_REGISTER_DIRECT == session->getEmailVerificationType()) {
+				printf("return check email page\n");
 				pageRequestHandler = new CheckEmailPage(session);
 			} else if(SESSION_STATE_RESET_PASSWORD_REQUEST == session->getSessionState()) {
 				pageRequestHandler = new UpdateUserPasswordPage(session);

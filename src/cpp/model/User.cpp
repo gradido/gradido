@@ -914,7 +914,6 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 	//ObfusArray* key = new ObfusArray(crypto_box_SEEDBYTES);
 	auto key = mm->getFreeMemory(crypto_box_SEEDBYTES);
 	//Bin32Bytes* key = mm->get32Bytes();
-
 	if (crypto_pwhash(*key, key->size(), password.data(), password.size(), hash512_salt, 10U, 33554432, 2) != 0) {
 		lock(funcName);
 		addError(new ParamError(funcName, " error creating pwd hash, maybe to much memory requestet? error:", strerror(errno)));
