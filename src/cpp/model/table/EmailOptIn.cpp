@@ -43,6 +43,9 @@ namespace model {
 			Poco::Data::Statement insert(session);
 
 			lock();
+			assert(mUserId > 0);
+			assert(mEmailVerificationCode > 0);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (user_id, verification_code, email_opt_in_type_id, resend_count) VALUES(?,?,?,?)"
 				, use(mUserId), use(mEmailVerificationCode), bind(mType), bind(mResendCount);

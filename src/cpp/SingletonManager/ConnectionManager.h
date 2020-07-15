@@ -43,8 +43,8 @@ public:
 			throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
 		}
 		auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
-		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
+		//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
 		return session;
 	}
 

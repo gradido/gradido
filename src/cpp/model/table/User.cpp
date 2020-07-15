@@ -179,8 +179,8 @@ namespace model {
 				return update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
-				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+				addError(new ParamError(getTableName(), "[updatePrivkeyAndPasswordHash] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
 			}
 			//printf("data valid: %s\n", toString().data());
 			return 0;
@@ -206,8 +206,8 @@ namespace model {
 				return update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				addError(new ParamError(getTableName(), "mysql error by insert", ex.displayText().data()));
-				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+				addError(new ParamError(getTableName(), "[updatePubkeyAndPrivkey] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
 			}
 			//printf("data valid: %s\n", toString().data());
 			return 0;
