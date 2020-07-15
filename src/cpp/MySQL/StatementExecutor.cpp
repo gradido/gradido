@@ -75,8 +75,10 @@ void StatementExecutor::bindParams(MYSQL_BIND* params, std::size_t count)
 	if (_state < STMT_COMPILED)
 		throw StatementException("Statement is not compiled yet");
 
-	if (count != mysql_stmt_param_count(_pHandle))
+	if (count != mysql_stmt_param_count(_pHandle)) {
+		printf("[StatementExecutor::bindParams] count: %d, count return from mysql: %d\n", count, mysql_stmt_param_count(_pHandle));
 		throw StatementException("wrong bind parameters count", 0, _query);
+	}
 
 	if (count == 0) return;
 

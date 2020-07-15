@@ -133,6 +133,12 @@ void MySQLStatementImpl::bindImpl()
 	std::size_t pos = 0;
 	Poco::Data::AbstractBindingVec::iterator it = binds.begin();
 	Poco::Data::AbstractBindingVec::iterator itEnd = binds.end();
+	for (; it != itEnd; ++it) {
+		if (!(*it)->canBind()) {
+			printf("[MySQLStatementImpl::bindImpl] canBind return false, name: %s\n", (*it)->name().data());
+			break;
+		}
+	}
 	for (; it != itEnd && (*it)->canBind(); ++it)
 	{
 		(*it)->bind(pos);
