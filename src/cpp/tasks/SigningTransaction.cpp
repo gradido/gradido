@@ -71,11 +71,11 @@ int SigningTransaction::run() {
 	//auto privKey = mUser->getPrivKey();
 	//if (!mUser->hasPrivKey()) {
 	auto gradido_key_pair = mNewUser->getGradidoKeyPair();
-
+	KeyPairEd25519* recovered_gradido_key_pair = nullptr;
 	if(!gradido_key_pair || !gradido_key_pair->hasPrivateKey()) {
-		KeyPairEd25519** key_pair_ptr = nullptr;
-		if (!mNewUser->tryLoadPassphraseUserBackup(key_pair_ptr)) {
-			if(mNewUser->setGradidoKeyPair(*key_pair_ptr))
+		
+		if (!mNewUser->tryLoadPassphraseUserBackup(&recovered_gradido_key_pair)) {
+			if(mNewUser->setGradidoKeyPair(recovered_gradido_key_pair))
 			{
 				mNewUser->getModel()->updatePrivkey();
 			}
@@ -97,7 +97,13 @@ int SigningTransaction::run() {
 	}
 	// sign
 	//auto sign = mUser->sign((const unsigned char*)bodyBytes->data(), bodyBytes->size());
-	auto sign = gradido_key_pair->sign(*bodyBytes);
+	MemoryBin* sign = nullptr;
+	if (gradido_key_pair) {
+		sign = gradido_key_pair->sign(*bodyBytes);
+	}
+	else if (recovered_gradido_key_pair) {
+		sign = recovered_gradido_key_pair->sign(*bodyBytes);
+	}
 	if (!sign) {
 		ErrorManager::getInstance()->sendErrorsAsEmail();
 		sendErrorsAsEmail();

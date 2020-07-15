@@ -307,14 +307,18 @@ namespace controller {
 			if (-1 == user_backup->getModel()->getMnemonicType()) {
 				continue;
 			}
-			auto key_pair = std::unique_ptr<KeyPairEd25519>(user_backup->createGradidoKeyPair());
+			auto key_pair = user_backup->createGradidoKeyPair();
 			
 			if (key_pair->isTheSame(user_model->getPublicKey())) {
 				if (createdKeyPair) {
-					*createdKeyPair = key_pair.get();
+					*createdKeyPair = key_pair;
+				}
+				else {
+					delete key_pair;
 				}
 				return 0;
 			}
+			delete key_pair;
 		}
 		return -1;
 	}
