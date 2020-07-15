@@ -37,18 +37,15 @@ public:
 
 	inline Poco::Data::Session getConnection(ConnectionType type) {
 		Poco::ScopedLock<Poco::FastMutex> _lock(mWorkingMutex);
-
-		switch (type)
-		{
-		case CONNECTION_MYSQL_LOGIN_SERVER: 
-		case CONNECTION_MYSQL_PHP_SERVER:
-			return mSessionPools.getPool(mSessionPoolNames[type]).get();
-		default:
+		
+		if (CONNECTION_MYSQL_LOGIN_SERVER != type && CONNECTION_MYSQL_PHP_SERVER != type) {
 			addError(new ParamError("[ConnectionManager::getConnection]", "Connection Type unknown", std::to_string(type)));
-			break;
+			throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
 		}
-		throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
-		//return Poco::Data::Session(nullptr);
+		auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
+		return session;
 	}
 
 protected:
