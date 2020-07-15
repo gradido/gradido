@@ -138,13 +138,10 @@ void MySQLStatementImpl::bindImpl()
 			printf("[MySQLStatementImpl::bindImpl] canBind return false, name: %s\n", (*it)->name().data());
 			break;
 		}
-	}
-	for (; it != itEnd && (*it)->canBind(); ++it)
-	{
 		(*it)->bind(pos);
 		pos += (*it)->numOfColumnsHandled();
 	}
-
+	
 	_stmt.bindParams(_pBinder->getBindArray(), _pBinder->size());
 	_stmt.execute();
 	_hasNext = NEXT_DONTKNOW;
