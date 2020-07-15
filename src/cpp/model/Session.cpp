@@ -1179,7 +1179,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		user_model->addError(new Error(function_name, "Error saving new generated pubkey"));
 		user_model->addError(new ParamError(function_name, "e-mail: ", user_model->getEmail()));
 		user_model->sendErrorsAsEmail();
-		addError(new Error(gettext("Benutzer"), gettext("Fehler beim Speichern der Keys, der Admin bekommt eine E-Mail. Evt. nochmal versuchen oder abwarten!")));
+		//addError(new Error(gettext("Benutzer"), gettext("Fehler beim Speichern der Keys, der Admin bekommt eine E-Mail. Evt. nochmal versuchen oder abwarten!")));
 		return false;
 	}
 	return true;
