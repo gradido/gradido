@@ -71,10 +71,20 @@ int SigningTransaction::run() {
 	//auto privKey = mUser->getPrivKey();
 	//if (!mUser->hasPrivKey()) {
 	auto gradido_key_pair = mNewUser->getGradidoKeyPair();
+
 	if(!gradido_key_pair || !gradido_key_pair->hasPrivateKey()) {
-		addError(new Error("SigningTransaction", "user cannot decrypt private key"));
-		sendErrorsAsEmail();
-		return -2;
+		KeyPairEd25519** key_pair_ptr = nullptr;
+		if (!mNewUser->tryLoadPassphraseUserBackup(key_pair_ptr)) {
+			if(mNewUser->setGradidoKeyPair(*key_pair_ptr))
+			{
+				mNewUser->getModel()->updatePrivkey();
+			}
+		}
+		else {
+			addError(new Error("SigningTransaction", "user cannot decrypt private key"));
+			sendErrorsAsEmail();
+			return -2;
+		}
 	}
 	// get body bytes
 	model::messages::gradido::Transaction transaction;

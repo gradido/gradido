@@ -46,7 +46,7 @@ namespace controller {
 		//! \return -1 no matching entry found
 		//! \return -2 user id invalid or net set
 		//! \return  0 matching entry found
-		int tryLoadPassphraseUserBackup();
+		int tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair = nullptr);
 
 		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
 		//! \brief try to load user from db via user_id

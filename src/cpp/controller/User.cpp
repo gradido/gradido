@@ -295,7 +295,7 @@ namespace controller {
 	//! \return -1 no matching entry found
 	//! \return -2 if user id is not set or invalid
 	//! \return  0 matching entry found
-	int User::tryLoadPassphraseUserBackup()
+	int User::tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair = nullptr)
 	{
 		auto user_model = getModel();
 		if (user_model->getID() <= 0) return -2;
@@ -308,7 +308,11 @@ namespace controller {
 				continue;
 			}
 			auto key_pair = std::unique_ptr<KeyPairEd25519>(user_backup->createGradidoKeyPair());
+			
 			if (key_pair->isTheSame(user_model->getPublicKey())) {
+				if (createdKeyPair) {
+					*createdKeyPair = key_pair.get();
+				}
 				return 0;
 			}
 		}
