@@ -15,6 +15,7 @@
     <fieldset>
         <legend><?= __('Add Community Profile') ?></legend>
         <?php
+            echo $this->Form->control('state_user_id');
             echo $this->Form->control('profile_desc');
         ?>
     </fieldset>

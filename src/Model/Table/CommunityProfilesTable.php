@@ -9,6 +9,8 @@ use Cake\Validation\Validator;
 /**
  * CommunityProfiles Model
  *
+ * @property &\Cake\ORM\Association\BelongsTo $StateUsers
+ *
  * @method \App\Model\Entity\CommunityProfile get($primaryKey, $options = [])
  * @method \App\Model\Entity\CommunityProfile newEntity($data = null, array $options = [])
  * @method \App\Model\Entity\CommunityProfile[] newEntities(array $data, array $options = [])
@@ -33,6 +35,11 @@ class CommunityProfilesTable extends Table
         $this->setTable('community_profiles');
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
+
+        $this->belongsTo('StateUsers', [
+            'foreignKey' => 'state_user_id',
+            'joinType' => 'INNER',
+        ]);
     }
 
     /**
@@ -56,5 +63,19 @@ class CommunityProfilesTable extends Table
             ->allowEmptyFile('profile_desc');
 
         return $validator;
+    }
+
+    /**
+     * Returns a rules checker object that will be used for validating
+     * application integrity.
+     *
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
+     */
+    public function buildRules(RulesChecker $rules)
+    {
+        $rules->add($rules->existsIn(['state_user_id'], 'StateUsers'));
+
+        return $rules;
     }
 }

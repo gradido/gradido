@@ -16,6 +16,7 @@
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('state_user_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('profile_desc') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
@@ -24,6 +25,7 @@
             <?php foreach ($communityProfiles as $communityProfile): ?>
             <tr>
                 <td><?= $this->Number->format($communityProfile->id) ?></td>
+                <td><?= $this->Number->format($communityProfile->state_user_id) ?></td>
                 <td><?= h($communityProfile->profile_desc) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $communityProfile->id]) ?>

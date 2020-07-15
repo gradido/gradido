@@ -7,6 +7,7 @@ use Cake\ORM\Entity;
  * CommunityProfile Entity
  *
  * @property int $id
+ * @property int $state_user_id
  * @property string|resource|null $profile_img
  * @property string|null $profile_desc
  */
@@ -22,6 +23,7 @@ class CommunityProfile extends Entity
      * @var array
      */
     protected $_accessible = [
+        'state_user_id' => true,
         'profile_img' => true,
         'profile_desc' => true,
     ];

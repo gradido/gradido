@@ -5,10 +5,6 @@ use Cake\Routing\Router;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-if(isset($user)) {
-  //var_dump($user);
-}
 $this->assign('title', __('Mein Profil'));
 $this->assign(
   'header',
@@ -23,7 +19,7 @@ $this->assign(
     <i class="material-icons-outlined user-info">assignment_ind</i>
     Meine Daten
   </h3>
-  <div class="content-collection"><!-- xxx make form with email disabled / oder "ändern" button und extraseite -->
+  <div class="content-collection">
     <ul class="fact-list">
       <li class="fact">
         <span class="fact label">E-Mail Adresse:</span>
@@ -31,11 +27,21 @@ $this->assign(
       </li>
       <li class="fact">
         <span class="fact label">Vorname:</span>
-        <span class="fact"><?=$user['first_name']?></span><!-- xxx editable -->
+        <span class="fact"><?=$user['first_name']?></span>
       </li>
       <li class="fact">
         <span class="fact label">Nachname:</span>
-        <span class="fact"><?=$user['last_name']?></span><!-- xxx editable -->
+        <span class="fact"><?=$user['last_name']?></span>
+      </li>
+      <li class="fact">
+        <span class="fact label">Beschreibung:</span>
+        <span class="fact"><?=$communityProfile['profile_desc']?></span>
+      </li>
+      <li class="fact">
+        <span class="fact label"></span>
+        <span class="fact">
+          <a class="link-button action-link-button" href="/profile/edit">Meine Daten ändern</a>
+        </span>
       </li>
     </ul>
   </div>
@@ -64,7 +70,7 @@ $this->assign(
       <li class="fact">
         <span class="fact label">Passwort ändern:</span>
         <span class="fact">
-          <a href="/account/updateUserPassword" target="_blank">zum Ändern anklicken! (öffnet in neuem Tab)</a>
+          <a class="action-link" href="/account/updateUserPassword" target="_blank">zum Ändern anklicken! (öffnet in neuem Tab)</a>
         </span>
       </li>
     </ul>

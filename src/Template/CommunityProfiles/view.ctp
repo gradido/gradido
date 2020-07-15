@@ -24,5 +24,9 @@
             <th scope="row"><?= __('Id') ?></th>
             <td><?= $this->Number->format($communityProfile->id) ?></td>
         </tr>
+        <tr>
+            <th scope="row"><?= __('State User Id') ?></th>
+            <td><?= $this->Number->format($communityProfile->state_user_id) ?></td>
+        </tr>
     </table>
 </div>
