@@ -755,6 +755,10 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		mSessionUser = new User(mNewUser);
 		//mSessionUser = new User(email.data());
 	}
+	auto user_model = mNewUser->getModel();
+	if (user_model && user_model->isDisabled()) {
+		return USER_DISABLED;
+	}
 	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		int loginResult = mNewUser->login(password);
 		

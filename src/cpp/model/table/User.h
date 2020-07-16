@@ -27,7 +27,7 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int> UserTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int> UserTuple;
 
 		class User : public ModelBase 
 		{
@@ -62,6 +62,7 @@ namespace model {
 			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
 			inline bool isEmailChecked() const { return mEmailChecked; }
 			inline const std::string& getLanguageKey() const { return mLanguageKey; }
+			inline bool isDisabled() const { return mDisabled; }
 
 			// default setter unlocked
 			inline void setEmail(const std::string& email) { mEmail = email; }
@@ -99,7 +100,9 @@ namespace model {
 
 			bool mEmailChecked;
 			std::string mLanguageKey;
-
+			//! if account should delete but cannot because public keys for transaction needed, until gradido node is running
+			//! if set to true, prevent login
+			bool mDisabled;
 
 			// from neighbor tables
 			Poco::Nullable<int> mRole;

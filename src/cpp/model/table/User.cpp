@@ -13,18 +13,20 @@ namespace model {
 	namespace table {
 
 		User::User()
-			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
+			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de"), mDisabled(false), mRole(ROLE_NOT_LOADED)
 		{
 		}
 
 		User::User(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
-			: mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mRole(ROLE_NOT_LOADED)
+			: mEmail(email), mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mDisabled(false), mRole(ROLE_NOT_LOADED)
 		{
 
 		}
 		//id, first_name, last_name, email, pubkey, created, email_checked
 		User::User(UserTuple tuple)
-			: ModelBase(tuple.get<0>()), mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()),
+			: ModelBase(tuple.get<0>()), 
+			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), 
+			mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()), mDisabled(tuple.get<7>()),
 			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
@@ -80,11 +82,13 @@ namespace model {
 				_fieldName = getTableName() + std::string(".id");
 			}
 			Poco::Data::Statement select(session);
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, created, email_checked, language, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, created, email_checked, language, disabled, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
-				   << " WHERE " << _fieldName << " = ?"
-				,into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed), into(mPublicKey), into(mPrivateKey), into(mCreated), into(mEmailChecked), into(mLanguageKey), into(mRole);
+				   << " WHERE " << _fieldName << " = ?" ,
+				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed),
+				into(mPublicKey), into(mPrivateKey), into(mCreated), into(mEmailChecked), 
+				into(mLanguageKey), into(mDisabled), into(mRole);
 
 
 			return select;
@@ -94,7 +98,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 
@@ -110,7 +114,7 @@ namespace model {
 			}
 
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << getTableName()
 				<< " where " << fieldNames[0] << " LIKE ?";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -259,6 +263,7 @@ namespace model {
 			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << std::endl;
 			ss << "email checked: " << mEmailChecked << std::endl;
 			ss << "language key: " << mLanguageKey << std::endl;
+			ss << "disabled: " << mDisabled << std::endl;
 
 			mm->releaseMemory(pubkeyHex);
 			mm->releaseMemory(privkeyHex);
@@ -285,6 +290,7 @@ namespace model {
 			ss << "email checked: " << mEmailChecked << "<br>";
 			ss << "language key: " << mLanguageKey << "<br>";
 			ss << "role: " << UserRoles::typeToString(getRole()) << "<br>";
+			ss << "disabled: " << mDisabled << "<br>";
 
 			mm->releaseMemory(pubkeyHex);
 			
@@ -322,6 +328,7 @@ namespace model {
 			userObj.set("created", createTimeStamp.raw() / createTimeStamp.resolution());
 			userObj.set("email_checked", mEmailChecked);
 			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
+			userObj.set("disabled", mDisabled);
 			try {
 				userObj.set("role", UserRoles::typeToString(getRole()));
 			}

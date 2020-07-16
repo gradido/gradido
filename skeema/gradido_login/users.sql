@@ -10,6 +10,7 @@ CREATE TABLE `users` (
   `email_checked` tinyint(1) NOT NULL DEFAULT 0,
   `passphrase_shown` tinyint(1) NOT NULL DEFAULT 0,
   `language` varchar(4) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'de',
+  `disabled` BOOLEAN NULL DEFAULT FALSE,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

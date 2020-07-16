@@ -372,7 +372,8 @@ Session* SessionManager::findByUserId(int userId)
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		auto user = it->second->getNewUser();
-		assert(user && user->getModel() && user->getModel()->getID());
+		if(!user) continue;
+		assert(user->getModel() && user->getModel()->getID());
 		if (userId == user->getModel()->getID()) {
 			return it->second;
 		}

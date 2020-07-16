@@ -81,6 +81,9 @@
 			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				if(mSession->generateKeys(true, true)) {
 					userState = USER_COMPLETE;
+					if(user->getModel()->isDisabled()) {
+						userState = USER_DISABLED;
+					}
 				}
 			} else {
 				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey()); 
@@ -102,6 +105,14 @@
 				break;
 			case USER_KEYS_DONT_MATCH: 
 				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
+				break;
+			case USER_DISABLED: 
+				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Benutzer ist deaktiviert, kein Login möglich!")));
+				if(mSession) {
+					getErrors(mSession);
+					sm->releaseSession(mSession);
+				}
+				sm->deleteLoginCookies(request, response);
 				break;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
