@@ -62,7 +62,8 @@ use Cake\I18n\FrozenTime;
   }
 
 </style>
-<div class="grd_container_small grd_margin-bottom_120">
+<div class="action-form">
+  <p class="form-header">Schöpfen</p>
   <button type="button" onclick="checkAll()" >Alle auswählen</button>
   <button type="button" onclick="uncheckAll()">Alle abwählen</button>
   <div style="margin-bottom:5px"></div>
@@ -211,8 +212,6 @@ use Cake\I18n\FrozenTime;
   }
 
   function checkTransactionExecuting() {
-
-
     getJson('<?= $this->Url->build(["controller" => "JsonRequestHandler"]);?>', 'getRunningUserTasks',
       // success
       function(json) {

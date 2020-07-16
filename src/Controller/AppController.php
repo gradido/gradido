@@ -205,7 +205,7 @@ class AppController extends Controller
                                      $stateUser->email      != $json['user']['email']) {
                                         $stateUser->first_name = $json['user']['first_name'];
                                         $stateUser->last_name = $json['user']['last_name'];
-                                        $stateUser->username = $json['user']['username'];
+                                        //$stateUser->username = $json['user']['username'];
                                         $stateUser->email = $json['user']['email'];
                                         if (!$stateUserTable->save($stateUser)) {
                                             $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
@@ -222,7 +222,7 @@ class AppController extends Controller
                                     $newStateUser->public_key = $public_key_bin;
                                     $newStateUser->first_name = $json['user']['first_name'];
                                     $newStateUser->last_name = $json['user']['last_name'];
-                                    $newStateUser->username = $json['user']['username'];
+                                    //$newStateUser->username = $json['user']['username'];
                                     $newStateUser->email = $json['user']['email'];
                                     if (!$stateUserTable->save($newStateUser)) {
                                         $this->Flash->error(__('error saving state user ' . json_encode($newStateUser->errors())));

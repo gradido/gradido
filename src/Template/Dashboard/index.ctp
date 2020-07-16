@@ -63,7 +63,7 @@ $this->assign(
   </div>
 </div>
 <div class="content-region">
-  <legend>Statistik</legend>
+  <h3>Statistik</h3>
   <div class="content-collection">
     <div class="content-item info-item">
       <i class="material-icons-outlined">cached</i>

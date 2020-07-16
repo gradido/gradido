@@ -22,10 +22,10 @@ if(intval($transactionPendings) > 0) {
   array_push($navi, new NaviEntryAbsoluteLink(__('Abmelden'), 'exit_to_app', 'account/logout'));
 }
 ?>
-<span class="user-name">
-    <?=$user['first_name'].' '.$user['last_name']?>
-</span>
-<i class="material-icons-outlined user-icon" onclick="toggleUserMenu()">account_circle</i>
+<div class="user-menu-container">
+    <span class="user-name"><?=$user['first_name'].' '.$user['last_name']?></span>
+    <i class="material-icons-outlined user-icon" onclick="toggleUserMenu()">account_circle</i>
+</div>
 <div class="nav-vertical user-menu">
     <ul>
         <?php foreach($navi as $n) echo $n; ?>

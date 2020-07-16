@@ -145,7 +145,7 @@ class StateUsersController extends AppController
                 $communityUsers->where(['OR' => [
                   'first_name LIKE' => $globalSearch,
                   'last_name  LIKE' => $globalSearch,
-                  'username   LIKE' => $globalSearch,
+                  //'username   LIKE' => $globalSearch,
                   'email      LIKE' => $globalSearch
                 ]]);
 
@@ -183,7 +183,7 @@ class StateUsersController extends AppController
                             $finalUser['name'] = $c_user->first_name . ' ' . $c_user->last_name;
                             $finalUser['first_name'] = $c_user->first_name;
                             $finalUser['last_name'] = $c_user->last_name;
-                            $finalUser['username'] = $c_user->username;
+                            //$finalUser['username'] = $c_user->username;
                             $finalUser['email'] = $c_user->email;
                         }
                     } elseif (count($user['login']) == 1) {
@@ -205,7 +205,7 @@ class StateUsersController extends AppController
                         $finalUser['name'] = $l_user['first_name'] . ' ' . $l_user['last_name'];
                         $finalUser['first_name'] = $l_user['first_name'];
                         $finalUser['last_name'] = $l_user['last_name'];
-                        $finalUser['username'] = $l_user['username'];
+                        //$finalUser['username'] = $l_user['username'];
                         $finalUser['email'] = $l_user['email'];
                         $finalUser['created'] =  new FrozenTime($l_user['created']);
                     } else {
@@ -232,7 +232,7 @@ class StateUsersController extends AppController
                     $finalUser['name'] = $user['first_name'] . ' ' . $user['last_name'];
                     $finalUser['first_name'] = $user['first_name'];
                     $finalUser['last_name'] = $user['last_name'];
-                    $finalUser['username'] = $user['username'];
+                    //$finalUser['username'] = $user['username'];
                     $finalUser['email'] = $user['email'];
                     $finalUser['created'] = new FrozenTime($user['created']);
                     $finalUser['indicator'] = ['name' => $state, 'color' => $color];

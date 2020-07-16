@@ -18,6 +18,10 @@ $this->loadHelper('Form', [
       <?= $this->Form->control('first_name', ['label' => __('Vorname'), 'placeholder' => 'Vorname', 'value' => $user['first_name']]) ?>
       <?= $this->Form->control('last_name', ['label' => __('Nachname'), 'placeholder' => 'Nachname', 'value' => $user['last_name']]) ?>
       <?= $this->Form->control('profile_img', ['type' => 'file', 'accept' => 'image/*', 'label' => __('Profilbild')]) ?>
+      <?php if ($communityProfile['profile_img']) : ?>
+        <label class="form-label">&nbsp;</label>
+        <div><img class="edit-profile-img" src="data:image/*;base64,<?=base64_encode($communityProfile['profile_img'])?>"/></div>
+      <?php endif; ?>
       <?= $this->Form->control('profile_desc', ['label' => __('Beschreibung'), 'rows' => 4, 'placeholder' => 'Beschreibung', 'value' => $communityProfile['profile_desc']]) ?>
       <?= $this->Form->button(__('Daten speichern'), ['name' => 'submit', 'class' => 'form-button']) ?>
     <?= $this->Form->end() ?>

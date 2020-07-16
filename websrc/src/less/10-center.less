@@ -88,8 +88,11 @@
 
   /* Top Info Above Main */
   .info-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
     max-width: 70%;
-    padding: .5em 25px;
+    padding: 1em 25px;
   }
 
   @media @tablet-down {
@@ -148,6 +151,7 @@
   .content-region h3 {
     color: @container-header;
   }
+
   .content-region {
     border-bottom: 1px dashed @light;
     padding: 0 25px;
@@ -173,6 +177,18 @@
 
   .info-item {
     border-left: 2px solid @info-item-border;
+  }
+
+  .inline-header {
+    display: inline;
+  }
+
+  .show-profile-img {
+    display: block;
+    height: 100px;
+    vertical-align: middle;
+    border-radius: 10px;
+    border: 2px dotted @info-background;
   }
 
   @media @tablet-down {

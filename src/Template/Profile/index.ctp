@@ -5,11 +5,19 @@ use Cake\Routing\Router;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+$header = '<div>';
+$header .= '<h1 class="inline-header">'.$user['first_name'] . '&nbsp;' . $user['last_name'] . '</h1>';
+if (!empty($communityProfile['profile_desc'])) {
+  $header .= "<p>".$communityProfile['profile_desc']."</p>";
+}
+$header .= '</div>';
+if ($communityProfile && $communityProfile['profile_img']) {
+  $header .= "<div><img
+        class='show-profile-img'
+        src='data:image/*;base64,".base64_encode($communityProfile['profile_img'])."'/></div>";
+}
 $this->assign('title', __('Mein Profil'));
-$this->assign(
-  'header',
-  '<h1>'.__('Profil') . ' von: ' . $user['first_name'] . '&nbsp;' . $user['last_name'] . '</h1>'
-);
+$this->assign('header', $header);
 ?>
 <?php if(isset($requestTime)) : ?>
 <span><?= round($requestTime * 1000.0) ?> ms</span>
@@ -32,10 +40,6 @@ $this->assign(
       <li class="fact">
         <span class="fact label">Nachname:</span>
         <span class="fact"><?=$user['last_name']?></span>
-      </li>
-      <li class="fact">
-        <span class="fact label">Beschreibung:</span>
-        <span class="fact"><?=$communityProfile['profile_desc']?></span>
       </li>
       <li class="fact">
         <span class="fact label"></span>

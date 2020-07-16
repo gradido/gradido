@@ -11,42 +11,40 @@
 @media screen {
   .header-user {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    align-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    align-content: flex-end;
+    width: 100%;
+    min-width: 12em;
     background-color: @container-background;
     border: 1px solid @menu-border-color;
-    padding: .75em;
     border-radius: 0 0 0 18px;
-    z-index: 2;
   }
 
-  .user-name {
-    display: block;
+  .user-menu-container {
     font-size: .8em;
     font-weight: 300;
-    line-height: 1em;
-    text-align: right;
-    padding-right: .25em;
+    margin: auto;
+    padding: .25em 1em;
+    z-index: 20;
   }
 
   .user-icon {
-    display: block;
+    display: inline-block;
+    vertical-align: center;
     cursor: pointer;
   }
 
   .nav-vertical.user-menu {
-    position: fixed;
     display: none;
-    top: 25px;
-    right: 0;
     background-color: @container-background;
     border-left: 1px solid @menu-border-color;
     border-bottom: 1px solid @menu-border-color;
     border-radius: 0 0 16px 16px;
-    z-index: -1;
-    margin-top: 1em;
+    z-index: 15;
     font-size: .9em;
+    margin-top: 0 !important;
   }
 
   .nav-vertical.user-menu.visible {
@@ -73,17 +71,25 @@
   .material-icons-outlined.user-info {
     color: @unobtrusive;
   }
+
   .material-icons-outlined.user-info.success {
     color: @success;
   }
 
   @media @tablet-down {
     .header-user {
-      align-items: flex-start;
-      align-content: flex-start;
+      position: relative;
+      min-width: 3em;
       background-color: transparent;
-      padding: .75em;
-      z-index: 15;
+      justify-content: center;
+      margin-top: -4px;
+      margin-left: -16px;
+      color: @action-button-background1;
+    }
+
+    .user-menu-container {
+      margin: 0;
+      padding: 0;
     }
 
     .user-name {
@@ -95,7 +101,9 @@
     }
 
     .nav-vertical.user-menu {
+      position: fixed;
       top: 1px;
+      right: 0;
       margin-top: 0;
     }
 
