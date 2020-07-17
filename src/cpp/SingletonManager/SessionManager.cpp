@@ -362,6 +362,7 @@ Session* SessionManager::findByEmailVerificationCode(const Poco::UInt64& emailVe
 Session* SessionManager::findByUserId(int userId)
 {
 	assert(userId > 0);
+	static const char* function_name = "SessionManager::findByUserId";
 	try {
 		Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 	}
@@ -372,8 +373,21 @@ Session* SessionManager::findByUserId(int userId)
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		auto user = it->second->getNewUser();
+		auto em = ErrorManager::getInstance();
 		if(!user) continue;
-		assert(user->getModel() && user->getModel()->getID());
+		if (!user->getModel()) {
+			em->addError(new Error(function_name, "user getModel return nullptr"));
+			em->addError(new ParamError(function_name, "user id: ", userId));
+			em->sendErrorsAsEmail();
+			continue;
+		}
+		if (!user->getModel->getID()) {
+			em->addError(new Error(function_name, "user id is zero"));
+			em->addError(new ParamError(function_name, "user id: ", userId));
+			em->sendErrorsAsEmail();
+			continue;
+		}
+		//assert(user->getModel() && user->getModel()->getID());
 		if (userId == user->getModel()->getID()) {
 			return it->second;
 		}
