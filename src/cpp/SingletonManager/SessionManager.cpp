@@ -381,7 +381,7 @@ Session* SessionManager::findByUserId(int userId)
 			em->sendErrorsAsEmail();
 			continue;
 		}
-		if (!user->getModel->getID()) {
+		if (!user->getModel()->getID()) {
 			em->addError(new Error(function_name, "user id is zero"));
 			em->addError(new ParamError(function_name, "user id: ", userId));
 			em->sendErrorsAsEmail();
