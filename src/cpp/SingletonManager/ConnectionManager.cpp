@@ -56,10 +56,28 @@ bool ConnectionManager::setConnectionsFromConfig(const Poco::Util::LayeredConfig
 	dbConfig << "db=" << dbName << ";";
 	dbConfig << "user=" << config.getString(firstKeyPart + ".db.user", "root") << ";";
 	dbConfig << "password=" << config.getString(firstKeyPart + ".db.password", "") << ";";
-	dbConfig << "auto-reconnect=true";
+	dbConfig << "auto-reconnect=false";
 
 	setConnection(dbConfig.str(), type);
 
 	return true;
 
+}
+
+Poco::Data::Session ConnectionManager::getConnection(ConnectionType type) 
+{
+	Poco::ScopedLock<Poco::FastMutex> _lock(mWorkingMutex);
+
+	if (CONNECTION_MYSQL_LOGIN_SERVER != type && CONNECTION_MYSQL_PHP_SERVER != type) {
+		addError(new ParamError("[ConnectionManager::getConnection]", "Connection Type unknown", std::to_string(type)));
+		throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
+	}
+	auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
+	if (!session.isConnected()) {
+		printf("reconnect called\n");
+		session.reconnect();
+	}
+	//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+	//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
+	return session;
 }

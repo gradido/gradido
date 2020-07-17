@@ -35,18 +35,10 @@ public:
 		}
 	}
 
-	inline Poco::Data::Session getConnection(ConnectionType type) {
-		Poco::ScopedLock<Poco::FastMutex> _lock(mWorkingMutex);
-		
-		if (CONNECTION_MYSQL_LOGIN_SERVER != type && CONNECTION_MYSQL_PHP_SERVER != type) {
-			addError(new ParamError("[ConnectionManager::getConnection]", "Connection Type unknown", std::to_string(type)));
-			throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
-		}
-		auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
-		//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
-		return session;
-	}
+	//! \brief return connection from pool, check if connected in if not, call reconnect on it
+	//! 
+	//! In the past I used auto-reconnect but it didn't work everytime as expectet
+	Poco::Data::Session getConnection(ConnectionType type);
 
 protected:
 	ConnectionManager();
