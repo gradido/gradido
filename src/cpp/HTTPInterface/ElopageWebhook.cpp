@@ -35,7 +35,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 
 	// don't use it anymore, register now direct 
 	// elopage request are only logged from gpt server
-	return;
+	//return;
 
 	std::istream& stream = request.stream();
 	std::string completeRequest;
@@ -368,7 +368,7 @@ int HandleElopageRequestTask::run()
 		}
 
 		// email verification code
-		auto emailVerification = controller::EmailVerificationCode::create(user_id);
+		auto emailVerification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 		//Poco::AutoPtr<model::table::EmailOptIn> emailVerification(new model::table::EmailOptIn(user_id));
 
 		// create email verification code
