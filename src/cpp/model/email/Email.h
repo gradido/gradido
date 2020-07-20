@@ -50,10 +50,12 @@ namespace model {
 
 		static EmailType convertTypeFromInt(int type);
 		inline EmailType getType() { return mType; }
+		static const char* emailTypeString(EmailType type);
 		inline controller::User* getUser() { if (!mUser.isNull()) return mUser.get(); return nullptr; }
 
 		virtual bool draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog);
 		inline void addContent(Poco::Net::StringPartSource* str_content) { mAdditionalStringPartSrcs.push(str_content); }
+
 
 	protected:
 		std::string replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link);

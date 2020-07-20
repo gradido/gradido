@@ -348,4 +348,40 @@ Gradido Login-Server\n\
 		}
 		return (EmailType)type;
 	}
+
+	/*
+	EMAIL_DEFAULT,
+	EMAIL_ERROR,
+	EMAIL_USER_VERIFICATION_CODE,
+	EMAIL_USER_VERIFICATION_CODE_RESEND,
+	EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME,
+	EMAIL_ADMIN_USER_VERIFICATION_CODE,
+	EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND,
+	EMAIL_USER_RESET_PASSWORD,
+	EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE,
+	EMAIL_NOTIFICATION_TRANSACTION_CREATION,
+	EMAIL_NOTIFICATION_TRANSACTION_TRANSFER,
+	EMAIL_USER_REGISTER_OLD_ELOPAGE,
+	EMAIL_MAX
+	*/
+	const char* Email::emailTypeString(EmailType type)
+	{
+		switch (type) {
+		case EMAIL_DEFAULT: return "default";
+		case EMAIL_ERROR: return "error";
+		case EMAIL_USER_VERIFICATION_CODE: return "email user verification code";
+		case EMAIL_USER_VERIFICATION_CODE_RESEND: return "email user verification code resend";
+		case EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME: return "email user verification code resend after long time";
+		case EMAIL_ADMIN_USER_VERIFICATION_CODE: return "email admin user verification code";
+		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND: return "email admin user verification code resend";
+		case EMAIL_USER_RESET_PASSWORD: return "user reset Password";
+		case EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE: return "user reset password without memorized passphrase";
+		case EMAIL_NOTIFICATION_TRANSACTION_CREATION: return "email notification transaction creation";
+		case EMAIL_NOTIFICATION_TRANSACTION_TRANSFER: return "email notification transaction transfer";
+		case EMAIL_USER_REGISTER_OLD_ELOPAGE: return "user register automatic throw elopage";
+		case EMAIL_MAX: return "<last entry, invalid>";
+
+		}
+		return "<unknown>";
+	}
 }

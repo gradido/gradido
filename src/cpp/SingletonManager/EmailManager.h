@@ -30,10 +30,7 @@ public:
 	inline const std::string& getAdminReceiver() { return mEmailAccount.admin_receiver; }
 
 	//! \brief call delete on email after sending it
-	inline void addEmail(model::Email* email) {
-		if (mDisableEmail) { delete email; return; }
-		mPendingEmails.push(email); condSignal();
-	}
+	void addEmail(model::Email* email);
 	
 protected:
 	EmailManager();
@@ -49,6 +46,7 @@ protected:
 		std::string url;
 		int port;
 	};
+	Poco::Logger& mEmailLog;
 	EmailAccount mEmailAccount;
 
 	bool mInitalized;

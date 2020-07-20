@@ -11,7 +11,7 @@
 
 
 EmailManager::EmailManager()
-	: Thread("emails", false), mInitalized(false), mDisableEmail(false)
+	: Thread("emails", false), mEmailLog(Poco::Logger::get("emailLog")), mInitalized(false), mDisableEmail(false)
 {
 
 
@@ -53,6 +53,26 @@ bool EmailManager::init(const Poco::Util::LayeredConfiguration& cfg)
 	ServerConfig::g_ServerKeySeed->put(3, DRRandom::r64());
 
 	return true;
+}
+
+void EmailManager::addEmail(model::Email* email) {
+	if (mDisableEmail) { 
+		std::string log_message = "Email should be sended to: ";
+		auto email_user = email->getUser();
+		if (email_user && email_user->getModel()) {
+			log_message += email_user->getModel()->getNameWithEmailHtml();
+		}
+		else {
+			log_message += "<missing>";
+		}
+		log_message += ", type: ";
+		log_message += model::Email::emailTypeString(email->getType());
+		mEmailLog.log(log_message);
+		delete email; 
+		return; 
+	}
+	mPendingEmails.push(email); 
+	condSignal();
 }
 
 void EmailManager::exit()
@@ -113,8 +133,19 @@ int EmailManager::ThreadFunction()
 				mailClientSession.sendMessage(mailMessage);
 				// add for debugging
 				if (email->getUser()) {
+					//printf("send email to %s\n", user_model->getEmail().data());
 					auto user_model = email->getUser()->getModel();
-					printf("send email to %s\n", user_model->getEmail().data());
+					std::string log_message = "Email sended to: ";
+					auto email_user = email->getUser();
+					if (user_model) {
+						log_message += email_user->getModel()->getNameWithEmailHtml();
+					}
+					else {
+						log_message += "<missing>";
+					}
+					log_message += ", type: ";
+					log_message += model::Email::emailTypeString(email->getType());
+					mEmailLog.log(log_message);
 				}
 			}
 			else {

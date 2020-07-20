@@ -130,6 +130,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		createConsoleFileAsyncLogger("errorLog", log_Path + "errorLog.txt");
 		Poco::Logger& errorLog = Poco::Logger::get("errorLog");
 
+		createConsoleFileAsyncLogger("emailLog", log_Path + "emailLog.txt");
+
 		// *************** load from config ********************************************
 
 		std::string cfg_Path = Poco::Path::config() + "grd_login/";
