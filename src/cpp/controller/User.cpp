@@ -326,7 +326,7 @@ namespace controller {
 
 	int User::checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer)
 	{
-		return 0;
+		
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
 		static const char* function_name = "User::checkIfVerificationEmailsShouldBeResend";
@@ -366,6 +366,7 @@ namespace controller {
 			int scheduledResendTask = 0;
 			// results sorted by user_id
 			//printf("results count: %d\n", results.size());
+
 			for (auto it = results.begin(); it != results.end(); it++) {
 				auto user_id = it->get<0>();
 				auto created = it->get<1>();
@@ -396,6 +397,7 @@ namespace controller {
 					count_scheduled++;
 					scheduledResendTask |= 2;
 				}
+				//if(count_scheduled_at_once > )
 			}
 			if (count_scheduled_at_once) printf("scheduled %d verification email resend at once\n", count_scheduled_at_once);
 			if (count_scheduled) printf("scheduled %d verification email resend in the next 7 days\n", count_scheduled);
