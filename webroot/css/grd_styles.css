@@ -209,7 +209,7 @@
     color: #212529;
     background-color: #f9fafb;
     margin: 0;
-    overflow: hidden;
+    overflow: auto;
   }
   div {
     border-collapse: collapse;
