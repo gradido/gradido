@@ -11,8 +11,8 @@
 @media screen {
 
   /* =========
-      CONTENT
-     =========*/
+    CONTENT
+   =========*/
   .content-default {
     display: flex;
     justify-content: center;
@@ -94,9 +94,11 @@
     padding: 1em 25px;
   }
 
-  @media @tablet-down {
+  @media @wide-screen-down {
     .info-container {
+      flex-direction: column;
       max-width: 90%;
+      line-height: .25em;
     }
 
   }

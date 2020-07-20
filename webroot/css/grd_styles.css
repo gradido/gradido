@@ -1013,8 +1013,8 @@ and open the template in the editor.
    ============================================================*/
 @media screen {
   /* =========
-      CONTENT
-     =========*/
+    CONTENT
+   =========*/
   .content-default {
     display: flex;
     justify-content: center;
@@ -1162,9 +1162,11 @@ and open the template in the editor.
     justify-content: center;
   }
 }
-@media screen and (max-width:767px) {
+@media screen and (max-width:1199px) {
   .info-container {
+    flex-direction: column;
     max-width: 90%;
+    line-height: 0.25em;
   }
 }
 @media screen and (max-width:767px) {
