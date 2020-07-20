@@ -60,10 +60,12 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 
 		//printf("c[Mnemonic::%s] uncompressing success\n", __FUNCTION__);
 		// fill words in array and hashList
-
-		//FILE* f = fopen("uncompressed_buffer", "a");
-		//fwrite(uncompressed_buffer, sizeof(char), original_size, f);
-		//fclose(f);
+		std::string uncompressed_file_name = "uncompressed_buffer";
+		uncompressed_file_name += std::to_string(original_size);
+		uncompressed_file_name += ".txt";
+		FILE* f = fopen(uncompressed_file_name.data(), "w");
+		fwrite(uncompressed_buffer, sizeof(char), original_size, f);
+		fclose(f);
 
 		unsigned short cursor = 0;
 		u32 word_begin = 0, word_end = 0;
@@ -89,8 +91,8 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 					printf("word_end: %d, word_begin: %d, part: %s\n", word_end, word_begin, acBuffer);
 				}
 				if (word_end < word_begin) {
-					//printf("%c %c %c\n", uncompressed_buffer[i - 1], uncompressed_buffer[i], uncompressed_buffer[i + 1]);
-					//printf("%s\n", uncompressed_buffer);
+					printf("%c %c %c\n", uncompressed_buffer[i - 1], uncompressed_buffer[i], uncompressed_buffer[i + 1]);
+					printf("%s\n", uncompressed_buffer);
 					continue;
 				}
 				if (uncompressed_buffer[i] != ',') {
@@ -243,13 +245,23 @@ void Mnemonic::clear()
 	mHashCollisionWords.clear();
 }
 
+#include "Poco/RegularExpression.h"
+
 std::string Mnemonic::getCompleteWordList()
 {
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	std::string result("");
+	//std::string toReplaced[] = { "auml", "ouml", "uuml", "Auml", "Ouml", "Uuml", "szlig" };
+	Poco::RegularExpression toReplaced[] = { "&auml;", "&ouml;", "&uuml;", "&Auml;", "&Ouml;", "&Uuml;", "&szlig;" };
+	std::string replaceStrings[] = { "ä", "ö", "ü", "Ä", "Ö", "Ü", "ß" };
 	for (int i = 0; i < 2048; i++) {
 		if (mWords[i]) {
-			result += std::to_string(i) + ": " + mWords[i] + "\n";
+			std::string word = mWords[i];
+			for (int s = 0; s < 7; s++) {
+				toReplaced[s].subst(word, replaceStrings[s], Poco::RegularExpression::RE_GLOBAL);
+			}
+		
+			result += std::to_string(i) + ": " + word + "\n";
 		}
 		else {
 			result += std::to_string(i) + ": <word empty>\n";
@@ -258,11 +270,43 @@ std::string Mnemonic::getCompleteWordList()
 	return result;
 }
 
+std::string Mnemonic::getCompleteWordListSorted()
+{
+	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
+	std::string result("");
+	
+	std::list<std::string> words;
+	for (int i = 0; i < 2048; i++) {
+		if (mWords[i]) {
+			words.push_back(mWords[i]);
+		}
+		else {
+			printf("missing word on %d\n", i);
+		}
+	}
+	words.sort();
+
+	//std::string toReplaced[] = { "auml", "ouml", "uuml", "Auml", "Ouml", "Uuml", "szlig" };
+	Poco::RegularExpression toReplaced[] = { "&auml;", "&ouml;", "&uuml;", "&Auml;", "&Ouml;", "&Uuml;", "&szlig;" };
+	std::string replaceStrings[] = { "ä", "ö", "ü", "Ä", "Ö", "Ü", "ß" };
+	int i = 0;
+	for(auto it = words.begin(); it != words.end(); it++) {
+		std::string word = *it;
+		for (int s = 0; s < 7; s++) {
+			toReplaced[s].subst(word, replaceStrings[s], Poco::RegularExpression::RE_GLOBAL);
+		}
+
+		result += std::to_string(i) + ": " + word + "\n";
+		i++;
+	}
+	return result;
+}
+
 void Mnemonic::printToFile(const char* filename)
 {
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	FILE* f = fopen(filename, "wt");
-	auto words = getCompleteWordList();
+	auto words = getCompleteWordListSorted();
 	fwrite(words.data(), 1, words.size(), f);
 	fclose(f);
 }

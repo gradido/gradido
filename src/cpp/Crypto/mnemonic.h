@@ -39,6 +39,8 @@ public:
 	// using only for debugging
 	std::string getCompleteWordList();
 
+	std::string getCompleteWordListSorted();
+
 	Poco::JSON::Array getSortedWordList();
 
 	void printToFile(const char* filename);
