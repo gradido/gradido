@@ -97,6 +97,13 @@ and open the template in the editor.
     background-color: @badge-background-error;
   }
 
+  .form-full-width {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    display: flex;
+    flex-direction: column;
+  }
+
   .form-button {
     cursor: pointer;
     font: 600 13.3333px Arial;
@@ -156,6 +163,36 @@ and open the template in the editor.
 
   .edit-profile-img {
     width: 100px;
+  }
+
+  .note-smaller {
+    font-size: smaller;
+  }
+
+  .form-row,
+  .grid-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    -webkit-transition-duration: .5s;
+    transition-duration: .5s;
+  }
+
+  @media @tablet-down {
+    .grid-row {
+      flex-direction: column;
+    }
+
+  }
+
+  .form-row {
+    border-top: 1px solid #f2f4f9;
+  }
+
+  .form-row:hover {
+    background-color: #f6f7f9;
   }
 
   /* CENTER FORM SPECIFICS */

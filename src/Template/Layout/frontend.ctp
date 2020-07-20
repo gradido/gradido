@@ -74,13 +74,13 @@ $GLOBALS["self"] = $this;
         </ul>
       </div>
     </div>
-    <div class="content">
-      <div class="nav-content">
-        <div class="flash-messages" onclick="this.classList.add('hidden')">
-          <?= $this->Flash->render() ?>
-        </div>
-        <?= $this->element('navi_center'); ?>
+    <div class="nav-content">
+      <div class="flash-messages" onclick="this.classList.add('hidden')">
+        <?= $this->Flash->render() ?>
       </div>
+      <?= $this->element('navi_center'); ?>
+    </div>
+    <div class="content">
       <?php if ($this->fetch('header')): ?>
       <div class="content-container info-container">
         <?= $this->fetch('header') ?>

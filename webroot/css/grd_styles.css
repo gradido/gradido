@@ -1,0 +1,1772 @@
+/* ============================================================
+
+  Grid Layout Page
+
+  Datei     :   layout.less
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+/*====================================
+=            BREAK POINTS            =
+====================================*/
+/* https://scotch.io/courses/getting-started-with-less/responsive-and-media-queries */
+/* GRID */
+.layout {
+  display: grid;
+  grid-template-rows: [top] 8vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
+  grid-template-columns: [left1] auto [left2] 1fr [left3] 12fr [right3] 1fr [right2] auto [right1];
+  grid-template-areas: "header header header header header" "left . center center ." "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
+  margin: 0;
+  padding: 0;
+}
+@media (max-width:1199px) {
+  .layout {
+    grid-template-areas: "header header header header header" "left . center center center" "footer footer footer footer footer" "bottom bottom bottom bottom bottom";
+  }
+}
+@media (max-width:767px) {
+  .layout {
+    position: relative;
+    display: grid;
+    grid-template-rows: [top] 12vh [line2] 80vh [footer1] 3vh [footer2] 8vh [end];
+    grid-template-columns: [left1] 100vw [right1];
+    grid-template-areas: "header" "center" "footer" "bottom";
+    margin: 0;
+    padding: 0;
+  }
+}
+.header-notify {
+  grid-area: header;
+  grid-column-start: right3;
+  grid-column-end: right2;
+}
+.header-user {
+  grid-area: header;
+  grid-column-start: right2;
+  grid-column-end: right1;
+}
+.sidebar1 {
+  grid-area: left;
+  grid-row-start: top;
+  grid-row-end: end;
+}
+@media (max-width:767px) {
+  .sidebar1 {
+    position: relative;
+    grid-area: header;
+    z-index: 2;
+    top: -300px;
+    right: 0px;
+  }
+  .header-user,
+  .header-notify {
+    grid-area: header;
+  }
+}
+.center-form-single,
+.content {
+  grid-area: center;
+  grid-row-start: line2;
+  grid-row-end: footer1;
+}
+.footer {
+  grid-area: footer;
+  grid-row-start: footer1;
+  grid-row-end: footer2;
+}
+.nav-bottom {
+  grid-area: bottom;
+  grid-row-start: footer2;
+  grid-row-end: end;
+}
+/* ============================================================
+
+  Generic Color Definitions
+
+  Vars and some generic CSS rules.
+
+  Datei     :   colors.less
+  Datum     :   2020-05-26
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+/* MAIN */
+/* MENU */
+/* CONTENT */
+/* CONTENT-NAV */
+/* CONTENT-ITEMS */
+/* CONTENT-TABLE */
+/* FORMS */
+/* VARIOUS INDIVIDUAL */
+/* XXX TODO XXX */
+/*rgba(0, 0, 0, 0.5) ??? */
+/* NOTIFICATION */
+/* https://www.w3schools.com/colors/colors_shades.asp */
+.info-color {
+  color: grey;
+}
+.success-color {
+  color: #047006;
+}
+.alert-color {
+  color: #ff5f66;
+}
+.orange-color {
+  color: #ffa600;
+}
+.blue-color {
+  color: blue;
+}
+.unobtrusive {
+  color: grey;
+}
+.info-icon {
+  color: grey;
+  background-color: #80808026;
+}
+.success-icon {
+  color: #047006;
+  background-color: rgba(4, 112, 6, 0.2);
+}
+.alert-icon {
+  color: #ff5f66;
+  background-color: #ff5f662e;
+}
+/* =======================
+    Gradido
+   =======================*/
+/* Gradido */
+.grd-negative-currency {
+  color: red;
+}
+/* Gradido Transform */
+.gdt-text-color {
+  color: #a27824;
+}
+.grd_clickable {
+  cursor: pointer;
+}
+/* ============================================================
+
+  Typography Definitions
+
+  Datei     :   typography.less
+  Datum     :   2020-05-26
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+.small-font {
+  font-size: 0.75em;
+  font-weight: 300;
+}
+/* ============================================================
+
+  Basic screen styles.
+
+  Datei     :   screen.less
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@font-face {
+  font-family: 'Material Icons Outlined';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.eot);
+  /* For IE6-8 */
+  src: local('Material Icons Outlined'), local('Material-Icons-Outlined'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.woff2) format('woff2'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.woff) format('woff'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.ttf) format('truetype');
+}
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  vertical-align: middle;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+@media screen {
+  /* =======================
+        Basis
+       =======================*/
+  html,
+  body {
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    line-height: 27px;
+    color: #212529;
+    background-color: #f9fafb;
+    margin: 0;
+    overflow: hidden;
+  }
+  div {
+    border-collapse: collapse;
+    box-sizing: border-box;
+  }
+  /* =======================
+        Kopfbereich
+       =======================*/
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: flex-grow;
+    width: 100%;
+    padding: 1em;
+    background-color: #fff;
+  }
+  /* =======================
+        Fußbereich
+       =======================*/
+  .footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 70%;
+    font-style: italic;
+    line-height: 0;
+  }
+  .bottomright {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    color: grey;
+    font-size: smaller;
+    line-height: 0.125em;
+    padding-right: 0.25em;
+    text-align: right;
+  }
+  .bottomleft {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    color: grey;
+    font-size: smaller;
+    line-height: 1.125em;
+    padding-left: 0.25em;
+  }
+  /* =======================
+        Sonstige
+       =======================*/
+  /* Hyperlinks */
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  main a {
+    text-decoration: underline;
+    font-style: italic;
+  }
+  a:link,
+  a:visited {
+    color: inherit;
+  }
+  a:hover,
+  a:focus {
+    text-decoration: underline;
+  }
+  a:active {
+    background-color: #fff;
+    color: #000;
+  }
+  a:focus,
+  a:active {
+    outline: none;
+  }
+  a.grd_invisible_link {
+    color: #000;
+    text-decoration: none;
+  }
+  a.grd_invisible_link:hover {
+    color: grey;
+  }
+  [type=button]:not(:disabled),
+  [type=reset]:not(:disabled),
+  [type=submit]:not(:disabled),
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
+@media screen and (max-width:767px) {
+  .bottomright {
+    font-size: 0.7em;
+    font-weight: 300;
+    line-height: 1em;
+    width: 100px;
+  }
+  .bottomright p {
+    margin-block-start: 0;
+    margin-block-end: 2px;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+  }
+}
+/* Ende @media screen */
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* ============================================================
+
+  Screen styles for flash messages.
+
+  Datei     :   messages.css
+  Datum     :   30.10.2019, 16:04:16
+  Autor     :   einhornimmond, Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .flash-messages {
+    width: 30%;
+    position: absolute;
+    top: 57px;
+    left: 241px;
+    text-align: center;
+  }
+  .flash-messages .alert {
+    margin: 0;
+    padding: 1em;
+    vertical-align: middle;
+    border-radius: 5px;
+  }
+  .flash-messages .alert-success {
+    color: #1A1A1A !important;
+    background-color: #06c50a;
+    border: 1px solid #04700675;
+  }
+  .flash-messages .alert-error {
+    color: #fff !important;
+    background-color: red;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+  }
+  .flash-messages .message {
+    padding: 5px;
+  }
+  .flash-messages .success {
+    color: #047006;
+  }
+  .flash-messages .error {
+    color: red;
+  }
+  .flash-messages.hidden {
+    display: none;
+  }
+  /* messages, update flash */
+  .grd-error {
+    color: red;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+    padding: 5px;
+  }
+  .grd-info {
+    border: 1px dotted gray;
+    padding: 5px;
+  }
+  .grd-success {
+    padding: 5px;
+    color: #047006;
+  }
+}
+@media screen and (max-width:767px) {
+  .flash-messages {
+    width: 90%;
+    top: 0;
+    left: 0;
+    text-align: center;
+  }
+}
+/* ============================================================
+
+  User Menu
+
+  Datei     :   user.less
+  Datum     :   2020-07-03
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .header-user {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    align-content: flex-end;
+    position: relative;
+    width: 100%;
+    min-width: 12em;
+    height: 40px;
+    background-color: #fff;
+    border: 1px solid #f2f4f5;
+    border-radius: 0 0 0 18px;
+  }
+  .user-menu-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 0.8em;
+    font-weight: 300;
+    padding: 0.25em 0.5em;
+    z-index: 20;
+    height: 40px;
+  }
+  .user-name,
+  .user-icon {
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  .user-name {
+    padding-right: 0.25em;
+  }
+  .nav-vertical.user-menu {
+    display: none;
+    background-color: #fff;
+    border-left: 1px solid #f2f4f5;
+    border-bottom: 1px solid #f2f4f5;
+    border-radius: 0 0 16px 16px;
+    z-index: 15;
+    font-size: 0.9em;
+    margin-top: 0 !important;
+    position: fixed;
+    top: 39px;
+    right: 0;
+  }
+  .nav-vertical.user-menu.visible {
+    display: inherit;
+  }
+  .nav-vertical.user-menu > ul {
+    padding: 2em;
+    padding-top: 0.5em;
+    padding-bottom: 1em;
+    margin-block-end: 0;
+    margin-block-start: 0;
+  }
+  .nav-vertical.user-menu li {
+    padding: 0.0125em;
+  }
+  .nav-top > ul {
+    padding: 0;
+    padding-right: 2em;
+  }
+  .material-icons-outlined.user-info {
+    color: grey;
+  }
+  .material-icons-outlined.user-info.success {
+    color: #047006;
+  }
+}
+@media screen and (max-width:767px) {
+  .header-user {
+    position: relative;
+    min-width: 3em;
+    background-color: transparent;
+    justify-content: center;
+    height: 100%;
+    margin-top: -13px;
+    margin-left: -16px;
+    color: #047006;
+  }
+  .user-menu-container {
+    margin: 0;
+    padding: 0;
+  }
+  .user-name {
+    display: none;
+  }
+  .nav-vertical {
+    margin-top: 55px;
+  }
+  .nav-vertical.user-menu {
+    position: fixed;
+    top: 1px;
+    right: 0;
+    margin-top: 0;
+  }
+  .nav-vertical.user-menu > ul {
+    padding: 1em 1em;
+    padding-top: 3em;
+  }
+}
+/* ============================================================
+
+  Navigation
+
+  Datei     :   navi.less
+  Datum     :   2020-04-30
+  Autor     :   einhornimmond / Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .logo {
+    display: none;
+    vertical-align: middle;
+    height: 30px;
+    padding: 0.5em;
+  }
+  .logo.big.visible,
+  .logo.small.visible {
+    display: block !important;
+  }
+  .logo.mobile {
+    display: none;
+  }
+  .logo.small.visible {
+    padding-left: 41px;
+  }
+  /*
+    SIDEBARS
+  */
+  .sidebar1 {
+    background-color: #fff;
+    font-size: 0.8em;
+    font-weight: 500;
+    line-height: 2.5em;
+    padding: 0;
+    border-right: 1px solid #f2f4f5;
+  }
+  .sidebar2 {
+    padding: 1em;
+    background-color: #f9fafb;
+  }
+  .sidebar1-header {
+    font-size: 0.75em;
+    font-style: italic;
+    color: grey;
+  }
+  /* set general icons size here! */
+  .nav-icon {
+    font-size: 18px !important;
+    color: #4F4F4F;
+    vertical-align: middle;
+    padding-right: 1em;
+  }
+  /* important! order matters! we need to overwrite the main button's size here */
+  .nav-main-button {
+    font-size: 32px !important;
+    color: grey;
+    margin: 0.3em;
+  }
+  /* Hide mobile menu button! */
+  .nav-main-button.mobile {
+    display: none;
+  }
+  .nav-menu.nav-menu-maximized {
+    width: 280px;
+    height: 100%;
+  }
+  .nav-menu.nav-menu-minimized {
+    width: 120px;
+    height: 100%;
+  }
+  .nav-menu-maximized {
+    -webkit-animation: slide-out 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-out 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .nav-menu-minimized {
+    -webkit-animation: slide-in 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-in 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .nav-menu-minimized .link-title {
+    display: none;
+  }
+  .nav-menu-minimized .nav-icon,
+  .nav-menu-minimized .nav-main-button {
+    padding-left: 72px;
+  }
+  /**
+   * ----------------------------------------
+   * animations  slide-in / slide-out
+   * ----------------------------------------
+   */
+  /* slide-in */
+  @-webkit-keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
+      opacity: 1;
+    }
+  }
+  @keyframes slide-in {
+    0% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
+      opacity: 1;
+    }
+  }
+  /* slide-out */
+  @-webkit-keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
+    }
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out {
+    0% {
+      -webkit-transform: translateX(-74px);
+      transform: translateX(-74px);
+    }
+    100% {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
+  }
+  /*
+    NAVI MOBILE
+  */
+  /* END navi mobile base */
+  .selected {
+    color: #047006;
+  }
+  .link-title {
+    vertical-align: middle;
+    line-height: normal;
+    background-color: transparent;
+  }
+  .nav-horizontal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    list-style-type: none;
+    gap: 5%;
+    padding: 1em;
+  }
+  .footer .nav-horizontal {
+    gap: 0;
+    padding: 0 1em;
+    padding-inline-start: 0 !important;
+  }
+  .nav-top-smaller {
+    margin: 0;
+    padding: 0;
+  }
+  .nav-smaller {
+    justify-content: left;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0;
+  }
+  .nav-smaller li {
+    padding: 0 !important;
+    padding: 0.2em 0.5em !important;
+    border: 1px solid #047006;
+    margin: 0.1em 0.3em;
+    border-radius: 12px;
+  }
+  .nav-smaller .heading {
+    font-weight: bold;
+  }
+  .nav-vertical {
+    margin-top: -2em;
+  }
+  .nav-horizontal li {
+    padding: 0.5em;
+  }
+  .nav-vertical > ul {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    gap: 5%;
+    padding: 1em;
+  }
+  .nav-vertical li {
+    padding: 0.5em;
+  }
+  .nav-top > ul {
+    padding: 0;
+    padding-right: 2em;
+  }
+  .nav-bottom {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+  }
+  .nav-bottom p {
+    font-size: 0.9em;
+    color: grey;
+    margin: 0;
+  }
+  nav.grd-left-bar {
+    position: fixed;
+    top: 80.5px;
+  }
+  nav .grd-nav-bn {
+    width: 100px;
+  }
+  nav ul {
+    margin-top: 0;
+    padding-left: 0;
+  }
+  /* buttons */
+  .grd-nav-bn:hover,
+  .grd-active {
+    background-color: lightgray;
+    border-color: #000;
+  }
+  .grd-nav-bn {
+    padding: 10px;
+    border: 1px solid grey;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    color: grey;
+  }
+  .grd-nav-bn-large {
+    width: 40vw;
+    height: 18vh;
+    font-size: 35px;
+  }
+  a.grd-nav-bn,
+  a.grd-nav-bn:visited {
+    color: #000;
+    text-decoration: none;
+  }
+}
+@media screen and (max-width:767px) {
+  .logo.big,
+  .logo.small {
+    display: none;
+  }
+  .logo.visible {
+    padding: 0 !important;
+  }
+  .logo,
+  .logo.mobile,
+  .logo.mobile.visible {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+  }
+  .logo.big,
+  .logo.big.visible {
+    display: none !important;
+  }
+  .nav-main-button {
+    display: none;
+  }
+  .nav-main-button.mobile {
+    display: block;
+    position: fixed;
+    top: 2px;
+    right: 46px;
+    z-index: 3;
+  }
+  .nav-menu.nav-menu-minimized,
+  .nav-menu.nav-menu-maximized {
+    width: 280px;
+    height: 300px;
+  }
+  .nav-menu-minimized .nav-icon,
+  .nav-menu-minimized .nav-main-button {
+    padding-left: 0;
+  }
+  .nav-menu-maximized {
+    -webkit-animation: slide-down 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-down 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .nav-menu-minimized {
+    -webkit-animation: slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  @-webkit-keyframes slide-down {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateY(300px);
+      transform: translateX(300px);
+      opacity: 1;
+    }
+  }
+  @keyframes slide-down {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translateY(300px);
+      transform: translateY(300px);
+      opacity: 1;
+    }
+  }
+  @-webkit-keyframes slide-up {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+  }
+  @keyframes slide-up {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+  }
+}
+@media screen and (max-width:767px) {
+  .nav-vertical {
+    margin-top: 55px;
+  }
+}
+@media screen and (max-width:767px) {
+  .nav-bottom p {
+    font-size: 0.8em;
+    margin-top: -10px;
+  }
+}
+/* ============================================================
+
+  Notification
+
+  Datei     :   notification.css
+  Datum     :   2020-06-10
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .header-notify {
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+    z-index: 10;
+  }
+  .notify {
+    display: block;
+    padding: 0.5rem 0.3rem;
+    color: #525c5d;
+    animation: blinkingNotifySymbol 1.2s infinite;
+  }
+  .notify-alert {
+    color: #ff5f66;
+    animation: blinkingAlertSymbol 1.2s infinite;
+  }
+  @keyframes blinkingNotifySymbol {
+    0% {
+      color: #525c5d;
+    }
+    49% {
+      color: #525c5d;
+    }
+    60% {
+      color: #525c5d82;
+    }
+    99% {
+      color: #525c5d82;
+    }
+    100% {
+      color: #525c5d;
+    }
+  }
+  @keyframes blinkingAlertSymbol {
+    0% {
+      color: #ff5f66;
+    }
+    49% {
+      color: #ff5f66;
+    }
+    60% {
+      color: #ff5f669e;
+    }
+    99% {
+      color: #ff5f669e;
+    }
+    100% {
+      color: #ff5f66;
+    }
+  }
+  /*
+    .notification-indicator-primary {
+        background: #047006;
+    }
+
+    .notification-indicator-warning {
+        background: #f0825f
+    }
+       .notification-indicator-secondary {
+            background: grey
+        }
+
+        .notification-indicator-secondary:before {
+            content: "";
+            background: rgba(128, 128, 128, .5)
+        }
+
+        .notification-indicator-success {
+            background: #00e093
+        }
+
+        .notification-indicator-success:before {
+            content: "";
+            background: rgba(0, 224, 147, .5)
+        }
+
+        .notification-indicator-info {
+            background: #6c61f6
+        }
+
+        .notification-indicator-info:before {
+            content: "";
+            background: rgba(108, 97, 246, .5)
+        }
+
+
+        .notification-indicator-danger {
+            background: #ff5f66
+        }
+
+        .notification-indicator-danger:before {
+            content: "";
+            background: rgba(255, 95, 102, .5)
+        }
+
+        .notification-indicator-light {
+            background: #dfdfdf
+        }
+
+        .notification-indicator-light:before {
+            content: "";
+            background: rgba(223, 223, 223, .5)
+        }
+
+        .notification-indicator-dark {
+            background: #74767b
+        }
+
+        .notification-indicator-dark:before {
+            content: "";
+            background: rgba(116, 118, 123, .5)
+        }
+
+        .notification-indicator-white {
+            background: #fff
+        }
+
+        .notification-indicator-white:before {
+            content: "";
+            background: rgba(255, 255, 255, .5)
+        }
+    */
+}
+@media screen and (max-width:767px) {
+  .header-notify {
+    justify-content: flex-end;
+    margin-right: 93px;
+    margin-top: 8px;
+  }
+}
+/* ============================================================
+
+  Screen styles for the regular center part.
+
+  Datei     :   center.css
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  /* =========
+      CONTENT
+     =========*/
+  .content-default {
+    display: flex;
+    justify-content: center;
+    max-width: 90%;
+  }
+  .content {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    overflow: auto;
+    width: 100%;
+    background-color: #f9fafb;
+    line-height: 1.5em;
+    letter-spacing: 0.03rem;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    padding-right: 5em;
+  }
+  /* Center Navigation Top */
+  .nav-content {
+    position: relative;
+    color: #565656;
+    margin: 0 0.25em;
+  }
+  .nav-content-list {
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    margin-left: 0.25em;
+  }
+  .nav-content-separator {
+    margin: 0 1em;
+  }
+  /* Center Content Container */
+  .content-container {
+    background-color: #fff;
+    color: #212529;
+    border-radius: 0.5em;
+    box-shadow: 0 0 10px 0 rgba(183, 192, 206, 0.2);
+    border: 1px solid rgba(238, 238, 238, 0.75);
+    margin: 1em 0.25em;
+  }
+  /* Block Container Above Main */
+  .block-container {
+    width: 100%;
+    display: flex;
+  }
+  /* Top Info Above Main */
+  .info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 70%;
+    padding: 1em 25px;
+  }
+  /* Main Container */
+  .main-container {
+    width: 100%;
+  }
+  .default-container {
+    width: 90%;
+    margin: auto;
+    padding: 1em;
+  }
+  /* Content Block */
+  .content-block {
+    width: 170px;
+    padding: 20px 25px 20px;
+    border: 1px dashed grey;
+    border-radius: 16px;
+    margin: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+  }
+  .block-img {
+    width: 40px;
+    height: 40px;
+    line-height: 20px;
+    font-size: 24px;
+    padding: 8px;
+    border-radius: 20px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
+  }
+  /* Generic Content */
+  .content-region h3 {
+    color: #21252969;
+  }
+  .content-region {
+    border-bottom: 1px dashed #F5F5F5;
+    padding: 0 25px;
+    padding-bottom: 2em;
+    margin: 1em 0.25em;
+  }
+  .content-collection {
+    display: flex;
+  }
+  .content-item {
+    margin: 0.5em 0;
+    margin-right: 5em;
+    width: 220px;
+    padding: 1em 2em;
+  }
+  .action-button {
+    background: #f9fafb;
+    border-left: 3px solid #047006;
+  }
+  .info-item {
+    border-left: 2px solid grey;
+  }
+  .inline-header {
+    display: inline;
+  }
+  .show-profile-img {
+    display: block;
+    height: 100px;
+    vertical-align: middle;
+    border-radius: 10px;
+    border: 2px dotted #80808026;
+  }
+  /* OTHER */
+  .info-item i,
+  .info-item-link,
+  .action-button i,
+  .action-button-link {
+    vertical-align: middle;
+  }
+}
+@media screen and (max-width:767px) {
+  .content {
+    padding-right: 0;
+  }
+}
+@media screen and (max-width:767px) {
+  .nav-content-list {
+    display: flex;
+    font-size: small;
+    margin-bottom: 0;
+    justify-content: center;
+  }
+}
+@media screen and (max-width:767px) {
+  .info-container {
+    max-width: 90%;
+  }
+}
+@media screen and (max-width:767px) {
+  .main-container {
+    max-width: 97%;
+  }
+}
+@media screen and (max-width:767px) {
+  .content-region {
+    padding-left: 5px;
+  }
+  .content-collection {
+    flex-direction: column;
+    align-items: center;
+  }
+  .content-item {
+    margin: 0.5em 0;
+    margin-right: 0;
+    width: 160px;
+    padding: 1em 2em;
+  }
+}
+/* Ende @media screen */
+/* ============================================================
+
+  Screen styles for the simple center form. (login etc)
+
+  Datei     :   center-form-single.css
+  Datum     :   2020-07-10
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .center-form-single {
+    width: 50%;
+    margin: auto;
+  }
+  .center-form-header {
+    margin-bottom: 50px;
+  }
+  .center-logo {
+    display: block;
+    margin: 0 auto;
+    width: 280px;
+  }
+  .center-logo img {
+    width: 100%;
+    vertical-align: middle;
+    border-style: none;
+  }
+  .center-form-container {
+    display: flex;
+    flex-direction: column;
+    padding: 2em 8em;
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 0 10px 0 rgba(183, 192, 206, 0.2);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(238, 238, 238, 0.75);
+  }
+  .center-form-title h1 {
+    margin-block-start: 0;
+  }
+  .center-form-selectors {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 38px;
+    padding: 5px 0;
+    margin-bottom: 2em;
+  }
+  .center-form-form,
+  .center-form-form form {
+    display: flex;
+    flex-direction: column;
+  }
+  .center-form-form .form-label {
+    text-align: left;
+  }
+  .center-form-form .form-control {
+    width: 100%;
+    margin: auto;
+    box-sizing: border-box;
+    margin-bottom: 0.5em;
+  }
+  .center-form-submit {
+    width: 100%;
+    margin: 1em 0;
+  }
+  .reset-pwd-link,
+  .signup-link {
+    padding: 0 20px;
+  }
+  .reset-pwd-link a,
+  .signup-link a {
+    color: #047006;
+  }
+  .reset-pwd-link p,
+  .signup-link p {
+    display: inline-block;
+    margin-block-start: 0;
+    margin-block-end: 0;
+  }
+  .center-bottom {
+    color: grey;
+    text-align: center;
+    padding-top: 30px;
+  }
+  .flag-btn {
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px 11px;
+  }
+  .flag {
+    display: block;
+  }
+  .flag-germany {
+    background: red;
+    border-top: 9px solid #000;
+    border-bottom: 9px solid #fc0;
+    width: 40px;
+    height: 10px;
+  }
+  .flag-england {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGlkPSJmbGFnLWljb24tY3NzLWdiIiB2aWV3Qm94PSIwIDAgNjQwIDQ4MCI+CiAgPHBhdGggZmlsbD0iIzAxMjE2OSIgZD0iTTAgMGg2NDB2NDgwSDB6Ii8+CiAgPHBhdGggZmlsbD0iI0ZGRiIgZD0iTTc1IDBsMjQ0IDE4MUw1NjIgMGg3OHY2Mkw0MDAgMjQxbDI0MCAxNzh2NjFoLTgwTDMyMCAzMDEgODEgNDgwSDB2LTYwbDIzOS0xNzhMMCA2NFYwaDc1eiIvPgogIDxwYXRoIGZpbGw9IiNDODEwMkUiIGQ9Ik00MjQgMjgxbDIxNiAxNTl2NDBMMzY5IDI4MWg1NXptLTE4NCAyMGw2IDM1TDU0IDQ4MEgwbDI0MC0xNzl6TTY0MCAwdjNMMzkxIDE5MWwyLTQ0TDU5MCAwaDUwek0wIDBsMjM5IDE3NmgtNjBMMCA0MlYweiIvPgogIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0yNDEgMHY0ODBoMTYwVjBIMjQxek0wIDE2MHYxNjBoNjQwVjE2MEgweiIvPgogIDxwYXRoIGZpbGw9IiNDODEwMkUiIGQ9Ik0wIDE5M3Y5Nmg2NDB2LTk2SDB6TTI3MyAwdjQ4MGg5NlYwaC05NnoiLz4KPC9zdmc+Cg==);
+    background-size: cover;
+    width: 40px;
+    height: 28px;
+  }
+  .group {
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .group-is-invalid {
+    background-color: rgba(240, 130, 95, 0.2);
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns=!string!fill=!string!viewBox=!string!%3e%3cpath stroke=!string!d=!string!/%3e%3ccircle r=!string!/%3e%3ccircle cx=!string!r=!string!/%3e%3ccircle cy=!string!r=!string!/%3e%3ccircle cx=!string!cy=!string!r=!string!/%3e%3c/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center right calc(0.375em + 0.1875rem);
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+  .group-is-invalid .radio label .input-frame::before {
+    border-color: red;
+  }
+}
+@media screen and (max-width:767px) {
+  .center-form-header {
+    margin-bottom: 30px;
+    margin-top: -50px;
+  }
+  .center-form-single {
+    width: 97%;
+    margin: auto;
+  }
+  .center-form-container {
+    padding: 1em 0.5em;
+  }
+}
+/* Ende @media screen */
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* ============================================================
+
+  Screen styles for plain facts.
+
+  Datei     :   facts.css
+  Datum     :   08.07.2020
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  .fact-list {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    width: 100%;
+    padding-inline-start: 0;
+    font-weight: 300;
+  }
+  .fact {
+    display: inline-block;
+    padding-left: 1em;
+  }
+  .label {
+    width: 150px;
+    text-align: right;
+    font-weight: bold;
+  }
+}
+@media screen and (max-width:767px) {
+  .fact-list {
+    margin-block-start: 0;
+    margin-block-end: 0;
+  }
+  li.fact {
+    display: flex;
+    flex-direction: column;
+  }
+  .fact {
+    padding-left: 0.5em;
+  }
+  .label {
+    width: 250px;
+    text-align: left;
+    font-size: 0.9em;
+    font-weight: normal;
+  }
+}
+/* ============================================================
+
+  Screen styles for lists.
+
+  Datei     :   list.css
+  Datum     :   2020-06-09
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  /* =========
+        LISTS
+       =========*/
+  /* List Content */
+  .content-list {
+    width: 100%;
+  }
+  .content-list-title {
+    font-size: 1rem;
+    margin: 0;
+    padding: 20px 25px;
+    color: #313131;
+  }
+  .content-list-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+    font-size: 16px;
+    color: #212529;
+  }
+  .row {
+    display: flex;
+    width: 100%;
+    border-top: 1px solid #f2f4f9;
+    -webkit-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+  }
+  .row:hover {
+    background-color: #f6f7f9;
+  }
+  .cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1em 1.5em;
+  }
+  .cell-dense {
+    padding: 0.1em 0.5em;
+  }
+  .centered {
+    justify-content: center;
+  }
+  .c0 {
+    flex-grow: 5;
+    min-width: 20%;
+  }
+  .c1 {
+    min-width: 40px;
+    flex: 0 0 40px;
+  }
+  .c2 {
+    min-width: 80px;
+    flex: 0 0 80px;
+  }
+  .c3 {
+    min-width: 160px;
+    flex: 0 0 160px;
+  }
+  .c4 {
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+  .c5 {
+    min-width: 320px;
+    flex: 0 0 320px;
+  }
+  .c6 {
+    min-width: 400px;
+    flex: 0 0 400px;
+  }
+  .header-cell {
+    border-top: 1px solid #f2f4f9;
+    background-color: #fafafa;
+    color: #101010;
+  }
+  .content-list-table img,
+  .content-list-table i {
+    vertical-align: middle;
+  }
+  .content-list-table > span {
+    font-size: 0.8em;
+    padding: 0.5em 2em;
+    vertical-align: middle;
+  }
+  /* Individual Tables XXX rm!! */
+  .error-list {
+    grid-template-columns: 2fr 2fr 5fr 1fr;
+  }
+  .transactions {
+    grid-template-columns: 1fr 4fr 2fr 2fr;
+  }
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
+    margin-right: 40px;
+  }
+  .tx-email {
+    cursor: pointer;
+    display: block;
+    color: #101010;
+    font-weight: 400;
+  }
+  .small {
+    font-size: 80%;
+    font-weight: 400;
+  }
+  /*,
+    .cell-icon .material-icons-outlined */
+  .cell-icon {
+    /*noch ungeklärt - icon ist nicht aligned */
+    /*font-size: 1.25em;*/
+    vertical-align: middle;
+  }
+  /* =====================================
+    FORM TOP CONTENT (checkTransaction)
+       =====================================*/
+  .form-content {
+    padding: 35px;
+    padding-top: 20px;
+    max-width: 80%;
+    margin: auto;
+  }
+  .content-table {
+    border: 1px solid #f2f4f9;
+    border-top: none;
+    margin-bottom: 1.5rem;
+  }
+  .content-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 400;
+    border-top: 1px solid #f2f4f9;
+  }
+  .content-row-header {
+    font-weight: 500;
+    color: #101010;
+  }
+  .content-row-bg {
+    background-color: #f0f2f5;
+  }
+  .content-cell {
+    display: block;
+    border-collapse: collapse;
+    padding: 10px 15px;
+  }
+  .form-button .material-icons-outlined {
+    font-size: 1.25em;
+  }
+}
+@media screen and (max-width:767px) {
+  .row {
+    flex-direction: column;
+  }
+}
+@media screen and (max-width:767px) {
+  .cell {
+    padding: 0.25em 1.5em;
+  }
+  .c1 {
+    flex-basis: auto;
+  }
+  .c2 {
+    flex-basis: auto;
+  }
+  .c3 {
+    flex-basis: auto;
+  }
+  .c4 {
+    flex-basis: auto;
+  }
+  .c5 {
+    flex-basis: auto;
+  }
+  .c6 {
+    flex-basis: auto;
+  }
+}
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* ============================================================
+
+  Screen styles for forms.
+
+  Datei     :   form.css
+  Datum     :   2020-06-07
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+  /* =========
+      FORMS
+     =========*/
+  /* Form Content */
+  .action-form {
+    width: 100%;
+  }
+  .form-header {
+    border-left: 3px solid #047006;
+    background: #f9fafb;
+    padding: 15px 20px;
+    margin: 0;
+    margin-bottom: 15px;
+    border-radius: 0 6px 0 0;
+  }
+  .form-label {
+    grid-column: 0.5;
+    font-weight: 400;
+    text-align: right;
+  }
+  .form-control {
+    grid-column: 0.66666667;
+    padding: 0.4em 0.75em;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin: 0;
+    color: rgba(16, 16, 16, 0.8);
+    display: block;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #6c757d;
+    background-color: #f6f7f9;
+    background-clip: padding-box;
+    border: 1px solid #f0f2f5;
+    border-radius: 0.25rem;
+    -webkit-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  .form-control:focus {
+    color: #495057;
+    background-color: #f6f7f9;
+    border-color: #d7dee5;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  textarea {
+    resize: vertical;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    font-size: 80%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    -webkit-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  .badge-warning {
+    color: #fff;
+    background-color: #00e093;
+  }
+  .badge-error {
+    color: #fff;
+    background-color: #ff5f66;
+  }
+  .form-full-width {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    display: flex;
+    flex-direction: column;
+  }
+  .form-button {
+    cursor: pointer;
+    font: 600 13.3333px Arial;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-align: center;
+    vertical-align: middle;
+    color: #fff;
+    background-color: #047006;
+    border-color: #047006;
+    border: 1px solid transparent;
+    border-radius: 0.2rem;
+    height: 35px;
+    max-height: 35px;
+    padding: 4px 15px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+  }
+  .form-button:hover {
+    background-color: #034b04;
+    border-color: #023f03;
+  }
+  .button-cancel {
+    color: #fff !important;
+    background-color: #f0825f;
+    border-color: #f0825f;
+  }
+  .button-cancel:hover {
+    background-color: #ec5e30;
+    border-color: #eb5425;
+  }
+  .link-button {
+    display: inline-block;
+    background: #f9fafb;
+    color: #fff;
+    height: 17px;
+    padding: 1em 2em;
+    line-height: 1em;
+    border-radius: 6px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .action-link {
+    color: #047006 !important;
+  }
+  .action-link-button {
+    background-color: #047006 !important;
+    color: #fff !important;
+    margin-top: 1em;
+    padding: 0.5em 1em;
+  }
+  .edit-profile-img {
+    width: 100px;
+  }
+  .note-smaller {
+    font-size: smaller;
+  }
+  .form-row,
+  .grid-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    -webkit-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+  }
+  .form-row {
+    border-top: 1px solid #f2f4f9;
+  }
+  .form-row:hover {
+    background-color: #f6f7f9;
+  }
+  /* CENTER FORM SPECIFICS */
+  .form-body form {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    margin: 36px 75px;
+    grid-gap: 1em;
+  }
+  .center-form {
+    width: 450px;
+  }
+  .center-form .form-control {
+    width: 90%;
+  }
+  .center-form fieldset {
+    margin-bottom: 1em;
+  }
+}
+@media screen and (max-width:767px) {
+  .grid-row {
+    flex-direction: column;
+  }
+}
+@media screen and (max-width:767px) {
+  .form-body form {
+    grid-template-columns: 1fr;
+    margin: 20px;
+    grid-gap: 0.25em;
+  }
+  .form-label {
+    text-align: left;
+  }
+}

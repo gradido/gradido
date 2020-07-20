@@ -15,25 +15,35 @@
     justify-content: flex-start;
     align-items: flex-end;
     align-content: flex-end;
+    position: relative;
     width: 100%;
     min-width: 12em;
+    height: 40px;
     background-color: @container-background;
     border: 1px solid @menu-border-color;
     border-radius: 0 0 0 18px;
   }
 
   .user-menu-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     font-size: .8em;
     font-weight: 300;
-    margin: auto;
-    padding: .25em 1em;
+    padding: .25em .5em;
     z-index: 20;
+    height: 40px;
   }
 
+  .user-name,
   .user-icon {
     display: inline-block;
-    vertical-align: center;
+    vertical-align: middle;
     cursor: pointer;
+  }
+
+  .user-name {
+    padding-right: .25em;
   }
 
   .nav-vertical.user-menu {
@@ -45,6 +55,9 @@
     z-index: 15;
     font-size: .9em;
     margin-top: 0 !important;
+    position: fixed;
+    top: 39px;
+    right: 0;
   }
 
   .nav-vertical.user-menu.visible {
@@ -82,7 +95,8 @@
       min-width: 3em;
       background-color: transparent;
       justify-content: center;
-      margin-top: -4px;
+      height: 100%;
+      margin-top: -13px;
       margin-left: -16px;
       color: @action-button-background1;
     }
@@ -92,6 +106,9 @@
       padding: 0;
     }
 
+    .user-icon {
+
+    }
     .user-name {
       display: none;
     }

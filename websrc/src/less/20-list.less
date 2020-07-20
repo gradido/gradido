@@ -71,6 +71,7 @@
 
     .c0 {
         flex-grow: 5;
+        min-width: 20%;
     }
 
     .c1 {
@@ -98,6 +99,11 @@
         flex: 0 0 320px;
     }
 
+    .c6 {
+        min-width: 400px;
+        flex: 0 0 400px;
+    }
+
     @media @tablet-down {
         .cell {
             padding: .25em 1.5em;
@@ -120,6 +126,10 @@
         }
 
         .c5 {
+            flex-basis: auto;
+        }
+
+        .c6 {
             flex-basis: auto;
         }
 

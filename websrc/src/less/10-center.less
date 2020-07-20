@@ -30,16 +30,15 @@
     letter-spacing: @content-letter-spacing;
     font-family: Roboto, sans-serif;
     font-weight: 500;
-    font-size: 1rem;    /*padding-top: 2em;*/
-    padding-right: 10em;
+    font-size: 1rem;
+    padding-right: 5em;
   }
 
-  @media @phone-down {
+  @media @tablet-down {
+    .content {
+      padding-right: 0;
+    }
 
-    /*    .content {
-        flex-direction: column;
-      }
-    */
   }
 
   /* Center Navigation Top */
@@ -89,7 +88,7 @@
   /* Top Info Above Main */
   .info-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
     max-width: 70%;
     padding: 1em 25px;
@@ -166,7 +165,7 @@
   .content-item {
     margin: .5em 0;
     margin-right: 5em;
-    width: 160px;
+    width: 220px;
     padding: 1em 2em;
   }
 

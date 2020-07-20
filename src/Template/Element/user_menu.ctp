@@ -23,7 +23,7 @@ if(intval($transactionPendings) > 0) {
 }
 ?>
 <div class="user-menu-container">
-    <span class="user-name"><?=$user['first_name'].' '.$user['last_name']?></span>
+    <span class="user-name" onclick="toggleUserMenu()"><?=$user['first_name'].' '.$user['last_name']?></span>
     <i class="material-icons-outlined user-icon" onclick="toggleUserMenu()">account_circle</i>
 </div>
 <div class="nav-vertical user-menu">

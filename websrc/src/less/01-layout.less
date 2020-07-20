@@ -26,11 +26,21 @@
   grid-template-rows: [top] 8vh [line2] 86vh [footer1] 3vh [footer2] 5vh [end];
   grid-template-columns: [left1] auto [left2] 1fr [left3] 12fr [right3] 1fr [right2] auto [right1];
   grid-template-areas: "header header header header header"
-  "left . center . ."
+  "left . center center ."
   "footer footer footer footer footer"
   "bottom bottom bottom bottom bottom";
   margin: 0;
   padding: 0;
+}
+
+@media @wide-screen-down {
+  .layout {
+    grid-template-areas: "header header header header header"
+    "left . center center center"
+    "footer footer footer footer footer"
+    "bottom bottom bottom bottom bottom";
+  }
+
 }
 
 @media @tablet-down {
@@ -101,4 +111,3 @@
   grid-row-start: footer2;
   grid-row-end: end;
 }
-
