@@ -175,5 +175,9 @@ void SessionHandle::rollback()
 		throw TransactionException("Rollback failed.", _pHandle);
 }
 
+int SessionHandle::ping() 
+{
+	return mysql_ping(_pHandle);
+}
 
 }}} // Poco::Data::MySQL

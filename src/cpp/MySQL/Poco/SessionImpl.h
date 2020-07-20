@@ -24,6 +24,7 @@
 #include "StatementExecutor.h"
 #include "ResultMetadata.h"
 #include "Poco/Mutex.h"
+#include "Poco/Timestamp.h"
 
 
 namespace Poco {
@@ -122,6 +123,8 @@ public:
 	const std::string& connectorName() const;
 		/// Returns the name of the connector.
 
+	inline void updateTimestamp() { _timestampLastActivity = Poco::Timestamp(); }
+
 private:
 
 	template <typename T>
@@ -157,6 +160,7 @@ private:
 	bool            _inTransaction;
 	std::size_t     _timeout;
 	Poco::FastMutex _mutex;
+	Poco::Timestamp _timestampLastActivity;
 };
 
 
@@ -203,11 +207,6 @@ inline bool SessionImpl::isTransactionIsolation(Poco::UInt32 ti)
 	return getTransactionIsolation() == ti;
 }
 
-
-inline bool SessionImpl::isConnected()
-{
-	return _connected;
-}
 	
 
 inline std::size_t SessionImpl::getConnectionTimeout()

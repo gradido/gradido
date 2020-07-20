@@ -150,6 +150,7 @@ void SessionImpl::open(const std::string& connect)
 		&SessionImpl::isAutoCommit);
 
 	_connected = true;
+	_timestampLastActivity = Poco::Timestamp();
 }
 	
 
@@ -174,6 +175,7 @@ void SessionImpl::begin()
 
 	_handle.startTransaction();
 	_inTransaction = true;
+	_timestampLastActivity = Poco::Timestamp();
 }
 
 
@@ -181,6 +183,7 @@ void SessionImpl::commit()
 {
 	_handle.commit();
 	_inTransaction = false;
+	_timestampLastActivity = Poco::Timestamp();
 }
 	
 
@@ -188,6 +191,7 @@ void SessionImpl::rollback()
 {
 	_handle.rollback();
 	_inTransaction = false;
+	_timestampLastActivity = Poco::Timestamp();
 }
 
 
@@ -196,6 +200,7 @@ void SessionImpl::autoCommit(const std::string&, bool val)
 	StatementExecutor ex(_handle);
 	ex.prepare(Poco::format("SET autocommit=%d", val ? 1 : 0));
 	ex.execute();
+	_timestampLastActivity = Poco::Timestamp();
 }
 
 
@@ -203,6 +208,27 @@ bool SessionImpl::isAutoCommit(const std::string&)
 {
 	int ac = 0;
 	return 1 == getSetting("autocommit", ac);
+}
+
+
+
+bool SessionImpl::isConnected()
+{
+	return !_handle.ping();
+	/*
+	if (Poco::Timestamp() > _timestampLastActivity + Poco::Timespan(_timeout, 0)) {
+		return _connected;
+	}
+	else {
+		_timestampLastActivity = Poco::Timestamp();
+		if (!_handle.ping()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	*/
 }
 
 

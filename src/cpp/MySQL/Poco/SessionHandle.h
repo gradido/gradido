@@ -65,6 +65,10 @@ public:
 	void rollback();
 		/// Rollback transaction
 
+	int ping();
+		/// ping to check if connection is currently active
+
+
 	operator MYSQL* ();
 
 private:
