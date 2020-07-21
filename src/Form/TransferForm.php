@@ -1,5 +1,5 @@
-<?php 
-// in src/Form/ContactForm.php
+<?php
+// in src/Form/TransferForm.php
 namespace App\Form;
 
 use Cake\Form\Form;
@@ -19,7 +19,7 @@ class TransferForm extends Form
 
     function validationDefault(Validator $validator)
     {
-      $validator->setProvider('custom', 'App\Model\Validation\TransactionValidation');
+        $validator->setProvider('custom', 'App\Model\Validation\TransactionValidation');
       /*
         $validator->add('receiver_pubkey_hex', 'length', [
                 'rule' => ['length', 64],
@@ -54,7 +54,7 @@ class TransferForm extends Form
         ->allowEmptyString('receiver_pubkey_hex', null, 'create')*/
         ->add('amount', 'custom', [
             'rule' => 'amount',
-            'provider' => 'custom', 
+            'provider' => 'custom',
             'message' => __('Please give a valid positive number with maximal 2 decimal places')
         ]);
         return $validator;

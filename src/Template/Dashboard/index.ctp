@@ -55,7 +55,7 @@ $this->assign(
       <i class="material-icons-outlined">redeem</i>
       <!-- insights / redeem -->
       <?= $this->Html->link(
-              __('viele schöpfen'),
+              __('schöpfen'),
               ['controller' => 'TransactionCreations', 'action' => 'createMulti'],
               ['class' => 'action-button-link']
           );?>

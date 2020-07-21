@@ -344,7 +344,7 @@ msgid "Building transaction failed"
 msgstr ""
 
 #: Controller/TransactionCreationsController.php:262
-msgid "no user choosen"
+msgid "No user selected"
 msgstr ""
 
 #: Controller/TransactionCreationsController.php:373

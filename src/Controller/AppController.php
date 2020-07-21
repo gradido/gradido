@@ -201,7 +201,7 @@ class AppController extends Controller
                                     if ($stateUser->first_name != $json['user']['first_name'] ||
                                      $stateUser->last_name  != $json['user']['last_name'] ||
                                      //$stateUser->username  != $json['user']['username'] ||
-                                     // -> throws erro
+                                     // -> throws error
                                      $stateUser->email      != $json['user']['email']) {
                                         $stateUser->first_name = $json['user']['first_name'];
                                         $stateUser->last_name = $json['user']['last_name'];

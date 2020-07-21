@@ -713,6 +713,7 @@ and open the template in the editor.
     justify-content: center;
     align-items: center;
     list-style-type: none;
+    margin-bottom: 20px;
   }
   .nav-bottom p {
     font-size: 0.9em;
@@ -1611,6 +1612,7 @@ and open the template in the editor.
     grid-column: 0.5;
     font-weight: 400;
     text-align: right;
+    padding-right: 0.5em;
   }
   .form-control {
     grid-column: 0.66666667;
@@ -1618,6 +1620,7 @@ and open the template in the editor.
     padding-left: 20px;
     padding-right: 20px;
     margin: 0;
+    margin-right: 0.5em;
     color: rgba(16, 16, 16, 0.8);
     display: block;
     font-size: 1rem;
@@ -1683,6 +1686,7 @@ and open the template in the editor.
     height: 35px;
     max-height: 35px;
     padding: 4px 15px;
+    margin-right: 0.5em;
     box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
   }
   .form-button:hover {
@@ -1734,6 +1738,9 @@ and open the template in the editor.
     -webkit-transition-duration: 0.5s;
     transition-duration: 0.5s;
   }
+  .justify-end {
+    justify-content: flex-end;
+  }
   .form-row {
     border-top: 1px solid #f2f4f9;
   }
@@ -1743,7 +1750,7 @@ and open the template in the editor.
   /* CENTER FORM SPECIFICS */
   .form-body form {
     display: grid;
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: 220px 1fr;
     margin: 36px 75px;
     grid-gap: 1em;
   }
