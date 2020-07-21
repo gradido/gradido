@@ -300,7 +300,15 @@ std::string Mnemonic::getCompleteWordListSorted()
 	words.sort(compare_nocase);
 
 	//std::string toReplaced[] = { "auml", "ouml", "uuml", "Auml", "Ouml", "Uuml", "szlig" };
-	Poco::RegularExpression toReplaced[] = { "&auml;", "&ouml;", "&uuml;", "&Auml;", "&Ouml;", "&Uuml;", "&szlig;" };
+	Poco::RegularExpression toReplaced[] = { 
+		std::string("&auml;"), 
+		std::string("&ouml;"), 
+		std::string("&uuml;"),
+		std::string("&Auml;"),
+		std::string("&Ouml;"), 
+		std::string("Uuml;"),
+		std::string("&szlig;") 
+	};
 	std::string replaceStrings[] = { "ä", "ö", "ü", "Ä", "Ö", "Ü", "ß" };
 	int i = 0;
 	for(auto it = words.begin(); it != words.end(); it++) {
