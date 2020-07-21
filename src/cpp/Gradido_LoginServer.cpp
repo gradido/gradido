@@ -183,7 +183,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		//printf("try connect login server mysql db\n");
 		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
 		//printf("try connect php server mysql \n");
-		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
+		//conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
 
 		SessionManager::getInstance()->init();
 		// put urandom on linux servers
