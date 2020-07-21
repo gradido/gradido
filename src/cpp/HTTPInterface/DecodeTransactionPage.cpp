@@ -270,13 +270,26 @@ void DecodeTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request,
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
-	responseStream << "\t<div class=\"grd-time-used dev-info\">\n";
-	responseStream << "\t\t\t";
-#line 2 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+	responseStream << "            <div class=\"center-bottom\">\n";
+	responseStream << "                <p>Copyright © Gradido 2020</p>\n";
+	responseStream << "            </div>\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"bottomleft\">\n";
+	responseStream << "            ";
+#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
-	responseStream << "\t</div>\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"bottomright\">\n";
+	responseStream << "            <p>Login Server in Entwicklung</p>\n";
+	responseStream << "            <p>Alpha ";
+#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
+	responseStream << "        </div>\n";
+	responseStream << "    </div>\n";
 	responseStream << "</body>\n";
+	responseStream << "\n";
 	responseStream << "</html>";
 	// end include footer.cpsp
 	if (_compressResponse) _gzipStream.close();
