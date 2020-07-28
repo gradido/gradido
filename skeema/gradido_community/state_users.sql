@@ -7,6 +7,7 @@ CREATE TABLE `state_users` (
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
   `username` varchar(255) DEFAULT NULL,
+  `disabled` tinyint DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `public_key` (`public_key`)
 ) ENGINE=InnoDB;

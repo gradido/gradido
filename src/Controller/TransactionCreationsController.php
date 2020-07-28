@@ -242,11 +242,17 @@ class TransactionCreationsController extends AppController
                 ->find('all')
                 ->select(['id', 'first_name', 'last_name', 'email'])
                 ->order(['first_name', 'last_name'])
-                ->where(['OR' => [
-                  'LOWER(first_name)' => strtolower($requestData['searchText']),
-                  'LOWER(last_name)' => strtolower($requestData['searchText']),
-                  'LOWER(email)' => strtolower($requestData['searchText'])
-                ]])
+                ->where(
+                    ['AND' => [
+                        'disabled' => 0,
+                            'OR' => [
+                                      'LOWER(first_name)' => strtolower($requestData['searchText']),
+                                      'LOWER(last_name)' => strtolower($requestData['searchText']),
+                                      'LOWER(email)' => strtolower($requestData['searchText'])
+                                    ]
+                                ]
+                            ]
+                )
                 ->contain(['TransactionCreations' => [
                     'fields' => [
                         'TransactionCreations.amount',
