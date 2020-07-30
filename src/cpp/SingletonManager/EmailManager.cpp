@@ -60,7 +60,7 @@ void EmailManager::addEmail(model::Email* email) {
 		std::string log_message = "Email should be sended to: ";
 		auto email_user = email->getUser();
 		if (email_user && email_user->getModel()) {
-			log_message += email_user->getModel()->getNameWithEmailHtml();
+			log_message += email_user->getModel()->getNameWithEmail();
 		}
 		else {
 			log_message += "<missing>";
@@ -138,7 +138,7 @@ int EmailManager::ThreadFunction()
 					std::string log_message = "Email sended to: ";
 					auto email_user = email->getUser();
 					if (user_model) {
-						log_message += email_user->getModel()->getNameWithEmailHtml();
+						log_message += email_user->getModel()->getNameWithEmail();
 					}
 					else {
 						log_message += "<missing>";

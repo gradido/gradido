@@ -58,6 +58,7 @@ namespace model {
 			inline const std::string getFirstName() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName; }
 			inline const std::string getLastName() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mLastName; }
 			inline std::string getNameWithEmailHtml() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
+			inline std::string getNameWithEmail() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName + " " + mLastName + "<" + mEmail + ">"; }
 			inline const Poco::UInt64 getPasswordHashed() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mPasswordHashed; }
 			inline RoleType getRole() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
