@@ -200,14 +200,14 @@ class AppController extends Controller
                                     $stateUser = $stateUserQuery->first();
                                     if ($stateUser->first_name != $json['user']['first_name'] ||
                                         $stateUser->last_name  != $json['user']['last_name'] ||
-                                        $stateUser->disabled  != $json['user']['disabled'] ||
+                                        $stateUser->disabled  != intval($json['user']['disabled']) ||
                                         //$stateUser->username  != $json['user']['username'] ||
                                         // -> throws error
                                         $stateUser->email      != $json['user']['email']
                                     ) {
                                         $stateUser->first_name = $json['user']['first_name'];
                                         $stateUser->last_name = $json['user']['last_name'];
-                                        $stateUser->disabled = $json['user']['disabled'];
+                                        $stateUser->disabled = intval($json['user']['disabled']);
                                         //$stateUser->username = $json['user']['username'];
                                         $stateUser->email = $json['user']['email'];
                                         if (!$stateUserTable->save($stateUser)) {
@@ -225,7 +225,7 @@ class AppController extends Controller
                                     $newStateUser->public_key = $public_key_bin;
                                     $newStateUser->first_name = $json['user']['first_name'];
                                     $newStateUser->last_name = $json['user']['last_name'];
-                                    $newStateUser->disabled = $json['user']['disabled'];
+                                    $newStateUser->disabled = intval($json['user']['disabled']);
                                     //$newStateUser->username = $json['user']['username'];
                                     $newStateUser->email = $json['user']['email'];
                                     if (!$stateUserTable->save($newStateUser)) {
