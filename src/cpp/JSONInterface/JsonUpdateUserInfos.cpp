@@ -1,5 +1,8 @@
 #include "JsonUpdateUserInfos.h"
 
+#include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
+
 Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
@@ -10,7 +13,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	// incoming
 	int session_id = 0;
 	std::string email;
-	Poco::JSON::Array::Ptr updateArray;
+	Poco::JSON::Object::Ptr updates;
 
 	auto sm = SessionManager::getInstance();
 
@@ -25,7 +28,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 		try {
 			paramJsonObject->get("email").convert(email);
 			paramJsonObject->get("session_id").convert(session_id);
-			askArray = paramJsonObject->getArray("ask");
+			updates = paramJsonObject->getObject("update");
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -38,68 +41,97 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	if (!session_id) {
 		return stateError("session_id invalid");
 	}
-	if (askArray.isNull()) {
-		return stateError("ask is zero or not an array");
+	if (updates.isNull()) {
+		return stateError("update is zero or not an object");
 	}
 
 	auto session = sm->getSession(session_id);
 	if (!session) {
 		return customStateError("not found", "session not found");
 	}
-
-	auto user = controller::User::create();
-	if (1 != user->load(email)) {
-		return customStateError("not found", "user not found");
+	auto user = session->getNewUser();
+	auto user_model = user->getModel();
+	if (user_model->getEmail() != email) {
+		return customStateError("not same", "email don't belong to logged in user");
 	}
-	auto userModel = user->getModel();
-
-
+	
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 	result->set("state", "success");
 	Poco::JSON::Array  jsonErrorsArray;
-	Poco::JSON::Object jsonUser;
-	Poco::JSON::Object jsonServer;
 
-	for (auto it = askArray->begin(); it != askArray->end(); it++) {
-		auto parameter = *it;
-		std::string parameterString;
+	int extractet_values = 0;
+	//['User.first_name' => 'first_name', 'User.last_name' => 'last_name', 'User.disabled' => 0|1, 'User.language' => 'de']
+	for (auto it = updates->begin(); it != updates->end(); it++) {
+		std::string name = it->first; 
+		auto value = it->second;
+
+
 		try {
-			parameter.convert(parameterString);
-			if (parameterString == "EmailVerificationCode.Register") {
-				try {
-					auto emailVerificationCode = controller::EmailVerificationCode::load(
-						userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
-					);
-					if (!emailVerificationCode) {
-						emailVerificationCode = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-						UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
-						insert->scheduleTask(insert);
+			if ( "User.first_name" == name) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("User.first_name isn't a string");
+				}
+				else {
+					user_model->setFirstName(value.toString());
+					extractet_values++;
+				}
+			}
+			else if ("User.last_name" == name) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("User.last_name isn't a string");
+				}
+				else {
+					user_model->setLastName(value.toString());
+					extractet_values++;
+				}
+			}
+			else if ("User.disabled" == name) {
+				if (value.isBoolean()) {
+					bool disabled;
+					value.convert(disabled);
+					user_model->setDisabled(disabled);
+					extractet_values++;
+				}
+				else if (value.isInteger()) {
+					int disabled;
+					value.convert(disabled);
+					user_model->setDisabled(static_cast<bool>(disabled));
+					extractet_values++;
+				}
+				else {
+					jsonErrorsArray.add("User.disabled isn't a boolean or integer");
+				}
+			}
+			else if ("User.language" == name) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("User.language isn't a string");
+				}
+				else {
+					auto lang = LanguageManager::languageFromString(value.toString());
+					if (LANG_NULL == lang) {
+						jsonErrorsArray.add("User.language isn't a valid language");
 					}
-					jsonUser.set("EmailVerificationCode.Register", std::to_string(emailVerificationCode->getModel()->getCode()));
+					else {
+						user_model->setLanguageKey(value.toString());
+						extractet_values++;
+					}
 				}
-				catch (Poco::Exception& ex) {
-					printf("exception: %s\n", ex.displayText().data());
-				}
-			}
-			else if (parameterString == "loginServer.path") {
-				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
-			}
-			else if (parameterString == "user.pubkeyhex") {
-				jsonUser.set("pubkeyhex", userModel->getPublicKeyHex());
-			}
-			else if (parameterString == "user.first_name") {
-				jsonUser.set("first_name", userModel->getFirstName());
-			}
-			else if (parameterString == "user.last_name") {
-				jsonUser.set("last_name", userModel->getLastName());
 			}
 		}
 		catch (Poco::Exception& ex) {
-			jsonErrorsArray.add("ask parameter invalid");
+			jsonErrorsArray.add("update parameter invalid");
+		}
+	}
+	if (extractet_values > 0) {
+		if (1 != user_model->updateFieldsFromCommunityServer()) {
+			user_model->addError(new Error("JsonUpdateUserInfos", "error by saving update to db"));
+			user_model->sendErrorsAsEmail();
+			return stateError("error saving to db");
 		}
 	}
 	result->set("errors", jsonErrorsArray);
-	result->set("userData", jsonUser);
-	result->set("server", jsonServer);
+	result->set("valid_values", extractet_values);
+	result->set("state", "success");
+
 	return result;
 }
