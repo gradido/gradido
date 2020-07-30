@@ -39,6 +39,7 @@ namespace model {
 
 		void User::setPrivateKey(const MemoryBin* privateKey)
 		{
+			std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 			if (!privateKey) {
 				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>();
 			}
@@ -50,6 +51,7 @@ namespace model {
 
 		void User::setPublicKey(const unsigned char* publicKey)
 		{
+			std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 			if (!publicKey) {
 				mPublicKey = Poco::Nullable<Poco::Data::BLOB>();
 			}
@@ -217,6 +219,30 @@ namespace model {
 			return 0;
 		}
 
+		size_t User::updateFieldsFromCommunityServer()
+		{
+			//! \brief update first_name, last_name, disabled and language
+			assert(mID > 0);
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+			update << "UPDATE users SET first_name = ?, last_name = ?, disabled = ?, language = ? where id = ?;",
+				use(mFirstName), use(mLastName), use(mDisabled), use(mLanguageKey), use(mID);
+
+			
+			try {
+				return update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateFieldsFromCommunityServer] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			return 0;
+		}
+
+
 
 		/*
 		std::string mEmail;
@@ -299,6 +325,7 @@ namespace model {
 
 		std::string User::getPublicKeyHex() const
 		{
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			auto mm = MemoryManager::getInstance();
 			auto pubkeyHex = mm->getFreeMemory(65);
 

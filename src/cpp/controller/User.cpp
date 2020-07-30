@@ -16,7 +16,6 @@
 #include "Poco/Timestamp.h"
 
 
-
 namespace controller {
 	User::User(model::table::User* dbModel)
 		: mPassword(nullptr), mGradidoKeyPair(nullptr), mCanDecryptPrivateKey(false), mGradidoCurrentBalance(0)
