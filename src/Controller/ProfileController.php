@@ -20,6 +20,7 @@ class ProfileController extends AppController
     public function initialize()
     {
         parent::initialize();
+        $this->loadComponent('JsonRequestClient');
         $this->Auth->allow(['index', 'edit']);
         $this->set(
             'naviHierarchy',
@@ -51,7 +52,7 @@ class ProfileController extends AppController
     /**
     * Update Profile Data
     *
-    * ...which is spread over two tables.
+    * ...which is spread over two tables, plus needs to be promoted to the Login Server.
     *
     * @throws Exception
     */
@@ -86,6 +87,24 @@ class ProfileController extends AppController
             if ($profilesTable->save($communityProfile) &&
               $usersTable->save($stateUser)
             ) {
+                $session = $this->getRequest()->getSession();
+                $session_id = $session->read('session_id');
+                $email = $session->read('StateUser.email');
+                $this->returnJson(
+                    $this->JsonRequestClient->sendRequest(
+                        json_encode(
+                            [
+                            'session_id' => $session_id,
+                            'email' => $email,
+                            'update' => [
+                                'User.first_name' => $requestData['first_name'],
+                                'User.last_name' => $requestData['last_name']
+                                ]
+                            ]
+                        ),
+                        '/updateUserInfos'
+                    )
+                );
                 $this->Flash->success(__('Dein Profil wurde aktualisiert!'));
             }
         } else {
