@@ -193,6 +193,7 @@ class ProfileController extends AppController
                 $session->write('StateUser.first_name', $stateUser['first_name']);
                 $session->write('StateUser.last_name', $stateUser['last_name']);
                 $session->write('CommunityProfile', $communityProfile);
+				return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('Something was invalid, please try again!'));
             }
