@@ -32,6 +32,7 @@
                 <th scope="col"><?= $this->Paginator->sort('last_name') ?>
                 <th scope="col"><?= $this->Paginator->sort('username') ?>
                 <th scope="col"><?= $this->Paginator->sort('email') ?>
+				<th scope="col"><?= $this->Paginator->sort('disabled') ?>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
         </thead>
@@ -45,6 +46,7 @@
                 <td><?= $stateUser->last_name ?></td>
                 <td><?= $stateUser->username ?></td>
                 <td><?= $stateUser->email ?></td>
+				<td><?= $stateUser->disabled ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $stateUser->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['action' => 'edit', $stateUser->id]) ?>

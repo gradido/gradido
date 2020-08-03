@@ -505,9 +505,9 @@ class StateUsersController extends AppController
             }
             $this->Flash->error(__('The state user could not be saved. Please, try again.'));
         }
-        $indices = $this->StateUsers->Indices->find('list', ['limit' => 200]);
+        
         $stateGroups = $this->StateUsers->StateGroups->find('list', ['limit' => 200]);
-        $this->set(compact('stateUser', 'indices', 'stateGroups'));
+        $this->set(compact('stateUser', 'stateGroups'));
     }
 
     /**

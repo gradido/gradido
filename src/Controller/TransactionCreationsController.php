@@ -266,6 +266,7 @@ class TransactionCreationsController extends AppController
                 ->find('all')
                 ->select(['id', 'first_name', 'last_name', 'email'])
                 //->order(['id'])
+				->where(['disabled' => 0])
                 ->order(['first_name', 'last_name'])
                 ->contain(['TransactionCreations' => [
                     'fields' => [

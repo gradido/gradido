@@ -31,8 +31,7 @@
     <fieldset>
         <legend><?= __('Edit State User') ?></legend>
         <?php
-            echo $this->Form->control('index_id');
-            echo $this->Form->control('state_group_id', ['options' => $stateGroups]);
+            echo $this->Form->control('disabled');
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
