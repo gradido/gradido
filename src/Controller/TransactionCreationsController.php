@@ -386,9 +386,9 @@ class TransactionCreationsController extends AppController
                           array_push($transactions, base64_encode($builderResult['transactionBody']->serializeToString()));
                     }
                 }
-                echo "pendings: ";
+                /*echo "pendings: ";
                 var_dump($pendings);
-                echo "<br>";
+                echo "<br>";*/
                 foreach ($possibleReceivers as $i => $possibleReceiver) {
                     $id = $possibleReceiver['id'];
                     if (isset($pendings[$id])) {
