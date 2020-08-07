@@ -100,6 +100,9 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "user.last_name") {
 				jsonUser.set("last_name", userModel->getLastName());
 			}
+			else if (parameterString == "user.disabled") {
+				jsonUser.set("disabled", userModel->isDisabled());
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");
