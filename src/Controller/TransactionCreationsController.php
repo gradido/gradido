@@ -237,6 +237,7 @@ class TransactionCreationsController extends AppController
           !empty($requestData['searchText'])
         ) {
             $mode = 'search';
+            $page = 0;
             $this->log("search for text: ".$requestData['searchText'], 'debug');
             $stateUsers = $stateUserTable
                 ->find('all')
