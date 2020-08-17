@@ -9,6 +9,7 @@
 #include "../proto/gradido/TransactionBody.pb.h"
 #include "../controller/User.h"
 #include "../model/TransactionBase.h"
+#include "../model/TransactionCreation.h"
 %>
 <%%
 	const char* pageName = "Decode Transaction";
@@ -103,6 +104,7 @@
 		<% } %>
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
+			TransactionCreation creationObject("", creation);
 			auto receiver = creation.receiveramount();
 			char hex[65]; memset(hex, 0, 65);
 			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
@@ -124,6 +126,7 @@
 		<p><%= user->getModel()->toHTMLString() %></p>
 		<% } %>
 		<p>amount: <%= TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<p>target date: <%= creationObject.getTargetDateString() %></p>
 		<% } %>
 	<% } %>
 </div>

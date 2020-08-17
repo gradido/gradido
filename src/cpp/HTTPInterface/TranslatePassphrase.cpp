@@ -40,9 +40,9 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	std::string inputPassphrase;
 	
 	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
-	Mnemonic* targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];	
+	Mnemonic* targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];	
 	if(lang == LANG_DE) {
-		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 		targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
 	}
 	
@@ -66,7 +66,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 			), false);
 	   } else {
 			if(wordSource == &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]) {
-				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 			} else {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 			}
@@ -227,7 +227,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << ( uri_start );
 	responseStream << "/transform_passphrase\">\n";
 	responseStream << "\t\t  <div class=\"form-group row-showcase_row_area\">\n";
-	responseStream << "\t\t\t<textarea name=\"inputPassphrase\" cols=\"10\" rows=\"5\" id=\"inputPassphrase\" class=\"form-control\" placeholder=\"";
+	responseStream << "\t\t\t<textarea name=\"inputPassphrase\" cols=\"20\" rows=\"10\" id=\"inputPassphrase\" class=\"form-control\" placeholder=\"";
 #line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("deine Passphrase") );
 	responseStream << "\">";

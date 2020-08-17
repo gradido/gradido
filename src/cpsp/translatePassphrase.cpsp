@@ -19,9 +19,9 @@
 	std::string inputPassphrase;
 	
 	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
-	Mnemonic* targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];	
+	Mnemonic* targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];	
 	if(lang == LANG_DE) {
-		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+		wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 		targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];	
 	}
 	
@@ -45,7 +45,7 @@
 			), false);
 	   } else {
 			if(wordSource == &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]) {
-				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 			} else {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 			}
@@ -72,7 +72,7 @@
 	  <div class="col-lg-12 col-md-12 mb-5">
 		<form action="<%= uri_start %>/transform_passphrase">
 		  <div class="form-group row-showcase_row_area">
-			<textarea name="inputPassphrase" cols="10" rows="5" id="inputPassphrase" class="form-control" placeholder="<%= gettext("deine Passphrase") %>"><%= inputPassphrase %></textarea>
+			<textarea name="inputPassphrase" cols="20" rows="10" id="inputPassphrase" class="form-control" placeholder="<%= gettext("deine Passphrase") %>"><%= inputPassphrase %></textarea>
 		  </div>
 		  <input name="btnTransform" type="submit" value="Umwandeln" class="btn btn btn-orange">
 		  <% if(model::table::ROLE_ADMIN == role) { %>
