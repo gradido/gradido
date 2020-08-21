@@ -9,6 +9,8 @@
 
 #include "../proto/gradido/TransactionBody.pb.h"
 
+#include "../SingletonManager/LanguageManager.h"
+
 /*
 * @author: Dario Rekowski
 *
@@ -30,7 +32,8 @@ class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorLi
 {
 	friend SigningTransaction;
 public:
-	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash);
+	//! \param lang for error messages in user language
+	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang);
 	virtual ~ProcessingTransaction();
 
 	int run();
@@ -48,11 +51,15 @@ public:
 	TransactionTransfer* getTransferTransaction();
 
 	static HASH calculateHash(const std::string& proto_message_base64);
+	static std::string calculateGenericHash(const std::string& protoMessageBase64);
 	inline HASH getHash() { mHashMutex.lock(); HASH hs = mHash; mHashMutex.unlock(); return hs; }
 
 	std::string getBodyBytes();
 
 protected:
+
+	void reportErrorToCommunityServer(std::string error, std::string errorDetails, std::string created);
+
 	TransactionType mType;
 	std::string mProtoMessageBase64;
 
@@ -61,7 +68,7 @@ protected:
 
 	HASH mHash;
 	DHASH mUserEmailHash;
-
+	Languages mLang;
 	Poco::Mutex mHashMutex;
 private:
 

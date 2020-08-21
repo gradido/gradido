@@ -640,7 +640,12 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 		return false;
 	}
 
-	Poco::AutoPtr<ProcessingTransaction> processorTask(new ProcessingTransaction(proto_message_base64, DRMakeStringHash(mSessionUser->getEmail())));
+	Poco::AutoPtr<ProcessingTransaction> processorTask(
+		new ProcessingTransaction(
+			proto_message_base64, 
+			DRMakeStringHash(mSessionUser->getEmail()),
+			mSessionUser->getLanguage())
+	);
 	processorTask->scheduleTask(processorTask);
 	mProcessingTransactions.push_back(processorTask);
 	unlock();
