@@ -75,7 +75,14 @@ Poco::Data::Session ConnectionManager::getConnection(ConnectionType type)
 	auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
 	if (!session.isConnected()) {
 		printf("reconnect called\n");
-		session.reconnect();
+		try {
+			session.reconnect();
+		}
+		catch (Poco::Exception& e) {
+			addError(new ParamError("[ConnectionManager::getConnection]", "reconnect throw exception, try with next new one, without further check", e.displayText()));
+			sendErrorsAsEmail();
+			return mSessionPools.getPool(mSessionPoolNames[type]).get();
+		}
 	}
 	//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
 	//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
