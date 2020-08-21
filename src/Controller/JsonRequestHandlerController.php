@@ -58,7 +58,7 @@ class JsonRequestHandlerController extends AppController {
             case 'checkUser': return $this->checkUser($jsonData->email, $jsonData->last_name);
             case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
-            case 'errorInTransaction': return $this->errorInTransaction($jsonData->created, $jsonData->transactionSha256, $jsonData->error, $jsonData->errorMessage);
+            case 'errorInTransaction': return $this->errorInTransaction($jsonData->created, $jsonData->transactionGenericHash, $jsonData->error, $jsonData->errorMessage);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
@@ -66,10 +66,11 @@ class JsonRequestHandlerController extends AppController {
     }
     
     //! \param $transactionCreated creation of transaction in timestamp in seconds
-    //! \param $transactionBodyBase64Sha256 sha256 hash from transaction body serialized and converted to base64
+    //! \param $transactionBodyBase64Sha256 generic hash from transaction body serialized and converted to base64 
+    //!        using sodium_crypto_generichash to calculate
     //! \param $error short error name in user language
     //! \param $errorDetails more detailed error message in user language 
-    private function errorInTransaction($transactionCreated, $transactionBodyBase64Sha256, $error, $errorDetails) {
+    private function errorInTransaction($transactionCreated, $transactionBodyBase64GenericHash, $error, $errorDetails) {
       
     }
   
