@@ -11,6 +11,7 @@ include_directories(
 	"dependencies/mariadb-connector-c/include"
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
+	"dependencies/grpc/include"
 	"src/cpp/proto"
 	#"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/include"
@@ -91,6 +92,10 @@ find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "dependencies/mariadb-conne
 #find_library(MYSQL_LIBRARIES_DEBUG  mariadbclient.lib PATHS "import/mariadb/lib/debug")
 find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build/Debug" REQUIRED)
+set(GRPC_PATH "dependencies/grpc/_build/Debug")
+find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
+set(GRPC_LIBS ${GRPC_PLUSPLUS} ${GRPC_REFLECTION})
 set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
 #set(POCO_DEBUG_PATH "I:/FremdCode/C++/poco/win64/lib/Debug")
@@ -139,6 +144,7 @@ target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS})
 else(WIN32)
 target_link_libraries(Gradido_LoginServer libmariadb protoc protobuf -pthread)
 endif(WIN32)

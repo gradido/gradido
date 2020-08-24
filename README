@@ -20,6 +20,13 @@ cmake -DWITH_SSL=OFF ..
 cd ../../../
 
 
+cd dependencies/grpc
+mkdir _build 
+cd _build 
+cmake ..
+make 
+cd ../../../
+
 # get more dependencies with conan (need conan from https://conan.io/)
 mkdir build && cd build
 conan remote add inexor https://api.bintray.com/conan/inexorgame/inexor-conan
