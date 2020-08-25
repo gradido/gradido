@@ -10,7 +10,7 @@
 #include "../Crypto/KeyPair.h"
 #include "../SingletonManager/ConnectionManager.h"
 
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 
 #include "Poco/Data/Binding.h"
 using namespace Poco::Data::Keywords;
@@ -20,7 +20,7 @@ typedef Poco::Tuple<int, Poco::Nullable<Poco::Data::BLOB>, std::string> UserBack
 struct SListEntry 
 {
 	Poco::AutoPtr<controller::User> user;
-	std::vector<Poco::AutoPtr<controller::UserBackups>> backups;
+	std::vector<Poco::AutoPtr<controller::UserBackup>> backups;
 };
 
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
@@ -94,7 +94,7 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 			SListEntry entry;
 			entry.user = controller::User::create();
 			entry.user->load(user_id);
-			entry.backups = controller::UserBackups::load(user_id);
+			entry.backups = controller::UserBackup::load(user_id);
 			
 			notMatchingEntrys.push_back(entry);
 			

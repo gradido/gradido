@@ -11,7 +11,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/EmailManager.h"
 #include "../controller/User.h"
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 
 enum PageState {
 	PAGE_EMAIL_ASK,

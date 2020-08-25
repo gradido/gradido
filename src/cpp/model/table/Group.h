@@ -6,11 +6,11 @@
 namespace model {
 	namespace table {
 
-		class Groups : public ModelBase
+		class Group : public ModelBase
 		{
 		public:
-			Groups();
-			~Groups();
+			Group();
+			~Group();
 
 			// generic db operations
 			const char* getTableName() const { return "groups"; }

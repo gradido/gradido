@@ -1,21 +1,21 @@
-#include "HederaAccounts.h"
+#include "HederaAccount.h"
 
 using namespace Poco::Data::Keywords;
 
 namespace model {
 	namespace table {
 
-		HederaAccounts::HederaAccounts()
+		HederaAccount::HederaAccount()
 		{
 
 		}
 
-		HederaAccounts::~HederaAccounts()
+		HederaAccount::~HederaAccount()
 		{
 
 		}
 
-		std::string HederaAccounts::toString()
+		std::string HederaAccount::toString()
 		{
 			std::stringstream ss;
 			ss << "user id: " << std::to_string(mUserId) << std::endl;
@@ -28,7 +28,7 @@ namespace model {
 			return ss.str();
 		}
 
-		Poco::Data::Statement HederaAccounts::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement HederaAccount::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -39,7 +39,16 @@ namespace model {
 			return select;
 
 		}
-		Poco::Data::Statement HederaAccounts::_loadIdFromDB(Poco::Data::Session session)
+
+		Poco::Data::Statement HederaAccount::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		{
+			Poco::Data::Statement select(session);
+			select << "SELECT id, user_id, account_hedera_id, account_key_id, balance, updated FROM " << getTableName()
+				<< " where " << fieldName << " LIKE ?";
+
+			return select;
+		}
+		Poco::Data::Statement HederaAccount::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 			lock();
@@ -49,7 +58,7 @@ namespace model {
 			unlock();
 			return select;
 		}
-		Poco::Data::Statement HederaAccounts::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement HederaAccount::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 			lock();
@@ -59,5 +68,7 @@ namespace model {
 			unlock();
 			return insert;
 		}
+
+		
 	}
 }

@@ -1,14 +1,14 @@
-#include "UserBackups.h"
+#include "UserBackup.h"
 
 #include "../Crypto/Passphrase.h"
 
 namespace controller {
-	UserBackups::UserBackups(model::table::UserBackups* dbModel)
+	UserBackup::UserBackup(model::table::UserBackup* dbModel)
 	{
 		mDBModel = dbModel;
 	}
 
-	UserBackups::~UserBackups()
+	UserBackup::~UserBackup()
 	{
 
 	}
@@ -17,20 +17,20 @@ namespace controller {
 
 	//  ---------------   static members ----------------------------- 
 
-	Poco::AutoPtr<UserBackups> UserBackups::create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type)
+	Poco::AutoPtr<UserBackup> UserBackup::create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type)
 	{
 		
-		auto db = new model::table::UserBackups(user_id, passphrase, type);
-		return Poco::AutoPtr<UserBackups>(new UserBackups(db));
+		auto db = new model::table::UserBackup(user_id, passphrase, type);
+		return Poco::AutoPtr<UserBackup>(new UserBackup(db));
 	}
 
 
-	std::vector<Poco::AutoPtr<UserBackups>> UserBackups::load(int user_id)
+	std::vector<Poco::AutoPtr<UserBackup>> UserBackup::load(int user_id)
 	{
-		auto db = new model::table::UserBackups();
+		auto db = new model::table::UserBackup();
 		auto results = db->loadFromDB<int, model::table::UserBackupsTuple>("user_id", user_id, 1);
 
-		std::vector<Poco::AutoPtr<UserBackups>> resultObjects;
+		std::vector<Poco::AutoPtr<UserBackup>> resultObjects;
 		if (db->errorCount()) {
 			db->sendErrorsAsEmail();
 			db->release();
@@ -41,14 +41,14 @@ namespace controller {
 			return resultObjects;
 		}
 		for (auto it = results.begin(); it != results.end(); it++) {
-			resultObjects.push_back(new UserBackups(new model::table::UserBackups(*it)));
+			resultObjects.push_back(new UserBackup(new model::table::UserBackup(*it)));
 		}
 
 		return resultObjects;
 
 	}
 
-	Poco::SharedPtr<KeyPair> UserBackups::getKeyPair()
+	Poco::SharedPtr<KeyPair> UserBackup::getKeyPair()
 	{
 		if (!mKeyPair.isNull()) {
 			return mKeyPair;
@@ -61,7 +61,7 @@ namespace controller {
 		return mKeyPair;
 	}
 
-	KeyPairEd25519* UserBackups::createGradidoKeyPair()
+	KeyPairEd25519* UserBackup::createGradidoKeyPair()
 	{
 		auto model = getModel();
 		auto mnemonicType = model->getMnemonicType();
@@ -71,7 +71,7 @@ namespace controller {
 		return KeyPairEd25519::create(passphrase);
 	}
 
-	std::string UserBackups::getPassphrase(ServerConfig::Mnemonic_Types type)
+	std::string UserBackup::getPassphrase(ServerConfig::Mnemonic_Types type)
 	{
 		if ((int)type < 0 || (int)type >= ServerConfig::Mnemonic_Types::MNEMONIC_MAX) {
 			return "<invalid type>";
@@ -96,7 +96,7 @@ namespace controller {
 		
 	}
 
-	std::string UserBackups::formatPassphrase(std::string passphrase, int targetLinesCount/* = 5*/) 
+	std::string UserBackup::formatPassphrase(std::string passphrase, int targetLinesCount/* = 5*/) 
 	{
 		int count = passphrase.size();
 		int charPerLine = count / (targetLinesCount);

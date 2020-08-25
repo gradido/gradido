@@ -1,4 +1,4 @@
-#include "UserRoles.h"
+#include "UserRole.h"
 
 using namespace Poco::Data::Keywords;
 
@@ -6,28 +6,28 @@ namespace model {
 	namespace table {
 
 
-		UserRoles::UserRoles(int user_id, RoleType type)
+		UserRole::UserRole(int user_id, RoleType type)
 			: mUserId(user_id), mType(type)
 		{
 
 		}
 
-		UserRoles::UserRoles(const UserRolesTuple& tuple)
+		UserRole::UserRole(const UserRolesTuple& tuple)
 			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mType(tuple.get<2>())
 		{
 
 		}
-		UserRoles::UserRoles()
+		UserRole::UserRole()
 		{
 
 		}
 
-		UserRoles::~UserRoles()
+		UserRole::~UserRole()
 		{
 
 		}
 
-		Poco::Data::Statement UserRoles::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement UserRole::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 
@@ -40,7 +40,7 @@ namespace model {
 		}
 
 
-		Poco::Data::Statement UserRoles::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement UserRole::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -52,7 +52,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserRoles::_loadIdFromDB(Poco::Data::Session session)
+		Poco::Data::Statement UserRole::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 
@@ -63,7 +63,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserRoles::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement UserRole::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -74,7 +74,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserRoles::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		Poco::Data::Statement UserRole::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
 		{
 			Poco::Data::Statement select(session);
 			if (fieldNames.size() <= 1) {
@@ -104,7 +104,7 @@ namespace model {
 		}
 
 		// generic db operations
-		std::string UserRoles::toString()
+		std::string UserRole::toString()
 		{
 			std::stringstream ss;
 			ss << "user_id: " << mUserId << std::endl;
@@ -112,7 +112,7 @@ namespace model {
 			return ss.str();
 		}
 
-		const char* UserRoles::typeToString(RoleType type)
+		const char* UserRole::typeToString(RoleType type)
 		{
 			switch (type) {
 			case ROLE_NOT_LOADED: return "not loaded";

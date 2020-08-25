@@ -2,15 +2,18 @@
 #define GRADIDO_LOGIN_SERVER_MODEL_TABLE_HEDERA_ACCOUNTS_INCLUDE
 
 #include "ModelBase.h"
+#include "Poco/Tuple.h"
 
 namespace model {
 	namespace table {
 
-		class HederaAccounts : public ModelBase
+		typedef Poco::Tuple<int, int, int, Poco::UInt64, Poco::DateTime> HederaAccountsTuple;
+
+		class HederaAccount : public ModelBase
 		{
 		public:
-			HederaAccounts();
-			~HederaAccounts();
+			HederaAccount();
+			~HederaAccount();
 
 			// generic db operations
 			const char* getTableName() const { return "hedera_accounts"; }
@@ -19,6 +22,7 @@ namespace model {
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
+			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 

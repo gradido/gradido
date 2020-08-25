@@ -13,7 +13,7 @@
 #include "../Crypto/Passphrase.h"
 #include "../Crypto/KeyPairEd25519.h"
 #include "../lib/DataTypeConverter.h"
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 #include "../tasks/SigningTransaction.h"
 #include "../ServerConfig.h"
 
@@ -85,7 +85,7 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 			else 
 			{	
 				mSession->setPassphrase(passphrase);
-				auto newPassphraseModel = controller::UserBackups::create(
+				auto newPassphraseModel = controller::UserBackup::create(
 					user_model->getID(),
 					passphrase->getString(),
 					ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES

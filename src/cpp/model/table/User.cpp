@@ -315,7 +315,7 @@ namespace model {
 			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << "<br>";
 			ss << "email checked: " << mEmailChecked << "<br>";
 			ss << "language key: " << mLanguageKey << "<br>";
-			ss << "role: " << UserRoles::typeToString(getRole()) << "<br>";
+			ss << "role: " << UserRole::typeToString(getRole()) << "<br>";
 			ss << "disabled: " << mDisabled << "<br>";
 
 			mm->releaseMemory(pubkeyHex);
@@ -357,7 +357,7 @@ namespace model {
 			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
 			userObj.set("disabled", mDisabled);
 			try {
-				userObj.set("role", UserRoles::typeToString(getRole()));
+				userObj.set("role", UserRole::typeToString(getRole()));
 			}
 			catch (Poco::Exception ex) {
 				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
