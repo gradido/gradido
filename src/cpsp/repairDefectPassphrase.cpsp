@@ -64,7 +64,7 @@ enum PageState
 			else 
 			{	
 				mSession->setPassphrase(passphrase);
-				auto newPassphraseModel = controller::UserBackups::create(
+				auto newPassphraseModel = controller::UserBackup::create(
 					user_model->getID(),
 					passphrase->getString(),
 					ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES

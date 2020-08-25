@@ -1,19 +1,19 @@
-#include "Groups.h"
+#include "Group.h"
 
 using namespace Poco::Data::Keywords;
 
 namespace model {
 	namespace table {
-		Groups::Groups()
+		Group::Group()
 		{ 
 		}
 
-		Groups::~Groups() 
+		Group::~Group() 
 		{
 
 		}
 
-		std::string Groups::toString()
+		std::string Group::toString()
 		{
 			std::stringstream ss;
 			ss << "Alias: " << mAlias << std::endl;
@@ -22,7 +22,7 @@ namespace model {
 			return ss.str();
 		}
 
-		Poco::Data::Statement Groups::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement Group::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -32,7 +32,7 @@ namespace model {
 
 			return select;
 		}
-		Poco::Data::Statement Groups::_loadIdFromDB(Poco::Data::Session session)
+		Poco::Data::Statement Group::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 			lock();
@@ -43,7 +43,7 @@ namespace model {
 			return select;
 
 		}
-		Poco::Data::Statement Groups::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement Group::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 			lock();

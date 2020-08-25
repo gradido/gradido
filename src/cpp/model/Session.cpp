@@ -24,7 +24,7 @@
 
 
 #include "../controller/User.h"
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 #include "../controller/EmailVerificationCode.h"
 
 #include "table/ModelBase.h"
@@ -777,7 +777,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		if (-2 == loginResult) {
 			// check if we have access to the passphrase, if so we can reencrypt the private key
 			auto user_model = mNewUser->getModel();
-			auto user_backups = controller::UserBackups::load(user_model->getID());
+			auto user_backups = controller::UserBackup::load(user_model->getID());
 			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
 				auto key = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
 				if (key->isTheSame(user_model->getPublicKey())) 
@@ -941,7 +941,7 @@ void Session::detectSessionState()
 	if (USER_NO_KEYS == userState) {
 		
 		auto user_id = mSessionUser->getDBId();
-		auto userBackups = controller::UserBackups::load(user_id);
+		auto userBackups = controller::UserBackup::load(user_id);
 
 		// check passphrase, only possible while passphrase isn't crypted in db
 		bool correctPassphraseFound = false;
@@ -1157,7 +1157,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	}
 
 	if (savePassphrase) {
-		auto user_backup = controller::UserBackups::create(user_model->getID(), passphrase->getString(), mnemonic_type);
+		auto user_backup = controller::UserBackup::create(user_model->getID(), passphrase->getString(), mnemonic_type);
 		// sync version
 		//user_backup->getModel()->insertIntoDB(false);	
 

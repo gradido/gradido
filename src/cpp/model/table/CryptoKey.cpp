@@ -1,20 +1,20 @@
-#include "CryptoKeys.h"
+#include "CryptoKey.h"
 #include "../../lib/DataTypeConverter.h"
 using namespace Poco::Data::Keywords;
 
 namespace model {
 	namespace table {
-		CryptoKeys::CryptoKeys()
+		CryptoKey::CryptoKey()
 		{
 
 		}
 
-		CryptoKeys::~CryptoKeys()
+		CryptoKey::~CryptoKey()
 		{
 
 		}
 
-		std::string CryptoKeys::toString()
+		std::string CryptoKey::toString()
 		{
 			assert(mKeyType < KEY_TYPE_COUNT && mKeyType >= 0);
 			std::stringstream ss;
@@ -24,7 +24,7 @@ namespace model {
 		}
 
 
-		const char* CryptoKeys::typeToString(KeyType type)
+		const char* CryptoKey::typeToString(KeyType type)
 		{
 			switch (type) {
 			case KEY_TYPE_ED25519_REF10: return "ed25519 ref10";
@@ -33,7 +33,7 @@ namespace model {
 			return "<unknown type>";
 		}
 
-		Poco::Data::Statement CryptoKeys::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement CryptoKey::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -44,7 +44,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement CryptoKeys::_loadIdFromDB(Poco::Data::Session session)
+		Poco::Data::Statement CryptoKey::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 			lock();
@@ -56,7 +56,7 @@ namespace model {
 		}
 	
 		
-		Poco::Data::Statement CryptoKeys::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement CryptoKey::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 			lock();

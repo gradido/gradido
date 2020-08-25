@@ -12,7 +12,7 @@
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 
 
 #include "Poco/Data/Binding.h"
@@ -1090,7 +1090,7 @@ MemoryBin* User::sign(const unsigned char* message, size_t messageSize)
 		//addError(new Error("User::sign", "decrypt privkey failed"));
 		
 
-		auto userBackups = controller::UserBackups::load(mDBId);
+		auto userBackups = controller::UserBackup::load(mDBId);
 
 		// get privkey, only possible while passphrase isn't crypted in db
 		bool correctPassphraseFound = false;

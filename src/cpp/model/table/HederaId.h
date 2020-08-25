@@ -7,11 +7,11 @@
 namespace model {
 	namespace table {
 
-		class HederaIds : public ModelBase
+		class HederaId : public ModelBase
 		{
 		public:
-			HederaIds();
-			~HederaIds();
+			HederaId();
+			~HederaId();
 
 			// generic db operations
 			const char* getTableName() const { return "hedera_ids"; }

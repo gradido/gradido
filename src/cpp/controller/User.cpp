@@ -1,5 +1,5 @@
 #include "User.h"
-#include "UserBackups.h"
+#include "UserBackup.h"
 
 #include "sodium.h"
 
@@ -299,7 +299,7 @@ namespace controller {
 		auto user_model = getModel();
 		if (user_model->getID() <= 0) return -2;
 
-		auto backups = UserBackups::load(user_model->getID());
+		auto backups = UserBackup::load(user_model->getID());
 		if (backups.size() == 0) return -1;
 		for (auto it = backups.begin(); it != backups.end(); it++) {
 			auto user_backup = *it;

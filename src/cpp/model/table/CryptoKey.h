@@ -13,11 +13,11 @@ namespace model {
 			KEY_TYPE_COUNT
 		};
 
-		class CryptoKeys : public ModelBase
+		class CryptoKey : public ModelBase
 		{
 		public:
-			CryptoKeys();
-			~CryptoKeys();
+			CryptoKey();
+			~CryptoKey();
 
 			// generic db operations
 			const char* getTableName() const { return "crypto_keys"; }

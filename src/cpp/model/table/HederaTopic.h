@@ -6,11 +6,11 @@
 namespace model {
 	namespace table {
 
-		class HederaTopics : public ModelBase
+		class HederaTopic : public ModelBase
 		{
 		public:
-			HederaTopics();
-			~HederaTopics();
+			HederaTopic();
+			~HederaTopic();
 
 			// generic db operations
 			const char* getTableName() const { return "hedera_topics"; }

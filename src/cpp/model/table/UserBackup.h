@@ -9,13 +9,13 @@ namespace model {
 
 		typedef Poco::Tuple<int, int, std::string, int> UserBackupsTuple;
 
-		class UserBackups : public ModelBase
+		class UserBackup : public ModelBase
 		{
 		public:
-			UserBackups(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
-			UserBackups(const UserBackupsTuple& tuple);
-			UserBackups();
-			~UserBackups();
+			UserBackup(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
+			UserBackup(const UserBackupsTuple& tuple);
+			UserBackup();
+			~UserBackup();
 
 			// generic db operations
 			const char* getTableName() const { return "user_backups"; }

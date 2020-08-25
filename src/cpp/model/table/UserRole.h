@@ -17,13 +17,13 @@ namespace model {
 
 		typedef Poco::Tuple<int, int, int> UserRolesTuple;
 
-		class UserRoles : public ModelBase
+		class UserRole : public ModelBase
 		{
 		public:
-			UserRoles(int user_id, RoleType type);
-			UserRoles(const UserRolesTuple& tuple);
-			UserRoles();
-			~UserRoles();
+			UserRole(int user_id, RoleType type);
+			UserRole(const UserRolesTuple& tuple);
+			UserRole();
+			~UserRole();
 
 			// generic db operations
 			const char* getTableName() const { return "user_roles"; }

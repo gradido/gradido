@@ -1,20 +1,20 @@
-#include "HederaTopics.h"
+#include "HederaTopic.h"
 
 using namespace Poco::Data::Keywords;
 
 namespace model {
 	namespace table {
-		HederaTopics::HederaTopics()
+		HederaTopic::HederaTopic()
 		{
 
 		}
 
-		HederaTopics::~HederaTopics()
+		HederaTopic::~HederaTopic()
 		{
 
 		}
 
-		std::string HederaTopics::toString()
+		std::string HederaTopic::toString()
 		{
 			std::stringstream ss;
 			ss << "Topic Hedera id: " << std::to_string(mTopicHederaId) << std::endl;
@@ -29,7 +29,7 @@ namespace model {
 			return ss.str();
 		}
 
-		Poco::Data::Statement HederaTopics::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement HederaTopic::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -42,7 +42,7 @@ namespace model {
 			return select;
 
 		}
-		Poco::Data::Statement HederaTopics::_loadIdFromDB(Poco::Data::Session session)
+		Poco::Data::Statement HederaTopic::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 			lock();
@@ -52,7 +52,7 @@ namespace model {
 			unlock();
 			return select;
 		}
-		Poco::Data::Statement HederaTopics::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement HederaTopic::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 			lock();

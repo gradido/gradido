@@ -1,7 +1,7 @@
 #ifndef GRADIDO_LOGIN_SERVER_CONTROLLER_USER_BACKUPS_INCLUDE
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_USER_BACKUPS_INCLUDE
 
-#include "../model/table/UserBackups.h"
+#include "../model/table/UserBackup.h"
 #include "../Crypto/KeyPair.h"
 #include "../Crypto/KeyPairEd25519.h"
 
@@ -10,19 +10,19 @@
 #include "TableControllerBase.h"
 
 namespace controller {
-	class UserBackups : public TableControllerBase
+	class UserBackup : public TableControllerBase
 	{
 	public:
 
-		~UserBackups();
+		~UserBackup();
 
-		static Poco::AutoPtr<UserBackups> create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
+		static Poco::AutoPtr<UserBackup> create(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
 
-		static std::vector<Poco::AutoPtr<UserBackups>> load(int user_id);
+		static std::vector<Poco::AutoPtr<UserBackup>> load(int user_id);
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
-		inline Poco::AutoPtr<model::table::UserBackups> getModel() { return _getModel<model::table::UserBackups>(); }
+		inline Poco::AutoPtr<model::table::UserBackup> getModel() { return _getModel<model::table::UserBackup>(); }
 
 		//! depracted
 		//! \return create keyPair from passphrase if not exist, else return existing pointer
@@ -37,7 +37,7 @@ namespace controller {
 		std::string getPassphrase(ServerConfig::Mnemonic_Types type);
 
 	protected:
-		UserBackups(model::table::UserBackups* dbModel);
+		UserBackup(model::table::UserBackup* dbModel);
 		Poco::SharedPtr<KeyPair> mKeyPair;
 		
 	};

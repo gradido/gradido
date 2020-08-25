@@ -18,7 +18,7 @@ typedef Poco::Tuple<int, Poco::Nullable<Poco::Data::BLOB>, std::string> UserBack
 struct SListEntry 
 {
 	Poco::AutoPtr<controller::User> user;
-	std::vector<Poco::AutoPtr<controller::UserBackups>> backups;
+	std::vector<Poco::AutoPtr<controller::UserBackup>> backups;
 };
 
 %>
@@ -73,7 +73,7 @@ struct SListEntry
 			SListEntry entry;
 			entry.user = controller::User::create();
 			entry.user->load(user_id);
-			entry.backups = controller::UserBackups::load(user_id);
+			entry.backups = controller::UserBackup::load(user_id);
 			
 			notMatchingEntrys.push_back(entry);
 			

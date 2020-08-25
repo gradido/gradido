@@ -1,4 +1,4 @@
-#include "UserBackups.h"
+#include "UserBackup.h"
 #include "../../controller/User.h"
 
 using namespace Poco::Data::Keywords;
@@ -6,31 +6,31 @@ using namespace Poco::Data::Keywords;
 namespace model {
 	namespace table {
 
-		UserBackups::UserBackups()
+		UserBackup::UserBackup()
 			: mUserId(0), mMnemonicType(0)
 		{
 			detectMnemonic();
 		}
 
-		UserBackups::UserBackups(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type)
+		UserBackup::UserBackup(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type)
 			: mUserId(user_id), mPassphrase(passphrase), mMnemonicType(type)
 		{
 			detectMnemonic();
 		}
 
 
-		UserBackups::UserBackups(const UserBackupsTuple& tuple)
+		UserBackup::UserBackup(const UserBackupsTuple& tuple)
 			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mPassphrase(tuple.get<2>()), mMnemonicType(tuple.get<3>())
 		{
 			detectMnemonic();
 		}
 
-		UserBackups::~UserBackups()
+		UserBackup::~UserBackup()
 		{
 
 		}
 
-		Poco::Data::Statement UserBackups::_insertIntoDB(Poco::Data::Session session)
+		Poco::Data::Statement UserBackup::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
 
@@ -43,7 +43,7 @@ namespace model {
 		}
 
 
-		Poco::Data::Statement UserBackups::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement UserBackup::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -55,7 +55,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserBackups::_loadIdFromDB(Poco::Data::Session session)
+		Poco::Data::Statement UserBackup::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
 
@@ -66,7 +66,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserBackups::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
+		Poco::Data::Statement UserBackup::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
@@ -77,7 +77,7 @@ namespace model {
 			return select;
 		}
 
-		Poco::Data::Statement UserBackups::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		Poco::Data::Statement UserBackup::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
 		{
 			Poco::Data::Statement select(session);
 			if (fieldNames.size() <= 1) {
@@ -107,7 +107,7 @@ namespace model {
 		}
 
 		// generic db operations
-		std::string UserBackups::toString()
+		std::string UserBackup::toString()
 		{
 			std::stringstream ss;
 			ss << "user_id: " << mUserId << std::endl;
@@ -116,7 +116,7 @@ namespace model {
 			return ss.str();
 		}
 
-		void UserBackups::detectMnemonic()
+		void UserBackup::detectMnemonic()
 		{
 			if (mMnemonicType == -1) {
 				const static char* function_name = "UserBackups::detectMnemonic";
