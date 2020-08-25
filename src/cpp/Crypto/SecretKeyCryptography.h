@@ -17,13 +17,13 @@
  * 
  * \date: 07-06-2020
  *
- * \brief: Wrapper Class for make using libsodium authenticated encryption easy, used for encrypt private keys for user
+ * \brief: Wrapper Class for make using libsodium secret key encryption easy, used for encrypt private keys for user with pwhash
  *
  */
 
 typedef Poco::UInt64 KeyHashed;
 
-class AuthenticatedEncryption : public AutoPtrContainer
+class SecretKeyCryptography : public AutoPtrContainer
 {
 public:
 
@@ -37,20 +37,20 @@ public:
 	};
 
 	//! \brief init with default algorithms parameter
-	AuthenticatedEncryption();
+	SecretKeyCryptography();
 	//! \brief init with custom algorithms parameter
 	//! 
 	//! details see in libsodium crypto_pwhash 
-	AuthenticatedEncryption(unsigned long long opslimit, size_t memlimit, int algo);
+	SecretKeyCryptography(unsigned long long opslimit, size_t memlimit, int algo);
 
-	~AuthenticatedEncryption();
+	~SecretKeyCryptography();
 
 
 	inline KeyHashed getKeyHashed() const { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);  return mEncryptionKeyHash; }
-	inline bool operator == (const Poco::AutoPtr<AuthenticatedEncryption>& b) const {
+	inline bool operator == (const Poco::AutoPtr<SecretKeyCryptography>& b) const {
 		return isTheSame(b);
 	}
-	inline bool isTheSame(const Poco::AutoPtr<AuthenticatedEncryption>& b) const {
+	inline bool isTheSame(const Poco::AutoPtr<SecretKeyCryptography>& b) const {
 		std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 		if (b.isNull()) return false;
 		return mEncryptionKeyHash == b->getKeyHashed();

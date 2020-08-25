@@ -81,7 +81,7 @@ namespace controller {
 		//! \return 1 = password changed, private key re-encrypted and saved into db
 		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
-		int setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd);
+		int setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd);
 
 
 		//! \brief set authenticated encryption and save hash in db, also re encrypt private key if exist
@@ -93,7 +93,7 @@ namespace controller {
 		int setNewPassword(const std::string& password);
 
 		//! \brief return AuthenticatedEncryption Auto Pointer
-		inline const Poco::AutoPtr<AuthenticatedEncryption> getPassword() {
+		inline const Poco::AutoPtr<SecretKeyCryptography> getPassword() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
@@ -129,7 +129,7 @@ namespace controller {
 				
 		std::string mPublicHex;
 
-	 	Poco::AutoPtr<AuthenticatedEncryption> mPassword;
+	 	Poco::AutoPtr<SecretKeyCryptography> mPassword;
 		KeyPairEd25519*          mGradidoKeyPair;
 
 		bool					 mCanDecryptPrivateKey;
