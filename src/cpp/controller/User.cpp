@@ -144,7 +144,7 @@ namespace controller {
 			return -3;
 		}
 		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
-		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
+		Poco::AutoPtr<SecretKeyCryptography> authenticated_encryption(new SecretKeyCryptography);
 		assert(!authenticated_encryption.isNull() && model);
 		authenticated_encryption->createKey(model->getEmail(), password);
 
@@ -163,7 +163,7 @@ namespace controller {
 			}
 			else 
 			{
-				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+				if (SecretKeyCryptography::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair) {
 						if (mGradidoKeyPair->isTheSame(clear_private_key) == 0) {
 							mCanDecryptPrivateKey = true;
@@ -225,7 +225,7 @@ namespace controller {
 		auto email_hash = observer->makeHash(model->getEmail());
 
 		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
-		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
+		Poco::AutoPtr<SecretKeyCryptography> authenticated_encryption(new SecretKeyCryptography);
 		assert(!authenticated_encryption.isNull() && model);
 		authenticated_encryption->createKey(model->getEmail(), password);
 
@@ -234,7 +234,7 @@ namespace controller {
 	}
 
 
-	int User::setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
+	int User::setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		auto model = getModel();
@@ -249,7 +249,7 @@ namespace controller {
 			if ((!mGradidoKeyPair || !mGradidoKeyPair->hasPrivateKey()) && model->hasPrivateKeyEncrypted()) {
 				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
 				MemoryBin* clear_private_key = nullptr;
-				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+				if (SecretKeyCryptography::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair && mGradidoKeyPair->isTheSame(clear_private_key) != 0) 
 					{
 						delete mGradidoKeyPair; 

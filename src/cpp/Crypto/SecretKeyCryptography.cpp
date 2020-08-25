@@ -1,22 +1,22 @@
-#include "AuthenticatedEncryption.h"
+#include "SecretKeyCryptography.h"
 
 #include "sodium.h"
 #include "../ServerConfig.h"
 #include <assert.h>
 #include "../lib/Profiler.h"
 
-AuthenticatedEncryption::AuthenticatedEncryption()
+SecretKeyCryptography::SecretKeyCryptography()
 	: mOpsLimit(10), mMemLimit(33554432), mAlgo(2), mEncryptionKey(nullptr), mEncryptionKeyHash(0)
 {
 }
 
-AuthenticatedEncryption::AuthenticatedEncryption(unsigned long long opslimit, size_t memlimit, int algo)
+SecretKeyCryptography::SecretKeyCryptography(unsigned long long opslimit, size_t memlimit, int algo)
 	: mOpsLimit(opslimit), mMemLimit(memlimit), mAlgo(algo), mEncryptionKey(nullptr), mEncryptionKeyHash(0)
 {
 
 }
 
-AuthenticatedEncryption::~AuthenticatedEncryption()
+SecretKeyCryptography::~SecretKeyCryptography()
 {
 	if (mEncryptionKey) {
 		MemoryManager::getInstance()->releaseMemory(mEncryptionKey);
@@ -24,7 +24,7 @@ AuthenticatedEncryption::~AuthenticatedEncryption()
 	}
 }
 
-AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std::string& salt_parameter, const std::string& passwd)
+SecretKeyCryptography::ResultType SecretKeyCryptography::createKey(const std::string& salt_parameter, const std::string& passwd)
 {
 	assert(crypto_hash_sha512_BYTES >= crypto_pwhash_SALTBYTES);
 		
@@ -79,7 +79,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::createKey(const std
 	return AUTH_ENCRYPT_OK;
 }
 
-AuthenticatedEncryption::ResultType AuthenticatedEncryption::encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const
+SecretKeyCryptography::ResultType SecretKeyCryptography::encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const
 {
 	assert(message && encryptedMessage);
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
@@ -111,7 +111,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::encrypt(const Memor
 	return AUTH_ENCRYPT_OK;
 }
 
-AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const unsigned char* encryptedMessage, size_t encryptedMessageSize, MemoryBin** message) const
+SecretKeyCryptography::ResultType SecretKeyCryptography::decrypt(const unsigned char* encryptedMessage, size_t encryptedMessageSize, MemoryBin** message) const
 {
 	assert(message);
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
@@ -139,7 +139,7 @@ AuthenticatedEncryption::ResultType AuthenticatedEncryption::decrypt(const unsig
 	return AUTH_DECRYPT_OK;
 }
 
-const char* AuthenticatedEncryption::getErrorMessage(ResultType type)
+const char* SecretKeyCryptography::getErrorMessage(ResultType type)
 {
 	switch (type) {
 	case AUTH_ENCRYPT_OK: return "everything is ok";

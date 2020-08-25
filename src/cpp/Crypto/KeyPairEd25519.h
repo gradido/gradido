@@ -13,7 +13,7 @@
 
 
 #include "sodium.h"
-#include "AuthenticatedEncryption.h"
+#include "SecretKeyCryptography.h"
 #include "Passphrase.h"
 
 class KeyPairEd25519 : public IKeyPair
@@ -63,7 +63,7 @@ public:
 	inline bool hasPrivateKey() const { return mSodiumSecret != nullptr; }
 
 	//! \brief only way to get a private key.. encrypted
-	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<AuthenticatedEncryption> password) const;
+	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const;
 
 protected:	
 	
