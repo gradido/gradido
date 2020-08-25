@@ -1,7 +1,8 @@
-CREATE TABLE `groups` ( 
- `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
- `alias` VARCHAR(255) NOT NULL,
- `name` VARCHAR(255) NOT NULL,
- `description` TEXT NULL DEFAULT NULL,
- PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4; 
+CREATE TABLE `groups` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `alias` varchar(190) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `alias` (`alias`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
