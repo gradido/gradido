@@ -1,0 +1,21 @@
+<%@ page class="AdminHederaTopic" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+
+
+%>
+<%%
+	const char* pageName = "Admin Hedera Topic";
+		
+	
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Admin Hedera Topic</h1>
+	<%= getErrorsHtml() %>
+	
+</div>
+<%@ include file="footer.cpsp" %>
