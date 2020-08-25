@@ -5,8 +5,9 @@
 #include "../SingletonManager/MemoryManager.h"
 
 #include "Poco/Timespan.h"
+#include "Poco/Nullable.h"
+#include "Poco/Data/LOB.h"
 #include "../SingletonManager/LanguageManager.h"
-
 
 namespace DataTypeConverter {
 
@@ -26,7 +27,9 @@ namespace DataTypeConverter {
 
 	std::string binToBase64(const MemoryBin* data);
 	
+	
 	std::string binToHex(const unsigned char* data, size_t size);
+	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);
 	inline std::string binToHex(const MemoryBin* data) { return binToHex(data->data(), data->size());}
 
 	//! \param pubkey pointer to array with crypto_sign_PUBLICKEYBYTES size

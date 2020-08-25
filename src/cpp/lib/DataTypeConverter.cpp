@@ -176,6 +176,16 @@ namespace DataTypeConverter
 		return hexString;
 	}
 
+	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin)
+	{
+		if (nullableBin.isNull()) {
+			return "0x0";
+		}
+		else {
+			return binToHex(nullableBin.value().content().data(), nullableBin.value().content().size());
+		}
+	}
+
 	std::string pubkeyToHex(const unsigned char* pubkey)
 	{
 		auto mm = MemoryManager::getInstance();
