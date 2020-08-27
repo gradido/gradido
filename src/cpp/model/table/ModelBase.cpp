@@ -138,6 +138,13 @@ namespace model {
 			throw Poco::Exception(message);
 		}
 
+		Poco::Data::Statement ModelBase::_loadAllFromDB(Poco::Data::Session session)
+		{
+			std::string message = getTableName();
+			message += "::_loadAllFromDB not implemented";
+			throw Poco::Exception(message);
+		}
+
 		Poco::DateTime ModelBase::parseElopageDate(std::string dateString)
 		{
 			std::string decodedDateString = "";
