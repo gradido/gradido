@@ -27,6 +27,7 @@
 #include "PassphrasedTransaction.h"
 #include "AdminUserPasswordReset.h"
 #include "RegisterDirectPage.h"
+#include "AdminGroupsPage.h"
 
 #include "DecodeTransactionPage.h"
 #include "RepairDefectPassphrase.h"
@@ -203,6 +204,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/adminUserPasswordReset") {
 				auto pageRequestHandler = new AdminUserPasswordReset(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/groups") {
+				auto pageRequestHandler = new AdminGroupsPage(s);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}

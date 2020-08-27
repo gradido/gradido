@@ -6,7 +6,7 @@ CREATE TABLE `hedera_topics` (
   `group_id` int unsigned NOT NULL,
   `admin_key_id` int unsigned DEFAULT NULL,
   `submit_key_id` int unsigned DEFAULT NULL,
-  `current_timeout` timestamp NOT NULL DEFAULT '0',
+  `current_timeout` timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   `sequence_number` bigint unsigned DEFAULT '0',
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

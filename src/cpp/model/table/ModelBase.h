@@ -42,6 +42,8 @@ namespace model {
 			bool isExistInDB(const std::string& fieldName, const T& fieldValue);
 			template<class WhereFieldType, class Tuple> 
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
+			template<class Tuple>
+			std::vector<Tuple> loadAllFromDB();
 			template<class T1, class T2> 
 			size_t loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			template<class WhereFieldType, class Tuple>
@@ -62,6 +64,7 @@ namespace model {
 			virtual Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
+			virtual Poco::Data::Statement _loadAllFromDB(Poco::Data::Session session);
 			virtual Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);
 			virtual Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 			virtual Poco::Data::Statement _insertIntoDB(Poco::Data::Session session) = 0;
@@ -142,6 +145,29 @@ namespace model {
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
 				unlock();
 			}
+			return results;
+		}
+
+		template<class Tuple>
+		std::vector<Tuple> loadAllFromDB()
+		{
+			std::vector<Tuple> results;
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			
+			auto cm = ConnectionManager::getInstance();
+			Poco::Data::Statement select = _loadAllFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			select, Poco::Data::Keywords::into(results);
+
+			size_t resultCount = 0;
+			try {
+				resultCount = select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by selecting all", ex.displayText().data()));
+				unlock();
+			}
+			
 			return results;
 		}
 

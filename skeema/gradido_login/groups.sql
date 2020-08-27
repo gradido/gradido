@@ -2,6 +2,7 @@ CREATE TABLE `groups` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `alias` varchar(190) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `url` varchar(255) NOT NULL,
   `description` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `alias` (`alias`)
