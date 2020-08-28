@@ -43,8 +43,8 @@ namespace model {
 		const char* CryptoKey::typeToString(KeyType type)
 		{
 			switch (type) {
-			case KEY_TYPE_ED25519_REF10: return "ed25519 ref10";
-			case KEY_TYPE_SODIUM_ED25519: return "sodium ed22519";
+			case KEY_TYPE_ED25519_SODIUM: return "ed25519 ref10";
+			case KEY_TYPE_ED25519_HEDERA: return "sodium ed22519";
 			}
 			return "<unknown type>";
 		}

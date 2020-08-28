@@ -14,7 +14,7 @@ namespace controller {
 
 		~HederaAccount();
 
-		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0);
+		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, model::table::HederaNetworkType type = model::table::HEDERA_MAINNET);
 
 		static std::vector<Poco::AutoPtr<HederaAccount>> load(const std::string& alias);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();

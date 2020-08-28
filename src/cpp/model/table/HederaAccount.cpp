@@ -6,20 +6,21 @@ namespace model {
 	namespace table {
 
 		HederaAccount::HederaAccount()
-			: mUserId(0), mAccountHederaId(0), mAccountKeyId(0), mBalance(0)
+			: mUserId(0), mAccountHederaId(0), mAccountKeyId(0), mBalance(0), mType(0)
 		{
 
 		}
 
-		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/)
-			: mUserId(user_id), mAccountHederaId(account_hedera_id), mAccountKeyId(account_key_id), mBalance(balance)
+		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, HederaNetworkType type /*= HEDERA_MAINNET*/)
+			: mUserId(user_id), mAccountHederaId(account_hedera_id), mAccountKeyId(account_key_id), mBalance(balance), mType(type)
 		{
 
 		}
 
 		HederaAccount::HederaAccount(const HederaAccountTuple& tuple)
 			: ModelBase(tuple.get<0>()),
-			mUserId(tuple.get<1>()), mAccountHederaId(tuple.get<2>()), mAccountKeyId(tuple.get<3>()), mBalance(tuple.get<4>()), mUpdated(tuple.get<5>())
+			mUserId(tuple.get<1>()), mAccountHederaId(tuple.get<2>()), mAccountKeyId(tuple.get<3>()),
+			mBalance(tuple.get<4>()), mType(tuple.get<5>()), mUpdated(tuple.get<6>())
 		{
 
 		}
@@ -37,18 +38,28 @@ namespace model {
 			ss << "account crypto key id: " << std::to_string(mAccountKeyId) << std::endl;
 			// balance in tinybars, 100,000,000 tinybar = 1 HashBar
 			ss << "account balance: " << std::to_string((double)(mBalance) * 100000000.0) << " HBAR" << std::endl;
+			ss << "Hedera Net Type: " << hederaNetworkTypeToString((HederaNetworkType)mType) << std::endl;
 			ss << "last update: " << Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S") << std::endl;
 
 			return ss.str();
+		}
+
+		const char* HederaAccount::hederaNetworkTypeToString(HederaNetworkType type)
+		{
+			switch (type) {
+			case HEDERA_MAINNET: return "Mainnet";
+			case HEDERA_TESTNET: return "Testnet";
+			default: return "<unknown>";
+			}
 		}
 
 		Poco::Data::Statement HederaAccount::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, account_hedera_id, account_key_id, balance, updated FROM " << getTableName()
+			select << "SELECT id, user_id, account_hedera_id, account_key_id, balance, network_type, updated FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mAccountHederaId), into(mAccountKeyId), into(mBalance), into(mUpdated);
+				, into(mID), into(mUserId), into(mAccountHederaId), into(mAccountKeyId), into(mBalance), into(mType), into(mUpdated);
 
 			return select;
 
@@ -57,7 +68,7 @@ namespace model {
 		Poco::Data::Statement HederaAccount::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
-			select << "SELECT id, user_id, account_hedera_id, account_key_id, balance, updated FROM " << getTableName()
+			select << "SELECT id, user_id, account_hedera_id, account_key_id, balance, network_type, updated FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 			return select;
@@ -77,8 +88,8 @@ namespace model {
 			Poco::Data::Statement insert(session);
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, account_hedera_id, account_key_id, balance) VALUES(?,?,?,?)"
-				, use(mUserId), use(mAccountHederaId), use(mAccountKeyId), use(mBalance);
+				<< " (user_id, account_hedera_id, account_key_id, balance, network_type) VALUES(?,?,?,?,?)"
+				, use(mUserId), use(mAccountHederaId), use(mAccountKeyId), use(mBalance), use(mType);
 			unlock();
 			return insert;
 		}

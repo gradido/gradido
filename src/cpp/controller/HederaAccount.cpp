@@ -13,9 +13,9 @@ namespace controller {
 
 	}
 
-	Poco::AutoPtr<HederaAccount> HederaAccount::create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/)
+	Poco::AutoPtr<HederaAccount> HederaAccount::create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, model::table::HederaNetworkType type/* = HEDERA_MAINNET*/)
 	{
-		auto db = new model::table::HederaAccount(user_id, account_hedera_id, account_key_id, balance);
+		auto db = new model::table::HederaAccount(user_id, account_hedera_id, account_key_id, balance, type);
 		auto group = new HederaAccount(db);
 		return Poco::AutoPtr<HederaAccount>(group);
 	}
