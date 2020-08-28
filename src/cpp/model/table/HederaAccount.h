@@ -7,12 +7,14 @@
 namespace model {
 	namespace table {
 
-		typedef Poco::Tuple<int, int, int, Poco::UInt64, Poco::DateTime> HederaAccountsTuple;
+		typedef Poco::Tuple<int, int, int, int, Poco::UInt64, Poco::DateTime> HederaAccountTuple;
 
 		class HederaAccount : public ModelBase
 		{
 		public:
 			HederaAccount();
+			HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0);
+			HederaAccount(const HederaAccountTuple& tuple);
 			~HederaAccount();
 
 			// generic db operations

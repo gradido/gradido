@@ -6,6 +6,20 @@ namespace model {
 	namespace table {
 
 		HederaAccount::HederaAccount()
+			: mUserId(0), mAccountHederaId(0), mAccountKeyId(0), mBalance(0)
+		{
+
+		}
+
+		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/)
+			: mUserId(user_id), mAccountHederaId(account_hedera_id), mAccountKeyId(account_key_id), mBalance(balance)
+		{
+
+		}
+
+		HederaAccount::HederaAccount(const HederaAccountTuple& tuple)
+			: ModelBase(tuple.get<0>()),
+			mUserId(tuple.get<1>()), mAccountHederaId(tuple.get<2>()), mAccountKeyId(tuple.get<3>()), mBalance(tuple.get<4>()), mUpdated(tuple.get<5>())
 		{
 
 		}

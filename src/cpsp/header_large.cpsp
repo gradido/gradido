@@ -1,0 +1,19 @@
+<%!
+#include "../ServerConfig.h"
+%><%%
+	bool withMaterialIcons = false;
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Gradido Login Server: <%= pageName %></title>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/main.css">
+<% if(withMaterialIcons) { %>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/materialdesignicons.min.css">
+<% } %>
+</head>
+<body>
+    <div class="layout">
+		<div class="content">
