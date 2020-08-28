@@ -1,0 +1,23 @@
+<%@ page class="AdminTopicPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+	
+%>
+<%%
+	const char* pageName = "Topic";
+	
+	
+	
+%><%@ include file="header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="content-container info-container">
+	<h1>Topic Admin Page</h1>
+</div>
+<div class="content-container main-container">
+	
+</div>
+<%@ include file="footer.cpsp" %>

@@ -28,6 +28,8 @@
 #include "AdminUserPasswordReset.h"
 #include "RegisterDirectPage.h"
 #include "AdminGroupsPage.h"
+#include "AdminTopicPage.h"
+#include "AdminHederaAccountPage.h"
 
 #include "DecodeTransactionPage.h"
 #include "RepairDefectPassphrase.h"
@@ -209,6 +211,16 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/groups") {
 				auto pageRequestHandler = new AdminGroupsPage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/topic") {
+				auto pageRequestHandler = new AdminTopicPage(s);
+				pageRequestHandler->setProfiler(timeUsed);
+				return pageRequestHandler;
+			}
+			if (url_first_part == "/hedera_account") {
+				auto pageRequestHandler = new AdminHederaAccountPage(s);
 				pageRequestHandler->setProfiler(timeUsed);
 				return pageRequestHandler;
 			}

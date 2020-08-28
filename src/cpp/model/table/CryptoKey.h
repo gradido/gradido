@@ -8,8 +8,8 @@ namespace model {
 	namespace table {
 
 		enum KeyType {
-			KEY_TYPE_SODIUM_ED25519,
-			KEY_TYPE_ED25519_REF10,
+			KEY_TYPE_SODIUM_ED25519 = 0,
+			KEY_TYPE_ED25519_REF10 = 1,
 			KEY_TYPE_COUNT
 		};
 
