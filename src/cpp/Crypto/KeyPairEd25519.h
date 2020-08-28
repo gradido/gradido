@@ -9,6 +9,7 @@
  * \date: 2020-06-04
  * 
  * \brief: Key Pairs class for ed25519 keys, used for default gradido transactions
+ * TODO: add verify method
 */
 
 
@@ -75,6 +76,9 @@ private:
 	//! \brief ed25519 libsodium private key
 	//! 
 	//! Why it is a pointer and the public is an array?
+	//! Because MemoryBin should be replaced by a memory obfuscation class which make it harder to steal the private key from computer memory
+	//! And because private key can be nullptr for example to verify a signed message
+	
 	//! TODO: replace MemoryBin by a memory obfuscation class which make it hard to steal the private key from memory
 	MemoryBin* mSodiumSecret;
 
