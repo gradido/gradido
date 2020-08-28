@@ -18,6 +18,7 @@
 
 #include <list>
 #include <stack>
+#include <assert.h>
 
 #define MEMORY_MANAGER_PAGE_SIZE 10
 
@@ -41,6 +42,8 @@ public:
 	inline unsigned char* data() { return mData; }
 	inline const unsigned char* data() const { return mData; }
 
+	inline unsigned char* data(size_t startIndex) { assert(startIndex < mSize); return &mData[startIndex]; }
+	inline const unsigned char* data(size_t startIndex) const { assert(startIndex < mSize); return &mData[startIndex]; }
 	std::string convertToHex(); 
 	//! \return 0 if ok
 	//!        -1 if bin is to small
