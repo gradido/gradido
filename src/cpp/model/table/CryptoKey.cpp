@@ -9,6 +9,22 @@ namespace model {
 
 		}
 
+		CryptoKey::CryptoKey(MemoryBin* privateKey, MemoryBin* publicKey, KeyType keyType)
+			: mKeyType(keyType)
+		{
+			if (!privateKey) { 
+				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>(); 
+			} else {
+				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(*privateKey, privateKey->size()));
+			}
+
+			if (!publicKey) { 
+				mPublicKey = Poco::Nullable<Poco::Data::BLOB>();
+			} else {
+				mPublicKey = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(*publicKey, publicKey->size()));
+			}
+		}
+
 		CryptoKey::~CryptoKey()
 		{
 

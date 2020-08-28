@@ -5,6 +5,13 @@ using namespace Poco::Data::Keywords;
 namespace model {
 	namespace table {
 		HederaId::HederaId()
+			: mShardNum(0), mRealmNum(0), mNum(0)
+		{
+
+		}
+
+		HederaId::HederaId(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num)
+			: mShardNum(shardNum), mRealmNum(realmNum), mNum(num) 
 		{
 
 		}

@@ -13,6 +13,7 @@
 
 
 #include "sodium.h"
+#include "SecretKeyCryptography.h"
 #include "iroha-ed25519/include/ed25519/ed25519.h"
 
 class KeyPairHedera : public IKeyPair
@@ -34,6 +35,7 @@ public:
 	bool verify(const unsigned char* message, size_t messageSize, MemoryBin* signature) const;
 
 	inline const unsigned char* getPublicKey() const { return mPublicKey; }
+	MemoryBin* getPublicKeyCopy() const;
 
 	inline bool isTheSame(const KeyPairHedera& b) const {
 		return 0 == sodium_memcmp(mPublicKey, b.mPublicKey, ed25519_pubkey_SIZE);
@@ -60,7 +62,8 @@ public:
 
 	inline bool hasPrivateKey() const { return mPrivateKey != nullptr; }
 
-	
+	//! \brief only way to get a private key.. encrypted
+	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const;
 
 protected:
 

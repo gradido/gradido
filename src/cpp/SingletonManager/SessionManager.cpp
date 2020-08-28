@@ -44,7 +44,7 @@ bool SessionManager::init()
 		switch (i) {
 		//case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("/^[a-zA-Z_ -]{3,}$/"); break;
 		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[^<>&;]{3,}$"); break;
-		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
+		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&ï¿½*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
 		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-_])[A-Za-z0-9@$!%*?&+-_]{8,}$"); break;
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
 		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression(".*[0-9].*"); break;
@@ -354,6 +354,7 @@ Session* SessionManager::getSession(int handle)
 	//mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
+		printf("[SessionManager::getSession] found existing session, try if active...\n");
 		result = it->second;
 		int iResult = result->isActive();
 		if (iResult == -1) {
@@ -489,9 +490,9 @@ Session* SessionManager::findByEmail(const std::string& email)
 			mDeadLockedSessionCount++;
 		}
 		auto user = it->second->getNewUser();
-if (email == user->getModel()->getEmail()) {
-	return it->second;
-}
+		if (email == user->getModel()->getEmail()) {
+			return it->second;
+		}
 	}
 	mWorkingMutex.unlock();
 	return nullptr;
@@ -499,12 +500,11 @@ if (email == user->getModel()->getEmail()) {
 
 void SessionManager::checkTimeoutSession()
 {
-
 	try {
 		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 		mWorkingMutex.tryLock(500);
 	}
-	catch (Poco::TimeoutException& ex) {
+	catch (Poco::TimeoutException &ex) {
 		printf("[SessionManager::checkTimeoutSession] exception timeout mutex: %s\n", ex.displayText().data());
 		return;
 	}
@@ -515,7 +515,6 @@ void SessionManager::checkTimeoutSession()
 	//auto timeout = Poco::Timespan(1, 0);
 	std::stack<int> toRemove;
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-
 		if (it->second->tryLock()) {
 			// skip already disabled sessions
 			if (!it->second->isActive()) {

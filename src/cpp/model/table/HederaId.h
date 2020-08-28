@@ -11,6 +11,7 @@ namespace model {
 		{
 		public:
 			HederaId();
+			HederaId(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num);
 			~HederaId();
 
 			// generic db operations
