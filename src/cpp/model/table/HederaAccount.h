@@ -7,13 +7,19 @@
 namespace model {
 	namespace table {
 
-		typedef Poco::Tuple<int, int, int, int, Poco::UInt64, Poco::DateTime> HederaAccountTuple;
+		typedef Poco::Tuple<int, int, int, int, Poco::UInt64, int, Poco::DateTime> HederaAccountTuple;
+
+		enum HederaNetworkType {
+			HEDERA_MAINNET,
+			HEDERA_TESTNET,
+			HEDERA_NET_COUNT
+		};
 
 		class HederaAccount : public ModelBase
 		{
 		public:
 			HederaAccount();
-			HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0);
+			HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, HederaNetworkType type = HEDERA_MAINNET);
 			HederaAccount(const HederaAccountTuple& tuple);
 			~HederaAccount();
 
@@ -21,6 +27,7 @@ namespace model {
 			const char* getTableName() const { return "hedera_accounts"; }
 			std::string toString();
 
+			static const char* hederaNetworkTypeToString(HederaNetworkType type);
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
@@ -32,6 +39,7 @@ namespace model {
 			int mAccountHederaId;
 			int mAccountKeyId;
 			Poco::UInt64 mBalance;
+			int mType;
 			Poco::DateTime mUpdated;
 		};
 

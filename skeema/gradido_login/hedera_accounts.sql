@@ -4,6 +4,7 @@ CREATE TABLE `hedera_accounts` (
   `account_hedera_id` int unsigned NOT NULL,
   `account_key_id` int unsigned NOT NULL,
   `balance` bigint unsigned NOT NULL DEFAULT '0',
+  `network_type` int NOT NULL DEFAULT '0',
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_hedera_id` (`account_hedera_id`),
