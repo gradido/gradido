@@ -329,6 +329,7 @@ Session* SessionManager::getSession(int handle)
 	//mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
+		printf("[SessionManager::getSession] found existing session, try if active...\n");
 		result = it->second;
 		if (!result->isActive()) {
 			//printf("[SessionManager::getSession] session isn't active\n");

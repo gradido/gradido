@@ -8,8 +8,8 @@ namespace model {
 	namespace table {
 
 		enum KeyType {
-			KEY_TYPE_SODIUM_ED25519 = 0,
-			KEY_TYPE_ED25519_REF10 = 1,
+			KEY_TYPE_ED25519_SODIUM = 0,
+			KEY_TYPE_ED25519_HEDERA = 1,
 			KEY_TYPE_COUNT
 		};
 
@@ -17,6 +17,7 @@ namespace model {
 		{
 		public:
 			CryptoKey();
+			CryptoKey(MemoryBin* privateKey, MemoryBin* publicKey, KeyType keyType);
 			~CryptoKey();
 
 			// generic db operations

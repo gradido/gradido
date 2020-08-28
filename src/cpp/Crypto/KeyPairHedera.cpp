@@ -146,3 +146,26 @@ bool KeyPairHedera::verify(const unsigned char* message, size_t messageSize, Mem
 	}
 	return true;
 }
+
+MemoryBin* KeyPairHedera::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const
+{
+	if (password.isNull()) return nullptr;
+	if (!mPrivateKey) return nullptr;
+
+	MemoryBin* encryptedKey = nullptr;
+	if (SecretKeyCryptography::AUTH_ENCRYPT_OK == password->encrypt(mPrivateKey, &encryptedKey)) {
+		return encryptedKey;
+	}
+	else {
+		return nullptr;
+	}
+
+}
+
+MemoryBin* KeyPairHedera::getPublicKeyCopy() const
+{
+	auto mm = MemoryManager::getInstance();
+	auto public_key = mm->getFreeMemory(ed25519_pubkey_SIZE);
+	memcpy(*public_key, mPublicKey, ed25519_pubkey_SIZE);
+	return public_key;
+}
