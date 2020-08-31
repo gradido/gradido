@@ -10,13 +10,12 @@ KeyPairHedera::KeyPairHedera()
 
 }
 
-
-KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey /* = nullptr*/)
+KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const unsigned char* publicKey/* = nullptr*/, size_t publicKeySize/* = 0*/)
 	: mPrivateKey(nullptr)
 {
 	auto derPrefixPriv = DataTypeConverter::hexToBin("302e020100300506032b657004220420");
-	auto derPrefixPub =  DataTypeConverter::hexToBin("302a300506032b6570032100");
-												  
+	auto derPrefixPub = DataTypeConverter::hexToBin("302a300506032b6570032100");
+
 	auto mm = MemoryManager::getInstance();
 
 	if (privateKey) {
@@ -46,19 +45,19 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publi
 		default:
 			throw std::exception("[KeyPairHedera] invalid private key");
 		}
-	
+
 		// check public
 	}
 	if (publicKey) {
-		switch (publicKey->size())
+		switch (publicKeySize)
 		{
 		case 32: { // raw public key
-			memcpy(mPublicKey, *publicKey, publicKey->size());
+			memcpy(mPublicKey, publicKey, publicKeySize);
 			break;
 		}
 		case 44: // DER encoded public key
-			if (0 == sodium_memcmp(*publicKey, *derPrefixPub, derPrefixPub->size())) {
-				memcpy(mPublicKey, publicKey->data(derPrefixPub->size()), ed25519_pubkey_SIZE);
+			if (0 == sodium_memcmp(publicKey, *derPrefixPub, derPrefixPub->size())) {
+				memcpy(mPublicKey, &publicKey[derPrefixPub->size()], ed25519_pubkey_SIZE);
 			}
 			break;
 		default:
@@ -74,6 +73,11 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publi
 	mm->releaseMemory(public_key_2);
 	mm->releaseMemory(derPrefixPriv);
 	mm->releaseMemory(derPrefixPub);
+}
+KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey /* = nullptr*/)
+	: KeyPairHedera(privateKey, publicKey->data(), publicKey->size())
+{
+	
 }
 
 KeyPairHedera::~KeyPairHedera()

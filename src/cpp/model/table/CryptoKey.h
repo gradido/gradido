@@ -24,6 +24,11 @@ namespace model {
 			const char* getTableName() const { return "crypto_keys"; }
 			std::string toString();
 
+			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			size_t getPublicKeySize() const { if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
+
+			inline bool hasPrivateKeyEncrypted() const { return !mPrivateKey.isNull(); }
+			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
 
 			static const char* typeToString(KeyType type);
 		protected:

@@ -22,6 +22,7 @@ public:
 	//! \param privateKey: copy
 	//! \param publicKey: copy
 	//! 
+	KeyPairHedera(const MemoryBin* privateKey, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
 	KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey = nullptr);
 
 	~KeyPairHedera();
