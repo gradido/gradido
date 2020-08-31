@@ -34,7 +34,7 @@
 	//auto groups = controller::Group::load("gdd1");
 	//std::vector<Poco::SharedPtr<controller::Group>> groups;
 	
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header_large.cpsp" %>
 <%= getErrorsHtml() %>
 <div class="center-form-container">
 	<div class="content-list">
@@ -43,20 +43,20 @@
 		</div>	
 		<div class="content-list-table">
 			<div class="row">
-				<div class="cell header-cell">ID</div>
-				<div class="cell header-cell">Name</div>
-				<div class="cell header-cell">Alias</div>
-				<div class="cell header-cell">Url</div>
-				<div class="cell header-cell"><%= gettext("Description") %></div>
+				<div class="cell header-cell c0">ID</div>
+				<div class="cell header-cell c2">Name</div>
+				<div class="cell header-cell c2">Alias</div>
+				<div class="cell header-cell c3">Url</div>
+				<div class="cell header-cell c5"><%= gettext("Description") %></div>
 			</div>
 			<% for(auto it = groups.begin(); it != groups.end(); it++) {
 					auto group_model = (*it)->getModel(); %>
 				<div class="row">
-					<div class="cell"><%= group_model->getID() %></div>
-					<div class="cell"><%= group_model->getName() %></div>
-					<div class="cell"><%= group_model->getAlias() %></div>
-					<div class="cell"><%= group_model->getUrl() %></div>
-					<div class="celL"><%= group_model->getDescription()%></div>
+					<div class="cell c0"><%= group_model->getID() %></div>
+					<div class="cell c2"><%= group_model->getName() %></div>
+					<div class="cell c2"><%= group_model->getAlias() %></div>
+					<div class="cell c3"><%= group_model->getUrl() %></div>
+					<div class="cell c5"><%= group_model->getDescription()%></div>
 				</div>
 			<% } %>
 		</div>

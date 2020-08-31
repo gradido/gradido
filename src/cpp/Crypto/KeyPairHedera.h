@@ -70,6 +70,7 @@ protected:
 	KeyPairHedera();
 	void createKeyFromSeed(const MemoryBin* seed);
 
+
 private:
 	// 64 Byte
 	//! \brief ed25519 libsodium private key

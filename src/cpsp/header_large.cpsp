@@ -16,4 +16,14 @@
 </head>
 <body>
     <div class="layout">
+		<div class="sidebar1 nav-menu initial">
+			<div class="nav-vertical">
+				<ul>
+					<li><a href="<%= ServerConfig::g_serverPath %>/groups"><span class="link-title">Gruppen</span></a></li>
+					<li><a href="<%= ServerConfig::g_serverPath %>/nodes"><span class="link-title">Node Server</span></a></li>
+					<li><a href="<%= ServerConfig::g_serverPath %>/hedera_account"><span class="link-title">Hedera Accounts</span></a></li>
+					<li><a href="<%= ServerConfig::g_serverPath %>/topic"><span class="link-title">Hedera Topics</span></a></li>
+				</ul>
+			</div>
+		</div>
 		<div class="content">

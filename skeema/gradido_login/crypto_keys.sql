@@ -3,5 +3,6 @@ CREATE TABLE `crypto_keys` (
   `private_key` varbinary(64) NOT NULL,
   `public_key` binary(32) NOT NULL,
   `crypto_key_type_id` int NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE(`public_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
