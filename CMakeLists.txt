@@ -95,9 +95,30 @@ find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "dependencies/mariadb-conne
 find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build/Debug" REQUIRED)
 set(GRPC_PATH "dependencies/grpc/_build/Debug")
+set(GRPC_ABSL_PATH "dependencies/grpc/_build/third_party/abseil-cpp/absl/types/Debug")
+set(GRPC_CARES_PATH "dependencies/grpc/_build/third_party/cares/cares/lib/Debug")
+set(GRPC_BORING_SSL_PATH "dependencies/grpc/_build/third_party/boringssl-with-bazel/Debug")
 find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_UNSECURE grpc++_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
-set(GRPC_LIBS ${GRPC_PLUSPLUS} ${GRPC_REFLECTION})
+find_library(GRPC_LIB grpc PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_ERROR_DETAILS grpc++_error_details PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_RLIB gpr PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_UPB upb PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_ALTS grpc++_alts PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_ADDRESS_SORTING address_sorting PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_CARES cares PATHS ${GRPC_CARES_PATH} REQUIRED)
+find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
+find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
+
+find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access ${GRPC_ABSL_PATH} REQUIRED)
+set(GRPC_LIBS 
+	${GRPC_PLUSPLUS} ${GRPC_REFLECTION} ${GRPC_UNSECURE} ${GRPC_LIB} 
+	${GRPC_ERROR_DETAILS} ${GRPC_RLIB} ${GRPC_UPB} ${GRPC_ALTS}
+	${GRPC_ABSL_BAD_OPTIONAL_ACCESS} ${GRPC_ADDRESS_SORTING}
+	${GRPC_CARES} ${GRPC_BORING_SSL_CRYPTO} ${GRPC_BORING_SSL_SSL}
+)
+
 set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
 #set(POCO_DEBUG_PATH "I:/FremdCode/C++/poco/win64/lib/Debug")
@@ -142,7 +163,9 @@ include_directories(
 
 endif(WIN32)
 
-target_link_libraries(Gradido_LoginServer ${CONAN_LIBS} ${IROHA_ED25519})
+add_subdirectory("dependencies/grpc/third_party/abseil-cpp")
+
+target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS} ${IROHA_ED25519})
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)

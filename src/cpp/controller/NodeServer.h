@@ -15,6 +15,8 @@ namespace controller {
 		NodeServerConnection(const std::string& _url, int _port) : url(_url), port(_port) {}
 		NodeServerConnection() :port(0) {};
 
+		std::string getUrlWithPort() const { return url + ":" + std::to_string(port); }
+
 		bool isValid() { return url != "" && port; }
 		std::string url;
 		int port;
@@ -35,7 +37,7 @@ namespace controller {
 		static std::vector<Poco::AutoPtr<NodeServer>> load(model::table::NodeServerType type, int group_id = 0);		
 		static std::vector<Poco::AutoPtr<NodeServer>> listAll();
 		// pick server randomly
-		NodeServerConnection pick(model::table::NodeServerType type, int group_id = 0);
+		static NodeServerConnection pick(model::table::NodeServerType type, int group_id = 0);
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
 		inline Poco::AutoPtr<model::table::NodeServer> getModel() { return _getModel<model::table::NodeServer>(); }

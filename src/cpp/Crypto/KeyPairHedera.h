@@ -37,6 +37,7 @@ public:
 
 	inline const unsigned char* getPublicKey() const { return mPublicKey; }
 	MemoryBin* getPublicKeyCopy() const;
+	const static size_t getPublicKeySize() {return ed25519_pubkey_SIZE;}
 
 	inline bool isTheSame(const KeyPairHedera& b) const {
 		return 0 == sodium_memcmp(mPublicKey, b.mPublicKey, ed25519_pubkey_SIZE);

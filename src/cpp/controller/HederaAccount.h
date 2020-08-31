@@ -1,7 +1,8 @@
 #ifndef GRADIDO_LOGIN_SERVER_CONTROLLER_HEDERA_ACCOUNT_INCLUDE
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_HEDERA_ACCOUNT_INCLUDE
 
-#include "../controller/HederaId.h"
+#include "HederaId.h"
+#include "User.h"
 #include "../model/table/HederaAccount.h"
 
 #include "Poco/SharedPtr.h"
@@ -25,6 +26,8 @@ namespace controller {
 
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
+
+		bool updateBalanceFromHedera(Poco::AutoPtr<controller::User> user);
 
 	protected:
 		HederaAccount(model::table::HederaAccount* dbModel);

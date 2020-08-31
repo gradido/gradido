@@ -62,19 +62,21 @@ namespace controller {
 		return nullptr;
 	}
 
-	KeyPairHedera* CryptoKey::getKeyPair(Poco::AutoPtr<controller::User> user)
+	std::unique_ptr<KeyPairHedera> CryptoKey::getKeyPair(Poco::AutoPtr<controller::User> user)
 	{
 		auto model = getModel();
 		auto password = user->getPassword();
 		auto mm = MemoryManager::getInstance();
 		if (!password || !model->hasPrivateKeyEncrypted()) {
+			printf("[CryptoKey::getKeyPair] return null, password empty or no private key\n");
 			return nullptr;
 		}
 		MemoryBin* clearPassword = nullptr;
 		if (password->decrypt(model->getPrivateKeyEncrypted(), &clearPassword) != SecretKeyCryptography::AUTH_DECRYPT_OK) {
+			printf("[CryptoKey::getKeyPair] return null, error decrypting\n");
 			return nullptr;
 		}
-		KeyPairHedera* key_pair = new KeyPairHedera(clearPassword, model->getPublicKey(), model->getPublicKeySize());
+		auto key_pair = std::make_unique<KeyPairHedera>(clearPassword, model->getPublicKey(), model->getPublicKeySize());
 		mm->releaseMemory(clearPassword);
 		return key_pair;
 	}

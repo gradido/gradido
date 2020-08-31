@@ -13,6 +13,7 @@
 #include "model/table/EmailOptIn.h"
 
 #include "Poco/DateTimeParser.h"
+#include <grpc/grpc.h>
 
 #ifndef _TEST_BUILD
 
@@ -35,8 +36,8 @@ int main(int argc, char** argv)
 	ServerConfig::g_versionString = Poco::DateTimeFormatter::format(buildDateTime, "0.%y.%m.%d");
 	//ServerConfig::g_versionString = "0.20.KW13.02";
 	printf("Version: %s\n", ServerConfig::g_versionString.data());
-	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
-	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
+	printf("User size: %d Bytes, Session size: %d Bytes\n", (int)sizeof(User), (int)sizeof(Session));
+	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", (int)sizeof(model::table::User), (int)sizeof(model::table::EmailOptIn));
 
 	// load word lists
 	if (!ServerConfig::loadMnemonicWordLists()) {
@@ -49,9 +50,12 @@ int main(int argc, char** argv)
 		printf("test passphrase generation and transformation failed\n");
 		return -3;
 	}
-	
+	grpc_init();
+
 	Gradido_LoginServer app;
-	app.setUnixOptions(true);
-	return app.run(argc, argv);
+	auto result = app.run(argc, argv);
+
+	grpc_shutdown();
+	return result;
 }
 #endif

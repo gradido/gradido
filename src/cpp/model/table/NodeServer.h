@@ -15,7 +15,8 @@ namespace model {
 			NODE_SERVER_GRADIDO_COMMUNITY,
 			NODE_SERVER_HEDERA_MAINNET_NODE,
 			NODE_SERVER_HEDERA_TESTNET_NODE,
-			NODE_SERVER_TYPE_COUNT
+			NODE_SERVER_TYPE_COUNT,
+			NODE_SERVER_TYPE_NONE
 		};
 		bool NodeServerIsHederaNode(NodeServerType type);
 		bool NodeServerHasGroup(NodeServerType type);
