@@ -27,7 +27,7 @@ namespace controller {
 
 		inline Poco::AutoPtr<model::table::CryptoKey> getModel() { return _getModel<model::table::CryptoKey>(); }
 
-		KeyPairHedera* getKeyPair(Poco::AutoPtr<controller::User> user);
+		std::unique_ptr<KeyPairHedera> getKeyPair(Poco::AutoPtr<controller::User> user);
 
 
 	protected:

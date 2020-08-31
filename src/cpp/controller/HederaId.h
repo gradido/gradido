@@ -7,6 +7,8 @@
 
 #include "TableControllerBase.h"
 
+#include "../proto/hedera/BasicTypes.pb.h"
+
 namespace controller {
 	class HederaId : public TableControllerBase
 	{
@@ -21,6 +23,9 @@ namespace controller {
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
 		inline Poco::AutoPtr<model::table::HederaId> getModel() { return _getModel<model::table::HederaId>(); }
+		inline const model::table::HederaId* getModel() const { return _getModel<model::table::HederaId>(); }
+
+		void copyToProtoAccountId(proto::AccountID* protoAccountId) const;
 
 
 	protected:

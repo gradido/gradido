@@ -21,6 +21,10 @@ namespace model {
 			//! \brief check if hedera id already in db, then return id, else insert in db and return
 			int getID();
 
+			inline Poco::UInt64 getShardNum() const { return mShardNum; }
+			inline Poco::UInt64 getRealmNum() const { return mRealmNum; }
+			inline Poco::UInt64 getNum() const { return mNum; }
+
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

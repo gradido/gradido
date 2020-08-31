@@ -29,4 +29,12 @@ namespace controller {
 		}
 		return nullptr;
 	}
+
+	void HederaId::copyToProtoAccountId(proto::AccountID* protoAccountId) const
+	{
+		auto model = getModel();
+		protoAccountId->set_shardnum(model->getShardNum());
+		protoAccountId->set_realmnum(model->getRealmNum());
+		protoAccountId->set_accountnum(model->getNum());
+	}
 }

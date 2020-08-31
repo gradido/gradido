@@ -4,6 +4,8 @@
 #include "ModelBase.h"
 #include "Poco/Tuple.h"
 
+#include "NodeServer.h"
+
 namespace model {
 	namespace table {
 
@@ -12,7 +14,7 @@ namespace model {
 		enum HederaNetworkType {
 			HEDERA_MAINNET,
 			HEDERA_TESTNET,
-			HEDERA_NET_COUNT
+			HEDERA_NET_COUNT,
 		};
 
 		class HederaAccount : public ModelBase
@@ -28,13 +30,16 @@ namespace model {
 			std::string toString();
 
 			static const char* hederaNetworkTypeToString(HederaNetworkType type);
+			static NodeServerType networkTypeToNodeServerType(HederaNetworkType type);
 
-			inline int getAccountHederaId() { return mAccountHederaId; }
+			inline int getAccountHederaId() const { return mAccountHederaId; }
+			inline int getCryptoKeyId() const { return mAccountKeyId; }
 
 			inline Poco::UInt64 getBalance() { return mBalance; }
 			inline double getBalanceDouble() { return (double)mBalance / 100000000.0; }
 
 			inline HederaNetworkType getNetworkType() { return (HederaNetworkType)mType; }
+			
 
 			inline std::string getUpdatedString() { return Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S"); }
 

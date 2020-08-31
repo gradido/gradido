@@ -53,6 +53,15 @@ namespace model {
 			}
 		}
 
+		NodeServerType HederaAccount::networkTypeToNodeServerType(HederaNetworkType type)
+		{
+			switch (type) {
+			case HEDERA_MAINNET: return NODE_SERVER_HEDERA_MAINNET_NODE;
+			case HEDERA_TESTNET: return NODE_SERVER_HEDERA_TESTNET_NODE;
+			default: return NODE_SERVER_TYPE_NONE;
+			}
+		}
+
 		Poco::Data::Statement HederaAccount::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);

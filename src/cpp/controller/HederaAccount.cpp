@@ -1,5 +1,9 @@
 
 #include "HederaAccount.h"
+#include "NodeServer.h"
+#include "CryptoKey.h"
+#include "../model/hedera/Query.h"
+#include "HederaRequest.h"
 
 namespace controller {
 
@@ -67,6 +71,39 @@ namespace controller {
 			resultVector.push_back(group_ptr);
 		}
 		return resultVector;
+	}
+
+	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user)
+	{
+		static const char* functionName = "HederaAccount::updateBalanceFromHedera";
+
+		if (user.isNull() || !user->getModel()) {
+			printf("[%s] invalid user\n", functionName);
+			return false;
+		}
+
+		auto account_model = getModel();
+		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
+		auto crypto_key = controller::CryptoKey::load(account_model->getCryptoKeyId());
+		if (crypto_key.isNull()) {
+			printf("[%s] error, crypto key with id: %d not found\n", functionName, account_model->getCryptoKeyId());
+			return false;
+		}
+		auto hedera_key_pair = crypto_key->getKeyPair(user);
+		if (!hedera_key_pair) {
+			printf("[%s] error decrypting private key with id: %d, with user: %d\n", functionName, account_model->getCryptoKeyId(), user->getModel()->getID());
+			return false;
+		}
+		auto query = model::hedera::Query::getBalance(mHederaID, hedera_node);
+		if (!query) {
+			printf("[%s] error creating query\n", functionName);
+		}
+		query->sign(std::move(hedera_key_pair));
+
+		HederaRequest request;
+		request.request(query);
+		
+		return false;
 	}
 
 }
