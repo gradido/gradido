@@ -62,6 +62,23 @@ namespace controller {
 		return nullptr;
 	}
 
+	KeyPairHedera* CryptoKey::getKeyPair(Poco::AutoPtr<controller::User> user)
+	{
+		auto model = getModel();
+		auto password = user->getPassword();
+		auto mm = MemoryManager::getInstance();
+		if (!password || !model->hasPrivateKeyEncrypted()) {
+			return nullptr;
+		}
+		MemoryBin* clearPassword = nullptr;
+		if (password->decrypt(model->getPrivateKeyEncrypted(), &clearPassword) != SecretKeyCryptography::AUTH_DECRYPT_OK) {
+			return nullptr;
+		}
+		KeyPairHedera* key_pair = new KeyPairHedera(clearPassword, model->getPublicKey(), model->getPublicKeySize());
+		mm->releaseMemory(clearPassword);
+		return key_pair;
+	}
+
 
 }
 
