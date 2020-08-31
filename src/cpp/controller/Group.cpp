@@ -23,7 +23,7 @@ namespace controller {
 	std::vector<Poco::AutoPtr<Group>> Group::load(const std::string& alias)
 	{
 		auto db = new model::table::Group();
-		auto group_list = db->loadFromDB<std::string, model::table::GroupTuple>("alias", alias, 0);
+		auto group_list = db->loadFromDB<std::string, model::table::GroupTuple>("alias", alias, 1);
 
 		std::vector<Poco::AutoPtr<Group>> resultVector;
 		resultVector.reserve(group_list.size());

@@ -46,9 +46,10 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publi
 		default:
 			throw std::exception("[KeyPairHedera] invalid private key");
 		}
-		crypto_sign_ed25519_sk_to_pk(mPublicKey, *mPrivateKey);
+	
+		// check public
 	}
-	else if (publicKey) {
+	if (publicKey) {
 		switch (publicKey->size())
 		{
 		case 32: { // raw public key
@@ -64,8 +65,13 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publi
 			throw std::exception("[KeyPairHedera] invalid public key");
 		}
 	}
+	auto public_key_2 = mm->getFreeMemory(ed25519_pubkey_SIZE);
+	crypto_sign_ed25519_sk_to_pk(*public_key_2, *mPrivateKey);
+	if (sodium_memcmp(*public_key_2, mPublicKey, ed25519_pubkey_SIZE) != 0) {
+		throw "public keys not match";
+	}
 
-
+	mm->releaseMemory(public_key_2);
 	mm->releaseMemory(derPrefixPriv);
 	mm->releaseMemory(derPrefixPub);
 }

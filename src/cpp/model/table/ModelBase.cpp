@@ -43,21 +43,27 @@ namespace model {
 			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement insert = _insertIntoDB(session);
 
 			size_t resultCount = 0;
 			try {
-				if (insert.execute() == 1) {
+				if (insert.execute(true) == 1) {
 					// load id from db
 					if (loadId) {
-						Poco::Data::Statement select = _loadIdFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+						Poco::Data::Statement select = _loadIdFromDB(session);
 						try {
-							return select.execute() == 1;
+							select.executeAsync();
+							return select.wait() == 1;
 						}
 						catch (Poco::Exception& ex) {							
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
 							addError(new ParamError(getTableName(), "data set: ", toString().data()));
 						}
+						select.reset(session);
+						select = _loadIdFromDB(session);
+						//Poco::Data::Statement select = _loadIdFromDB(session);
+						select.execute();
 					}
 					else {
 						return true;

@@ -18,6 +18,9 @@ namespace model {
 			const char* getTableName() const { return "hedera_ids"; }
 			std::string toString();
 
+			//! \brief check if hedera id already in db, then return id, else insert in db and return
+			int getID();
+
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

@@ -56,7 +56,7 @@ bool ConnectionManager::setConnectionsFromConfig(const Poco::Util::LayeredConfig
 	dbConfig << "db=" << dbName << ";";
 	dbConfig << "user=" << config.getString(firstKeyPart + ".db.user", "root") << ";";
 	dbConfig << "password=" << config.getString(firstKeyPart + ".db.password", "") << ";";
-	dbConfig << "auto-reconnect=false";
+	dbConfig << "auto-reconnect=true";
 
 	setConnection(dbConfig.str(), type);
 
@@ -73,10 +73,10 @@ Poco::Data::Session ConnectionManager::getConnection(ConnectionType type)
 		throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
 	}
 	auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
-	if (!session.isConnected()) {
+	/*if (!session.isConnected()) {
 		printf("reconnect called\n");
 		session.reconnect();
-	}
+	}*/
 	//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
 	//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
 	return session;

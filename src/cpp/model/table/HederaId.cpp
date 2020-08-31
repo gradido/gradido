@@ -24,10 +24,35 @@ namespace model {
 		std::string HederaId::toString()
 		{
 			std::stringstream ss;
-			ss << "Shard Num: " << std::to_string(mShardNum) << std::endl;
-			ss << "Realm Num: " << std::to_string(mRealmNum) << std::endl;
-			ss << "Num: " << std::to_string(mNum) << std::endl;
+			ss << std::to_string(mShardNum) << "." << std::to_string(mRealmNum) << "." << std::to_string(mNum) << std::endl;
 			return ss.str();
+		}
+
+		int HederaId::getID()
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
+			assert(mNum != 0|| mShardNum != 0 || mRealmNum != 0);
+			if (mID) return mID;
+
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select(session);
+			select << "SELECT id FROM " << getTableName()
+				<< " where shardNum = ? AND realmNum = ? AND num = ?"
+				, into(mID), use(mShardNum), use(mRealmNum), use(mNum);
+
+			try {
+				if (1 == select.execute()) {
+					return mID;
+				}
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError("HederaId::getID", "mysql error try to find existing entry", ex.message()));
+				sendErrorsAsEmail();
+			}
+			insertIntoDB(true);
+			return mID;
 		}
 
 		Poco::Data::Statement HederaId::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)

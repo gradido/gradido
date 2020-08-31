@@ -20,6 +20,8 @@ namespace controller {
 
 		//! if returned ptr is NULL, dataset not found
 		static Poco::AutoPtr<CryptoKey> load(int id);
+		static Poco::AutoPtr<CryptoKey> load(MemoryBin* publicKey);
+		static Poco::AutoPtr<CryptoKey> load(const unsigned char* publicKey, size_t size);
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 

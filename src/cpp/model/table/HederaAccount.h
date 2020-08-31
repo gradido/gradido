@@ -29,6 +29,15 @@ namespace model {
 
 			static const char* hederaNetworkTypeToString(HederaNetworkType type);
 
+			inline int getAccountHederaId() { return mAccountHederaId; }
+
+			inline Poco::UInt64 getBalance() { return mBalance; }
+			inline double getBalanceDouble() { return (double)mBalance / 100000000.0; }
+
+			inline HederaNetworkType getNetworkType() { return (HederaNetworkType)mType; }
+
+			inline std::string getUpdatedString() { return Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S"); }
+
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);

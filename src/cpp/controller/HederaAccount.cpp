@@ -20,15 +20,19 @@ namespace controller {
 		return Poco::AutoPtr<HederaAccount>(group);
 	}
 
-	std::vector<Poco::AutoPtr<HederaAccount>> HederaAccount::load(const std::string& alias)
+	std::vector<Poco::AutoPtr<HederaAccount>> HederaAccount::load(const std::string& fieldName, int fieldValue)
 	{
 		auto db = new model::table::HederaAccount();
-		auto group_list = db->loadFromDB<std::string, model::table::HederaAccountTuple>("alias", alias, 0);
+		auto hedera_account_list = db->loadFromDB<int, model::table::HederaAccountTuple>(fieldName, fieldValue, 2);
 
 		std::vector<Poco::AutoPtr<HederaAccount>> resultVector;
-		resultVector.reserve(group_list.size());
-		for (auto it = group_list.begin(); it != group_list.end(); it++) {
-			resultVector.push_back(new HederaAccount(new model::table::HederaAccount(*it)));
+		resultVector.reserve(hedera_account_list.size());
+		for (auto it = hedera_account_list.begin(); it != hedera_account_list.end(); it++) {
+			//mHederaID
+			auto db = new model::table::HederaAccount(*it);
+			auto hedera_account = new HederaAccount(db);
+			hedera_account->mHederaID = HederaId::load(db->getAccountHederaId());
+			resultVector.push_back(hedera_account);
 		}
 		return resultVector;
 	}

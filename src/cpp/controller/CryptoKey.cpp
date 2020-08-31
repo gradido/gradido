@@ -1,5 +1,6 @@
 
 #include "CryptoKey.h"
+#include "../SingletonManager/ErrorManager.h"
 
 namespace controller {
 
@@ -36,6 +37,28 @@ namespace controller {
 			auto cryptoKey = new CryptoKey(db);
 			return Poco::AutoPtr<CryptoKey>(cryptoKey);
 		}
+		return nullptr;
+	}
+
+	Poco::AutoPtr<CryptoKey> CryptoKey::load(MemoryBin* publicKey)
+	{
+		return load(*publicKey, publicKey->size());
+	}
+
+	Poco::AutoPtr<CryptoKey> CryptoKey::load(const unsigned char* publicKey, size_t size)
+	{
+		assert(publicKey);
+		assert(size);
+
+		Poco::Data::BLOB public_key_blob(publicKey, size);
+		auto db = new model::table::CryptoKey();
+		auto count = db->loadFromDB<Poco::Data::BLOB>("public_key", public_key_blob);
+		if (!count) return nullptr;
+		if (1 == count) return new CryptoKey(db);
+
+		auto em = ErrorManager::getInstance();
+		em->addError(new Error("CryptoKey::load", "found more than one crypto key with same public key"));
+		em->sendErrorsAsEmail();
 		return nullptr;
 	}
 
