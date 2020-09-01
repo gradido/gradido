@@ -162,8 +162,13 @@ MemoryBin* KeyPairHedera::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptog
 	if (password.isNull()) return nullptr;
 	if (!mPrivateKey) return nullptr;
 
+	auto private_key_hex_string = DataTypeConverter::binToHex(mPrivateKey);
+	printf("[KeyPairHedera::getCryptedPrivKey] private key hex: %s\n", private_key_hex_string.data());
+
 	MemoryBin* encryptedKey = nullptr;
 	if (SecretKeyCryptography::AUTH_ENCRYPT_OK == password->encrypt(mPrivateKey, &encryptedKey)) {
+		auto encrypted_private_key_hex_string = DataTypeConverter::binToHex(encryptedKey);
+		printf("[KeyPairHedera::getCryptedPrivKey] encryptet private key hex: %s\n", encrypted_private_key_hex_string.data());
 		return encryptedKey;
 	}
 	else {

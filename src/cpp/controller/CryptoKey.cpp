@@ -1,6 +1,7 @@
 
 #include "CryptoKey.h"
 #include "../SingletonManager/ErrorManager.h"
+#include "../lib/DataTypeConverter.h"
 
 namespace controller {
 
@@ -72,6 +73,9 @@ namespace controller {
 			return nullptr;
 		}
 		MemoryBin* clearPassword = nullptr;
+		auto encrypted_private_key = model->getPrivateKeyEncrypted();
+		auto encrypted_private_key_hex_string = DataTypeConverter::binToHex(encrypted_private_key);
+		printf("[CryptoKey::getKeyPair] encrypted private key hex: %s\n", encrypted_private_key_hex_string.data());
 		if (password->decrypt(model->getPrivateKeyEncrypted(), &clearPassword) != SecretKeyCryptography::AUTH_DECRYPT_OK) {
 			printf("[CryptoKey::getKeyPair] return null, error decrypting\n");
 			return nullptr;

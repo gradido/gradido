@@ -24,7 +24,7 @@ namespace model {
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera);
 
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
-			inline std::string getConnectionString() const { return mConnection.getUrlWithPort(); }
+			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 
 		protected:
 			Query(const controller::NodeServerConnection& connection);

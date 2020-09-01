@@ -1,8 +1,20 @@
 #include "NodeServer.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/ConnectionManager.h"
+#include "Poco/RegularExpression.h"
 
 namespace controller {
+
+	Poco::RegularExpression g_filterHttp("^https?://");
+
+	std::string NodeServerConnection::getUriWithPort() const
+	{
+		std::string protocol;
+		g_filterHttp.extract(url, protocol);
+		return url.substr(protocol.size()) + ":" + std::to_string(port);
+	}
+
+
 
 
 	NodeServer::NodeServer(model::table::NodeServer* dbModel) 
@@ -74,12 +86,13 @@ namespace controller {
 		if (model::table::NodeServerIsHederaNode(type)) {
 			select << ", node_hedera_id";
 		}
-		select << " from node_servers ORDER BY RAND() LIMIT 1"
+		select << " from node_servers where server_type = ? ORDER BY RAND() LIMIT 1"
 			  , Poco::Data::Keywords::into(result.url)
 			  , Poco::Data::Keywords::into(result.port);
 		if (model::table::NodeServerIsHederaNode(type)) {
 			select, Poco::Data::Keywords::into(hedera_node_id);
 		}
+		select , Poco::Data::Keywords::bind((int)type);
 		try {
 			if (1 == select.execute()) {
 				if (model::table::NodeServerIsHederaNode(type)) {

@@ -15,7 +15,11 @@ namespace controller {
 		NodeServerConnection(const std::string& _url, int _port) : url(_url), port(_port) {}
 		NodeServerConnection() :port(0) {};
 
-		std::string getUrlWithPort() const { return url + ":" + std::to_string(port); }
+		// with http:// or https://
+		inline std::string getUrlWithPort() const { return url + ":" + std::to_string(port); }
+
+		// without http:// or https://
+		std::string getUriWithPort() const;
 
 		bool isValid() { return url != "" && port; }
 		std::string url;
