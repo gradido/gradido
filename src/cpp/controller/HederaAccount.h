@@ -27,7 +27,7 @@ namespace controller {
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
 
-		bool updateBalanceFromHedera(Poco::AutoPtr<controller::User> user);
+		bool updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, ErrorList* errorReceiver = nullptr);
 
 	protected:
 		HederaAccount(model::table::HederaAccount* dbModel);

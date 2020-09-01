@@ -98,6 +98,7 @@ set(GRPC_PATH "dependencies/grpc/_build/Debug")
 set(GRPC_ABSL_PATH "dependencies/grpc/_build/third_party/abseil-cpp/absl/types/Debug")
 set(GRPC_CARES_PATH "dependencies/grpc/_build/third_party/cares/cares/lib/Debug")
 set(GRPC_BORING_SSL_PATH "dependencies/grpc/_build/third_party/boringssl-with-bazel/Debug")
+set(GRPC_RE2_PATH "dependencies/grpc/_build/third_party/re2/Debug")
 find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UNSECURE grpc++_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
@@ -110,13 +111,17 @@ find_library(GRPC_ADDRESS_SORTING address_sorting PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_CARES cares PATHS ${GRPC_CARES_PATH} REQUIRED)
 find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
 find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
+find_library(GRPC_RE2 re2 ${GRPC_RE2_PATH} REQUIRED)
 
 find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access ${GRPC_ABSL_PATH} REQUIRED)
 set(GRPC_LIBS 
 	${GRPC_PLUSPLUS} ${GRPC_REFLECTION} ${GRPC_UNSECURE} ${GRPC_LIB} 
 	${GRPC_ERROR_DETAILS} ${GRPC_RLIB} ${GRPC_UPB} ${GRPC_ALTS}
 	${GRPC_ABSL_BAD_OPTIONAL_ACCESS} ${GRPC_ADDRESS_SORTING}
-	${GRPC_CARES} ${GRPC_BORING_SSL_CRYPTO} ${GRPC_BORING_SSL_SSL}
+	${GRPC_CARES} 
+	${GRPC_BORING_SSL_CRYPTO} 
+	${GRPC_BORING_SSL_SSL}
+	${GRPC_RE2}
 )
 
 set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")

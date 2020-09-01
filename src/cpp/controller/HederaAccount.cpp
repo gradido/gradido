@@ -73,7 +73,7 @@ namespace controller {
 		return resultVector;
 	}
 
-	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user)
+	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, ErrorList* errorReceiver/* = nullptr*/)
 	{
 		static const char* functionName = "HederaAccount::updateBalanceFromHedera";
 
@@ -101,7 +101,15 @@ namespace controller {
 		query->sign(std::move(hedera_key_pair));
 
 		HederaRequest request;
-		request.request(query);
+		try {
+			request.request(query);
+		}
+		catch (Poco::Exception& ex) {
+			printf("[HederaAccount::updateBalanceFromHedera] exception calling hedera request: %s\n", ex.displayText().data());
+		}
+		if (errorReceiver) {
+			errorReceiver->getErrors(&request);
+		}
 		
 		return false;
 	}
