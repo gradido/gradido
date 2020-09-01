@@ -149,7 +149,7 @@ namespace model {
 		}
 
 		template<class Tuple>
-		std::vector<Tuple> loadAllFromDB()
+		std::vector<Tuple> ModelBase::loadAllFromDB()
 		{
 			std::vector<Tuple> results;
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
