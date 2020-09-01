@@ -42,7 +42,8 @@ namespace controller {
 		
 		// work around for not working call to loadAllFromDB
 		auto cm = ConnectionManager::getInstance();
-		Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+		Poco::Data::Statement select(session);
 
 		select << "SELECT id, alias, name, url, description FROM " << db->getTableName()
 		, Poco::Data::Keywords::into(group_list);

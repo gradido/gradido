@@ -46,10 +46,11 @@ namespace controller {
 		auto db = new model::table::HederaAccount();
 		std::vector<model::table::HederaAccountTuple> group_list;
 		// throw an unresolved external symbol error
-		//group_list = db->loadAllFromDB<model::table::GroupTuple>();
+		group_list = db->loadAllFromDB<model::table::HederaAccountTuple>();
 
 		// work around for not working call to loadAllFromDB
-		auto cm = ConnectionManager::getInstance();
+		/*auto cm = ConnectionManager::getInstance();
+
 		Poco::Data::Statement select(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
 
 		select << "SELECT id, alias, name, url, description FROM " << db->getTableName()
@@ -62,7 +63,7 @@ namespace controller {
 		catch (Poco::Exception& ex) {
 			printf("[Group::listAll] poco exception: %s\n", ex.displayText().data());
 		}
-		// work around end
+		//*/ //work around end
 		std::vector<Poco::AutoPtr<HederaAccount>> resultVector;
 
 		resultVector.reserve(group_list.size());
