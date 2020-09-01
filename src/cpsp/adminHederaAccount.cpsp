@@ -1,0 +1,203 @@
+<%@ page class="AdminHederaAccountPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+
+#include "../controller/HederaAccount.h"
+#include "../controller/HederaId.h"
+#include "../controller/CryptoKey.h"
+#include "../lib/DataTypeConverter.h"
+#include "../SingletonManager/SessionManager.h"
+
+#include "../ServerConfig.h"
+
+#include "Poco/URI.h"
+
+%>
+<%%
+	const char* pageName = "Hedera Account";
+	auto sm = SessionManager::getInstance();
+	auto mm = MemoryManager::getInstance();
+	auto user = mSession->getNewUser();
+	
+	Poco::URI uri(request.getURI());
+	auto uri_query = uri.getQueryParameters();
+	std::string action = "";
+	std::string account_id_from_query;
+	if(uri_query.size() >= 2) {
+		if(uri_query[0].first == "action") {
+			action = uri_query[0].second;
+		}
+		if(uri_query[1].first == "account_id") {
+			account_id_from_query = uri_query[1].second;
+		}
+	}
+	if(action == "updateBalance") {
+		int account_id = 0;
+		if(DataTypeConverter::strToInt(account_id_from_query, account_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+			addError(new Error("Int Convert Error", "Error converting account_id_from_query to int"));
+		} else {
+			auto hedera_account = controller::HederaAccount::load("id", account_id);
+			if(!hedera_account.size() || hedera_account[0].isNull()) {
+				addError(new Error("Action Update Balance", "hedera id not found"));
+			} else {
+				hedera_account[0]->updateBalanceFromHedera(user, this);
+			}
+		}
+	}
+	// add 
+	else if(!form.empty()) {
+		// collect
+		auto shardNumString = form.get("account-shard-num", "0");
+		auto realmNumString = form.get("account-realm-num", "0");
+		auto numString      = form.get("account-num", "0");
+		auto privateKeyString = form.get("account-private-key", "");
+		auto publicKeyString = form.get("account-public-key", "");
+		auto networkTypeString = form.get("account-network-type", "0");
+		
+		int shardNum = 0;
+		int realmNum = 0;
+		int num = 0;
+		int networkType = 0;
+		
+		MemoryBin* private_key = nullptr;
+		MemoryBin* public_key = nullptr;
+		
+		// validate
+		if(!sm->isValid(shardNumString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Account ID", "shard num not integer"));
+		} else {
+			if(DataTypeConverter::strToInt(shardNumString, shardNum) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting shardNumString to int"));
+			}
+		}
+		if(!sm->isValid(realmNumString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Account ID", "realm num not integer"));
+		} else {
+			if(DataTypeConverter::strToInt(realmNumString, realmNum) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting realmNumString to int"));
+			}
+		}
+		if(!sm->isValid(numString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Account ID", "num not integer"));
+		} else {
+			if(DataTypeConverter::strToInt(numString, num) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting num to int"));
+			}
+		}
+		if(!sm->isValid(privateKeyString, VALIDATE_ONLY_HEX)) {
+			addError(new Error("Account Keys", "private key not hex"));
+		}
+		if(!sm->isValid(publicKeyString, VALIDATE_ONLY_HEX)) {
+			addError(new Error("Account Keys", "public key not hex"));
+		}
+		if(!sm->isValid(networkTypeString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Network Type", "not integer"));
+		} else {
+			if(DataTypeConverter::strToInt(networkTypeString, networkType) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting network type to int"));
+			}
+			if(networkType < 0 || networkType >= (int)model::table::HEDERA_NET_COUNT) {
+				addError(new Error("Network Type", "invalid value"));
+			}
+		}
+		
+		if(0 == errorCount()) {
+		
+			auto hedera_id = controller::HederaId::create(shardNum, realmNum, num);
+			
+			private_key = DataTypeConverter::hexToBin(privateKeyString);
+			public_key  = DataTypeConverter::hexToBin(publicKeyString);
+			
+			
+			KeyPairHedera key_pair(private_key, public_key);
+			auto crypto_key = controller::CryptoKey::load(key_pair.getPublicKey(), ed25519_pubkey_SIZE);
+			
+			if(crypto_key.isNull()) {
+				crypto_key = controller::CryptoKey::create(&key_pair, user);
+				if(!crypto_key->getModel()->insertIntoDB(true)) {
+					addError(new Error("DB Error", "Error saving crypto key in DB"));
+				}
+			} else {
+				printf("crypto key found in db\n");
+			}
+			if(0 == errorCount()) {
+				auto hedera_account = controller::HederaAccount::create(
+					user->getModel()->getID(),
+					hedera_id->getModel()->getID(),
+					crypto_key->getModel()->getID(),
+					0,
+					(model::table::HederaNetworkType)networkType
+				);
+				if(!hedera_account->getModel()->insertIntoDB(false)) {
+					addError(new Error("DB Error", "Error saving hedera account into DB"));
+				}
+			}
+			
+			mm->releaseMemory(private_key);
+			mm->releaseMemory(public_key);
+		}
+		
+	}	
+
+	// list accounts
+	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
+	
+%><%@ include file="header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+	<div class="content-list">
+		<div class="content-list-title">
+			<h2>Deine Hedera Accounts</h2>
+		</div>	
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c2">Hedera Id</div>			
+				<div class="cell header-cell c3">Balance</div>
+				<div class="cell header-cell c2">Server Type</div>
+				<div class="cell header-cell c3">Last Updated</div>
+				<div class="cell header-cell c5">Aktionen</div>
+			</div>
+			<% for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) {
+					auto hedera_account_model = (*it)->getModel();  
+					auto updateUrl = ServerConfig::g_serverPath + "/hedera_account?action=updateBalance&account_id=" + std::to_string(hedera_account_model->getID());
+					%>
+				<div class="row">
+					<div class="cell c2"><%= (*it)->getHederaId()->getModel()->toString() %></div>
+					<div class="cell c3"><%= hedera_account_model->getBalanceDouble() %> hbar</div>
+					<div class="cell c2"><%= model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) %></div>
+					<div class="cell c3"><%= hedera_account_model->getUpdatedString() %></div>
+					<div class="cell c5">
+					<button class="form-button" title="Anfrage an Hedera, kostet etwas" onclick="window.location.href='<%= updateUrl %>'"  >
+						Update Balance
+					</button>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	<div class="center-form-title">
+	    <h3>Einen neuen Account anlegen</h3>
+	</div>
+	<div class="center-form-form">
+		<form method="POST" action="<%= ServerConfig::g_serverPath %>/hedera_account">
+			<label class="form-label">Hedera Account ID</label>
+			<input class="form-control" id="account-shard-num" placeholder="shard" type="number" name="account-shard-num"/>
+			<input class="form-control" id="account-realm-num" placeholder="realm" type="number" name="account-realm-num"/>
+			<input class="form-control" id="account-num" placeholder="num" type="number" name="account-num"/>
+			<label class="form-label" for="account-private-key">Private Key</label>
+			<input class="form-control" id="account-private-key" type="text" name="account-private-key"/>
+			<label class="form-label" for="account-public-key">Public Key</label>
+			<input class="form-control" id="account-public-key" type="text" name="account-public-key"/>
+			<label class="form-label" for="account-network-type">Network Type</label>
+			<select class="form-control" name="account-network-type" id="account-network-type">
+			<% for(int i = 0; i < model::table::HEDERA_NET_COUNT; i++) { %>
+				<option value="<%= i %>"><%= model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)i) %></option>
+			<% } %>
+			</select>
+			<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Account") %>">
+	</form>
+</div>
+<%@ include file="footer.cpsp" %>
