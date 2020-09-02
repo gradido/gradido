@@ -25,7 +25,7 @@ namespace model {
 			auto get_account_balance = query->mQueryProto.mutable_cryptogetaccountbalance();
 			accountId->copyToProtoAccountId(get_account_balance->mutable_accountid());
 			auto query_header = get_account_balance->mutable_header();
-			query_header->set_responsetype(proto::ANSWER_ONLY);
+			query_header->set_responsetype(proto::COST_ANSWER);
 			auto transaction = query_header->mutable_payment();
 			//auto transaction_body = transaction->mutable_body();
 			// body content
@@ -48,7 +48,7 @@ namespace model {
 			auto account_amounts = transfer_list->mutable_accountamounts();
 			account_amounts->Add();
 			auto account_amount = account_amounts->Mutable(0);
-			account_amount->set_amount(0);
+			account_amount->set_amount(1000);
 			connection.hederaId->copyToProtoAccountId(account_amount->mutable_accountid());
 
 			return query;

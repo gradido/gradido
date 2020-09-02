@@ -28,7 +28,6 @@ namespace controller {
 	{
 		auto db = new model::table::HederaAccount();
 		auto hedera_account_list = db->loadFromDB<int, model::table::HederaAccountTuple>(fieldName, fieldValue, 2);
-
 		std::vector<Poco::AutoPtr<HederaAccount>> resultVector;
 		resultVector.reserve(hedera_account_list.size());
 		for (auto it = hedera_account_list.begin(); it != hedera_account_list.end(); it++) {

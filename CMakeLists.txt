@@ -3,6 +3,8 @@ project(Gradido_LoginServer C CXX)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin" )
 
 SET ( CMAKE_CXX_FLAGS "-std=c++17" )
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(
 	"dependencies" 
@@ -12,6 +14,7 @@ include_directories(
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
 	"dependencies/grpc/include"
+	"dependencies/grpc/third_party/protobuf/src"
 	"src/cpp/proto"
 	#"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/include"
@@ -99,6 +102,7 @@ set(GRPC_ABSL_PATH "dependencies/grpc/_build/third_party/abseil-cpp/absl/types/D
 set(GRPC_CARES_PATH "dependencies/grpc/_build/third_party/cares/cares/lib/Debug")
 set(GRPC_BORING_SSL_PATH "dependencies/grpc/_build/third_party/boringssl-with-bazel/Debug")
 set(GRPC_RE2_PATH "dependencies/grpc/_build/third_party/re2/Debug")
+set(GRPC_PROTOBUF_DEBUG_PATH "dependencies/grpc/_build/third_party/protobuf/Debug")
 find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UNSECURE grpc++_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
@@ -112,6 +116,9 @@ find_library(GRPC_CARES cares PATHS ${GRPC_CARES_PATH} REQUIRED)
 find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
 find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
 find_library(GRPC_RE2 re2 ${GRPC_RE2_PATH} REQUIRED)
+find_library(PROTOBUF_LIB_DEBUG libprotobufd ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+find_library(PROTOBUF_LIB_LITE_DEBUG libprotobuf-lited ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+find_library(PROTOBUF_LIBC_DEBUG libprotocd ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
 
 find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access ${GRPC_ABSL_PATH} REQUIRED)
 set(GRPC_LIBS 
@@ -123,6 +130,12 @@ set(GRPC_LIBS
 	${GRPC_BORING_SSL_SSL}
 	${GRPC_RE2}
 )
+set(PROTOBUF_DEBUG_LIBS 
+	${PROTOBUF_LIB_DEBUG}
+	${PROTOBUF_LIB_LITE_DEBUG}
+	${PROTOBUF_LIBC_DEBUG}
+)
+
 
 set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
@@ -174,7 +187,7 @@ target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::f
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
-TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS})
+TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32)
 target_link_libraries(Gradido_LoginServer libmariadb protoc protobuf -pthread)
 endif(WIN32)

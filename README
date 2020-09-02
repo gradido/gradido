@@ -25,6 +25,7 @@ mkdir _build
 cd _build 
 cmake ..
 make 
+# under windows build at least release for protoc.exe and grpc c++ plugin
 cd ../../../
 
 # get more dependencies with conan (need conan from https://conan.io/)
