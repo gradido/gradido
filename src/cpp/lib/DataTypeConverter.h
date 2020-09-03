@@ -9,6 +9,8 @@
 #include "Poco/Data/LOB.h"
 #include "../SingletonManager/LanguageManager.h"
 
+#include "sodium.h"
+
 namespace DataTypeConverter {
 
 	enum NumberParseState
@@ -25,8 +27,9 @@ namespace DataTypeConverter {
 	MemoryBin* hexToBin(const std::string& hexString);
 	MemoryBin* base64ToBin(const std::string& base64String);
 
-	std::string binToBase64(const MemoryBin* data);
 	
+	std::string binToBase64(const unsigned char* data, size_t size, int variant = sodium_base64_VARIANT_ORIGINAL);
+	inline std::string binToBase64(const MemoryBin* data, int variant = sodium_base64_VARIANT_ORIGINAL) { return binToBase64(data->data(), data->size(), variant); }
 	
 	std::string binToHex(const unsigned char* data, size_t size);
 	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);

@@ -4,7 +4,7 @@
 
 #include "PageRequestMessagedHandler.h"
 #include "../tasks/CPUTask.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 #include "Poco/Net/NameValueCollection.h"
 
@@ -14,7 +14,7 @@ public:
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 };
 
-class HandleElopageRequestTask : public UniLib::controller::CPUTask, protected ErrorList
+class HandleElopageRequestTask : public UniLib::controller::CPUTask, protected NotificationList
 {
 public:
 	HandleElopageRequestTask(Poco::Net::NameValueCollection& requestData);

@@ -10,10 +10,12 @@
 #ifndef DR_LUA_WEB_MODULE_ERROR_ERROR_H
 #define DR_LUA_WEB_MODULE_ERROR_ERROR_H
 
+#include "Notification.h"
 #include <string>
 #include <sstream>
 
-class Error
+
+class Error : public Notification
 {
 public:
 	Error(const char* functionName, const char* message);
@@ -21,10 +23,10 @@ public:
 
 	const char* getFunctionName() { return mFunctionName.data(); }
 	const char* getMessage() { return mMessage.data(); }
-	virtual std::string getString(bool withNewline = true);
-	virtual std::string getHtmlString();
-	
+	virtual std::string getString(bool withNewline = true) const;
+	virtual std::string getHtmlString() const;
 
+	virtual bool isError() { return true; }
 
 protected:
 	std::string mFunctionName;
@@ -46,18 +48,18 @@ public:
 		mParam = ss.str();
 	}
 
-	virtual std::string getString(bool withNewline = true);
-	virtual std::string getHtmlString();
+	virtual std::string getString(bool withNewline = true) const;
+	virtual std::string getHtmlString() const;
 protected:
 	std::string mParam;
 };
 
 
 
-class IErrorCollection
+class INotificationCollection
 {
 public: 
-	virtual void addError(Error*, bool log = true) = 0;
+	virtual void addError(Notification*, bool log = true) = 0;
 };
 
 #endif // DR_LUA_WEB_MODULE_ERROR_ERROR_H

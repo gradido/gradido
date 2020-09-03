@@ -13,7 +13,6 @@
 #include "../lib/DataTypeConverter.h"
 #include "../SingletonManager/SessionManager.h"
 
-
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 
@@ -43,7 +42,6 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		else {
 			json_result = stateError("empty body");
 		}
-
 	}
 	else if(method == "GET") {		
 		Poco::URI uri(request.getURI());
@@ -63,7 +61,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				erros.sendErrorsAsEmail();
 			}
 			if (session_id) {
-				auto session = SessionManager::getInstance()->getSession(session_id);
+				auto session = SessionManager::getInstance()->getSession("session_id");
 				response.addCookie(session->getLoginCookie());
 			}
 		}
@@ -75,7 +73,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 }
 
 
-Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, ErrorList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
+Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
 {
 	// debugging answer
 
@@ -138,4 +136,3 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 	}
 	return result;
 }
-

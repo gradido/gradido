@@ -2,18 +2,24 @@
 #include "Poco/Timestamp.h"
 #include "../../SingletonManager/MemoryManager.h"
 
+#include "Transaction.h"
+#include "TransactionBody.h"
+#include "CryptoTransferTransaction.h"
+
 namespace model {
 	namespace hedera {
 
 		Query::Query(const controller::NodeServerConnection& connection)
-			: mConnection(connection)
+			: mConnection(connection), mTransactionBody(nullptr)
 		{
 
 		}
 
 		Query::~Query()
 		{
-
+			if (mTransactionBody) {
+				delete mTransactionBody;
+			}
 		}
 
 		Query* Query::getBalance(Poco::AutoPtr<controller::HederaId> accountId, const controller::NodeServerConnection& connection)
@@ -26,58 +32,46 @@ namespace model {
 			accountId->copyToProtoAccountId(get_account_balance->mutable_accountid());
 			auto query_header = get_account_balance->mutable_header();
 			query_header->set_responsetype(proto::COST_ANSWER);
-			auto transaction = query_header->mutable_payment();
+
+			query->mTransactionBody = new TransactionBody(accountId, connection);
+			CryptoTransferTransaction crypto_transaction;
+			crypto_transaction.addSender(accountId, 0);
+			crypto_transaction.addReceiver(connection.hederaId, 0);
+			query->mTransactionBody->setCryptoTransfer(crypto_transaction);
+
+			//auto transaction = query_header->mutable_payment();
 			//auto transaction_body = transaction->mutable_body();
 			// body content
-			//	transaction id
-			auto transaction_id = query->mTransactionBody.mutable_transactionid();
-			auto timestamp = transaction_id->mutable_transactionvalidstart();
-			Poco::Timestamp now;
-			auto microseconds = now.epochMicroseconds() - now.epochTime() * now.resolution(); // 1*10^6
-			timestamp->set_seconds(now.epochTime());
-			timestamp->set_nanos(microseconds * 1000);
-			accountId->copyToProtoAccountId(transaction_id->mutable_accountid());
-			//  
-			// sdk default, but can be changed
-			query->mTransactionBody.set_transactionfee(100000000);
-			auto valid_duration = query->mTransactionBody.mutable_transactionvalidduration();
-			// maximal 2 minutes
-			valid_duration->set_seconds(120);
-			auto crypto_transfer = query->mTransactionBody.mutable_cryptotransfer();
-			auto transfer_list = crypto_transfer->mutable_transfers();
-			auto account_amounts = transfer_list->mutable_accountamounts();
-			account_amounts->Add();
-			auto account_amount = account_amounts->Mutable(0);
-			account_amount->set_amount(1000);
-			connection.hederaId->copyToProtoAccountId(account_amount->mutable_accountid());
+			// node account id
+			
 
 			return query;
 		}
 
 		bool Query::sign(std::unique_ptr<KeyPairHedera> keyPairHedera)
 		{
-			auto mm = MemoryManager::getInstance();
-			auto body_bytes = mTransactionBody.SerializeAsString();
-			auto transaction = mQueryProto.mutable_cryptogetaccountbalance()->mutable_header()->mutable_payment();
-			transaction->set_bodybytes(body_bytes.data());
-			auto signature_map = transaction->mutable_sigmap();
-			auto signature_pairs = signature_map->mutable_sigpair();
-			signature_pairs->Add();
-			auto signature_pair = signature_pairs->Mutable(0);
-			auto public_key = keyPairHedera->getPublicKey();
+			Transaction transaction;
+			auto sign_result = transaction.sign(std::move(keyPairHedera), mTransactionBody);
+			auto query_header = mQueryProto.mutable_cryptogetaccountbalance()->mutable_header();
+			query_header->set_allocated_payment(transaction.getTransaction());
+			transaction.resetPointer();
 
-			
-			auto sign = keyPairHedera->sign(body_bytes);
-			if (!sign) {
-				printf("[Query::sign] error signing message\n");
-				return false;
-			}
-			signature_pair->set_pubkeyprefix(public_key, keyPairHedera->getPublicKeySize());
-			signature_pair->set_ed25519(*sign, sign->size());
+			return sign_result;
+		}
 
-			mm->releaseMemory(sign);
+		void Query::setResponseType(proto::ResponseType type)
+		{
+			auto get_account_balance = mQueryProto.mutable_cryptogetaccountbalance();
+			auto query_header = get_account_balance->mutable_header();
+			query_header->set_responsetype(type);
 
-			return true;
+		}
+
+		proto::ResponseType Query::getResponseType()
+		{
+			auto get_account_balance = mQueryProto.mutable_cryptogetaccountbalance();
+			auto query_header = get_account_balance->mutable_header();
+			return query_header->responsetype();
 		}
 	}
 }

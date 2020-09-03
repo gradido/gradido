@@ -13,6 +13,7 @@
 #include "../../proto/hedera/Query.pb.h"
 #include "../../controller/NodeServer.h"
 #include "../../Crypto/KeyPairHedera.h"
+#include "TransactionBody.h"
 
 namespace model {
 	namespace hedera {
@@ -23,13 +24,16 @@ namespace model {
 			static Query* getBalance(Poco::AutoPtr<controller::HederaId> accountId, const controller::NodeServerConnection& connection);
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera);
 
+			void setResponseType(proto::ResponseType type);
+			proto::ResponseType getResponseType();
+			void setFee(Poco::UInt64 fee);
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 
 		protected:
 			Query(const controller::NodeServerConnection& connection);
 			proto::Query mQueryProto;
-			proto::TransactionBody mTransactionBody;
+			TransactionBody* mTransactionBody;
 			controller::NodeServerConnection mConnection;
 		};
 	}

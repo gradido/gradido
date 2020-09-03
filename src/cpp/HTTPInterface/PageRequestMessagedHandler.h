@@ -2,7 +2,7 @@
 #define PAGE_REQUEST_MESSAGE_HANDLER_INCLUDED
 
 #include "../model/Session.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../lib/Profiler.h"
 
 #include "../SingletonManager/LanguageManager.h"
@@ -11,7 +11,7 @@
 #include "Poco/Net/HTMLForm.h"
 #include "Poco/RegularExpression.h"
 
-class PageRequestMessagedHandler : public Poco::Net::HTTPRequestHandler, public ErrorList
+class PageRequestMessagedHandler : public Poco::Net::HTTPRequestHandler, public NotificationList
 {
 public:
 	PageRequestMessagedHandler() {}

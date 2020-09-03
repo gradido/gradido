@@ -8,7 +8,7 @@
  *
 */
 
-#include "ErrorList.h"
+#include "NotificationList.h"
 #include "Poco/Net/NameValueCollection.h"
 
 #ifndef __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
@@ -22,17 +22,19 @@ enum JsonRequestReturn
 	JSON_REQUEST_CONNECT_ERROR
 };
 
-class JsonRequest : public ErrorList
+class JsonRequest : public NotificationList
 {
 public:
 	JsonRequest(const std::string& serverHost, int serverPort);
 	~JsonRequest();
 
 	JsonRequestReturn request(const char* methodName, const Poco::Net::NameValueCollection& payload);
+	JsonRequestReturn requestGRPCRelay(const Poco::Net::NameValueCollection& payload);
 
 protected:
 	int mServerPort;
 	std::string mServerHost;
+	
 };
 
 

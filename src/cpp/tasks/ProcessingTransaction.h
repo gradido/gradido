@@ -3,7 +3,7 @@
 
 #include "CPUTask.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../lib/DRHash.h"
 #include "../model/TransactionBase.h"
 
@@ -28,7 +28,7 @@ class TransactionCreation;
 class TransactionTransfer;
 class SigningTransaction;
 
-class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorList
+class ProcessingTransaction : public UniLib::controller::CPUTask, public NotificationList
 {
 	friend SigningTransaction;
 public:

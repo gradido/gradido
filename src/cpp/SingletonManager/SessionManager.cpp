@@ -175,7 +175,7 @@ Session* SessionManager::getNewSession(int* handle)
 				}
 			}
 			else {
-				ErrorList errors;
+				NotificationList errors;
 				errors.addError(new Error(functionName, "found dead locked session, keeping in memory without reference"));
 				errors.addError(new ParamError(functionName, "last succeeded lock:", result->getLastSucceededLock().data()));
 				errors.sendErrorsAsEmail();
@@ -249,7 +249,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		session->setActive(false);
 	}
 	else {
-		ErrorList errors;
+		NotificationList errors;
 		errors.addError(new Error("SessionManager::releaseSession", "found dead locked session"));
 		errors.sendErrorsAsEmail();
 		mRequestSessionMap.erase(requestHandleSession);
@@ -590,7 +590,7 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 	//session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 }
 
-bool SessionManager::checkPwdValidation(const std::string& pwd, ErrorList* errorReciver)
+bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList* errorReciver)
 {
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		return true;

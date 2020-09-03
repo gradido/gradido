@@ -12,6 +12,8 @@
 
 #include "../controller/NodeServer.h"
 #include "../model/hedera/Query.h"
+#include "../model/hedera/Transaction.h"
+#include "../model/hedera/Response.h"
 
 enum HederaRequestReturn
 {
@@ -22,13 +24,15 @@ enum HederaRequestReturn
 };
 
 // NodeServerConnection
-class HederaRequest : public ErrorList
+class HederaRequest : public NotificationList
 {
 public:
 	HederaRequest();
 	~HederaRequest();
 
-	HederaRequestReturn request(model::hedera::Query* query);
+	HederaRequestReturn request(model::hedera::Query* query, model::hedera::Response* response, Poco::UInt64 fee = 0);
+	//! for testing, didn't work server say invalid json :/
+	HederaRequestReturn requestViaPHPRelay(model::hedera::Query* query);
 
 protected:
 

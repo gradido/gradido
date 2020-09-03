@@ -11,11 +11,11 @@
 
 #pragma warning(disable:4800)
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../proto/gradido/BasicTypes.pb.h"
 #include "../SingletonManager/MemoryManager.h"
 
-class TransactionBase : public ErrorList, public UniLib::lib::MultithreadContainer
+class TransactionBase : public NotificationList, public UniLib::lib::MultithreadContainer
 {
 public:
 	TransactionBase(const std::string& memo);
