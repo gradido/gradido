@@ -1,4 +1,4 @@
-#include "ErrorList.h"
+#include "NotificationList.h"
 
 #include "../ServerConfig.h"
 
@@ -42,13 +42,13 @@ int SendErrorMessage::run()
 // ------------------------------------------------------------------------------------
 
 
-ErrorList::ErrorList()
+NotificationList::NotificationList()
 	: mLogging(Poco::Logger::get("errorLog"))
 {
 
 }
 
-ErrorList::~ErrorList()
+NotificationList::~NotificationList()
 {
 	while (mErrorStack.size() > 0) {
 		delete mErrorStack.top();
@@ -56,7 +56,7 @@ ErrorList::~ErrorList()
 	}
 }
 
-void ErrorList::addError(Error* error, bool log/* = true */)
+void NotificationList::addError(Notification* error, bool log/* = true */)
 {
 
 	if (log) {
@@ -67,13 +67,18 @@ void ErrorList::addError(Error* error, bool log/* = true */)
 	mErrorStack.push(error);
 }
 
-Error* ErrorList::getLastError()
+void NotificationList::addNotification(Notification* notification)
+{
+	mErrorStack.push(notification);
+}
+
+Notification* NotificationList::getLastError()
 {
 	if (mErrorStack.size() == 0) {
 		return nullptr;
 	}
 
-	Error* error = mErrorStack.top();
+	Notification* error = mErrorStack.top();
 	if (error) {
 		mErrorStack.pop();
 	}
@@ -81,7 +86,7 @@ Error* ErrorList::getLastError()
 	return error;
 }
 
-void ErrorList::clearErrors()
+void NotificationList::clearErrors()
 {
 	while (mErrorStack.size()) {
 		auto error = mErrorStack.top();
@@ -93,9 +98,9 @@ void ErrorList::clearErrors()
 }
 
 
-int ErrorList::getErrors(ErrorList* send)
+int NotificationList::getErrors(NotificationList* send)
 {
-	Error* error = nullptr;
+	Notification* error = nullptr;
 	int iCount = 0;
 	while (error = send->getLastError()) {
 		addError(error, false);
@@ -104,7 +109,7 @@ int ErrorList::getErrors(ErrorList* send)
 	return iCount;
 }
 
-void ErrorList::printErrors()
+void NotificationList::printErrors()
 {
 	while (mErrorStack.size() > 0) {
 		auto error = mErrorStack.top();
@@ -114,14 +119,19 @@ void ErrorList::printErrors()
 	}
 }
 
-std::string ErrorList::getErrorsHtml()
+std::string NotificationList::getErrorsHtml()
 {
 	std::string res;
 	res = "<ul class='grd-no-style'>";
 	while (mErrorStack.size() > 0) {
 		auto error = mErrorStack.top();
 		mErrorStack.pop();
-		res += "<li class='grd-error'>";
+		if (error->isError()) {
+			res += "<li class='grd-error'>";
+		}
+		else if (error->isSuccess()) {
+			res += "<li class='grd-success'>";
+		}
 		res += error->getHtmlString();
 		res += "</li>";
 		delete error;
@@ -130,15 +140,20 @@ std::string ErrorList::getErrorsHtml()
 	return res;
 }
 
-std::string ErrorList::getErrorsHtmlNewFormat()
+std::string NotificationList::getErrorsHtmlNewFormat()
 {
 	std::string html;
 	
 	while (mErrorStack.size() > 0) {
-		auto error = std::unique_ptr<Error>(mErrorStack.top());
+		auto error = std::unique_ptr<Notification>(mErrorStack.top());
 		mErrorStack.pop();
-		html += "<div class=\"alert alert-error\" role=\"alert\">";
-		html += "<i class=\"material-icons-outlined\">report_problem</i>";
+		if (error->isError()) {
+			html += "<div class=\"alert alert-error\" role=\"alert\">";
+			html += "<i class=\"material-icons-outlined\">report_problem</i>";
+		}
+		else if (error->isSuccess()) {
+			html += "<div class=\"alert alert-success\" role=\"alert\">";
+		}
 		html += "<span>";
 		html += error->getHtmlString();
 		html += "</span>";
@@ -154,7 +169,7 @@ std::string ErrorList::getErrorsHtmlNewFormat()
 */
 
 
-void ErrorList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
+void NotificationList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 {
 	auto em = EmailManager::getInstance();
 	/*auto message = new Poco::Net::MailMessage();

@@ -4,7 +4,7 @@
 #include "../Crypto/KeyPair.h"
 #include <string>
 //#include "ModelBase.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
@@ -50,7 +50,7 @@ enum UserFields
 	USER_FIELDS_LANGUAGE
 };
 
-class User : public ErrorList
+class User : public NotificationList
 {
 	friend UserCreateCryptoKey;
 	friend UserWriteIntoDB;
@@ -115,7 +115,7 @@ public:
 	bool isEmptyPassword();
 	//bool setNewPassword(const std::string& newPassword);
 	bool updatePassword(const std::string& newPassword, const std::string& passphrase, Poco::AutoPtr<controller::User> newUser);
-	bool validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint);
+	bool validatePwd(const std::string& pwd, NotificationList* validationErrorsToPrint);
 	bool validateIdentHash(HASH hash);
 	
 	MemoryBin* encrypt(const MemoryBin* data);
@@ -134,7 +134,7 @@ protected:
 	typedef Poco::UInt64 passwordHashed;
 
 	MemoryBin* createCryptoKey(const std::string& password);
-	static passwordHashed createPasswordHashed(MemoryBin* cryptoKey, ErrorList* errorReceiver = nullptr);
+	static passwordHashed createPasswordHashed(MemoryBin* cryptoKey, NotificationList* errorReceiver = nullptr);
 	inline void setCryptoKey(MemoryBin* cryptoKey) { lock(); mCryptoKey = cryptoKey; unlock(); }
 
 	//void detectState();

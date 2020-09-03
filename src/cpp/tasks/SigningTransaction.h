@@ -3,7 +3,7 @@
 
 #include "CPUTask.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../model/TransactionBase.h"
 #include "../model/User.h"
 #include "../controller/User.h"
@@ -19,7 +19,7 @@
 * @desc: Task for signing Transactions
 */
 
-class SigningTransaction : public UniLib::controller::CPUTask, public ErrorList
+class SigningTransaction : public UniLib::controller::CPUTask, public NotificationList
 {
 public:
 	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser);

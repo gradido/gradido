@@ -73,7 +73,7 @@ namespace controller {
 		return resultVector;
 	}
 
-	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, ErrorList* errorReceiver/* = nullptr*/)
+	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver/* = nullptr*/)
 	{
 		static const char* functionName = "HederaAccount::updateBalanceFromHedera";
 
@@ -86,27 +86,45 @@ namespace controller {
 		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
 		auto crypto_key = controller::CryptoKey::load(account_model->getCryptoKeyId());
 		if (crypto_key.isNull()) {
-			printf("[%s] error, crypto key with id: %d not found\n", functionName, account_model->getCryptoKeyId());
+			if (errorReceiver) { errorReceiver->addError(new Error("Keys", "could not found crypto key for account"));}
+			else { printf("[%s] error, crypto key with id: %d not found\n", functionName, account_model->getCryptoKeyId()); }
 			return false;
 		}
 		auto hedera_key_pair = crypto_key->getKeyPair(user);
 		if (!hedera_key_pair) {
+			if (errorReceiver) { errorReceiver->addError(new Error("Keys", "error decrypting private key"));}
 			printf("[%s] error decrypting private key with id: %d, with user: %d\n", functionName, account_model->getCryptoKeyId(), user->getModel()->getID());
 			return false;
 		}
+		
 		auto query = model::hedera::Query::getBalance(mHederaID, hedera_node);
+
 		if (!query) {
 			printf("[%s] error creating query\n", functionName);
 		}
 		query->sign(std::move(hedera_key_pair));
 
 		HederaRequest request;
+		model::hedera::Response response;
 		try {
-			request.request(query);
+			if (HEDERA_REQUEST_RETURN_OK == request.request(query, &response) && proto::OK == response.getResponseCode()) {
+				account_model->updateIntoDB("balance", response.getAccountBalance());
+			}
+			else {
+				if (errorReceiver) {
+					errorReceiver->addError(new Error("Hedera", "Hedera request failed"));
+					errorReceiver->addError(new ParamError("Hedera", "Hedera Response Code", proto::ResponseCodeEnum_Name(response.getResponseCode())));
+				}
+				else {
+					printf("[%s] hedera response code: %s\n", functionName, proto::ResponseCodeEnum_Name(response.getResponseCode()).data());
+				}
+			}
+			//request.requestViaPHPRelay(query);
 		}
 		catch (Poco::Exception& ex) {
 			printf("[HederaAccount::updateBalanceFromHedera] exception calling hedera request: %s\n", ex.displayText().data());
 		}
+
 		if (errorReceiver) {
 			errorReceiver->getErrors(&request);
 		}

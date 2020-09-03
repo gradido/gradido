@@ -10,7 +10,7 @@
 #ifndef DR_LUA_WEB_MODULE_SESSION_SESSION_H
 #define DR_LUA_WEB_MODULE_SESSION_SESSION_H
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "User.h"
 #include "../controller/User.h"
 
@@ -54,7 +54,7 @@ class UpdateUserPasswordPage;
 class PassphrasePage;
 class RepairDefectPassphrase;
 
-class Session : public ErrorList, public UniLib::lib::MultithreadContainer
+class Session : public NotificationList, public UniLib::lib::MultithreadContainer
 {
 	friend WriteEmailVerification;
 	friend SessionManager;

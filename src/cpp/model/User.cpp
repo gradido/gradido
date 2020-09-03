@@ -732,7 +732,7 @@ void User::setEmailChecked()
 	unlock();
 }
 
-bool User::validatePwd(const std::string& pwd, ErrorList* validationErrorsToPrint)
+bool User::validatePwd(const std::string& pwd, NotificationList* validationErrorsToPrint)
 {
 	auto mm = MemoryManager::getInstance();
 	auto cmpCryptoKey = createCryptoKey(pwd);
@@ -935,7 +935,7 @@ MemoryBin* User::createCryptoKey(const std::string& password)
 	return key;
 }
 
-User::passwordHashed User::createPasswordHashed(MemoryBin* cryptoKey, ErrorList* errorReceiver/* = nullptr*/)
+User::passwordHashed User::createPasswordHashed(MemoryBin* cryptoKey, NotificationList* errorReceiver/* = nullptr*/)
 {	
 	if (sizeof(User::passwordHashed) != crypto_shorthash_BYTES) {
 		throw Poco::Exception("crypto_shorthash_BYTES != sizeof(User::passwordHashed)");

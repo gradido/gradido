@@ -9,6 +9,7 @@
 #include <grpcpp/create_channel.h>
 #include <chrono>
 
+
 HederaRequest::HederaRequest()
 {
 
@@ -19,29 +20,62 @@ HederaRequest::~HederaRequest()
 
 }
 
-HederaRequestReturn HederaRequest::request(model::hedera::Query* query)
+HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::hedera::Response* response, Poco::UInt64 fee/* = 0*/)
 {
 	auto channel = grpc::CreateChannel(query->getConnectionString(), grpc::InsecureChannelCredentials());
+	
 	grpc::ClientContext context;
 	std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() +
-		std::chrono::milliseconds(10000);
+		std::chrono::milliseconds(5000);
 	context.set_deadline(deadline);
-	grpc::CompletionQueue cq;
+	//grpc::CompletionQueue cq;
 
 	auto proto_query = query->getProtoQuery();
+	
 	auto proto_query_serialized = proto_query->SerializeAsString();
-	auto query_hex_string = DataTypeConverter::binToHex((unsigned char*)proto_query_serialized.data(), proto_query_serialized.size());
-	printf("[HederaRequest::request] query as hex: %s\n", query_hex_string.data());
-	proto::Response* response = nullptr;
+	//auto query_hex_string = DataTypeConverter::binToHex((unsigned char*)proto_query_serialized.data(), proto_query_serialized.size());
+	//printf("[HederaRequest::request] query as hex: %s\n", query_hex_string.data());
+	
+	auto proto_response = response->getResponsePtr();
+	auto connect_string = query->getConnectionString();
+
 	if (proto_query->has_cryptogetaccountbalance()) {
-		auto stub = proto::CryptoService::NewStub(channel);
-		auto connect_string = query->getConnectionString();
-		printf("try connection to hedera with: %s\n", connect_string.data());
-		//auto stream = stub->PrepareAsynccryptoGetBalance(&context, *proto_query, &cq);
-		auto status = stub->cryptoGetBalance(&context, *proto_query, response);
-		//stream->StartCall();
-		addError(new ParamError("Hedera Request", "crypto get balance", status.error_message()));
-		printf("[HederaRequest::request] error details: %s\n", status.error_details().data());
+		auto stub = proto::CryptoService::NewStub(channel);	
+		// crypto account get balance currently hasn't fees
+		query->setResponseType(proto::ANSWER_ONLY);
+		
+		auto status = stub->cryptoGetBalance(&context, *proto_query, proto_response);
+		if (status.ok()) {
+			return HEDERA_REQUEST_RETURN_OK;
+		}
+		else {
+			addError(new ParamError("Hedera Request", "crypto get balance error message:", status.error_message()));
+			addError(new ParamError("Hedera Request", "details: ", status.error_details()));
+			return HEDERA_REQUEST_RETURN_ERROR;
+		}
+		
+
 	}
 	return HEDERA_REQUEST_RETURN_OK;
+}
+
+#include "Poco/JSON/Object.h"
+#include "../lib/JsonRequest.h"
+
+HederaRequestReturn HederaRequest::requestViaPHPRelay(model::hedera::Query* query)
+{
+	JsonRequest phpRelay("***REMOVED***", 88);
+	Poco::Net::NameValueCollection parameters;
+	std::string query_string = query->getProtoQuery()->SerializeAsString();
+	//auto query_base64 = DataTypeConverter::binToBase64((const unsigned char*)query_string.data(), query_string.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+	//auto findPos = query_string.find_first_of("\u");
+	auto query_hex = DataTypeConverter::binToHex((const unsigned char*)query_string.data(), query_string.size());
+	parameters.set("content", query_hex.substr(0, query_hex.size()-1));
+	parameters.set("server", query->getConnectionString());
+	parameters.set("method", "getBalance");
+	parameters.set("service", "crypto");
+	phpRelay.requestGRPCRelay(parameters);
+	//phpRelay.request("")
+
+	return HEDERA_REQUEST_RETURN_OK;	
 }

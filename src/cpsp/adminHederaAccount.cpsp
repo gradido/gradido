@@ -10,6 +10,8 @@
 #include "../controller/HederaId.h"
 #include "../controller/CryptoKey.h"
 #include "../lib/DataTypeConverter.h"
+#include "../lib/Profiler.h"
+#include "../lib/Success.h"
 #include "../SingletonManager/SessionManager.h"
 
 #include "../ServerConfig.h"
@@ -22,6 +24,8 @@
 	auto sm = SessionManager::getInstance();
 	auto mm = MemoryManager::getInstance();
 	auto user = mSession->getNewUser();
+	Profiler hedera_time;
+	std::string hedera_time_string;
 	
 	Poco::URI uri(request.getURI());
 	auto uri_query = uri.getQueryParameters();
@@ -44,7 +48,9 @@
 			if(!hedera_account.size() || hedera_account[0].isNull()) {
 				addError(new Error("Action Update Balance", "hedera id not found"));
 			} else {
+				hedera_time.reset();
 				hedera_account[0]->updateBalanceFromHedera(user, this);
+				addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
 			}
 		}
 	}
@@ -148,6 +154,7 @@
 	
 %><%@ include file="header_large.cpsp" %>
 <%= getErrorsHtml() %>
+
 <div class="center-form-container">
 	<div class="content-list">
 		<div class="content-list-title">

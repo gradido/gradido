@@ -138,18 +138,17 @@ namespace DataTypeConverter
 	}
 
 
-	std::string binToBase64(const MemoryBin* data)
+	std::string binToBase64(const unsigned char* data, size_t size, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)
 	{
 		auto mm = MemoryManager::getInstance();
-		size_t binSize = data->size();
-		size_t encodedSize = sodium_base64_encoded_len(binSize, sodium_base64_VARIANT_ORIGINAL);
-
+		
+		size_t encodedSize = sodium_base64_encoded_len(size, variant);
 		auto base64 = mm->getFreeMemory(encodedSize);
 		memset(*base64, 0, encodedSize);
 
 		size_t resultBinSize = 0;
 
-		if (0 != sodium_bin2base64(*base64, encodedSize, *data, binSize, sodium_base64_VARIANT_ORIGINAL)) {
+		if (nullptr == sodium_bin2base64(*base64, encodedSize, data, size, variant)) {
 			mm->releaseMemory(base64);
 			return "";
 		}

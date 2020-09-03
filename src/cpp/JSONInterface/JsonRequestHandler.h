@@ -4,7 +4,7 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/JSON/Object.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 
 class JsonRequestHandler : public Poco::Net::HTTPRequestHandler
@@ -15,7 +15,7 @@ public:
 
 	virtual Poco::JSON::Object* handle(Poco::Dynamic::Var params) = 0;
 
-	static Poco::Dynamic::Var parseJsonWithErrorPrintFile(std::istream& request_stream, ErrorList* errorHandler = nullptr, const char* functionName = nullptr);
+	static Poco::Dynamic::Var parseJsonWithErrorPrintFile(std::istream& request_stream, NotificationList* errorHandler = nullptr, const char* functionName = nullptr);
 
 protected:
 	Poco::JSON::Object* mResultJson;

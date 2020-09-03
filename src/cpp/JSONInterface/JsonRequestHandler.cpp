@@ -48,7 +48,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 }
 
 
-Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, ErrorList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
+Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
 {
 	// debugging answer
 

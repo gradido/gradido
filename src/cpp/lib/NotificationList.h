@@ -19,27 +19,28 @@
 #include "Poco/Net/StringPartSource.h"
 #include "Poco/Logger.h"
 
-class ErrorList : public IErrorCollection
+class NotificationList : public INotificationCollection
 {
 public:
-	ErrorList();
-	~ErrorList();
+	NotificationList();
+	~NotificationList();
 
 	// push error, error will be deleted in deconstructor
-	virtual void addError(Error* error, bool log = true);
+	virtual void addError(Notification* error, bool log = true);
+	void addNotification(Notification* notification);
 
 	// return error on top of stack, please delete after using
-	Error* getLastError();
+	Notification* getLastError();
 
 	inline size_t errorCount() { return mErrorStack.size(); }
 
 	// delete all errors
 	void clearErrors();
 
-	static int moveErrors(ErrorList* recv, ErrorList* send) {
+	static int moveErrors(NotificationList* recv, NotificationList* send) {
 		return recv->getErrors(send);
 	}
-	int getErrors(ErrorList* send);
+	int getErrors(NotificationList* send);
 
 	void printErrors();
 	std::string getErrorsHtml();
@@ -48,7 +49,7 @@ public:
 	void sendErrorsAsEmail(std::string rawHtml = "");
 
 protected:
-	std::stack<Error*> mErrorStack;
+	std::stack<Notification*> mErrorStack;
 	// poco logging
 	Poco::Logger& mLogging;
 };

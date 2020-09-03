@@ -2,7 +2,7 @@
 
 
 Error::Error(const char* functionName, const char* message)
-	: mFunctionName(functionName), mMessage(message)
+	: Notification(functionName, message)
 {
 
 }
@@ -12,7 +12,7 @@ Error::~Error()
 
 }
 
-std::string Error::getString(bool withNewline/* = true*/)
+std::string Error::getString(bool withNewline/* = true*/) const
 {
 	std::stringstream ss;
 	ss << mFunctionName << ": " << mMessage;
@@ -20,7 +20,7 @@ std::string Error::getString(bool withNewline/* = true*/)
 
 	return ss.str();
 }
-std::string Error::getHtmlString()
+std::string Error::getHtmlString() const
 {
 	std::stringstream ss;
 	ss << mFunctionName << ": " << mMessage;
@@ -28,7 +28,7 @@ std::string Error::getHtmlString()
 	return ss.str();
 }
 
-std::string ParamError::getString(bool withNewline/* = true*/)
+std::string ParamError::getString(bool withNewline/* = true*/) const
 {
 	std::stringstream ss;
 	ss << mFunctionName << ": " << mMessage << " " << mParam;
@@ -36,7 +36,7 @@ std::string ParamError::getString(bool withNewline/* = true*/)
 
 	return ss.str();
 }
-std::string ParamError::getHtmlString()
+std::string ParamError::getHtmlString() const
 {
 	std::stringstream ss;
 	ss << mFunctionName << ": " << mMessage << " " << mParam << std::endl;

@@ -1,5 +1,5 @@
 #include "Task.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 namespace UniLib {
 	namespace controller {
@@ -87,7 +87,7 @@ namespace UniLib {
 				mWorkingMutex.lock(500);
 			}
 			catch (Poco::TimeoutException& ex) {
-				ErrorList errors;
+				NotificationList errors;
 				errors.addError(new ParamError("Task::lock", getResourceType(), ex.displayText()));
 				errors.sendErrorsAsEmail();
 			}

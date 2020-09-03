@@ -24,7 +24,7 @@ namespace model {
 			MYSQL_CONDITION_OR 
 		};
 
-		class ModelBase : public UniLib::lib::MultithreadContainer, public ErrorList
+		class ModelBase : public UniLib::lib::MultithreadContainer, public NotificationList
 		{
 		public:
 			ModelBase(int id) :mID(id), mReferenceCount(1) {}
