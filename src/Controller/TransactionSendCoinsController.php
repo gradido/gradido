@@ -187,7 +187,7 @@ class TransactionSendCoinsController extends AppController
               $this->set('timeUsed', microtime(true) - $startTime);
                 return;
             }
-            if($requestAnswear['data']['userData']['disabled']) {
+            if(isset($requestAnswear['data']['userData']['disabled']) && $requestAnswear['data']['userData']['disabled']) {
               $this->Flash->error(__('Der Empfänger ist deaktiviert, daher können ihm zurzeit keine Gradidos gesendet werden.'));
               $this->set('timeUsed', microtime(true) - $startTime);
               return;
