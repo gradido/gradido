@@ -66,8 +66,10 @@ class JsonRequestHandlerController extends AppController {
     }
     
     //! \param $transactionCreated creation of transaction in timestamp in seconds
+    //!        -1 if transaction couldn't decode
     //! \param $transactionBodyBase64Sha256 generic hash from transaction body serialized and converted to base64 
     //!        using sodium_crypto_generichash to calculate
+    //         hash also in base64 format
     //! \param $error short error name in user language
     //! \param $errorDetails more detailed error message in user language 
     private function errorInTransaction($transactionCreated, $transactionBodyBase64GenericHash, $error, $errorDetails) {
