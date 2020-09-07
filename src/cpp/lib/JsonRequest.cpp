@@ -70,9 +70,11 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::
 			fileName += ".html";
 
 			FILE* f = fopen(fileName.data(), "wt");
-			std::string responseString = responseStringStream.str();
-			fwrite(responseString.data(), 1, responseString.size(), f);
-			fclose(f);
+			if (f) {
+				std::string responseString = responseStringStream.str();
+				fwrite(responseString.data(), 1, responseString.size(), f);
+				fclose(f);
+			}
 			//	*/
 			sendErrorsAsEmail(responseStringStream.str());
 			return JSON_REQUEST_RETURN_PARSE_ERROR;

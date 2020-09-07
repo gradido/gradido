@@ -220,9 +220,11 @@ int SigningTransaction::run() {
 			addError(new ParamError("SigningTransaction", "error parsing request answer", ex.displayText().data()));
 
 			FILE* f = fopen("response.html", "wt");
-			std::string responseString = responseStringStream.str();
-			fwrite(responseString.data(), 1, responseString.size(), f);
-			fclose(f);
+			if (f) {
+				std::string responseString = responseStringStream.str();
+				fwrite(responseString.data(), 1, responseString.size(), f);
+				fclose(f);
+			}
 		//	*/
 			sendErrorsAsEmail(responseStringStream.str());
 			return -9;
