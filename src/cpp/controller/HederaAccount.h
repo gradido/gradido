@@ -22,12 +22,14 @@ namespace controller {
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
+		std::string HederaAccount::toShortSelectOptionName();
+
 		inline Poco::AutoPtr<model::table::HederaAccount> getModel() { return _getModel<model::table::HederaAccount>(); }
 
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
 
-		bool updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver = nullptr);
+		bool hederaAccountGetBalance(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver = nullptr);
 
 	protected:
 		HederaAccount(model::table::HederaAccount* dbModel);

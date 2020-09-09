@@ -15,16 +15,25 @@ namespace controller {
 
 	}
 
-	Poco::AutoPtr<CryptoKey> CryptoKey::create(const KeyPairHedera* hederaKeyPair, Poco::AutoPtr<controller::User> user)
+	Poco::AutoPtr<CryptoKey> CryptoKey::create(const KeyPairHedera* hederaKeyPair, Poco::AutoPtr<controller::User> user, bool saveEncrypted/* = true*/)
 	{
 		auto mm = MemoryManager::getInstance();
 
-		auto encrypted_priv_key = hederaKeyPair->getCryptedPrivKey(user->getPassword());
+		MemoryBin* private_key = nullptr;
 		auto public_key = hederaKeyPair->getPublicKeyCopy();
 
-		auto db = new model::table::CryptoKey(encrypted_priv_key, public_key, model::table::KEY_TYPE_ED25519_HEDERA);
+		model::table::KeyType key_type;
+		if (saveEncrypted) {
+			key_type = model::table::KEY_TYPE_ED25519_HEDERA_ENCRYPTED;
+			private_key = hederaKeyPair->getCryptedPrivKey(user->getPassword());
+		}
+		else {
+			key_type = model::table::KEY_TYPE_ED25519_HEDERA_CLEAR;
+			private_key = hederaKeyPair->getPrivateKeyCopy();
+		}
+		auto db = new model::table::CryptoKey(private_key, public_key, key_type);
 
-		mm->releaseMemory(encrypted_priv_key);
+		mm->releaseMemory(private_key);
 		mm->releaseMemory(public_key);
 
 		auto cryptoKey = new CryptoKey(db);
@@ -63,28 +72,49 @@ namespace controller {
 		return nullptr;
 	}
 
-	std::unique_ptr<KeyPairHedera> CryptoKey::getKeyPair(Poco::AutoPtr<controller::User> user)
+	std::unique_ptr<KeyPairHedera> CryptoKey::getKeyPair(Poco::AutoPtr<controller::User> user) const
 	{
 		auto model = getModel();
-		auto password = user->getPassword();
-		auto mm = MemoryManager::getInstance();
-		if (!password || !model->hasPrivateKeyEncrypted()) {
-			printf("[CryptoKey::getKeyPair] return null, password empty or no private key\n");
+		assert(model);
+
+		if (!model->isEncrypted()) {
+			return getKeyPair();
+		}
+
+		if (!model->hasPrivateKey()) {
+			printf("[CryptoKey::getKeyPair] return null, no private key\n");
 			return nullptr;
 		}
-		MemoryBin* clearPassword = nullptr;
-		auto encrypted_private_key = model->getPrivateKeyEncrypted();
-		auto encrypted_private_key_hex_string = DataTypeConverter::binToHex(encrypted_private_key);
-		printf("[CryptoKey::getKeyPair] encrypted private key hex: %s\n", encrypted_private_key_hex_string.data());
-		if (password->decrypt(model->getPrivateKeyEncrypted(), &clearPassword) != SecretKeyCryptography::AUTH_DECRYPT_OK) {
+
+		auto password = user->getPassword();
+		auto mm = MemoryManager::getInstance();
+		if (!password) {
+			printf("[CryptoKey::getKeyPair] return null, password empty\n");
+		}
+		MemoryBin* clearPrivateKey = nullptr;
+		auto encrypted_private_key = model->getPrivateKey();
+		//auto encrypted_private_key_hex_string = DataTypeConverter::binToHex(encrypted_private_key);
+		//printf("[CryptoKey::getKeyPair] encrypted private key hex: %s\n", encrypted_private_key_hex_string.data());
+		if (password->decrypt(model->getPrivateKey(), &clearPrivateKey) != SecretKeyCryptography::AUTH_DECRYPT_OK) {
 			printf("[CryptoKey::getKeyPair] return null, error decrypting\n");
 			return nullptr;
 		}
-		auto key_pair = std::make_unique<KeyPairHedera>(clearPassword, model->getPublicKey(), model->getPublicKeySize());
-		mm->releaseMemory(clearPassword);
+		auto key_pair = std::make_unique<KeyPairHedera>(clearPrivateKey->data(), clearPrivateKey->size(), model->getPublicKey(), model->getPublicKeySize());
+		mm->releaseMemory(clearPrivateKey);
 		return key_pair;
 	}
 
+	std::unique_ptr<KeyPairHedera> CryptoKey::getKeyPair() const
+	{
+		auto model = getModel();
+		assert(model);
+		if (!model->hasPrivateKey() || model->isEncrypted()) {
+			printf("[CryptoKey::getKeyPair] no private key or encrypted\n");
+			return nullptr;
+		}
+		
+		return std::make_unique<KeyPairHedera>(model->getPrivateKey(), model->getPublicKey(), model->getPublicKeySize());
+	}
 
 }
 

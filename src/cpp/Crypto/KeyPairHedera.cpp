@@ -10,7 +10,7 @@ KeyPairHedera::KeyPairHedera()
 
 }
 
-KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const unsigned char* publicKey/* = nullptr*/, size_t publicKeySize/* = 0*/)
+KeyPairHedera::KeyPairHedera(const unsigned char* privateKey, size_t privateKeySize, const unsigned char* publicKey/* = nullptr*/, size_t publicKeySize/* = 0*/)
 	: mPrivateKey(nullptr)
 {
 	auto derPrefixPriv = DataTypeConverter::hexToBin("302e020100300506032b657004220420");
@@ -19,27 +19,28 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const unsigned char* p
 	auto mm = MemoryManager::getInstance();
 
 	if (privateKey) {
-		switch (privateKey->size()) {
+		switch (privateKeySize) {
 		case 48:
 			// key with prefix
-			if (0 == sodium_memcmp(*privateKey, *derPrefixPriv, derPrefixPriv->size())) {
+			if (0 == sodium_memcmp(privateKey, *derPrefixPriv, derPrefixPriv->size())) {
 				//int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk, const unsigned char *seed);
 				auto seed = mm->getFreeMemory(crypto_sign_ed25519_SEEDBYTES);
-				memcpy(*seed, privateKey->data(derPrefixPriv->size()), crypto_sign_ed25519_SEEDBYTES);
-				createKeyFromSeed(seed);
+				memcpy(*seed, &privateKey[derPrefixPriv->size()], crypto_sign_ed25519_SEEDBYTES);
+				createKeyFromSeed(seed->data(), seed->size());
+				mm->releaseMemory(seed);
 				break;
 			}
 		case 32:
-			createKeyFromSeed(privateKey);
+			createKeyFromSeed(privateKey, privateKeySize);
 			break;
 		case 64:
 			//mPrivateKey = privateKey;
-			if (!mPrivateKey || mPrivateKey->size() != privateKey->size()) {
+			if (!mPrivateKey || mPrivateKey->size() != privateKeySize) {
 				if (mPrivateKey) {
 					mm->releaseMemory(mPrivateKey);
 				}
-				mPrivateKey = mm->getFreeMemory(privateKey->size());
-				memcpy(*mPrivateKey, *privateKey, privateKey->size());
+				mPrivateKey = mm->getFreeMemory(privateKeySize);
+				memcpy(*mPrivateKey, privateKey, privateKeySize);
 			}
 			break;
 		default:
@@ -75,9 +76,15 @@ KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const unsigned char* p
 	mm->releaseMemory(derPrefixPub);
 }
 KeyPairHedera::KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey /* = nullptr*/)
-	: KeyPairHedera(privateKey, publicKey->data(), publicKey->size())
+	: KeyPairHedera(privateKey->data(), privateKey->size(), publicKey->data(), publicKey->size())
 {
 	
+}
+
+KeyPairHedera::KeyPairHedera(const std::vector<unsigned char>& privateKey, const unsigned char* publicKey/* = nullptr*/, size_t publicKeySize/* = 0*/)
+	: KeyPairHedera(privateKey.data(), privateKey.size(), publicKey, publicKeySize)
+{
+
 }
 
 KeyPairHedera::~KeyPairHedera()
@@ -90,13 +97,13 @@ KeyPairHedera::~KeyPairHedera()
 }
 
 
-void KeyPairHedera::createKeyFromSeed(const MemoryBin* seed)
+void KeyPairHedera::createKeyFromSeed(const unsigned char* seed, size_t seedSize)
 {
-	assert(seed && seed->size() == crypto_sign_ed25519_SEEDBYTES);
+	assert(seed && seedSize == crypto_sign_ed25519_SEEDBYTES);
 
 	auto mm = MemoryManager::getInstance();
 	auto secret_key = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
-	crypto_sign_seed_keypair(mPublicKey, *secret_key, *seed);
+	crypto_sign_seed_keypair(mPublicKey, *secret_key, seed);
 
 	if (mPrivateKey) {
 		mm->releaseMemory(mPrivateKey);
@@ -175,6 +182,15 @@ MemoryBin* KeyPairHedera::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptog
 		return nullptr;
 	}
 
+}
+
+MemoryBin* KeyPairHedera::getPrivateKeyCopy() const
+{
+	if (!mPrivateKey) return nullptr;
+	auto mm = MemoryManager::getInstance();
+	MemoryBin* private_key_copy = mm->getFreeMemory(mPrivateKey->size());
+	memcpy(*private_key_copy, *mPrivateKey, mPrivateKey->size());
+	return private_key_copy;
 }
 
 MemoryBin* KeyPairHedera::getPublicKeyCopy() const

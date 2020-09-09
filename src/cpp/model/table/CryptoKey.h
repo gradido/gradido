@@ -8,8 +8,10 @@ namespace model {
 	namespace table {
 
 		enum KeyType {
-			KEY_TYPE_ED25519_SODIUM = 0,
-			KEY_TYPE_ED25519_HEDERA = 1,
+			KEY_TYPE_ED25519_SODIUM_ENCRYPTED = 0,
+			KEY_TYPE_ED25519_HEDERA_ENCRYPTED = 1,
+			KEY_TYPE_ED25519_SODIUM_CLEAR = 2,
+			KEY_TYPE_ED25519_HEDERA_CLEAR = 3,
 			KEY_TYPE_COUNT
 		};
 
@@ -27,8 +29,10 @@ namespace model {
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
 			size_t getPublicKeySize() const { if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
 
-			inline bool hasPrivateKeyEncrypted() const { return !mPrivateKey.isNull(); }
-			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
+			bool hasPrivateKeyEncrypted() const;
+			bool isEncrypted() const;
+			inline bool hasPrivateKey() const { return !mPrivateKey.isNull(); }
+			inline const std::vector<unsigned char>& getPrivateKey() const { return mPrivateKey.value().content(); }
 
 			static const char* typeToString(KeyType type);
 		protected:

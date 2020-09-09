@@ -22,8 +22,9 @@ public:
 	//! \param privateKey: copy
 	//! \param publicKey: copy
 	//! 
-	KeyPairHedera(const MemoryBin* privateKey, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
+	KeyPairHedera(const unsigned char* privateKey, size_t privateKeySize, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
 	KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey = nullptr);
+	KeyPairHedera(const std::vector<unsigned char>& privateKey, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
 
 	~KeyPairHedera();
 
@@ -64,13 +65,14 @@ public:
 
 	inline bool hasPrivateKey() const { return mPrivateKey != nullptr; }
 
-	//! \brief only way to get a private key.. encrypted
+	//! \brief 
 	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const;
+	MemoryBin* getPrivateKeyCopy() const;
 
 protected:
 
 	KeyPairHedera();
-	void createKeyFromSeed(const MemoryBin* seed);
+	void createKeyFromSeed(const unsigned char* seed, size_t seedSize);
 
 
 private:

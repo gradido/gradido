@@ -25,11 +25,12 @@ namespace model {
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, const TransactionBody* transactionBody);
 			
 			inline proto::Transaction* getTransaction() { return mTransaction; }
+			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 			void resetPointer() { mTransaction = nullptr; }
 
 		protected:
-
 			proto::Transaction* mTransaction;
+			controller::NodeServerConnection mConnection;
 		};
 	}
 }

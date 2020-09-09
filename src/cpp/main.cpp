@@ -45,17 +45,25 @@ int main(int argc, char** argv)
 		printf("[Gradido_LoginServer::main] error loading mnemonic Word List");
 		return -2;
 	}
+	printf("[Gradido_LoginServer::main] mnemonic word lists loaded!\n");
 
 	if (!ImportantTests::passphraseGenerationAndTransformation()) {
 		printf("test passphrase generation and transformation failed\n");
 		return -3;
 	}
+	printf("[Gradido_LoginServer::main] passed important tests\n");
 	grpc_init();
 
 	Gradido_LoginServer app;
-	auto result = app.run(argc, argv);
-
-	grpc_shutdown();
-	return result;
+	try {
+		auto result = app.run(argc, argv);
+		grpc_shutdown();
+		return result;
+	}
+	catch (Poco::Exception& ex) {
+		printf("[Gradido_LoginServer::main] exception by starting server: %s\n", ex.displayText().data());
+	}
+	return -1;
+	
 }
 #endif

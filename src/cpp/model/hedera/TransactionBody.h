@@ -13,6 +13,7 @@
 #include "../../proto/hedera/TransactionBody.pb.h"
 #include "../../controller/NodeServer.h"
 #include "CryptoTransferTransaction.h"
+#include "ConsensusCreateTopic.h"
 
 namespace model {
 	namespace hedera {
@@ -23,14 +24,20 @@ namespace model {
 			~TransactionBody();
 
 			void setMemo(const std::string& memo);
-			
+			void setFee(Poco::UInt64 fee);
+
 			bool setCryptoTransfer(CryptoTransferTransaction& cryptoTransferTransaction);
+			bool setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction);
+			//bool 
 
 			inline const proto::TransactionBody* getProtoTransactionBody() const { return &mTransactionBody; }
+			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
+			inline controller::NodeServerConnection getConnection() const { return mConnection; }
 
 		protected:
 			void updateTimestamp();
 			proto::TransactionBody mTransactionBody;
+			controller::NodeServerConnection mConnection;
 		};
 	}
 }

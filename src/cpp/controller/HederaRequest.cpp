@@ -59,6 +59,18 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 	return HEDERA_REQUEST_RETURN_OK;
 }
 
+HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transaction, model::hedera::Response* response)
+{
+	auto channel = grpc::CreateChannel(transaction->getConnectionString(), grpc::InsecureChannelCredentials());
+
+	grpc::ClientContext context;
+	std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() +
+		std::chrono::milliseconds(5000);
+	context.set_deadline(deadline);
+
+	return HEDERA_REQUEST_RETURN_OK;
+}
+
 #include "Poco/JSON/Object.h"
 #include "../lib/JsonRequest.h"
 

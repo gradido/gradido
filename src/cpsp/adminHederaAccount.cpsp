@@ -49,7 +49,7 @@
 				addError(new Error("Action Update Balance", "hedera id not found"));
 			} else {
 				hedera_time.reset();
-				hedera_account[0]->updateBalanceFromHedera(user, this);
+				hedera_account[0]->hederaAccountGetBalance(user, this);
 				addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
 			}
 		}
@@ -204,6 +204,7 @@
 			<% } %>
 			</select>
 			<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Account") %>">
-	</form>
+		</form>
+	</div>
 </div>
 <%@ include file="footer.cpsp" %>

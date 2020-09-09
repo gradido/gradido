@@ -70,7 +70,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				addError(new Error("Action Update Balance", "hedera id not found"));
 			} else {
 				hedera_time.reset();
-				hedera_account[0]->updateBalanceFromHedera(user, this);
+				hedera_account[0]->hederaAccountGetBalance(user, this);
 				addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
 			}
 		}
@@ -318,7 +318,8 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 #line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( gettext("Add Account") );
 	responseStream << "\">\n";
-	responseStream << "\t</form>\n";
+	responseStream << "\t\t</form>\n";
+	responseStream << "\t</div>\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
 	responseStream << "            <div class=\"center-bottom\">\n";

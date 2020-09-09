@@ -26,15 +26,14 @@ namespace model {
 
 			void setResponseType(proto::ResponseType type);
 			proto::ResponseType getResponseType();
-			void setFee(Poco::UInt64 fee);
+			
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
-			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
+			inline std::string getConnectionString() const { return mTransactionBody->getConnectionString(); }
 
 		protected:
-			Query(const controller::NodeServerConnection& connection);
+			Query();
 			proto::Query mQueryProto;
 			TransactionBody* mTransactionBody;
-			controller::NodeServerConnection mConnection;
 		};
 	}
 }

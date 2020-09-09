@@ -43,10 +43,31 @@ namespace model {
 		const char* CryptoKey::typeToString(KeyType type)
 		{
 			switch (type) {
-			case KEY_TYPE_ED25519_SODIUM: return "ed25519 ref10";
-			case KEY_TYPE_ED25519_HEDERA: return "sodium ed22519";
+			case KEY_TYPE_ED25519_SODIUM_ENCRYPTED: return "ed25519 sodium encrypted";
+			case KEY_TYPE_ED25519_HEDERA_ENCRYPTED: return "ed22519 for hedera encrypted";
+			case KEY_TYPE_ED25519_SODIUM_CLEAR: return "ed25519 sodium clear";
+			case KEY_TYPE_ED25519_HEDERA_CLEAR: return "ed25519 hedera clear";
 			}
 			return "<unknown type>";
+		}
+
+		bool CryptoKey::hasPrivateKeyEncrypted() const
+		{
+			const KeyType type = (KeyType)(mKeyType);
+			if (type == KEY_TYPE_ED25519_HEDERA_ENCRYPTED || type == KEY_TYPE_ED25519_SODIUM_ENCRYPTED) {
+				return !mPrivateKey.isNull();
+			}
+			return false;
+		}
+
+		bool CryptoKey::isEncrypted() const
+		{
+			const KeyType type = (KeyType)(mKeyType);
+			if (type == KEY_TYPE_ED25519_HEDERA_ENCRYPTED ||
+				type == KEY_TYPE_ED25519_SODIUM_ENCRYPTED) {
+				return true;
+			}
+			return false;
 		}
 
 		Poco::Data::Statement CryptoKey::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)

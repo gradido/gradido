@@ -1,6 +1,7 @@
 CREATE TABLE `hedera_topics` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `topic_hedera_id` int unsigned NOT NULL,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
   `auto_renew_account_hedera_id` int unsigned DEFAULT NULL,
   `auto_renew_period` int unsigned NOT NULL DEFAULT '0',
   `group_id` int unsigned NOT NULL,
