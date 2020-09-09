@@ -9,8 +9,8 @@
 namespace model {
 	namespace hedera {
 
-		Query::Query(const controller::NodeServerConnection& connection)
-			: mConnection(connection), mTransactionBody(nullptr)
+		Query::Query()
+			: mTransactionBody(nullptr)
 		{
 
 		}
@@ -27,7 +27,7 @@ namespace model {
 		
 			assert(!accountId.isNull() && accountId->getModel());
 
-			auto query = new Query(connection);
+			auto query = new Query;
 			auto get_account_balance = query->mQueryProto.mutable_cryptogetaccountbalance();
 			accountId->copyToProtoAccountId(get_account_balance->mutable_accountid());
 			auto query_header = get_account_balance->mutable_header();

@@ -3,6 +3,7 @@
 namespace model {
 	namespace hedera {
 		TransactionBody::TransactionBody(Poco::AutoPtr<controller::HederaId> operatorAccountId, const controller::NodeServerConnection& connection)
+			: mConnection(connection)
 		{
 			connection.hederaId->copyToProtoAccountId(mTransactionBody.mutable_nodeaccountid());
 			auto transaction_id = mTransactionBody.mutable_transactionid();
@@ -29,9 +30,23 @@ namespace model {
 			return false;
 		}
 
+		bool TransactionBody::setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction)
+		{
+			if (consensusCreateTopicTransaction.validate()) {
+				mTransactionBody.set_allocated_consensuscreatetopic(consensusCreateTopicTransaction.getProtoTransactionBody());
+				consensusCreateTopicTransaction.resetPointer();
+				return true;
+			}
+			return false;
+		}
+
 		void TransactionBody::setMemo(const std::string& memo)
 		{
 			mTransactionBody.set_memo(memo);
+		}
+		void TransactionBody::setFee(Poco::UInt64 fee)
+		{
+			mTransactionBody.set_transactionfee(fee);
 		}
 
 		void TransactionBody::updateTimestamp()

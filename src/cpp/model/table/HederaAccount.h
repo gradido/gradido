@@ -28,6 +28,7 @@ namespace model {
 			// generic db operations
 			const char* getTableName() const { return "hedera_accounts"; }
 			std::string toString();
+			
 
 			static const char* hederaNetworkTypeToString(HederaNetworkType type);
 			static NodeServerType networkTypeToNodeServerType(HederaNetworkType type);

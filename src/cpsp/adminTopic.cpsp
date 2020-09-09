@@ -5,19 +5,123 @@
 <%@ page ctorArg="Session*" %>
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
-	
+	#include "../controller/HederaAccount.h"
+	#include "../controller/Group.h"
+	#include "../SingletonManager/SessionManager.h"
+	#include "../ServerConfig.h"
+	#include "../lib/DataTypeConverter.h"
 %>
 <%%
 	const char* pageName = "Topic";
+	auto user = mSession->getNewUser();
+	auto sm = SessionManager::getInstance();
+	
+	std::string name = "";
+	int auto_renew_account = 0;
+	int auto_renew_period = 604800; // 7 Tage
+	
+	int group_id = 0;
 	
 	
+	if(!form.empty()) {
+		name = form.get("topic-name", "");
+		auto auto_renew_account_string = form.get("topic-auto-renew-account", "0");
+		auto auto_renew_period_string = form.get("topic-auto-renew-period", "604800");
+		auto group_id_string = form.get("topic-group", "-1");
+		
+		if(name != "" && !sm->isValid(name, VALIDATE_NAME)) {
+			addError(new Error("Topic", "Name not valid, at least 3 Character"));
+		}
+		
+		if(!sm->isValid(auto_renew_account_string, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Topic", "auto renew account id not an integer"));
+		} else {
+			if(DataTypeConverter::strToInt(auto_renew_account_string, auto_renew_account) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int convert error", "Error converting auto renew account id to int"));
+			}
+		}
+		
+		if(!sm->isValid(auto_renew_period_string, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Topic", "auto renew period not an integer"));
+		} else {
+			if(DataTypeConverter::strToInt(auto_renew_period_string, auto_renew_period) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int convert error", "Error converting auto renew period to int"));
+			}
+		}
 	
-%><%@ include file="header_large.cpsp" %>
+		if(!sm->isValid(group_id_string, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Topic", "group_id not an integer"));
+		} else {
+			if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int convert error", "Error converting group_id to int"));
+			}
+		}	
+	}
+	
+	
+	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
+	
+	auto groups = controller::Group::listAll();
+	std::map<int, int> group_indices;
+	int count = 0;
+	for(auto it = groups.begin(); it != groups.end(); it++) {
+		group_indices.insert(std::pair<int, int>((*it)->getModel()->getID(), count));
+		count++;
+	}
+	
+	
+%><%@ include file="header.cpsp" %>
+<style type="text/css">
+	.center-form-form .input-40 {
+		margin-left:0;
+		width:40%;
+		display:inline-block;
+	}
+	
+</style>
 <%= getErrorsHtml() %>
 <div class="content-container info-container">
 	<h1>Topic Admin Page</h1>
 </div>
-<div class="content-container main-container">
-	
+<div class="center-form-container">
+	<div class="center-form-title">
+	    <h3>Ein neues Topic anlegen</h3>
+	</div>
+	<div class="center-form-form">
+		<form method="POST" action="<%= ServerConfig::g_serverPath %>/topic">
+			<label class="form-label" for="topic-name">Name</label>
+			<input type="text" class="form-control" id="topic-name" name="topic-name" value="<%= name %>">
+			<label class="form-label" for="topic-auto-renew-account">Auto Renew Hedera Account</label>
+			<select name="topic-auto-renew-account" id="topic-auto-renew-account">
+				<% for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) { 
+					auto model = (*it)->getModel();
+				%>
+					<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(auto_renew_account == model->getID()) {%>selected="selected"<% } %>><%= (*it)->toShortSelectOptionName() %></option>
+				<% } %>
+			</select>
+			<label class="form-label" for="topic-auto-renew-period">Auto Renew Period in seconds</label>
+			<div><input class="form-control input-40" id="topic-auto-renew-period" value="<%= auto_renew_period %>" type="number" name="topic-auto-renew-period"/><span style="margin-left:8px" id="readable-auto-renew-period"></span><div>
+			<label class="form-label" for="topic-group">Group</label>
+			<select class="form-control" name="topic-group" id="topic-group">			
+				<option value="-1">Keine Gruppe</option>
+				<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+					auto group_model = (*it)->getModel(); %>
+					<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>" <% if(group_id == group_model->getID()) {%>selected="selected"<% } %>><%= group_model->getName() %></option>
+				<% } %>
+			</select>
+			
+			<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Topic") %>">
+		</form>
+	</div>
 </div>
 <%@ include file="footer.cpsp" %>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/time_calculations.js"></script>
+<script type="text/javascript">
+	var input = document.getElementById("topic-auto-renew-period");
+	var span = document.getElementById("readable-auto-renew-period");
+	span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	input.addEventListener('keyup', function(e) {
+		span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	});
+	
+</script>

@@ -73,7 +73,7 @@ namespace controller {
 		return resultVector;
 	}
 
-	bool HederaAccount::updateBalanceFromHedera(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver/* = nullptr*/)
+	bool HederaAccount::hederaAccountGetBalance(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver/* = nullptr*/)
 	{
 		static const char* functionName = "HederaAccount::updateBalanceFromHedera";
 
@@ -130,6 +130,16 @@ namespace controller {
 		}
 		
 		return false;
+	}
+
+
+	std::string HederaAccount::toShortSelectOptionName()
+	{
+		std::stringstream ss;
+		auto model = getModel();
+		ss << model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)model->getNetworkType()) << " ";
+		ss << mHederaID->getModel()->toString() << " " << ((double)model->getBalance() / 100000000.0) << " Hbar";
+		return ss.str();
 	}
 
 }

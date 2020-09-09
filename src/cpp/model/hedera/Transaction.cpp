@@ -19,6 +19,7 @@ namespace model {
 		bool Transaction::sign(std::unique_ptr<KeyPairHedera> keyPairHedera, const TransactionBody* transactionBody)
 		{
 			auto mm = MemoryManager::getInstance();
+			mConnection = transactionBody->getConnection();
 			auto transaction_body_proto = transactionBody->getProtoTransactionBody();
 			auto body_bytes = transaction_body_proto->SerializeAsString();
 			mTransaction->set_bodybytes(body_bytes.data());

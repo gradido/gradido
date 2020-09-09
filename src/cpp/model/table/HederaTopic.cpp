@@ -5,6 +5,14 @@ using namespace Poco::Data::Keywords;
 namespace model {
 	namespace table {
 		HederaTopic::HederaTopic()
+			: mTopicHederaId(0), mAutoRenewAccountHederaId(0), mAutoRenewPeriod(0), mGroupId(0), mAdminKeyId(0), mSubmitKeyId(0),mSequenceNumber(0)
+		{
+
+		}
+
+		HederaTopic::HederaTopic(const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId)
+			: mTopicHederaId(0), mName(name), mAutoRenewAccountHederaId(autoRenewAccountId), mAutoRenewPeriod(autoRenewAccountId), mGroupId(groupId),
+				mAdminKeyId(0), mSubmitKeyId(0), mSequenceNumber(0)
 		{
 
 		}
@@ -18,6 +26,7 @@ namespace model {
 		{
 			std::stringstream ss;
 			ss << "Topic Hedera id: " << std::to_string(mTopicHederaId) << std::endl;
+			ss << "Name: " << mName << std::endl;
 			ss << "Auto Renew Account Hedera id: " << std::to_string(mAutoRenewAccountHederaId) << std::endl;
 			ss << "Auto Renew Period: " << std::to_string(mAutoRenewPeriod) << " seconds" << std::endl;
 			ss << "Group id: " << std::to_string(mGroupId) << std::endl;
@@ -33,10 +42,10 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, topic_hedera_id, auto_renew_account_hedera_id, auto_renew_period, " 
+			select << "SELECT id, topic_hedera_id, name, auto_renew_account_hedera_id, auto_renew_period, " 
 				   << "group_id, admin_key_id, submit_key_id, current_timeout, sequence_number, updated FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mTopicHederaId), into(mAutoRenewAccountHederaId), into(mAutoRenewPeriod)
+				, into(mID), into(mTopicHederaId), into(mName), into(mAutoRenewAccountHederaId), into(mAutoRenewPeriod)
 				, into(mGroupId), into(mAdminKeyId), into(mSubmitKeyId), into(mCurrentTimeout), into(mSequenceNumber), into(mUpdated);
 
 			return select;
@@ -57,9 +66,9 @@ namespace model {
 			Poco::Data::Statement insert(session);
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (topic_hedera_id, auto_renew_account_hedera_id, auto_renew_period,"
+				<< " (topic_hedera_id, name, auto_renew_account_hedera_id, auto_renew_period,"
 				<< " group_id, admin_key_id, submit_key_id, current_timeout, sequence_number) VALUES(?,?,?,?,?,?,?,?)"
-				, use(mTopicHederaId), use(mAutoRenewAccountHederaId), use(mAutoRenewPeriod)
+				, use(mTopicHederaId), use(mName), use(mAutoRenewAccountHederaId), use(mAutoRenewPeriod)
 				, use(mGroupId), use(mAdminKeyId), use(mSubmitKeyId), use(mCurrentTimeout), use(mSequenceNumber), use(mUpdated);
 			unlock();
 			return insert;

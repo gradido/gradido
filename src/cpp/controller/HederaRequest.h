@@ -31,6 +31,7 @@ public:
 	~HederaRequest();
 
 	HederaRequestReturn request(model::hedera::Query* query, model::hedera::Response* response, Poco::UInt64 fee = 0);
+	HederaRequestReturn request(model::hedera::Transaction* transaction, model::hedera::Response* response);
 	//! for testing, didn't work server say invalid json :/
 	HederaRequestReturn requestViaPHPRelay(model::hedera::Query* query);
 

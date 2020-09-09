@@ -44,6 +44,7 @@ namespace model {
 			return ss.str();
 		}
 
+
 		const char* HederaAccount::hederaNetworkTypeToString(HederaNetworkType type)
 		{
 			switch (type) {
