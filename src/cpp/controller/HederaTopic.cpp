@@ -1,5 +1,5 @@
 #include "HederaTopic.h"
-#include "../model/hedera/Transaction.h"
+//#include "../model/hedera/Transaction.h"
 
 namespace controller {
 	HederaTopic::HederaTopic(model::table::HederaTopic* dbModel)
@@ -21,6 +21,6 @@ namespace controller {
 
 	Poco::UInt64 HederaTopic::hederaCreateTopic()
 	{
-
+		return 0;
 	}
 }

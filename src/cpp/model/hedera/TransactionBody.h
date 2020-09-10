@@ -10,10 +10,12 @@
 *
 */
 
-#include "../../proto/hedera/TransactionBody.pb.h"
+
 #include "../../controller/NodeServer.h"
 #include "CryptoTransferTransaction.h"
 #include "ConsensusCreateTopic.h"
+
+#include "../../proto/hedera/TransactionBody.pb.h"
 
 namespace model {
 	namespace hedera {
