@@ -1,10 +1,10 @@
 #ifndef __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_CREATE_TOPIC_H
 #define __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_CREATE_TOPIC_H
 
-#include "../../proto/hedera/ConsensusCreateTopic.pb.h"
-#include "../../SingletonManager/MemoryManager.h"
 
+#include "../../SingletonManager/MemoryManager.h"
 #include "../../controller/HederaId.h"
+#include "../../proto/hedera/ConsensusCreateTopic.pb.h"
 
 namespace model {
 	namespace hedera {
@@ -27,5 +27,6 @@ namespace model {
 		};
 	}
 }
+
 
 #endif //__GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_CREATE_TOPIC_H

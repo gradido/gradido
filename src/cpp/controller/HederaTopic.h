@@ -34,5 +34,6 @@ namespace controller {
 		HederaTopic(model::table::HederaTopic* dbModel);
 
 	};
+}
 
 #endif //__GRADIDO_LOGIN_SERVER_CONTROLLER_HEDERA_TOPIC_H
