@@ -3,6 +3,7 @@
 
 #include "ModelBase.h"
 #include "Poco/Types.h"
+#include "../../lib/DataTypeConverter.h"
 
 namespace model {
 	namespace table {
@@ -27,12 +28,20 @@ namespace model {
 			std::string toString();
 
 			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			inline std::string getPublicKeyHexString() const { return DataTypeConverter::binToHex(mPublicKey); };
 			size_t getPublicKeySize() const { if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
 
 			bool hasPrivateKeyEncrypted() const;
 			bool isEncrypted() const;
+			bool changeKeyTypeToggleEncrypted();
 			inline bool hasPrivateKey() const { return !mPrivateKey.isNull(); }
 			inline const std::vector<unsigned char>& getPrivateKey() const { return mPrivateKey.value().content(); }
+
+			size_t updatePrivkeyAndKeyType();
+
+			//! \brief set encrypted private key
+			//! \param privateKey copy data, didn't move memory bin
+			void setPrivateKey(const MemoryBin* privateKey);
 
 			static const char* typeToString(KeyType type);
 		protected:

@@ -37,4 +37,14 @@ namespace controller {
 		protoAccountId->set_realmnum(model->getRealmNum());
 		protoAccountId->set_accountnum(model->getNum());
 	}
+
+	bool HederaId::isExistInDB()
+	{
+		auto model = getModel();
+		if (model->getID() > 0) return true;
+		//std::vector<Tuple> loadFromDB(const std::vector<std::string>& fieldNames, const std::vector<WhereFieldType>& fieldValues, MysqlConditionType conditionType = MYSQL_CONDITION_AND, int expectedResults = 0);
+		model->isExistInDB();
+		return model->getID() != 0;
+
+	}
 }

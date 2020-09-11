@@ -20,6 +20,8 @@ namespace controller {
 
 		static Poco::AutoPtr<HederaId> load(int id);
 
+		bool isExistInDB();
+
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
 		inline Poco::AutoPtr<model::table::HederaId> getModel() { return _getModel<model::table::HederaId>(); }

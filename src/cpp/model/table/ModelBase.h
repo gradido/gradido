@@ -40,6 +40,7 @@ namespace model {
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
 			template<class T>
 			bool isExistInDB(const std::string& fieldName, const T& fieldValue);
+			bool isExistInDB();
 			template<class WhereFieldType, class Tuple> 
 			std::vector<Tuple> loadFromDB(const std::string& fieldName, const WhereFieldType& fieldValue, int expectedResults = 0);
 			template<class Tuple>

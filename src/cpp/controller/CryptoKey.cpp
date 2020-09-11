@@ -113,8 +113,38 @@ namespace controller {
 			return nullptr;
 		}
 		
+		
 		return std::make_unique<KeyPairHedera>(model->getPrivateKey(), model->getPublicKey(), model->getPublicKeySize());
 	}
 
+	bool CryptoKey::changeEncryption(Poco::AutoPtr<controller::User> user)
+	{
+		auto key_pair = getKeyPair(user);
+		if (!key_pair || !key_pair->hasPrivateKey()) {
+			addError(new Error("Crypto Key", "key pair or private key was null"));
+			return false;
+		}
+		auto model = getModel();
+		auto mm = MemoryManager::getInstance();
+		// update key type 
+		model->changeKeyTypeToggleEncrypted();
+		MemoryBin* private_key = nullptr;
+		if (model->isEncrypted()) {
+			private_key = key_pair->getCryptedPrivKey(user->getPassword());
+		}
+		else {
+			private_key = key_pair->getPrivateKeyCopy();
+		}
+		if (!private_key) {
+			addError(new Error("Crypto Key", " private_key not get"));
+			return false;
+		}
+		model->setPrivateKey(private_key);
+		// save changes into db
+		model->updatePrivkeyAndKeyType();
+
+		mm->releaseMemory(private_key);
+		return true;
+	}
 }
 

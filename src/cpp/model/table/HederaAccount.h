@@ -35,6 +35,7 @@ namespace model {
 
 			inline int getAccountHederaId() const { return mAccountHederaId; }
 			inline int getCryptoKeyId() const { return mAccountKeyId; }
+			inline int getUserId() const { return mUserId; }
 
 			inline Poco::UInt64 getBalance() { return mBalance; }
 			inline double getBalanceDouble() { return (double)mBalance / 100000000.0; }

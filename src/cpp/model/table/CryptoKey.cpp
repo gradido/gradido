@@ -1,5 +1,5 @@
 #include "CryptoKey.h"
-#include "../../lib/DataTypeConverter.h"
+
 using namespace Poco::Data::Keywords;
 
 namespace model {
@@ -51,6 +51,8 @@ namespace model {
 			return "<unknown type>";
 		}
 
+		
+
 		bool CryptoKey::hasPrivateKeyEncrypted() const
 		{
 			const KeyType type = (KeyType)(mKeyType);
@@ -65,6 +67,39 @@ namespace model {
 			const KeyType type = (KeyType)(mKeyType);
 			if (type == KEY_TYPE_ED25519_HEDERA_ENCRYPTED ||
 				type == KEY_TYPE_ED25519_SODIUM_ENCRYPTED) {
+				return true;
+			}
+			return false;
+		}
+
+		void CryptoKey::setPrivateKey(const MemoryBin* privateKey)
+		{
+			if (!privateKey) {
+				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>();
+			}
+			else {
+				mPrivateKey = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(*privateKey, privateKey->size()));
+			}
+
+		}
+
+		bool CryptoKey::changeKeyTypeToggleEncrypted()
+		{
+			const KeyType type = (KeyType)(mKeyType);
+			if (type == KEY_TYPE_ED25519_SODIUM_ENCRYPTED) {
+				mKeyType = KEY_TYPE_ED25519_SODIUM_CLEAR;
+				return true;
+			}
+			if (type == KEY_TYPE_ED25519_HEDERA_ENCRYPTED) {
+				mKeyType = KEY_TYPE_ED25519_HEDERA_CLEAR;
+				return true;
+			}
+			if (type == KEY_TYPE_ED25519_SODIUM_CLEAR) {
+				mKeyType = KEY_TYPE_ED25519_SODIUM_ENCRYPTED;
+				return true;
+			}
+			if (type == KEY_TYPE_ED25519_HEDERA_CLEAR) {
+				mKeyType = KEY_TYPE_ED25519_HEDERA_ENCRYPTED;
 				return true;
 			}
 			return false;
@@ -103,5 +138,33 @@ namespace model {
 			unlock();
 			return insert;
 		}
+
+		size_t CryptoKey::updatePrivkeyAndKeyType()
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			if (mPrivateKey.isNull() || !mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET private_key = ?, crypto_key_type_id = ? where id = ?;",
+				use(mPrivateKey), use(mKeyType), use(mID);
+
+
+			size_t resultCount = 0;
+			try {
+				return update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updatePrivkeyAndKeyType] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return 0;
+		}
+
 	}
 }

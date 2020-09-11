@@ -9,9 +9,15 @@
 #include "TableControllerBase.h"
 #include "User.h"
 
+
+
 namespace controller {
-	class CryptoKey : public TableControllerBase
+
+	class HederaAccount;
+
+	class CryptoKey : public TableControllerBase, public NotificationList
 	{
+		friend HederaAccount;
 	public:
 
 		~CryptoKey();
@@ -31,8 +37,11 @@ namespace controller {
 		std::unique_ptr<KeyPairHedera> getKeyPair(Poco::AutoPtr<controller::User> user) const;
 		std::unique_ptr<KeyPairHedera> getKeyPair() const;
 
+		
 
 	protected:
+
+		bool changeEncryption(Poco::AutoPtr<controller::User> user);
 		CryptoKey(model::table::CryptoKey* dbModel);
 
 	};
