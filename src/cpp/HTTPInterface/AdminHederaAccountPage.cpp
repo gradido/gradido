@@ -51,39 +51,57 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	Poco::URI uri(request.getURI());
 	auto uri_query = uri.getQueryParameters();
 	std::string action = "";
-	std::string account_id_from_query;
+	Poco::AutoPtr<controller::HederaAccount> query_hedera_account;
+	
+	// parsing get query params
 	if(uri_query.size() >= 2) {
 		if(uri_query[0].first == "action") {
 			action = uri_query[0].second;
 		}
 		if(uri_query[1].first == "account_id") {
+			std::string account_id_from_query;
+			int account_id = 0;
 			account_id_from_query = uri_query[1].second;
-		}
-	}
-	if(action == "updateBalance") {
-		int account_id = 0;
-		if(DataTypeConverter::strToInt(account_id_from_query, account_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
-			addError(new Error("Int Convert Error", "Error converting account_id_from_query to int"));
-		} else {
-			auto hedera_account = controller::HederaAccount::load("id", account_id);
-			if(!hedera_account.size() || hedera_account[0].isNull()) {
-				addError(new Error("Action Update Balance", "hedera id not found"));
+			if(DataTypeConverter::strToInt(account_id_from_query, account_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting account_id_from_query to int"));
 			} else {
-				hedera_time.reset();
-				hedera_account[0]->hederaAccountGetBalance(user, this);
-				addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
+				auto hedera_accounts = controller::HederaAccount::load("id", account_id);
+				if(!hedera_accounts.size() || hedera_accounts[0].isNull()) {
+					addError(new Error("Action", "hedera account not found"));
+				} else {
+				  query_hedera_account = hedera_accounts[0];
+				}
 			}
 		}
 	}
-	// add 
-	else if(!form.empty()) {
+	// actions
+	if(!query_hedera_account.isNull()) 
+	{
+		if(action == "updateBalance") 
+		{
+			hedera_time.reset();
+			query_hedera_account->hederaAccountGetBalance(user);
+			addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
+		} 
+		else if(action == "changeEncryption") 
+		{
+			if(query_hedera_account->changeEncryption(user)) {
+				addNotification(new Success("Hedera Account", "success in changing encryption"));
+			}
+		}
+	}
+	else if(!form.empty())  // add 
+	{
 		// collect
 		auto shardNumString = form.get("account-shard-num", "0");
 		auto realmNumString = form.get("account-realm-num", "0");
 		auto numString      = form.get("account-num", "0");
 		auto privateKeyString = form.get("account-private-key", "");
+		auto privateKeyEncryptedString = form.get("account-private-key-encrypted", "false");
 		auto publicKeyString = form.get("account-public-key", "");
 		auto networkTypeString = form.get("account-network-type", "0");
+		
+		//printf("private key encrypted: %s\n", privateKeyEncryptedString.data());
 		
 		int shardNum = 0;
 		int realmNum = 0;
@@ -144,7 +162,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 			auto crypto_key = controller::CryptoKey::load(key_pair.getPublicKey(), ed25519_pubkey_SIZE);
 			
 			if(crypto_key.isNull()) {
-				crypto_key = controller::CryptoKey::create(&key_pair, user);
+				crypto_key = controller::CryptoKey::create(&key_pair, user, privateKeyEncryptedString == "true");
 				if(!crypto_key->getModel()->insertIntoDB(true)) {
 					addError(new Error("DB Error", "Error saving crypto key in DB"));
 				}
@@ -152,15 +170,26 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				printf("crypto key found in db\n");
 			}
 			if(0 == errorCount()) {
-				auto hedera_account = controller::HederaAccount::create(
-					user->getModel()->getID(),
-					hedera_id->getModel()->getID(),
-					crypto_key->getModel()->getID(),
-					0,
-					(model::table::HederaNetworkType)networkType
-				);
-				if(!hedera_account->getModel()->insertIntoDB(false)) {
-					addError(new Error("DB Error", "Error saving hedera account into DB"));
+				
+				if(hedera_id->isExistInDB()) {
+					auto hedera_account = controller::HederaAccount::load(hedera_id);
+					if(hedera_account.isNull()) {
+						addError(new Error("DB Error", "Couldn't load hedera account from db, but it should exist"));
+					} else {
+						addError(new Error("Hedera Account", "Account already exist (same account id"));
+					}
+					
+				} else {
+					auto hedera_account = controller::HederaAccount::create(
+						user->getModel()->getID(),
+						hedera_id->getModel()->getID(),
+						crypto_key->getModel()->getID(),
+						0,
+						(model::table::HederaNetworkType)networkType
+					);
+					if(!hedera_account->getModel()->insertIntoDB(false)) {
+						addError(new Error("DB Error", "Error saving hedera account into DB"));
+					}
 				}
 			}
 			
@@ -169,7 +198,9 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 		}
 		
 	}	
-
+	if(!query_hedera_account.isNull()) {
+		getErrors(query_hedera_account);
+	}
 	// list accounts
 	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
 	
@@ -231,7 +262,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t<div class=\"content\">";
 	// end include header_large.cpsp
 	responseStream << "\n";
-#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 187 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -244,41 +275,63 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Hedera Id</div>\t\t\t\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Balance</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Server Type</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Verschlüsselt?</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Last Updated</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c5\">Aktionen</div>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 171 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) {
 					auto hedera_account_model = (*it)->getModel();  
 					auto updateUrl = ServerConfig::g_serverPath + "/hedera_account?action=updateBalance&account_id=" + std::to_string(hedera_account_model->getID());
+					std::string changeEncryption("");
+					if(hedera_account_model->getUserId() == user->getModel()->getID()) {
+						changeEncryption = ServerConfig::g_serverPath + "/hedera_account?action=changeEncryption&account_id=" + std::to_string(hedera_account_model->getID());
+					}
+					//printf("change encryption: %s\n", changeEncryption.data());
 						responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 213 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( (*it)->getHederaId()->getModel()->toString() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 177 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 214 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( hedera_account_model->getBalanceDouble() );
 	responseStream << " hbar</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 178 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 215 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 179 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 216 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+	responseStream << ( (*it)->getCryptoKey()->getModel()->isEncrypted() ? "Ja": "Nein" );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
+#line 217 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( hedera_account_model->getUpdatedString() );
 	responseStream << "</div>\n";
-	responseStream << "\t\t\t\t\t<button class=\"form-button\" title=\"Anfrage an Hedera, kostet etwas\" onclick=\"window.location.href='";
-#line 180 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+	responseStream << "\t\t\t\t\t<button class=\"form-button\" title=\"Anfrage an Hedera, aktuell kostenlos\" onclick=\"window.location.href='";
+#line 218 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( updateUrl );
 	responseStream << "'\"  >\n";
 	responseStream << "\t\t\t\t\t\tUpdate Balance\n";
 	responseStream << "\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t\t";
+#line 221 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+ if(changeEncryption != "") { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<button class=\"form-button\" title=\"Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank\" onclick=\"window.location.href='";
+#line 222 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+	responseStream << ( changeEncryption );
+	responseStream << "'\">\n";
+	responseStream << "\t\t\t\t\t\t\tChange Encryption\n";
+	responseStream << "\t\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t\t";
+#line 225 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 184 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 227 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
@@ -287,7 +340,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t<form method=\"POST\" action=\"";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/hedera_account\">\n";
 	responseStream << "\t\t\t<label class=\"form-label\">Hedera Account ID</label>\n";
@@ -296,26 +349,28 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"account-num\" placeholder=\"num\" type=\"number\" name=\"account-num\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-private-key\">Private Key</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"account-private-key\" type=\"text\" name=\"account-private-key\"/>\n";
+	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-private-key-encrypted\" title=\"Wenn er verschlüsselt ist, kannst nur du Hedera Transaktionen damit bezahlen, wenn er nicht verschlüsselt ist kann er für alle Hedera Transaktionen automatisch verwendet werden. Ich empfehle dafür ein separates Konto mit wenigen Hashbars anzulegen.\">Private Key verschlüsseln?</label>\n";
+	responseStream << "\t\t\t<input class=\"form-control\" id=\"account-private-key-encrypted\" type=\"checkbox\" name=\"account-private-key-encrypted\" value=\"true\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-public-key\">Public Key</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"account-public-key\" type=\"text\" name=\"account-public-key\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-network-type\">Network Type</label>\n";
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"account-network-type\" id=\"account-network-type\">\n";
 	responseStream << "\t\t\t";
-#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 247 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  for(int i = 0; i < model::table::HEDERA_NET_COUNT; i++) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<option value=\"";
-#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( i );
 	responseStream << "\">";
-#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)i) );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t";
-#line 204 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 249 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"";
-#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 251 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( gettext("Add Account") );
 	responseStream << "\">\n";
 	responseStream << "\t\t</form>\n";

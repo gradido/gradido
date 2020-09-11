@@ -15,6 +15,7 @@
 #include "sodium.h"
 #include "SecretKeyCryptography.h"
 #include "iroha-ed25519/include/ed25519/ed25519.h"
+#include "../lib/DataTypeConverter.h"
 
 class KeyPairHedera : public IKeyPair
 {
@@ -38,6 +39,7 @@ public:
 
 	inline const unsigned char* getPublicKey() const { return mPublicKey; }
 	MemoryBin* getPublicKeyCopy() const;
+	inline std::string getPublicKeyHex() const { return DataTypeConverter::binToHex(mPublicKey, getPublicKeySize()); }
 	const static size_t getPublicKeySize() {return ed25519_pubkey_SIZE;}
 
 	inline bool isTheSame(const KeyPairHedera& b) const {
@@ -68,6 +70,7 @@ public:
 	//! \brief 
 	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const;
 	MemoryBin* getPrivateKeyCopy() const;
+	inline std::string getPrivateKeyHex(const Poco::AutoPtr<SecretKeyCryptography> password) const { if (!mPrivateKey) return "0x0"; return DataTypeConverter::binToHex(mPrivateKey); }
 
 protected:
 

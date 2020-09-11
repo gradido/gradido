@@ -184,6 +184,7 @@ MemoryBin* KeyPairHedera::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptog
 
 }
 
+
 MemoryBin* KeyPairHedera::getPrivateKeyCopy() const
 {
 	if (!mPrivateKey) return nullptr;

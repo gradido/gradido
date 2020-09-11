@@ -40,6 +40,20 @@ namespace controller {
 		return resultVector;
 	}
 
+	Poco::AutoPtr<HederaAccount> HederaAccount::load(Poco::AutoPtr<controller::HederaId> hederaId)
+	{
+		if (!hederaId->isExistInDB()) return nullptr;
+
+		auto db = new model::table::HederaAccount();
+		auto result_count = db->loadFromDB("account_hedera_id", hederaId->getModel()->getID());
+		if (1 == result_count) {
+			return new HederaAccount(db);
+		}
+		// maybe change later to using error manager and send email
+		printf("[HederaAccount::load] result_count not expected: %d\n", result_count);
+		return nullptr;
+	}
+
 	std::vector<Poco::AutoPtr<HederaAccount>> HederaAccount::listAll()
 	{
 		auto db = new model::table::HederaAccount();
@@ -73,7 +87,13 @@ namespace controller {
 		return resultVector;
 	}
 
-	bool HederaAccount::hederaAccountGetBalance(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver/* = nullptr*/)
+	Poco::AutoPtr<controller::CryptoKey> HederaAccount::getCryptoKey() const
+	{
+		auto model = getModel();
+		return controller::CryptoKey::load(model->getCryptoKeyId());
+	}
+
+	bool HederaAccount::hederaAccountGetBalance(Poco::AutoPtr<controller::User> user)
 	{
 		static const char* functionName = "HederaAccount::updateBalanceFromHedera";
 
@@ -86,13 +106,13 @@ namespace controller {
 		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
 		auto crypto_key = controller::CryptoKey::load(account_model->getCryptoKeyId());
 		if (crypto_key.isNull()) {
-			if (errorReceiver) { errorReceiver->addError(new Error("Keys", "could not found crypto key for account"));}
-			else { printf("[%s] error, crypto key with id: %d not found\n", functionName, account_model->getCryptoKeyId()); }
+			addError(new Error("Keys", "could not found crypto key for account"));
+			printf("[%s] error, crypto key with id: %d not found\n", functionName, account_model->getCryptoKeyId()); 
 			return false;
 		}
 		auto hedera_key_pair = crypto_key->getKeyPair(user);
 		if (!hedera_key_pair) {
-			if (errorReceiver) { errorReceiver->addError(new Error("Keys", "error decrypting private key"));}
+			addError(new Error("Keys", "error decrypting private key"));
 			printf("[%s] error decrypting private key with id: %d, with user: %d\n", functionName, account_model->getCryptoKeyId(), user->getModel()->getID());
 			return false;
 		}
@@ -111,13 +131,8 @@ namespace controller {
 				account_model->updateIntoDB("balance", response.getAccountBalance());
 			}
 			else {
-				if (errorReceiver) {
-					errorReceiver->addError(new Error("Hedera", "Hedera request failed"));
-					errorReceiver->addError(new ParamError("Hedera", "Hedera Response Code", proto::ResponseCodeEnum_Name(response.getResponseCode())));
-				}
-				else {
-					printf("[%s] hedera response code: %s\n", functionName, proto::ResponseCodeEnum_Name(response.getResponseCode()).data());
-				}
+				addError(new Error("Hedera", "Hedera request failed"));
+				addError(new ParamError("Hedera", "Hedera Response Code", proto::ResponseCodeEnum_Name(response.getResponseCode())));
 			}
 			//request.requestViaPHPRelay(query);
 		}
@@ -125,11 +140,30 @@ namespace controller {
 			printf("[HederaAccount::updateBalanceFromHedera] exception calling hedera request: %s\n", ex.displayText().data());
 		}
 
-		if (errorReceiver) {
-			errorReceiver->getErrors(&request);
-		}
+		getErrors(&request);		
 		
 		return false;
+	}
+
+	bool HederaAccount::changeEncryption(Poco::AutoPtr<controller::User> user)
+	{
+		assert(!user.isNull() && user->getModel());
+		auto model = getModel();
+		assert(!model.isNull());
+
+		if (user->getModel()->getID() != model->getUserId()) {
+			addError(new Error("Hedera Account", "wrong user"));			
+			return false;
+		}
+		auto crypto_key = controller::CryptoKey::load(model->getCryptoKeyId());
+		if (crypto_key.isNull()) {
+			addError(new Error("Hedera Account", "couldn't find crypto key"));
+			return false;
+		}
+		bool result = crypto_key->changeEncryption(user);
+		getErrors(crypto_key);
+		return result;
+
 	}
 
 

@@ -55,6 +55,7 @@ namespace model {
 			return mID;
 		}
 
+
 		Poco::Data::Statement HederaId::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 

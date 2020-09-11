@@ -78,6 +78,24 @@ namespace model {
 			return false;
 		}
 
+		bool ModelBase::isExistInDB()
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement select = _loadIdFromDB(session);
+			try {
+				select.executeAsync();
+				return select.wait() == 1;
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "mysql error by select id, check if exist in db", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+			}
+			return false;
+		}
+
 		bool ModelBase::deleteFromDB()
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);

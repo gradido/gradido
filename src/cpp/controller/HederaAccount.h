@@ -8,9 +8,10 @@
 #include "Poco/SharedPtr.h"
 
 #include "TableControllerBase.h"
+#include "CryptoKey.h"
 
 namespace controller {
-	class HederaAccount : public TableControllerBase
+	class HederaAccount : public TableControllerBase, public NotificationList
 	{
 	public:
 		~HederaAccount();
@@ -18,6 +19,7 @@ namespace controller {
 		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, model::table::HederaNetworkType type = model::table::HEDERA_MAINNET);
 
 		static std::vector<Poco::AutoPtr<HederaAccount>> load(const std::string& fieldName, int fieldValue);
+		static Poco::AutoPtr<HederaAccount> load(Poco::AutoPtr<controller::HederaId> hederaId);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
@@ -25,11 +27,15 @@ namespace controller {
 		std::string HederaAccount::toShortSelectOptionName();
 
 		inline Poco::AutoPtr<model::table::HederaAccount> getModel() { return _getModel<model::table::HederaAccount>(); }
+		inline const model::table::HederaAccount* getModel() const { return _getModel<model::table::HederaAccount>(); }
 
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
 
-		bool hederaAccountGetBalance(Poco::AutoPtr<controller::User> user, NotificationList* errorReceiver = nullptr);
+		Poco::AutoPtr<controller::CryptoKey> getCryptoKey() const;
+
+		bool hederaAccountGetBalance(Poco::AutoPtr<controller::User> user);
+		bool changeEncryption(Poco::AutoPtr<controller::User> user);
 
 	protected:
 		HederaAccount(model::table::HederaAccount* dbModel);
