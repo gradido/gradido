@@ -49,6 +49,7 @@ bool SessionManager::init()
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
 		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression(".*[0-9].*"); break;
 		case VALIDATE_ONLY_INTEGER: mValidations[i] = new Poco::RegularExpression("^[0-9]*$"); break;
+		case VALIDATE_ONLY_DECIMAL: mValidations[i] = new Poco::RegularExpression("^[0-9]*(\.|,)[0-9]*$"); break;
 		case VALIDATE_ONLY_HEX: mValidations[i] = new Poco::RegularExpression("^(0x)?[a-fA-F0-9]*$"); break;
 		//case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$"); break;
 		case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/?"); break;

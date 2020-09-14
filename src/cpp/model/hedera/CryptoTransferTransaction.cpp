@@ -43,11 +43,6 @@ namespace model {
 			}
 			return 0 == sum && transfers->accountamounts_size() > 0;
 		}
-
-		void CryptoTransferTransaction::resetPointer()
-		{
-			mCryptoTransfer = nullptr;
-		}
 	}
 }
 

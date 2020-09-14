@@ -13,6 +13,7 @@
 #include "TableControllerBase.h"
 #include "../model/table/HederaTopic.h"
 
+
 namespace controller {
 	class HederaTopic : public TableControllerBase
 	{
@@ -26,6 +27,7 @@ namespace controller {
 		Poco::UInt64 hederaCreateTopic();
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
+
 
 		inline Poco::AutoPtr<model::table::HederaTopic> getModel() { return _getModel<model::table::HederaTopic>(); }
 

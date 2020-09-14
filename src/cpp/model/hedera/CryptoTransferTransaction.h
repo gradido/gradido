@@ -26,7 +26,7 @@ namespace model {
 
 			bool validate();
 			// set pointer to zero, after hand over pointer to transaction body
-			void resetPointer();
+			inline void resetPointer() { mCryptoTransfer = nullptr; }
 
 			inline proto::CryptoTransferTransactionBody* getProtoTransactionBody() { return mCryptoTransfer; }
 

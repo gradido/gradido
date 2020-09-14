@@ -23,14 +23,17 @@ namespace model {
 			~Transaction();
 
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, const TransactionBody* transactionBody);
+			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, std::unique_ptr<TransactionBody> transactionBody);
 			
 			inline proto::Transaction* getTransaction() { return mTransaction; }
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 			void resetPointer() { mTransaction = nullptr; }
+			inline TransactionBodyType getType() const { return mType; }
 
 		protected:
 			proto::Transaction* mTransaction;
 			controller::NodeServerConnection mConnection;
+			TransactionBodyType mType;
 		};
 	}
 }

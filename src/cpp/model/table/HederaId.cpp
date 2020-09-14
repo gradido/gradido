@@ -16,6 +16,13 @@ namespace model {
 
 		}
 
+		HederaId::HederaId(const HederaIdTuple& tuple)
+			: ModelBase(tuple.get<0>()),
+			mShardNum(tuple.get<1>()), mRealmNum(tuple.get<2>()), mNum(tuple.get<3>())
+		{
+
+		}
+
 		HederaId::~HederaId()
 		{
 

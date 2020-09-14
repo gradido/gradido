@@ -19,6 +19,8 @@ namespace controller {
 		return Poco::AutoPtr<HederaTopic>(hedera_topic);
 	}
 
+	
+
 	Poco::UInt64 HederaTopic::hederaCreateTopic()
 	{
 		return 0;

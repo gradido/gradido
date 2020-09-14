@@ -2,6 +2,7 @@
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_HEDERA_ID_INCLUDE
 
 #include "../model/table/HederaId.h"
+#include "../model/table/HederaAccount.h"
 
 #include "Poco/SharedPtr.h"
 
@@ -10,8 +11,10 @@
 #include "../proto/hedera/BasicTypes.pb.h"
 
 namespace controller {
+	class HederaAccount;
 	class HederaId : public TableControllerBase
 	{
+		friend HederaAccount;
 	public:
 
 		~HederaId();
@@ -19,6 +22,8 @@ namespace controller {
 		static Poco::AutoPtr<HederaId> create(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num);
 
 		static Poco::AutoPtr<HederaId> load(int id);
+		//! \return hedera topic id for group and network type (should exist only one)
+		static Poco::AutoPtr<HederaId> find(int groupId, model::table::HederaNetworkType networkType);
 
 		bool isExistInDB();
 
@@ -28,6 +33,7 @@ namespace controller {
 		inline const model::table::HederaId* getModel() const { return _getModel<model::table::HederaId>(); }
 
 		void copyToProtoAccountId(proto::AccountID* protoAccountId) const;
+		void copyToProtoTopicId(proto::TopicID* protoTopicId) const;
 
 
 	protected:

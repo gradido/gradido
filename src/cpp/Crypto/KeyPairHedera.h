@@ -26,6 +26,9 @@ public:
 	KeyPairHedera(const unsigned char* privateKey, size_t privateKeySize, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
 	KeyPairHedera(const MemoryBin* privateKey, const MemoryBin* publicKey = nullptr);
 	KeyPairHedera(const std::vector<unsigned char>& privateKey, const unsigned char* publicKey = nullptr, size_t publicKeySize = 0);
+	
+
+	static KeyPairHedera* create();
 
 	~KeyPairHedera();
 
@@ -43,12 +46,12 @@ public:
 	const static size_t getPublicKeySize() {return ed25519_pubkey_SIZE;}
 
 	inline bool isTheSame(const KeyPairHedera& b) const {
-		return 0 == sodium_memcmp(mPublicKey, b.mPublicKey, ed25519_pubkey_SIZE);
+		return 0 == sodium_memcmp(mPublicKey, b.mPublicKey, getPublicKeySize());
 	}
 	inline bool isTheSame(const unsigned char* pubkey) const {
 		if (!pubkey)
 			return false;
-		return 0 == sodium_memcmp(mPublicKey, pubkey, ed25519_pubkey_SIZE);
+		return 0 == sodium_memcmp(mPublicKey, pubkey, getPublicKeySize());
 	}
 	//! \return 0 if the same
 	//! \return -1 if not the same

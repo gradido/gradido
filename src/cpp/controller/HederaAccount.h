@@ -5,6 +5,8 @@
 #include "User.h"
 #include "../model/table/HederaAccount.h"
 
+#include "../model/hedera/TransactionBody.h"
+
 #include "Poco/SharedPtr.h"
 
 #include "TableControllerBase.h"
@@ -21,6 +23,8 @@ namespace controller {
 		static std::vector<Poco::AutoPtr<HederaAccount>> load(const std::string& fieldName, int fieldValue);
 		static Poco::AutoPtr<HederaAccount> load(Poco::AutoPtr<controller::HederaId> hederaId);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();
+		//! \brief for picking a account for paying transaction, mostly consensusSendMessage
+		static Poco::AutoPtr<HederaAccount> pick(model::table::HederaNetworkType networkType, bool encrypted = false);
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
@@ -35,9 +39,14 @@ namespace controller {
 		Poco::AutoPtr<controller::CryptoKey> getCryptoKey() const;
 
 		bool hederaAccountGetBalance(Poco::AutoPtr<controller::User> user);
+		bool hederaAccountCreate(int autoRenewPeriodSeconds, double initialBalance);
 		bool changeEncryption(Poco::AutoPtr<controller::User> user);
 
+		//! \brief create Transaction body with this hedera account as operator
+		std::unique_ptr<model::hedera::TransactionBody> createTransactionBody();
+
 	protected:
+
 		HederaAccount(model::table::HederaAccount* dbModel);
 		Poco::AutoPtr<controller::HederaId> mHederaID;
 
