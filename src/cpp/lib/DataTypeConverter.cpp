@@ -55,6 +55,34 @@ namespace DataTypeConverter
 		}
 	}
 
+	NumberParseState strToDouble(const std::string& input, double& result)
+	{
+		auto comma_position = input.find(',');
+		std::string input_filtered = input;
+		if (comma_position > 0 && comma_position != input.npos) {
+			input_filtered = input_filtered.replace(comma_position, 0, 1, '.');
+		}
+		try {
+			result = stod(input_filtered);
+			return NUMBER_PARSE_OKAY;
+		}
+		catch (const std::invalid_argument& ia)
+		{
+			printf("[strToDouble] exception: invalid argument: %s\n", ia.what());
+			return NUMBER_PARSE_INVALID_ARGUMENT;
+		}
+		catch (const std::out_of_range& oor)
+		{
+			printf("[strToDouble] exception: out or range: %s\n", oor.what());
+			return NUMBER_PARSE_OUT_OF_RANGE;
+		}
+		catch (const std::logic_error & ler)
+		{
+			printf("[strToDouble] exception: logical error: %s\n", ler.what());
+			return NUMBER_PARSE_LOGIC_ERROR;
+		}
+	}
+
 	const char* numberParseStateToString(NumberParseState state)
 	{
 		switch (state) {

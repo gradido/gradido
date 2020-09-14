@@ -7,11 +7,14 @@
 namespace model {
 	namespace table {
 
+		typedef Poco::Tuple<int, Poco::UInt64, Poco::UInt64, Poco::UInt64> HederaIdTuple;
+
 		class HederaId : public ModelBase
 		{
 		public:
 			HederaId();
 			HederaId(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num);
+			HederaId(const HederaIdTuple& tuple);
 			~HederaId();
 
 			// generic db operations
@@ -24,7 +27,6 @@ namespace model {
 			inline Poco::UInt64 getShardNum() const { return mShardNum; }
 			inline Poco::UInt64 getRealmNum() const { return mRealmNum; }
 			inline Poco::UInt64 getNum() const { return mNum; }
-
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

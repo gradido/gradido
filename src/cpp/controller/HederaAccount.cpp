@@ -3,7 +3,12 @@
 #include "NodeServer.h"
 #include "CryptoKey.h"
 #include "../model/hedera/Query.h"
+//#include "../model/hedera/Tr"
 #include "HederaRequest.h"
+
+#include "../SingletonManager/ErrorManager.h"
+
+using namespace Poco::Data::Keywords;
 
 namespace controller {
 
@@ -52,6 +57,51 @@ namespace controller {
 		// maybe change later to using error manager and send email
 		printf("[HederaAccount::load] result_count not expected: %d\n", result_count);
 		return nullptr;
+	}
+
+	Poco::AutoPtr<HederaAccount> HederaAccount::pick(model::table::HederaNetworkType networkType, bool encrypted/* = false*/)
+	{
+		auto cm = ConnectionManager::getInstance();
+		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+		Poco::Data::Statement select(session);
+
+		Poco::Tuple<int, int, int, int, Poco::UInt64, Poco::UInt64, Poco::UInt64, Poco::UInt64> result_tuple;
+		int crypto_key_type = encrypted ? model::table::KEY_TYPE_ED25519_HEDERA_ENCRYPTED : model::table::KEY_TYPE_ED25519_HEDERA_CLEAR;
+		//id, user_id, account_hedera_id, account_key_id, balance, network_type, updated
+
+		select << "SELECT account.id, account.user_id, account.account_hedera_id, account.account_key_id, account.balance, i.shardNum, i.realmNum, i.num FROM hedera_accounts as account "
+			<< "JOIN hedera_ids as i ON(i.id = account.account_hedera_id) "
+			<< "JOIN crypto_keys as k ON(k.id = account.account_key_id) "
+			<< "WHERE account.network_type = ? AND k.crypto_key_type_id = ? ORDER BY RAND() LIMIT 1 ",
+			into(result_tuple), use(networkType), use(crypto_key_type);
+
+		try {
+			select.executeAsync();
+			select.wait();
+			if (1 == select.rowsExtracted()) {
+				auto db = new model::table::HederaAccount(
+					result_tuple.get<1>(), result_tuple.get<2>(), result_tuple.get<3>(),
+					result_tuple.get<4>(), networkType
+				);
+				db->setID(result_tuple.get<0>());
+				Poco::AutoPtr<HederaAccount> hedera_account(new HederaAccount(db));
+				auto hedera_id_db = new model::table::HederaId(result_tuple.get<5>(), result_tuple.get<6>(), result_tuple.get<7>());
+				Poco::AutoPtr<HederaId> hedera_id(new HederaId(hedera_id_db));
+				hedera_account->setHederaId(hedera_id);
+				return hedera_account;
+			}
+		}
+		catch (Poco::Exception& ex) {
+			auto em = ErrorManager::getInstance();
+			static const char* function_name = "HederaAccount::pick";
+			em->addError(new ParamError(function_name, "mysql error: ", ex.displayText()));
+			em->addError(new ParamError(function_name, "network type: ", networkType));
+			em->addError(new ParamError(function_name, "encrypted: ", (int)encrypted));
+			em->sendErrorsAsEmail();
+		}
+
+		return nullptr;
+
 	}
 
 	std::vector<Poco::AutoPtr<HederaAccount>> HederaAccount::listAll()
@@ -140,8 +190,24 @@ namespace controller {
 			printf("[HederaAccount::updateBalanceFromHedera] exception calling hedera request: %s\n", ex.displayText().data());
 		}
 
-		getErrors(&request);		
+		if (0 == errorCount() && 0 == request.errorCount()) {
+			return true;
+		}
+		getErrors(&request);	
 		
+		return false;
+	}
+
+	bool HederaAccount::hederaAccountCreate(int autoRenewPeriodSeconds, double initialBalance)
+	{
+		auto account_model = getModel();
+		auto new_key_pair = KeyPairHedera::create();
+		auto transaction_body = createTransactionBody();
+		//CryptoCreateTransaction(const unsigned char* publicKey, Poco::UInt64 initialBalance, int autoRenewPeriod);
+		model::hedera::CryptoCreateTransaction create_transaction(new_key_pair->getPublicKey(), initialBalance, autoRenewPeriodSeconds);
+		transaction_body->setCryptoCreate(create_transaction);
+
+
 		return false;
 	}
 
@@ -164,6 +230,13 @@ namespace controller {
 		getErrors(crypto_key);
 		return result;
 
+	}
+
+	std::unique_ptr<model::hedera::TransactionBody> HederaAccount::createTransactionBody()
+	{
+		auto account_model = getModel();		
+		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
+		return std::make_unique<model::hedera::TransactionBody>(mHederaID, hedera_node);
 	}
 
 

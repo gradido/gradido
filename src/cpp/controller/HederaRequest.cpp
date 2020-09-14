@@ -1,5 +1,6 @@
 #include "HederaRequest.h"
 #include "../proto/hedera/CryptoService.grpc.pb.h"
+#include "../proto/hedera/ConsensusService.grpc.pb.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -69,6 +70,33 @@ HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transacti
 	context.set_deadline(deadline);
 
 	return HEDERA_REQUEST_RETURN_OK;
+}
+
+HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transaction, HederaTask* task)
+{
+	assert(transaction && task);
+	auto channel = grpc::CreateChannel(transaction->getConnectionString(), grpc::InsecureChannelCredentials());
+
+	grpc::ClientContext context;
+	std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() +
+		std::chrono::milliseconds(5000);
+	context.set_deadline(deadline);
+	auto transaction_type = transaction->getType();
+	if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type) {
+		auto stub = proto::ConsensusService::NewStub(channel);
+		
+		auto status = stub->submitMessage(&context, *transaction->getTransaction(), task->getTransactionResponse()->getProtoResponse());
+		if (status.ok()) {
+			return HEDERA_REQUEST_RETURN_OK;
+		}
+		else {
+			addError(new ParamError("Hedera Request", "consensus service submit message error message:", status.error_message()));
+			addError(new ParamError("Hedera Request", "details: ", status.error_details()));
+			return HEDERA_REQUEST_RETURN_ERROR;
+		}
+	}
+	addError(new ParamError("Hedera Request", "not implemnetet or unknown transaction type", transaction_type));
+	return HEDERA_REQUEST_UNKNOWN_TRANSACTION;
 }
 
 #include "Poco/JSON/Object.h"

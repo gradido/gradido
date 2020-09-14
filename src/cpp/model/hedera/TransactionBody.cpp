@@ -3,7 +3,7 @@
 namespace model {
 	namespace hedera {
 		TransactionBody::TransactionBody(Poco::AutoPtr<controller::HederaId> operatorAccountId, const controller::NodeServerConnection& connection)
-			: mConnection(connection)
+			: mConnection(connection), mHasBody(false)
 		{
 			connection.hederaId->copyToProtoAccountId(mTransactionBody.mutable_nodeaccountid());
 			auto transaction_id = mTransactionBody.mutable_transactionid();
@@ -22,9 +22,15 @@ namespace model {
 
 		bool TransactionBody::setCryptoTransfer(CryptoTransferTransaction& cryptoTransferTransaction)
 		{
+			if (mHasBody) {
+				printf("[TransactionBody::setCryptoTransfer] has already a body\n");
+				return false;
+			}
 			if (cryptoTransferTransaction.validate()) {
 				mTransactionBody.set_allocated_cryptotransfer(cryptoTransferTransaction.getProtoTransactionBody());
 				cryptoTransferTransaction.resetPointer();
+				mHasBody = true;
+				mType = TRANSACTION_CRYPTO_TRANSFER;
 				return true;
 			}
 			return false;
@@ -32,9 +38,47 @@ namespace model {
 
 		bool TransactionBody::setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction)
 		{
+			if (mHasBody) {
+				printf("[TransactionBody::setCreateTopic] has already a body\n");
+				return false;
+			}
 			if (consensusCreateTopicTransaction.validate()) {
 				mTransactionBody.set_allocated_consensuscreatetopic(consensusCreateTopicTransaction.getProtoTransactionBody());
 				consensusCreateTopicTransaction.resetPointer();
+				mHasBody = true;
+				mType = TRANSACTION_CONSENSUS_CREATE_TOPIC;
+				return true;
+			}
+			return false;
+		}
+
+		bool TransactionBody::setCryptoCreate(CryptoCreateTransaction& cryptoCreateTransaction)
+		{
+			if (mHasBody) {
+				printf("[TransactionBody::setCryptoCreate] has already a body\n");
+				return false;
+			}
+			if (cryptoCreateTransaction.validate()) {
+				mTransactionBody.set_allocated_cryptocreateaccount(cryptoCreateTransaction.getProtoTransactionBody());
+				cryptoCreateTransaction.resetPointer();
+				mHasBody = true;
+				mType = TRANSACTION_CRYPTO_CREATE;
+				return true;
+			}
+			return false;
+		}
+
+		bool TransactionBody::setConsensusSubmitMessage(ConsensusSubmitMessage& consensusSubmitMessageTransaction)
+		{
+			if (mHasBody) {
+				printf("[TransactionBody::setConsensusSubmitMessage] has already a body\n");
+				return false;
+			}
+			if (consensusSubmitMessageTransaction.validate()) {
+				mTransactionBody.set_allocated_consensussubmitmessage(consensusSubmitMessageTransaction.getProtoTransactionBody());
+				consensusSubmitMessageTransaction.resetPointer();
+				mHasBody = true;
+				mType = TRANSACTION_CONSENSUS_SUBMIT_MESSAGE;
 				return true;
 			}
 			return false;

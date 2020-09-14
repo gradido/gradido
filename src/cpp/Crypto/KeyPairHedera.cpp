@@ -96,6 +96,24 @@ KeyPairHedera::~KeyPairHedera()
 	}
 }
 
+KeyPairHedera* KeyPairHedera::create()
+{
+	/*
+	The crypto_sign_keypair() function randomly generates a secret key and a corresponding public key.
+	The public key is put into pk (crypto_sign_PUBLICKEYBYTES bytes)
+	and the secret key into sk (crypto_sign_SECRETKEYBYTES bytes).
+	*/
+
+	assert(getPublicKeySize() == crypto_sign_PUBLICKEYBYTES);
+	
+	auto mm = MemoryManager::getInstance();
+	auto private_key = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
+	auto public_key = mm->getFreeMemory(getPublicKeySize());
+
+	crypto_sign_keypair(*public_key, *private_key);
+	return new KeyPairHedera(private_key, public_key);
+}
+
 
 void KeyPairHedera::createKeyFromSeed(const unsigned char* seed, size_t seedSize)
 {
