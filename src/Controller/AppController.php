@@ -129,7 +129,6 @@ class AppController extends Controller
         if ($this->Auth->user('id')) {
             $GLOBALS['ServerUser'] = $this->Auth->user();
         }
-
         // login server url
         $loginServer = Configure::read('LoginServer');
         if ($loginServer && isset($loginServer['url'])) {

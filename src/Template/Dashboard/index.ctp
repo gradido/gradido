@@ -111,4 +111,25 @@ $this->assign(
     </div>
   </div>
 </div>
+<div class="content-region">
+  <h3>Roles ...</h3>
+  <div class="content-collection">
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">roles</i>
+      <?= $this->Html->link(
+              __('View'),
+              ['controller' => 'Roles', 'action' => 'index'],
+              ['class' => 'info-item-link']
+              ); ?>
+    </div>
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">assign_roles</i>
+      <?= $this->Html->link(
+              __('Assign Roles'),
+              ['controller' => 'StateUserRoles', 'action' => 'search'],
+              ['class' => 'info-item-link']
+              ); ?>
+    </div>
+  </div>
+</div>
 <?php endif; ?>
