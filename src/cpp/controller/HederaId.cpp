@@ -38,23 +38,23 @@ namespace controller {
 		auto cm = ConnectionManager::getInstance();
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		model::table::HederaIdTuple result_tuple;
+		int network_type_int = (int)networkType;
 
 		Poco::Data::Statement select(session);
 		select << "SELECT h.id, h.shardNum, h.realmNum, h.num FROM hedera_ids as h "
 			<< "JOIN hedera_topics as topic ON(topic.topic_hedera_id = h.id) "
 			<< "JOIN hedera_accounts as account ON(account.id = topic.auto_renew_account_hedera_id) "
 			<< "WHERE topic.group_id = ? AND account.network_type = ?"
-			, into(result_tuple), use(groupId), use(networkType);
+			, into(result_tuple), use(groupId), use(network_type_int);
 
 		try {
-			/*select.executeAsync();
+			select.executeAsync();
 			select.wait();
-			auto result_count = select.rowsExtracted();*/
-			auto result_count = select.execute();
+			auto result_count = select.rowsExtracted();
 			if (1 == result_count) {
 				return new HederaId(new model::table::HederaId(result_tuple));
 			}
-			else {
+			else if(result_count > 1) {
 				printf("[HederaId::find] result_count other as expected: %d\n", result_count);
 			}
 		}
