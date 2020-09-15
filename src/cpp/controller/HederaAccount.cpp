@@ -67,18 +67,23 @@ namespace controller {
 
 		Poco::Tuple<int, int, int, int, Poco::UInt64, Poco::UInt64, Poco::UInt64, Poco::UInt64> result_tuple;
 		int crypto_key_type = encrypted ? model::table::KEY_TYPE_ED25519_HEDERA_ENCRYPTED : model::table::KEY_TYPE_ED25519_HEDERA_CLEAR;
-		//id, user_id, account_hedera_id, account_key_id, balance, network_type, updated
+		int network_type_int = (int)networkType;
 
-		select << "SELECT account.id, account.user_id, account.account_hedera_id, account.account_key_id, account.balance, i.shardNum, i.realmNum, i.num FROM hedera_accounts as account "
-			<< "JOIN hedera_ids as i ON(i.id = account.account_hedera_id) "
+		select
+			<< "SELECT account.id, account.user_id, account.account_hedera_id, account.account_key_id, account.balance, i.shardNum, i.realmNum, i.num "
+			<< "FROM hedera_accounts as account "
+			<< "JOIN hedera_ids as i ON(i.id = account_hedera_id) "
 			<< "JOIN crypto_keys as k ON(k.id = account.account_key_id) "
-			<< "WHERE account.network_type = ? AND k.crypto_key_type_id = ? ORDER BY RAND() LIMIT 1 ",
-			into(result_tuple), use(networkType), use(crypto_key_type);
+			<< "WHERE account.network_type = ? "
+			<< "AND k.crypto_key_type_id = ? "
+			<< "ORDER BY RAND() LIMIT 1 "
+			, into(result_tuple), use(network_type_int) , use(crypto_key_type);
 
 		try {
 			select.executeAsync();
 			select.wait();
-			if (1 == select.rowsExtracted()) {
+			auto result_count = select.rowsExtracted();
+			if (1 == result_count) {
 				auto db = new model::table::HederaAccount(
 					result_tuple.get<1>(), result_tuple.get<2>(), result_tuple.get<3>(),
 					result_tuple.get<4>(), networkType
@@ -90,10 +95,14 @@ namespace controller {
 				hedera_account->setHederaId(hedera_id);
 				return hedera_account;
 			}
+			else if(result_count > 1) {
+				printf("[HederaAccount::pick] extracted rows not like expected\n");
+			}
 		}
 		catch (Poco::Exception& ex) {
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "HederaAccount::pick";
+			printf("exception: %s\n", ex.displayText().data());
 			em->addError(new ParamError(function_name, "mysql error: ", ex.displayText()));
 			em->addError(new ParamError(function_name, "network type: ", networkType));
 			em->addError(new ParamError(function_name, "encrypted: ", (int)encrypted));
