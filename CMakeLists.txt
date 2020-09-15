@@ -213,11 +213,12 @@ enable_testing()
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} ${IROHA_ED25519})
+target_link_libraries(Gradido_LoginServer_Test absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS} ${IROHA_ED25519})
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test libmariadb protoc protobuf -pthread)
 endif(WIN32)
