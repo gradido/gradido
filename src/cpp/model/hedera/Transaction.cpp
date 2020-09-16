@@ -58,6 +58,8 @@ namespace model {
 			auto signature_pair = signature_pairs->Mutable(0);
 			auto public_key = keyPairHedera->getPublicKey();
 
+			mTransactionId = transactionBody->getProtoTransactionBody()->transactionid();
+
 			auto sign = keyPairHedera->sign(body_bytes);
 			if (!sign) {
 				printf("[Query::sign] error signing message\n");
