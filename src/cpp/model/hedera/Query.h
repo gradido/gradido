@@ -22,10 +22,12 @@ namespace model {
 		public:
 			~Query();
 			static Query* getBalance(Poco::AutoPtr<controller::HederaId> accountId, const controller::NodeServerConnection& connection);
+			static Query* getTopicInfo(Poco::AutoPtr<controller::HederaId> topicId, Poco::AutoPtr<controller::HederaId> payerAccountId, const controller::NodeServerConnection& connection);
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera);
 
 			void setResponseType(proto::ResponseType type);
 			proto::ResponseType getResponseType();
+			inline bool setTransactionFee(Poco::UInt64 fee) { return mTransactionBody->updateCryptoTransferAmount(fee);}
 			
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
 			inline std::string getConnectionString() const { return mTransactionBody->getConnectionString(); }

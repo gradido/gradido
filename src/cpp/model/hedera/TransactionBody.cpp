@@ -8,7 +8,7 @@ namespace model {
 			connection.hederaId->copyToProtoAccountId(mTransactionBody.mutable_nodeaccountid());
 			auto transaction_id = mTransactionBody.mutable_transactionid();
 			operatorAccountId->copyToProtoAccountId(transaction_id->mutable_accountid());
-			mTransactionBody.set_transactionfee(10000);
+			mTransactionBody.set_transactionfee(1000000);
 			auto transaction_valid_duration = mTransactionBody.mutable_transactionvalidduration();
 			transaction_valid_duration->set_seconds(120);
 
@@ -34,6 +34,34 @@ namespace model {
 				return true;
 			}
 			return false;
+		}
+
+		bool TransactionBody::updateCryptoTransferAmount(Poco::UInt64 newAmount)
+		{
+			assert(mHasBody);
+
+			if (!mTransactionBody.has_cryptotransfer()) {
+				printf("[TransactionBody::updateCryptoTransferAmount] hasn't crypto transfer\n");
+				return false;
+			}
+
+			auto crypto_transfer = mTransactionBody.mutable_cryptotransfer();
+			auto transfers = crypto_transfer->mutable_transfers();
+			if (transfers->accountamounts_size() != 2) {
+				printf("[TransactionBody::updateCryptoTransferAmount] structure not like expected, transfers has %d accountamounts\n", transfers->accountamounts_size());
+				return false;
+			}
+			proto::AccountAmount* account_amounts[] = { transfers->mutable_accountamounts(0), transfers->mutable_accountamounts(1) };
+			for (int i = 0; i < 2; i++) {
+				if (account_amounts[i]->amount() > 0) {
+					account_amounts[i]->set_amount(newAmount);
+				}
+				else if (account_amounts[i]->amount() < 0) {
+					account_amounts[i]->set_amount(-newAmount);
+				}
+			}
+			return true;
+
 		}
 
 		bool TransactionBody::setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction)

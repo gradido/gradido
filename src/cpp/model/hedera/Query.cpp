@@ -48,6 +48,29 @@ namespace model {
 			return query;
 		}
 
+		Query* Query::getTopicInfo(Poco::AutoPtr<controller::HederaId> topicId, Poco::AutoPtr<controller::HederaId> payerAccountId, const controller::NodeServerConnection& connection)
+		{
+			assert(!topicId.isNull() && topicId->getModel());
+			assert(!payerAccountId.isNull() && payerAccountId->getModel());
+
+			auto query = new Query;
+			auto get_topic_info = query->mQueryProto.mutable_consensusgettopicinfo();
+			topicId->copyToProtoTopicId(get_topic_info->mutable_topicid());
+
+			auto query_header = get_topic_info->mutable_header();
+			query_header->set_responsetype(proto::ANSWER_ONLY);
+
+			query->mTransactionBody = new TransactionBody(payerAccountId, connection);
+			CryptoTransferTransaction crypto_transaction;
+			// 0.002809 Hashbars
+			// fee from https://www.hedera.com/fees
+			crypto_transaction.addSender(payerAccountId, -2809);
+			crypto_transaction.addReceiver(connection.hederaId, 2809);
+			query->mTransactionBody->setCryptoTransfer(crypto_transaction);
+
+			return query;
+		}
+
 		bool Query::sign(std::unique_ptr<KeyPairHedera> keyPairHedera)
 		{
 			Transaction transaction;
@@ -73,5 +96,7 @@ namespace model {
 			auto query_header = get_account_balance->mutable_header();
 			return query_header->responsetype();
 		}
+
+		
 	}
 }
