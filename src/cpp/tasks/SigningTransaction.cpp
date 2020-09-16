@@ -1,4 +1,7 @@
+#include <inttypes.h>
+
 #include "SigningTransaction.h"
+
 
 #include <google/protobuf/text_format.h>
 
@@ -181,7 +184,8 @@ int SigningTransaction::run() {
 			}
 			else {
 				auto hedera_precheck_code_string = hedera_task.getTransactionResponse()->getPrecheckCodeString();
-				printf("hedera response: %s\n", hedera_precheck_code_string.data());
+				auto cost = hedera_task.getTransactionResponse()->getCost();
+				printf("hedera response: %s, cost: %" PRIu64 "\n", hedera_precheck_code_string.data(), cost);
 			}
 			//model::hedera::TransactionBody hedera_transaction_body()
 		}

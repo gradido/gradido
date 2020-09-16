@@ -29,11 +29,13 @@ namespace model {
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 			void resetPointer() { mTransaction = nullptr; }
 			inline TransactionBodyType getType() const { return mType; }
+			inline proto::TransactionID getTransactionId() const { return mTransactionId; }
 
 		protected:
 			proto::Transaction* mTransaction;
 			controller::NodeServerConnection mConnection;
 			TransactionBodyType mType;
+			proto::TransactionID mTransactionId;
 		};
 	}
 }
