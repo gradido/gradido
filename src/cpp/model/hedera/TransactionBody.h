@@ -40,6 +40,7 @@ namespace model {
 			void setFee(Poco::UInt64 fee);
 
 			bool setCryptoTransfer(CryptoTransferTransaction& cryptoTransferTransaction);
+			bool updateCryptoTransferAmount(Poco::UInt64 newAmount);
 			bool setCryptoCreate(CryptoCreateTransaction& cryptoCreateTransaction);
 			bool setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction);
 			bool setConsensusSubmitMessage(ConsensusSubmitMessage& consensusSubmitMessageTransaction);

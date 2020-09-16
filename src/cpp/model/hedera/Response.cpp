@@ -20,6 +20,21 @@ namespace model {
 			return 0;
 		}
 
+		Poco::UInt64 Response::getQueryCost()
+		{
+			proto::ResponseHeader* response_header = nullptr;
+			if (mResponseProto.has_consensusgettopicinfo()) {
+				response_header = mResponseProto.mutable_consensusgettopicinfo()->mutable_header();
+			}
+			else if (mResponseProto.has_cryptogetaccountbalance()) {
+				response_header = mResponseProto.mutable_cryptogetaccountbalance()->mutable_header();
+			}
+			if (response_header) {
+				return response_header->cost();
+			}
+			return 0;
+		}
+
 		proto::ResponseCodeEnum Response::getResponseCode()
 		{
 			if (isCryptoGetAccountBalanceResponse()) {
