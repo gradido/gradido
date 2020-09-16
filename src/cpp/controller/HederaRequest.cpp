@@ -63,7 +63,15 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 	}
 	if (status.ok()) 
 	{
-		return HEDERA_REQUEST_RETURN_OK;
+		auto response_code = response->getResponseCode();
+		if (response_code) {
+			addError(new ParamError("Hedera Request", "precheck code: ", proto::ResponseCodeEnum_Name(response_code)));
+			return HEDERA_REQUEST_PRECHECK_ERROR;
+		}
+		else {
+			return HEDERA_REQUEST_RETURN_OK;
+		}
+		
 	}
 	else if("" != queryName) 
 	{

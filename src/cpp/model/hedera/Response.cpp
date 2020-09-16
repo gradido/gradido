@@ -20,6 +20,14 @@ namespace model {
 			return 0;
 		}
 
+		std::unique_ptr<ConsensusTopicInfo> Response::getConsensusTopicInfo()
+		{
+			if (mResponseProto.has_consensusgettopicinfo()) {
+				return std::make_unique<ConsensusTopicInfo>(mResponseProto.consensusgettopicinfo().topicinfo());
+			}
+			return nullptr;
+		}
+
 		Poco::UInt64 Response::getQueryCost()
 		{
 			proto::ResponseHeader* response_header = nullptr;
@@ -40,6 +48,10 @@ namespace model {
 			if (isCryptoGetAccountBalanceResponse()) {
 				auto balance_response = mResponseProto.cryptogetaccountbalance();
 				return balance_response.header().nodetransactionprecheckcode();
+			}
+			else if (mResponseProto.has_consensusgettopicinfo()) {
+				auto response = mResponseProto.consensusgettopicinfo();
+				return response.header().nodetransactionprecheckcode();
 			}
 			return proto::NOT_SUPPORTED;
 		}

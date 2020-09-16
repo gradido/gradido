@@ -41,6 +41,7 @@ namespace controller {
 		static std::vector<Poco::AutoPtr<NodeServer>> load(model::table::NodeServerType type, int group_id = 0);		
 		static std::vector<Poco::AutoPtr<NodeServer>> listAll();
 		// pick server randomly
+		static NodeServerConnection pick(model::table::HederaNetworkType type, int group_id = 0);
 		static NodeServerConnection pick(model::table::NodeServerType type, int group_id = 0);
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 

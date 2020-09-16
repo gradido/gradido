@@ -10,13 +10,19 @@
 	#include "../controller/Group.h"
 	#include "../SingletonManager/SessionManager.h"
 	#include "../ServerConfig.h"
+	
 	#include "../lib/DataTypeConverter.h"
+	#include "../lib/Profiler.h"
+	#include "../lib/Success.h"
+	
 	#include "Poco/Timespan.h"
+	#include "Poco/URI.h"
 %>
 <%%
 	const char* pageName = "Topic";
 	auto user = mSession->getNewUser();
 	auto sm = SessionManager::getInstance();
+	Profiler hedera_time;
 	
 	std::string name = "";
 	int auto_renew_account = 0;
@@ -24,8 +30,48 @@
 	
 	int group_id = 0;
 	
+	Poco::URI uri(request.getURI());
+	auto uri_query = uri.getQueryParameters();
+	std::string action = "";
+	Poco::AutoPtr<controller::HederaTopic> query_hedera_topic;
 	
-	if(!form.empty()) {
+	// parsing get query params
+	if(uri_query.size() >= 2) {
+		if(uri_query[0].first == "action") {
+			action = uri_query[0].second;
+		}
+		if(uri_query[1].first == "topic_id") {
+			std::string topic_id_from_query;
+			int topic_id = 0;
+			topic_id_from_query = uri_query[1].second;
+			if(DataTypeConverter::strToInt(topic_id_from_query, topic_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting topic_id_from_query to int"));
+			} else {
+				auto hedera_topic = controller::HederaTopic::load(topic_id);
+				if(hedera_topic.isNull()) {
+					addError(new Error("Action", "hedera topic not found"));
+				} else {
+				  query_hedera_topic = hedera_topic;
+				}
+			}
+		}
+	}
+	// actions
+	if(!query_hedera_topic.isNull()) 
+	{
+		if(action == "getTopicInfos") 
+		{
+			hedera_time.reset();
+			if(query_hedera_topic->updateWithGetTopicInfos(user)) {
+				addNotification(new ParamSuccess("Hedera", "hedera get topic infos success in ", hedera_time.string()));
+			} else {
+				addError(new ParamError("Hedera", "hedera get topic infos failed in ", hedera_time.string()));
+			}
+			getErrors(query_hedera_topic);
+		} 
+	}
+	else if(!form.empty()) 
+	{
 		name = form.get("topic-name", "");
 		auto auto_renew_account_string = form.get("topic-auto-renew-account", "0");
 		auto auto_renew_period_string = form.get("topic-auto-renew-period", "604800");
