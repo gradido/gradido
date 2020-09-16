@@ -40,24 +40,39 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 	auto proto_response = response->getResponsePtr();
 	auto connect_string = query->getConnectionString();
 
-	if (proto_query->has_cryptogetaccountbalance()) {
+	grpc::Status status;
+	std::string queryName;
+
+	if (proto_query->has_cryptogetaccountbalance()) 
+	{
 		auto stub = proto::CryptoService::NewStub(channel);	
 		// crypto account get balance currently hasn't fees
 		query->setResponseType(proto::ANSWER_ONLY);
 		
-		auto status = stub->cryptoGetBalance(&context, *proto_query, proto_response);
-		if (status.ok()) {
-			return HEDERA_REQUEST_RETURN_OK;
-		}
-		else {
-			addError(new ParamError("Hedera Request", "crypto get balance error message:", status.error_message()));
-			addError(new ParamError("Hedera Request", "details: ", status.error_details()));
-			return HEDERA_REQUEST_RETURN_ERROR;
-		}
+		queryName = "crypte get balance";
+		status = stub->cryptoGetBalance(&context, *proto_query, proto_response);
 		
+	}
+	else if (proto_query->has_consensusgettopicinfo()) 
+	{
+		auto stub = proto::ConsensusService::NewStub(channel);
+		
+		queryName = "consensus topic get info";
+		status = stub->getTopicInfo(&context, *proto_query, proto_response);
 
 	}
-	return HEDERA_REQUEST_RETURN_OK;
+	if (status.ok()) 
+	{
+		return HEDERA_REQUEST_RETURN_OK;
+	}
+	else if("" != queryName) 
+	{
+		addError(new ParamError("Hedera Request", "query name: ", queryName));
+		addError(new ParamError("Hedera Request", "error message: ", status.error_message()));
+		addError(new ParamError("Hedera Request", "details: ", status.error_details()));
+		return HEDERA_REQUEST_RETURN_ERROR;
+	}
+	return HEDERA_REQUEST_UNKNOWN_QUERY;
 }
 
 HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transaction, model::hedera::Response* response)
@@ -82,6 +97,7 @@ HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transacti
 		std::chrono::milliseconds(5000);
 	context.set_deadline(deadline);
 	auto transaction_type = transaction->getType();
+	task->setTransactionId(transaction->getTransactionId());
 	if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type) {
 		auto stub = proto::ConsensusService::NewStub(channel);
 		

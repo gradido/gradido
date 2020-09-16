@@ -263,18 +263,20 @@
 					%>
 				<div class="row">
 					<div class="cell c2"><%= (*it)->getHederaId()->getModel()->toString() %></div>
-					<div class="cell c3"><%= hedera_account_model->getBalanceDouble() %> hbar</div>
+					<div class="cell c3"><%= hedera_account_model->getBalanceString() %></div>
 					<div class="cell c2"><%= model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) %></div>
 					<div class="cell c3 <%= isEncrypted ? "success-color" : "alert-color"%>"><%= isEncrypted ? "Ja": "Nein" %></div>
 					<div class="cell c3"><%= hedera_account_model->getUpdatedString() %></div>
-					<button class="form-button" title="Anfrage an Hedera, aktuell kostenlos" onclick="window.location.href='<%= updateUrl %>'"  >
-						Update Balance
-					</button>
-					<% if(changeEncryption != "") { %>
-						<button class="form-button" title="Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank" onclick="window.location.href='<%= changeEncryption %>'">
-							Change Encryption
+					<div class="cell c5">
+						<button class="form-button" title="Anfrage an Hedera, aktuell kostenlos" onclick="window.location.href='<%= updateUrl %>'"  >
+							Update Balance
 						</button>
-					<% } %>
+						<% if(changeEncryption != "") { %>
+							<button class="form-button" title="Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank" onclick="window.location.href='<%= changeEncryption %>'">
+								Change Encryption
+							</button>
+						<% } %>
+					</div>
 				</div>
 			<% } %>
 		</div>
