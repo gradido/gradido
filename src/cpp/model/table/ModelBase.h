@@ -36,6 +36,10 @@ namespace model {
 			
 			template<class T> 
 			size_t updateIntoDB(const std::string& fieldName, const T& fieldValue );
+			template<class T1, class T2>
+			size_t updateIntoDB(std::string fieldNames[2], const T1& fieldValue1, const T2& fieldValue2);
+			template<class T1, class T2, class T3>
+			size_t updateIntoDB(std::string fieldNames[3], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3);
 			template<class T> 
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
 			template<class T>
@@ -270,6 +274,82 @@ namespace model {
 			return resultCount;
 	
 		}
+		template<class T1, class T2>
+		size_t ModelBase::updateIntoDB(std::string fieldNames[2], const T1& fieldValue1, const T2& fieldValue2)
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement update(session);
+
+			if (mID == 0) {
+				addError(new Error("ModelBase::updateIntoDB", "id is zero"));
+				return 0;
+			}
+
+			update << "UPDATE " << getTableName();
+			for (int i = 0; i < 2; i++) {
+				update << "SET " << fieldNames[i] << " = ? ";
+			}
+			update << "WHERE id = ?"
+			, Poco::Data::Keywords::bind(fieldValue1), Poco::Data::Keywords::bind(fieldValue2)
+			, Poco::Data::Keywords::bind(mID);
+
+
+			size_t resultCount = 0;
+			try {
+				resultCount = update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by update 2", ex.displayText()));
+				for (int i = 0; i < 2; i++) {
+					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
+				}
+
+				unlock();
+			}
+			return resultCount;
+		}
+		template<class T1, class T2, class T3>
+		size_t ModelBase::updateIntoDB(std::string fieldNames[3], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3)
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement update(session);
+
+			if (mID == 0) {
+				addError(new Error("ModelBase::updateIntoDB", "id is zero"));
+				return 0;
+			}
+
+			update << "UPDATE " << getTableName();
+			for (int i = 0; i < 3; i++) {
+				update << "SET " << fieldNames[i] << " = ? ";
+			}
+			update << "WHERE id = ?"
+				, Poco::Data::Keywords::bind(fieldValue1), Poco::Data::Keywords::bind(fieldValue2), Poco::Data::Keywords::bind(fieldValue3)
+				, Poco::Data::Keywords::bind(mID);
+
+
+			size_t resultCount = 0;
+			try {
+				resultCount = update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by update 3", ex.displayText()));
+				for (int i = 0; i < 3; i++) {
+					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
+				}
+
+				unlock();
+			}
+			return resultCount;
+		}
+
+		
 
 		// ******************** Generic Tasks ************************************
 

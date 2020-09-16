@@ -27,6 +27,8 @@ namespace model {
 		
 			assert(!accountId.isNull() && accountId->getModel());
 
+			printf("[Query::getBalance] account id: %s\n", accountId->getModel()->toString().data());
+
 			auto query = new Query;
 			auto get_account_balance = query->mQueryProto.mutable_cryptogetaccountbalance();
 			accountId->copyToProtoAccountId(get_account_balance->mutable_accountid());
@@ -53,6 +55,9 @@ namespace model {
 			assert(!topicId.isNull() && topicId->getModel());
 			assert(!payerAccountId.isNull() && payerAccountId->getModel());
 
+			printf("[Query::getBalance] topic id: %s\n", topicId->getModel()->toString().data());
+			printf("[Query::getBalance] payer account id: %s\n", payerAccountId->getModel()->toString().data());
+
 			auto query = new Query;
 			auto get_topic_info = query->mQueryProto.mutable_consensusgettopicinfo();
 			topicId->copyToProtoTopicId(get_topic_info->mutable_topicid());
@@ -64,7 +69,7 @@ namespace model {
 			CryptoTransferTransaction crypto_transaction;
 			// 0.002809 Hashbars
 			// fee from https://www.hedera.com/fees
-			crypto_transaction.addSender(payerAccountId, -2809);
+			crypto_transaction.addSender(payerAccountId, 2809);
 			crypto_transaction.addReceiver(connection.hederaId, 2809);
 			query->mTransactionBody->setCryptoTransfer(crypto_transaction);
 
