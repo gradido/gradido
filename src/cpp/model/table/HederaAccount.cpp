@@ -8,13 +8,13 @@ namespace model {
 		HederaAccount::HederaAccount()
 			: mUserId(0), mAccountHederaId(0), mAccountKeyId(0), mBalance(0), mType(0)
 		{
-
+			
 		}
 
 		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, HederaNetworkType type /*= HEDERA_MAINNET*/)
 			: mUserId(user_id), mAccountHederaId(account_hedera_id), mAccountKeyId(account_key_id), mBalance(balance), mType(type)
 		{
-
+			
 		}
 
 		HederaAccount::HederaAccount(const HederaAccountTuple& tuple)
@@ -22,12 +22,12 @@ namespace model {
 			mUserId(tuple.get<1>()), mAccountHederaId(tuple.get<2>()), mAccountKeyId(tuple.get<3>()),
 			mBalance(tuple.get<4>()), mType(tuple.get<5>()), mUpdated(tuple.get<6>())
 		{
-
+			
 		}
 
 		HederaAccount::~HederaAccount()
 		{
-
+		
 		}
 
 		std::string HederaAccount::toString()
@@ -42,6 +42,18 @@ namespace model {
 			ss << "last update: " << Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S") << std::endl;
 
 			return ss.str();
+		}
+
+		std::string HederaAccount::getBalanceString()
+		{
+			char buffer[65]; memset(buffer, 0, 65);
+			//100,000,000
+#ifdef _WIN32
+			sprintf_s(buffer, 64, "%.8f HBAR", (double)(mBalance) / 100000000.0);
+#else
+			sprintf(buffer, "%.8f HBAR", (double)(mBalance) / 100000000.0);
+#endif
+			return std::string(buffer);
 		}
 
 

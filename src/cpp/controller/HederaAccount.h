@@ -21,6 +21,7 @@ namespace controller {
 		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, model::table::HederaNetworkType type = model::table::HEDERA_MAINNET);
 
 		static std::vector<Poco::AutoPtr<HederaAccount>> load(const std::string& fieldName, int fieldValue);
+		static Poco::AutoPtr<HederaAccount> load(int id);
 		static Poco::AutoPtr<HederaAccount> load(Poco::AutoPtr<controller::HederaId> hederaId);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();
 		//! \brief for picking a account for paying transaction, mostly consensusSendMessage
@@ -34,7 +35,7 @@ namespace controller {
 		inline const model::table::HederaAccount* getModel() const { return _getModel<model::table::HederaAccount>(); }
 
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
-		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
+		Poco::AutoPtr<controller::HederaId> getHederaId();
 
 		Poco::AutoPtr<controller::CryptoKey> getCryptoKey() const;
 
@@ -48,8 +49,7 @@ namespace controller {
 	protected:
 
 		HederaAccount(model::table::HederaAccount* dbModel);
-		Poco::AutoPtr<controller::HederaId> mHederaID;
-
+		Poco::AutoPtr<HederaId> mHederaID;
 	};
 }
 

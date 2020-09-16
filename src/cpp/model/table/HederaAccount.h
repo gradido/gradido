@@ -39,6 +39,7 @@ namespace model {
 
 			inline Poco::UInt64 getBalance() { return mBalance; }
 			inline double getBalanceDouble() { return (double)mBalance / 100000000.0; }
+			std::string getBalanceString();
 
 			inline HederaNetworkType getNetworkType() { return (HederaNetworkType)mType; }
 			

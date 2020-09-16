@@ -6,10 +6,14 @@
 namespace model {
 	namespace table {
 
+
+		typedef Poco::Tuple<int, int, std::string, int, Poco::UInt32, int, int, int, Poco::DateTime, Poco::UInt64, Poco::DateTime> HederaTopicTuple;
+
 		class HederaTopic : public ModelBase
 		{
 		public:
 			HederaTopic();
+			HederaTopic(const HederaTopicTuple& tuple);
 			HederaTopic(const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId);
 			~HederaTopic();
 
@@ -21,10 +25,13 @@ namespace model {
 			inline std::string getName() const { return mName; }
 			inline Poco::UInt32	getAutoRenewAccountId() const { return mAutoRenewAccountHederaId; }
 			inline Poco::UInt32 getAutoRenewPeriod() const { return mAutoRenewPeriod; }
+			std::string getAutoRenewPeriodString() const;
 			inline Poco::UInt32 getGroupId() const { return mGroupId;}
-			inline Poco::DateTime getCurrentTimoout() const { return mCurrentTimeout; }
+			inline Poco::DateTime getCurrentTimeout() const { return mCurrentTimeout; }
+			std::string getCurrentTimeoutString() const;
 			inline Poco::UInt64 getSequenceNumber() const { return mSequenceNumber; }
 			inline Poco::DateTime getUpdated() const { return mUpdated; }
+			std::string getUpdatedString() const;
 
 			inline void setTopicHederaID(Poco::UInt32 topidHederaId) { mTopicHederaId = topidHederaId;}
 			inline void setSequeceNumber(Poco::UInt64 sequenceNumber) { mSequenceNumber = sequenceNumber; }
@@ -32,6 +39,7 @@ namespace model {
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
+			Poco::Data::Statement _loadAllFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 

@@ -19,7 +19,6 @@ namespace controller {
 
 	HederaAccount::~HederaAccount()
 	{
-
 	}
 
 	Poco::AutoPtr<HederaAccount> HederaAccount::create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, model::table::HederaNetworkType type/* = HEDERA_MAINNET*/)
@@ -39,10 +38,27 @@ namespace controller {
 			//mHederaID
 			auto db = new model::table::HederaAccount(*it);
 			auto hedera_account = new HederaAccount(db);
-			hedera_account->mHederaID = HederaId::load(db->getAccountHederaId());
 			resultVector.push_back(hedera_account);
 		}
 		return resultVector;
+	}
+
+	Poco::AutoPtr<HederaAccount> HederaAccount::load(int id)
+	{
+		auto db = new model::table::HederaAccount();
+		if (1 == db->loadFromDB("id", id)) {
+			return new HederaAccount(db);
+		}
+		delete db;
+		return nullptr;
+	}
+
+	Poco::AutoPtr<controller::HederaId> HederaAccount::getHederaId()
+	{
+		if (mHederaID.isNull()) {
+			mHederaID = HederaId::load(getModel()->getAccountHederaId());
+		}
+		return mHederaID;
 	}
 
 	Poco::AutoPtr<HederaAccount> HederaAccount::load(Poco::AutoPtr<controller::HederaId> hederaId)
@@ -176,7 +192,7 @@ namespace controller {
 			return false;
 		}
 		
-		auto query = model::hedera::Query::getBalance(mHederaID, hedera_node);
+		auto query = model::hedera::Query::getBalance(getHederaId(), hedera_node);
 
 		if (!query) {
 			printf("[%s] error creating query\n", functionName);
@@ -254,7 +270,7 @@ namespace controller {
 		std::stringstream ss;
 		auto model = getModel();
 		ss << model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)model->getNetworkType()) << " ";
-		ss << mHederaID->getModel()->toString() << " " << ((double)model->getBalance() / 100000000.0) << " Hbar";
+		ss << getHederaId()->getModel()->toString() << " " << ((double)model->getBalance() / 100000000.0) << " Hbar";
 		return ss.str();
 	}
 

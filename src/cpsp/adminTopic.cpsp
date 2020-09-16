@@ -6,10 +6,12 @@
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
 	#include "../controller/HederaAccount.h"
+	#include "../controller/HederaTopic.h"
 	#include "../controller/Group.h"
 	#include "../SingletonManager/SessionManager.h"
 	#include "../ServerConfig.h"
 	#include "../lib/DataTypeConverter.h"
+	#include "Poco/Timespan.h"
 %>
 <%%
 	const char* pageName = "Topic";
@@ -60,6 +62,7 @@
 	
 	
 	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
+	//std::vector<Poco::AutoPtr<controller::HederaAccount>> hedera_accounts;
 	
 	auto groups = controller::Group::listAll();
 	std::map<int, int> group_indices;
@@ -69,8 +72,10 @@
 		count++;
 	}
 	
+	auto hedera_topics = controller::HederaTopic::listAll();
+	//std::vector<Poco::AutoPtr<controller::HederaTopic>> hedera_topics;
 	
-%><%@ include file="header.cpsp" %>
+%><%@ include file="header_large.cpsp" %>
 <style type="text/css">
 	.center-form-form .input-40 {
 		margin-left:0;
@@ -84,6 +89,54 @@
 	<h1>Topic Admin Page</h1>
 </div>
 <div class="center-form-container">
+	<div class="content-list">
+		<div class="content-list-title">
+			<h2>Hedera Topics</h2>
+		</div>	
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c2">Topic ID</div>			
+				<div class="cell header-cell c3">Name</div>
+				<div class="cell header-cell c3">Network Type</div>
+				<div class="cell header-cell c4">Auto Renew Account Balance</div>
+				<div class="cell header-cell c4">Auto Renew Period</div>
+				<div class="cell header-cell c3">Group ID</div>
+				<div class="cell header-cell c3">Current Timeout</div>
+				<div class="cell header-cell c2">Sequence Number</div>
+				<div class="cell header-cell c3" title="Last Time Get update from Hedera">Last Updated</div>
+				<div class="cell header-cell c5">Aktionen</div>
+			</div>
+			<% for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) {
+					auto hedera_topic_model = (*it)->getModel();  
+					auto updateUrl = ServerConfig::g_serverPath + "/topic?action=getTopicInfos&topic_id=" + std::to_string(hedera_topic_model->getID());
+					auto auto_renew_account = (*it)->getAutoRenewAccount();
+					auto renew_account_model = auto_renew_account->getModel();
+					std::string timeout_color = "success-color";
+					if(hedera_topic_model->getCurrentTimeout() < Poco::DateTime()) {
+						timeout_color = "alert-color";
+					} else if(hedera_topic_model->getCurrentTimeout() - Poco::DateTime() > Poco::Timespan(2,0,0,0,0)) {
+						timeout_color = "orange-color";
+					}
+					%>
+				<div class="row">
+					<div class="cell c2"><%= (*it)->getTopicHederaId()->getModel()->toString() %></div>
+					<div class="cell c3"><%= hedera_topic_model->getName() %></div>
+					<div class="cell c3"><%= model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) %></div>
+					<div class="cell c4"><%= renew_account_model->getBalanceString() %></div>
+					<div class="cell c4"><%= hedera_topic_model->getAutoRenewPeriodString() %></div>
+					<div class="cell c3"><%= hedera_topic_model->getGroupId() %></div>
+					<div class="cell c3 <%= timeout_color %>"><%= hedera_topic_model->getCurrentTimeoutString() %></div>
+					<div class="cell c2"><%= hedera_topic_model->getSequenceNumber() %></div>
+					<div class="cell c3"><%= hedera_topic_model->getUpdatedString() %></div>
+					<div class="cell c5">
+						<button class="form-button" title="Query on Hedera, cost some fees" onclick="window.location.href='<%= updateUrl %>'"  >
+							get topic infos
+						</button>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
 	<div class="center-form-title">
 	    <h3>Ein neues Topic anlegen</h3>
 	</div>

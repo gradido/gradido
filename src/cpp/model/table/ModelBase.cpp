@@ -204,5 +204,29 @@ namespace model {
 
 			return Poco::DateTime(Poco::Timestamp());
 		}
+
+		std::string ModelBase::secondsToReadableDuration(Poco::UInt64 seconds)
+		{
+			Poco::UInt64 value = 0;
+			std::string result;
+			std::string unit_name;
+
+			if (seconds <= 60) {
+				return std::to_string(seconds) + " seconds";
+			}
+			else if (seconds <= 60 * 60) {
+				Poco::UInt64 minutes = round(seconds / 60);
+				return "~" + std::to_string(minutes) + " minutes";
+			}
+			else if (seconds <= 60 * 60 * 24) {
+				Poco::UInt64 hours = round(seconds / 60 / 60);
+				return "~" + std::to_string(hours) + " hours";
+			}
+			else {
+				Poco::UInt64 days = round(seconds / 60 / 60 / 24);
+				return "~" + std::to_string(days) + " days";
+			}
+			return "<unknown error>";
+		}
 	}
 }

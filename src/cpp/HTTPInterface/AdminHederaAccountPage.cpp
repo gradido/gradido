@@ -349,8 +349,8 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
 #line 266 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
-	responseStream << ( hedera_account_model->getBalanceDouble() );
-	responseStream << " hbar</div>\n";
+	responseStream << ( hedera_account_model->getBalanceString() );
+	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
 #line 267 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) );
@@ -366,27 +366,29 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 #line 269 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( hedera_account_model->getUpdatedString() );
 	responseStream << "</div>\n";
-	responseStream << "\t\t\t\t\t<button class=\"form-button\" title=\"Anfrage an Hedera, aktuell kostenlos\" onclick=\"window.location.href='";
-#line 270 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+	responseStream << "\t\t\t\t\t<div class=\"cell c5\">\n";
+	responseStream << "\t\t\t\t\t\t<button class=\"form-button\" title=\"Anfrage an Hedera, aktuell kostenlos\" onclick=\"window.location.href='";
+#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( updateUrl );
 	responseStream << "'\"  >\n";
-	responseStream << "\t\t\t\t\t\tUpdate Balance\n";
-	responseStream << "\t\t\t\t\t</button>\n";
-	responseStream << "\t\t\t\t\t";
-#line 273 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
- if(changeEncryption != "") { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t<button class=\"form-button\" title=\"Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank\" onclick=\"window.location.href='";
+	responseStream << "\t\t\t\t\t\t\tUpdate Balance\n";
+	responseStream << "\t\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t\t\t";
 #line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+ if(changeEncryption != "") { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t\t<button class=\"form-button\" title=\"Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank\" onclick=\"window.location.href='";
+#line 275 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( changeEncryption );
 	responseStream << "'\">\n";
-	responseStream << "\t\t\t\t\t\t\tChange Encryption\n";
-	responseStream << "\t\t\t\t\t\t</button>\n";
-	responseStream << "\t\t\t\t\t";
-#line 277 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+	responseStream << "\t\t\t\t\t\t\t\tChange Encryption\n";
+	responseStream << "\t\t\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 278 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 279 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 281 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
@@ -395,7 +397,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t<form method=\"POST\" action=\"";
-#line 286 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 288 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/hedera_account\">\n";
 	responseStream << "\t\t\t<label class=\"form-label\">Hedera Account ID</label>\n";
@@ -411,21 +413,21 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-network-type\">Network Type</label>\n";
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"account-network-type\" id=\"account-network-type\">\n";
 	responseStream << "\t\t\t";
-#line 299 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 301 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  for(int i = 0; i < model::table::HEDERA_NET_COUNT; i++) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<option value=\"";
-#line 300 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 302 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( i );
 	responseStream << "\">";
-#line 300 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 302 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)i) );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t";
-#line 301 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 303 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"add\" value=\"";
-#line 303 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 305 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( gettext("Add Account") );
 	responseStream << "\">\n";
 	responseStream << "\t\t</form>\n";
@@ -436,46 +438,46 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t<form method=\"POST\" action=\"";
-#line 311 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 313 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/hedera_account\">\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-auto-renew-account\">Auto Renew and Founding Hedera Account</label>\n";
 	responseStream << "\t\t\t<select name=\"account-auto-renew-account\" id=\"account-auto-renew-account\">\n";
 	responseStream << "\t\t\t\t";
-#line 314 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 316 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) { 
 					auto model = (*it)->getModel();
 					responseStream << "\n";
 	responseStream << "\t\t\t\t\t<option title=\"";
-#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 319 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model->toString() );
 	responseStream << "\" value=\"";
-#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 319 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( model->getID() );
 	responseStream << "\" ";
-#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 319 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  if(auto_renew_account == model->getID()) {	responseStream << "selected=\"selected\"";
-#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 319 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << ">";
-#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 319 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( (*it)->toShortSelectOptionName() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t";
-#line 318 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 320 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-auto-renew-period\">Auto Renew Period in seconds</label>\n";
 	responseStream << "\t\t\t<div><input class=\"form-control input-40\" id=\"account-auto-renew-period\" value=\"";
-#line 321 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 323 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( auto_renew_period );
 	responseStream << "\" type=\"number\" name=\"account-auto-renew-period\"/><span style=\"margin-left:8px\" id=\"readable-auto-renew-period\"></span><div>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"account-initial-balance\">Initial Balance for new Account (taken from founding account)</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"account-initial-balance\" name=\"account-initial-balance\" type=\"number\" step=\"0.00000001\" value=\"";
-#line 323 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 325 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( std::to_string(initial_balance) );
 	responseStream << "\" />\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"create\" value=\"";
-#line 324 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 326 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( gettext("Create Account") );
 	responseStream << "\">\n";
 	responseStream << "\t\t</form>\n";
@@ -506,7 +508,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	// end include footer.cpsp
 	responseStream << "\n";
 	responseStream << "<script type=\"text/javascript\" src=\"";
-#line 329 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
+#line 331 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/time_calculations.js\"></script>\n";
 	responseStream << "<script type=\"text/javascript\">\n";

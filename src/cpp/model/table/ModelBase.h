@@ -58,6 +58,8 @@ namespace model {
 
 			static Poco::DateTime parseElopageDate(std::string dateString);
 
+			static std::string secondsToReadableDuration(Poco::UInt64 seconds);
+
 			// for poco auto ptr
 			void duplicate();
 			void release();
@@ -158,20 +160,24 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement select = _loadAllFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
-			select, Poco::Data::Keywords::into(results);
+			try {							   
+				Poco::Data::Statement select = _loadAllFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+				select, Poco::Data::Keywords::into(results);
 
-			size_t resultCount = 0;
-			try {
-				resultCount = select.execute();
+				size_t resultCount = 0;
+				try {
+					resultCount = select.execute();
+				}
+				catch (Poco::Exception& ex) {
+					addError(new ParamError(getTableName(), "mysql error by selecting all", ex.displayText().data()));
+				}
+
+				return results;
 			}
 			catch (Poco::Exception& ex) {
-				lock();
-				addError(new ParamError(getTableName(), "mysql error by selecting all", ex.displayText().data()));
-				unlock();
+				addError(new Error(getTableName(), "loadAllFromDB not implemented!"));
+				return results;
 			}
-			
-			return results;
 		}
 
 		template<class WhereFieldType, class Tuple>

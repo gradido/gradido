@@ -9,6 +9,9 @@
 #include "Poco/Data/LOB.h"
 #include "../SingletonManager/LanguageManager.h"
 
+#include "../proto/hedera/Timestamp.pb.h"
+#include "../proto/hedera/Duration.pb.h"
+
 #include "sodium.h"
 
 namespace DataTypeConverter {
@@ -45,6 +48,9 @@ namespace DataTypeConverter {
 
 	//! \brief convert duration in string showing seconds, minutes, hours or days
 	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
+
+	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp);
+	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 };
 
 #endif // __GRADIDO_LOGIN_SERVER_LIB_DATA_TYPE_CONVERTER_H
