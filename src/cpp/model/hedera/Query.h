@@ -32,6 +32,8 @@ namespace model {
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
 			inline std::string getConnectionString() const { return mTransactionBody->getConnectionString(); }
 
+			proto::QueryHeader* getQueryHeader();
+
 		protected:
 			Query();
 			proto::Query mQueryProto;

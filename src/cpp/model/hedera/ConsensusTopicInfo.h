@@ -20,7 +20,10 @@ namespace model
 			MemoryBin* getRunningHashCopy() const;
 			Poco::UInt64 getSequenceNumber() const { return mProto.sequencenumber(); }
 			inline Poco::DateTime getExpirationTime() const { return DataTypeConverter::convertFromProtoTimestamp(mProto.expirationtime());}
-			inline Poco::Timespan getAutoRenewPeriod() const { return DataTypeConverter::convertFromProtoDuration(mProto.autorenewperiod()); }
+			inline proto::Duration getAutoRenewPeriod() const { return mProto.autorenewperiod(); }
+
+			std::string toString();
+			std::string toStringHtml();
 
 		protected:
 			proto::ConsensusTopicInfo mProto;

@@ -47,7 +47,7 @@ namespace model {
 
 		std::string HederaTopic::getAutoRenewPeriodString() const
 		{
-			return secondsToReadableDuration(mAutoRenewPeriod) + "(" + std::to_string(mAutoRenewPeriod) + " seconds)";
+			return secondsToReadableDuration(mAutoRenewPeriod) + " (" + std::to_string(mAutoRenewPeriod) + " seconds)";
 		}
 
 		std::string HederaTopic::getCurrentTimeoutString() const

@@ -76,11 +76,23 @@ namespace model {
 			return query;
 		}
 
+		proto::QueryHeader* Query::getQueryHeader()
+		{
+			if (mQueryProto.has_cryptogetaccountbalance()) {
+				return mQueryProto.mutable_cryptogetaccountbalance()->mutable_header();
+			}
+			else if (mQueryProto.has_consensusgettopicinfo()) {
+				return mQueryProto.mutable_consensusgettopicinfo()->mutable_header();
+			}
+			return nullptr;
+		}
+
 		bool Query::sign(std::unique_ptr<KeyPairHedera> keyPairHedera)
 		{
 			Transaction transaction;
+			mTransactionBody->updateTimestamp();
 			auto sign_result = transaction.sign(std::move(keyPairHedera), mTransactionBody);
-			auto query_header = mQueryProto.mutable_cryptogetaccountbalance()->mutable_header();
+			auto query_header = getQueryHeader();
 			query_header->set_allocated_payment(transaction.getTransaction());
 			transaction.resetPointer();
 
@@ -89,16 +101,13 @@ namespace model {
 
 		void Query::setResponseType(proto::ResponseType type)
 		{
-			auto get_account_balance = mQueryProto.mutable_cryptogetaccountbalance();
-			auto query_header = get_account_balance->mutable_header();
+			auto query_header = getQueryHeader();
 			query_header->set_responsetype(type);
-
 		}
 
 		proto::ResponseType Query::getResponseType()
 		{
-			auto get_account_balance = mQueryProto.mutable_cryptogetaccountbalance();
-			auto query_header = get_account_balance->mutable_header();
+			auto query_header = getQueryHeader();
 			return query_header->responsetype();
 		}
 

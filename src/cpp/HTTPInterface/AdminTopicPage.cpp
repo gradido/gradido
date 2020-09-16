@@ -242,7 +242,7 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 					std::string timeout_color = "success-color";
 					if(hedera_topic_model->getCurrentTimeout() < Poco::DateTime()) {
 						timeout_color = "alert-color";
-					} else if(hedera_topic_model->getCurrentTimeout() - Poco::DateTime() > Poco::Timespan(2,0,0,0,0)) {
+					} else if((hedera_topic_model->getCurrentTimeout() - Poco::DateTime()) < Poco::Timespan(2,0,0,0,0)) {
 						timeout_color = "orange-color";
 					}
 						responseStream << "\n";
