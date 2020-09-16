@@ -265,11 +265,12 @@ namespace DataTypeConverter
 	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp)
 	{
 		// microseconds
-		return timestamp.seconds() * 10e6 + (google::protobuf::int64)(timestamp.nanos()) / 10e3;
+		google::protobuf::int64 microseconds = timestamp.seconds() * (google::protobuf::int64)10e5 + (google::protobuf::int64)(timestamp.nanos()) / (google::protobuf::int64)10e2;
+		return microseconds;
 	}
 
 	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
 	{
-		return (duration.seconds(), 0);
+		return Poco::Timespan(duration.seconds(), 0);
 	}
 }

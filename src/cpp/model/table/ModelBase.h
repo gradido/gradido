@@ -291,9 +291,10 @@ namespace model {
 				return 0;
 			}
 
-			update << "UPDATE " << getTableName();
+			update << "UPDATE " << getTableName() << " SET ";
 			for (int i = 0; i < 2; i++) {
-				update << "SET " << fieldNames[i] << " = ? ";
+				if (i) update << ", ";
+				update << fieldNames[i] << " = ? ";
 			}
 			update << "WHERE id = ?"
 			, Poco::Data::Keywords::bind(fieldValue1), Poco::Data::Keywords::bind(fieldValue2)
@@ -328,9 +329,10 @@ namespace model {
 				return 0;
 			}
 
-			update << "UPDATE " << getTableName();
+			update << "UPDATE " << getTableName() << " SET ";
 			for (int i = 0; i < 3; i++) {
-				update << "SET " << fieldNames[i] << " = ? ";
+				if (i) update << ", ";
+				update << fieldNames[i] << " = ? ";
 			}
 			update << "WHERE id = ?"
 				, Poco::Data::Keywords::bind(fieldValue1), Poco::Data::Keywords::bind(fieldValue2), Poco::Data::Keywords::bind(fieldValue3)

@@ -51,8 +51,9 @@ namespace model {
 			inline controller::NodeServerConnection getConnection() const { return mConnection; }
 			inline TransactionBodyType getType() const { return mType; }
 
-		protected:
 			void updateTimestamp();
+		protected:
+			
 			proto::TransactionBody mTransactionBody;
 			controller::NodeServerConnection mConnection;
 			bool mHasBody;
