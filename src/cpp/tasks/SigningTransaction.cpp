@@ -11,8 +11,6 @@
 
 #include "../lib/Profiler.h"
 
-#include "../proto/gradido/Transaction.pb.h"
-
 #include "sodium.h"
 
 #include "../ServerConfig.h"
@@ -99,8 +97,8 @@ int SigningTransaction::run() {
 		}
 	}
 	// get body bytes
-	model::messages::gradido::Transaction transaction;
-	auto bodyBytes = transaction.mutable_bodybytes();
+	proto::gradido::GradidoTransaction transaction;
+	auto bodyBytes = transaction.mutable_body_bytes();
 	*bodyBytes = mProcessingeTransaction->getBodyBytes();
 	if (*bodyBytes == "") {
 		getErrors(mProcessingeTransaction);
@@ -135,7 +133,7 @@ int SigningTransaction::run() {
 	}
 	*/
 	// add to message
-	auto sigMap = transaction.mutable_sigmap();
+	auto sigMap = transaction.mutable_sig_map();
 	auto sigPair = sigMap->add_sigpair();
 
 	auto pubkeyBytes = sigPair->mutable_pubkey();
@@ -150,7 +148,7 @@ int SigningTransaction::run() {
 	/*std::string protoPrettyPrint;
 	google::protobuf::TextFormat::PrintToString(transaction, &protoPrettyPrint);
 	printf("transaction pretty: %s\n", protoPrettyPrint.data());
-	model::messages::gradido::TransactionBody transactionBody;
+	proto::gradido::TransactionBody transactionBody;
 	transactionBody.MergeFromString(transaction.bodybytes());
 	google::protobuf::TextFormat::PrintToString(transactionBody, &protoPrettyPrint);
 	printf("transaction body pretty: \n%s\n", protoPrettyPrint.data());

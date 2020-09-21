@@ -12,26 +12,26 @@
 #pragma warning(disable:4800)
 
 #include "TransactionBase.h"
-#include "../proto/gradido/TransactionCreation.pb.h"
+#include "../proto/gradido/GradidoCreation.pb.h"
 #include "User.h"
 
 class TransactionCreation : public TransactionBase
 {
 public:
-	TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation);
+	TransactionCreation(const std::string& memo, const proto::gradido::GradidoCreation& protoCreation);
 	~TransactionCreation();
 
 	int prepare();
 
 	inline User* getUser() { return mReceiverUser; }
-	inline google::protobuf::int64 getAmount() { return mProtoCreation.receiveramount().amount(); }
+	inline google::protobuf::int64 getAmount() { return mProtoCreation.receiver().amount(); }
 	inline char* getPublicHex() { return mReceiverPublicHex; }
 
 	inline std::string getAmountString() { return amountToString(getAmount()); }
 	std::string getTargetDateString();
 
 protected:
-	const model::messages::gradido::TransactionCreation& mProtoCreation;
+	const proto::gradido::GradidoCreation& mProtoCreation;
 	char mReceiverPublicHex[65];
 	User* mReceiverUser;
 };

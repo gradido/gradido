@@ -13,7 +13,7 @@
 %>
 <%%
 	const char* pageName = "Decode Transaction";
-	model::messages::gradido::TransactionBody transactionBody;
+	proto::gradido::TransactionBody transactionBody;
 	bool decoded = false;
 	bool adminUser = false;
 	if(mSession && mSession->getNewUser())  {
@@ -82,37 +82,36 @@
 		<p><%= transactionBody.memo() %></p>
 		<% if(transactionBody.has_transfer()) { 
 			auto transfer = transactionBody.transfer();
+			char hex[65]; memset(hex, 0, 65);
 		%>
-		<h3>Transfer</h3>
-		<b>Sender</b>
-		<% for(int i = 0; i < transfer.senderamounts_size(); i++) {
-			auto sender = transfer.senderamounts(i); 
-			char hex[65]; memset(hex, 0, 65);
-			sodium_bin2hex(hex, 65, (const unsigned char*)sender.ed25519_sender_pubkey().data(), sender.ed25519_sender_pubkey().size());
+			<% if(transfer.has_local()) { 
+				auto local_transfer = transfer.local();
+				auto sender_pubkey = local_transfer.sender().pubkey();
+				auto receiver_pubkey = local_transfer.receiver();
+				sodium_bin2hex(hex, 65, (const unsigned char*)sender_pubkey.data(), sender_pubkey.size());
 			%>
-			<p>pubkey: <%= hex %></p>
-			<p>amount: <%=  TransactionBase::amountToString(sender.amount()) %> GDD</p>
-		<% } %>
-		<b>Receiver</b>
-		<% for(int i = 0; i < transfer.receiveramounts_size(); i++) {
-			auto receiver = transfer.receiveramounts(i); 
-			char hex[65]; memset(hex, 0, 65);
-			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
-			%>
-			<p>pubkey: <%= hex %></p>
-			<p>amount: <%=  TransactionBase::amountToString(receiver.amount()) %> GDD</p>
-		<% } %>
+				<h3>Local Transfer</h3>
+				<b>From: </b><%= hex %>
+				<% sodium_bin2hex(hex, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size()); %>
+				<b>To: </b><%= hex %>
+				<b>Amount: </b><%= TransactionBase::amountToString(local_transfer.sender().amount()) %>
+			<% } else { %>
+				<h3>- Not implemented yet (Group Transfer) -</h3>
+			<% } %>
+
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
+
 			TransactionCreation creationObject("", creation);
 			auto receiver = creation.receiveramount();
+
 			char hex[65]; memset(hex, 0, 65);
-			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
+			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());
 			
 			Poco::AutoPtr<controller::User> user = nullptr;
 			if(adminUser) {
 				user = controller::User::create();
-				if(!user->load((const unsigned char*)receiver.ed25519_receiver_pubkey().data())) {
+				if(!user->load((const unsigned char*)receiver.pubkey().data())) {
 					user.assign(nullptr);
 				}
 			}

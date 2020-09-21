@@ -63,7 +63,7 @@ protected:
 	TransactionType mType;
 	std::string mProtoMessageBase64;
 
-	model::messages::gradido::TransactionBody mTransactionBody;
+	proto::gradido::TransactionBody mTransactionBody;
 	TransactionBase* mTransactionSpecific;
 
 	HASH mHash;

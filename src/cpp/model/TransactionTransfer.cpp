@@ -46,7 +46,8 @@ void TransactionTransfer::KontoTableEntry::composeAmountCellString(google::proto
 
 // ********************************************************************************************************************************
 
-TransactionTransfer::TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer)
+//TransactionTransfer::TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer)
+TransactionTransfer::TransactionTransfer(const std::string& memo, const proto::gradido::GradidoTransfer& protoTransfer)
 	: TransactionBase(memo), mProtoTransfer(protoTransfer)
 {
 
@@ -80,6 +81,34 @@ int TransactionTransfer::prepare()
 
 	char pubkeyHexTemp[65];
 
+	/*
+	if (mProtoTransfer.has_local())
+	{
+		auto local_transfer = mProtoTransfer.local();
+		auto sender = local_transfer.sender();
+		auto sender_pubkey = sender.pubkey();
+		auto receiver_pubkey = local_transfer.receiver();
+		auto amount = sender.amount();
+		auto sender_user = controller::User::create();
+		auto receiver_user = controller::User::create();
+
+		if (!sender_user->load((const unsigned char*)sender_pubkey.data())) {
+			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)sender_pubkey.data(), sender_pubkey.size());
+			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, -amount, true));
+		}
+		else {
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), -amount, true));
+		}
+
+		if (!receiver_user->load((const unsigned char*)receiver_pubkey.data())) {
+			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size());
+			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, amount, true));
+		}
+		else {
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
+		}
+	}
+	*/
 	for (int i = 0; i < mProtoTransfer.senderamounts_size(); i++) {
 		auto senderAmount = mProtoTransfer.senderamounts(i);
 		auto pubkey = senderAmount.ed25519_sender_pubkey();
@@ -128,6 +157,7 @@ int TransactionTransfer::prepare()
 		return -6;
 	}
 
+
 	/*
 	mReceiverUser = new User(receiverPublic.data());
 	getErrors(mReceiverUser);
@@ -170,3 +200,4 @@ const std::string& TransactionTransfer::getAmountCell(int index)
 	return mKontoTable[index].amountCell;
 }
 
+>>>>>>> 1e4ae4a (update proto files matching with pauls proto version, update code which use them)

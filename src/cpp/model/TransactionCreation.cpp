@@ -2,7 +2,8 @@
 #include "Poco/DateTimeFormatter.h"
 #include <sodium.h>
 
-TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
+//TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
+TransactionCreation::TransactionCreation(const std::string& memo, const proto::gradido::GradidoCreation& protoCreation)
 	: TransactionBase(memo), mProtoCreation(protoCreation), mReceiverUser(nullptr)
 {
 	memset(mReceiverPublicHex, 0, 65);

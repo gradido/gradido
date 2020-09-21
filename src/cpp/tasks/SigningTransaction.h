@@ -8,7 +8,7 @@
 #include "../model/User.h"
 #include "../controller/User.h"
 
-#include "../proto/gradido/Transaction.pb.h"
+#include "../proto/gradido/GradidoTransaction.pb.h"
 
 #include "ProcessingTransaction.h"
 
