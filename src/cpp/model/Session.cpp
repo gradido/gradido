@@ -131,6 +131,47 @@ void Session::reset()
 	//printf("[Session::reset] finished\n");
 }
 
+int Session::isActive()
+{
+	int ret = 0; 
+	try {
+		mWorkMutex.tryLock(100);
+	}
+	catch (Poco::TimeoutException &ex) {
+		return -1;
+	}
+	ret = (int)mActive;
+	unlock(); 
+	return ret;
+
+}
+
+bool Session::isDeadLocked()
+{
+	try {
+		mWorkMutex.tryLock(200);
+		unlock();
+		return false;
+	}
+	catch (Poco::Exception& ex) {
+		
+	}
+	return true;
+}
+
+bool Session::setActive(bool active)
+{ 
+	try {
+		mWorkMutex.tryLock(100);
+	}
+	catch (Poco::TimeoutException &ex) {
+		return false;
+	}
+	mActive = active; 
+	unlock(); 
+	return true;
+}
+
 void Session::updateTimeout()
 {
 	lock("Session::updateTimeout");

@@ -162,8 +162,14 @@ public:
 		return mEmailVerificationCodeObject->getModel()->getType();
 	}
 
-	inline bool isActive() { bool bret = false; lock("Session::isActive"); bret = mActive; unlock(); return bret; }
-	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }
+	//! \return -1 if session is locked
+	//! \return 1 if session is active
+	//! \return 0 
+	int isActive();
+	//! \return false if session is locked
+	bool setActive(bool active);
+
+	bool isDeadLocked();
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 

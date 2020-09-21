@@ -14,7 +14,7 @@ SessionManager* SessionManager::getInstance()
 }
 
 SessionManager::SessionManager()
-	: mInitalized(false)
+	: mInitalized(false), mDeadLockedSessionCount(0)
 {
 
 }
@@ -89,6 +89,7 @@ void SessionManager::deinitalize()
 		delete mValidations[i];
 	}
 
+	printf("[SessionManager::deinitalize] count of dead locked sessions: %d\n", mDeadLockedSessionCount);
 	
 	mInitalized = false;
 	mWorkingMutex.unlock();
@@ -277,6 +278,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 
 bool SessionManager::isExist(int requestHandleSession)
 {
+	static const char* function_name = "SessionManager::isExist";
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return false;
@@ -294,7 +296,13 @@ bool SessionManager::isExist(int requestHandleSession)
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it != mRequestSessionMap.end()) {
 		result = true;
-		if (!it->second->isActive()) {
+		int iResult = it->second->isActive();
+		if (-1 == iResult) {
+			auto em = ErrorManager::getInstance();
+			em->addError(new Error(function_name, "session return locked"));
+			em->sendErrorsAsEmail();
+		}
+		if (0 == iResult) {
 			printf("[SessionManager::isExist] session isn't active\n");
 		}
 	}
@@ -321,6 +329,7 @@ Session* SessionManager::getSession(const Poco::Net::HTTPServerRequest& request)
 
 Session* SessionManager::getSession(int handle)
 {
+	static const char* function_name = "SessionManager::getSession";
 	if (!mInitalized) {
 		printf("[SessionManager::%s] not initialized any more\n", __FUNCTION__);
 		return nullptr;
@@ -339,7 +348,15 @@ Session* SessionManager::getSession(int handle)
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
 		result = it->second;
-		if (!result->isActive()) {
+		int iResult = result->isActive();
+		if (iResult == -1) {
+			auto em = ErrorManager::getInstance();
+			em->addError(new Error(function_name, "session is locked"));
+			em->sendErrorsAsEmail();
+			mWorkingMutex.unlock();
+			return nullptr;
+		}
+		if (0 == iResult) {
 			//printf("[SessionManager::getSession] session isn't active\n");
 			mWorkingMutex.unlock();
 			return nullptr;
@@ -382,6 +399,14 @@ Session* SessionManager::findByUserId(int userId)
 	}
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		while (it->second->isDeadLocked()) 
+		{ 
+			it = mRequestSessionMap.erase(it);
+			mDeadLockedSessionCount++;
+			auto em = ErrorManager::getInstance();
+			em->addError(new ParamError("SessionManager::findByUserId", "new dead locked session found, sum dead lock sessions:", mDeadLockedSessionCount));
+			em->sendErrorsAsEmail();
+		}
 		auto user = it->second->getNewUser();
 		auto em = ErrorManager::getInstance();
 		if(!user) continue;
@@ -422,6 +447,10 @@ std::vector<Session*> SessionManager::findAllByUserId(int userId)
 	}
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		if (it->second->isDeadLocked()) {
+			it = mRequestSessionMap.erase(it);
+			mDeadLockedSessionCount++;
+		}
 		auto user = it->second->getNewUser();
 		if (userId == user->getModel()->getID()) {
 			//return it->second;
@@ -448,6 +477,10 @@ Session* SessionManager::findByEmail(const std::string& email)
 	}
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
+		if (it->second->isDeadLocked()) {
+			it = mRequestSessionMap.erase(it);
+			mDeadLockedSessionCount++;
+		}
 		auto user = it->second->getNewUser();
 		if (email == user->getModel()->getEmail()) {
 			return it->second;
@@ -477,9 +510,11 @@ void SessionManager::checkTimeoutSession()
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
 		
 		if (it->second->tryLock()) {
-			it->second->unlock();
 			// skip already disabled sessions
-			if (!it->second->isActive()) continue;
+			if (!it->second->isActive()) {
+				it->second->unlock();
+				continue;
+			}
 		}
 		else {
 			// skip dead locked sessions
@@ -487,6 +522,7 @@ void SessionManager::checkTimeoutSession()
 		}
 		
 		Poco::Timespan timeElapsed(now - it->second->getLastActivity());
+		it->second->unlock();
 		if (timeElapsed > timeout) {
 			toRemove.push(it->first);
 		}
@@ -513,7 +549,11 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 		if (activeSession) {
 			try {
 				int session_id = atoi(it->second.data());
-				if (session_id == activeSession->getHandle()) continue;
+				if (activeSession->tryLock()) {
+					bool session_id_is_handle = session_id == activeSession->getHandle();
+					activeSession->unlock();
+					if (session_id_is_handle) continue;
+				}
 			}
 			catch (...) {}
 		}
