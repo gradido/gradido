@@ -12,14 +12,14 @@
 #pragma warning(disable:4800)
 
 #include "TransactionBase.h"
-#include "../proto/gradido/Transfer.pb.h"
+#include "../proto/gradido/GradidoTransfer.pb.h"
 
 #include "../controller/User.h"
 
 class TransactionTransfer : public TransactionBase
 {
 public:
-	TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer);
+	TransactionTransfer(const std::string& memo, const proto::gradido::GradidoTransfer& protoTransfer);
 	~TransactionTransfer();
 
 	int prepare(); 
@@ -44,7 +44,7 @@ protected:
 		void composeAmountCellString(google::protobuf::int64 amount, bool negativeAmount);
 	};
 
-	const model::messages::gradido::Transfer& mProtoTransfer;
+	const proto::gradido::GradidoTransfer& mProtoTransfer;
 	std::vector<KontoTableEntry> mKontoTable;
 };
 
