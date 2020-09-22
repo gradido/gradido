@@ -117,6 +117,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	// check event type
 	std::string event = elopageRequestData.get("event", "");
 	if (event == "lesson.viewed") {
+		printf("elopage request was lesson viewed\n");
 		return;
 	}
 	
@@ -144,7 +145,7 @@ void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	file << std::endl;
 	file.close();
 	std::string timeUsedStr = timeUsed.string();
-	printf("[%s] time for elopage request write to file and maybe wait on lock: %s\n", dateTimeStr.data(), timeUsedStr.data());
+	printf("[%s] time for elopage request write to file: %s\n", dateTimeStr.data(), timeUsedStr.data());
 	mutex.unlock();
 	
 
