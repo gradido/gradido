@@ -788,7 +788,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	}
 	//Profiler usedTime;
 	lock(functionName);
-	if (mSessionUser && mSessionUser->getEmail() != email) {
+	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
 	}
@@ -941,7 +941,7 @@ SESSION_STATE_COUNT
 */
 void Session::detectSessionState()
 {
-	if (!mSessionUser || !mSessionUser->hasCryptoKey()) {
+	if (mSessionUser.isNull() || !mSessionUser->hasCryptoKey()) {
 		return;
 	}
 	UserStates userState = mSessionUser->getUserState();
