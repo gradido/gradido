@@ -791,6 +791,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
+		printf("user nullptr assigned\n");
 	}
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
@@ -800,13 +801,17 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		mNewUser->load(email);
 		mSessionUser = new User(mNewUser);
 		//mSessionUser = new User(email.data());
+
+		printf("user loaded from email\n");
 	}
 	auto user_model = mNewUser->getModel();
 	if (user_model && user_model->isDisabled()) {
 		return USER_DISABLED;
 	}
-	if (mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
+	
+	if (!mSessionUser.isNull() && mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		int loginResult = mNewUser->login(password);
+		printf("new user login with result: %d\n", loginResult);
 		
 		if (-1 == loginResult) {
 			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
@@ -822,6 +827,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		// error decrypting private key
 		if (-2 == loginResult) {
 			// check if we have access to the passphrase, if so we can reencrypt the private key
+			printf("try reencrypting key\n");
 			auto user_model = mNewUser->getModel();
 			auto user_backups = controller::UserBackups::load(user_model->getID());
 			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
@@ -847,6 +853,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		// can be removed if session user isn't used any more
 		// don't calculate password two times anymore
 		mSessionUser->login(mNewUser);
+		printf("after old user login\n");
 		/*if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;
