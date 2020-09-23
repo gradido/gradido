@@ -789,11 +789,13 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	//Profiler usedTime;
 	printf("before lock\n");
 	lock(functionName);
+	printf("locked \n");
 	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
 		printf("user nullptr assigned\n");
 	}
+	printf("after checking if session user is null\n");
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
 		mNewUser = controller::User::create();
