@@ -787,6 +787,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}
 	}
 	//Profiler usedTime;
+	printf("before lock\n");
 	lock(functionName);
 	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
@@ -804,12 +805,14 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 
 		printf("user loaded from email\n");
 	}
+	printf("before get model\n");
 	auto user_model = mNewUser->getModel();
 	if (user_model && user_model->isDisabled()) {
 		return USER_DISABLED;
 	}
-	
+	printf("before if login\n");
 	if (!mSessionUser.isNull() && mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
+		printf("before login\n");
 		int loginResult = mNewUser->login(password);
 		printf("new user login with result: %d\n", loginResult);
 		
@@ -860,6 +863,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}*/
 	}
 	else {
+		printf("before sleep\n");
 		User::fakeCreateCryptoKey();
 	}
 
@@ -873,9 +877,10 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		unlock();
 		return false;
 	}*/
+	printf("before detect session state\n");
 	detectSessionState();
 	unlock();
-
+	printf("before return user state\n");
 	return mSessionUser->getUserState();
 }
 
