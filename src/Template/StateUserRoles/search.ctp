@@ -12,31 +12,6 @@ $this->loadHelper('Form', [
     'templates' => 'horizontal_form',
 ]);
 ?>
-<?= $this->Html->css([
-  'loginServer/style.css',
-  'rippleUI/style.css',
-  'materialdesignicons.min.css'  
-]) ?>
-<style type="text/css">
-  td.actions {
-    padding: 10px 30px;
-  }
-  td.actions p {
-    white-space:normal;
-    font-size:16px;
-  }
-  td.actions ul {
-    list-style-type:decimal;
-    padding-left:20px;
-  }
-  td.actions ul li {
-    white-space:initial;
--    font-size:14px;
-  }
-  td.actions ul li .btn {
-    margin: 0 15px;
-  }
-</style>
 <div class="action-form">
   <p class="form-header">Benutzer suchen</p>
   <div class="form-body">
@@ -76,5 +51,3 @@ $this->loadHelper('Form', [
         </tbody>
     </table>
 </div>
-<?php // adding scripts vendor and core from ripple ui for popup/tooltip ?>
-
