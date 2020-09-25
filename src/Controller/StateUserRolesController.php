@@ -81,9 +81,9 @@ class StateUserRolesController extends AppController
               // detect states
                 $this->loadModel('Roles');
 //                foreach ($pubkeySorted as $pubhex => $user) {
-		foreach($communityUsers as $communityUser) {
+                foreach($communityUsers as $communityUser) {
                     $finalUser = $communityUser;
-		    $finalUser['pubkeyhex'] = bin2hex(stream_get_contents($communityUser->public_key));
+                    $finalUser['pubkeyhex'] = bin2hex(stream_get_contents($communityUser->public_key));
                    
                     $state_user_id = $communityUser->id;
                     $stateUserRole = $this->StateUserRoles->find('all')->where(['state_user_id' => $state_user_id])->all();
