@@ -228,7 +228,16 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		//mWorkingMutex.unlock();
 		return false;
 	}
+	
 	Session* session = it->second;
+
+	// simply delete session to overcome current crashes, it is a workaround for now
+	mRequestSessionMap.erase(requestHandleSession);
+	delete session;
+	return true;
+	
+
+	
 	// check if dead locked
 	if (session->tryLock()) {
 		session->unlock();
