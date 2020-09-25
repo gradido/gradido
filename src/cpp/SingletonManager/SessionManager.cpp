@@ -235,13 +235,16 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		mWorkingMutex.unlock();
 		return false;
 	}
+	
 	Session* session = it->second;
+
 
 	// delete session, not reuse as workaround for server freeze bug
 	mRequestSessionMap.erase(requestHandleSession);
 	delete session;
 	mWorkingMutex.unlock();
 	return true;
+
 
 	// check if dead locked
 	if (session->tryLock()) {
