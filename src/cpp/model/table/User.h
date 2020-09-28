@@ -60,17 +60,19 @@ namespace model {
 			inline std::string getNameWithEmailHtml() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
 			inline const Poco::UInt64 getPasswordHashed() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mPasswordHashed; }
 			inline RoleType getRole() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
-			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			inline const unsigned char* getPublicKey() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			inline size_t getPublicKeySize() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
 			std::string getPublicKeyHex() const;
 
 			inline bool hasPrivateKeyEncrypted() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return !mPrivateKey.isNull(); }
+			inline bool hasEmailHash() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return !mEmailHash.isNull(); }
 			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
 			inline bool isEmailChecked() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mEmailChecked; }
 			inline const std::string getLanguageKey() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mLanguageKey; }
 			inline bool isDisabled() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mDisabled; }
 
 			// default setter unlocked
-			inline void setEmail(const std::string& email) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mEmail = email; }
+			void setEmail(const std::string& email);
 			inline void setFirstName(const std::string& first_name) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mFirstName = first_name; }
 			inline void setLastName(const std::string& last_name) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mLastName = last_name; }
 			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mPasswordHashed = passwordHashed; }
@@ -101,6 +103,7 @@ namespace model {
 
 			Poco::Nullable<Poco::Data::BLOB> mPublicKey;
 			Poco::Nullable<Poco::Data::BLOB> mPrivateKey;
+			Poco::Nullable<Poco::Data::BLOB> mEmailHash; // sodium generic hash (currently blake2b)
 			// created: Mysql DateTime
 			Poco::DateTime mCreated;
 

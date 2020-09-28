@@ -29,7 +29,7 @@ namespace controller {
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
-		std::string HederaAccount::toShortSelectOptionName();
+		std::string toShortSelectOptionName();
 
 		inline Poco::AutoPtr<model::table::HederaAccount> getModel() { return _getModel<model::table::HederaAccount>(); }
 		inline const model::table::HederaAccount* getModel() const { return _getModel<model::table::HederaAccount>(); }

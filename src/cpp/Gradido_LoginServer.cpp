@@ -198,6 +198,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
+		controller::User::addMissingEmailHashes();
 
 		// HTTP Interface Server
 		// set-up a server socket
