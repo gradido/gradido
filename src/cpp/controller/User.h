@@ -37,6 +37,9 @@ namespace controller {
 		// TODO: instead scheduling all, scheduling only for next day and run this function every day (own task for that)
 		static int checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer);
 
+		//! \brief go through whole db and search for user without email hash and set this in db
+		static int addMissingEmailHashes();
+
 		//! \brief try to find correct passphrase for this user from db
 		//! 
 		//! select entries from user_backups db table belonging to user
@@ -53,6 +56,7 @@ namespace controller {
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
 		int load(const unsigned char* pubkey_array);
+		int load(MemoryBin* emailHash);
 		Poco::JSON::Object getJson();
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }

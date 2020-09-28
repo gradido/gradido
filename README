@@ -21,16 +21,18 @@ cd ../../../
 
 
 cd dependencies/grpc
-mkdir _build 
-cd _build 
+mkdir build 
+cd build 
 cmake ..
 make 
 # under windows build at least release for protoc.exe and grpc c++ plugin
 cd ../../../
+./unix_parse_proto.sh
 
 # get more dependencies with conan (need conan from https://conan.io/)
 mkdir build && cd build
-conan remote add inexor https://api.bintray.com/conan/inexorgame/inexor-conan
+# // not used anymore
+# conan remote add inexor https://api.bintray.com/conan/inexorgame/inexor-conan
 # conan install .. -s build_type=Debug
 conan install ..
 

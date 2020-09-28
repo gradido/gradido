@@ -235,7 +235,6 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		mWorkingMutex.unlock();
 		return false;
 	}
-	
 	Session* session = it->second;
 
 
@@ -244,6 +243,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 	delete session;
 	mWorkingMutex.unlock();
 	return true;
+
 
 
 	// check if dead locked

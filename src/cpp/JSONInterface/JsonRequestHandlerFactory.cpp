@@ -15,6 +15,7 @@
 #include "JsonUpdateUserInfos.h"
 #include "JsonUnsecureLogin.h"
 #include "JsonLogout.h"
+#include "JsonSearch.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
@@ -63,6 +64,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/updateUserInfos") {
 		return new JsonUpdateUserInfos;
+	}
+	else if (url_first_part == "/search") {
+		return new JsonSearch;
 	}
 	else if (url_first_part == "/unsecureLogin" && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 		return new JsonUnsecureLogin(client_host);

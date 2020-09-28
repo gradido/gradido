@@ -75,7 +75,6 @@ void Gradido_LoginServer::handleOption(const std::string& name, const std::strin
 	}
 	ServerApplication::handleOption(name, value);
 	if (name == "help") _helpRequested = true;
-	
 }
 
 void Gradido_LoginServer::displayHelp()
@@ -105,7 +104,6 @@ void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::st
 
 int Gradido_LoginServer::main(const std::vector<std::string>& args)
 {
-	
 	Profiler usedTime;
 	if (_helpRequested)
 	{
@@ -147,16 +145,12 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// *************** load from config ********************************************
 
-		std::string cfg_Path = Poco::Path::config() + "grd_login/grd_login.properties";
-		if (mConfigPath != "") {
-			cfg_Path = mConfigPath;
-		}
-
+		std::string cfg_Path = Poco::Path::config() + "grd_login/";
 		try {
-			loadConfiguration(cfg_Path);
+			loadConfiguration(cfg_Path + "grd_login.properties");
 		}
 		catch (Poco::Exception& ex) {
-			errorLog.error("error loading config: %s from path: %s", ex.displayText(), cfg_Path);
+			errorLog.error("error loading config: %s", ex.displayText());
 		}
 
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
@@ -228,6 +222,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
+		controller::User::addMissingEmailHashes();
 
 		// HTTP Interface Server
 		// set-up a server socket
@@ -265,3 +260,4 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	return Application::EXIT_OK;
 }
 
+>>>>>>> 419965f (Add email_hash to user db, model::table::user and a json interface to search for publickey by email hash)
