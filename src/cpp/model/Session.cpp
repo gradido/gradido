@@ -817,7 +817,29 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	printf("before if login\n");
 	if (!mSessionUser.isNull() && mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
 		printf("before login\n");
-		int loginResult = mNewUser->login(password);
+		int loginResult = 0;
+		int exitCount = 0;
+		do {
+			loginResult = mNewUser->login(password);
+			Poco::Thread::sleep(100);
+			exitCount++;
+		} while (-3 == loginResult && exitCount < 15);
+		if (exitCount > 0) {
+			addError(new ParamError(functionName, "login succeed, retrys: ", exitCount));
+			addError(new ParamError(functionName, "email: ", email));
+			sendErrorsAsEmail();
+		}
+
+		if (exitCount >= 15) 
+		{
+			auto running_password_creations = observer->getTasksCount(TASK_OBSERVER_PASSWORD_CREATION);
+
+			addError(new ParamError(functionName, "login failed after 15 retrys and 100 ms sleep between, currently running passwort creation tasks: ", running_password_creations));
+			addError(new ParamError(functionName, "email: ", email));
+			sendErrorsAsEmail();
+			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
+		}
+		
 		printf("new user login with result: %d\n", loginResult);
 		
 		if (-1 == loginResult) {
