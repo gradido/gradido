@@ -798,10 +798,12 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	printf("after checking if session user is null\n");
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
+		printf("new user is null\n");
 		mNewUser = controller::User::create();
-
+		printf("new user created\n");
 		// load user for email only once from db
 		mNewUser->load(email);
+		printf("load new user from db with email: %s\n", email.data());
 		mSessionUser = new User(mNewUser);
 		//mSessionUser = new User(email.data());
 
