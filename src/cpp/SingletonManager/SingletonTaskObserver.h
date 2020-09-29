@@ -46,6 +46,7 @@ public:
 	int getTaskCount(const std::string& email, TaskObserverType type);
 	int getTaskCount(DHASH id, TaskObserverType type);
 	std::vector<int> getTasksCount(const std::string& email);
+	int getTasksCount(TaskObserverType type);
 
 	static const char* TaskObserverTypeToString(TaskObserverType type);
 	static TaskObserverType StringToTaskObserverType(const std::string& typeString);
