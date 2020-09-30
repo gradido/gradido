@@ -187,4 +187,11 @@
 		</div>
 	</div>
 </div>
+<p>&nbsp;</p>
+<div class="container">
+	<a href="https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing" target="_blank">Zum Whitepaper</a>
+	<br>
+	<br>
+	<a href="https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing" target="_blank">To the Whitepaper</a>
+</div>
 <%@ include file="footer.cpsp" %>

@@ -824,7 +824,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			Poco::Thread::sleep(100);
 			exitCount++;
 		} while (-3 == loginResult && exitCount < 15);
-		if (exitCount > 0) {
+		if (exitCount > 1) {
 			addError(new ParamError(functionName, "login succeed, retrys: ", exitCount));
 			addError(new ParamError(functionName, "email: ", email));
 			sendErrorsAsEmail();

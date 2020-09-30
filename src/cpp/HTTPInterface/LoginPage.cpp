@@ -326,6 +326,13 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</div>\n";
+	responseStream << "<p>&nbsp;</p>\n";
+	responseStream << "<div class=\"container\">\n";
+	responseStream << "\t<a href=\"https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing\" target=\"_blank\">Zum Whitepaper</a>\n";
+	responseStream << "\t<br>\n";
+	responseStream << "\t<br>\n";
+	responseStream << "\t<a href=\"https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing\" target=\"_blank\">To the Whitepaper</a>\n";
+	responseStream << "</div>\n";
 	// begin include footer.cpsp
 	responseStream << "            <div class=\"center-bottom\">\n";
 	responseStream << "                <p>Copyright © Gradido 2020</p>\n";
