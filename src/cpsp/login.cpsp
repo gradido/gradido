@@ -178,7 +178,7 @@
     <div class="center-form-bottom">
         <div class="signup-link">
 	      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
-	      <a href="<%= ServerConfig::g_serverPath %>/registerDirect">
+	      <a href="https://elopage.com/s/gradido/registration-de/payment?locale=de">
 			<%= langCatalog->gettext("Create New Account") %>
 		  </a>
 	    </div>

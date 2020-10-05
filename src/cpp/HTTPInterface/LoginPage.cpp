@@ -305,10 +305,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 #line 180 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") );
 	responseStream << "</p>\n";
-	responseStream << "\t      <a href=\"";
-#line 181 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\login.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/registerDirect\">\n";
+	responseStream << "\t      <a href=\"https://elopage.com/s/gradido/registration-de/payment?locale=de\">\n";
 	responseStream << "\t\t\t";
 #line 182 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Create New Account") );
