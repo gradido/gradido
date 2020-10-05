@@ -9,7 +9,7 @@
 
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/SessionManager.h"
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
 
 #include "Poco/JSON/Object.h"
@@ -39,29 +39,28 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
  
 	std::string pageName = "Gradidos mit Passphrase überweisen";	
 	PageState state = PAGE_STATE_INPUT;
-	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 	auto sm = SessionManager::getInstance();
 	auto mm = MemoryManager::getInstance();
 	std::string errorString ="";
 	
 	if(!form.empty()) {
 		auto passphrase = form.get("passphrase", "");
-		bool passphraseValid = User::validatePassphrase(passphrase, &wordSource);
+		auto passphrase_obj = Passphrase::create(passphrase, wordSource);
+		
 		bool keysGenerated = false;
-		KeyPair keys; 
-		if(!passphraseValid) 
-		{
+		KeyPairEd25519* keys = nullptr; 
+		if(!passphrase_obj.isNull()) {
 			addError(new Error("Passphrase", "Fehler beim validieren der Passphrase"));
 		}  
-		else 
-		{
-			keysGenerated = keys.generateFromPassphrase(passphrase.data(), wordSource);
-			if(!keysGenerated) 
+		else  {
+			keys = KeyPairEd25519::create(passphrase_obj);
+			if(!keys) 
 			{
 				addError(new Error("Passphrase", "Konnte keine Keys aus der Passphrase generieren"));
 			} 
 		}
-		if(passphraseValid && keysGenerated)
+		if(keys)
 		{
 			// create session only for transaction
 			int session_id = 0;
@@ -69,7 +68,7 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 			// create payload
 			Poco::JSON::Object requestJson;
 			Poco::JSON::Object pubkeys;
-			pubkeys.set("sender", keys.getPubkeyHex());
+			pubkeys.set("sender", keys->getPublicKeyHex());
 			pubkeys.set("receiver", form.get("recevier", ""));
 			requestJson.set("method", "moveTransaction");
 			requestJson.set("pubkeys", pubkeys);
@@ -145,6 +144,8 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 			if(session) {
 				sm->releaseSession(session);
 			}
+			delete keys;
+			keys = nullptr;
 		}
 	}
 	
@@ -217,39 +218,39 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	// end include header_old.cpsp
 	responseStream << "\n";
-#line 137 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 138 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  if("" == errorString) { 	responseStream << "\n";
 	responseStream << "\t";
-#line 138 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( errorString );
 	responseStream << "\n";
-#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 140 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 141 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  if(PAGE_STATE_INPUT == state) { 	responseStream << "\n";
 	responseStream << "\t\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t<form method=\"POST\">\n";
 	responseStream << "\t\t\t<p><label style=\"width:auto\" for=\"passphrase\">Sender Passphrase</label></p>\n";
 	responseStream << "\t\t\t<p><textarea style=\"width:100%;height:100px\" name=\"passphrase\">";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("passphrase", "") : "" );
 	responseStream << "</textarea></p>\n";
 	responseStream << "\t\t\t<p><label style=\"width:auto\" for=\"memo-text\">Verwendungszweck für Überweisung:</label></p>\n";
 	responseStream << "\t\t\t<p><textarea name=\"memo\" id=\"memo-text\" rows=\"4\">";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 150 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("memo-text", "") : "" );
 	responseStream << "</textarea></p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"recevier\">Empfänger Public Key Hex</label>\n";
 	responseStream << "\t\t\t\t<input id=\"recevier\" type=\"recevier\" recevier=\"email\" value=\"";
-#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("recevier") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
@@ -257,15 +258,15 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t";
-#line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 158 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } else if(PAGE_STATE_SUCCESS == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Gradidos wurden erfolgreich überwiesen.</p>\n";
 	responseStream << "\t\t<a href=\"";
-#line 159 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/passphrased_transaction\">Weitere Gradidos überweisen</a>\n";
 	responseStream << "\t";
-#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

@@ -11,6 +11,8 @@
 
 #include "controller/User.h"
 
+#include "Crypto/SecretKeyCryptography.h"
+
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/HTTPServer.h"
@@ -155,11 +157,13 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		}
 
 		// first check time for crypto 
-		auto testUser = new User("email@google.de", "Max", "Mustermann");
+		SecretKeyCryptography test_crypto;
 		Profiler timeUsed;
-		testUser->validatePwd("haz27Newpassword", nullptr);
+		if (test_crypto.createKey("email@google.de", "haz27Newpassword") != SecretKeyCryptography::AUTH_CREATE_ENCRYPTION_KEY_SUCCEED) {
+			errorLog.error("[Gradido_LoginServer::main] error create secure pwd hash");
+			return Application::EXIT_SOFTWARE;
+		}
 		ServerConfig::g_FakeLoginSleepTime = (int)std::round(timeUsed.millis());
-		delete testUser;
 
 		Poco::Int64 i1 = randombytes_random();
 		Poco::Int64 i2 = randombytes_random();

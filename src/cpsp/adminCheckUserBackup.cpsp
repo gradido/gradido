@@ -5,10 +5,11 @@
 <%@ page ctorArg="Session*" %>
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
+#include "../Crypto/Passphrase.h"
 #include "../SingletonManager/ConnectionManager.h"
 
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 
 #include "Poco/Data/Binding.h"
 using namespace Poco::Data::Keywords;
@@ -25,7 +26,7 @@ struct SListEntry
 <%%
 	const char* pageName = "Admin Check User Backups";
 	auto cm = ConnectionManager::getInstance();
-	KeyPair keys;
+	
 	std::list<SListEntry> notMatchingEntrys;
 	
 	auto con = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -44,21 +45,24 @@ struct SListEntry
 			if(pubkey.isNull()) {
 				continue;
 			}
-			auto passphrase = KeyPair::filterPassphrase(tuple.get<2>());
+			auto passphrase = Passphrase::filter(tuple.get<2>());
 			auto user_id = tuple.get<0>();
-			Mnemonic* wordSource = nullptr;
-			if(!User::validatePassphrase(passphrase, &wordSource)) {
+			KeyPairEd25519 key_pair(pubkey.value().content().data());
+			
+			auto wordSource = Passphrase::detectMnemonic(passphrase);
+			if(!wordSource) {
 				addError(new Error("admin Check user backup", "invalid passphrase"), false);
 				addError(new ParamError("admin Check user backup", "passphrase", passphrase.data()), false);
 				addError(new ParamError("admin Check user backup", "user id", user_id), false);
 				continue;
-			} else {
-				keys.generateFromPassphrase(passphrase.data(), wordSource);
-			}
+			} 
+			auto passphrase_object = Passphrase::create(passphrase, wordSource);
+			auto key_pair_from_passhrase = KeyPairEd25519::create(passphrase_object);
 			bool matching = false;
-			if(keys.isPubkeysTheSame(pubkey.value().content().data())) {
+			if(key_pair_from_passhrase->isTheSame(key_pair)) {
 				matching = true;
 			}
+			delete key_pair_from_passhrase;
 			if(user_id != last_user_id) {
 				last_user_id = user_id;
 				if(matching) continue;

@@ -36,9 +36,9 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 
 	const char* pageName = "Error";
 	response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-	Poco::AutoPtr<User> user;
+	Poco::AutoPtr<controller::User> user;
 	if(mSession) {
-		auto user = mSession->getUser();
+		auto user = mSession->getNewUser();
 	}
 	// begin include header_old.cpsp
 	responseStream << "\n";
@@ -111,7 +111,7 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
  if(mSession) { 	responseStream << "\n";
 	responseStream << "\t\t";
 #line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
-	responseStream << ( mSession->getErrorsHtml() );
+	responseStream << ( mSession->getErrorsHtmlNewFormat() );
 	responseStream << "\n";
 	responseStream << "\t";
 #line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
@@ -121,7 +121,7 @@ void Error500Page::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
  if(!user.isNull()) {	responseStream << "\n";
 	responseStream << "\t\t";
 #line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"
-	responseStream << ( user->getErrorsHtml() );
+	responseStream << ( user->getModel()->getErrorsHtmlNewFormat() );
 	responseStream << " \n";
 	responseStream << "\t";
 #line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\Error500.cpsp"

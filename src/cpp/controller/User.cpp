@@ -21,6 +21,7 @@ namespace controller {
 		: mPassword(nullptr), mGradidoKeyPair(nullptr), mCanDecryptPrivateKey(false), mGradidoCurrentBalance(0)
 	{
 		mDBModel = dbModel;
+		
 	}
 
 	User::~User()
@@ -39,9 +40,9 @@ namespace controller {
 		return Poco::AutoPtr<User>(user);
 	}
 
-	Poco::AutoPtr<User> User::create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
+	Poco::AutoPtr<User> User::create(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
 	{
-		auto db = new model::table::User(email, first_name, last_name, passwordHashed, languageKey);
+		auto db = new model::table::User(email, first_name, last_name, group_id, passwordHashed, languageKey);
 		auto user = new User(db);
 		return Poco::AutoPtr<User>(user);
 	}
@@ -325,6 +326,41 @@ namespace controller {
 			delete key_pair;
 		}
 		return -1;
+	}
+
+	/*
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_PASSWORD_ENCRYPTION_IN_PROCESS,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_NO_GROUP,
+	USER_KEYS_DONT_MATCH,
+	USER_COMPLETE,
+	USER_DISABLED
+	*/
+	UserState User::getUserState()
+	{
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		auto model = getModel();
+		if (!model->getID() && model->getEmail() == "") {
+			return USER_EMPTY;
+		}
+		if (!model->hasPrivateKeyEncrypted() && !model->hasPublicKey()) {
+			return USER_NO_KEYS;
+		}
+		if (!model->hasPrivateKeyEncrypted()) {
+			return USER_NO_PRIVATE_KEY;
+		}
+		if (!model->getGroupId()) {
+			return USER_NO_GROUP;
+		}
+		if (!model->isEmailChecked()) {
+			return USER_EMAIL_NOT_ACTIVATED;
+		}
+		return USER_COMPLETE;
 	}
 
 

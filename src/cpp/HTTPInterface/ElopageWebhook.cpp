@@ -320,7 +320,7 @@ int HandleElopageRequestTask::run()
 		mEmail = mRequestData.get("payer[email]", "");
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
-		auto newUser = controller::User::create(mEmail, mFirstName, mLastName);
+		auto newUser = controller::User::create(mEmail, mFirstName, mLastName, 0);
 
 		/* printf("LastName: %s\n", mLastName.data());
 		for (int i = 0; i < mLastName.size(); i++) {

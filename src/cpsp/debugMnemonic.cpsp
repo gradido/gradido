@@ -6,7 +6,7 @@
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
 #include "../ServerConfig.h"
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/Passphrase.h"
 
 	struct WordChecked {
 		WordChecked() : index(0), bSet(false) {};
@@ -48,7 +48,7 @@
 	{
 		if("" != form.get("check_word", "")) 
 		{
-			auto word = KeyPair::filterPassphrase(form.get("word", ""));
+			auto word = Passphrase::filter(form.get("word", ""));
 			if("" != word) {
 				checkedWord.bSet = true;
 				checkedWord.word = word;

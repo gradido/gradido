@@ -76,7 +76,7 @@ SecretKeyCryptography::ResultType SecretKeyCryptography::createKey(const std::st
 	assert(ServerConfig::g_ServerCryptoKey);
 	crypto_shorthash((unsigned char*)&mEncryptionKeyHash, *mEncryptionKey, crypto_box_SEEDBYTES, *ServerConfig::g_ServerCryptoKey);
 
-	return AUTH_ENCRYPT_OK;
+	return AUTH_CREATE_ENCRYPTION_KEY_SUCCEED;
 }
 
 SecretKeyCryptography::ResultType SecretKeyCryptography::encrypt(const MemoryBin* message, MemoryBin** encryptedMessage) const

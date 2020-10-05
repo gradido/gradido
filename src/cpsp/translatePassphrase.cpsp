@@ -5,7 +5,7 @@
 <%@ page form="true" %>
 <%@	page compressed="true" %>
 <%! 
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
 %>
 <%% 
@@ -29,16 +29,17 @@
 	{
 	
 	   inputPassphrase = form.get("inputPassphrase", "");
-	   auto localPassphrase = KeyPair::filterPassphrase(inputPassphrase);
+	   auto localPassphrase = Passphrase::filter(inputPassphrase);
 	   
 	   auto btnGenerate = form.get("btnGenerate", "");
 	   if("" != btnGenerate) {
-			mSession->generatePassphrase();
-			localPassphrase = mSession->getOldPassphrase();
+			auto passphrase_gen = Passphrase::generate(wordSource);
+			
+			localPassphrase = passphrase_gen->getString();
 			inputPassphrase = localPassphrase;
 	   }
-	   
-	   if(localPassphrase != "" && !User::validatePassphrase(localPassphrase, &wordSource)) {
+	   auto passphrase_object = Passphrase::create(localPassphrase, wordSource);
+	   if(localPassphrase != "" && passphrase_object.isNull() || !passphrase_object->checkIfValid()) {
 			addError(new Error(
 				gettext("Fehler"), 
 				gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")
@@ -49,7 +50,8 @@
 			} else {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 			}
-			passphrase = KeyPair::passphraseTransform(localPassphrase, wordSource, targetSource);
+			auto transformed_passphrase_obj = passphrase_object->transform(targetSource);
+			passphrase = transformed_passphrase_obj->getString();
 	   }
 	   
 	   

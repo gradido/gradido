@@ -2,7 +2,6 @@
 #define GRADIDO_LOGIN_SERVER_CONTROLLER_USER_BACKUPS_INCLUDE
 
 #include "../model/table/UserBackup.h"
-#include "../Crypto/KeyPair.h"
 #include "../Crypto/KeyPairEd25519.h"
 
 #include "Poco/SharedPtr.h"
@@ -26,7 +25,7 @@ namespace controller {
 
 		//! depracted
 		//! \return create keyPair from passphrase if not exist, else return existing pointer
-		Poco::SharedPtr<KeyPair> getKeyPair();
+		Poco::SharedPtr<KeyPairEd25519> getKeyPair();
 
 		//! \return newly created key pair from passphrase or nullptr if not possible, caller becomes owner of pointer
 		KeyPairEd25519* createGradidoKeyPair();
@@ -38,7 +37,7 @@ namespace controller {
 
 	protected:
 		UserBackup(model::table::UserBackup* dbModel);
-		Poco::SharedPtr<KeyPair> mKeyPair;
+		Poco::SharedPtr<KeyPairEd25519> mKeyPair;
 		
 	};
 }

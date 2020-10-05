@@ -1,0 +1,62 @@
+<%@ page class="UserUpdateGroupPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@	page compressed="true" %>
+<%!
+
+#include "../controller/Group.h"
+#include "../SingletonManager/SessionManager.h"
+
+enum PageState {
+	PAGE_STATE_OVERVIEW,
+	PAGE_STATE_REQUEST_IS_RUNNING
+};
+
+%>
+<%%
+	const char* pageName = gettext("Gruppe wählen");
+	auto user = mSession->getNewUser();
+	auto sm = SessionManager::getInstance();
+	PageState state = PAGE_STATE_OVERVIEW;
+
+	if(!form.empty()) {
+	}
+		
+	auto groups = controller::Group::listAll();
+	
+	
+%><%@ include file="header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="content-list">
+	<% if(PAGE_STATE_OVERVIEW == state ) { %>
+    <div class="content-list-title">
+        <h1><%= gettext("Gruppe wählen") %></h1>
+    </div>
+	<p><%= gettext("Bitte wähle die Gruppe/Gemeinschaft aus, zu der du gehörst.") %></p>
+	<p><%= gettext("Du bekommst eine Bestätigungsmail, nachdem dein Beitritt bestätigt wurde.") %></p>
+	<form method="POST">
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c1"><%= gettext("Auswahl") %></div>
+				<div class="cell header-cell c2">Name</div>
+				<div class="cell header-cell c2">Alias</div>
+				<div class="cell header-cell c3">Url</div>
+				<div class="cell header-cell c5"><%= gettext("Description") %></div>
+			</div>
+			<% for(auto it = groups.begin(); it != groups.end(); it++) {
+					auto group_model = (*it)->getModel(); %>
+				<div class="row">
+					<div class="cell c1"><input type="radio" class="form-control" name="group_id" value="<%= group_model->getID()%>" /></div>
+					<div class="cell c2"><%= group_model->getName() %></div>
+					<div class="cell c2"><%= group_model->getAlias() %></div>
+					<div class="cell c3"><%= group_model->getUrl() %></div>
+					<div class="cell c5"><%= group_model->getDescription()%></div>
+				</div>
+			<% } %>
+			<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="<%= gettext("Beitrittsanfrage senden") %>"/>
+		</div>
+	</form>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>
