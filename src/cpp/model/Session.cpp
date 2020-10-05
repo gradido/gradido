@@ -188,7 +188,7 @@ Poco::AutoPtr<controller::EmailVerificationCode> Session::getEmailVerificationCo
 	return ret;
 }
 
-bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email)
+bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id)
 {
 	Profiler usedTime;
 
@@ -218,7 +218,7 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 		return false;
 	}
 
-	auto newUser = controller::User::create(email, first_name, last_name);
+	auto newUser = controller::User::create(email, first_name, last_name, group_id);
 	updateTimeout();
 
 
@@ -363,7 +363,8 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	return true;
 }
 
-bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
+
+bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, int groupId)
 {
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	static const char* function_name = "Session::createUserDirect";
@@ -395,7 +396,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	}
 
 	// user
-	mNewUser = controller::User::create(email, first_name, last_name);
+	mNewUser = controller::User::create(email, first_name, last_name, groupId);
 	auto user_model = mNewUser->getModel();
 	user_model->insertIntoDB(true);
 	auto user_id = user_model->getID();
@@ -620,7 +621,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	return 0;
 }
 
-int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, Mnemonic* wordSource)
+int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, const Mnemonic* wordSource)
 {
 	KeyPair keys;
 	static const char* functionName = "Session::comparePassphraseWithSavedKeys";
@@ -629,7 +630,9 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 		sendErrorsAsEmail();
 		return -2;
 	}
-	if (!keys.generateFromPassphrase(inputPassphrase.data(), wordSource)) {
+	auto passphrase = Passphrase::create(inputPassphrase, wordSource);
+	// if (!keys.generateFromPassphrase(inputPassphrase.data(), wordSource)) {
+	if (passphrase.isNull() || !passphrase->checkIfValid()) {
 		addError(new ParamError(functionName, "invalid passphrase", inputPassphrase));
 		if (!mNewUser.isNull() && mNewUser->getModel()) {
 			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
@@ -651,9 +654,15 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 			return -1;
 		}
 	}
-	if (0 == memcmp(userModel->getPublicKey(), keys.getPublicKey(), crypto_sign_PUBLICKEYBYTES)) {
-		mPassphrase = inputPassphrase;
-		return 1;
+	auto keys = KeyPairEd25519::create(passphrase);
+	if (keys) {
+		auto cmp_result = memcmp(userModel->getPublicKey(), keys->getPublicKey(), crypto_sign_PUBLICKEYBYTES);
+		delete keys;
+		keys = nullptr;
+		if (0 == cmp_result) {
+			mPassphrase = inputPassphrase;
+			return 1;
+		}
 	}
 	addError(new Error(gettext("Passphrase"), gettext("Das ist nicht die richtige Passphrase.")), false);
 	return 0;
@@ -674,11 +683,6 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			unlock();
 			return false;
 		}
-	}
-	if (mSessionUser.isNull() || !mSessionUser->getEmail()) {
-		addError(new Error(funcName, "user is zero"));
-		unlock();
-		return false;
 	}
 
 	Poco::AutoPtr<ProcessingTransaction> processorTask(
@@ -789,15 +793,7 @@ size_t Session::getProcessingTransactionCount()
 	return count; 
 }
 
-bool Session::isPwdValid(const std::string& pwd)
-{
-	if (mSessionUser) {
-		return mSessionUser->validatePwd(pwd, this);
-	}
-	return false;
-}
-
-UserStates Session::loadUser(const std::string& email, const std::string& password)
+UserState Session::loadUser(const std::string& email, const std::string& password)
 {
 	static const char* functionName = "Session::loadUser";
 	auto observer = SingletonTaskObserver::getInstance();
@@ -808,14 +804,9 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	}
 	//Profiler usedTime;
 	//printf("before lock\n");
-	lock(functionName);
-	//printf("locked \n");
-	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
-		mSessionUser.assign(nullptr);
-		mNewUser.assign(nullptr);
-		//printf("user nullptr assigned\n");
-	}
-	//printf("after checking if session user is null\n");
+	//lock(functionName);
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
 		//printf("new user is null\n");
@@ -831,50 +822,55 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	}
 	//printf("before get model\n");
 	auto user_model = mNewUser->getModel();
-	if (user_model && user_model->isDisabled()) {
+	if (user_model && user_model->isDisabled()) {		
 		return USER_DISABLED;
 	}
-	//printf("before if login\n");
-	if (!mSessionUser.isNull() && mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
-		//printf("before login\n");
-		int loginResult = 0;
+
+	if (mNewUser->getUserState() >= USER_LOADED_FROM_DB) {
+		
+		int loginResult = mNewUser->login(password);
 		int exitCount = 0;
-		do {
-			loginResult = mNewUser->login(password);
-			Poco::Thread::sleep(100);
-			exitCount++;
-		} while (-3 == loginResult && exitCount < 15);
-		if (exitCount > 1) {
-			addError(new ParamError(functionName, "login succeed, retrys: ", exitCount));
-			addError(new ParamError(functionName, "email: ", email));
-			sendErrorsAsEmail();
-		}
-
-		if (exitCount >= 15) 
+		if (loginResult == -3) 
 		{
-			auto running_password_creations = observer->getTasksCount(TASK_OBSERVER_PASSWORD_CREATION);
+			do 
+			{
+				Poco::Thread::sleep(100);
+				loginResult = mNewUser->login(password);
+				exitCount++;
+			} while (-3 == loginResult && exitCount < 15);
+			if (exitCount > 1)
+			{
+				addError(new ParamError(functionName, "login succeed, retrys: ", exitCount));
+				addError(new ParamError(functionName, "email: ", email));
+				sendErrorsAsEmail();
+			}
 
-			addError(new ParamError(functionName, "login failed after 15 retrys and 100 ms sleep between, currently running passwort creation tasks: ", running_password_creations));
-			addError(new ParamError(functionName, "email: ", email));
-			sendErrorsAsEmail();
-			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
+			if (exitCount >= 15)
+			{
+				auto running_password_creations = observer->getTasksCount(TASK_OBSERVER_PASSWORD_CREATION);
+
+				addError(new ParamError(functionName, "login failed after 15 retrys and 100 ms sleep between, currently running passwort creation tasks: ", running_password_creations));
+				addError(new ParamError(functionName, "email: ", email));
+				sendErrorsAsEmail();
+				return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
+			}
 		}
 		
-		//printf("new user login with result: %d\n", loginResult);
-		
-		if (-1 == loginResult) {
+		if (-1 == loginResult)
+		{
 			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
 			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
 			sendErrorsAsEmail();
 			//unlock();
 			//return USER_KEYS_DONT_MATCH;
 		}
-		if (0 == loginResult) {
-			unlock();
+		if (0 == loginResult) 
+		{
 			return USER_PASSWORD_INCORRECT;
 		}
 		// error decrypting private key
-		if (-2 == loginResult) {
+		if (-2 == loginResult)
+		{
 			// check if we have access to the passphrase, if so we can reencrypt the private key
 			printf("try reencrypting key\n");
 			auto user_model = mNewUser->getModel();
@@ -899,45 +895,29 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 				}
 			}
 		}
-		// can be removed if session user isn't used any more
-		// don't calculate password two times anymore
-		mSessionUser->login(mNewUser);
-		//printf("after old user login\n");
-		/*if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
-			unlock();
-			return USER_PASSWORD_INCORRECT;
-		}*/
+		
 	}
 	else {
-		//printf("before sleep\n");
-		User::fakeCreateCryptoKey();
+		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 	}
 
-	/*if (!mSessionUser->validatePwd(password, this)) {
-		addError(new Error("Login", "E-Mail oder Passwort nicht korrekt, bitte versuche es erneut!"));
-		unlock();
-		return false;
-	}
-	if (!mSessionUser->isEmailChecked()) {
-		addError(new Error("Account", "E-Mail Adresse wurde noch nicht best&auml;tigt, hast du schon eine E-Mail erhalten?"));
-		unlock();
-		return false;
-	}*/
-	//printf("before detect session state\n");
 	detectSessionState();
-	unlock();
-	//printf("before return user state\n");
-	return mSessionUser->getUserState();
+	if (0 == mNewUser->getModel()->getGroupId()) {
+		return USER_NO_GROUP;
+	}
+
+	return mNewUser->getUserState();
 }
 
 bool Session::deleteUser()
 {
 	lock("Session::deleteUser");
 	bool bResult = false;
-	if(mSessionUser) {
+	if(!mNewUser.isNull()) {
 		JsonRequest phpServerRequest(ServerConfig::g_php_serverHost, 443);
 		Poco::Net::NameValueCollection payload;
-		payload.add("user", std::string(mSessionUser->getPublicKeyHex()));
+		auto user_model = mNewUser->getModel();
+		payload.add("user", user_model->getPublicKeyHex());
 		//auto ret = phpServerRequest.request("userDelete", payload);
 		JsonRequestReturn ret = JSON_REQUEST_RETURN_OK;
 		if (ret == JSON_REQUEST_RETURN_ERROR) {
@@ -946,7 +926,7 @@ bool Session::deleteUser()
 			sendErrorsAsEmail();
 		}
 		else if (ret == JSON_REQUEST_RETURN_OK) {
-			bResult = mSessionUser->deleteFromDB();
+			bResult = user_model->deleteFromDB();
 		}
 		else {
 			addError(new Error(gettext("Benutzer"), gettext("Konnte Community Server nicht erreichen. E-Mail an den Admin ist raus.")));
@@ -999,14 +979,15 @@ SESSION_STATE_COUNT
 */
 void Session::detectSessionState()
 {
-	if (mSessionUser.isNull() || !mSessionUser->hasCryptoKey()) {
+
+	if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getPassword().isNull()) {
 		return;
 	}
-	UserStates userState = mSessionUser->getUserState();
+	UserState userState = mNewUser->getUserState();
 
 	int checkEmail = -1, resetPasswd = -1;
 	try {
-		auto emailVerificationCodeObjects = controller::EmailVerificationCode::load(mSessionUser->getDBId());
+		auto emailVerificationCodeObjects = controller::EmailVerificationCode::load(mNewUser->getModel()->getID());
 
 		for (int i = 0; i < emailVerificationCodeObjects.size(); i++) {
 			auto type = emailVerificationCodeObjects[i]->getModel()->getType();
@@ -1044,7 +1025,7 @@ void Session::detectSessionState()
 
 	if (USER_NO_KEYS == userState) {
 		
-		auto user_id = mSessionUser->getDBId();
+		auto user_id = mNewUser->getModel()->getID();
 		auto userBackups = controller::UserBackup::load(user_id);
 
 		// check passphrase, only possible while passphrase isn't crypted in db
@@ -1052,15 +1033,20 @@ void Session::detectSessionState()
 		// always trigger SESSION_STATE_PASSPHRASE_WRITTEN, else lost of data possible
 		bool cryptedPassphrase = userBackups.size() > 0;
 		for (auto it = userBackups.begin(); it != userBackups.end(); it++) {
-			KeyPair keys;
 			auto passphrase = (*it)->getModel()->getPassphrase();
 			Mnemonic* wordSource = nullptr;
-			if (User::validatePassphrase(passphrase, &wordSource)) {
-				if (keys.generateFromPassphrase((*it)->getModel()->getPassphrase().data(), wordSource)) {
-					if (sodium_memcmp(mSessionUser->getPublicKey(), keys.getPublicKey(), ed25519_pubkey_SIZE) == 0) {
-						correctPassphraseFound = true;
-						break;
-					}
+			auto passphrase_obj = Passphrase::create(passphrase, wordSource);
+			if (!passphrase_obj.isNull() && passphrase_obj->checkIfValid()) {
+				auto key_pair = KeyPairEd25519::create(passphrase_obj);
+				if (key_pair && key_pair->isTheSame(mNewUser->getModel()->getPublicKey())) {
+					correctPassphraseFound = true;
+					//break;
+				}
+				if (key_pair) {
+					delete key_pair;
+				}
+				if (correctPassphraseFound) {
+					break;
 				}
 			}
 			else {
@@ -1143,8 +1129,7 @@ bool Session::loadFromEmailVerificationCode(Poco::UInt64 emailVerificationCode)
 		addError(new Error(gettext("E-Mail Verification"), gettext("Fehler beim laden des Benutzers.")));
 		return false;
 	}
-	mSessionUser = new User(mNewUser);
-	mSessionUser->setLanguage(getLanguage());
+	// TODO: Maybe update language key by user, is session has another, or update only with options-menu
 
 	auto verificationType = mEmailVerificationCodeObject->getModel()->getType();
 	if (verificationType == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
@@ -1222,21 +1207,7 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 	}
 }
 */
-bool Session::generatePassphrase()
-{
-	if (mNewUser.isNull()) return false;
-	
-	auto lang = getLanguage();
-	if (lang == LANG_EN) {
-		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
-	}
-	else {
-		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
-	}
-	//mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
-	updateState(SESSION_STATE_PASSPHRASE_GENERATED);
-	return true;
-}
+
 
 bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 {

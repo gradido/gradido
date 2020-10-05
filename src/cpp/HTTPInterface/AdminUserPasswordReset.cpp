@@ -73,7 +73,7 @@ void AdminUserPasswordReset::handleRequest(Poco::Net::HTTPServerRequest& request
 		auto userPubkey = user->getModel()->getPublicKey();
 		for(auto it = backups.begin(); it != backups.end(); it++) {
 			auto keys = (*it)->getKeyPair();
-			if(keys->isPubkeysTheSame(userPubkey)) {
+			if(keys->isTheSame(userPubkey)) {
 				userBackup = *it;
 				break;
 			}

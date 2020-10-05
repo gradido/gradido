@@ -13,7 +13,7 @@
 
 #include "TransactionBase.h"
 #include "../proto/gradido/GradidoCreation.pb.h"
-#include "User.h"
+#include "../controller/User.h"
 
 class TransactionCreation : public TransactionBase
 {
@@ -23,7 +23,7 @@ public:
 
 	int prepare();
 
-	inline User* getUser() { return mReceiverUser; }
+	inline Poco::AutoPtr<controller::User> getUser() { return mReceiverUser; }
 	inline google::protobuf::int64 getAmount() { return mProtoCreation.receiver().amount(); }
 	inline char* getPublicHex() { return mReceiverPublicHex; }
 
@@ -33,7 +33,7 @@ public:
 protected:
 	const proto::gradido::GradidoCreation& mProtoCreation;
 	char mReceiverPublicHex[65];
-	User* mReceiverUser;
+	Poco::AutoPtr<controller::User> mReceiverUser;
 };
 
 #endif //GRADIDO_LOGIN_SERVER_MODEL_TRANSACTION_CREATION_INCLUDE

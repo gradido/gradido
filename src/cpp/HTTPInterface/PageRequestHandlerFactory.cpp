@@ -7,7 +7,7 @@
 
 #include "ConfigPage.h"
 #include "LoginPage.h"
-#include "RegisterPage.h"
+//#include "RegisterPage.h"
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
 #include "CheckEmailPage.h"
@@ -16,6 +16,7 @@
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
 #include "UpdateUserPasswordPage.h"
+#include "UserUpdateGroupPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
 #include "ResetPassword.h"
@@ -154,13 +155,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			s->setLastReferer(externReferer);
 		}
 		model::table::User* userModel = nullptr;
-		auto user = s->getUser();
 		auto newUser = s->getNewUser();
 		if (newUser) userModel = newUser->getModel();
-		if (s->errorCount() || (!user.isNull() && user->errorCount()) || (userModel && userModel->errorCount())) {
-			if (!user.isNull() && user->errorCount()) {
-				s->getErrors(user);
-			}
+		if (s->errorCount() || (userModel && userModel->errorCount())) {
 			if (userModel && userModel->errorCount()) {
 				s->getErrors(userModel);
 			}
@@ -174,6 +171,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			pageRequestHandler->setProfiler(timeUsed);
 			return pageRequestHandler;
 		}
+		if (url_first_part == "/userUpdateGroup") {
+			auto pageRequestHandler = new UserUpdateGroupPage(s);
+			pageRequestHandler->setProfiler(timeUsed);
+			return pageRequestHandler;
+		}
+
 		if (url_first_part == "/transform_passphrase") {
 			auto pageRequestHandler = new TranslatePassphrase(s);
 			pageRequestHandler->setProfiler(timeUsed);

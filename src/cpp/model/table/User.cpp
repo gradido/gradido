@@ -17,8 +17,8 @@ namespace model {
 		{
 		}
 
-		User::User(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
-			: mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mDisabled(false), mRole(ROLE_NOT_LOADED)
+		User::User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
+			: mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mDisabled(false), mGroupId(group_id), mRole(ROLE_NOT_LOADED)
 		{
 			setEmail(email);
 
@@ -27,7 +27,7 @@ namespace model {
 		User::User(UserTuple tuple)
 			: ModelBase(tuple.get<0>()), 
 			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), 
-			mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()), mDisabled(tuple.get<7>()),
+			mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()), mDisabled(tuple.get<7>()), mGroupId(tuple.get<8>()),
 			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
@@ -80,12 +80,12 @@ namespace model {
 
 		
 			if (mPasswordHashed) {
-				insert << "INSERT INTO users (email, first_name, last_name, password, email_hash, language) VALUES(?,?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey);
+				insert << "INSERT INTO users (email, first_name, last_name, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 			else {
-				insert << "INSERT INTO users (email, first_name, last_name, email_hash, language) VALUES(?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), use(mEmailHash), use(mLanguageKey);
+				insert << "INSERT INTO users (email, first_name, last_name, email_hash, language, group_id) VALUES(?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 
 			return insert;
@@ -98,13 +98,13 @@ namespace model {
 				_fieldName = getTableName() + std::string(".id");
 			}
 			Poco::Data::Statement select(session);
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
 				   << " WHERE " << _fieldName << " = ?" ,
 				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed),
 				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked), 
-				into(mLanguageKey), into(mDisabled), into(mRole);
+				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mRole);
 
 
 			return select;
@@ -114,7 +114,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 
@@ -130,7 +130,7 @@ namespace model {
 			}
 
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
 				<< " where " << fieldNames[0] << " LIKE ?";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -311,6 +311,7 @@ namespace model {
 			ss << "email checked: " << mEmailChecked << std::endl;
 			ss << "language key: " << mLanguageKey << std::endl;
 			ss << "disabled: " << mDisabled << std::endl;
+			ss << "group id: " << std::to_string(mGroupId) << std::endl;
 
 			mm->releaseMemory(pubkeyHex);
 			mm->releaseMemory(privkeyHex);
@@ -346,6 +347,7 @@ namespace model {
 			ss << "language key: " << mLanguageKey << "<br>";
 			ss << "role: " << UserRole::typeToString(getRole()) << "<br>";
 			ss << "disabled: " << mDisabled << "<br>";
+			ss << "group_id: " << std::to_string(mGroupId) << std::endl;
 
 			mm->releaseMemory(pubkeyHex);
 			mm->releaseMemory(email_hash);
@@ -367,6 +369,25 @@ namespace model {
 			std::string pubkeyHexString((const char*)pubkeyHex->data(), pubkeyHex->size()-1);
 			mm->releaseMemory(pubkeyHex);
 			return pubkeyHexString;
+		}
+
+		std::string User::getPrivateKeyEncryptedHex() const
+		{
+			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			auto mm = MemoryManager::getInstance();
+			std::string privkeyHexString;
+
+			if (!mPrivateKey.isNull()) {
+				auto priv_key_size = mPrivateKey.value().content().size();
+				auto privkeyHex = mm->getFreeMemory(priv_key_size+1);
+
+				memset(*privkeyHex, 0, priv_key_size+1);
+				sodium_bin2hex(*privkeyHex, 65, mPrivateKey.value().content().data(), priv_key_size);
+				privkeyHexString = std::string((const char*)privkeyHex->data(), privkeyHex->size() - 1);
+				mm->releaseMemory(privkeyHex);
+			}
+			
+			return privkeyHexString;
 		}
 
 

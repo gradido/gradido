@@ -48,17 +48,12 @@ namespace controller {
 
 	}
 
-	Poco::SharedPtr<KeyPair> UserBackup::getKeyPair()
+	Poco::SharedPtr<KeyPairEd25519> UserBackup::getKeyPair()
 	{
 		if (!mKeyPair.isNull()) {
 			return mKeyPair;
 		}
-		mKeyPair = new KeyPair;
-		auto model = getModel();
-		auto passphrase = model->getPassphrase();
-		
-		mKeyPair->generateFromPassphrase(passphrase);
-		return mKeyPair;
+		mKeyPair = createGradidoKeyPair();
 	}
 
 	KeyPairEd25519* UserBackup::createGradidoKeyPair()
@@ -77,17 +72,17 @@ namespace controller {
 			return "<invalid type>";
 		}
 		auto passphrase = getModel()->getPassphrase();
-		Mnemonic* wordSource = nullptr;
-		if (KeyPair::validatePassphrase(passphrase, &wordSource)) {
-			for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
-				Mnemonic* m = &ServerConfig::g_Mnemonic_WordLists[i];
-				if (m == wordSource) {
-					if (type == i) {
-						return passphrase;
-					}
-					else {
-						return KeyPair::passphraseTransform(passphrase, m, &ServerConfig::g_Mnemonic_WordLists[type]);
-					}
+		auto wordSource = Passphrase::detectMnemonic(passphrase);
+		for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
+			Mnemonic* m = &ServerConfig::g_Mnemonic_WordLists[i];
+			if (m == wordSource) {
+				if (type == i) {
+					return passphrase;
+				}
+				else {
+					//return KeyPair::passphraseTransform(passphrase, m, &ServerConfig::g_Mnemonic_WordLists[type]);
+					auto passphrase_obj = Passphrase::create(passphrase, wordSource);
+					return passphrase_obj->transform(&ServerConfig::g_Mnemonic_WordLists[type])->getString();
 				}
 			}
 		}

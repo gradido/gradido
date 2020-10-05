@@ -192,8 +192,10 @@ enum PageState {
 					<span class="content-cell"><%= gettext("Gradido") %></span>
 				  </div>
 				  <div class="content-row content-row-bg">
-					<% if(transactionUser) { %>
-						<span class="content-cell"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
+					<% if(!transactionUser.isNull()) { 
+						auto user_model = transactionUser->getModel();
+						%>
+						<span class="content-cell"><%= user_model->getFirstName() %> <%= user_model->getLastName() %> &lt;<%= user_model->getEmail() %>&gt;</span>
 					<% } else { %>
 						<span class="content-cell">0x<%= creationTransaction->getPublicHex() %></span>
 					<% } %>

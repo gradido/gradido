@@ -6,7 +6,7 @@
 <%!
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/SessionManager.h"
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
 
 #include "Poco/JSON/Object.h"
@@ -23,29 +23,28 @@ enum PageState {
 <%% 
 	std::string pageName = "Gradidos mit Passphrase überweisen";	
 	PageState state = PAGE_STATE_INPUT;
-	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER];
+	Mnemonic* wordSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES];
 	auto sm = SessionManager::getInstance();
 	auto mm = MemoryManager::getInstance();
 	std::string errorString ="";
 	
 	if(!form.empty()) {
 		auto passphrase = form.get("passphrase", "");
-		bool passphraseValid = User::validatePassphrase(passphrase, &wordSource);
+		auto passphrase_obj = Passphrase::create(passphrase, wordSource);
+		
 		bool keysGenerated = false;
-		KeyPair keys; 
-		if(!passphraseValid) 
-		{
+		KeyPairEd25519* keys = nullptr; 
+		if(!passphrase_obj.isNull()) {
 			addError(new Error("Passphrase", "Fehler beim validieren der Passphrase"));
 		}  
-		else 
-		{
-			keysGenerated = keys.generateFromPassphrase(passphrase.data(), wordSource);
-			if(!keysGenerated) 
+		else  {
+			keys = KeyPairEd25519::create(passphrase_obj);
+			if(!keys) 
 			{
 				addError(new Error("Passphrase", "Konnte keine Keys aus der Passphrase generieren"));
 			} 
 		}
-		if(passphraseValid && keysGenerated)
+		if(keys)
 		{
 			// create session only for transaction
 			int session_id = 0;
@@ -53,7 +52,7 @@ enum PageState {
 			// create payload
 			Poco::JSON::Object requestJson;
 			Poco::JSON::Object pubkeys;
-			pubkeys.set("sender", keys.getPubkeyHex());
+			pubkeys.set("sender", keys->getPublicKeyHex());
 			pubkeys.set("receiver", form.get("recevier", ""));
 			requestJson.set("method", "moveTransaction");
 			requestJson.set("pubkeys", pubkeys);
@@ -129,6 +128,8 @@ enum PageState {
 			if(session) {
 				sm->releaseSession(session);
 			}
+			delete keys;
+			keys = nullptr;
 		}
 	}
 	

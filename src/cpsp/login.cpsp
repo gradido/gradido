@@ -70,10 +70,13 @@
 				auto client_host_string = request.get("X-Real-IP", client_host.toString());				
 				std::string clientIpString = "client ip: ";
 				client_host = Poco::Net::IPAddress(client_host_string);
-				clientIpString += client_host_string;
+				clientIpString += client_ip.toString();
+				// clientIpString += client_host_string;
 				Poco::Logger::get("requestLog").information(clientIpString);
 				// debugging end
-				mSession->setClientIp(client_host);
+				auto user_host = request.clientAddress().host();
+				mSession->setClientIp(user_host);
+				// mSession->setClientIp(client_host);
 				response.addCookie(mSession->getLoginCookie());
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
@@ -129,6 +132,9 @@
 				}
 				sm->deleteLoginCookies(request, response);
 				break;
+			case USER_NO_GROUP: 
+				response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
+				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
 			case USER_EMAIL_NOT_ACTIVATED:

@@ -5,7 +5,6 @@
 
 #include "../lib/NotificationList.h"
 #include "../model/TransactionBase.h"
-#include "../model/User.h"
 #include "../controller/User.h"
 
 #include "../proto/gradido/GradidoTransaction.pb.h"

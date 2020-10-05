@@ -5,11 +5,11 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 7 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 1 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 
 #include "../ServerConfig.h"
 
@@ -28,7 +28,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 11 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  
 	chooseLanguage(request);
 	// variable needed for flags
@@ -50,16 +50,17 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	{
 	
 	   inputPassphrase = form.get("inputPassphrase", "");
-	   auto localPassphrase = KeyPair::filterPassphrase(inputPassphrase);
+	   auto localPassphrase = Passphrase::filter(inputPassphrase);
 	   
 	   auto btnGenerate = form.get("btnGenerate", "");
 	   if("" != btnGenerate) {
-			mSession->generatePassphrase();
-			localPassphrase = mSession->getOldPassphrase();
+			auto passphrase_gen = Passphrase::generate(wordSource);
+			
+			localPassphrase = passphrase_gen->getString();
 			inputPassphrase = localPassphrase;
 	   }
-	   
-	   if(localPassphrase != "" && !User::validatePassphrase(localPassphrase, &wordSource)) {
+	   auto passphrase_object = Passphrase::create(localPassphrase, wordSource);
+	   if(localPassphrase != "" && passphrase_object.isNull() || !passphrase_object->checkIfValid()) {
 			addError(new Error(
 				gettext("Fehler"), 
 				gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")
@@ -70,12 +71,13 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 			} else {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 			}
-			passphrase = KeyPair::passphraseTransform(localPassphrase, wordSource, targetSource);
+			auto transformed_passphrase_obj = passphrase_object->transform(targetSource);
+			passphrase = transformed_passphrase_obj->getString();
 	   }
 	   
 	   
 	}
-#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 3 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 
 	bool withMaterialIcons = false;
 	std::ostream& _responseStream = response.send();
@@ -91,20 +93,20 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 11 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 12 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/main.css\">\n";
-#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 13 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
  if(withMaterialIcons) { 	responseStream << "\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 14 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/materialdesignicons.min.css\">\n";
-#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 15 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
@@ -112,20 +114,20 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "        <div class=\"center-form-single\">\n";
 	responseStream << "            <div class=\"center-form-header\">\n";
 	responseStream << "                <a href=\"";
-#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 21 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"center-logo\">\n";
 	responseStream << "                    <picture>\n";
 	responseStream << "                        <source srcset=\"";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 23 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.webp\" type=\"image/webp\">\n";
 	responseStream << "                        <source srcset=\"";
-#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 24 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" type=\"image/png\">\n";
 	responseStream << "                        <img src=\"";
-#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 25 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" alt=\"logo\" />\n";
 	responseStream << "                    </picture>\n";
@@ -137,20 +139,20 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "      <div class=\"row\">\n";
 	responseStream << "        <div class=\"col-12 logo-section\">\n";
 	responseStream << "          <a href=\"";
-#line 5 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login_header.cpsp"
+#line 5 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\login_header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"logo\">\n";
 	responseStream << "            <picture>\n";
 	responseStream << "\t\t\t\t<source srcset=\"";
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login_header.cpsp"
+#line 7 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\login_header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.webp\" type=\"image/webp\">\n";
 	responseStream << "\t\t\t\t<source srcset=\"";
-#line 8 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login_header.cpsp"
+#line 8 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\login_header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" type=\"image/png\"> \n";
 	responseStream << "\t\t\t\t<img src=\"";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login_header.cpsp"
+#line 9 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\login_header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" alt=\"logo\" />\n";
 	responseStream << "\t\t\t</picture>\n";
@@ -162,7 +164,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "          <div class=\"grid\">\n";
 	responseStream << "            <div class=\"center-ul-container\">\n";
 	responseStream << "              ";
-#line 18 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login_header.cpsp"
+#line 18 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\login_header.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "            </div>\n";
@@ -172,22 +174,22 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "<div class=\"center-form-selectors\">\n";
 	responseStream << "<form method=\"GET\" action=\"\">\n";
 	responseStream << "\t<button id=\"flag-england\" name=\"lang\" value=\"en\" title=\"English\" type=\"submit\" ";
-#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 3 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  if(lang != LANG_EN) { 	responseStream << "class=\"flag-btn\"";
-#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 3 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  }
 	else { 	responseStream << "class=\"flag-btn\" disabled";
-#line 4 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 4 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "\t  <span class=\"flag flag-england\"></span>\n";
 	responseStream << "\t</button>\n";
 	responseStream << "\t<button id=\"flag-germany\" name=\"lang\" value=\"de\" title=\"Deutsch\" type=\"submit\" ";
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 7 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  if(lang != LANG_DE) { 	responseStream << "class=\"flag-btn\"";
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 7 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  }
 	else { 	responseStream << "class=\"flag-btn\" disabled";
-#line 8 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\flags.cpsp"
+#line 8 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\flags.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "\t  <span class=\"flag flag-germany\"></span>\n";
 	responseStream << "\t</button>\n";
@@ -197,7 +199,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\n";
 	responseStream << "<div class=\"row mb-3\" style=\"margin-top:70px;\">\n";
 	responseStream << "\t<h2 class=\"mx-auto\">";
-#line 59 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 61 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Passphrase umwandeln") );
 	responseStream << "</h2>\n";
 	responseStream << "</div>\n";
@@ -208,57 +210,57 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t  <div class=\"col-md-12 col-lg-12 \">\n";
 	responseStream << "\t\t<div class=\"alert alert-orange\">\n";
 	responseStream << "\t\t  <h5 class=\"alert-heading\">";
-#line 67 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 69 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Was zu tun ist:") );
 	responseStream << "</h5>\n";
 	responseStream << "\t\t  <p>";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 70 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Kopiere/schreibe deine Passphrase in die Textbox und du bekommst sie in die jeweils andere Sprache umgewandelt.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t  <p>";
-#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 71 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Du kannst mit beiden Varianten dein Konto wiederherstellen oder dein Passwort ändern.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t  <div class=\"col-lg-12 col-md-12 mb-5\">\n";
 	responseStream << "\t\t<form action=\"";
-#line 73 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 75 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/transform_passphrase\">\n";
 	responseStream << "\t\t  <div class=\"form-group row-showcase_row_area\">\n";
 	responseStream << "\t\t\t<textarea name=\"inputPassphrase\" cols=\"20\" rows=\"10\" id=\"inputPassphrase\" class=\"form-control\" placeholder=\"";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 77 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("deine Passphrase") );
 	responseStream << "\">";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 77 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( inputPassphrase );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t  </div>\n";
 	responseStream << "\t\t  <input name=\"btnTransform\" type=\"submit\" value=\"Umwandeln\" class=\"btn btn btn-orange\">\n";
 	responseStream << "\t\t  ";
-#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 80 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  if(model::table::ROLE_ADMIN == role) { 	responseStream << "\n";
 	responseStream << "\t\t\t<input name=\"btnGenerate\" type=\"submit\" value=\"Neue generieren\" class=\"btn btn-secondary\">\n";
 	responseStream << "\t\t  ";
-#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 82 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t  ";
-#line 83 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 85 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  if(passphrase != "") { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"col-lg-12 col-md-12\">\n";
 	responseStream << "\t\t\t<div class=\"alert alert-success\">\n";
 	responseStream << "\t\t\t\t<h5 class=\"alert-heading\">Umgewandelte Passphrase: </h5>\n";
 	responseStream << "\t\t\t\t<p>";
-#line 87 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 89 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( passphrase );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t  ";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 92 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\translatePassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t</div>\n";
@@ -287,7 +289,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "    </div>\n";
 	responseStream << "    <div class=\"grd-time-used dev-info\">\n";
 	responseStream << "        ";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_ripple.cpsp"
+#line 23 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\footer_ripple.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "    </div>\n";
@@ -303,7 +305,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "    <!-- build:js -->\n";
 	responseStream << "    <!--<script src=\"../../../assets/js/template.js\"></script>-->\n";
 	responseStream << "    <script src=\"";
-#line 36 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer_ripple.cpsp"
+#line 36 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\footer_ripple.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/basic.js\"></script>\n";
 	responseStream << "    <!--<script src=\"../../../assets/js/dashboard.js\"></script>-->\n";

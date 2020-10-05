@@ -4,17 +4,14 @@
 
 //TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
 TransactionCreation::TransactionCreation(const std::string& memo, const proto::gradido::GradidoCreation& protoCreation)
-	: TransactionBase(memo), mProtoCreation(protoCreation), mReceiverUser(nullptr)
+	: TransactionBase(memo), mProtoCreation(protoCreation)
 {
 	memset(mReceiverPublicHex, 0, 65);
 }
 
 TransactionCreation::~TransactionCreation()
 {
-	if (mReceiverUser) {
-		delete mReceiverUser;
-		mReceiverUser = nullptr;
-	}
+	
 }
 
 int TransactionCreation::prepare()
@@ -40,15 +37,17 @@ int TransactionCreation::prepare()
 		addError(new Error(functionName, "receiver public invalid (size not 32)"));
 		return -2;
 	}
-	mReceiverUser = new User((const unsigned char*)receiverPublic.data());
-	getErrors(mReceiverUser);
+	mReceiverUser = controller::User::create();
+	//mReceiverUser = new User((const unsigned char*)receiverPublic.data());
+	mReceiverUser->load((const unsigned char*)receiverPublic.data());
+	getErrors(mReceiverUser->getModel());
 	if (mReceiverUser->getUserState() == USER_EMPTY) {
 		sodium_bin2hex(mReceiverPublicHex, 65, (const unsigned char*)receiverPublic.data(), receiverPublic.size());
 		delete mReceiverUser;
 		mReceiverUser = nullptr;
 	}
 	else {
-		memcpy(mReceiverPublicHex, mReceiverUser->getPublicKeyHex().data(), 64);
+		memcpy(mReceiverPublicHex, mReceiverUser->getModel()->getPublicKeyHex().data(), 64);
 		// uncomment because not correctly working
 		/*if (!mReceiverUser->validateIdentHash(mProtoCreation.ident_hash())) {
 			addError(new Error(functionName, "ident hash isn't the same"));
