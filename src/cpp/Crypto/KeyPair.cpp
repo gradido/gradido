@@ -76,18 +76,18 @@ bool KeyPair::generateFromPassphrase(const char* passphrase, const Mnemonic* wor
 		createClearPassphraseFromWordIndices(word_indices, &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
 
 //	printf("clear passphrase: %s\n", clearPassphrase.data());
-	sha_context state;
+	crypto_hash_sha512_state state;
 
-	unsigned char hash[SHA_512_SIZE];
+	unsigned char hash[crypto_hash_sha512_BYTES];
 	//crypto_auth_hmacsha512_state state;
 	size_t word_index_size = sizeof(word_indices);
 	//crypto_auth_hmacsha512_init(&state, (unsigned char*)word_indices, sizeof(word_indices));
 	
-	sha512_init(&state);	
-	sha512_update(&state, *word_indices, word_indices->size());
-	sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
+	crypto_hash_sha512_init(&state);	
+	crypto_hash_sha512_update(&state, *word_indices, word_indices->size());
+	crypto_hash_sha512_update(&state, (unsigned char*)clearPassphrase.data(), clearPassphrase.size());
 	//crypto_auth_hmacsha512_update(&state, (unsigned char*)passphrase, pass_phrase_size);
-	sha512_final(&state, hash);
+	crypto_hash_sha512_final(&state, hash);
 	//crypto_auth_hmacsha512_final(&state, hash);
 	
 	/*
