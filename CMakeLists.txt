@@ -129,11 +129,13 @@ else (WIN32)
 	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
 	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
 
-	list(REMOVE_ITEM CONAN_LIBS "ssl")
-	list(REMOVE_ITEM CONAN_LIBS "crypto")
+#	list(REMOVE_ITEM CONAN_LIBS "ssl")
+#	list(REMOVE_ITEM CONAN_LIBS "crypto")
 
 
 endif(WIN32)
+
+message(STATUS ${MARIADB_CONNECTOR_PATH})
 
 # grpc libs
 find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
@@ -187,8 +189,8 @@ else(WIN32)
 	#find_package(PROTOBUF PATHS "dependencies/grpc/build/third_party/protobuf" REQUIRED)
 	#set(gRPC_SSL_PROVIDER "module")
 	#find_package(gRPC PATHS "dependencies/grpc/build" REQUIRED)
-	find_package(Threads REQUIRED)
-	set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+#	find_package(Threads REQUIRED)
+#	set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 
 	#find_package(Poco REQUIRED)
 	#find_package(libsodium REQUIRED)
@@ -204,6 +206,7 @@ else(WIN32)
 	include_directories(
 	#	"dependencies/mariadb-connector-c/include"
 #		"build/dependencies/mariadb-connector-c/include"
+		${CONAN_INCLUDE_DIRS_OPENSSL}
 		#${OpenSSL_INCLUDE_DIR}
 		#${Poco_INCLUDE_DIR}
 	 	#${libsodium_INCLUDE_DIR}
@@ -226,7 +229,7 @@ if(WIN32)
 else(WIN32) # unix
 #	target_link_libraries(Gradido_LoginServer gRPC::grpc++)
 #	target_link_libraries(Gradido_LoginServer )
-	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${GRPC_LIBS} ${PROTOBUF_LIBS} )# ${GRPC_LIBS} protoc protobuf pthread)
+	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${GRPC_LIBS} ${PROTOBUF_LIBS}  ${CMAKE_DL_LIBS} )# ${GRPC_LIBS} protoc protobuf pthread)
 	#target_link_libraries(Gradido_LoginServer ${OpenSSL_LIBS} ${Poco_LIBS} ${libsodium_LIBS} )
 
 endif(WIN32)
@@ -263,3 +266,5 @@ else(WIN32)
 endif(WIN32)
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
+
+

@@ -42,7 +42,7 @@ public:
 	inline const unsigned char* getPublicKey() const { return mPublicKey; }
 	MemoryBin* getPublicKeyCopy() const;
 	inline std::string getPublicKeyHex() const { return DataTypeConverter::binToHex(mPublicKey, getPublicKeySize()); }
-	const static size_t getPublicKeySize() {return ed25519_pubkey_SIZE;}
+	const static size_t getPublicKeySize() {return crypto_sign_PUBLICKEYBYTES;}
 
 	inline bool isTheSame(const KeyPairHedera& b) const {
 		return 0 == sodium_memcmp(mPublicKey, b.mPublicKey, getPublicKeySize());
@@ -89,7 +89,7 @@ private:
 
 	// 32 Byte
 	//! \brief ed25519 libsodium public key
-	unsigned char mPublicKey[ed25519_pubkey_SIZE];
+	unsigned char mPublicKey[crypto_sign_PUBLICKEYBYTES];
 };
 
 #endif //__GRADIDO_LOGIN_SERVER_CRYPTO_HEDERA_KEYS_H

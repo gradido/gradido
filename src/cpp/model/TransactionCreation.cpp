@@ -33,8 +33,7 @@ int TransactionCreation::prepare()
 	getErrors(mReceiverUser->getModel());
 	if (mReceiverUser->getUserState() == USER_EMPTY) {
 		sodium_bin2hex(mReceiverPublicHex, 65, (const unsigned char*)receiverPublic.data(), receiverPublic.size());
-		delete mReceiverUser;
-		mReceiverUser = nullptr;
+                mReceiverUser.assign(nullptr);
 	}
 	else {
 		memcpy(mReceiverPublicHex, mReceiverUser->getModel()->getPublicKeyHex().data(), 64);

@@ -7,11 +7,10 @@
 <%!
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/EmailManager.h"
-#include "../Crypto/KeyPair.h"
 #include "../Crypto/Passphrase.h"
 #include "../Crypto/KeyPairEd25519.h"
 #include "../lib/DataTypeConverter.h"
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 #include "../tasks/SigningTransaction.h"
 #include "../ServerConfig.h"
 
