@@ -44,7 +44,7 @@ KeyPairHedera::KeyPairHedera(const unsigned char* privateKey, size_t privateKeyS
 			}
 			break;
 		default:
-			throw std::exception("[KeyPairHedera] invalid private key");
+			throw Poco::Exception("[KeyPairHedera] invalid private key");
 		}
 
 		// check public
@@ -62,7 +62,7 @@ KeyPairHedera::KeyPairHedera(const unsigned char* privateKey, size_t privateKeyS
 			}
 			break;
 		default:
-			throw std::exception("[KeyPairHedera] invalid public key");
+			throw Poco::Exception("[KeyPairHedera] invalid public key");
 		}
 	}
 	auto public_key_2 = mm->getFreeMemory(crypto_sign_PUBLICKEYBYTES);

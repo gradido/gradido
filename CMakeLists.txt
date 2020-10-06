@@ -14,11 +14,13 @@ include_directories(
 	"dependencies/spirit-po/include"
 	"dependencies/grpc/include"
 	"dependencies/grpc/third_party/protobuf/src"
+	#"dependencies/grpc/third_party/boringssl-with-bazel/src/include"
 	"src/cpp/proto"
 	#"dependencies/mariadb-connector-c/build/include"
 	#"dependencies/mariadb-connector-c/include"
 	#"import/mariadb/include"
 )
+
 
 
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
@@ -79,6 +81,7 @@ source_group("Test\\model" FILES ${TEST_MODEL})
 source_group("Test\\controller" FILES ${TEST_CONTROLLER})
 source_group("Test" FILES ${TEST})
 endif(MSVC)
+
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
@@ -163,16 +166,38 @@ set(CMAKE_CXX_FLAGS         "/MP /EHsc")
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 else(WIN32)
+set(GRPC_BORING_SSL_PATH "dependencies/grpc/build/third_party/boringssl-with-bazel")
+find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
+find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
+set(GRPC_LIBS 
+	#${GRPC_BORING_SSL_CRYPTO} 
+	#${GRPC_BORING_SSL_SSL}
+)
+#find_package(OpenSSL REQUIRED)
+find_package(PROTOBUF PATHS "dependencies/grpc/build/third_party/protobuf" REQUIRED)
+set(gRPC_SSL_PROVIDER "module")
+find_package(gRPC PATHS "dependencies/grpc/build" REQUIRED)
+find_package(Threads REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+
+#find_package(Poco REQUIRED)
+#find_package(libsodium REQUIRED)
+#find_package(gtest REQUIRED)
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
 # set vars for mariadb cmake files 
 set(INSTALL_BINDIR "bin")
 set(INSTALL_PLUGINDIR "bin")
+OPTION(WITH_SSL "" OFF)
 add_subdirectory("dependencies/mariadb-connector-c")
 
 
 include_directories(
 	"dependencies/mariadb-connector-c/include"
 	"build/dependencies/mariadb-connector-c/include"
+	#${OpenSSL_INCLUDE_DIR}
+	#${Poco_INCLUDE_DIR}
+ 	#${libsodium_INCLUDE_DIR}
+	#${gtest_INCLUDE_DIR}    
 )
 
 
@@ -181,13 +206,32 @@ endif(WIN32)
 
 add_subdirectory("dependencies/grpc/third_party/abseil-cpp")
 
+
+#target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings)# ${CONAN_LIBS} ${IROHA_ED25519})
+message(STATUS "Conan libs: ")
+list(REMOVE_ITEM CONAN_LIBS "ssl")
+list(REMOVE_ITEM CONAN_LIBS "crypto")
+foreach(i ${CONAN_LIBS})
+
+message(STATUS ${i})
+
+endforeach(i)
+
+
 target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS})
+
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32)
-target_link_libraries(Gradido_LoginServer libmariadb protoc protobuf -pthread)
+target_link_libraries(Gradido_LoginServer gRPC::grpc++)
+target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
+target_link_libraries(Gradido_LoginServer libmariadb  )# ${GRPC_LIBS} protoc protobuf pthread)
+#target_link_libraries(Gradido_LoginServer ${OpenSSL_LIBS} ${Poco_LIBS} ${libsodium_LIBS} )
+
+
+
 endif(WIN32)
 
 # install 
@@ -218,7 +262,7 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test libmariadb protoc protobuf -pthread)
+	target_link_libraries(Gradido_LoginServer_Test libmariadb protoc protobuf pthread)
 endif(WIN32)
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
