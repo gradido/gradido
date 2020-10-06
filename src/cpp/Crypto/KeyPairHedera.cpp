@@ -58,16 +58,16 @@ KeyPairHedera::KeyPairHedera(const unsigned char* privateKey, size_t privateKeyS
 		}
 		case 44: // DER encoded public key
 			if (0 == sodium_memcmp(publicKey, *derPrefixPub, derPrefixPub->size())) {
-				memcpy(mPublicKey, &publicKey[derPrefixPub->size()], ed25519_pubkey_SIZE);
+				memcpy(mPublicKey, &publicKey[derPrefixPub->size()], crypto_sign_PUBLICKEYBYTES);
 			}
 			break;
 		default:
 			throw std::exception("[KeyPairHedera] invalid public key");
 		}
 	}
-	auto public_key_2 = mm->getFreeMemory(ed25519_pubkey_SIZE);
+	auto public_key_2 = mm->getFreeMemory(crypto_sign_PUBLICKEYBYTES);
 	crypto_sign_ed25519_sk_to_pk(*public_key_2, *mPrivateKey);
-	if (sodium_memcmp(*public_key_2, mPublicKey, ed25519_pubkey_SIZE) != 0) {
+	if (sodium_memcmp(*public_key_2, mPublicKey, crypto_sign_PUBLICKEYBYTES) != 0) {
 		throw "public keys not match";
 	}
 
@@ -215,7 +215,7 @@ MemoryBin* KeyPairHedera::getPrivateKeyCopy() const
 MemoryBin* KeyPairHedera::getPublicKeyCopy() const
 {
 	auto mm = MemoryManager::getInstance();
-	auto public_key = mm->getFreeMemory(ed25519_pubkey_SIZE);
-	memcpy(*public_key, mPublicKey, ed25519_pubkey_SIZE);
+	auto public_key = mm->getFreeMemory(crypto_sign_PUBLICKEYBYTES);
+	memcpy(*public_key, mPublicKey, crypto_sign_PUBLICKEYBYTES);
 	return public_key;
 }
