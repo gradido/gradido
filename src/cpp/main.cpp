@@ -3,7 +3,6 @@
 
 #include "proto/gradido/TransactionBody.pb.h"
 
-#include "model/User.h"
 #include "model/Session.h"
 #include "lib/Profiler.h"
 #include "ServerConfig.h"
