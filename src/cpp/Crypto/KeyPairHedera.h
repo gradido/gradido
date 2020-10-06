@@ -14,7 +14,6 @@
 
 #include "sodium.h"
 #include "SecretKeyCryptography.h"
-#include "iroha-ed25519/include/ed25519/ed25519.h"
 #include "../lib/DataTypeConverter.h"
 
 class KeyPairHedera : public IKeyPair

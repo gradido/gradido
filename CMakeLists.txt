@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.18.2)
 project(Gradido_LoginServer C CXX)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin" )
 
@@ -16,10 +16,9 @@ include_directories(
 	"dependencies/grpc/third_party/protobuf/src"
 	#"dependencies/grpc/third_party/boringssl-with-bazel/src/include"
 	"src/cpp/proto"
-	#"dependencies/mariadb-connector-c/build/include"
-	#"dependencies/mariadb-connector-c/include"
-	#"import/mariadb/include"
 )
+
+set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
 
 
@@ -59,51 +58,84 @@ SET(LOCAL_TEST_SRC
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
 if(MSVC)
-# src
-source_group("controller" FILES ${CONTROLLER})
-source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
-source_group("proto\\hedera" FILES ${PROTO_HEDERA})
-source_group("tinf" FILES ${TINF})
-source_group("Crypto" FILES ${CRYPTO})
-source_group("tasks" FILES ${TASKS})
-source_group("model\\table" FILES ${MODEL_TABLE})
-source_group("model\\email" FILES ${MODEL_EMAIL})
-source_group("model\\hedera" FILES ${MODEL_HEDERA})
-source_group("model" FILES ${MODEL})
-source_group("mysql" FILES ${MYSQL})
-source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
-source_group("lib" FILES ${LIB_SRC})
-source_group("HTTP-Interface" FILES ${HTTPInterface})
-source_group("Json-Interface" FILES ${JSONInterface})
-source_group("Test\\crypto" FILES ${TEST_CRYPTO})
-source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
-source_group("Test\\model" FILES ${TEST_MODEL})
-source_group("Test\\controller" FILES ${TEST_CONTROLLER})
-source_group("Test" FILES ${TEST})
+	# src
+	source_group("controller" FILES ${CONTROLLER})
+	source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
+	source_group("proto\\hedera" FILES ${PROTO_HEDERA})
+	source_group("tinf" FILES ${TINF})
+	source_group("Crypto" FILES ${CRYPTO})
+	source_group("tasks" FILES ${TASKS})
+	source_group("model\\table" FILES ${MODEL_TABLE})
+	source_group("model\\email" FILES ${MODEL_EMAIL})
+	source_group("model\\hedera" FILES ${MODEL_HEDERA})
+	source_group("model" FILES ${MODEL})
+	source_group("mysql" FILES ${MYSQL})
+	source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
+	source_group("lib" FILES ${LIB_SRC})
+	source_group("HTTP-Interface" FILES ${HTTPInterface})
+	source_group("Json-Interface" FILES ${JSONInterface})
+	source_group("Test\\crypto" FILES ${TEST_CRYPTO})
+	source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
+	source_group("Test\\model" FILES ${TEST_MODEL})
+	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
+	source_group("Test" FILES ${TEST})
 endif(MSVC)
 
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-#add_subdirectory("dependencies/curl")
-#add_subdirectory("dependencies/mariadb-connector-c")
-
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
-#SUBDIRS("src/test")
+
+
+set(DEP_PATH "dependencies")
+set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
+set(GRPC_PATH "${DEP_PATH}/grpc/build")
+set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
+set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
+set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
+set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
+set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
 
 if(WIN32)
 
-find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "dependencies/mariadb-connector-c/build/libmariadb/Release" REQUIRED)
-#find_library(MYSQL_LIBRARIES_DEBUG  mariadbclient.lib PATHS "import/mariadb/lib/debug")
-find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
-set(GRPC_PATH "dependencies/grpc/_build/Debug")
-set(GRPC_ABSL_PATH "dependencies/grpc/_build/third_party/abseil-cpp/absl/types/Debug")
-set(GRPC_CARES_PATH "dependencies/grpc/_build/third_party/cares/cares/lib/Debug")
-set(GRPC_BORING_SSL_PATH "dependencies/grpc/_build/third_party/boringssl-with-bazel/Debug")
-set(GRPC_RE2_PATH "dependencies/grpc/_build/third_party/re2/Debug")
-set(GRPC_PROTOBUF_DEBUG_PATH "dependencies/grpc/_build/third_party/protobuf/Debug")
+	find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
+	find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
+
+	set(GRPC_PATH "${GRPC_PATH}/Debug")
+	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
+	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
+	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
+	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
+	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
+
+	find_library(PROTOBUF_LIB_DEBUG libprotobufd PATHS ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+	find_library(PROTOBUF_LIB_LITE_DEBUG libprotobuf-lited PATHS ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+	find_library(PROTOBUF_LIBC_DEBUG libprotocd PATHS ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+
+	set(PROTOBUF_DEBUG_LIBS 
+		${PROTOBUF_LIB_DEBUG}
+		${PROTOBUF_LIB_LITE_DEBUG}
+		${PROTOBUF_LIBC_DEBUG}
+	)
+
+	list(REMOVE_ITEM CONAN_LIBS "libeay32.lib")
+	list(REMOVE_ITEM CONAN_LIBS "ssleay32.lib")
+
+
+else (WIN32)
+#	message(STATUS ${MARIADB_CONNECTOR_PATH})
+	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
+	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
+
+	list(REMOVE_ITEM CONAN_LIBS "ssl")
+	list(REMOVE_ITEM CONAN_LIBS "crypto")
+
+
+endif(WIN32)
+
+# grpc libs
 find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UNSECURE grpc++_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
@@ -113,15 +145,18 @@ find_library(GRPC_RLIB gpr PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UPB upb PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_ALTS grpc++_alts PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_ADDRESS_SORTING address_sorting PATHS ${GRPC_PATH} REQUIRED)
+# grpc third party libs
 find_library(GRPC_CARES cares PATHS ${GRPC_CARES_PATH} REQUIRED)
-find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
-find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
-find_library(GRPC_RE2 re2 ${GRPC_RE2_PATH} REQUIRED)
-find_library(PROTOBUF_LIB_DEBUG libprotobufd ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
-find_library(PROTOBUF_LIB_LITE_DEBUG libprotobuf-lited ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
-find_library(PROTOBUF_LIBC_DEBUG libprotocd ${GRPC_PROTOBUF_DEBUG_PATH} REQUIRED)
+find_library(GRPC_BORING_SSL_CRYPTO crypto PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
+find_library(GRPC_BORING_SSL_SSL ssl PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
+find_library(GRPC_RE2 re2 PATHS ${GRPC_RE2_PATH} REQUIRED)
 
-find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access ${GRPC_ABSL_PATH} REQUIRED)
+find_library(PROTOBUF_LIB libprotobuf.a PATHS ${GRPC_PROTOBUF_PATH} REQUIRED)
+find_library(PROTOBUF_LIB_LITE libprotobuf-lite.a PATHS ${GRPC_PROTOBUF_PATH} REQUIRED)
+find_library(PROTOBUF_LIBC libprotoc.a PATHS ${GRPC_PROTOBUF_PATH} REQUIRED)
+
+find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access PATHS ${GRPC_ABSL_PATH} REQUIRED)
+
 set(GRPC_LIBS 
 	${GRPC_PLUSPLUS} ${GRPC_REFLECTION} ${GRPC_UNSECURE} ${GRPC_LIB} 
 	${GRPC_ERROR_DETAILS} ${GRPC_RLIB} ${GRPC_UPB} ${GRPC_ALTS}
@@ -131,74 +166,49 @@ set(GRPC_LIBS
 	${GRPC_BORING_SSL_SSL}
 	${GRPC_RE2}
 )
-set(PROTOBUF_DEBUG_LIBS 
-	${PROTOBUF_LIB_DEBUG}
-	${PROTOBUF_LIB_LITE_DEBUG}
-	${PROTOBUF_LIBC_DEBUG}
+
+set(PROTOBUF_LIBS 
+	${PROTOBUF_LIB}
+	${PROTOBUF_LIB_LITE}
+	${PROTOBUF_LIBC}
 )
 
 
-set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
+if(WIN32)
 
-#set(POCO_DEBUG_PATH "I:/FremdCode/C++/poco/win64/lib/Debug")
 
-#find_library(POCO_DEBUG_FOUNDATION PocoFoundationd PocoFoundation PATHS ${POCO_DEBUG_PATH} REQUIRED)
-#find_library(POCO_DEBUG_DATA PocoDatad PocoData PATHS ${POCO_DEBUG_PATH} REQUIRED)
-#find_library(POCO_DEBUG_NET PocoNetd PocoNet PATHS ${POCO_DEBUG_PATH} REQUIRED)
-#find_library(POCO_DEBUG_NET_SSL PocoNetSSLd PocoNetSSL PATHS ${POCO_DEBUG_PATH} REQUIRED)
-#find_library(POCO_DEBUG_UTIL PocoUtild PocoUtil PATHS ${POCO_DEBUG_PATH} REQUIRED)
-#find_library(POCO_DEBUG_CRYPTO PocoCryptod PocoCrypto PATHS ${POCO_DEBUG_PATH} REQUIRED)
-
-#set(POCO_DEBUG_LIBS ${POCO_DEBUG_FOUNDATION} ${POCO_DEBUG_UTIL} ${POCO_DEBUG_DATA} ${POCO_DEBUG_NET} ${POCO_DEBUG_NET_SSL} ${POCO_DEBUG_CRYPTO})
-#include_directories(
-#  "I:/FremdCode/C++/poco/Foundation/include"
-#  "I:/FremdCode/C++/poco/Data/include"
-#  "I:/FremdCode/C++/poco/Net/include"
-  #"I:/FremdCode/C++/poco/NetSSL_Win/include"
-#  "I:/FremdCode/C++/poco/NetSSL_OpenSSL/include"
-#  "I:/FremdCode/C++/poco/Crypto/include"
-#  "I:/FremdCode/C++/poco/Util/include"
-#  "I:/FremdCode/C++/ssl/include"
-#)
-
-set(CMAKE_CXX_FLAGS         "/MP /EHsc")
-#set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	set(CMAKE_CXX_FLAGS         "/MP /EHsc")
+	#set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+	#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 else(WIN32)
-set(GRPC_BORING_SSL_PATH "dependencies/grpc/build/third_party/boringssl-with-bazel")
-find_library(GRPC_BORING_SSL_CRYPTO crypto ${GRPC_BORING_SSL_PATH} REQUIRED)
-find_library(GRPC_BORING_SSL_SSL ssl ${GRPC_BORING_SSL_PATH} REQUIRED)
-set(GRPC_LIBS 
-	#${GRPC_BORING_SSL_CRYPTO} 
-	#${GRPC_BORING_SSL_SSL}
-)
-#find_package(OpenSSL REQUIRED)
-find_package(PROTOBUF PATHS "dependencies/grpc/build/third_party/protobuf" REQUIRED)
-set(gRPC_SSL_PROVIDER "module")
-find_package(gRPC PATHS "dependencies/grpc/build" REQUIRED)
-find_package(Threads REQUIRED)
-set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 
-#find_package(Poco REQUIRED)
-#find_package(libsodium REQUIRED)
-#find_package(gtest REQUIRED)
-find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
-# set vars for mariadb cmake files 
-set(INSTALL_BINDIR "bin")
-set(INSTALL_PLUGINDIR "bin")
-OPTION(WITH_SSL "" OFF)
-add_subdirectory("dependencies/mariadb-connector-c")
+	#find_package(OpenSSL REQUIRED)
+	#find_package(PROTOBUF PATHS "dependencies/grpc/build/third_party/protobuf" REQUIRED)
+	#set(gRPC_SSL_PROVIDER "module")
+	#find_package(gRPC PATHS "dependencies/grpc/build" REQUIRED)
+	find_package(Threads REQUIRED)
+	set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+
+	#find_package(Poco REQUIRED)
+	#find_package(libsodium REQUIRED)
+	#find_package(gtest REQUIRED)
+	#find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
+	# set vars for mariadb cmake files 
+	set(INSTALL_BINDIR "bin")
+	set(INSTALL_PLUGINDIR "bin")
+#	OPTION(WITH_SSL "" OFF)
+#	add_subdirectory("dependencies/mariadb-connector-c")
 
 
-include_directories(
-	"dependencies/mariadb-connector-c/include"
-	"build/dependencies/mariadb-connector-c/include"
-	#${OpenSSL_INCLUDE_DIR}
-	#${Poco_INCLUDE_DIR}
- 	#${libsodium_INCLUDE_DIR}
-	#${gtest_INCLUDE_DIR}    
-)
+	include_directories(
+	#	"dependencies/mariadb-connector-c/include"
+#		"build/dependencies/mariadb-connector-c/include"
+		#${OpenSSL_INCLUDE_DIR}
+		#${Poco_INCLUDE_DIR}
+	 	#${libsodium_INCLUDE_DIR}
+		#${gtest_INCLUDE_DIR}    
+	)
 
 
 
@@ -207,30 +217,17 @@ endif(WIN32)
 add_subdirectory("dependencies/grpc/third_party/abseil-cpp")
 
 
-#target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings)# ${CONAN_LIBS} ${IROHA_ED25519})
-message(STATUS "Conan libs: ")
-list(REMOVE_ITEM CONAN_LIBS "ssl")
-list(REMOVE_ITEM CONAN_LIBS "crypto")
-foreach(i ${CONAN_LIBS})
-
-message(STATUS ${i})
-
-endforeach(i)
-
-
 target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS})
 
 if(WIN32)
-TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
-TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
-TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
-else(WIN32)
-target_link_libraries(Gradido_LoginServer gRPC::grpc++)
-target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
-target_link_libraries(Gradido_LoginServer libmariadb  )# ${GRPC_LIBS} protoc protobuf pthread)
-#target_link_libraries(Gradido_LoginServer ${OpenSSL_LIBS} ${Poco_LIBS} ${libsodium_LIBS} )
-
-
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
+else(WIN32) # unix
+#	target_link_libraries(Gradido_LoginServer gRPC::grpc++)
+#	target_link_libraries(Gradido_LoginServer )
+	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${GRPC_LIBS} ${PROTOBUF_LIBS} )# ${GRPC_LIBS} protoc protobuf pthread)
+	#target_link_libraries(Gradido_LoginServer ${OpenSSL_LIBS} ${Poco_LIBS} ${libsodium_LIBS} )
 
 endif(WIN32)
 
@@ -255,7 +252,7 @@ enable_testing()
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS} ${IROHA_ED25519})
+target_link_libraries(Gradido_LoginServer_Test absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS} )
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
