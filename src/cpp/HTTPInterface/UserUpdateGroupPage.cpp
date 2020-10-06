@@ -1,0 +1,209 @@
+#include "UserUpdateGroupPage.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Net/HTMLForm.h"
+#include "Poco/DeflatingStream.h"
+
+
+#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+
+
+#include "../controller/Group.h"
+#include "../SingletonManager/SessionManager.h"
+
+enum PageState {
+	PAGE_STATE_OVERVIEW,
+	PAGE_STATE_REQUEST_IS_RUNNING
+};
+
+#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+
+#include "../ServerConfig.h"
+
+
+UserUpdateGroupPage::UserUpdateGroupPage(Session* arg):
+	SessionHTTPRequestHandler(arg)
+{
+}
+
+
+void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
+{
+	response.setChunkedTransferEncoding(true);
+	response.setContentType("text/html");
+	bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
+	if (_compressResponse) response.set("Content-Encoding", "gzip");
+
+	Poco::Net::HTMLForm form(request, request.stream());
+#line 17 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+
+	const char* pageName = gettext("Gruppe wählen");
+	auto user = mSession->getNewUser();
+	auto sm = SessionManager::getInstance();
+	PageState state = PAGE_STATE_OVERVIEW;
+
+	if(!form.empty()) {
+	}
+		
+	auto groups = controller::Group::listAll();
+	
+	
+#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+
+	bool withMaterialIcons = false;
+	std::ostream& _responseStream = response.send();
+	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
+	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
+	responseStream << "\n";
+	// begin include header_large.cpsp
+	responseStream << "\n";
+	responseStream << "<!DOCTYPE html>\n";
+	responseStream << "<html>\n";
+	responseStream << "<head>\n";
+	responseStream << "<meta charset=\"UTF-8\">\n";
+	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
+	responseStream << "<title>Gradido Login Server: ";
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( pageName );
+	responseStream << "</title>\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "css/main.css\">\n";
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+ if(withMaterialIcons) { 	responseStream << "\n";
+	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
+#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "css/materialdesignicons.min.css\">\n";
+#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "</head>\n";
+	responseStream << "<body>\n";
+	responseStream << "    <div class=\"layout\">\n";
+	responseStream << "\t\t<div class=\"sidebar1 nav-menu initial\">\n";
+	responseStream << "\t\t\t<div class=\"nav-vertical\">\n";
+	responseStream << "\t\t\t\t<ul>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << "/topic\"><span class=\"link-title\">Hedera Topics</span></a></li>\n";
+	responseStream << "\t\t\t\t</ul>\n";
+	responseStream << "\t\t\t</div>\n";
+	responseStream << "\t\t</div>\n";
+	responseStream << "\t\t<div class=\"content\">";
+	// end include header_large.cpsp
+	responseStream << "\n";
+#line 30 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( getErrorsHtml() );
+	responseStream << "\n";
+	responseStream << "<div class=\"content-list\">\n";
+	responseStream << "\t";
+#line 32 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+ if(PAGE_STATE_OVERVIEW == state ) { 	responseStream << "\n";
+	responseStream << "    <div class=\"content-list-title\">\n";
+	responseStream << "        <h1>";
+#line 34 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Gruppe wählen") );
+	responseStream << "</h1>\n";
+	responseStream << "    </div>\n";
+	responseStream << "\t<p>";
+#line 36 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Bitte wähle die Gruppe/Gemeinschaft aus, zu der du gehörst.") );
+	responseStream << "</p>\n";
+	responseStream << "\t<p>";
+#line 37 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Du bekommst eine Bestätigungsmail, nachdem dein Beitritt bestätigt wurde.") );
+	responseStream << "</p>\n";
+	responseStream << "\t<form method=\"POST\">\n";
+	responseStream << "\t\t<div class=\"content-list-table\">\n";
+	responseStream << "\t\t\t<div class=\"row\">\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c1\">";
+#line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Auswahl") );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Name</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Alias</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Url</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c5\">";
+#line 45 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Description") );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t</div>\n";
+	responseStream << "\t\t\t";
+#line 47 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+ for(auto it = groups.begin(); it != groups.end(); it++) {
+					auto group_model = (*it)->getModel(); 	responseStream << "\n";
+	responseStream << "\t\t\t\t<div class=\"row\">\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c1\"><input type=\"radio\" class=\"form-control\" name=\"group_id\" value=\"";
+#line 50 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( group_model->getID());
+	responseStream << "\" /></div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
+#line 51 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( group_model->getName() );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
+#line 52 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( group_model->getAlias() );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
+#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( group_model->getUrl() );
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c5\">";
+#line 54 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( group_model->getDescription());
+	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t</div>\n";
+	responseStream << "\t\t\t";
+#line 56 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t<input class=\"grd-form-bn grd-form-bn-succeed grd_clickable\" type=\"submit\" name=\"submit\" value=\"";
+#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Beitrittsanfrage senden") );
+	responseStream << "\"/>\n";
+	responseStream << "\t\t</div>\n";
+	responseStream << "\t</form>\n";
+	responseStream << "\t";
+#line 60 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "</div>\n";
+	// begin include footer.cpsp
+	responseStream << "            <div class=\"center-bottom\">\n";
+	responseStream << "                <p>Copyright © Gradido 2020</p>\n";
+	responseStream << "            </div>\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"bottomleft\">\n";
+	responseStream << "            ";
+#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+	responseStream << ( mTimeProfiler.string() );
+	responseStream << "\n";
+	responseStream << "        </div>\n";
+	responseStream << "        <div class=\"bottomright\">\n";
+	responseStream << "            <p>Login Server in Entwicklung</p>\n";
+	responseStream << "            <p>Alpha ";
+#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+	responseStream << ( ServerConfig::g_versionString );
+	responseStream << "</p>\n";
+	responseStream << "        </div>\n";
+	responseStream << "    </div>\n";
+	responseStream << "</body>\n";
+	responseStream << "\n";
+	responseStream << "</html>";
+	// end include footer.cpsp
+	responseStream << "\n";
+	if (_compressResponse) _gzipStream.close();
+}

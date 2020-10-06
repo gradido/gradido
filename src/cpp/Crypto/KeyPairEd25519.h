@@ -16,6 +16,7 @@
 #include "sodium.h"
 #include "SecretKeyCryptography.h"
 #include "Passphrase.h"
+#include "../lib/DataTypeConverter.h"
 
 class KeyPairEd25519 : public IKeyPair
 {
@@ -37,6 +38,8 @@ public:
 	MemoryBin* sign(const unsigned char* message, size_t messageSize) const;
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
+	inline std::string getPublicKeyHex() const { return DataTypeConverter::binToHex(mSodiumPublic, getPublicKeySize()); }
+	const static size_t getPublicKeySize() { return crypto_sign_PUBLICKEYBYTES; }
 
 	inline bool isTheSame(const KeyPairEd25519& b) const {
 		return 0 == sodium_memcmp(mSodiumPublic, b.mSodiumPublic, crypto_sign_PUBLICKEYBYTES);

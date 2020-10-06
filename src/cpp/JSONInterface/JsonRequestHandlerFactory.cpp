@@ -13,6 +13,7 @@
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUpdateUserInfos.h"
+#include "JsonSearch.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
@@ -55,6 +56,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/updateUserInfos") {
 		return new JsonUpdateUserInfos;
+	}
+	else if (url_first_part == "/search") {
+		return new JsonSearch;
 	}
 
 	return new JsonUnknown;

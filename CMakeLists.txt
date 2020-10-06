@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(
 	"dependencies" 
 	"dependencies/tinf/src/" 
-	"dependencies/iroha-ed25519/include"
 	"dependencies/mariadb-connector-c/include"
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
@@ -99,7 +98,6 @@ if(WIN32)
 find_library(MYSQL_LIBRARIES mariadbclient.lib PATHS "dependencies/mariadb-connector-c/build/libmariadb/Release" REQUIRED)
 #find_library(MYSQL_LIBRARIES_DEBUG  mariadbclient.lib PATHS "import/mariadb/lib/debug")
 find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "dependencies/mariadb-connector-c/build/libmariadb/Debug" REQUIRED)
-find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build/Debug" REQUIRED)
 set(GRPC_PATH "dependencies/grpc/_build/Debug")
 set(GRPC_ABSL_PATH "dependencies/grpc/_build/third_party/abseil-cpp/absl/types/Debug")
 set(GRPC_CARES_PATH "dependencies/grpc/_build/third_party/cares/cares/lib/Debug")
@@ -208,6 +206,7 @@ endif(WIN32)
 
 add_subdirectory("dependencies/grpc/third_party/abseil-cpp")
 
+
 #target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings)# ${CONAN_LIBS} ${IROHA_ED25519})
 message(STATUS "Conan libs: ")
 list(REMOVE_ITEM CONAN_LIBS "ssl")
@@ -217,6 +216,9 @@ foreach(i ${CONAN_LIBS})
 message(STATUS ${i})
 
 endforeach(i)
+
+
+target_link_libraries(Gradido_LoginServer absl::base absl::flat_hash_map absl::flags absl::memory absl::meta absl::numeric absl::strings ${CONAN_LIBS})
 
 if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)

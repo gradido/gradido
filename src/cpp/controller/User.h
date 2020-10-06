@@ -9,6 +9,21 @@
 
 #include "TableControllerBase.h"
 
+enum UserState
+{
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_PASSWORD_ENCRYPTION_IN_PROCESS,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_NO_GROUP,
+	USER_KEYS_DONT_MATCH,
+	USER_COMPLETE,
+	USER_DISABLED
+};
+
 
 namespace controller {
 
@@ -26,7 +41,7 @@ namespace controller {
 		~User();
 
 		static Poco::AutoPtr<User> create();
-		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
+		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 
 		static std::vector<User*> search(const std::string& searchString);
 
@@ -36,6 +51,9 @@ namespace controller {
 		//! By users which has registered long time ago and haven't activated there account and haven't get a second email send verification email with duration at once
 		// TODO: instead scheduling all, scheduling only for next day and run this function every day (own task for that)
 		static int checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer);
+
+		//! \brief go through whole db and search for user without email hash and set this in db
+		static int addMissingEmailHashes();
 
 		//! \brief try to find correct passphrase for this user from db
 		//! 
@@ -53,6 +71,7 @@ namespace controller {
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
 		int load(const unsigned char* pubkey_array);
+		int load(MemoryBin* emailHash);
 		Poco::JSON::Object getJson();
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
@@ -91,6 +110,9 @@ namespace controller {
 		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
 		int setNewPassword(const std::string& password);
+
+		//! \brief calculate user state
+		UserState getUserState();
 
 		//! \brief return AuthenticatedEncryption Auto Pointer
 		inline const Poco::AutoPtr<SecretKeyCryptography> getPassword() {

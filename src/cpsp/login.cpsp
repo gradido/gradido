@@ -26,8 +26,8 @@
 	auto langCatalog = lm->getFreeCatalog(lang);
 
 	std::string presetEmail("");
-	if(mSession && mSession->getUser()) {
-		presetEmail = mSession->getUser()->getEmail();
+	if(mSession && mSession->getNewUser()) {
+		presetEmail = mSession->getNewUser()->getModel()->getEmail();
 	}
 
 	if(!form.empty()) {
@@ -114,6 +114,9 @@
 				}
 				sm->deleteLoginCookies(request, response);
 				break;
+			case USER_NO_GROUP: 
+				response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
+				return;
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
 			case USER_EMAIL_NOT_ACTIVATED:

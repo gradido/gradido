@@ -31,6 +31,8 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 #line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 
 	const char* pageName = "Dashboard";
+	auto user = mSession->getNewUser();
+	auto user_model = user->getModel();
 	//Poco::Net::NameValueCollection cookies;
 	//request.getCookies(cookies);
 	if(!form.empty()) {
@@ -109,34 +111,34 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Willkommen ";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
-	responseStream << ( mSession->getUser()->getFirstName() );
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( user_model->getFirstName() );
 	responseStream << "&nbsp;";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
-	responseStream << ( mSession->getUser()->getLastName() );
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( user_model->getLastName() );
 	responseStream << "</h1>\n";
 	responseStream << "\t";
-#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<h3>Status</h3>\n";
 	responseStream << "\t<p>";
-#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 28 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 27 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 29 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
  if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { 	responseStream << "\n";
 	responseStream << "\t<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"";
-#line 29 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 31 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/checkEmail\">\n";
 	responseStream << "\t\t<input type=\"number\" name=\"email-verification-code\">\n";
 	responseStream << "\t\t<input class=\"grd-form-bn-succeed grd_clickable\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 33 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 35 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
  } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { 	responseStream << "\n";
 	responseStream << "\t<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>\n";
 	responseStream << "\t<form method=\"GET\" action=\"checkEmail\">\n";
@@ -144,14 +146,14 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t<input class=\"grd-form-bn-succeed grd_clickable\" type=\"submit\" value=\"&Uuml;berpr&uuml;fe Code\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 39 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t<a class=\"grd-form-bn\" href=\"";
-#line 40 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 42 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/logout\">Abmelden</a>\n";
 	responseStream << "\t<a class=\"grd-form-bn\" href=\"";
-#line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 43 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/user_delete\">Account l&ouml;schen</a>\n";
 	responseStream << "</div>\n";
@@ -159,7 +161,7 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t<div class=\"grd-left-bar-section\">\n";
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
-#line 46 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+#line 48 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
 	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";

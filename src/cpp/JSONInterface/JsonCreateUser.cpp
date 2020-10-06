@@ -12,6 +12,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string first_name;
 	std::string last_name;
 	int emailType;
+	int group_id;
 	auto em = EmailManager::getInstance();
 
 	// if is json object
@@ -27,6 +28,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
+			paramJsonObject->get("group_id").convert(group_id);
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -45,7 +47,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	}
 
 	// create user
-	user = controller::User::create(email, first_name, last_name);
+	user = controller::User::create(email, first_name, last_name, group_id);
 	auto userModel = user->getModel();
 	if (!userModel->insertIntoDB(true)) {
 		userModel->sendErrorsAsEmail();
