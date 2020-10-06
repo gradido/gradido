@@ -3,6 +3,7 @@
 
 #include "proto/gradido/TransactionBody.pb.h"
 
+
 #include "model/Session.h"
 #include "lib/Profiler.h"
 #include "ServerConfig.h"
@@ -35,7 +36,7 @@ int main(int argc, char** argv)
 	ServerConfig::g_versionString = Poco::DateTimeFormatter::format(buildDateTime, "0.%y.%m.%d");
 	//ServerConfig::g_versionString = "0.20.KW13.02";
 	printf("Version: %s\n", ServerConfig::g_versionString.data());
-	printf("User size: %d Bytes, Session size: %d Bytes\n", (int)sizeof(User), (int)sizeof(Session));
+	printf("User size: %d Bytes, Session size: %d Bytes\n", (int)sizeof(controller::User), (int)sizeof(Session));
 	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", (int)sizeof(model::table::User), (int)sizeof(model::table::EmailOptIn));
 
 	// load word lists

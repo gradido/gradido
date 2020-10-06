@@ -202,7 +202,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				
 				
 				KeyPairHedera key_pair(private_key, public_key);
-				auto crypto_key = controller::CryptoKey::load(key_pair.getPublicKey(), ed25519_pubkey_SIZE);
+				auto crypto_key = controller::CryptoKey::load(key_pair.getPublicKey(), crypto_sign_PUBLICKEYBYTES);
 				
 				if(crypto_key.isNull()) {
 					crypto_key = controller::CryptoKey::create(&key_pair, user, privateKeyEncryptedString == "true");
