@@ -78,7 +78,8 @@ namespace model {
 		{
 			auto cm = ConnectionManager::getInstance();
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldName);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select = _loadFromDB(session, fieldName);
 			select, Poco::Data::Keywords::useRef(fieldValue);
 
 			size_t resultCount = 0;
@@ -129,7 +130,8 @@ namespace model {
 				results.reserve(expectedResults);
 			}
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement select = _loadMultipleFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldName);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select = _loadMultipleFromDB(session, fieldName);
 			select, Poco::Data::Keywords::into(results), Poco::Data::Keywords::useRef(fieldValue);
 
 			size_t resultCount = 0;
@@ -160,7 +162,8 @@ namespace model {
 				results.reserve(expectedResults);
 			}
 			auto cm = ConnectionManager::getInstance();
-			Poco::Data::Statement select = _loadMultipleFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldNames, conditionType);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select = _loadMultipleFromDB(session, fieldNames, conditionType);
 			select, Poco::Data::Keywords::into(results);// Poco::Data::Keywords::useRef(fieldValue);
 			for (auto it = fieldValues.begin(); it != fieldValues.end(); it++) {
 				select, Poco::Data::Keywords::useRef(*it);
@@ -186,7 +189,8 @@ namespace model {
 		{
 			auto cm = ConnectionManager::getInstance();
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			Poco::Data::Statement select = _loadFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER), fieldNames, conditionType);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select = _loadFromDB(session, fieldNames, conditionType);
 			select, Poco::Data::Keywords::useRef(field1Value), Poco::Data::Keywords::useRef(field2Value);
 
 			size_t resultCount = 0;

@@ -43,7 +43,8 @@ namespace model {
 			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			Poco::Data::Statement insert = _insertIntoDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement insert = _insertIntoDB(session);
 
 			size_t resultCount = 0;
 			try {

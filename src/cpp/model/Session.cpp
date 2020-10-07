@@ -787,15 +787,15 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		}
 	}
 	//Profiler usedTime;
-	printf("before lock\n");
+	//printf("before lock\n");
 	lock(functionName);
-	printf("locked \n");
+	//printf("locked \n");
 	if (!mSessionUser.isNull() && mSessionUser->getEmail() != email) {
 		mSessionUser.assign(nullptr);
 		mNewUser.assign(nullptr);
-		printf("user nullptr assigned\n");
+		//printf("user nullptr assigned\n");
 	}
-	printf("after checking if session user is null\n");
+	//printf("after checking if session user is null\n");
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
 		printf("new user is null\n");
@@ -809,14 +809,14 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 
 		printf("user loaded from email\n");
 	}
-	printf("before get model\n");
+	//printf("before get model\n");
 	auto user_model = mNewUser->getModel();
 	if (user_model && user_model->isDisabled()) {
 		return USER_DISABLED;
 	}
-	printf("before if login\n");
+	//printf("before if login\n");
 	if (!mSessionUser.isNull() && mSessionUser->getUserState() >= USER_LOADED_FROM_DB) {
-		printf("before login\n");
+		//printf("before login\n");
 		int loginResult = 0;
 		int exitCount = 0;
 		do {
@@ -840,7 +840,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
 		}
 		
-		printf("new user login with result: %d\n", loginResult);
+		//printf("new user login with result: %d\n", loginResult);
 		
 		if (-1 == loginResult) {
 			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
@@ -882,14 +882,14 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		// can be removed if session user isn't used any more
 		// don't calculate password two times anymore
 		mSessionUser->login(mNewUser);
-		printf("after old user login\n");
+		//printf("after old user login\n");
 		/*if (mNewUser->getModel()->getPasswordHashed() && !mSessionUser->validatePwd(password, this)) {
 			unlock();
 			return USER_PASSWORD_INCORRECT;
 		}*/
 	}
 	else {
-		printf("before sleep\n");
+		//printf("before sleep\n");
 		User::fakeCreateCryptoKey();
 	}
 
@@ -903,10 +903,10 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 		unlock();
 		return false;
 	}*/
-	printf("before detect session state\n");
+	//printf("before detect session state\n");
 	detectSessionState();
 	unlock();
-	printf("before return user state\n");
+	//printf("before return user state\n");
 	return mSessionUser->getUserState();
 }
 
