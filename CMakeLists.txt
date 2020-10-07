@@ -131,7 +131,7 @@ else (WIN32)
 
 	list(REMOVE_ITEM CONAN_LIBS "ssl")
 	list(REMOVE_ITEM CONAN_LIBS "crypto")
-
+	list(REMOVE_ITEM CONAN_LIBS "dl")
 
 endif(WIN32)
 
@@ -140,6 +140,7 @@ find_library(GRPC_PLUSPLUS grpc++ PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UNSECURE grpc++_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_REFLECTION grpc++_reflection PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_LIB grpc PATHS ${GRPC_PATH} REQUIRED)
+find_library(GRPC_LIB_UNSECURE grpc_unsecure PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_ERROR_DETAILS grpc++_error_details PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_RLIB gpr PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_UPB upb PATHS ${GRPC_PATH} REQUIRED)
@@ -147,8 +148,8 @@ find_library(GRPC_ALTS grpc++_alts PATHS ${GRPC_PATH} REQUIRED)
 find_library(GRPC_ADDRESS_SORTING address_sorting PATHS ${GRPC_PATH} REQUIRED)
 # grpc third party libs
 find_library(GRPC_CARES cares PATHS ${GRPC_CARES_PATH} REQUIRED)
-find_library(GRPC_BORING_SSL_CRYPTO crypto PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
-find_library(GRPC_BORING_SSL_SSL ssl PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
+#find_library(GRPC_BORING_SSL_CRYPTO crypto PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
+#find_library(GRPC_BORING_SSL_SSL ssl PATHS ${GRPC_BORING_SSL_PATH} REQUIRED)
 find_library(GRPC_RE2 re2 PATHS ${GRPC_RE2_PATH} REQUIRED)
 
 find_library(PROTOBUF_LIB libprotobuf.a PATHS ${GRPC_PROTOBUF_PATH} REQUIRED)
@@ -157,13 +158,35 @@ find_library(PROTOBUF_LIBC libprotoc.a PATHS ${GRPC_PROTOBUF_PATH} REQUIRED)
 
 find_library(GRPC_ABSL_BAD_OPTIONAL_ACCESS absl_bad_optional_access PATHS ${GRPC_ABSL_PATH} REQUIRED)
 
+# load same ssl version like used from poco
+find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
+find_library(CONAN_OPENSSL_CRYPTO crypto PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH ) 
+#find_library(CONAN_OPENSSL_DL dl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
+#find_library(CONAN_OPENSSL_PTHREAD pthread PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
+
+set(CONAN_OPENSSL_CUSTOM_LIBS 
+	${CONAN_OPENSSL_SSL} 
+	${CONAN_OPENSSL_CRYPTO} 
+	#${CONAN_OPENSSL_DL} 
+#	${CONAN_OPENSSL_PTHREAD}
+	)
+#foreach(i ${CONAN_LIBS_OPENSSL})
+#	find_library(_LIB_${i} ${i} PATHS ${CONAN_LIB_DIRS_OPENSSL} NO_DEFAULT_PATH)
+	#set(CONAN_POCO_OPENSSL_LIBS ${CONAN_POCO_OPENSSL_LIBS} ${_LIB_${i}})
+#endforeach(i)
+
+#${CONAN_LIB_DIRS_OPENSSL}
+#${CONAN_LIBS_OPENSSL}
+#find_library(CONAN_POCO_OPENSSL_LIBS NAMES ${CONAN_LIBS_OPENSSL} PATHS ${CONAN_LIB_DIRS_OPENSSL} NO_DEFAULT_PATH)
+
 set(GRPC_LIBS 
-	${GRPC_PLUSPLUS} ${GRPC_REFLECTION} ${GRPC_UNSECURE} ${GRPC_LIB} 
+	${GRPC_PLUSPLUS} 
+        ${GRPC_REFLECTION} ${GRPC_UNSECURE} ${GRPC_LIB} 
 	${GRPC_ERROR_DETAILS} ${GRPC_RLIB} ${GRPC_UPB} ${GRPC_ALTS}
 	${GRPC_ABSL_BAD_OPTIONAL_ACCESS} ${GRPC_ADDRESS_SORTING}
 	${GRPC_CARES} 
-	${GRPC_BORING_SSL_CRYPTO} 
-	${GRPC_BORING_SSL_SSL}
+#	${GRPC_BORING_SSL_CRYPTO} 
+#	${GRPC_BORING_SSL_SSL}
 	${GRPC_RE2}
 )
 
@@ -224,10 +247,24 @@ if(WIN32)
 else(WIN32) # unix
 #	target_link_libraries(Gradido_LoginServer gRPC::grpc++)
 #	target_link_libraries(Gradido_LoginServer )
-	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${GRPC_LIBS} ${PROTOBUF_LIBS} )# ${GRPC_LIBS} protoc protobuf pthread)
+	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${CONAN_OPENSSL_CUSTOM_LIBS} ${GRPC_LIBS}  ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})# ${GRPC_LIBS} protoc protobuf pthread)
 	#target_link_libraries(Gradido_LoginServer ${OpenSSL_LIBS} ${Poco_LIBS} ${libsodium_LIBS} )
 
 endif(WIN32)
+message(STATUS "link libraries:" )
+get_target_property(OUT Gradido_LoginServer LINK_LIBRARIES)
+foreach(i ${OUT})
+message(STATUS ${i})
+endforeach(i)
+message(STATUS "grpc libs: ")
+foreach(i ${GRPC_LIBS})
+message(STATUS ${i})
+endforeach(i)
+message(STATUS "boring ssl:")
+message(STATUS ${GRPC_BORING_SSL_SSL})
+message(STATUS ${GRPC_BORING_SSL_CRYPTO})
+message(STATUS "Conan OpenSSL")
+message(STATUS ${CONAN_POCO_OPENSSL_LIBS})
 
 # install 
 if(UNIX)
