@@ -120,6 +120,14 @@ if(WIN32)
 
 
 else (WIN32)
+	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
+	find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
+	find_library(CONAN_OPENSSL_CRYPTO crypto PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH ) 
+	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
+
+	list(REMOVE_ITEM CONAN_LIBS "ssl")
+	list(REMOVE_ITEM CONAN_LIBS "crypto")
+	list(REMOVE_ITEM CONAN_LIBS "dl")
 
 	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
 	find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
@@ -131,7 +139,6 @@ else (WIN32)
 	list(REMOVE_ITEM CONAN_LIBS "dl")
 
 endif(WIN32)
-
 
 # load same ssl version like used from poco
 #find_package(OpenSSL PATHS . NO_DEFAULT_PATH)
@@ -156,7 +163,6 @@ if(WIN32)
 
 else(WIN32)
 
-
 	set(INSTALL_BINDIR "bin")
 	set(INSTALL_PLUGINDIR "bin")
 
@@ -167,10 +173,8 @@ else(WIN32)
 
 endif(WIN32)
 
-
 set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
 target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
-
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)

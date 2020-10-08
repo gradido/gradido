@@ -35,7 +35,6 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
 			paramJsonObject->get("group_id").convert(group_id);
-
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
 			}

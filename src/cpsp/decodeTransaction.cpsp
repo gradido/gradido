@@ -101,7 +101,6 @@
 
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
-
 			TransactionCreation creationObject("", creation);
 			auto receiver = creation.receiver();
 			char hex[65]; memset(hex, 0, 65);

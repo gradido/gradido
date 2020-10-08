@@ -34,59 +34,12 @@
 
 using namespace Poco::Data::Keywords;
 
-int WriteEmailVerification::run()
-{	
-	auto em = ErrorManager::getInstance();
-
-	mEmailVerificationCode->getModel()->setUserId(mUser->getDBId());
-	auto emailVerificationModel = mEmailVerificationCode->getModel();
-	emailVerificationModel->setUserId(mUser->getDBId());
-	if (!emailVerificationModel->insertIntoDB(true) || emailVerificationModel->errorCount() > 0) {
-		emailVerificationModel->sendErrorsAsEmail();
-		return -1;
-	}
-
-	return 0;
-}
-
-// ---------------------------------------------------------------------------------------------------------------
-
-int WritePassphraseIntoDB::run()
-{
-	Profiler timeUsed;
-
-	// TODO: encrypt passphrase, need server admin crypto box pubkey
-	//int crypto_box_seal(unsigned char *c, const unsigned char *m,
-		//unsigned long long mlen, const unsigned char *pk);
-	size_t mlen = mPassphrase.size();
-	size_t crypto_size = crypto_box_SEALBYTES + mlen;
-
-	auto em = ErrorManager::getInstance();
-
-	auto dbSession = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-	Poco::Data::Statement insert(dbSession);
-	insert << "INSERT INTO user_backups (user_id, passphrase) VALUES(?,?)",
-		use(mUserId), use(mPassphrase);
-	try {
-		if (insert.execute() != 1) {
-			em->addError(new ParamError("WritePassphraseIntoDB::run", "inserting passphrase for user failed", std::to_string(mUserId)));
-			em->sendErrorsAsEmail();
-		}
-	}
-	catch (Poco::Exception& ex) {
-		em->addError(new ParamError("WritePassphraseIntoDB::run", "insert passphrase mysql error", ex.displayText().data()));
-		em->sendErrorsAsEmail();
-	}
-
-	//printf("[WritePassphraseIntoDB] timeUsed: %s\n", timeUsed.string().data());
-	return 0;
-}
 
 
 // --------------------------------------------------------------------------------------------------------------
 
 Session::Session(int handle)
-	: mHandleId(handle), mSessionUser(nullptr), mState(SESSION_STATE_EMPTY), mActive(false)
+	: mHandleId(handle), mState(SESSION_STATE_EMPTY), mActive(false)
 {
 
 }
@@ -109,7 +62,6 @@ void Session::reset()
 	//printf("[Session::reset]\n");
 	lock("Session::reset");
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
-	mSessionUser.assign(nullptr);
 	mNewUser.assign(nullptr);
 	mEmailVerificationCodeObject.assign(nullptr);
 
@@ -471,16 +423,8 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	}
 	auto email_verification_code_model = mEmailVerificationCodeObject->getModel();
 	assert(email_verification_code_model);
-	if(email_verification_code_model->getCode() == emailVerificationCode) {
-		if (mSessionUser && mSessionUser->getDBId() == 0) {
-			//addError(new Error("E-Mail Verification", "Benutzer wurde nicht richtig gespeichert, bitte wende dich an den Server-Admin"));
-			em->addError(new Error(funcName, "user exist with 0 as id"));
-			em->sendErrorsAsEmail();
-			
-			//return false;
-			return -2;
-		}
-		
+	if(email_verification_code_model->getCode() == emailVerificationCode) 
+	{
 		// load correct user from db
 		if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
 			mNewUser = controller::User::create();
@@ -502,7 +446,6 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			first_email_activation = true;
 		}
 		if (first_email_activation && user_model->isEmailChecked()) {
-			mSessionUser = new User(mNewUser);
 			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")), false);
 			
 			return 1;
@@ -541,28 +484,6 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		
 		return -2;
 		
-		/*if (updated_rows == 1) {
-			Poco::Data::Statement delete_row(dbConnection);
-			delete_row << "DELETE FROM email_opt_in where verification_code = ?", use(emailVerificationCode);
-			if (delete_row.execute() != 1) {
-				em->addError(new Error(funcName, "delete from email_opt_in entry didn't work as expected, please check db"));
-				em->sendErrorsAsEmail();
-			}
-			if (mSessionUser) {
-				mSessionUser->setEmailChecked();
-				mSessionUser->setLanguage(getLanguage());
-			}
-			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
-			//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-			unlock();
-			return true;
-		}
-		else {
-			em->addError(new ParamError(funcName, "update user work not like expected, updated row count", updated_rows));
-			em->sendErrorsAsEmail();
-		}*/
-		
-		
 	}
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
@@ -579,7 +500,6 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
 {
 	mNewUser = user;
-	mSessionUser = new User(user);
 	auto em = EmailManager::getInstance();
 
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
@@ -623,7 +543,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 
 int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, const Mnemonic* wordSource)
 {
-	KeyPair keys;
+	
 	static const char* functionName = "Session::comparePassphraseWithSavedKeys";
 	if (!wordSource) {
 		addError(new Error(functionName, "wordSource is empty"));
@@ -831,9 +751,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 	if (user_model && user_model->isDisabled()) {		
 		return USER_DISABLED;
 	}
-
 	if (mNewUser->getUserState() >= USER_LOADED_FROM_DB) {
-		
 		int loginResult = mNewUser->login(password);
 		int exitCount = 0;
 		if (loginResult == -3) 
@@ -908,6 +826,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 	}
 
 	detectSessionState();
+	unlock();
 	if (0 == mNewUser->getModel()->getGroupId()) {
 		return USER_NO_GROUP;
 	}
@@ -985,7 +904,6 @@ SESSION_STATE_COUNT
 */
 void Session::detectSessionState()
 {
-
 	if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getPassword().isNull()) {
 		return;
 	}

@@ -26,8 +26,8 @@
 	auto langCatalog = lm->getFreeCatalog(lang);
 
 	std::string presetEmail("");
-	if(mSession && mSession->getUser()) {
-		presetEmail = mSession->getUser()->getEmail();
+	if(mSession && mSession->getNewUser()) {
+		presetEmail = mSession->getNewUser()->getModel()->getEmail();
 	}
 
 	if(!form.empty()) {

@@ -445,7 +445,6 @@ namespace controller {
 		return 0;
 	}
 
-
 	int User::addMissingEmailHashes()
 	{
 		auto cm = ConnectionManager::getInstance();
@@ -499,6 +498,4 @@ namespace controller {
 		}
 		return updated_count;
 	}
-
 }
-

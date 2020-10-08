@@ -17,11 +17,11 @@ TransactionCreation::~TransactionCreation()
 int TransactionCreation::prepare()
 {
 	const static char functionName[] = { "TransactionCreation::prepare" };
-	if (!mProtoCreation.has_receiveramount()) {
+	if (!mProtoCreation.has_receiver()) {
 		addError(new Error(functionName, "hasn't receiver amount"));
 		return -1;
 	}
-	auto receiverAmount = mProtoCreation.receiveramount();
+	auto receiver_amount = mProtoCreation.receiver();
 
 	if (receiverAmount.amount() <= 0) {
 		addError(new Error(functionName, "amount must be > 0"));
@@ -43,8 +43,7 @@ int TransactionCreation::prepare()
 	getErrors(mReceiverUser->getModel());
 	if (mReceiverUser->getUserState() == USER_EMPTY) {
 		sodium_bin2hex(mReceiverPublicHex, 65, (const unsigned char*)receiverPublic.data(), receiverPublic.size());
-		delete mReceiverUser;
-		mReceiverUser = nullptr;
+                mReceiverUser.assign(nullptr);
 	}
 	else {
 		memcpy(mReceiverPublicHex, mReceiverUser->getModel()->getPublicKeyHex().data(), 64);

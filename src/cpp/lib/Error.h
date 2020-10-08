@@ -29,8 +29,7 @@ public:
 	virtual bool isError() { return true; }
 
 protected:
-	std::string mFunctionName;
-	std::string mMessage;
+	
 };
 
 class ParamError : public Error

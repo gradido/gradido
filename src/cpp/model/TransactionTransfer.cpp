@@ -62,22 +62,11 @@ int TransactionTransfer::prepare()
 {
 	lock();
 	const static char functionName[] = { "TransactionTransfer::prepare" };
-	if (mProtoTransfer.senderamounts_size() == 0) {
-		addError(new Error(functionName, "hasn't sender amount(s)"));
-		unlock();
-		return -1;
-	}
-	if (mProtoTransfer.receiveramounts_size() == 0) {
-		addError(new Error(functionName, "hasn't receiver amount(s)"));
-		unlock();
-		return -2;
-	}
-	mKontoTable.reserve(mProtoTransfer.senderamounts_size() + mProtoTransfer.receiveramounts_size());
+
+	mKontoTable.reserve(2);
 
 	//auto receiverAmount = mProtoTransfer.receiveramount();
 	//auto senderAmount
-	int senderSum = 0;
-	int receiverSum = 0;
 
 	char pubkeyHexTemp[65];
 
@@ -125,25 +114,15 @@ int TransactionTransfer::prepare()
 			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, senderAmount.amount(), true));
 		}
 		else {
-			mKontoTable.push_back(KontoTableEntry(user->getModel(), senderAmount.amount(), true));
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), -amount, true));
 		}
-	}
-	for (int i = 0; i < mProtoTransfer.receiveramounts_size(); i++) {
-		auto receiverAmount = mProtoTransfer.receiveramounts(i);
-		auto pubkey = receiverAmount.ed25519_receiver_pubkey();
-		receiverSum += receiverAmount.amount();
-		if (receiverAmount.ed25519_receiver_pubkey().size() != 32) {
-			addError(new ParamError(functionName, "invalid public key for receiver ", i));
-			unlock();
-			return -4;
-		}
-		auto user = controller::User::create();
-		if (!user->load((const unsigned char*)pubkey.data())) {
-			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)pubkey.data(), pubkey.size());
-			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, receiverAmount.amount(), false));
+
+		if (!receiver_user->load((const unsigned char*)receiver_pubkey.data())) {
+			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size());
+			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, amount, true));
 		}
 		else {
-			mKontoTable.push_back(KontoTableEntry(user->getModel(), receiverAmount.amount(), false));
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
 		}
 	}
 	if (senderSum != receiverSum) {
@@ -199,5 +178,3 @@ const std::string& TransactionTransfer::getAmountCell(int index)
 
 	return mKontoTable[index].amountCell;
 }
-
->>>>>>> 1e4ae4a (update proto files matching with pauls proto version, update code which use them)

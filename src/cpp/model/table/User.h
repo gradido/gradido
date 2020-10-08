@@ -56,7 +56,6 @@ namespace model {
 			size_t updateFieldsFromCommunityServer();
 
 			// default getter unlocked
-
 			inline const std::string getEmail() const { SHARED_LOCK; return mEmail; }
 			inline const std::string getFirstName() const { SHARED_LOCK; return mFirstName; }
 			inline const std::string getLastName() const { SHARED_LOCK; return mLastName; }

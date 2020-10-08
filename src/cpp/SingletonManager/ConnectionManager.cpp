@@ -74,7 +74,6 @@ Poco::Data::Session ConnectionManager::getConnection(ConnectionType type)
 	}
 	auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
 
-	
 	//return mSessionPoolNames[type];
 	/*if (!session.isConnected()) {
 		printf("reconnect called\n");
