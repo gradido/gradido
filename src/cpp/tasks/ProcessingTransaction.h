@@ -33,7 +33,7 @@ class ProcessingTransaction : public UniLib::controller::CPUTask, public Notific
 	friend SigningTransaction;
 public:
 	//! \param lang for error messages in user language
-	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang);
+	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated = Poco::DateTime());
 	virtual ~ProcessingTransaction();
 
 	int run();
@@ -70,6 +70,7 @@ protected:
 	DHASH mUserEmailHash;
 	Languages mLang;
 	Poco::Mutex mHashMutex;
+	Poco::DateTime mTransactionCreated;
 private:
 
 };

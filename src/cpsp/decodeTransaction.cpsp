@@ -103,8 +103,7 @@
 			auto creation = transactionBody.creation();
 
 			TransactionCreation creationObject("", creation);
-			auto receiver = creation.receiveramount();
-
+			auto receiver = creation.receiver();
 			char hex[65]; memset(hex, 0, 65);
 			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());
 			

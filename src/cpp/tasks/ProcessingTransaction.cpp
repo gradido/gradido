@@ -9,9 +9,9 @@
 #include "../lib/DataTypeConverter.h"
 #include "../lib/JsonRequest.h"
 
-ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang)
+ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated/* = Poco::DateTime()*/)
 	: mType(TRANSACTION_NONE), mProtoMessageBase64(proto_message_base64), mTransactionSpecific(nullptr), mUserEmailHash(userEmailHash),
-	mLang(lang)
+	mLang(lang), mTransactionCreated(transactionCreated)
 {
 	mHashMutex.lock();
 	mHash = calculateHash(proto_message_base64);
@@ -118,7 +118,7 @@ int ProcessingTransaction::run()
 		if (mTransactionSpecific->prepare()) {
 			getErrors(mTransactionSpecific);
 			addError(new Error("ProcessingTransaction", "error preparing"));
-			reportErrorToCommunityServer(catalog->gettext("format error"), catalog->gettext("format of specific transaction not known, wrong proto version?"), std::to_string(mTransactionBody.created().seconds()));
+			reportErrorToCommunityServer(catalog->gettext("format error"), catalog->gettext("format of specific transaction not known, wrong proto version?"), Poco::DateTimeFormatter::format(mTransactionCreated, "%s"));
 			unlock();
 			return -3;
 		}

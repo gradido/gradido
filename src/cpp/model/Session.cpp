@@ -685,11 +685,17 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 		}
 	}
 
+	Languages lang = LANG_DE;
+	if (!mNewUser.isNull()) {
+		lang = LanguageManager::languageFromString(mNewUser->getModel()->getLanguageKey());
+	}
+	
 	Poco::AutoPtr<ProcessingTransaction> processorTask(
 		new ProcessingTransaction(
 			proto_message_base64, 
-			DRMakeStringHash(mSessionUser->getEmail()),
-			mSessionUser->getLanguage())
+			DRMakeStringHash(mSessionUser->getEmail().data()),
+			lang
+		)
 	);
 	if (autoSign && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
 		if (processorTask->run() != 0) {

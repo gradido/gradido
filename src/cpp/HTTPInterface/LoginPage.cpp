@@ -105,7 +105,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
 			}
-			UserStates user_state;
+			UserState user_state;
 			try {
 				user_state = mSession->loadUser(email, password);
 			} catch (Poco::Exception& ex) {

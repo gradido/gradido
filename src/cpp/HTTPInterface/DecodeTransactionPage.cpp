@@ -222,8 +222,7 @@ void DecodeTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request,
 			auto creation = transactionBody.creation();
 
 			TransactionCreation creationObject("", creation);
-			auto receiver = creation.receiveramount();
-
+			auto receiver = creation.receiver();
 			char hex[65]; memset(hex, 0, 65);
 			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());
 			
@@ -238,36 +237,36 @@ void DecodeTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request,
 			responseStream << "\n";
 	responseStream << "\t\t<h3>Creation</h3>\n";
 	responseStream << "\t\t";
-#line 121 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 120 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
  if(!adminUser || user.isNull() || !user->getModel()) { 	responseStream << "\n";
 	responseStream << "\t\t<p>pubkey: ";
-#line 122 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 121 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
 	responseStream << ( hex );
 	responseStream << "</p>\n";
 	responseStream << "\t\t";
-#line 123 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 122 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t<p>user: </p>\n";
 	responseStream << "\t\t<p>";
-#line 125 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 124 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
 	responseStream << ( user->getModel()->toHTMLString() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t";
-#line 126 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 125 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t<p>amount: ";
-#line 127 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 126 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
 	responseStream << ( TransactionBase::amountToString(receiver.amount()) );
 	responseStream << " GDD</p>\n";
 	responseStream << "\t\t<p>target date: ";
-#line 128 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 127 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
 	responseStream << ( creationObject.getTargetDateString() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t";
-#line 129 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 128 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 130 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
+#line 129 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\decodeTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
