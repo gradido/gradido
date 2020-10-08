@@ -9,15 +9,6 @@ cmake -DWITH_SSL=OFF ..
 cd ../../../
 
 
-cd dependencies/grpc
-mkdir build 
-cd build 
-cmake ..
-make 
-# under windows build at least release for protoc.exe and grpc c++ plugin
-cd ../../../
-./unix_parse_proto.sh
-
 # get more dependencies with conan (need conan from https://conan.io/)
 mkdir build && cd build
 # // not used anymore
@@ -28,4 +19,11 @@ conan install ..
 
 # build Makefile with cmake
 cmake ..
+
+make grpc 
+# under windows build at least release for protoc.exe and grpc c++ plugin
+cd ../
+./unix_parse_proto.sh
+cd build
+make 
 
