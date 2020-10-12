@@ -33,6 +33,7 @@ FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB MODEL_TABLE "src/cpp/model/table/*.h" "src/cpp/model/table/*.cpp")
 FILE(GLOB MODEL_EMAIL "src/cpp/model/email/*.h" "src/cpp/model/email/*.cpp")
 FILE(GLOB MODEL_HEDERA "src/cpp/model/hedera/*.h" "src/cpp/model/hedera/*.cpp")
+FILE(GLOB MODEL_GRADIDO "src/cpp/model/gradido/*.h" "src/cpp/model/gradido/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
@@ -48,7 +49,8 @@ FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controll
 
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
-	${JSONInterface} ${CRYPTO} ${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA}
+	${JSONInterface} ${CRYPTO}
+	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA} ${MODEL_GRADIDO}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
 	${PROTO_GRADIDO} ${PROTO_HEDERA}
 )
@@ -68,6 +70,7 @@ if(MSVC)
 	source_group("model\\table" FILES ${MODEL_TABLE})
 	source_group("model\\email" FILES ${MODEL_EMAIL})
 	source_group("model\\hedera" FILES ${MODEL_HEDERA})
+	source_group("model\\gradido" FILES ${MODEL_GRADIDO})
 	source_group("model" FILES ${MODEL})
 	source_group("mysql" FILES ${MYSQL})
 	source_group("SingletonManager" FILES ${SINGLETON_MANAGER})

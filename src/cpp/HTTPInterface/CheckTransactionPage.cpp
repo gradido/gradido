@@ -10,8 +10,8 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 #include "../SingletonManager/EmailManager.h"
-#include "../model/TransactionCreation.h"
-#include "../model/TransactionTransfer.h"
+#include "../model/gradido/TransactionCreation.h"
+#include "../model/gradido/TransactionTransfer.h"
 
 #include "Poco/Thread.h"
 

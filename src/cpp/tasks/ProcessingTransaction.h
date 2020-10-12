@@ -5,7 +5,7 @@
 
 #include "../lib/NotificationList.h"
 #include "../lib/DRHash.h"
-#include "../model/TransactionBase.h"
+#include "../model/gradido/TransactionBase.h"
 
 #include "../proto/gradido/TransactionBody.pb.h"
 
@@ -24,9 +24,15 @@ enum TransactionType {
 	TRANSACTION_TRANSFER
 };
 
-class TransactionCreation;
-class TransactionTransfer;
+namespace model {
+	namespace gradido {
+		class TransactionCreation;
+		class TransactionTransfer;
+		
+	}
+}
 class SigningTransaction;
+
 
 class ProcessingTransaction : public UniLib::controller::CPUTask, public NotificationList
 {
@@ -47,8 +53,8 @@ public:
 	bool isCreation() { return mType == TRANSACTION_CREATION; }
 	bool isTransfer() { return mType == TRANSACTION_TRANSFER; }
 
-	TransactionCreation* getCreationTransaction();
-	TransactionTransfer* getTransferTransaction();
+	model::gradido::TransactionCreation* getCreationTransaction();
+	model::gradido::TransactionTransfer* getTransferTransaction();
 
 	static HASH calculateHash(const std::string& proto_message_base64);
 	static std::string calculateGenericHash(const std::string& protoMessageBase64);
@@ -64,7 +70,7 @@ protected:
 	std::string mProtoMessageBase64;
 
 	proto::gradido::TransactionBody mTransactionBody;
-	TransactionBase* mTransactionSpecific;
+	model::gradido::TransactionBase* mTransactionSpecific;
 
 	HASH mHash;
 	DHASH mUserEmailHash;

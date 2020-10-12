@@ -54,7 +54,6 @@ Poco::AutoPtr<Poco::Data::SessionImpl> Connector::createSession(const std::strin
 
 void Connector::registerConnector()
 {
-    printf("function pointer address: %d\n", mysql_library_init);
     try {
 
         if (mysql_library_init(0, nullptr, nullptr) != 0)
@@ -64,9 +63,7 @@ void Connector::registerConnector()
     } catch(std::exception &ex) {
         printf("mysql exception: \n");
     }
-	printf("after exception\n");
 	ServerConfig::g_ServerKeySeed->put(4, DRRandom::r64());
-    printf("instance add new\n");
 	Poco::Data::SessionFactory::instance().add(new Connector());
 }
 

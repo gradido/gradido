@@ -1,8 +1,8 @@
 ﻿#include "ProcessingTransaction.h"
 #include <sodium.h>
 
-#include "../model/TransactionCreation.h"
-#include "../model/TransactionTransfer.h"
+#include "../model/gradido/TransactionCreation.h"
+#include "../model/gradido/TransactionTransfer.h"
 
 #include "../SingletonManager/SingletonTaskObserver.h"
 
@@ -108,11 +108,11 @@ int ProcessingTransaction::run()
 	// check Type
 	if (mTransactionBody.has_creation()) {
 		mType = TRANSACTION_CREATION;
-		mTransactionSpecific = new TransactionCreation(mTransactionBody.memo(), mTransactionBody.creation());
+		mTransactionSpecific = new model::gradido::TransactionCreation(mTransactionBody.memo(), mTransactionBody.creation());
 	}
 	else if (mTransactionBody.has_transfer()) {
 		mType = TRANSACTION_TRANSFER;
-		mTransactionSpecific = new TransactionTransfer(mTransactionBody.memo(), mTransactionBody.transfer());
+		mTransactionSpecific = new model::gradido::TransactionTransfer(mTransactionBody.memo(), mTransactionBody.transfer());
 	}
 	if (mTransactionSpecific) {
 		if (mTransactionSpecific->prepare()) {
@@ -158,12 +158,12 @@ std::string ProcessingTransaction::getBodyBytes()
 	return "<uninitalized>";
 }
 
-TransactionCreation* ProcessingTransaction::getCreationTransaction()
+model::gradido::TransactionCreation* ProcessingTransaction::getCreationTransaction()
 {
-	return dynamic_cast<TransactionCreation*>(mTransactionSpecific);
+	return dynamic_cast<model::gradido::TransactionCreation*>(mTransactionSpecific);
 }
 
-TransactionTransfer* ProcessingTransaction::getTransferTransaction()
+model::gradido::TransactionTransfer* ProcessingTransaction::getTransferTransaction()
 {
-	return dynamic_cast<TransactionTransfer*>(mTransactionSpecific);
+	return dynamic_cast<model::gradido::TransactionTransfer*>(mTransactionSpecific);
 }

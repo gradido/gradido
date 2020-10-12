@@ -8,8 +8,8 @@
 #include "sodium.h"
 #include "../proto/gradido/TransactionBody.pb.h"
 #include "../controller/User.h"
-#include "../model/TransactionBase.h"
-#include "../model/TransactionCreation.h"
+#include "../model/gradido/TransactionBase.h"
+#include "../model/gradido/TransactionCreation.h"
 %>
 <%%
 	const char* pageName = "Decode Transaction";
@@ -94,13 +94,14 @@
 				<b>From: </b><%= hex %>
 				<% sodium_bin2hex(hex, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size()); %>
 				<b>To: </b><%= hex %>
-				<b>Amount: </b><%= TransactionBase::amountToString(local_transfer.sender().amount()) %>
+				<b>Amount: </b><%= model::gradido::TransactionBase::amountToString(local_transfer.sender().amount()) %>
 			<% } else { %>
 				<h3>- Not implemented yet (Group Transfer) -</h3>
 			<% } %>
 
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
+			//model::gradido::TransactionCreation creationObject("", creation);
 			TransactionCreation creationObject("", creation);
 			auto receiver = creation.receiver();
 			char hex[65]; memset(hex, 0, 65);
@@ -122,7 +123,7 @@
 		<p>user: </p>
 		<p><%= user->getModel()->toHTMLString() %></p>
 		<% } %>
-		<p>amount: <%= TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<p>amount: <%= model::gradido::TransactionBase::amountToString(receiver.amount()) %> GDD</p>
 		<p>target date: <%= creationObject.getTargetDateString() %></p>
 		<% } %>
 	<% } %>

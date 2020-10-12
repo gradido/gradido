@@ -4,7 +4,6 @@
 #include "CPUTask.h"
 
 #include "../lib/NotificationList.h"
-#include "../model/TransactionBase.h"
 #include "../controller/User.h"
 
 #include "../proto/gradido/GradidoTransaction.pb.h"

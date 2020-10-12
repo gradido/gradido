@@ -16,7 +16,7 @@ enum PageState {
 	PAGE_STATE_REQUEST_IS_RUNNING
 };
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 
 #include "../ServerConfig.h"
 
@@ -48,14 +48,14 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	auto groups = controller::Group::listAll();
 	
 	
-#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 
 	bool withMaterialIcons = false;
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 	responseStream << "\n";
-	// begin include header_large.cpsp
+	// begin include header.cpsp
 	responseStream << "\n";
 	responseStream << "<!DOCTYPE html>\n";
 	responseStream << "<html>\n";
@@ -63,48 +63,47 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/main.css\">\n";
-#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
  if(withMaterialIcons) { 	responseStream << "\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/materialdesignicons.min.css\">\n";
-#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
 	responseStream << "    <div class=\"layout\">\n";
-	responseStream << "\t\t<div class=\"sidebar1 nav-menu initial\">\n";
-	responseStream << "\t\t\t<div class=\"nav-vertical\">\n";
-	responseStream << "\t\t\t\t<ul>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
-#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
-#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
-#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/topic\"><span class=\"link-title\">Hedera Topics</span></a></li>\n";
-	responseStream << "\t\t\t\t</ul>\n";
-	responseStream << "\t\t\t</div>\n";
-	responseStream << "\t\t</div>\n";
-	responseStream << "\t\t<div class=\"content\">";
-	// end include header_large.cpsp
+	responseStream << "        <div class=\"center-form-single\">\n";
+	responseStream << "            <div class=\"center-form-header\">\n";
+	responseStream << "                <a href=\"";
+#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "\" class=\"center-logo\">\n";
+	responseStream << "                    <picture>\n";
+	responseStream << "                        <source srcset=\"";
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_schrift.webp\" type=\"image/webp\">\n";
+	responseStream << "                        <source srcset=\"";
+#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_schrift.png\" type=\"image/png\">\n";
+	responseStream << "                        <img src=\"";
+#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << "img/logo_schrift.png\" alt=\"logo\" />\n";
+	responseStream << "                    </picture>\n";
+	responseStream << "                </a>\n";
+	responseStream << "            </div>";
+	// end include header.cpsp
 	responseStream << "\n";
 #line 30 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( getErrorsHtml() );

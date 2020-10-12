@@ -26,7 +26,7 @@ enum PageState {
 	auto groups = controller::Group::listAll();
 	
 	
-%><%@ include file="header_large.cpsp" %>
+%><%@ include file="header.cpsp" %>
 <%= getErrorsHtml() %>
 <div class="content-list">
 	<% if(PAGE_STATE_OVERVIEW == state ) { %>

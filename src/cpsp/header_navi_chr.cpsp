@@ -34,8 +34,8 @@
             <div class="flash-messages" onclick="this.classList.add('hidden')"><%= getErrorsHtmlNewFormat() %></div>
             <div class="nav-vertical">
                 <ul>
-                    <li><a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span
-                                class="link-title">Kontoübersicht ( <%= TransactionBase::amountToString(userBalance) %> GDD )</span></a></li>
+                    <li><a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= model::gradido::TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span
+                                class="link-title">Kontoübersicht ( <%= model::gradido::TransactionBase::amountToString(userBalance) %> GDD )</span></a></li>
                     <li><a href="<%= ServerConfig::g_php_serverPath %>dashboard/index" class=""><i class="material-icons-outlined nav-icon " title="Startseite">home</i><span
                                 class="link-title">Startseite</span></a></li>
                     <li class=' selected'><a href="<%= ServerConfig::g_php_serverPath %>transaction-send-coins/create" class=""><i class="material-icons-outlined nav-icon "
