@@ -3,6 +3,7 @@
 #include "Poco/Dynamic/Struct.h"
 
 #include "../SingletonManager/SessionManager.h"
+#include "../ServerConfig.h"
 
 Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 {
@@ -30,6 +31,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				}
 
 				int balance = 0;
+				
 				if (!paramJsonObject->isNull("balance")) {
 					paramJsonObject->get("balance").convert(balance);
 					if (balance) {
@@ -43,10 +45,23 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				std::string transactionBase64String;
 				Poco::Dynamic::Var transaction_base64 = paramJsonObject->get("transaction_base64");
 				int alreadyEnlisted = 0;
+				bool auto_sign = false;
+				auto auto_sign_json = paramJsonObject->get("auto_sign");
+				if (!auto_sign_json.isEmpty()) {
+					auto_sign_json.convert(auto_sign);
+				}
+				
 				if (transaction_base64.isString()) {
 					paramJsonObject->get("transaction_base64").convert(transactionBase64String);
 
-					if (!session->startProcessingTransaction(transactionBase64String)) {
+					if (!session->startProcessingTransaction(transactionBase64String, auto_sign)) {
+						if (auto_sign) {
+							auto errorJson = session->getErrorsArray();
+							result->set("state", "error");
+							result->set("msg", "error processing transaction");
+							result->set("details", errorJson);
+							return result;
+						}
 						auto lastError = session->getLastError();
 						if (lastError) delete lastError;
 						result->set("state", "error");
@@ -56,9 +71,11 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 				} else {
 					Poco::DynamicStruct ds = *paramJsonObject;
+					int alreadyEnlisted = 0;
+
 					for (int i = 0; i < ds["transaction_base64"].size(); i++) {
 						ds["transaction_base64"][i].convert(transactionBase64String);
-						if (!session->startProcessingTransaction(transactionBase64String)) {
+						if (!session->startProcessingTransaction(transactionBase64String, auto_sign)) {
 							auto lastError = session->getLastError();
 							if (lastError) delete lastError;
 							alreadyEnlisted++;

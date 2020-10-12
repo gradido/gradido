@@ -64,8 +64,10 @@ int Mnemonic::init(void(*fill_words_func)(unsigned char*), unsigned int original
 		uncompressed_file_name += std::to_string(original_size);
 		uncompressed_file_name += ".txt";
 		FILE* f = fopen(uncompressed_file_name.data(), "w");
-		fwrite(uncompressed_buffer, sizeof(char), original_size, f);
-		fclose(f);
+		if (f) {
+			fwrite(uncompressed_buffer, sizeof(char), original_size, f);
+			fclose(f);
+		}
 
 		unsigned short cursor = 0;
 		u32 word_begin = 0, word_end = 0;
@@ -335,9 +337,11 @@ void Mnemonic::printToFile(const char* filename)
 {
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	FILE* f = fopen(filename, "wt");
-	auto words = getCompleteWordListSorted();
-	fwrite(words.data(), 1, words.size(), f);
-	fclose(f);
+	if (f) {
+		auto words = getCompleteWordListSorted();
+		fwrite(words.data(), 1, words.size(), f);
+		fclose(f);
+	}
 }
 
 Poco::JSON::Array Mnemonic::getSortedWordList()

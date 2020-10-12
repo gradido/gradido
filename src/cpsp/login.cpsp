@@ -64,25 +64,38 @@
 				// get language
 				// first check url, second check language header
 				// for debugging client ip
-				auto client_ip = request.clientAddress();
+				auto client_host = request.clientAddress().host();
+				//auto client_ip = request.clientAddress();
+				// X-Real-IP forwarded ip from nginx config
+				auto client_host_string = request.get("X-Real-IP", client_host.toString());				
 				std::string clientIpString = "client ip: ";
+				client_host = Poco::Net::IPAddress(client_host_string);
 				clientIpString += client_ip.toString();
+				// clientIpString += client_host_string;
 				Poco::Logger::get("requestLog").information(clientIpString);
 				// debugging end
 				auto user_host = request.clientAddress().host();
 				mSession->setClientIp(user_host);
+				// mSession->setClientIp(client_host);
 				response.addCookie(mSession->getLoginCookie());
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
 			}
-			auto userState = mSession->loadUser(email, password);
+			UserState user_state;
+			try {
+				user_state = mSession->loadUser(email, password);
+			} catch (Poco::Exception& ex) {
+				addError(new ParamError("login", "exception by calling loadUser: ", ex.displayText()));
+				sendErrorsAsEmail();
+				addError(new Error("Error", "Intern Server error, please try again later"));
+			}
 			auto user = mSession->getNewUser();
 
-			if(userState >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
+			if(user_state >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
 				if(mSession->generateKeys(true, true)) {
-					userState = USER_COMPLETE;
+					user_state = USER_COMPLETE;
 					if(user->getModel()->isDisabled()) {
-						userState = USER_DISABLED;
+						user_state = USER_DISABLED;
 					}
 				}
 			} else {
@@ -93,12 +106,17 @@
 			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
 
-			//printf("userState: %d\n", userState);
+			printf("user_state: %d\n", user_state);
 
-			switch(userState) {
+			switch(user_state) {
 			case USER_EMPTY:
 			case USER_PASSWORD_INCORRECT:
 				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")), false);
+				if(mSession) {
+					getErrors(mSession);
+					sm->releaseSession(mSession);
+				}
+				sm->deleteLoginCookies(request, response);
 				break;
 			case USER_PASSWORD_ENCRYPTION_IN_PROCESS:
 				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
@@ -174,7 +192,7 @@
     <div class="center-form-bottom">
         <div class="signup-link">
 	      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
-	      <a href="<%= ServerConfig::g_serverPath %>/registerDirect">
+	      <a href="https://elopage.com/s/gradido/registration-de/payment?locale=de">
 			<%= langCatalog->gettext("Create New Account") %>
 		  </a>
 	    </div>
@@ -182,5 +200,12 @@
 			<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
 		</div>
 	</div>
+</div>
+<p>&nbsp;</p>
+<div class="container">
+	<a href="https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing" target="_blank">Zum Whitepaper</a>
+	<br>
+	<br>
+	<a href="https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing" target="_blank">To the Whitepaper</a>
 </div>
 <%@ include file="footer.cpsp" %>

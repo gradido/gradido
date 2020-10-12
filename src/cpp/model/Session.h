@@ -151,18 +151,24 @@ public:
 		return mEmailVerificationCodeObject->getModel()->getType();
 	}
 
-	inline bool isActive() { bool bret = false; lock("Session::isActive"); bret = mActive; unlock(); return bret; }
-	inline void setActive(bool active) { lock("Sessions::setActive");  mActive = active; unlock(); }
+	//! \return -1 if session is locked
+	//! \return 1 if session is active
+	//! \return 0 
+	int isActive();
+	//! \return false if session is locked
+	bool setActive(bool active);
+
+	bool isDeadLocked();
 
 	inline Poco::DateTime getLastActivity() { return mLastActivity; }
 
 	// ------------------------ transactions functions ----------------------------
 
 	//! \return true if succeed
-	bool startProcessingTransaction(const std::string& proto_message_base64);
+	bool startProcessingTransaction(const std::string& proto_message_base64, bool autoSign = false);
 	//! \param working if set will filled with transaction running
 	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
-	void finalizeTransaction(bool sign, bool reject);
+	bool finalizeTransaction(bool sign, bool reject);
 	size_t getProcessingTransactionCount();
 
 	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }

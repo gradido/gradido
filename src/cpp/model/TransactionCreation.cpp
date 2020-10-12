@@ -2,6 +2,7 @@
 #include "Poco/DateTimeFormatter.h"
 #include <sodium.h>
 
+//TransactionCreation::TransactionCreation(const std::string& memo, const model::messages::gradido::TransactionCreation& protoCreation)
 TransactionCreation::TransactionCreation(const std::string& memo, const proto::gradido::GradidoCreation& protoCreation)
 	: TransactionBase(memo), mProtoCreation(protoCreation)
 {
@@ -22,7 +23,16 @@ int TransactionCreation::prepare()
 	}
 	auto receiver_amount = mProtoCreation.receiver();
 
-	auto receiverPublic = receiver_amount.pubkey();
+	if (receiverAmount.amount() <= 0) {
+		addError(new Error(functionName, "amount must be > 0"));
+		return -4;
+	}
+	if (receiverAmount.amount() > 10000000) {
+		addError(new Error(functionName, "amount must be <= 1000 GDD"));
+		return -5;
+	}
+
+	auto receiverPublic = receiverAmount.ed25519_receiver_pubkey();
 	if (receiverPublic.size() != 32) {
 		addError(new Error(functionName, "receiver public invalid (size not 32)"));
 		return -2;

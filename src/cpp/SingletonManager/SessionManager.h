@@ -88,6 +88,7 @@ protected:
 	// sessions storage
 	std::map<int, Session*> mRequestSessionMap;
 	std::stack<int>			mEmptyRequestStack;
+	int						mDeadLockedSessionCount;
 
 	bool					mInitalized;
 

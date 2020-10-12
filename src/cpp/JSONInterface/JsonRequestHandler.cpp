@@ -8,13 +8,20 @@
 
 #include "Poco/JSON/Parser.h"
 
+#include "../ServerConfig.h"
+
 #include "../lib/DataTypeConverter.h"
+#include "../SingletonManager/SessionManager.h"
 
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 
 	response.setChunkedTransferEncoding(false);
 	response.setContentType("application/json");
+	if (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_CORS_ALL) {
+		response.set("Access-Control-Allow-Origin", "*");
+		response.set("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+	}
 	//bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
 	//if (_compressResponse) response.set("Content-Encoding", "gzip");
 
@@ -32,6 +39,9 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		if (parsedResult.size() != 0) {
 			json_result = handle(parsedResult);
 		}
+		else {
+			json_result = stateError("empty body");
+		}
 	}
 	else if(method == "GET") {		
 		Poco::URI uri(request.getURI());
@@ -40,6 +50,21 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 
 	if (json_result) {
+		if (!json_result->isNull("session_id")) {
+			int session_id = 0;
+			try {
+				json_result->get("session_id").convert(session_id);
+			}
+			catch (Poco::Exception& e) {
+				ErrorList erros;
+				erros.addError(new Error("json request", "invalid session_id"));
+				erros.sendErrorsAsEmail();
+			}
+			if (session_id) {
+				auto session = SessionManager::getInstance()->getSession("session_id");
+				response.addCookie(session->getLoginCookie());
+			}
+		}
 		json_result->stringify(responseStream);
 		delete json_result;
 	}
@@ -73,9 +98,11 @@ Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream&
 		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d_%m_%yT%H_%M_%S");
 		std::string filename = dateTimeString + "_response.html";
 		FILE* f = fopen(filename.data(), "wt");
-		std::string responseString = responseStringStream.str();
-		fwrite(responseString.data(), 1, responseString.size(), f);
-		fclose(f);
+		if (f) {
+			std::string responseString = responseStringStream.str();
+			fwrite(responseString.data(), 1, responseString.size(), f);
+			fclose(f);
+		}
 		return Poco::Dynamic::Var();
 	}
 	return Poco::Dynamic::Var();
@@ -109,4 +136,3 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 	}
 	return result;
 }
-

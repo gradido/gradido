@@ -56,14 +56,25 @@ void Gradido_LoginServer::defineOptions(Poco::Util::OptionSet& options)
 {
 	ServerApplication::defineOptions(options);
 
-	options.addOption(
+	/*options.addOption(
 		Poco::Util::Option("help", "h", "display help information on command line arguments")
 		.required(false)
-		.repeatable(false));
+		.repeatable(false));*/
+	options.addOption(
+		Poco::Util::Option("config", "c", "use non default config file (default is /etc/grd_login.properties)", false)
+		.repeatable(false)
+		.argument("Gradido_LoginServer.properties", true)
+		.callback(Poco::Util::OptionCallback<Gradido_LoginServer>(this, &Gradido_LoginServer::handleOption)));
+
 }
 
 void Gradido_LoginServer::handleOption(const std::string& name, const std::string& value)
 {
+	//printf("handle option: %s with value: %s\n", name.data(), value.data());
+	if (name == "config") {
+		mConfigPath = value;
+		return;
+	}
 	ServerApplication::handleOption(name, value);
 	if (name == "help") _helpRequested = true;
 }
@@ -189,8 +200,22 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		}
 		
 		auto conn = ConnectionManager::getInstance();
-		
-		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		//conn->setConnection()
+		//printf("try connect login server mysql db\n");
+		try {
+			conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		}
+		catch (Poco::Exception& ex) {
+			// maybe we in docker environment and db needs some time to start up
+			// let's wait 10 seconds
+			int count = 10;
+			while (count > 0) {
+				printf("\rwait on mysql/mariadb %d seconds...", count);
+				count--;
+				Poco::Thread::sleep(1000);
+			}
+			conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		}
 		//printf("try connect php server mysql \n");
 		//conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
 
@@ -244,4 +269,3 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	}
 	return Application::EXIT_OK;
 }
-

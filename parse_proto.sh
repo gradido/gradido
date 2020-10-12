@@ -14,5 +14,3 @@ fi
 
 
 ./protoc --plugin=protoc-gen-grpc=./grpc_cpp_plugin.exe --cpp_out=./src/cpp/proto/hedera --grpc_out=./src/cpp/proto/hedera --proto_path=./src/proto/hedera/hedera-protobuf/src/main/proto ./src/proto/hedera/hedera-protobuf/src/main/proto/*.proto
-
-

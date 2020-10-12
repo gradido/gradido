@@ -54,6 +54,7 @@ namespace controller {
 			return mKeyPair;
 		}
 		mKeyPair = createGradidoKeyPair();
+		return mKeyPair;
 	}
 
 	KeyPairEd25519* UserBackup::createGradidoKeyPair()

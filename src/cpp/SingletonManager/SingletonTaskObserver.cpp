@@ -212,6 +212,18 @@ std::vector<int> SingletonTaskObserver::getTasksCount(const std::string& email)
 	return taskCounts;
 }
 
+int SingletonTaskObserver::getTasksCount(TaskObserverType type)
+{
+	int type_sum_count = 0;
+	lock("SingletonTaskObserver::getTasksCount");
+	for (int i = 0; i < mObserverEntrys.getNItems(); i++) {
+		UserObserverEntry* entry = static_cast<UserObserverEntry*>(mObserverEntrys.findByIndex(i));
+		type_sum_count += entry->mTasksCount[type];
+	}
+	unlock();
+	return type_sum_count;
+}
+
 const char* SingletonTaskObserver::TaskObserverTypeToString(TaskObserverType type)
 {
 	switch (type) {

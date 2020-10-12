@@ -5,15 +5,16 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 7 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 
 #include "../SingletonManager/SessionManager.h"
 #include "../controller/Group.h"
 #include "../lib/DataTypeConverter.h"
 
 #include "Poco/Net/HTTPCookie.h"
+#include "../ServerConfig.h"
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 1 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header_old.cpsp"
  
 #include "../ServerConfig.h"	
 
@@ -32,7 +33,7 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 16 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 
 	const char* pageName = "Admin Registrieren";
 	auto sm = SessionManager::getInstance();
@@ -76,12 +77,12 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 9 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 11 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -126,7 +127,7 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
 	responseStream << "\t<p class=\"grd_small\">Alpha ";
-#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 53 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "</div>\n";
@@ -135,19 +136,23 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Einen neuen Account anlegen</h1>\n";
 	responseStream << "\t";
-#line 49 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 50 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 50 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 51 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
  if(!form.empty() && userReturned) {	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text-max-width\">\n";
 	responseStream << "\t\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\t\tDie Anmeldung wird verarbeitet und es wird dem Benutzer eine Aktivierungs-E-Mail zugeschickt. \n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</div>\n";
+	responseStream << "\t\t<a href=\"";
+#line 57 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
+	responseStream << ( ServerConfig::g_php_serverHost );
+	responseStream << "\">Zur&uuml;ck</a>\n";
 	responseStream << "\t";
-#line 56 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 58 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
 	responseStream << "\t\t\n";
@@ -157,41 +162,41 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-first-name\">Vorname</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-first-name\" type=\"text\" name=\"register-first-name\" value=\"";
-#line 64 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 66 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-first-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-last-name\">Nachname</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-last-name\" type=\"text\" name=\"register-last-name\" value=\"";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 70 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-last-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t\t<input id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 72 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 74 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"register-group\">\n";
 	responseStream << "\t\t\t\t";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 77 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
  for(auto it = groups.begin(); it != groups.end(); it++) { 
 					auto group_model = (*it)->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t<option title=\"";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 79 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( group_model->getDescription() );
 	responseStream << "\" value=\"";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 79 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( group_model->getID() );
 	responseStream << "\">";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 79 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t";
-#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 80 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t</fieldset>\n";
@@ -199,7 +204,7 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "\t\t\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 84 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerAdmin.cpsp"
+#line 86 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\registerAdmin.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
@@ -209,14 +214,14 @@ void RegisterAdminPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomleft\">\n";
 	responseStream << "            ";
-#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 6 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\footer.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomright\">\n";
 	responseStream << "            <p>Login Server in Entwicklung</p>\n";
 	responseStream << "            <p>Alpha ";
-#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 10 "D:\\code\\gradido\\gradido_login_server_grpc\\src\\cpsp\\footer.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "        </div>\n";

@@ -10,6 +10,7 @@
 #include "../lib/DataTypeConverter.h"
 
 #include "Poco/Net/HTTPCookie.h"
+#include "../ServerConfig.h"
 
 %>
 <%%
@@ -53,6 +54,7 @@
 				Die Anmeldung wird verarbeitet und es wird dem Benutzer eine Aktivierungs-E-Mail zugeschickt. 
 			</div>
 		</div>
+		<a href="<%= ServerConfig::g_php_serverHost %>">Zur&uuml;ck</a>
 	<% } else { %>
 	<form method="POST">
 		

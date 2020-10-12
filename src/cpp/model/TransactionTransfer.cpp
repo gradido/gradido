@@ -46,6 +46,7 @@ void TransactionTransfer::KontoTableEntry::composeAmountCellString(google::proto
 
 // ********************************************************************************************************************************
 
+//TransactionTransfer::TransactionTransfer(const std::string& memo, const model::messages::gradido::Transfer& protoTransfer)
 TransactionTransfer::TransactionTransfer(const std::string& memo, const proto::gradido::GradidoTransfer& protoTransfer)
 	: TransactionBase(memo), mProtoTransfer(protoTransfer)
 {
@@ -69,6 +70,7 @@ int TransactionTransfer::prepare()
 
 	char pubkeyHexTemp[65];
 
+	/*
 	if (mProtoTransfer.has_local())
 	{
 		auto local_transfer = mProtoTransfer.local();
@@ -94,8 +96,45 @@ int TransactionTransfer::prepare()
 		else {
 			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
 		}
-	} 
-	// TODO: add version for group transfer
+	}
+	*/
+	for (int i = 0; i < mProtoTransfer.senderamounts_size(); i++) {
+		auto senderAmount = mProtoTransfer.senderamounts(i);
+		auto pubkey = senderAmount.ed25519_sender_pubkey();
+		senderSum += senderAmount.amount();
+		if (pubkey.size() != 32) {
+			addError(new ParamError(functionName, "invalid public key for sender ", i));
+			unlock();
+			return -3;
+		}
+		//User user((const unsigned char*)pubkey.data());
+		auto user = controller::User::create();
+		if (!user->load((const unsigned char*)pubkey.data())) {
+			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)pubkey.data(), pubkey.size());
+			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, senderAmount.amount(), true));
+		}
+		else {
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), -amount, true));
+		}
+
+		if (!receiver_user->load((const unsigned char*)receiver_pubkey.data())) {
+			sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size());
+			mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, amount, true));
+		}
+		else {
+			mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
+		}
+	}
+	if (senderSum != receiverSum) {
+		addError(new Error(functionName, "sender amounts sum != receiver amounts sum"));
+		unlock();
+		return -5;
+	}
+	if (senderSum < 0) {
+		addError(new Error(functionName, "negative amount not supported"));
+		unlock();
+		return -6;
+	}
 
 
 	/*
@@ -139,4 +178,3 @@ const std::string& TransactionTransfer::getAmountCell(int index)
 
 	return mKontoTable[index].amountCell;
 }
-

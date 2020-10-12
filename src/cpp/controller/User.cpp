@@ -366,7 +366,7 @@ namespace controller {
 
 	int User::checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer)
 	{
-		
+		return 0;
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
 		static const char* function_name = "User::checkIfVerificationEmailsShouldBeResend";
@@ -498,5 +498,4 @@ namespace controller {
 		}
 		return updated_count;
 	}
-
 }

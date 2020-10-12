@@ -36,6 +36,7 @@ protected:
 
 private:
 	bool _helpRequested;
+	std::string mConfigPath;
 };
 
 #endif //Gradido_LoginServer_INCLUDED

@@ -11,7 +11,7 @@
 #define DR_LUA_WEB_MODULE_ERROR_ERROR_H
 
 #include "Notification.h"
-
+#include <string>
 #include <sstream>
 
 
@@ -21,6 +21,8 @@ public:
 	Error(const char* functionName, const char* message);
 	~Error();
 
+	const char* getFunctionName() { return mFunctionName.data(); }
+	const char* getMessage() { return mMessage.data(); }
 	virtual std::string getString(bool withNewline = true) const;
 	virtual std::string getHtmlString() const;
 

@@ -33,12 +33,12 @@ public:
 protected:
 	Poco::AutoPtr<ProcessingTransaction> mProcessingeTransaction;
 	Poco::AutoPtr<controller::User> mNewUser;
+	bool mSendErrorsToAdminEmail;
 
 private:
 
 	std::string getUserEmail();
 
 };
-
 
 #endif //GRADIDO_LOGIN_SERVER_TASKS_SIGNING_TRANSACTION_INCLUDE

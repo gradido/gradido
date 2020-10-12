@@ -119,6 +119,21 @@ void NotificationList::printErrors()
 	}
 }
 
+std::vector<std::string> NotificationList::getErrorsArray()
+{
+	std::vector<std::string> result;
+	result.reserve(mErrorStack.size());
+
+	while (mErrorStack.size() > 0) {
+		auto error = mErrorStack.top();
+		mErrorStack.pop();
+		//result->add(error->getString());
+		result.push_back(error->getString());
+		delete error;
+	}
+	return result;
+}
+
 std::string NotificationList::getErrorsHtml()
 {
 	std::string res;
@@ -164,7 +179,7 @@ std::string NotificationList::getErrorsHtmlNewFormat()
 /*
 <div class="alert alert-error" role="alert">
 <i class="material-icons-outlined">report_problem</i>
-<span>Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?</span>
+<span>Der Empfï¿½nger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?</span>
 </div>
 */
 
@@ -197,5 +212,4 @@ void NotificationList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 
 	//UniLib::controller::TaskPtr sendErrorMessageTask(new SendErrorMessage(message, ServerConfig::g_CPUScheduler));
 	//sendErrorMessageTask->scheduleTask(sendErrorMessageTask);
-
 }
