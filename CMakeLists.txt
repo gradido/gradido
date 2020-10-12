@@ -16,9 +16,11 @@ include_directories(
 	"dependencies/grpc/third_party/protobuf/src"
 	"src/cpp/proto"
 )
-
+#if(WIN32)
+#include_directories("dependencies/mariadb-connector-c/include", "dependencies/mariadb-connector-c/build/include")
 set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
+#endif(WIN32)
 
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
@@ -85,10 +87,15 @@ conan_basic_setup()
 
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
-
+set(CLIENT_PLUGIN_DIALOG OFF)
+set(CLIENT_PLUGIN_client_ed25519 OFF)
+set(CLIENT_PLUGIN_MYSQL_CLEAR_PASSWORD OFF)
+set(CLIENT_PLUGIN_REMOTE_IO OFF)
+set(WITH_SSL OFF)
+add_subdirectory("dependencies/mariadb-connector-c")
 
 set(DEP_PATH "dependencies")
-set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
+#set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
 
 set(GRPC_PATH "${DEP_PATH}/grpc/build")
 set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
@@ -126,8 +133,8 @@ if(WIN32)
 
 
 else (WIN32)
-
-	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
+	#find_package(MariaDBClient PATHS "dependencies/cmake-modules")
+	#find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
 	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
 
 	list(REMOVE_ITEM CONAN_LIBS "ssl")
@@ -138,7 +145,7 @@ else (WIN32)
 endif(WIN32)
 
 # load same ssl version like used from poco
-find_package(OpenSSL PATHS . NO_DEFAULT_PATH)
+#find_package(OpenSSL PATHS "../" NO_DEFAULT_PATH)
 
 find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
 find_library(CONAN_OPENSSL_CRYPTO crypto PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH ) 
@@ -147,11 +154,9 @@ set(CONAN_OPENSSL_CUSTOM_LIBS
 	${CONAN_OPENSSL_SSL} 
 	${CONAN_OPENSSL_CRYPTO} 
 )
+include_directories(${CONAN_INCLUDE_DIRS_OPENSSL})
+# build grpc
 
-set(BUILD_TESTING OFF)
-set(gRPC_SSL_PROVIDER "package")
-add_subdirectory("dependencies/grpc/")
-message(STATUS "Using gRPC via add_subdirectory.")
 
 
 if(WIN32)
@@ -164,13 +169,15 @@ else(WIN32)
 
 	set(INSTALL_BINDIR "bin")
 	set(INSTALL_PLUGINDIR "bin")
-
-	include_directories(
-		${CONAN_INCLUDE_DIRS_OPENSSL}
-	)
-
+	target_link_libraries(Gradido_LoginServer ${CONAN_OPENSSL_CUSTOM_LIBS})
 
 endif(WIN32)
+
+set(BUILD_TESTING OFF)
+set(gRPC_SSL_PROVIDER "package")
+add_subdirectory("dependencies/grpc/")
+set(gRPC_SSL_PROVIDER "package")
+message(STATUS "Using gRPC via add_subdirectory.")
 
 set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
 target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
@@ -180,12 +187,13 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32) # unix
-	target_link_libraries(Gradido_LoginServer ${MYSQL_LIBRARIES} ${CONAN_OPENSSL_CUSTOM_LIBS} ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
+	target_link_libraries(Gradido_LoginServer libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
 endif(WIN32)
 
 # install 
 if(UNIX)
 install(TARGETS Gradido_LoginServer RUNTIME DESTINATION /usr/local/bin)
+#install(LIBRARYS DESTINATION /usr/local/lib)
 #install(FILES lib/libmariadb /usr/local/lib)
 install(FILES DESTINATION lib COMPONENT libmariadb)
 install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
@@ -206,12 +214,13 @@ target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
 
+
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test ${MYSQL_LIBRARIES} ${CONAN_OPENSSL_CUSTOM_LIBS} ${GRPC_LIBS}  ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
+	target_link_libraries(Gradido_LoginServer_Test libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
 endif(WIN32)
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

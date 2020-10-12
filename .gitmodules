@@ -19,3 +19,6 @@
 [submodule "dependencies/poco"]
 	path = dependencies/poco
 	url = https://github.com/pocoproject/poco.git
+[submodule "dependencies/cmake-modules"]
+	path = dependencies/cmake-modules
+	url = https://github.com/viaduck/cmake-modules.git

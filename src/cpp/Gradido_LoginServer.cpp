@@ -31,7 +31,7 @@
 
 
 
-Gradido_LoginServer::Gradido_LoginServer() 
+Gradido_LoginServer::Gradido_LoginServer()
 	: _helpRequested(false)
 {
 }
@@ -147,7 +147,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
 		unsigned short json_port = (unsigned short)config().getInt("JSONServer.port", 1201);
 
-	
+
 		//printf("show mnemonic list: \n");
 		//printf(ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER].getCompleteWordList().data());
 		if (!ServerConfig::initServerCrypto(config())) {
@@ -156,7 +156,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
-		// first check time for crypto 
+		// first check time for crypto
 		SecretKeyCryptography test_crypto;
 		Profiler timeUsed;
 		if (test_crypto.createKey("email@google.de", "haz27Newpassword") != SecretKeyCryptography::AUTH_CREATE_ENCRYPTION_KEY_SUCCEED) {
@@ -178,13 +178,18 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
 
+
 		// load up connection configs
 		// register MySQL connector
-		Poco::Data::MySQL::Connector::registerConnector();
-		//Poco::Data::MySQL::Connector::KEY;
+		try {
+                    Poco::Data::MySQL::Connector::registerConnector();
+		} catch(Poco::Exception& ex) {
+                    errorLog.error("[Gradido_LoginServer::main] Poco Exception by register MySQL Connector: %s", ex.displayText());
+                    return Application::EXIT_CONFIG;
+		}
+		
 		auto conn = ConnectionManager::getInstance();
-		//conn->setConnection()
-		//printf("try connect login server mysql db\n");
+		
 		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
 		//printf("try connect php server mysql \n");
 		//conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
@@ -196,10 +201,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		Poco::Net::initializeSSL();
 		if(!ServerConfig::initSSLClientContext()) {
 			//printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
-			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client\n");
+			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client");
 			return Application::EXIT_CONFIG;
 		}
-
+                
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 		controller::User::addMissingEmailHashes();
@@ -211,7 +216,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		Poco::ThreadPool& pool = Poco::ThreadPool::defaultPool();
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
 		ServerConfig::g_ServerKeySeed->put(7, 918276611);
-		
+
 		// start the HTTPServer
 		srv.start();
 

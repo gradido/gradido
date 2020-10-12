@@ -48,18 +48,25 @@ const std::string& Connector::name() const
 Poco::AutoPtr<Poco::Data::SessionImpl> Connector::createSession(const std::string& connectionString,
 	std::size_t timeout)
 {
-	return Poco::AutoPtr<Poco::Data::SessionImpl>(new SessionImpl(connectionString, timeout));	
+	return Poco::AutoPtr<Poco::Data::SessionImpl>(new SessionImpl(connectionString, timeout));
 }
 
 
 void Connector::registerConnector()
 {
-	if (mysql_library_init(0, 0, 0) != 0)
-	{
-		throw Exception("mysql_library_init error");
-	}
-	ServerConfig::g_ServerKeySeed->put(4, DRRandom::r64());
+    printf("function pointer address: %d\n", mysql_library_init);
+    try {
 
+        if (mysql_library_init(0, nullptr, nullptr) != 0)
+        {
+            throw Exception("mysql_library_init error");
+        }
+    } catch(std::exception &ex) {
+        printf("mysql exception: \n");
+    }
+	printf("after exception\n");
+	ServerConfig::g_ServerKeySeed->put(4, DRRandom::r64());
+    printf("instance add new\n");
 	Poco::Data::SessionFactory::instance().add(new Connector());
 }
 
