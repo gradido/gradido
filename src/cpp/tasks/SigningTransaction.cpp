@@ -99,7 +99,10 @@ int SigningTransaction::run() {
 	// get body bytes
 	proto::gradido::GradidoTransaction transaction;
 	auto bodyBytes = transaction.mutable_body_bytes();
-	*bodyBytes = mProcessingeTransaction->getBodyBytes();
+	auto transaction_body = mProcessingeTransaction->getTransactionBody();
+	if (!transaction_body.isNull()) {
+		*bodyBytes = transaction_body->getBodyBytes();
+	}
 	if (*bodyBytes == "") {
 		getErrors(mProcessingeTransaction);
 		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();

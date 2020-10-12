@@ -126,15 +126,22 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 		}
 		return;
 	}
-	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+	// skip transactions with errors
+	Poco::AutoPtr<ProcessingTransaction> processingTransaction;
+	Poco::AutoPtr<model::gradido::TransactionBody> transaction_body;
+	do {
+		processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+		transaction_body = processingTransaction->getTransactionBody();
+	} while(!processingTransaction.isNull() && transaction_body.isNull());
+	
 	if(sumTransactions > 0) {
 		enableLogout = false;
 	}
-	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull()) {
-		auto transactionType = processingTransaction->getType();
+	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull() && !transaction_body.isNull()) {
+		auto transactionType = transaction_body->getType();
 		switch(transactionType) {
-			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
-			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+			case model::gradido::TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
+			case model::gradido::TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
 		}
 	}
 	
@@ -352,7 +359,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t";
 #line 161 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  if(state == PAGE_TRANSACTION_TRANSFER) { 
-			auto transferTransaction = processingTransaction->getTransferTransaction();
+			auto transferTransaction = transaction_body->getTransferTransaction();
 			memo = transferTransaction->getMemo();
 			responseStream << "\n";
 	responseStream << "\t\t\t<p>";
@@ -400,7 +407,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t\t ";
 #line 182 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } else if(PAGE_TRANSACTION_CREATION == state) { 
-					auto creationTransaction = processingTransaction->getCreationTransaction();
+					auto creationTransaction = transaction_body->getCreationTransaction();
 					auto transactionUser = creationTransaction->getUser();
 					memo = creationTransaction->getMemo();
 			 	responseStream << "\n";

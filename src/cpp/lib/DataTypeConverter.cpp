@@ -139,7 +139,7 @@ namespace DataTypeConverter
 
 	}
 
-	MemoryBin* base64ToBin(const std::string& base64String)
+	MemoryBin* base64ToBin(const std::string& base64String, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)
 	{
 		/*
 		int sodium_base642bin(unsigned char * const bin, const size_t bin_maxlen,
@@ -161,9 +161,17 @@ namespace DataTypeConverter
 			mm->releaseMemory(bin);
 			return nullptr;
 		}
+		if (resultBinSize < binSize) {
+			auto bin_real = mm->getFreeMemory(resultBinSize);
+			memcpy(*bin_real, *bin, resultBinSize);
+			mm->releaseMemory(bin);
+			return bin_real;
+		}
 
 		return bin;
 	}
+
+	
 
 
 	std::string binToBase64(const unsigned char* data, size_t size, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)

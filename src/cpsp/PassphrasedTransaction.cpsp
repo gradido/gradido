@@ -103,7 +103,8 @@ enum PageState {
 						Poco::Thread::sleep(10);
 						currentActiveTransaction = session->getNextReadyTransaction();
 					}
-					if(!currentActiveTransaction->isTransfer()) {
+					auto transaction_body = currentActiveTransaction->getTransactionBody();
+					if(transaction_body.isNull() || !transaction_body->isTransfer()) {
 						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
 					} else {
 						//auto signing = new SigningTransaction(currentActiveTransaction, user);

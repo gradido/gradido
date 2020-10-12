@@ -29,7 +29,7 @@ namespace DataTypeConverter {
 	NumberParseState strToDouble(const std::string& input, double& result);
 
 	MemoryBin* hexToBin(const std::string& hexString);
-	MemoryBin* base64ToBin(const std::string& base64String);
+	MemoryBin* base64ToBin(const std::string& base64String, int variant = sodium_base64_VARIANT_ORIGINAL);
 
 	
 	std::string binToBase64(const unsigned char* data, size_t size, int variant = sodium_base64_VARIANT_ORIGINAL);

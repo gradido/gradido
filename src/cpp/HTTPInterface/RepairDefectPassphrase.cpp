@@ -160,11 +160,11 @@ void RepairDefectPassphrase::handleRequest(Poco::Net::HTTPServerRequest& request
 				} else if(stateString == "success") {
 					printf("[repairDefectPassphrase] request success, wait on transaction ready\n");
 					auto currentActiveTransaction = mSession->getNextReadyTransaction();
-					while(currentActiveTransaction.isNull()) {
+					while(currentActiveTransaction.isNull() || currentActiveTransaction->getTransactionBody().isNull()) {
 						Poco::Thread::sleep(10);
 						currentActiveTransaction = mSession->getNextReadyTransaction();
 					}
-					if(!currentActiveTransaction->isTransfer()) {
+					if(!currentActiveTransaction->getTransactionBody()->isTransfer()) {
 						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
 					} else {
 						auto signing = new SigningTransaction(currentActiveTransaction, new_user);

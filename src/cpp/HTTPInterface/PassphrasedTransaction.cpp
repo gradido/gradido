@@ -119,7 +119,8 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 						Poco::Thread::sleep(10);
 						currentActiveTransaction = session->getNextReadyTransaction();
 					}
-					if(!currentActiveTransaction->isTransfer()) {
+					auto transaction_body = currentActiveTransaction->getTransactionBody();
+					if(transaction_body.isNull() || !transaction_body->isTransfer()) {
 						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
 					} else {
 						//auto signing = new SigningTransaction(currentActiveTransaction, user);
@@ -218,39 +219,39 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "</div>\n";
 	// end include header_old.cpsp
 	responseStream << "\n";
-#line 138 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  if("" == errorString) { 	responseStream << "\n";
 	responseStream << "\t";
-#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 140 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( errorString );
 	responseStream << "\n";
-#line 140 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 141 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 144 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  if(PAGE_STATE_INPUT == state) { 	responseStream << "\n";
 	responseStream << "\t\n";
 	responseStream << "\t\t<fieldset class=\"grd_container_small\">\n";
 	responseStream << "\t\t<form method=\"POST\">\n";
 	responseStream << "\t\t\t<p><label style=\"width:auto\" for=\"passphrase\">Sender Passphrase</label></p>\n";
 	responseStream << "\t\t\t<p><textarea style=\"width:100%;height:100px\" name=\"passphrase\">";
-#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("passphrase", "") : "" );
 	responseStream << "</textarea></p>\n";
 	responseStream << "\t\t\t<p><label style=\"width:auto\" for=\"memo-text\">Verwendungszweck für Überweisung:</label></p>\n";
 	responseStream << "\t\t\t<p><textarea name=\"memo\" id=\"memo-text\" rows=\"4\">";
-#line 150 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 151 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("memo-text", "") : "" );
 	responseStream << "</textarea></p>\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<label for=\"recevier\">Empfänger Public Key Hex</label>\n";
 	responseStream << "\t\t\t\t<input id=\"recevier\" type=\"recevier\" recevier=\"email\" value=\"";
-#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 154 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( !form.empty() ? form.get("recevier") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t</p>\n";
@@ -258,15 +259,15 @@ void PassphrasedTransaction::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t\t</fieldset>\n";
 	responseStream << "\t";
-#line 158 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 159 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } else if(PAGE_STATE_SUCCESS == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>Gradidos wurden erfolgreich überwiesen.</p>\n";
 	responseStream << "\t\t<a href=\"";
-#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/passphrased_transaction\">Weitere Gradidos überweisen</a>\n";
 	responseStream << "\t";
-#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
+#line 162 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\PassphrasedTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp
