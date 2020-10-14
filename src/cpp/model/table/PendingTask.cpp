@@ -75,7 +75,6 @@ namespace model
 			return select;
 		}
 
-
 		Poco::Data::Statement PendingTask::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);

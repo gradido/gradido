@@ -22,6 +22,7 @@ namespace controller {
 
 		static std::vector<Poco::AutoPtr<PendingTask>> load(int userId);
 		static std::vector<Poco::AutoPtr<PendingTask>> loadAll();
+		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 		
 		inline Poco::AutoPtr<model::table::PendingTask> getModel() { return _getModel<model::table::PendingTask>(); }
 

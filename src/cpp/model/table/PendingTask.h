@@ -4,6 +4,8 @@
 #include "ModelBase.h"
 #include "Poco/Types.h"
 
+#include <shared_mutex>
+
 namespace model {
 	namespace table {
 
@@ -18,7 +20,7 @@ namespace model {
 			TASK_TYPE_HEDERA_ACCOUNT_CREATE = 25,
 
 		};
-		
+
 		typedef Poco::Tuple<int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int> PendingTaskTuple;
 
 		class PendingTask : public ModelBase
@@ -52,6 +54,7 @@ namespace model {
 			std::string mResultJsonString;
 			int mTaskTypeId;
 
+			std::shared_mutex mSharedMutex;
 		};
 
 	}
