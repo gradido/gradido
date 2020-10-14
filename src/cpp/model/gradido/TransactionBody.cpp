@@ -91,6 +91,8 @@ namespace model {
 			return "<uninitalized>";
 		}
 
+		
+
 		TransactionCreation* TransactionBody::getCreationTransaction()
 		{
 			return dynamic_cast<TransactionCreation*>(mTransactionSpecific);

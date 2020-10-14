@@ -277,6 +277,13 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
+	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds)
+	{
+		google::protobuf::int64 microseconds = timestampSeconds.seconds() * (google::protobuf::int64)10e5;
+
+		return microseconds;
+	}
+
 	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
 	{
 		return Poco::Timespan(duration.seconds(), 0);

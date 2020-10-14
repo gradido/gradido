@@ -18,15 +18,59 @@ namespace model {
 
 		int GroupMemberUpdate::prepare()
 		{
-			const static char functionName[] = { "GroupMemberUpdate::prepare" };
+			auto target_group = mProtoMemberUpdate.target_group();
+			auto sm = SessionManager::getInstance();
+			auto mm = MemoryManager::getInstance();
+
+			if (mProtoMemberUpdate.user_pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+				return -1;
+			}
+
+			auto pubkey_copy = mm->getFreeMemory(KeyPairEd25519::getPublicKeySize());
+			memcpy(*pubkey_copy, mProtoMemberUpdate.user_pubkey().data(), KeyPairEd25519::getPublicKeySize());
+			mRequiredSignPublicKeys.push_back(pubkey_copy);
+
+			if (sm->isValid(target_group, VALIDATE_GROUP_ALIAS)) {
+				auto groups = controller::Group::load(mProtoMemberUpdate.target_group());
+				if (groups.size() > 0 && !groups[0].isNull() && groups[0]->getModel()) {
+					auto user_db = controller::User::create();
+					auto count = user_db->getModel()->countColumns("group_id", groups[0]->getModel()->getID());
+					if (!count) 
+					{
+						// no current user in group, at least login server known, so we need only one signature for transaction
+						// TODO: maybe check with node server, but maybe it isn't necessary
+						mMinSignatureCount = 1;
+						
+					}
+					else 
+					{
+						// at least one more user is in group
+						// now we need the voting system to decide how many and which signatures are needed
+
+						// for current version we need only one another
+						mMinSignatureCount = 2;
+					}
+				}
+				/*if (groups.size() != 1) {
+					addError(new ParamError(functionName, "target group not known or not unambiguous: ", target_group));
+					return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
+				}*/
+			}
+
+			return 0;
+		}
+
+		TransactionValidation GroupMemberUpdate::validate()
+		{
+			const static char functionName[] = { "GroupMemberUpdate::validate" };
 			if (mProtoMemberUpdate.user_pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(functionName, "pubkey not set or wrong size"));
-				return -1;
+				return TRANSCATION_VALID_INVALID_PUBKEY;
 			}
 
 			if (mProtoMemberUpdate.member_update_type() != proto::gradido::GroupMemberUpdate::ADD_USER) {
 				addError(new Error(functionName, "user move not implemented yet!"));
-				return 1;
+				return TRANSACTION_VALID_CODE_ERROR;
 			}
 			auto target_group = mProtoMemberUpdate.target_group();
 			auto sm = SessionManager::getInstance();
@@ -34,15 +78,21 @@ namespace model {
 				auto groups = controller::Group::load(mProtoMemberUpdate.target_group());
 				if (groups.size() != 1) {
 					addError(new ParamError(functionName, "target group not known or not unambiguous: ", target_group));
-					return -2;
+					return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
 				}
 			}
 			else {
 				addError(new Error(functionName, "target group isn't valid group alias string "));
-				return -3;
+				return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
 			}
 
-			return 0;
+			return TRANSACTION_VALID_OK;
 		}
+		/*
+		GroupMemberUpdate::GroupMemberUpdate(const std::string& memo, Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
+		{
+
+		}
+		*/
 	}
 }

@@ -11,6 +11,7 @@
 
 #include "../proto/hedera/Timestamp.pb.h"
 #include "../proto/hedera/Duration.pb.h"
+#include "../proto/gradido/BasicTypes.pb.h"
 
 #include "sodium.h"
 
@@ -50,6 +51,7 @@ namespace DataTypeConverter {
 	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
 
 	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp);
+	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
 	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 };
 

@@ -50,6 +50,8 @@ public:
 	//!        -2 if hex is invalid
 	int convertFromHex(const std::string& hex);
 
+	bool isSame(const MemoryBin* b) const;
+
 protected:
 	MemoryBin(Poco::UInt32 size);
 	~MemoryBin();

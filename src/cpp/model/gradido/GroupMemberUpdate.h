@@ -4,6 +4,7 @@
 #include "TransactionBase.h"
 #include "../../proto/gradido/GroupMemberUpdate.pb.h"
 
+
 namespace model {
 	namespace gradido {
 		class GroupMemberUpdate : public TransactionBase
@@ -12,6 +13,7 @@ namespace model {
 			GroupMemberUpdate(const std::string& memo, const proto::gradido::GroupMemberUpdate &protoGroupMemberUpdate);
 			~GroupMemberUpdate();
 			int prepare();
+			TransactionValidation validate();
 
 		protected:
 			const proto::gradido::GroupMemberUpdate& mProtoMemberUpdate;

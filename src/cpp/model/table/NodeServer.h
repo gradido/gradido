@@ -36,7 +36,7 @@ namespace model {
 
 			static const char* nodeServerTypeToString(NodeServerType type);
 
-			inline void setLastLiveSign(Poco::DateTime lastLiveSign) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mLastLiveSign = lastLiveSign; }
+			inline void setLastLiveSign(Poco::DateTime lastLiveSign) { UNIQUE_LOCK; mLastLiveSign = lastLiveSign; }
 
 			inline std::string getUrl() const { return mUrl; }
 			inline int getPort() const { return mPort; }
@@ -46,7 +46,7 @@ namespace model {
 			inline bool isHederaNode() const { return NodeServerIsHederaNode((NodeServerType)mServerType);}
 			inline bool hasGroup() const {return NodeServerHasGroup((NodeServerType)mServerType);}
 			inline int getNodeHederaId() const { return mNodeHederaId; }
-			inline Poco::DateTime getLastLiveSign() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mLastLiveSign; }
+			inline Poco::DateTime getLastLiveSign() const { SHARED_LOCK; return mLastLiveSign; }
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
@@ -60,8 +60,6 @@ namespace model {
 			int			mServerType;
 			int			mNodeHederaId;
 			Poco::DateTime mLastLiveSign;
-
-			mutable std::shared_mutex mSharedMutex;
 			
 		};
 

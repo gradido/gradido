@@ -9,7 +9,6 @@
 //#include "Poco/Nullable.h"
 //#include "Poco/Data/LOB.h"
 
-#include <shared_mutex>
 
 #include "UserRole.h"
 
@@ -34,8 +33,6 @@ namespace model {
 		class User : public ModelBase 
 		{
 		public:
-#define SHARED_LOCK std::shared_lock<std::shared_mutex> _lock(mSharedMutex)
-#define UNIQUE_LOCK std::unique_lock<std::shared_mutex> _lock(mSharedMutex)
 			User();
 			User(UserTuple tuple);
 			User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
@@ -123,7 +120,7 @@ namespace model {
 			// from neighbor tables
 			Poco::Nullable<int> mRole;
 
-			mutable std::shared_mutex mSharedMutex;
+			
 		};
 	}
 }

@@ -26,6 +26,7 @@ namespace model {
 			~TransactionTransfer();
 
 			int prepare();
+			TransactionValidation validate();
 
 			inline size_t getKontoTableSize() { lock(); size_t s = mKontoTable.size(); unlock(); return s; }
 			const std::string& getKontoNameCell(int index);

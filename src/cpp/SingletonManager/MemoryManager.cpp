@@ -52,6 +52,14 @@ int MemoryBin::convertFromHex(const std::string& hex)
 	return 0;
 }
 
+bool MemoryBin::isSame(const MemoryBin* b) const
+{
+	if (b->size() != size()) {
+		return false;
+	}
+	return 0 == memcmp(data(), b->data(), size());
+}
+
 
 // *************************************************************
 

@@ -66,6 +66,16 @@ namespace model
 			return select;
 		}
 
+		Poco::Data::Statement PendingTask::_loadAllFromDB(Poco::Data::Session session)
+		{
+			Poco::Data::Statement select(session);
+
+			select << "SELECT id, user_id, request, created, finished, result_json, task_type_id FROM " << getTableName();
+
+			return select;
+		}
+
+
 		Poco::Data::Statement PendingTask::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);

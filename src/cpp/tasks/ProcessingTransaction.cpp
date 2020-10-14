@@ -24,6 +24,15 @@ ProcessingTransaction::ProcessingTransaction(const std::string& proto_message_ba
 	}
 }
 
+ProcessingTransaction::ProcessingTransaction(Poco::AutoPtr<model::gradido::TransactionBody> transactionBody, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated/* = Poco::DateTime()*/)
+	: mTransactionBody(transactionBody), mUserEmailHash(userEmailHash),
+	mLang(lang), mTransactionCreated(transactionCreated)
+{
+	auto observer = SingletonTaskObserver::getInstance();
+	if (userEmailHash != 0) {
+		observer->addTask(userEmailHash, TASK_OBSERVER_PREPARE_TRANSACTION);
+	}
+}
 ProcessingTransaction::~ProcessingTransaction()
 {
 	lock();
@@ -75,22 +84,23 @@ int ProcessingTransaction::run()
 {
 	lock();
 	
-	
 	auto mm = MemoryManager::getInstance();
-	auto protoMessageBin = DataTypeConverter::base64ToBin(mProtoMessageBase64);
-	
 	auto langM = LanguageManager::getInstance();
 	auto catalog = langM->getFreeCatalog(mLang);
 
-	if (!protoMessageBin)
-	{
-		addError(new Error("ProcessingTransaction", "error decoding base64"));
-		reportErrorToCommunityServer(catalog->gettext("decoding error"), catalog->gettext("Error decoding base64 string"), "-1");
-		unlock();
-		return -1;
+	if (mProtoMessageBase64 != "") {
+		auto protoMessageBin = DataTypeConverter::base64ToBin(mProtoMessageBase64);	
+
+		if (!protoMessageBin)
+		{
+			addError(new Error("ProcessingTransaction", "error decoding base64"));
+			reportErrorToCommunityServer(catalog->gettext("decoding error"), catalog->gettext("Error decoding base64 string"), "-1");
+			unlock();
+			return -1;
+		}
+		mTransactionBody = model::gradido::TransactionBody::create(protoMessageBin);
+		mm->releaseMemory(protoMessageBin);
 	}
-	mTransactionBody = model::gradido::TransactionBody::create(protoMessageBin);
-	mm->releaseMemory(protoMessageBin);
 	if (mTransactionBody.isNull()) {
 		addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"));
 		reportErrorToCommunityServer(catalog->gettext("decoding error"), catalog->gettext("Error by parsing to protobuf message"), "-1");

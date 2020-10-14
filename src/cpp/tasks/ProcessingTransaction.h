@@ -33,6 +33,7 @@ class ProcessingTransaction : public UniLib::controller::CPUTask, public Notific
 public:
 	//! \param lang for error messages in user language
 	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated = Poco::DateTime());
+	ProcessingTransaction(Poco::AutoPtr<model::gradido::TransactionBody> transactionBody, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated = Poco::DateTime());
 	//ProcessingTransaction(const model::gradido::TransactionBody)
 	virtual ~ProcessingTransaction();
 

@@ -25,6 +25,9 @@ namespace model {
 			~TransactionCreation();
 
 			int prepare();
+			//! TODO: check created sum in the last 3 month if 1.000 per month isn't exceed
+			//! maybe ask node server and hope the answer came fast
+			TransactionValidation validate();
 
 			inline Poco::AutoPtr<controller::User> getUser() { return mReceiverUser; }
 			inline google::protobuf::int64 getAmount() { return mProtoCreation.receiver().amount(); }

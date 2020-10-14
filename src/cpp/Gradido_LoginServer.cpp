@@ -8,6 +8,7 @@
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
+#include "SingletonManager/PendingTasksManager.h"
 
 #include "controller/User.h"
 
@@ -251,6 +252,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// start the json server
 		json_srv.start();
+
+		// load pending tasks not finished in last session
+		PendingTasksManager::getInstance()->load();
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		// wait for CTRL-C or kill

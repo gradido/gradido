@@ -4,8 +4,6 @@
 #include "ModelBase.h"
 #include "Poco/Types.h"
 
-#include <shared_mutex>
-
 namespace model {
 	namespace table {
 
@@ -20,12 +18,13 @@ namespace model {
 			TASK_TYPE_HEDERA_ACCOUNT_CREATE = 25,
 
 		};
-
+		
 		typedef Poco::Tuple<int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int> PendingTaskTuple;
 
 		class PendingTask : public ModelBase
 		{
 		public:
+
 			PendingTask();
 			PendingTask(int userId, std::string serializedProtoRequest, TaskType type);
 			PendingTask(const PendingTaskTuple& tuple);
@@ -36,10 +35,13 @@ namespace model {
 			const char* getTableName() const { return "pending_tasks"; }
 			std::string toString();
 
+			inline int getUserId() const { SHARED_LOCK; return mUserId; }
+			TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
 
 			static const char* typeToString(TaskType type);
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
+			Poco::Data::Statement _loadAllFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
@@ -49,8 +51,6 @@ namespace model {
 			Poco::DateTime mFinished;
 			std::string mResultJsonString;
 			int mTaskTypeId;
-
-			std::shared_mutex mSharedMutex;
 
 		};
 

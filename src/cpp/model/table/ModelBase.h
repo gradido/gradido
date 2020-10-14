@@ -16,6 +16,9 @@
 #include <shared_mutex>
 //using namespace Poco::Data::Keywords;
 
+#define SHARED_LOCK std::shared_lock<std::shared_mutex> _lock(mSharedMutex)
+#define UNIQUE_LOCK std::unique_lock<std::shared_mutex> _lock(mSharedMutex)
+
 namespace model {
 	namespace table {
 
@@ -42,6 +45,9 @@ namespace model {
 			size_t updateIntoDB(std::string fieldNames[3], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3);
 			template<class T> 
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
+			//! \brief count columes for "SELECT count(id) from <tableName> where <fieldName> = <fieldValue> group by id";
+			template<class T>
+			size_t countColumns(const std::string& fieldName, const T& fieldValue);
 			template<class T>
 			bool isExistInDB(const std::string& fieldName, const T& fieldValue);
 			bool isExistInDB();
@@ -79,7 +85,9 @@ namespace model {
 			int mID;
 
 			// for poco auto ptr
-			int mReferenceCount;			
+			int mReferenceCount;	
+
+			mutable std::shared_mutex mSharedMutex;
 
 		};
 
@@ -101,6 +109,31 @@ namespace model {
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
 			}
 			return resultCount;
+		}
+
+		template<class T>
+		size_t ModelBase::countColumns(const std::string& fieldName, const T& fieldValue)
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select(session);
+			size_t count = 0;
+			select 
+				<< "SELECT count(id) from " << getTableName()
+				<< " where " << fieldName << " LIKE ? group by id"
+				,Poco::Data::Keywords::into(count)
+				,Poco::Data::Keywords::useRef(fieldValue);
+
+			size_t resultCount = 0;
+			try {
+				resultCount = select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "mysql error by selecting", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
+			}
+			return count;
 		}
 
 		template<class T>

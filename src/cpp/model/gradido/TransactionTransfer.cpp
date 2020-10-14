@@ -97,7 +97,14 @@ namespace model {
 				else {
 					mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
 				}
+				mMinSignatureCount = 1;
+				auto mm = MemoryManager::getInstance();
+				auto pubkey_copy = mm->getFreeMemory(KeyPairEd25519::getPublicKeySize());
+				memcpy(*pubkey_copy, sender_pubkey.data(), KeyPairEd25519::getPublicKeySize());
+				mRequiredSignPublicKeys.push_back(pubkey_copy);
 			}
+			
+			
 			// TODO: add version for group transfer
 
 
@@ -116,6 +123,34 @@ namespace model {
 
 			unlock();
 			return 0;
+		}
+
+		TransactionValidation TransactionTransfer::validate()
+		{
+			static const char function_name[] = "TransactionTransfer::validate";
+			if (!mProtoTransfer.has_local()) {
+				addError(new Error(function_name, "only local currently implemented"));
+				return TRANSACTION_VALID_CODE_ERROR;
+			}
+			auto amount = mProtoTransfer.local().sender().amount();
+			if (0 == amount) {
+				addError(new Error(function_name, "amount is empty"));
+				return TRANSACTION_VALID_INVALID_AMOUNT;
+			}
+			else if (amount < 0) {
+				addError(new Error(function_name, "negative amount"));
+				return TRANSACTION_VALID_INVALID_AMOUNT;
+			}
+			if (mProtoTransfer.local().receiver().size() != KeyPairEd25519::getPublicKeySize()) {
+				addError(new Error(function_name, "invalid size of receiver pubkey"));
+				return TRANSCATION_VALID_INVALID_PUBKEY;
+			}
+			if (mProtoTransfer.local().sender().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+				addError(new Error(function_name, "invalid size of sender pubkey"));
+				return TRANSCATION_VALID_INVALID_PUBKEY;
+			}
+			return TRANSACTION_VALID_OK;
+			
 		}
 
 		const std::string& TransactionTransfer::getKontoNameCell(int index)

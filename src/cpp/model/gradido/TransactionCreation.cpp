@@ -26,8 +26,8 @@ namespace model {
 			auto receiver_amount = mProtoCreation.receiver();
 
 			auto receiverPublic = receiver_amount.pubkey();
-			if (receiverPublic.size() != 32) {
-				addError(new Error(functionName, "receiver public invalid (size not 32)"));
+			if (receiverPublic.size() != KeyPairEd25519::getPublicKeySize()) {
+				addError(new ParamError(functionName, "receiver public invalid: ", receiverPublic.size()));
 				return -2;
 			}
 			mReceiverUser = controller::User::create();
@@ -49,7 +49,11 @@ namespace model {
 				}*/
 			}
 			//
-
+			mMinSignatureCount = 1;
+			auto mm = MemoryManager::getInstance();
+			auto pubkey_copy = mm->getFreeMemory(KeyPairEd25519::getPublicKeySize());
+			memcpy(*pubkey_copy, receiverPublic.data(), KeyPairEd25519::getPublicKeySize());
+			mForbiddenSignPublicKeys.push_back(pubkey_copy);
 
 			return 0;
 		}
@@ -60,6 +64,56 @@ namespace model {
 			Poco::Timestamp pocoStamp(mProtoCreation.target_date().seconds() * 1000 * 1000);
 			//Poco::DateTime(pocoStamp);
 			return Poco::DateTimeFormatter::format(pocoStamp, "%d. %b %y");
+		}
+
+		TransactionValidation TransactionCreation::validate()
+		{
+			static const char function_name[] = "TransactionCreation::validate";
+			auto target_date = Poco::DateTime(DataTypeConverter::convertFromProtoTimestampSeconds(mProtoCreation.target_date()));
+			auto now = Poco::DateTime();
+			if (target_date.year() == now.year()) 
+			{
+				if (target_date.month() + 3 < now.month()) {
+					addError(new Error(function_name, "year is the same, target date month is more than 3 month in past"));
+					return TRANSACTION_VALID_INVALID_TARGET_DATE;
+				}
+				if (target_date.month() > now.month()) {
+					addError(new Error(function_name, "year is the same, target date month is in future"));
+					return TRANSACTION_VALID_INVALID_TARGET_DATE;
+				}
+			}
+			else if(target_date.year() > now.year()) 
+			{
+				addError(new Error(function_name, "target date year is in future"));
+				return TRANSACTION_VALID_INVALID_TARGET_DATE;
+			}
+			else if(target_date.year() +1 < now.year())
+			{
+				addError(new Error(function_name, "target date year is in past"));
+				return TRANSACTION_VALID_INVALID_TARGET_DATE;
+			}
+			else 
+			{
+				// target_date.year +1 == now.year
+				if (target_date.month() + 3 < now.month() + 12) {
+					addError(new Error(function_name, "target date is more than 3 month in past"));
+					return TRANSACTION_VALID_INVALID_TARGET_DATE;
+				}
+			}
+			if (mProtoCreation.receiver().amount() > 1000 * 10000) {
+				addError(new Error(function_name, "creation amount to high, max 1000 per month"));
+				return TRANSACTION_VALID_CREATION_OUT_OF_BORDER;
+			}
+
+			if (mProtoCreation.receiver().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+				addError(new Error(function_name, "receiver pubkey has invalid size"));
+				return TRANSCATION_VALID_INVALID_PUBKEY;
+			}
+
+			// TODO: check creation amount from last 3 month from node server
+
+			
+			return TRANSACTION_VALID_OK;
 		}
 
 	}

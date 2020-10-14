@@ -42,7 +42,6 @@ namespace model {
 			std::string mUrl;
 			std::string mDescription;
 
-			mutable std::shared_mutex mSharedMutex;
 		};
 
 	}

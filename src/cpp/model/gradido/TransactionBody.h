@@ -2,6 +2,7 @@
 #define GRADIDO_LOGIN_SERVER_MODEL_GRADIDO_TRANSACTION_BASE_H
 
 #include "../../controller/User.h"
+#include "../../controller/Group.h"
 #include "GroupMemberUpdate.h"
 #include "TransactionCreation.h"
 #include "TransactionTransfer.h"
@@ -20,6 +21,7 @@ namespace model {
 			TRANSACTION_GROUP_MEMBER_UPDATE
 		};
 
+		
 
 		class TransactionBody : public Poco::RefCountedObject, UniLib::lib::MultithreadContainer
 		{
