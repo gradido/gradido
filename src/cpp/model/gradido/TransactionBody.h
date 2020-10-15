@@ -29,11 +29,11 @@ namespace model {
 			~TransactionBody();
 
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias);
-			static Poco::AutoPtr<TransactionBody> create(const MemoryBin* protoMessageBin);
+			static Poco::AutoPtr<TransactionBody> load(const std::string& protoMessageBin);
 
 			inline TransactionType getType() { lock(); auto t = mType; unlock(); return t; }
 			std::string getMemo();
-
+			void setMemo(const std::string& memo);
 			
 			bool isCreation() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_CREATION; }
 			bool isTransfer() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_TRANSFER; }

@@ -35,13 +35,11 @@ namespace model {
 			return obj;
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const MemoryBin* protoMessageBin)
+		Poco::AutoPtr<TransactionBody> TransactionBody::load(const std::string& protoMessageBin)
 		{
 			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
 
-			std::string binString((char*)protoMessageBin, protoMessageBin->size());
-
-			if (!obj->mTransactionBody.ParseFromString(binString)) {
+			if (!obj->mTransactionBody.ParseFromString(protoMessageBin)) {
 				return nullptr;
 			}
 
@@ -71,6 +69,12 @@ namespace model {
 				return result;
 			}
 			return "<uninitalized>";
+		}
+
+		void TransactionBody::setMemo(const std::string& memo)
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			mTransactionBody.set_memo(memo);
 		}
 
 		std::string TransactionBody::getBodyBytes()

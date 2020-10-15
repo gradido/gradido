@@ -38,8 +38,16 @@ namespace model {
 			std::string toString();
 
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
-			TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
+			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
+			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
+			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
 
+			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
+			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
+			void setRequest(const std::string& serializedProto);
+			inline bool isGradidoTransaction() { SHARED_LOCK; return isGradidoTransaction((TaskType)mTaskTypeId); }
+			
+			static bool isGradidoTransaction(TaskType type);
 			static const char* typeToString(TaskType type);
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

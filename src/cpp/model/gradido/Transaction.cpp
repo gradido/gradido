@@ -1,22 +1,79 @@
 #include "Transaction.h"
 #include "../../SingletonManager/ErrorManager.h"
+#include "../../SingletonManager/PendingTasksManager.h"
 
 namespace model {
 	namespace gradido {
 		Transaction::Transaction(Poco::AutoPtr<TransactionBody> body)
 			: mTransactionBody(body), mBodyBytesHash(0)
 		{
+			
+		}
 
+		Transaction::Transaction(const std::string& protoMessageBin, model::table::PendingTask* dbModel)
+			: GradidoTask(dbModel)
+		{
+			if (!mProtoTransaction.ParseFromString(protoMessageBin)) {
+				throw new Poco::Exception("error parse from string");
+			}
+			mTransactionBody = TransactionBody::load(mProtoTransaction.body_bytes());
+			auto body_bytes = mTransactionBody->getBodyBytes();
+			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
 		}
 	
 		Transaction::~Transaction()
 		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+		}
 
+		Poco::AutoPtr<Transaction> Transaction::create(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
+		{
+			if (user.isNull() || !user->getModel() || group.isNull() || !group->getModel()) {
+				return nullptr;
+			}
+			auto group_model = group->getModel();
+			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
+			Poco::AutoPtr<Transaction> result = new Transaction(body);
+			auto model = result->getModel();
+			result->insertPendingTaskIntoDB(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+			PendingTasksManager::getInstance()->addTask(result);
+			return result;
+		}
+
+		Poco::AutoPtr<Transaction> Transaction::load(model::table::PendingTask* dbModel)
+		{
+			proto::gradido::GradidoTransaction transaction_temp;
+
+			Poco::AutoPtr<Transaction> transaction = new Transaction(dbModel->getRequestCopy(), dbModel);
+			PendingTasksManager::getInstance()->addTask(transaction);
+			return transaction;
+		}
+		
+		bool Transaction::insertPendingTaskIntoDB(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
+		{
+			static const char* function_name = "Transaction::insertPendingTaskIntoDB";
+			auto model = getModel();
+			if (model->getID()) {
+				addError(new Error("Transaction::insertPendingTaskIntoDB", "pending task already inserted into db"));
+				return false;
+			}
+			if (user.isNull() || !user->getModel()) {
+				addError(new Error(function_name, "invalid user"));
+				return false;
+			}
+			model->setUserId(user->getModel()->getID());
+			model->setTaskType(type);
+			model->setRequest(mProtoTransaction.body_bytes());
+			if (!model->insertIntoDB(true)) {
+				return false;
+			}
+			return true;
 		}
 
 		bool Transaction::addSign(Poco::AutoPtr<controller::User> user)
 		{
 			static const char function_name[] = "Transaction::addSign";
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 				
 			if (user.isNull() || !user->getModel()) 
 			{
@@ -39,6 +96,9 @@ namespace model {
 			{
 				addError(new Error(function_name, "body bytes hash has changed and signature(s) exist already!"));
 				return false;
+			}
+			if (mBodyBytesHash != hash) {
+				mProtoTransaction.set_body_bytes(bodyBytes.data(), bodyBytes.size());
 			}
 			mBodyBytesHash = hash;
 
@@ -103,11 +163,38 @@ namespace model {
 			*sigBytes = std::string((char*)*sign, sign->size());
 			mm->releaseMemory(sign);
 
+			updateRequestInDB();
+
+			//getModel()->updateIntoDB("request", )
+
 			return true;
 		}
+
+		bool Transaction::updateRequestInDB()
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto size = mProtoTransaction.ByteSize();
+			std::string transaction_serialized = std::string(size, 0);
+			mProtoTransaction.SerializeToString(&transaction_serialized);
+			auto model = getModel();
+			model->setRequest(transaction_serialized);
+			return 1 == model->updateIntoDB("request", model->getRequest());
+		}
+
 		TransactionValidation Transaction::validate()
 		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto sig_map = mProtoTransaction.sig_map();
+
+			// check if all signatures belong to current body bytes
+			auto body_bytes = mProtoTransaction.body_bytes();
+			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++) {
+				KeyPairEd25519 key_pair((const unsigned char*)it->pubkey().data());
+				if (!key_pair.verify(body_bytes, it->ed25519())) {
+					return TRANSACTION_VALID_INVALID_SIGN;
+				}
+			}
+
 			auto transaction_base = mTransactionBody->getTransactionBase();
 			auto result = transaction_base->checkRequiredSignatures(&sig_map);
 
@@ -118,6 +205,8 @@ namespace model {
 			return result;
 
 		}
+
+		
 		
 	}
 }

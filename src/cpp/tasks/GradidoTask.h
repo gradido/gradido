@@ -7,12 +7,13 @@
 class GradidoTask : public controller::PendingTask, public NotificationList
 {
 public:
-	GradidoTask(model::table::PendingTask* dbModel, Poco::AutoPtr<model::gradido::TransactionBody> transactionBody);
+	GradidoTask();
+	GradidoTask(model::table::PendingTask* dbModel);
 	bool isTimeoutTask() { return false; }
 
 protected:
 
-	Poco::AutoPtr<model::gradido::TransactionBody> mGradidoTransactionBody;
+	
 };
 
 #endif //GRADIDO_LOGIN_SERVER_TASKS_GRADIDO_TASK

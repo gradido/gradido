@@ -30,6 +30,11 @@ namespace model
 
 		}
 
+		void PendingTask::setRequest(const std::string& serializedProto)
+		{
+			UNIQUE_LOCK;
+			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
+		}
 		
 
 		std::string PendingTask::toString()
@@ -53,6 +58,13 @@ namespace model
 			default: return "<unknown>";
 			}
 			return "<invalid>";
+		}
+
+		bool PendingTask::isGradidoTransaction(TaskType type)
+		{
+			if (type && type < TASK_TYPE_HEDERA_TOPIC_CREATE)
+				return true;
+			return false;
 		}
 	
 		Poco::Data::Statement PendingTask::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)

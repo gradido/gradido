@@ -98,7 +98,8 @@ int ProcessingTransaction::run()
 			unlock();
 			return -1;
 		}
-		mTransactionBody = model::gradido::TransactionBody::create(protoMessageBin);
+		auto proto_message_string = std::string((const char*)protoMessageBin->data(), protoMessageBin->size());
+		mTransactionBody = model::gradido::TransactionBody::load(proto_message_string);
 		mm->releaseMemory(protoMessageBin);
 	}
 	if (mTransactionBody.isNull()) {

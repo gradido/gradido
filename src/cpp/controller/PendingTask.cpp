@@ -1,6 +1,7 @@
 #include "PendingTask.h"
 
 #include "../tasks/GradidoGroupAddMemberTask.h"
+#include "../model/gradido/Transaction.h"
 
 namespace controller {
 
@@ -36,7 +37,24 @@ namespace controller {
 		
 
 	}
-	
+
+	/*Poco::AutoPtr<PendingTask> PendingTask::loadCorrectDerivedClass(model::table::PendingTask* dbModel)
+	{
+		if (dbModel->isGradidoTransaction()) {
+			return model::gradido::Transaction::load(dbModel);
+		}
+	}*/
+	Poco::AutoPtr<PendingTask> PendingTask::loadCorrectDerivedClass(model::table::PendingTask* dbModel)
+	{
+		if (!dbModel) return nullptr;
+		auto type = dbModel->getTaskType();
+		switch (type) {
+		case model::table::TASK_TYPE_GROUP_ADD_MEMBER: return new GradidoGroupAddMemberTask(dbModel);
+		default: return nullptr;
+		}
+		return nullptr;
+	}
+
 	std::vector<Poco::AutoPtr<PendingTask>> PendingTask::loadAll()
 	{
 		auto db = new model::table::PendingTask();
@@ -54,16 +72,5 @@ namespace controller {
 			resultVector.push_back(group_ptr);
 		}
 		return resultVector;
-	}
-
-	Poco::AutoPtr<PendingTask> PendingTask::loadCorrectDerivedClass(model::table::PendingTask* dbModel)
-	{
-		if (!dbModel) return nullptr;
-		auto type = dbModel->getTaskType();
-		switch (type) {
-		case model::table::TASK_TYPE_GROUP_ADD_MEMBER: return new GradidoGroupAddMemberTask(dbModel);
-		default: return nullptr;
-		}
-		return nullptr;
 	}
 }
