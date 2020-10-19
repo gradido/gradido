@@ -14,6 +14,7 @@
 #define GRADIDO_LOGIN_SERVER_SINGLETON_MANAGER_PENDING_TASKS_MANAGER
 
 #include "../controller/PendingTask.h"
+#include "../controller/User.h"
 
 class PendingTasksManager: public UniLib::lib::MultithreadContainer
 {
@@ -35,6 +36,8 @@ public:
 	//! and unlock afterwards
 	//! \return list or nullptr if no list for user exist
 	const PendingTaskList* getTaskListForUser(int userId) const;
+	bool hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 
 protected:
 	PendingTasksManager();

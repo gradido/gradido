@@ -143,6 +143,9 @@ namespace controller {
 
 		inline void setBalance(int gradidoBalance) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mGradidoCurrentBalance = gradidoBalance; }
 		inline int getBalance() { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mGradidoCurrentBalance; }
+
+		// connection to other tables
+
 		
 	protected:
 

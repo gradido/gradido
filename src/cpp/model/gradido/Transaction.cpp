@@ -7,7 +7,9 @@ namespace model {
 		Transaction::Transaction(Poco::AutoPtr<TransactionBody> body)
 			: mTransactionBody(body), mBodyBytesHash(0)
 		{
-			
+			auto body_bytes = mTransactionBody->getBodyBytes();
+			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
+			mProtoTransaction.set_body_bytes(body_bytes);
 		}
 
 		Transaction::Transaction(const std::string& protoMessageBin, model::table::PendingTask* dbModel)
@@ -63,7 +65,7 @@ namespace model {
 			}
 			model->setUserId(user->getModel()->getID());
 			model->setTaskType(type);
-			model->setRequest(mProtoTransaction.body_bytes());
+			model->setRequest(mProtoTransaction.SerializeAsString());
 			if (!model->insertIntoDB(true)) {
 				return false;
 			}

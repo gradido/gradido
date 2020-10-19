@@ -65,3 +65,43 @@ const PendingTasksManager::PendingTaskList* PendingTasksManager::getTaskListForU
 	}
 	return nullptr;
 }
+
+bool PendingTasksManager::hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
+{
+	auto model = user->getModel();
+	int user_id = model->getID();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	auto it = mPendingTasks.find(user_id);
+	if (it != mPendingTasks.end()) {
+		auto task_list = it->second;
+		for (auto task = task_list->begin(); task != task_list->end(); it++) {
+			auto task_model = (*task)->getModel();
+			if (type == task_model->getTaskType()) {
+				return true;
+			}
+		}
+	}
+	return false;
+
+}
+
+std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
+{
+	auto model = user->getModel();
+	int user_id = model->getID();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> results;
+
+	auto it = mPendingTasks.find(user_id);
+	if (it != mPendingTasks.end()) {
+		auto task_list = it->second;
+		results.reserve(task_list->size());
+		for (auto taskIt = task_list->begin(); taskIt != task_list->end(); taskIt++) {
+			auto task_model = (*taskIt)->getModel();
+			if (type == task_model->getTaskType()) {
+				results.push_back(*taskIt);
+			}
+		}
+	}
+	return results;
+}

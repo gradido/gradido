@@ -39,6 +39,7 @@ namespace model {
 					{
 						// no current user in group, at least login server known, so we need only one signature for transaction
 						// TODO: maybe check with node server, but maybe it isn't necessary
+						// check sequence number in topic db entry, should be <= 1
 						mMinSignatureCount = 1;
 						
 					}

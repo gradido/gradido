@@ -29,6 +29,7 @@ namespace model {
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
 
 			bool addSign(Poco::AutoPtr<controller::User> user);
+			int getSignCount() { return mProtoTransaction.sig_map().sigpair_size(); }
 			TransactionValidation validate();
 			
 			inline Poco::AutoPtr<TransactionBody> getTransactionBody() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mTransactionBody; }

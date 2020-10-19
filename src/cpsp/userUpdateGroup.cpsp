@@ -7,6 +7,9 @@
 
 #include "../controller/Group.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/PendingTasksManager.h"
+#include "../lib/DataTypeConverter.h"
+#include "../model/gradido/Transaction.h"
 
 enum PageState {
 	PAGE_STATE_OVERVIEW,
@@ -18,12 +21,56 @@ enum PageState {
 	const char* pageName = gettext("Gruppe wählen");
 	auto user = mSession->getNewUser();
 	auto sm = SessionManager::getInstance();
+	auto pt = PendingTasksManager::getInstance();
 	PageState state = PAGE_STATE_OVERVIEW;
+	
+	auto groups = controller::Group::listAll();
+	
 
 	if(!form.empty()) {
+		auto group_id_string = form.get("group_id", "");
+		if(group_id_string == "") {
+			addError(new Error(gettext("Fehler"), gettext("HTML Form Fehler")));
+		} else {
+			int group_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(group_id_string, group_id)) {
+				std::string group_alias = "";
+				Poco::AutoPtr<controller::Group> choosen_group;
+				for(auto it = groups.begin(); it != groups.end(); it++) {
+					auto group_model = (*it)->getModel();
+					if(group_model->getID() == group_id) {
+						choosen_group = *it;
+					}
+				}
+				if(choosen_group.isNull()) {
+					addError(new Error(gettext("Fehler"), gettext("Interner Fehler")));
+				} else {
+					auto addGroupMemberTransaction = 
+						model::gradido::Transaction::create(user, choosen_group);
+					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					return;
+					state = PAGE_STATE_REQUEST_IS_RUNNING;
+				}
+			} else {
+				addError(new Error(gettext("Fehler"), gettext("HTML Value Type Fehler")));
+			}
+		}
+	} else {
+		pt->lock("userUpdateGroup Page");
+		if(pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER)) {
+			state = PAGE_STATE_REQUEST_IS_RUNNING;
+			std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+			// should be only one
+			Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
+			if(transaction->getSignCount() == 0) {
+				response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+				return;
+			}
+		}
+		pt->unlock();
 	}
 		
-	auto groups = controller::Group::listAll();
+	
 	
 	
 %><%@ include file="header.cpsp" %>
@@ -57,6 +104,9 @@ enum PageState {
 			<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="<%= gettext("Beitrittsanfrage senden") %>"/>
 		</div>
 	</form>
+	<% } else if(PAGE_STATE_REQUEST_IS_RUNNING == state) { %>
+		<p><%= gettext("Deine Beitrittsanfrage wird bearbeitet, du bekommst eine E-Mail wenn sie bestätigt oder abgelehnt wurde.") %></p>
+		<p><a href="<%= ServerConfig::g_serverPath %>/logout"><%= gettext("Abmelden") %></a></p>
 	<% } %>
 </div>
 <%@ include file="footer.cpsp" %>
