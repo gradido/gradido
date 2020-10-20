@@ -2,6 +2,7 @@
 
 #include "../tasks/GradidoGroupAddMemberTask.h"
 #include "../model/gradido/Transaction.h"
+#include "../SingletonManager/PendingTasksManager.h"
 
 namespace controller {
 
@@ -72,5 +73,14 @@ namespace controller {
 			resultVector.push_back(group_ptr);
 		}
 		return resultVector;
+	}
+
+	bool PendingTask::deleteFromDB()
+	{
+		auto result = mDBModel->deleteFromDB(); 
+		if (result) {
+			PendingTasksManager::getInstance()->removeTask(this);
+		}
+		return result;
 	}
 }

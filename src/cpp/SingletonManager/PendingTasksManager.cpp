@@ -22,10 +22,8 @@ PendingTasksManager* PendingTasksManager::getInstance()
 
 int PendingTasksManager::load()
 {
+	// they add them self to Pending Task Manager
 	auto pending_tasks = controller::PendingTask::loadAll();
-	for (auto it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
-		addTask(*it);
-	}
 	return 0;
 }
 
@@ -40,6 +38,26 @@ int PendingTasksManager::addTask(Poco::AutoPtr<controller::PendingTask> task)
 	pending_task_list->push_back(task);
 	return 0;
 
+}
+
+bool PendingTasksManager::removeTask(Poco::AutoPtr<controller::PendingTask> task)
+{
+	if (task.isNull() || !task->getModel()) {
+		return false;
+	}
+	auto model = task->getModel();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	auto pending_task_list = getTaskListForUser(model->getUserId());
+	bool removed = false;
+	for (auto it = pending_task_list->begin(); it != pending_task_list->end(); it++) {
+		if (task.get() == it->get()) {
+			pending_task_list->erase(it);
+			removed = true;
+			break;
+		}
+	}
+	// keep list for user in memory
+	return removed;
 }
 
 PendingTasksManager::PendingTaskList* PendingTasksManager::getTaskListForUser(int userId)
@@ -104,4 +122,24 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getPend
 		}
 	}
 	return results;
+}
+
+std::vector<Poco::AutoPtr<model::gradido::Transaction>>  PendingTasksManager::getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user)
+{
+	// TODO: don'tuse cast here, because can lead to errors
+	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
+
+	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++) 
+	{
+		auto list = map_it->second;
+		for (auto list_it = list->begin(); list_it != list->end(); list_it++) 
+		{
+			auto transaction = list_it->cast<model::gradido::Transaction>();
+			if (transaction->mustSign(user)) {
+				transaction.duplicate();
+				transactions_to_sign.push_back(transaction);
+			}
+		}
+	}
+	return transactions_to_sign;
 }

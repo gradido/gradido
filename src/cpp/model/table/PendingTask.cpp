@@ -93,9 +93,9 @@ namespace model
 			lock();
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
-				<< " AND created = ? "
+				//<< " AND created LIKE ? "
 				<< " AND task_type_id = ? "
-				, into(mID), use(mUserId), use(mCreated), use(mTaskTypeId);
+				, into(mID), use(mUserId), /*use(mCreated),*/ use(mTaskTypeId);
 			unlock();
 			return select;
 		}

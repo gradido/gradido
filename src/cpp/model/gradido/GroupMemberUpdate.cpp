@@ -57,7 +57,7 @@ namespace model {
 					return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
 				}*/
 			}
-
+			mIsPrepared = true;
 			return 0;
 		}
 
@@ -95,5 +95,11 @@ namespace model {
 
 		}
 		*/
+
+		std::string GroupMemberUpdate::getPublicKeyHex()
+		{
+			auto user_pubkey = mProtoMemberUpdate.user_pubkey();
+			return DataTypeConverter::binToHex((const unsigned char*)user_pubkey.data(), user_pubkey.size());
+		}
 	}
 }

@@ -38,6 +38,14 @@ namespace model {
 			bool updateRequestInDB();
 			bool insertPendingTaskIntoDB(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 
+			//! return true if user must sign it and hasn't yet
+			bool mustSign(Poco::AutoPtr<controller::User> user);
+			//! return true if user can sign transaction and hasn't yet
+			bool canSign(Poco::AutoPtr<controller::User> user);
+
+			//! return true if user has already signed transaction
+			bool hasSigned(Poco::AutoPtr<controller::User> user);
+
 		protected:
 			Poco::AutoPtr<TransactionBody> mTransactionBody;
 			proto::gradido::GradidoTransaction mProtoTransaction;

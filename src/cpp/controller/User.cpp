@@ -89,6 +89,23 @@ namespace controller {
 		Poco::Data::BLOB email_hash(*emailHash, crypto_generichash_BYTES);
 		return getModel()->loadFromDB("email_hash", email_hash);
 	}
+	Poco::AutoPtr<User> User::sload(int user_id)
+	{
+		auto db = new model::table::User();
+		if (0 == db->loadFromDB("id", user_id)) {
+			delete db;
+			return nullptr;
+		}
+		auto user = new User(db);
+		return Poco::AutoPtr<User>(user);
+	}
+	
+	void User::reload()
+	{
+		getModel()->loadFromDB("id", getModel()->getID());
+	}
+
+
 	const std::string& User::getPublicHex()
 	{
 		if (mPublicHex != "") {

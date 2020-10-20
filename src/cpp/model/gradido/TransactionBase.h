@@ -46,10 +46,15 @@ namespace model {
 
 			//! \return true if all required signatures are found in signature pairs
 			TransactionValidation checkRequiredSignatures(const proto::gradido::SignatureMap* sig_map);
+			//! \param pubkey pointer must point to valid unsigned char[KeyPairEd25519::getPublicKeySize()] array
+			bool isPublicKeyRequired(const unsigned char* pubkey);
+			//! \param pubkey pointer must point to valid unsigned char[KeyPairEd25519::getPublicKeySize()] array
+			bool isPublicKeyForbidden(const unsigned char* pubkey);
 
 		protected:
 			std::string mMemo;
 			Poco::UInt32 mMinSignatureCount;
+			bool mIsPrepared;
 			std::vector<MemoryBin*> mRequiredSignPublicKeys;
 			std::vector<MemoryBin*> mForbiddenSignPublicKeys;
 		};

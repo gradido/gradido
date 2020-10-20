@@ -6,7 +6,7 @@ namespace model {
 	namespace gradido {
 
 		TransactionBase::TransactionBase(const std::string& memo)
-			: mMemo(memo), mMinSignatureCount(0)
+			: mMemo(memo), mMinSignatureCount(0), mIsPrepared(false)
 		{
 
 		}
@@ -112,6 +112,28 @@ namespace model {
 
 			return TRANSACTION_VALID_MISSING_SIGN;
 			
+		}
+
+		bool TransactionBase::isPublicKeyRequired(const unsigned char* pubkey)
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			for (auto it = mRequiredSignPublicKeys.begin(); it != mRequiredSignPublicKeys.end(); it++) {
+				if (memcmp((*it)->data(), pubkey, KeyPairEd25519::getPublicKeySize()) == 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		bool TransactionBase::isPublicKeyForbidden(const unsigned char* pubkey)
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			for (auto it = mForbiddenSignPublicKeys.begin(); it != mForbiddenSignPublicKeys.end(); it++) {
+				if (memcmp((*it)->data(), pubkey, KeyPairEd25519::getPublicKeySize()) == 0) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }

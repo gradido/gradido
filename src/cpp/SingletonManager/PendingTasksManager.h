@@ -15,6 +15,7 @@
 
 #include "../controller/PendingTask.h"
 #include "../controller/User.h"
+#include "../model/gradido/Transaction.h"
 
 class PendingTasksManager: public UniLib::lib::MultithreadContainer
 {
@@ -31,6 +32,7 @@ public:
 	//! \return -1 task is zero
 	//! \return 0 if added
 	int addTask(Poco::AutoPtr<controller::PendingTask> task);
+	bool removeTask(Poco::AutoPtr<controller::PendingTask> task);
 
 	//! by calling this, important is to call lock to prevent vanishing the list while working with it,
 	//! and unlock afterwards
@@ -38,6 +40,7 @@ public:
 	const PendingTaskList* getTaskListForUser(int userId) const;
 	bool hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
+	std::vector<Poco::AutoPtr<model::gradido::Transaction>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
 
 protected:
 	PendingTasksManager();

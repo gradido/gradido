@@ -55,6 +55,7 @@ namespace model {
 			memcpy(*pubkey_copy, receiverPublic.data(), KeyPairEd25519::getPublicKeySize());
 			mForbiddenSignPublicKeys.push_back(pubkey_copy);
 
+			mIsPrepared = true;
 			return 0;
 		}
 

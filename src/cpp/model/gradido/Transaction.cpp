@@ -7,6 +7,7 @@ namespace model {
 		Transaction::Transaction(Poco::AutoPtr<TransactionBody> body)
 			: mTransactionBody(body), mBodyBytesHash(0)
 		{
+			
 			auto body_bytes = mTransactionBody->getBodyBytes();
 			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
 			mProtoTransaction.set_body_bytes(body_bytes);
@@ -35,6 +36,7 @@ namespace model {
 			}
 			auto group_model = group->getModel();
 			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
+			
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 			auto model = result->getModel();
 			result->insertPendingTaskIntoDB(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
@@ -67,6 +69,7 @@ namespace model {
 			model->setTaskType(type);
 			model->setRequest(mProtoTransaction.SerializeAsString());
 			if (!model->insertIntoDB(true)) {
+				
 				return false;
 			}
 			return true;
@@ -207,7 +210,47 @@ namespace model {
 			return result;
 
 		}
+		bool Transaction::hasSigned(Poco::AutoPtr<controller::User> user)
+		{
+			static const char* function_name = "Transaction::hasSigned";
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto sig_pairs = mProtoTransaction.sig_map().sigpair();
+			auto pubkey = user->getModel()->getPublicKey();
+			auto pubkey_size = user->getModel()->getPublicKeySize();
+			if (KeyPairEd25519::getPublicKeySize() != pubkey_size) {
+				addError(new ParamError(function_name, "user public key has invalid size: ", pubkey_size));
+				return false;
+			}
+			for (auto it = sig_pairs.begin(); it != sig_pairs.end(); it++) 
+			{
+				if (it->pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+					addError(new ParamError(function_name, "signed public key has invalid length: ", it->pubkey().size()));
+					return false;
+				}
+				if (memcmp(pubkey, it->pubkey().data(), pubkey_size) == 0) {
+					return true;
+				}
+			}
+			return false;
+		}
 
+		//! return true if user must sign it and hasn't yet
+		bool Transaction::mustSign(Poco::AutoPtr<controller::User> user)
+		{
+			if (hasSigned(user)) return false;
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto transaction_base = mTransactionBody->getTransactionBase();
+			return transaction_base->isPublicKeyRequired(user->getModel()->getPublicKey());
+		}
+
+		//! return true if user can sign transaction and hasn't yet
+		bool Transaction::canSign(Poco::AutoPtr<controller::User> user)
+		{
+			if (hasSigned(user)) return false;
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto transaction_base = mTransactionBody->getTransactionBase();
+			return !transaction_base->isPublicKeyForbidden(user->getModel()->getPublicKey());
+		}
 		
 		
 	}

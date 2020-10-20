@@ -15,6 +15,9 @@ namespace model {
 			int prepare();
 			TransactionValidation validate();
 
+			std::string getTargetGroupAlias() { return mProtoMemberUpdate.target_group(); }
+			std::string getPublicKeyHex();
+
 		protected:
 			const proto::gradido::GroupMemberUpdate& mProtoMemberUpdate;
 		};

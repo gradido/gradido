@@ -11,6 +11,9 @@ public:
 	GradidoTask(model::table::PendingTask* dbModel);
 	bool isTimeoutTask() { return false; }
 
+	
+
+
 protected:
 
 	

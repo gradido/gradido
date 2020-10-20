@@ -121,6 +121,7 @@ namespace model {
 			}
 			//*/
 
+			mIsPrepared = true;
 			unlock();
 			return 0;
 		}

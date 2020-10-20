@@ -70,6 +70,8 @@ namespace controller {
 		//! \brief try to load user from db via user_id
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
+		void reload();
+		static Poco::AutoPtr<User> sload(int user_id);
 		int load(const unsigned char* pubkey_array);
 		int load(MemoryBin* emailHash);
 		Poco::JSON::Object getJson();

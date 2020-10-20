@@ -31,6 +31,7 @@ namespace model {
 
 			obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
 			obj->mTransactionSpecific = new GroupMemberUpdate(memo, obj->mTransactionBody.group_member_update());
+			obj->mTransactionSpecific->prepare();
 
 			return obj;
 		}
@@ -56,6 +57,7 @@ namespace model {
 				obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
 				obj->mTransactionSpecific = new model::gradido::GroupMemberUpdate(obj->mTransactionBody.memo(), obj->mTransactionBody.group_member_update());
 			}
+			obj->mTransactionSpecific->prepare();
 			return obj;
 		}
 
