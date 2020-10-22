@@ -40,7 +40,7 @@ public:
 	const PendingTaskList* getTaskListForUser(int userId) const;
 	bool hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
-	std::vector<Poco::AutoPtr<model::gradido::Transaction>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
 
 protected:
 	PendingTasksManager();

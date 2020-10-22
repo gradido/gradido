@@ -124,20 +124,20 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getPend
 	return results;
 }
 
-std::vector<Poco::AutoPtr<model::gradido::Transaction>>  PendingTasksManager::getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user)
+std::vector<Poco::AutoPtr<controller::PendingTask>>  PendingTasksManager::getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user)
 {
-	// TODO: don'tuse cast here, because can lead to errors
-	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
+	// TODO: don't use cast here, because can lead to errors
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_to_sign;
 
 	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++) 
 	{
 		auto list = map_it->second;
 		for (auto list_it = list->begin(); list_it != list->end(); list_it++) 
 		{
-			auto transaction = list_it->cast<model::gradido::Transaction>();
+			auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
 			if (transaction->mustSign(user)) {
-				transaction.duplicate();
-				transactions_to_sign.push_back(transaction);
+				transactions_to_sign.push_back(*list_it);
 			}
 		}
 	}

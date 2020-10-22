@@ -46,12 +46,12 @@ enum PageState {
 	bool transaction_finalize_run = false;
 	bool transaction_finalize_result = false;
 	auto transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
-	Poco::AutoPtr<model::gradido::Transaction> transaction;
+	model::gradido::Transaction* transaction;
 	Poco::AutoPtr<model::gradido::TransactionBody> transaction_body;
 	
 	if(transactions_to_sign.size() > 0) 
 	{
-		transaction = transactions_to_sign[0];
+		transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
 		transaction_body = transaction->getTransactionBody();
 	}
 	
@@ -117,13 +117,15 @@ enum PageState {
 		if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(pending_task_id_string, pending_task_id)) 
 		{
 			// make sure we have the correct transaction
-			transaction.assign(nullptr);
+			transaction = nullptr;
+			printf("transaction_body isNull: %d\n", transaction_body.isNull());
 			transaction_body.assign(nullptr);
 			for(auto it = transactions_to_sign.begin(); it != transactions_to_sign.end(); it++) 
 			{
 				if((*it)->getModel()->getID() == pending_task_id) {
-					transaction = *it;
+					transaction = dynamic_cast<model::gradido::Transaction*>(it->get());
 					transaction_body = transaction->getTransactionBody();
+					printf("set new transaction and transaction_body\n");
 					break;
 				}
 			}
@@ -131,12 +133,15 @@ enum PageState {
 			{
 				//mSession->finalizeTransaction(false, true);
 				// 
-				if(!transaction.isNull() && transaction->getModel()->getUserId() == user_model->getID()) 
+				if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
 				{
 					transaction->deleteFromDB();
-					transactions_to_sign.clear();
-					transaction.assign(nullptr);
+					printf("deleted from db\n");
 					transaction_body.assign(nullptr);
+					printf("assign nullptr to transaction_body\n");
+					transactions_to_sign.clear();
+					printf("clear list \n");
+					transaction = nullptr;
 					
 				}
 			} 
@@ -171,12 +176,12 @@ enum PageState {
 		}
 	}
 	
-	if(transaction.isNull()) 
+	if(!transaction) 
 	{
 		transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
 		if(transactions_to_sign.size() > 0) 
 		{
-			transaction = transactions_to_sign[0];
+			transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
 			transaction_body = transaction->getTransactionBody();
 		}
 	}

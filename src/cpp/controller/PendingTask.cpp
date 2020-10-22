@@ -79,7 +79,8 @@ namespace controller {
 	{
 		auto result = mDBModel->deleteFromDB(); 
 		if (result) {
-			PendingTasksManager::getInstance()->removeTask(this);
+
+			PendingTasksManager::getInstance()->removeTask(Poco::AutoPtr<PendingTask>(this, true));
 		}
 		return result;
 	}
