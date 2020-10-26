@@ -49,6 +49,7 @@ namespace model {
 
 			auto mm = MemoryManager::getInstance();
 			mConnection = transactionBody->getConnection();
+			transactionBody->updateTimestamp();
 			auto transaction_body_proto = transactionBody->getProtoTransactionBody();
 			auto body_bytes = transaction_body_proto->SerializeAsString();
 			mTransaction->set_bodybytes(body_bytes.data(), body_bytes.size());

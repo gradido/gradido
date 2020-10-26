@@ -343,7 +343,14 @@ namespace model {
 					if (!crypto_key.isNull()) 
 					{
 						model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
-						consensus_submit_message.setMessage(mProtoTransaction.SerializeAsString());
+						std::string raw_message = mProtoTransaction.SerializeAsString();
+						// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
+						if (network_type == table::HEDERA_TESTNET) {
+							consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+						}
+						else {
+							consensus_submit_message.setMessage(raw_message);
+						}
 						auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
 						hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
 						model::hedera::Transaction hedera_transaction;
@@ -359,10 +366,16 @@ namespace model {
 							return -2;
 						}
 						else {
-							auto hedera_precheck_code_string = hedera_task.getTransactionResponse()->getPrecheckCodeString();
-							auto cost = hedera_task.getTransactionResponse()->getCost();
+							auto hedera_transaction_response = hedera_task.getTransactionResponse();
+							auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
+							auto precheck_code = hedera_transaction_response->getPrecheckCode();
+							auto cost = hedera_transaction_response->getCost();
 
 							printf("hedera response: %s, cost: %" PRIu64 "\n", hedera_precheck_code_string.data(), cost);
+							if (precheck_code == proto::INVALID_TRANSACTION_START) {
+								int zahl = 0;
+								return -5;
+							}
 
 						}
 						//model::hedera::TransactionBody hedera_transaction_body()

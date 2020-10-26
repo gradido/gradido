@@ -6,14 +6,17 @@
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
 #include "sodium.h"
+#include "../proto/gradido/GradidoTransaction.pb.h"
 #include "../proto/gradido/TransactionBody.pb.h"
 #include "../controller/User.h"
 #include "../model/gradido/TransactionBase.h"
 #include "../model/gradido/TransactionCreation.h"
+#include "../lib/DataTypeConverter.h"
 %>
 <%%
 	const char* pageName = "Decode Transaction";
 	proto::gradido::TransactionBody transactionBody;
+	proto::gradido::GradidoTransaction transaction;
 	bool decoded = false;
 	bool adminUser = false;
 	if(mSession && mSession->getNewUser())  {
@@ -30,6 +33,7 @@
 			size_t resultingBinSize = 0;
 			size_t base64_size = base64.size();
 			bool encodingValid = false;
+			bool encodedTransaction = false;
 			if (!sodium_base642bin(
 				binBuffer, base64_size,
 				base64.data(), base64_size, 
@@ -42,9 +46,10 @@
 					  base64.data(), base64_size,
 					  nullptr, &resultingBinSize, nullptr,
 					  sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
-				  //encodingValid = true;
+				  encodingValid = true;
 				  //free(binBuffer);
-				  addError(new Error("ProcessingTransaction", "it is maybe a Transaction, but I support only TransactionBodys"), false);
+				  //addError(new Error("ProcessingTransaction", "it is maybe a Transaction, but I support only TransactionBodys"), false);
+				  encodedTransaction = true;
 			}
 			if(false == encodingValid) {
 				free(binBuffer);
@@ -52,11 +57,24 @@
 			} else {
 				std::string binString((char*)binBuffer, resultingBinSize);
 				free(binBuffer);
-				
-				if (!transactionBody.ParseFromString(binString)) {
-					addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"), false);			
+				if(!encodedTransaction) {
+					
+					if (!transactionBody.ParseFromString(binString)) {
+						addError(new Error("ProcessingTransaction", "error creating Transaction Body from binary Message"), false);			
+					} else {
+						decoded = true;
+					}
 				} else {
-					decoded = true;
+					
+					if(!transaction.ParseFromString(binString)) {
+						addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"), false);
+					} else {
+						if(!transactionBody.ParseFromString(transaction.body_bytes())) {
+							addError(new Error("ProcessingTransaction", "error creating Transaction Body from Transaction body bytes"), false);			
+						} else {
+							decoded = true;
+						}
+					}
 				}
 			}
 			
@@ -125,6 +143,16 @@
 		<% } %>
 		<p>amount: <%= model::gradido::TransactionBase::amountToString(receiver.amount()) %> GDD</p>
 		<p>target date: <%= creationObject.getTargetDateString() %></p>
+		<% } else if(transactionBody.has_group_member_update()) { 
+			auto group_member_update = transactionBody.group_member_update();
+			auto paired_transaction_id = group_member_update.paired_transaction_id();
+			std::string paired_transaction_string = std::to_string(paired_transaction_id.seconds()) + "." + std::to_string(paired_transaction_id.nanos());
+			%>
+			<h3>Group Member Update</h3>
+			<p><b>Target group alias: </b><%= group_member_update.target_group() %></p>
+			<p><b>Paired transaction id: </b><%= paired_transaction_string %></p>
+			<p><b>Member Update Type: </b><%= proto::gradido::GroupMemberUpdate_MemberUpdateType_Name(group_member_update.member_update_type()) %></p>
+			<p><b>User Public Key Hex: </b><%= DataTypeConverter::pubkeyToHex((const unsigned char*)group_member_update.user_pubkey().data()) %></p>
 		<% } %>
 	<% } %>
 </div>

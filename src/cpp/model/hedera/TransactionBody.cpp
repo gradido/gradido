@@ -127,8 +127,11 @@ namespace model {
 			auto timestamp = transaction_id->mutable_transactionvalidstart();
 			Poco::Timestamp now;
 			auto microseconds = now.epochMicroseconds() - now.epochTime() * now.resolution(); // 1*10^6
-			timestamp->set_seconds(now.epochTime());
-			timestamp->set_nanos(microseconds * 1000);
+			timestamp->set_seconds(now.epochTime()-1);			
+			//timestamp->set_nanos(microseconds * 1000);
+			// make sure timestamp is some nanos old
+			timestamp->set_nanos(microseconds * 900);
+			printf("hedera transaction body timestamp: %d.%d\n", timestamp->seconds(), timestamp->nanos());
 		}
 	}
 }

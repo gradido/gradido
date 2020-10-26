@@ -21,7 +21,7 @@ namespace model
 		}
 		PendingTask::PendingTask(const PendingTaskTuple& tuple)
 			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mRequest(tuple.get<2>()), mCreated(tuple.get<3>()), mFinished(tuple.get<4>()),
-			mResultJsonString(tuple.get<5>()), mTaskTypeId(tuple.get<6>())
+			mResultJsonString(tuple.get<5>()), mTaskTypeId(tuple.get<6>()), mChildPendingTaskId(tuple.get<7>()), mParentPendingTaskId(tuple.get<8>())
 		{
 
 		}
@@ -96,9 +96,10 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, request, created, finished, result_json, task_type_id FROM " << getTableName()
+			select << "SELECT id, user_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString), into(mTaskTypeId);
+				, into(mID), into(mUserId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString), 
+				into(mTaskTypeId), into(mChildPendingTaskId), into(mParentPendingTaskId);
 
 			return select;
 		}
@@ -107,7 +108,7 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, request, created, finished, result_json, task_type_id FROM " << getTableName();
+			select << "SELECT id, user_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName();
 
 			return select;
 		}
@@ -131,8 +132,8 @@ namespace model
 			Poco::Data::Statement insert(session);
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, request, created, task_type_id) VALUES(?,?,?,?)"
-				, use(mUserId), use(mRequest), use(mCreated), use(mTaskTypeId);
+				<< " (user_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?)"
+				, use(mUserId), use(mRequest), use(mCreated), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
 			unlock();
 			return insert;
 		}

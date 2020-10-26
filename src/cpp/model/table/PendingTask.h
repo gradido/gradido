@@ -20,8 +20,8 @@ namespace model {
 			TASK_TYPE_HEDERA_ACCOUNT_CREATE = 25,
 
 		};
-
-		typedef Poco::Tuple<int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int> PendingTaskTuple;
+		
+		typedef Poco::Tuple<int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int, int, int> PendingTaskTuple;
 
 		class PendingTask : public ModelBase
 		{
@@ -45,13 +45,18 @@ namespace model {
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
 			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
 			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
+			inline int getChildPendingTaskId() const { SHARED_LOCK; return mChildPendingTaskId; }
+			inline int getParentPendingTaskId() const { SHARED_LOCK; return mParentPendingTaskId; }
 
 			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
-			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
 			void setRequest(const std::string& serializedProto);
-			inline bool isGradidoTransaction() { SHARED_LOCK; return isGradidoTransaction((TaskType)mTaskTypeId); }
+			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
+			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
+			inline void setParentPendingTaskId(int parentPendingTaskId) { UNIQUE_LOCK; mParentPendingTaskId = parentPendingTaskId; }
 			
+			inline bool isGradidoTransaction() { SHARED_LOCK; return isGradidoTransaction((TaskType)mTaskTypeId); }
 			static bool isGradidoTransaction(TaskType type);
+
 			static const char* typeToString(TaskType type);
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
@@ -65,6 +70,8 @@ namespace model {
 			Poco::DateTime mFinished;
 			std::string mResultJsonString;
 			int mTaskTypeId;
+			int mChildPendingTaskId;
+			int mParentPendingTaskId;
 
 			std::shared_mutex mSharedMutex;
 		};

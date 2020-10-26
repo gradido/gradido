@@ -64,7 +64,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	bool transaction_finalize_run = false;
 	bool transaction_finalize_result = false;
 	auto transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
-	model::gradido::Transaction* transaction;
+	model::gradido::Transaction* transaction = nullptr;
 	Poco::AutoPtr<model::gradido::TransactionBody> transaction_body;
 	
 	if(transactions_to_sign.size() > 0) 
