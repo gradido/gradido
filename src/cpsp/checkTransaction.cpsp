@@ -177,7 +177,11 @@ enum PageState {
 					}
 					if(!hasErrors) {
 						//mSession->finalizeTransaction(true, false);
-						transaction->sign(account_user);
+						if(transaction->sign(account_user)) {
+							transaction_body.assign(nullptr);
+							transactions_to_sign.clear();
+							transaction = nullptr;
+						}
 					}
 				}
 			} else {

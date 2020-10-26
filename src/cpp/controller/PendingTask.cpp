@@ -2,6 +2,7 @@
 
 #include "../tasks/GradidoGroupAddMemberTask.h"
 #include "../model/gradido/Transaction.h"
+#include "../tasks/HederaTask.h"
 #include "../SingletonManager/PendingTasksManager.h"
 
 namespace controller {
@@ -47,11 +48,16 @@ namespace controller {
 	}*/
 	Poco::AutoPtr<PendingTask> PendingTask::loadCorrectDerivedClass(model::table::PendingTask* dbModel)
 	{
-		if (!dbModel) return nullptr;
+		/*if (!dbModel) return nullptr;
 		auto type = dbModel->getTaskType();
 		switch (type) {
 		case model::table::TASK_TYPE_GROUP_ADD_MEMBER: return new GradidoGroupAddMemberTask(dbModel);
-		default: return nullptr;
+		default: return nullptr;*/
+		if (dbModel->isGradidoTransaction()) {
+			return model::gradido::Transaction::load(dbModel);
+		}
+		else if (dbModel->isGradidoTransaction()) {
+			return HederaTask::load(dbModel);
 		}
 		return nullptr;
 	}

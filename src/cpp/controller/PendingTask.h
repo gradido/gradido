@@ -26,6 +26,7 @@ namespace controller {
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 		
 		inline Poco::AutoPtr<model::table::PendingTask> getModel() { return _getModel<model::table::PendingTask>(); }
+		inline const model::table::PendingTask* getModel() const { return _getModel<model::table::PendingTask>(); }
 		//! \brief delete from db and remove from Pending Task Manager
 		bool deleteFromDB();
 

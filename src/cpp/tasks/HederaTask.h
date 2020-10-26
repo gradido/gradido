@@ -6,16 +6,31 @@
 #include "../proto/hedera/BasicTypes.pb.h"
 #include "../proto/hedera/Duration.pb.h"
 
+#include "../model/gradido/Transaction.h"
+
+#include "../controller/PendingTask.h"
+
 #include "Poco/Timestamp.h"
 
 #include <shared_mutex>
 
-class HederaTask
+/*!
+ * 
+ * \brief: Managing hedera task, especially check on receipt availability 
+ * 
+ * \author: Dario Rekowski
+ *
+ */
+
+class HederaTask : public controller::PendingTask, public NotificationList
 {
 public:
 
-	HederaTask();
+	HederaTask(const model::gradido::Transaction* transaction);
+	HederaTask(model::table::PendingTask* dbModel);
 	~HederaTask();
+
+	static Poco::AutoPtr<HederaTask> load(model::table::PendingTask* dbModel);
 
 	inline model::hedera::TransactionResponse* getTransactionResponse() { std::shared_lock<std::shared_mutex> _lock(mWorkingMutex); return &mTransactionResponse; }
 	inline void setTransactionId(const proto::TransactionID& transactionId) { std::unique_lock<std::shared_mutex> _lock(mWorkingMutex); mTransactionID = transactionId; }
@@ -29,6 +44,7 @@ public:
 
 	//! \ brief return true if transactionValidStart + validDuration > now
 	bool isTimeout();
+	bool isTimeoutTask() { return true; }
 
 	bool tryQueryReceipt();
 

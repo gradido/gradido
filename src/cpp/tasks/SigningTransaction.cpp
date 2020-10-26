@@ -169,7 +169,7 @@ int SigningTransaction::run() {
 	auto topic_id = controller::HederaId::find(1, network_type);
 	auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
 	
-	if (!topic_id.isNull() && !hedera_operator_account.isNull()) {
+	/*if (!topic_id.isNull() && !hedera_operator_account.isNull()) {
 		auto crypto_key = hedera_operator_account->getCryptoKey();
 		if (!crypto_key.isNull()) {
 			model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
@@ -199,7 +199,7 @@ int SigningTransaction::run() {
 	}
 	else {
 		printf("[SigningTransaction] hedera topic id or operator account not found\n");
-	}
+	}*/
 
 	// finale to base64
 	auto finalBase64Size = sodium_base64_encoded_len(finalTransactionBin.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);

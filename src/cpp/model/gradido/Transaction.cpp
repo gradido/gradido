@@ -345,19 +345,20 @@ namespace model {
 						model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
 						std::string raw_message = mProtoTransaction.SerializeAsString();
 						// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
-						if (network_type == table::HEDERA_TESTNET) {
-							consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-						}
-						else {
+						//if (network_type == table::HEDERA_TESTNET) {
+							//consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+						//}
+						//else {
 							consensus_submit_message.setMessage(raw_message);
-						}
+						//}
 						auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
 						hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
 						model::hedera::Transaction hedera_transaction;
 						hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
 
 						HederaRequest hedera_request;
-						HederaTask    hedera_task;// placeholder
+						HederaTask    hedera_task(this);
+						
 						if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, &hedera_task)) 
 						{
 							addError(new Error(function_name, "error send transaction to hedera"));
