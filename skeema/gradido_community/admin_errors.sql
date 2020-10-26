@@ -1,5 +1,5 @@
 CREATE TABLE `admin_errors` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `state_user_id` int(11) NOT NULL,
   `controller` varchar(255) NOT NULL,
   `action` varchar(255) NOT NULL,

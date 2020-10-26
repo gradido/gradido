@@ -1,7 +1,7 @@
 CREATE TABLE `state_balances` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-  `state_user_id` int UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `state_user_id` int(10) unsigned NOT NULL,
   `modified` datetime NOT NULL,
-  `amount` bigint NOT NULL,
+  `amount` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

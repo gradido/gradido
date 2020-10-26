@@ -1,6 +1,6 @@
 CREATE TABLE `state_relationship_types` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` varchar(25) NOT NULL,
-  `text` varchar(255) DEFAULT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `text` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
