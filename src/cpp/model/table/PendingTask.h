@@ -56,6 +56,8 @@ namespace model {
 			
 			inline bool isGradidoTransaction() { SHARED_LOCK; return isGradidoTransaction((TaskType)mTaskTypeId); }
 			static bool isGradidoTransaction(TaskType type);
+			inline bool isHederaTransaction() { SHARED_LOCK; return isHederaTransaction((TaskType)mTaskTypeId); }
+			static bool isHederaTransaction(TaskType type);
 
 			static const char* typeToString(TaskType type);
 		protected:

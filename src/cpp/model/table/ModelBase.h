@@ -63,8 +63,8 @@ namespace model {
 
 			bool deleteFromDB();
 
-			inline void setID(int id) { lock(); mID = id; unlock(); }
-			inline int getID() { lock(); int id = mID; unlock(); return id; }
+			inline void setID(int id) { UNIQUE_LOCK; mID = id; }
+			inline int getID() const { SHARED_LOCK; return mID; }
 
 			static Poco::DateTime parseElopageDate(std::string dateString);
 
@@ -95,7 +95,8 @@ namespace model {
 		size_t ModelBase::loadFromDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select = _loadFromDB(session, fieldName);
 			select, Poco::Data::Keywords::useRef(fieldValue);
@@ -115,7 +116,7 @@ namespace model {
 		size_t ModelBase::countColumns(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			//Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select(session);
 			size_t count = 0;
@@ -140,7 +141,7 @@ namespace model {
 		bool ModelBase::isExistInDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			//Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select(session);
 			int id;
@@ -167,7 +168,8 @@ namespace model {
 		{
 			//printf("ModelBase::loadFromDB multi\n");
 			std::vector<Tuple> results;
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			//return results;
 			if (expectedResults > 0) {
 				results.reserve(expectedResults);
@@ -194,8 +196,8 @@ namespace model {
 		std::vector<Tuple> ModelBase::loadAllFromDB()
 		{
 			std::vector<Tuple> results;
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto cm = ConnectionManager::getInstance();
 			try {							   
 				Poco::Data::Statement select = _loadAllFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
@@ -221,7 +223,8 @@ namespace model {
 		std::vector<Tuple> ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const std::vector<WhereFieldType>& fieldValues, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/, int expectedResults/* = 0*/)
 		{
 			std::vector<Tuple> results;
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			if (fieldNames.size() != fieldValues.size() || fieldNames.size() <= 1) {
 				lock();
 				addError(new Error(getTableName(), "fieldNames and fieldValues size don't match or smaller as 1"));
@@ -244,12 +247,10 @@ namespace model {
 				resultCount = select.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by multi selecting", ex.displayText().data()));
 				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
 					addError(new ParamError(getTableName(), "field name for select: ", (*it).data()));
 				}
-				unlock();
 			}
 			return results;
 		}
@@ -258,7 +259,8 @@ namespace model {
 		size_t ModelBase::loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select = _loadFromDB(session, fieldNames, conditionType);
 			select, Poco::Data::Keywords::useRef(field1Value), Poco::Data::Keywords::useRef(field2Value);
@@ -268,7 +270,6 @@ namespace model {
 				resultCount = select.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by selecting, maybe more than one result?", ex.displayText()));
 				int count = 0;
 				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
@@ -276,7 +277,6 @@ namespace model {
 				}
 				
 				//addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
-				unlock();
 			}
 			return resultCount;
 		}
@@ -286,7 +286,8 @@ namespace model {
 		size_t ModelBase::updateIntoDB(const std::string& fieldName, const T& fieldValue)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement update(session);
 
@@ -303,10 +304,9 @@ namespace model {
 				resultCount = update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by update", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "field name for update: ", fieldName.data()));
-				unlock();
+				
 			}
 			return resultCount;
 	
@@ -315,7 +315,8 @@ namespace model {
 		size_t ModelBase::updateIntoDB(std::string fieldNames[2], const T1& fieldValue1, const T2& fieldValue2)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement update(session);
 
@@ -339,13 +340,10 @@ namespace model {
 				resultCount = update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by update 2", ex.displayText()));
 				for (int i = 0; i < 2; i++) {
 					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
 				}
-
-				unlock();
 			}
 			return resultCount;
 		}
@@ -353,7 +351,8 @@ namespace model {
 		size_t ModelBase::updateIntoDB(std::string fieldNames[3], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3)
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement update(session);
 
@@ -377,13 +376,11 @@ namespace model {
 				resultCount = update.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by update 3", ex.displayText()));
 				for (int i = 0; i < 3; i++) {
 					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
 				}
 
-				unlock();
 			}
 			return resultCount;
 		}

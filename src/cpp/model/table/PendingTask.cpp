@@ -84,10 +84,27 @@ namespace model
 			}
 			return "<invalid>";
 		}
+		/*enum TaskType {
+			TASK_TYPE_NONE = 0,
+			TASK_TYPE_GROUP_CREATE = 1,
+			TASK_TYPE_GROUP_ADD_MEMBER = 2,
+			TASK_TYPE_CREATION = 10,
+			TASK_TYPE_TRANSFER = 11,
+			TASK_TYPE_HEDERA_TOPIC_CREATE = 20,
+			TASK_TYPE_HEDERA_TOPIC_MESSAGE = 21,
+			TASK_TYPE_HEDERA_ACCOUNT_CREATE = 25,
 
+		};*/
 		bool PendingTask::isGradidoTransaction(TaskType type)
 		{
 			if (type && type < TASK_TYPE_HEDERA_TOPIC_CREATE)
+				return true;
+			return false;
+		}
+
+		bool PendingTask::isHederaTransaction(TaskType type)
+		{
+			if (type && type >= TASK_TYPE_HEDERA_TOPIC_CREATE)
 				return true;
 			return false;
 		}
@@ -119,9 +136,9 @@ namespace model
 			lock();
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
-				//<< " AND created LIKE ? "
+				<< " AND TIMESTAMPDIFF(SECOND, created, ?) = 0 "
 				<< " AND task_type_id = ? "
-				, into(mID), use(mUserId), /*use(mCreated),*/ use(mTaskTypeId);
+				, into(mID), use(mUserId), use(mCreated), use(mTaskTypeId);
 			unlock();
 			return select;
 		}

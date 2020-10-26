@@ -42,7 +42,8 @@ namespace model {
 		{
 			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement insert = _insertIntoDB(session);
 
@@ -85,7 +86,8 @@ namespace model {
 		bool ModelBase::isExistInDB()
 		{
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
 			Poco::Data::Statement select = _loadIdFromDB(session);
@@ -102,7 +104,8 @@ namespace model {
 
 		bool ModelBase::deleteFromDB()
 		{
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			if (mID == 0) {
 				addError(new Error(getTableName(), "id is zero, couldn't delete from db"));
 				return false;
@@ -116,10 +119,8 @@ namespace model {
 				return deleteStmt.execute() == 1;
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by delete", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "id: ", mID));
-				unlock();
 			}
 			return false;
 		}
