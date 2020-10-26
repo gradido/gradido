@@ -55,8 +55,8 @@ $GLOBALS["self"] = $this;
     <!-- TODO save last sidebar state so that it remains unchanged, on reload! -->
       <a href="/">
         <picture class="logo big visible">
-          <source srcset="/img/logo_schrift_half.webp" type="image/webp">
-          <source srcset="/img/logo_schrift_half.png" type="image/png">
+          <source srcset="/img/gradido_logo_web.webp" type="image/webp">
+          <source srcset="/img/gradido_logo_web.png" type="image/png">
           <img src="/img/logo_schrift_half.png" class="logo big visible" alt="Logo">
         </picture>
         <picture class="logo small">
