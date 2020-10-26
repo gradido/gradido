@@ -59,7 +59,6 @@ class JsonRequestHandlerController extends AppController {
             case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
             case 'errorInTransaction': return $this->errorInTransaction($jsonData->created, $jsonData->transactionGenericHash, $jsonData->error, $jsonData->errorMessage);
-
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
