@@ -6,6 +6,7 @@
 #include "Poco/SharedPtr.h"
 
 #include "TableControllerBase.h"
+#include "User.h"
 
 namespace controller {
 
@@ -35,10 +36,14 @@ namespace controller {
 		//! \return -1 error, more runs needed
 		//! \return -2 critical error, abort, remove
 		virtual int run() { return false; };
+
+		Poco::AutoPtr<controller::User> getUser();
 		
 	protected:
 		static Poco::AutoPtr<PendingTask> loadCorrectDerivedClass(model::table::PendingTask* dbModel);
 		PendingTask(model::table::PendingTask* dbModel);
+
+		Poco::AutoPtr<controller::User> mUser;
 		
 
 	};

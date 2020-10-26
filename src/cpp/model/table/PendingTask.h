@@ -37,10 +37,14 @@ namespace model {
 			const char* getTableName() const { return "pending_tasks"; }
 			std::string toString();
 
+			//! \brief update table row with current request
+			bool updateRequest();
+
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
-			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
 			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
+			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
+			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
 
 			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }

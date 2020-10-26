@@ -1,6 +1,19 @@
 #include "Transaction.h"
 #include "../../SingletonManager/ErrorManager.h"
 #include "../../SingletonManager/PendingTasksManager.h"
+#include "../../SingletonManager/LanguageManager.h"
+#include "../../ServerConfig.h"
+
+#include "../../controller/HederaId.h"
+#include "../../controller/HederaAccount.h"
+#include "../../controller/HederaRequest.h"
+
+#include "../hedera/Transaction.h"
+
+#include "../../tasks/HederaTask.h"
+
+#include <inttypes.h>
+
 
 namespace model {
 	namespace gradido {
@@ -75,7 +88,7 @@ namespace model {
 			return true;
 		}
 
-		bool Transaction::addSign(Poco::AutoPtr<controller::User> user)
+		bool Transaction::sign(Poco::AutoPtr<controller::User> user)
 		{
 			static const char function_name[] = "Transaction::addSign";
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
@@ -169,6 +182,12 @@ namespace model {
 			mm->releaseMemory(sign);
 
 			updateRequestInDB();
+			// check if enough signatures exist for next step
+			if (getSignCount() >= mTransactionBody->getTransactionBase()->getMinSignatureCount())
+			{
+				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
+				transaction_send_task->scheduleTask(transaction_send_task);
+			}
 
 			//getModel()->updateIntoDB("request", )
 
@@ -183,7 +202,7 @@ namespace model {
 			mProtoTransaction.SerializeToString(&transaction_serialized);
 			auto model = getModel();
 			model->setRequest(transaction_serialized);
-			return 1 == model->updateIntoDB("request", model->getRequest());
+			return model->updateRequest();
 		}
 
 		TransactionValidation Transaction::validate()
@@ -193,7 +212,8 @@ namespace model {
 
 			// check if all signatures belong to current body bytes
 			auto body_bytes = mProtoTransaction.body_bytes();
-			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++) {
+			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++) 
+			{
 				KeyPairEd25519 key_pair((const unsigned char*)it->pubkey().data());
 				if (!key_pair.verify(body_bytes, it->ed25519())) {
 					return TRANSACTION_VALID_INVALID_SIGN;
@@ -203,8 +223,7 @@ namespace model {
 			auto transaction_base = mTransactionBody->getTransactionBase();
 			auto result = transaction_base->checkRequiredSignatures(&sig_map);
 
-			if (result == TRANSACTION_VALID_OK)
-			{
+			if (result == TRANSACTION_VALID_OK) {
 				return transaction_base->validate();
 			}
 			return result;
@@ -251,7 +270,140 @@ namespace model {
 			auto transaction_base = mTransactionBody->getTransactionBase();
 			return !transaction_base->isPublicKeyForbidden(user->getModel()->getPublicKey());
 		}
+
+		int Transaction::runSendTransaction()
+		{
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			static const char* function_name = "Transaction::runSendTransaction";
+			auto result = validate();
+			if (TRANSACTION_VALID_OK != result) {
+				if (   TRANSACTION_VALID_MISSING_SIGN == result || TRANSACTION_VALID_CODE_ERROR == result 
+					|| TRANSACTION_VALID_MISSING_PARAM == result || TRANSCATION_VALID_INVALID_PUBKEY == result
+					|| TRANSACTION_VALID_INVALID_SIGN == result) {
+					addError(new ParamError(function_name, "code error", TransactionValidationToString(result)));
+					sendErrorsAsEmail();
+
+				} else if (mTransactionBody->isGroupMemberUpdate()) {
+					addError(new ParamError(function_name, "validation return: ", TransactionValidationToString(result)));
+					sendErrorsAsEmail();
+				}
+				else 
+				{
+					
+					std::string error_name;
+					std::string error_description;
+					auto lm = LanguageManager::getInstance();
+					auto user_model = getUser()->getModel();
+					auto t = lm->getFreeCatalog(lm->languageFromString(user_model->getLanguageKey()));
+					switch (result) {
+					case TRANSACTION_VALID_FORBIDDEN_SIGN: 
+						error_name = t->gettext_str("Signature Error");
+						error_description = t->gettext_str("Invalid signature!");
+						break;
+					case TRANSACTION_VALID_INVALID_TARGET_DATE: 
+						error_name = t->gettext_str("Creation Error");
+						error_description = t->gettext_str("Invalid target date! No future and only 3 month in the past.");
+						break;
+					case TRANSACTION_VALID_CREATION_OUT_OF_BORDER:
+						error_name = t->gettext_str("Creation Error");
+						error_description = t->gettext_str("Maximal 1000 GDD per month allowed!");
+						break;
+					case TRANSACTION_VALID_INVALID_AMOUNT:
+						error_name = t->gettext_str("Transfer Error");
+						error_description = t->gettext_str("Invalid GDD amount! Amount must be greater than 0 and maximal your balance.");
+						break;
+					case TRANSACTION_VALID_INVALID_GROUP_ALIAS:
+						error_name = t->gettext_str("Group Error");
+						error_description = t->gettext_str("Invalid Group Alias! I didn't know group, please check alias and try again.");
+						break;
+					default: 
+						error_name = t->gettext_str("Unknown Error");
+						error_description = t->gettext_str("Admin gets an E-Mail");
+						addError(new ParamError(function_name, "unknown error", TransactionValidationToString(result)));
+						sendErrorsAsEmail();
+					}
+
+					auto pt = PendingTasksManager::getInstance();
+					pt->reportErrorToCommunityServer(Poco::AutoPtr<Transaction>(this, true), error_name, error_description);
+				}
+				return -1;
+			}
+			else 
+			{
+				// send transaction via hedera
+				auto network_type = table::HEDERA_TESTNET;
+				// TODO: get correct topic id for user group
+				int user_group_id = 1;
+				auto topic_id = controller::HederaId::find(user_group_id, network_type);
+				auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
+
+				if (!topic_id.isNull() && !hedera_operator_account.isNull()) 
+				{
+					auto crypto_key = hedera_operator_account->getCryptoKey();
+					if (!crypto_key.isNull()) 
+					{
+						model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
+						consensus_submit_message.setMessage(mProtoTransaction.SerializeAsString());
+						auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
+						hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
+						model::hedera::Transaction hedera_transaction;
+						hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
+
+						HederaRequest hedera_request;
+						HederaTask    hedera_task;// placeholder
+						if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, &hedera_task)) 
+						{
+							addError(new Error(function_name, "error send transaction to hedera"));
+							getErrors(&hedera_request);
+							sendErrorsAsEmail();
+							return -2;
+						}
+						else {
+							auto hedera_precheck_code_string = hedera_task.getTransactionResponse()->getPrecheckCodeString();
+							auto cost = hedera_task.getTransactionResponse()->getCost();
+
+							printf("hedera response: %s, cost: %" PRIu64 "\n", hedera_precheck_code_string.data(), cost);
+
+						}
+						//model::hedera::TransactionBody hedera_transaction_body()
+					}
+					else 
+					{
+						addError(new ParamError(function_name, "hedera crypto key not found for paying for consensus submit message! NetworkType: ", network_type));
+						sendErrorsAsEmail();
+						return -3;
+					}
+				}
+				else 
+				{
+					addError(new Error(function_name, "hedera topic id or operator account not found!"));
+					addError(new ParamError(function_name, "user group id: ", user_group_id));
+					addError(new ParamError(function_name, "network type: ", network_type));
+					sendErrorsAsEmail();
+					return -4;
+				}
+				return 0;
+			}
+
+		}
 		
-		
+	
+		/// TASK ////////////////////////
+		SendTransactionTask::SendTransactionTask(Poco::AutoPtr<Transaction> transaction)
+			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mTransaction(transaction)
+		{
+
+		}
+
+		int SendTransactionTask::run()
+		{
+			auto result = mTransaction->runSendTransaction();
+			
+			if (-1 == result) {
+				mTransaction->deleteFromDB();
+			}
+			return 0;
+		}
+
 	}
 }

@@ -5,6 +5,27 @@
 namespace model {
 	namespace gradido {
 
+		
+		const char* TransactionValidationToString(TransactionValidation result)
+		{
+			switch (result) {
+			case TRANSACTION_VALID_OK: return "ok";
+			case TRANSACTION_VALID_MISSING_SIGN: return "missing sign";
+			case TRANSACTION_VALID_FORBIDDEN_SIGN: return "forbidden sign";
+			case TRANSACTION_VALID_MISSING_PARAM: return "missing param";
+			case TRANSACTION_VALID_CODE_ERROR: return "code error";
+			case TRANSACTION_VALID_INVALID_TARGET_DATE: return "invalid target date";
+			case TRANSACTION_VALID_CREATION_OUT_OF_BORDER: return "creation out of border";
+			case TRANSACTION_VALID_INVALID_AMOUNT: return "invalid amount";
+			case TRANSCATION_VALID_INVALID_PUBKEY: return "invalid pubkey";
+			case TRANSACTION_VALID_INVALID_GROUP_ALIAS: return "invalid group alias";
+			case TRANSACTION_VALID_INVALID_SIGN: return "invalid sign";
+			}
+			return "<unknown>";
+		}
+
+
+
 		TransactionBase::TransactionBase(const std::string& memo)
 			: mMemo(memo), mMinSignatureCount(0), mIsPrepared(false)
 		{

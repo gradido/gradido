@@ -31,6 +31,7 @@ namespace model {
 			TRANSACTION_VALID_INVALID_GROUP_ALIAS,
 			TRANSACTION_VALID_INVALID_SIGN
 		};
+		const char* TransactionValidationToString(TransactionValidation result);
 
 		class TransactionBase : public NotificationList, public UniLib::lib::MultithreadContainer
 		{
@@ -44,12 +45,14 @@ namespace model {
 			static std::string amountToString(google::protobuf::int64 amount);
 			inline const std::string& getMemo() const { return mMemo; }
 
-			//! \return true if all required signatures are found in signature pairs
+			//! \return TRANSACTION_VALID_OK if all required signatures are found in signature pairs
 			TransactionValidation checkRequiredSignatures(const proto::gradido::SignatureMap* sig_map);
 			//! \param pubkey pointer must point to valid unsigned char[KeyPairEd25519::getPublicKeySize()] array
 			bool isPublicKeyRequired(const unsigned char* pubkey);
 			//! \param pubkey pointer must point to valid unsigned char[KeyPairEd25519::getPublicKeySize()] array
 			bool isPublicKeyForbidden(const unsigned char* pubkey);
+
+			inline Poco::UInt32 getMinSignatureCount() { return mMinSignatureCount; }
 
 		protected:
 			std::string mMemo;

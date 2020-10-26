@@ -36,6 +36,31 @@ namespace model
 			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
 		}
 		
+		bool PendingTask::updateRequest()
+		{
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			SHARED_LOCK;
+			if (!mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET request = ? where id = ?;",
+				use(mRequest), use(mID);
+
+			try {
+				return 1 == update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateRequest] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return 0;
+		}
 
 		std::string PendingTask::toString()
 		{

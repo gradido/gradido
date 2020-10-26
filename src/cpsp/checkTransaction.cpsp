@@ -53,8 +53,7 @@ enum PageState {
 	{
 		transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
 		transaction_body = transaction->getTransactionBody();
-	}
-	
+
 	if(!form.empty()) {
 		auto ok = form.get("ok", "");
 		auto abort = form.get("abort", "");
@@ -129,50 +128,61 @@ enum PageState {
 					break;
 				}
 			}
-			if(abort != "") 
+			if(abort != "")
 			{
-				//mSession->finalizeTransaction(false, true);
-				// 
-				if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
+				// make sure we have the correct transaction
+				transaction = nullptr;
+				transaction_body.assign(nullptr);
+				for(auto it = transactions_to_sign.begin(); it != transactions_to_sign.end(); it++) 
 				{
-					transaction->deleteFromDB();
-					printf("deleted from db\n");
-					transaction_body.assign(nullptr);
-					printf("assign nullptr to transaction_body\n");
-					transactions_to_sign.clear();
-					printf("clear list \n");
-					transaction = nullptr;
-					
-				}
-			} 
-			else if(ok != "") 
-			{
-				if(!account_user->hasPassword()) {
-					auto pwd = form.get("sign-password", "");
-					auto loginResult = account_user->login(pwd);
-					switch(loginResult) {
-					case 0: 
-						addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
-						hasErrors = true;
-						break;
-					case -1: 
-					case -2:
-						addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
-						hasErrors = true;
-						state = PAGE_USER_DATA_CORRUPTED;
-						break;
-					case -3: 
-						addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
-						hasErrors = true;
+					if((*it)->getModel()->getID() == pending_task_id) {
+						transaction = dynamic_cast<model::gradido::Transaction*>(it->get());
+						transaction_body = transaction->getTransactionBody();
 						break;
 					}
 				}
-				if(!hasErrors) {
-					mSession->finalizeTransaction(true, false);
+				if(abort != "") 
+				{
+					//mSession->finalizeTransaction(false, true);
+					// 
+					if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
+					{
+						transaction->deleteFromDB();
+						transaction_body.assign(nullptr);
+						transactions_to_sign.clear();
+						transaction = nullptr;
+					}
+				} 
+				else if(ok != "") 
+				{
+					if(!account_user->hasPassword()) {
+						auto pwd = form.get("sign-password", "");
+						auto loginResult = account_user->login(pwd);
+						switch(loginResult) {
+						case 0: 
+							addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
+							hasErrors = true;
+							break;
+						case -1: 
+						case -2:
+							addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
+							hasErrors = true;
+							state = PAGE_USER_DATA_CORRUPTED;
+							break;
+						case -3: 
+							addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
+							hasErrors = true;
+							break;
+						}
+					}
+					if(!hasErrors) {
+						//mSession->finalizeTransaction(true, false);
+						transaction->sign(account_user);
+					}
 				}
+			} else {
+				addError(new Error(gettext("Form Error"), gettext("error with field")));
 			}
-		} else {
-			addError(new Error(gettext("Form Error"), gettext("error with field")));
 		}
 	}
 	

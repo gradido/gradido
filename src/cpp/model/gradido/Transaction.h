@@ -14,6 +14,7 @@
 #include "../../tasks/GradidoTask.h"
 #include "../../controller/User.h"
 
+#include "../tasks/CPUTask.h"
 
 namespace model {
 	namespace gradido {
@@ -28,9 +29,12 @@ namespace model {
 			static Poco::AutoPtr<Transaction> create(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
 
-			bool addSign(Poco::AutoPtr<controller::User> user);
+			bool sign(Poco::AutoPtr<controller::User> user);
 			int getSignCount() { return mProtoTransaction.sig_map().sigpair_size(); }
 			TransactionValidation validate();
+
+			//! \brief validate and if valid send transaction via Hedera Consensus Service to node server
+			int runSendTransaction();
 			
 			inline Poco::AutoPtr<TransactionBody> getTransactionBody() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mTransactionBody; }
 
@@ -51,6 +55,18 @@ namespace model {
 			proto::gradido::GradidoTransaction mProtoTransaction;
 			HASH mBodyBytesHash;
 		};
+
+		class SendTransactionTask : public UniLib::controller::CPUTask
+		{
+		public:
+			SendTransactionTask(Poco::AutoPtr<Transaction> transaction);
+
+			const char* getResourceType() const { return "SendTransactionTask"; };
+			int run();
+		protected:
+			Poco::AutoPtr<Transaction> mTransaction;
+		};
+
 	}
 }
 

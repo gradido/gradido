@@ -42,8 +42,12 @@ public:
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
 
+	void reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails);
+
 protected:
 	PendingTasksManager();
+
+	
 	
 	
 	std::map<int, PendingTaskList*> mPendingTasks;

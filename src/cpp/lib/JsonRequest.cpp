@@ -2,11 +2,15 @@
 #include "JsonRequest.h"
 #include "Profiler.h"
 
-#include "Poco/JSON/Object.h"
+
 #include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/JSON/Parser.h"
+
+#include "sodium.h"
+#include "../SingletonManager/MemoryManager.h"
+#include "DataTypeConverter.h"
 
 JsonRequest::JsonRequest(const std::string& serverHost, int serverPort)
 	: mServerHost(serverHost), mServerPort(serverPort)
@@ -19,16 +23,10 @@ JsonRequest::~JsonRequest()
 
 }
 
-
-JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::NameValueCollection& payload)
+JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON::Object& requestJson)
 {
 	static const char* functionName = "JsonRequest::request";
-	Poco::JSON::Object requestJson;
-	requestJson.set("method", methodName);
 	
-	for(auto it = payload.begin(); it != payload.end(); it++) {
-		requestJson.set(it->first, it->second);
-	}
 	//requestJson.set("user", std::string(mSessionUser->getPublicKeyHex()));
 
 	// send post request via https
@@ -101,6 +99,19 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::
 	}
 
 	return JSON_REQUEST_RETURN_OK;
+}
+
+
+
+JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::NameValueCollection& payload)
+{
+	Poco::JSON::Object requestJson;
+	requestJson.set("method", methodName);
+
+	for (auto it = payload.begin(); it != payload.end(); it++) {
+		requestJson.set(it->first, it->second);
+	}
+	return request(methodName, requestJson);
 }
 #include "Poco/JSON/Stringifier.h"
 JsonRequestReturn JsonRequest::requestGRPCRelay(const Poco::Net::NameValueCollection& payload)
@@ -192,3 +203,4 @@ JsonRequestReturn JsonRequest::requestGRPCRelay(const Poco::Net::NameValueCollec
 	
 	return JSON_REQUEST_RETURN_OK;
 }
+

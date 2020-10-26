@@ -84,4 +84,19 @@ namespace controller {
 		}
 		return result;
 	}
+
+	Poco::AutoPtr<controller::User> PendingTask::getUser()
+	{
+		if (!mUser.isNull()) {
+			return mUser;
+		}
+		auto user_id = getModel()->getUserId();
+		if (!user_id) {
+			return nullptr;
+		}
+		mUser = controller::User::create();
+		mUser->load(user_id);
+		return mUser;
+
+	}
 }
