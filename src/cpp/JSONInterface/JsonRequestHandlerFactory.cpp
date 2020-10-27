@@ -4,13 +4,14 @@
 
 #include "../SingletonManager/SessionManager.h"
 
+#include "JsonAdminEmailVerificationResend.h"
+#include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
 #include "JsonUnknown.h"
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
-#include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUpdateUserInfos.h"
 #include "JsonUnsecureLogin.h"
@@ -46,6 +47,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/checkTransaction") {
 		return new JsonTransaction;
+	}
+	else if (url_first_part == "/createTransaction") {
+		return new JsonCreateTransaction;
 	}
 	else if (url_first_part == "/getRunningUserTasks") {
 		return new JsonGetRunningUserTasks;

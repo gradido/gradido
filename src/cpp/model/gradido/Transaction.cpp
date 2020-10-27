@@ -44,18 +44,133 @@ namespace model {
 
 		Poco::AutoPtr<Transaction> Transaction::create(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
 		{
+			auto em = ErrorManager::getInstance();
+			static const char* function_name = "Transaction::create group member update";
+
 			if (user.isNull() || !user->getModel() || group.isNull() || !group->getModel()) {
 				return nullptr;
 			}
 			auto group_model = group->getModel();
+			auto network_type = table::HEDERA_TESTNET;
+			auto topic_id = controller::HederaId::find(group_model->getID(), network_type);
+
+			if (topic_id.isNull()) {
+				em->addError(new ParamError(function_name, "could'n find topic for group: ", group_model->getID()));
+				em->addError(new ParamError(function_name, "network type: ", network_type));
+				em->sendErrorsAsEmail();
+				return nullptr;
+			}
+
 			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
 			
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 			auto model = result->getModel();
+			model->setHederaId(topic_id->getModel()->getID());
 			result->insertPendingTaskIntoDB(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
 			PendingTasksManager::getInstance()->addTask(result);
 			return result;
 		}
+
+		Poco::AutoPtr<Transaction> Transaction::create(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo)
+		{
+			auto em = ErrorManager::getInstance();
+			static const char* function_name = "Transaction::create creation";
+
+			if (receiver.isNull() || !receiver->getModel()) {
+				return nullptr;
+			}
+			auto network_type = table::HEDERA_TESTNET;
+			auto receiver_model = receiver->getModel();
+			auto topic_id = controller::HederaId::find(receiver_model->getGroupId(), network_type);
+
+			if (topic_id.isNull()) {
+				em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
+				em->addError(new ParamError(function_name, "network type: ", network_type));
+				em->sendErrorsAsEmail();
+				return nullptr;
+			}
+			auto body = TransactionBody::create(memo, receiver, amount, targetDate);
+			Poco::AutoPtr<Transaction> result = new Transaction(body);
+			auto model = result->getModel();
+			model->setHederaId(topic_id->getModel()->getID());
+			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
+			PendingTasksManager::getInstance()->addTask(result);
+			return result;
+		}
+
+		std::vector<Poco::AutoPtr<Transaction>> Transaction::create(Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
+		{
+			std::vector<Poco::AutoPtr<Transaction>> results;
+			auto em = ErrorManager::getInstance();
+			static const char* function_name = "Transaction::create transfer";
+
+			if (sender.isNull() || !sender->getModel() || receiverGroup.isNull() || !receiverGroup->getModel() || !receiverPubkey || !amount) {
+				return results;
+			}
+			
+			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
+			auto sender_model = sender->getModel();
+			auto group_model = receiverGroup->getModel();
+			auto network_type = table::HEDERA_TESTNET;
+			// LOCAL Transfer
+			if (sender_model->getGroupId() == group_model->getID()) 
+			{	
+				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount);
+				Poco::AutoPtr<Transaction> transaction = new Transaction(body);
+				auto topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
+				if (topic_id.isNull()) {
+					em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
+					em->addError(new ParamError(function_name, "network type: ", network_type));
+					em->sendErrorsAsEmail();
+					return results;
+				}
+				transaction->getModel()->setHederaId(topic_id->getModel()->getID());
+				results.push_back(transaction);
+			}
+			else 
+			{
+				auto sender_group = controller::Group::load(sender_model->getGroupId());
+				Poco::AutoPtr<controller::Group> transaction_group;
+				Poco::AutoPtr<controller::Group> topic_group;
+				// default constructor set it to now
+				Poco::Timestamp pairedTransactionId;
+				for (int i = 0; i < 2; i++) {
+					if (0 == i) {
+						transaction_group = receiverGroup;
+						topic_group = sender_group;
+					}
+					else {
+						transaction_group = sender_group;
+						topic_group = receiverGroup;
+					}
+					auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
+					if (topic_id.isNull()) {
+						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
+						em->addError(new ParamError(function_name, "network type: ", network_type));
+						em->sendErrorsAsEmail();
+						return results;
+					}
+					if (transaction_group.isNull()) {
+						em->addError(new ParamError(function_name, "transaction group is zero, i:", i));
+						em->sendErrorsAsEmail();
+						return results;
+					}
+
+					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, pairedTransactionId, transaction_group);
+					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
+					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
+					results.push_back(transaction);
+				}
+			}
+			for (auto it = results.begin(); it != results.end(); it++) {
+				(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
+				PendingTasksManager::getInstance()->addTask(*it);
+			}
+			return results;
+
+		}
+
+		
 
 		Poco::AutoPtr<Transaction> Transaction::load(model::table::PendingTask* dbModel)
 		{
@@ -333,8 +448,9 @@ namespace model {
 				// send transaction via hedera
 				auto network_type = table::HEDERA_TESTNET;
 				// TODO: get correct topic id for user group
-				int user_group_id = 1;
-				auto topic_id = controller::HederaId::find(user_group_id, network_type);
+				//int user_group_id = 1;
+				//auto topic_id = controller::HederaId::find(user_group_id, network_type);
+				auto topic_id = controller::HederaId::load(getModel()->getHederaId());
 				auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
 
 				if (!topic_id.isNull() && !hedera_operator_account.isNull()) 
@@ -357,9 +473,9 @@ namespace model {
 						hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
 
 						HederaRequest hedera_request;
-						HederaTask    hedera_task(this);
+						Poco::AutoPtr<HederaTask> hedera_task(new HederaTask(this));
 						
-						if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, &hedera_task)) 
+						if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, hedera_task)) 
 						{
 							addError(new Error(function_name, "error send transaction to hedera"));
 							getErrors(&hedera_request);
@@ -367,7 +483,7 @@ namespace model {
 							return -2;
 						}
 						else {
-							auto hedera_transaction_response = hedera_task.getTransactionResponse();
+							auto hedera_transaction_response = hedera_task->getTransactionResponse();
 							auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
 							auto precheck_code = hedera_transaction_response->getPrecheckCode();
 							auto cost = hedera_transaction_response->getCost();
@@ -376,6 +492,12 @@ namespace model {
 							if (precheck_code == proto::INVALID_TRANSACTION_START) {
 								int zahl = 0;
 								return -5;
+							}
+							else if (precheck_code == proto::OK) {
+								// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
+								// TODO: later check, but now I haven't any way to communicate with the gradido node
+								mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
+								return 1;
 							}
 
 						}
@@ -391,7 +513,7 @@ namespace model {
 				else 
 				{
 					addError(new Error(function_name, "hedera topic id or operator account not found!"));
-					addError(new ParamError(function_name, "user group id: ", user_group_id));
+					addError(new ParamError(function_name, "topic id: ", topic_id->getModel()->toString()));
 					addError(new ParamError(function_name, "network type: ", network_type));
 					sendErrorsAsEmail();
 					return -4;
@@ -412,8 +534,12 @@ namespace model {
 		int SendTransactionTask::run()
 		{
 			auto result = mTransaction->runSendTransaction();
-			
+			// delete because of error
 			if (-1 == result) {
+				mTransaction->deleteFromDB();
+			}
+			// delete because succeed, maybe change later
+			if (1 == result) {
 				mTransaction->deleteFromDB();
 			}
 			return 0;

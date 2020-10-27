@@ -26,8 +26,8 @@ namespace model {
 		//id, first_name, last_name, email, pubkey, created, email_checked
 		User::User(UserTuple tuple)
 			: ModelBase(tuple.get<0>()), 
-			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), 
-			mPublicKey(tuple.get<4>()), mCreated(tuple.get<5>()), mEmailChecked(tuple.get<6>()), mDisabled(tuple.get<7>()), mGroupId(tuple.get<8>()),
+			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mUsername(tuple.get<4>()),
+			mPublicKey(tuple.get<5>()), mCreated(tuple.get<6>()), mEmailChecked(tuple.get<7>()), mDisabled(tuple.get<8>()), mGroupId(tuple.get<9>()),
 			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
@@ -80,12 +80,12 @@ namespace model {
 
 		
 			if (mPasswordHashed) {
-				insert << "INSERT INTO users (email, first_name, last_name, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId);
+				insert << "INSERT INTO users (email, first_name, last_name, username, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 			else {
-				insert << "INSERT INTO users (email, first_name, last_name, email_hash, language, group_id) VALUES(?,?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), use(mEmailHash), use(mLanguageKey), use(mGroupId);
+				insert << "INSERT INTO users (email, first_name, last_name, username, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 
 			return insert;
@@ -98,11 +98,11 @@ namespace model {
 				_fieldName = getTableName() + std::string(".id");
 			}
 			Poco::Data::Statement select(session);
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
 				   << " WHERE " << _fieldName << " = ?" ,
-				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mPasswordHashed),
+				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mUsername), into(mPasswordHashed),
 				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked), 
 				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mRole);
 
@@ -114,7 +114,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 
@@ -130,7 +130,7 @@ namespace model {
 			}
 
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
 				<< " where " << fieldNames[0] << " LIKE ?";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -242,8 +242,8 @@ namespace model {
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
 			Poco::Data::Statement update(session);
-			update << "UPDATE users SET first_name = ?, last_name = ?, disabled = ?, language = ? where id = ?;",
-				use(mFirstName), use(mLastName), use(mDisabled), use(mLanguageKey), use(mID);
+			update << "UPDATE users SET first_name = ?, last_name = ?, username = ?, disabled = ?, language = ? where id = ?;",
+				use(mFirstName), use(mLastName), use(mUsername), use(mDisabled), use(mLanguageKey), use(mID);
 
 			
 			try {
@@ -301,7 +301,7 @@ namespace model {
 				sodium_bin2hex(*email_hash, crypto_generichash_BYTES + 1, mEmailHash.value().content().data(), mEmailHash.value().content().size());
 			}
 
-			
+			ss << mUsername << std::endl;
 			ss << mFirstName << " " << mLastName << " <" << mEmail << ">" << std::endl;
 			ss << "password hash: " << mPasswordHashed << std::endl;
 			ss << "public key: " << (char*)*pubkeyHex << std::endl;
@@ -338,7 +338,8 @@ namespace model {
 			if (!mEmailHash.isNull()) {
 				sodium_bin2hex(*email_hash, crypto_generichash_BYTES + 1, mEmailHash.value().content().data(), mEmailHash.value().content().size());
 			}
-
+			
+			ss << "<b>" << mUsername << "</b><br>";
 			ss << "<b>" << mFirstName << " " << mLastName << " <" << mEmail << "></b>" << "<br>";
 			ss << "public key: " << (char*)*pubkeyHex << "<br>";
 			ss << "email hash: " << (char*)*email_hash << "<br>";
@@ -371,6 +372,17 @@ namespace model {
 			return pubkeyHexString;
 		}
 
+		MemoryBin* User::getPublicKeyCopy() const
+		{
+			SHARED_LOCK;
+			auto mm = MemoryManager::getInstance();
+			auto public_key_size = getPublicKeySize();
+			if (!public_key_size) return nullptr;
+			auto pubkey = mm->getFreeMemory(getPublicKeySize());
+			memcpy(*pubkey, getPublicKey(), public_key_size);
+			return pubkey;
+		}
+
 		std::string User::getPrivateKeyEncryptedHex() const
 		{
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
@@ -400,6 +412,7 @@ namespace model {
 			userObj.set("first_name", mFirstName);
 			userObj.set("last_name", mLastName);
 			userObj.set("email", mEmail);
+			userObj.set("username", mUsername);
 
 			//userObj.set("state", userStateToString(mState));
 			auto createTimeStamp = mCreated.timestamp();

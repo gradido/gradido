@@ -277,6 +277,22 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp)
+	{
+		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();
+		auto secondsTotal = pocoTimestamp.epochTime();
+		protoTimestamp->set_seconds(secondsTotal);
+		protoTimestamp->set_nanos((microsecondsTotal - secondsTotal * pocoTimestamp.resolution()) * 1000);
+	}
+
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp)
+	{
+		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();
+		auto secondsTotal = pocoTimestamp.epochTime();
+		protoTimestamp->set_seconds(secondsTotal);
+		protoTimestamp->set_nanos((microsecondsTotal - secondsTotal * pocoTimestamp.resolution()) * 1000);
+	}
+
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds)
 	{
 		google::protobuf::int64 microseconds = timestampSeconds.seconds() * (google::protobuf::int64)10e5;

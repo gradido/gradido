@@ -179,6 +179,12 @@ namespace model {
 			return mKontoTable[index].amountCell;
 		}
 
+		void TransactionTransfer::transactionAccepted(Poco::AutoPtr<controller::User> user)
+		{
+
+		}
+
+	
 
 	}
 }

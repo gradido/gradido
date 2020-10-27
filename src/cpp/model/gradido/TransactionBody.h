@@ -28,7 +28,16 @@ namespace model {
 		public:
 			~TransactionBody();
 
+			//! \brief GroupMemberUpdate Transaction
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias);
+			//! \brief GradidoTransfer Transaction
+			//! \param group if group.isNull() it is a local transfer, else cross group transfer, 
+			//! \param group if group is same as sender group outbound, else inbound
+			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPublicKey, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId = Poco::Timestamp(), Poco::AutoPtr<controller::Group> group = nullptr);
+			//! \brief GradidoCreation Transaction
+			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate);
+
+
 			static Poco::AutoPtr<TransactionBody> load(const std::string& protoMessageBin);
 
 			inline TransactionType getType() { lock(); auto t = mType; unlock(); return t; }

@@ -17,6 +17,7 @@ namespace controller {
 		static Poco::AutoPtr<Group> create(const std::string& alias, const std::string& name, const std::string& url, const std::string& description);
 
 		static std::vector<Poco::AutoPtr<Group>> load(const std::string& alias);
+		static Poco::AutoPtr<Group> load(int id);
 		static std::vector<Poco::AutoPtr<Group>> listAll();
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }

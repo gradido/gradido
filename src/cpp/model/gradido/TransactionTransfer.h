@@ -32,6 +32,8 @@ namespace model {
 			const std::string& getKontoNameCell(int index);
 			const std::string& getAmountCell(int index);
 
+			void transactionAccepted(Poco::AutoPtr<controller::User> user);
+
 		protected:
 			const static std::string mInvalidIndexMessage;
 

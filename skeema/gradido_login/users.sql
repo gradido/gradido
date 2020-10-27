@@ -3,6 +3,7 @@ CREATE TABLE `users` (
   `email` varchar(191) NOT NULL,
   `first_name` varchar(150) NOT NULL,
   `last_name` varchar(255) DEFAULT '',
+  `username` varchar(255) DEFAULT '',
   `password` bigint unsigned NOT NULL,
   `pubkey` binary(32) DEFAULT NULL,
   `privkey` binary(80) DEFAULT NULL,

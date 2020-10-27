@@ -51,6 +51,8 @@ namespace DataTypeConverter {
 	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
 
 	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp);
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp);
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp);
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
 	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 };

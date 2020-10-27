@@ -117,6 +117,11 @@ namespace model {
 			return TRANSACTION_VALID_OK;
 		}
 
+		void TransactionCreation::transactionAccepted(Poco::AutoPtr<controller::User> user)
+		{
+
+		}
+
 	}
 }
 

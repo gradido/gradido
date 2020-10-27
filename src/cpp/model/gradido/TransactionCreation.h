@@ -36,6 +36,8 @@ namespace model {
 			inline std::string getAmountString() { return amountToString(getAmount()); }
 			std::string getTargetDateString();
 
+			void transactionAccepted(Poco::AutoPtr<controller::User> user);
+
 		protected:
 			const proto::gradido::GradidoCreation& mProtoCreation;
 			char mReceiverPublicHex[65];

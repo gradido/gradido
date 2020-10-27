@@ -21,7 +21,7 @@ namespace model {
 
 		};
 		
-		typedef Poco::Tuple<int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int, int, int> PendingTaskTuple;
+		typedef Poco::Tuple<int, int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int, int, int> PendingTaskTuple;
 
 		class PendingTask : public ModelBase
 		{
@@ -41,6 +41,7 @@ namespace model {
 			bool updateRequest();
 
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
+			inline int getHederaId() const { SHARED_LOCK; return mHederaId; }
 			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
 			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
@@ -49,6 +50,7 @@ namespace model {
 			inline int getParentPendingTaskId() const { SHARED_LOCK; return mParentPendingTaskId; }
 
 			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
+			inline void setHederaId(int hederaId) { UNIQUE_LOCK; mHederaId = hederaId; }
 			void setRequest(const std::string& serializedProto);
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
 			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
@@ -67,6 +69,7 @@ namespace model {
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
 
 			int mUserId;
+			int mHederaId;
 			Poco::Data::BLOB mRequest;
 			Poco::DateTime mCreated;
 			Poco::DateTime mFinished;

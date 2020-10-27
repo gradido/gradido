@@ -32,6 +32,18 @@ namespace controller {
 		}
 		return resultVector;
 	}
+
+	Poco::AutoPtr<Group> Group::load(int id)
+	{
+		auto db = new model::table::Group();
+		if (1 == db->loadFromDB("id", id)) {
+			return new Group(db);
+		}
+		else {
+			return nullptr;
+		}
+	}
+
 	
 	std::vector<Poco::AutoPtr<Group>> Group::listAll()
 	{

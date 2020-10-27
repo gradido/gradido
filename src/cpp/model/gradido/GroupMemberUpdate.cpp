@@ -101,5 +101,32 @@ namespace model {
 			auto user_pubkey = mProtoMemberUpdate.user_pubkey();
 			return DataTypeConverter::binToHex((const unsigned char*)user_pubkey.data(), user_pubkey.size());
 		}
+
+		void GroupMemberUpdate::transactionAccepted(Poco::AutoPtr<controller::User> user)
+		{
+			static const char* function_name = "GroupMemberUpdate::transactionAccepted";
+			auto sm = SessionManager::getInstance();
+
+			auto target_group = mProtoMemberUpdate.target_group();
+			
+			if (sm->isValid(target_group, VALIDATE_GROUP_ALIAS)) {
+				auto groups = controller::Group::load(mProtoMemberUpdate.target_group());
+				if (groups.size() != 1) {
+					addError(new ParamError(function_name, "target group not known or not unambiguous: ", target_group));
+					sendErrorsAsEmail();
+				}
+				else {
+					auto user_model = user->getModel();
+					auto group_model = groups[0]->getModel();
+					// write new group_id in user table
+					user_model->setGroupId(group_model->getID());
+					user_model->updateIntoDB("group_id", group_model->getID());
+				}
+			}
+			else {
+				addError(new ParamError(function_name, "invalid group alias, after transaction was successfully sended: ", target_group));
+				sendErrorsAsEmail();
+			}
+		}
 	}
 }

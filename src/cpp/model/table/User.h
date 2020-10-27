@@ -28,7 +28,7 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
 
 		class User : public ModelBase 
 		{
@@ -56,10 +56,13 @@ namespace model {
 			inline const std::string getEmail() const { SHARED_LOCK; return mEmail; }
 			inline const std::string getFirstName() const { SHARED_LOCK; return mFirstName; }
 			inline const std::string getLastName() const { SHARED_LOCK; return mLastName; }
+			inline const std::string getUsername() const { SHARED_LOCK; return mUsername; }
 			inline std::string getNameWithEmailHtml() const { SHARED_LOCK; return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
 			inline const Poco::UInt64 getPasswordHashed() const { SHARED_LOCK; return mPasswordHashed; }
+			inline int getGroupId() const { SHARED_LOCK; return mGroupId; }
 			inline RoleType getRole() const { SHARED_LOCK; if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { SHARED_LOCK; if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			MemoryBin* getPublicKeyCopy() const;
 			inline size_t getPublicKeySize() const { SHARED_LOCK; if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
 			std::string getPublicKeyHex() const;
 			std::string getPrivateKeyEncryptedHex() const;
@@ -71,12 +74,12 @@ namespace model {
 			inline bool isEmailChecked() const { SHARED_LOCK; return mEmailChecked; }
 			inline const std::string getLanguageKey() const { SHARED_LOCK; return mLanguageKey; }
 			inline bool isDisabled() const { SHARED_LOCK; return mDisabled; }
-			inline int getGroupId() const { SHARED_LOCK; return mGroupId; }
 
 			// default setter unlocked
 			void setEmail(const std::string& email);
 			inline void setFirstName(const std::string& first_name) { UNIQUE_LOCK; mFirstName = first_name; }
 			inline void setLastName(const std::string& last_name) { UNIQUE_LOCK; mLastName = last_name; }
+			inline void setUsername(const std::string& username) { UNIQUE_LOCK; mUsername = username; }
 			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { UNIQUE_LOCK; mPasswordHashed = passwordHashed; }
 			void setPublicKey(const unsigned char* publicKey);
 			//! \brief set encrypted private key
@@ -85,6 +88,7 @@ namespace model {
 			inline void setEmailChecked(bool emailChecked) { UNIQUE_LOCK; mEmailChecked = emailChecked; }
 			inline void setLanguageKey(const std::string& languageKey) { UNIQUE_LOCK; mLanguageKey = languageKey; }
 			inline void setDisabled(bool disabled) { UNIQUE_LOCK; mDisabled = disabled; }
+			inline void setGroupId(int groupId) { UNIQUE_LOCK; mGroupId = groupId; }
 
 			Poco::JSON::Object getJson();			
 
@@ -100,6 +104,7 @@ namespace model {
 			std::string mEmail;
 			std::string mFirstName;
 			std::string mLastName;
+			std::string mUsername;
 
 			Poco::UInt64 mPasswordHashed;
 

@@ -15,6 +15,8 @@
 #include "../proto/gradido/BasicTypes.pb.h"
 #include "../SingletonManager/MemoryManager.h"
 
+#include "../controller/User.h"
+
 namespace model {
 	namespace gradido {
 
@@ -53,6 +55,9 @@ namespace model {
 			bool isPublicKeyForbidden(const unsigned char* pubkey);
 
 			inline Poco::UInt32 getMinSignatureCount() { return mMinSignatureCount; }
+
+			// called after sending transaction over hedera and after they was accepted from gradido node (at least one)
+			virtual void transactionAccepted(Poco::AutoPtr<controller::User> user) = 0;
 
 		protected:
 			std::string mMemo;

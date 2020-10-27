@@ -18,6 +18,8 @@ namespace model {
 			std::string getTargetGroupAlias() { return mProtoMemberUpdate.target_group(); }
 			std::string getPublicKeyHex();
 
+			void transactionAccepted(Poco::AutoPtr<controller::User>);
+
 		protected:
 			const proto::gradido::GroupMemberUpdate& mProtoMemberUpdate;
 		};
