@@ -84,7 +84,7 @@ namespace model {
 			return obj;
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::load(const std::string& memo, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate)
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate)
 		{
 			if (receiver.isNull() || !receiver->getModel()) {
 				return nullptr;

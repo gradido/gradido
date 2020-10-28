@@ -42,7 +42,7 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		}
 
-		Poco::AutoPtr<Transaction> Transaction::create(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
+		Poco::AutoPtr<Transaction> Transaction::createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
 		{
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create group member update";
@@ -71,7 +71,7 @@ namespace model {
 			return result;
 		}
 
-		Poco::AutoPtr<Transaction> Transaction::create(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo)
+		Poco::AutoPtr<Transaction> Transaction::createCreation(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo)
 		{
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create creation";
@@ -98,22 +98,21 @@ namespace model {
 			return result;
 		}
 
-		std::vector<Poco::AutoPtr<Transaction>> Transaction::create(Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
+		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
 		{
 			std::vector<Poco::AutoPtr<Transaction>> results;
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create transfer";
 
-			if (sender.isNull() || !sender->getModel() || receiverGroup.isNull() || !receiverGroup->getModel() || !receiverPubkey || !amount) {
+			if (sender.isNull() || !sender->getModel() || !receiverPubkey || !amount) {
 				return results;
 			}
 			
 			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
 			auto sender_model = sender->getModel();
-			auto group_model = receiverGroup->getModel();
 			auto network_type = table::HEDERA_TESTNET;
 			// LOCAL Transfer
-			if (sender_model->getGroupId() == group_model->getID()) 
+			if (receiverGroup.isNull() ||  sender_model->getGroupId() == receiverGroup->getModel()->getID())
 			{	
 				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount);
 				Poco::AutoPtr<Transaction> transaction = new Transaction(body);

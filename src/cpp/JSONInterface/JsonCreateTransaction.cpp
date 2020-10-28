@@ -78,7 +78,8 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		return stateError("parameter format unknown");
 	}
 
-
+	model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo);
+	return stateSuccess();
 }
 Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 {
@@ -98,6 +99,8 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 	else {
 		return stateError("parameter format unknown");
 	}
+	model::gradido::Transaction::createCreation(mSession->getNewUser(), amount, target_date, mMemo);
+	return stateSuccess();
 
 }
 Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var params)
@@ -105,7 +108,7 @@ Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var 
 	if (mTargetGroup.isNull()) {
 		return stateError("target_group not found");
 	}
-	model::gradido::Transaction::create(mSession->getNewUser(), mTargetGroup);
+	model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
 	return stateSuccess();
 
 }

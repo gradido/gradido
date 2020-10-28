@@ -68,7 +68,7 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 					addError(new Error(gettext("Fehler"), gettext("Interner Fehler")));
 				} else {
 					auto addGroupMemberTransaction = 
-						model::gradido::Transaction::create(user, choosen_group);
+						model::gradido::Transaction::createGroupMemberUpdate(user, choosen_group);
 					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
 					return;
 					state = PAGE_STATE_REQUEST_IS_RUNNING;
