@@ -40,7 +40,9 @@ public:
 	const PendingTaskList* getTaskListForUser(int userId) const;
 	bool hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
+	Poco::AutoPtr<controller::PendingTask> getPendingTask(int pendingTaskId);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionSomeoneMustSign(Poco::AutoPtr<controller::User> user);
 
 	void reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails);
 

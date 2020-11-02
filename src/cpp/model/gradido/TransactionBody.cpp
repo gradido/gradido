@@ -36,7 +36,7 @@ namespace model {
 			return obj;
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPublicKey, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId, Poco::AutoPtr<controller::Group> group/* = nullptr*/)
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId, Poco::AutoPtr<controller::Group> group/* = nullptr*/)
 		{
 			if (sender.isNull() || !sender->getModel()) {
 				return nullptr;
@@ -75,7 +75,7 @@ namespace model {
 			}
 			transfer_amount->set_amount(amount);
 			transfer_amount->set_pubkey(sender_model->getPublicKey(), sender_model->getPublicKeySize());
-			*receiver = std::string((const char*)*receiverPublicKey, receiverPublicKey->size());
+			*receiver = std::string((const char*)receiverPublicKey->data(), receiverPublicKey->size());
 
 			obj->mType = TRANSACTION_TRANSFER;
 			obj->mTransactionSpecific = new TransactionTransfer(memo, obj->mTransactionBody.transfer());

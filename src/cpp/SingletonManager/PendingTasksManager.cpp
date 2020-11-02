@@ -147,6 +147,42 @@ std::vector<Poco::AutoPtr<controller::PendingTask>>  PendingTasksManager::getTra
 	return transactions_to_sign;
 }
 
+std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTransactionSomeoneMustSign(Poco::AutoPtr<controller::User> user)
+{
+	// TODO: don't use cast here, because can lead to errors
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_to_sign;
+
+	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
+	{
+		auto list = map_it->second;
+		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+		{
+			auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
+			if (transaction->needSomeoneToSign(user)) {
+				transactions_to_sign.push_back(*list_it);
+			}
+		}
+	}
+	return transactions_to_sign;
+}
+
+Poco::AutoPtr<controller::PendingTask> PendingTasksManager::getPendingTask(int pendingTaskId)
+{
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
+	{
+		auto list = map_it->second;
+		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+		{
+			if ((*list_it)->getModel()->getID() == pendingTaskId) {
+				return *list_it;
+			}
+		}
+	}
+	return nullptr;
+}
+
 void PendingTasksManager::reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails)
 {
 	// TODO: choose user specific server
@@ -159,6 +195,7 @@ void PendingTasksManager::reportErrorToCommunityServer(Poco::AutoPtr<controller:
 
 	payload.set("created", task_model->getCreated());
 	payload.set("id", task_model->getID());
+	payload.set("type", task_model->getTaskTypeString());
 	payload.set("public_key", user_model->getPublicKeyHex());
 	payload.set("error", error);
 	payload.set("errorMessage", errorDetails);

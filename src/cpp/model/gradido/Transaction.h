@@ -30,7 +30,7 @@ namespace model {
 			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
 			//! \brief transfer
 			//! \return for cross group transaction return two transactions
-			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo);
+			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo);
 			//! \brief creation transaction
 			static Poco::AutoPtr<Transaction> createCreation(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo);
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
@@ -48,13 +48,15 @@ namespace model {
 			bool updateRequestInDB();
 			bool insertPendingTaskIntoDB(Poco::AutoPtr<controller::User> user, model::table::TaskType type);
 
-			//! return true if user must sign it and hasn't yet
+			//! \return true if user must sign it and hasn't yet
 			bool mustSign(Poco::AutoPtr<controller::User> user);
 			//! return true if user can sign transaction and hasn't yet
 			bool canSign(Poco::AutoPtr<controller::User> user);
 
-			//! return true if user has already signed transaction
+			//! \return true if user has already signed transaction
 			bool hasSigned(Poco::AutoPtr<controller::User> user);
+			//! \return true if at least one sign is missing and user isn't forbidden and isn't required
+			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
 		protected:
 			Poco::AutoPtr<TransactionBody> mTransactionBody;

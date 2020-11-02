@@ -21,6 +21,7 @@ protected:
 	Session* mSession;
 	std::string mMemo;
 	Poco::AutoPtr<controller::Group> mTargetGroup;
+	Poco::AutoPtr<controller::User> mReceiverUser;
 };
 
 #endif // __JSON_INTERFACE_JSON_CREATE_TRANSACTION_

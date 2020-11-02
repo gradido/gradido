@@ -4,6 +4,7 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 #include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/PendingTasksManager.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -12,6 +13,7 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	
 	int session_id = 0;
 	auto sm = SessionManager::getInstance();
+	auto pt = PendingTasksManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();
 
 	if (params.isStruct()) {
@@ -71,7 +73,15 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 		em->addError(new Error("JsonGetLogin::handle", "generic exception calling userModel->getJson: "));
 		em->sendErrorsAsEmail();
 	}
-	result->set("Transaction.pending", session->getProcessingTransactionCount());
+	int pending = 0;
+	auto user_must_sign = pt->getTransactionsUserMustSign(userNew);
+	pending = user_must_sign.size();
+	result->set("Transaction.pending", pending);
+
+	auto some_must_sign = pt->getTransactionSomeoneMustSign(userNew);
+	//pending = some_must_sign.size();
+	result->set("Transaction.can_signed", some_must_sign.size());
+
 	auto executing = observer->getTaskCount(userModel->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	if (executing < 0) {
 		executing = 0;

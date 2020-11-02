@@ -46,6 +46,7 @@ namespace model {
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
 			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
 			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
+			inline const char* getTaskTypeString() const { SHARED_LOCK; return typeToString((TaskType)mTaskTypeId); }
 			inline int getChildPendingTaskId() const { SHARED_LOCK; return mChildPendingTaskId; }
 			inline int getParentPendingTaskId() const { SHARED_LOCK; return mParentPendingTaskId; }
 

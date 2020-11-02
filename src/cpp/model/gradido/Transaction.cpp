@@ -98,7 +98,7 @@ namespace model {
 			return result;
 		}
 
-		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
+		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
 		{
 			std::vector<Poco::AutoPtr<Transaction>> results;
 			auto em = ErrorManager::getInstance();
@@ -383,6 +383,21 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto transaction_base = mTransactionBody->getTransactionBase();
 			return !transaction_base->isPublicKeyForbidden(user->getModel()->getPublicKey());
+		}
+
+		bool Transaction::needSomeoneToSign(Poco::AutoPtr<controller::User> user)
+		{
+			if (!canSign(user)) return false;
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			auto transaction_base = mTransactionBody->getTransactionBase();
+			if (transaction_base->isPublicKeyRequired(user->getModel()->getPublicKey())) {
+				return false;
+			}
+			if (transaction_base->getMinSignatureCount() > getSignCount()) {
+				return true;
+			}
+			return false;
+
 		}
 
 		int Transaction::runSendTransaction()

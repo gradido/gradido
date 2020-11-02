@@ -35,6 +35,8 @@ enum PageState {
 	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
+	int skip_count = 0;
+	int pending_task_id = 0;
 	
 	PageState state = PAGE_NO_TRANSACTIONS;
 	
@@ -46,10 +48,12 @@ enum PageState {
 	bool transaction_finalize_run = false;
 	bool transaction_finalize_result = false;
 	auto transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
+	
+	Poco::AutoPtr<controller::PendingTask> pending_task;
 	model::gradido::Transaction* transaction = nullptr;
 	Poco::AutoPtr<model::gradido::TransactionBody> transaction_body;
 	
-	if(transactions_to_sign.size() > 0) 
+	if(!form.empty()) 
 	{
 		transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
 		transaction_body = transaction->getTransactionBody();
@@ -129,18 +133,28 @@ enum PageState {
 				}
 			}
 			if(abort != "")
+/*
+		auto ok = form.get("ok", "");
+		auto abort = form.get("abort", "");
+		auto skip = form.get("skip", "");
+		auto skip_count_str = form.get("skip-count", "0");
+		auto pending_task_id_string = form.get("pending-task-id", "");
+		DataTypeConverter::strToInt(skip_count_str, skip_count);
+		
+		if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(pending_task_id_string, pending_task_id)) 
+		{
+			// load transaction from pending task manager
+			pending_task = pt->getPendingTask(pending_task_id);
+			if(!pending_task.isNull() && pending_task->getModel()->isGradidoTransaction()) 
+*/
 			{
-				// make sure we have the correct transaction
-				transaction = nullptr;
-				transaction_body.assign(nullptr);
-				for(auto it = transactions_to_sign.begin(); it != transactions_to_sign.end(); it++) 
-				{
-					if((*it)->getModel()->getID() == pending_task_id) {
-						transaction = dynamic_cast<model::gradido::Transaction*>(it->get());
-						transaction_body = transaction->getTransactionBody();
-						break;
-					}
+				transaction = dynamic_cast<model::gradido::Transaction*>(pending_task.get());
+				if(transaction->hasSigned(account_user)) {
+					transaction = nullptr;
+				} else {				
+					transaction_body = transaction->getTransactionBody();
 				}
+			
 				if(abort != "") 
 				{
 					//mSession->finalizeTransaction(false, true);
@@ -148,8 +162,6 @@ enum PageState {
 					if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
 					{
 						transaction->deleteFromDB();
-						transaction_body.assign(nullptr);
-						transactions_to_sign.clear();
 						transaction = nullptr;
 					}
 				} 
@@ -177,29 +189,55 @@ enum PageState {
 					}
 					if(!hasErrors) {
 						//mSession->finalizeTransaction(true, false);
-						if(transaction->sign(account_user)) {
-							transaction_body.assign(nullptr);
-							transactions_to_sign.clear();
+						if(transaction && transaction->sign(account_user)) {
 							transaction = nullptr;
 						}
 					}
 				}
+				else if(skip != "")
+				{
+					skip_count++;
+					transaction = nullptr;
+				}
 			} else {
-				addError(new Error(gettext("Form Error"), gettext("error with field")));
+				addError(new Error(gettext("Input Error"), gettext("Task no found")));
 			}
+		} else {
+			addError(new Error(gettext("Form Error"), gettext("error with field")));
 		}
 	}
 	
+	auto transactions_user_must_sign = pt->getTransactionsUserMustSign(account_user);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_someone_must_sign;
+	// TODO: work with community server roles
+	if(user_model->getRole() == model::table::ROLE_ADMIN) {
+	  transactions_someone_must_sign = pt->getTransactionSomeoneMustSign(account_user);	
+	}
+	std::vector<Poco::AutoPtr<controller::PendingTask>>  transactions_to_sign;
+	bool transaction_removeable = false;
+	int transaction_to_sign_index = 0;
 	if(!transaction) 
 	{
-		transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
-		if(transactions_to_sign.size() > 0) 
+		if(transactions_user_must_sign.size() > skip_count) {
+			transactions_to_sign = transactions_user_must_sign;
+			transaction_to_sign_index = skip_count;
+		} else if(transactions_someone_must_sign.size() > (skip_count - transactions_user_must_sign.size())) {
+			transactions_to_sign = transactions_someone_must_sign;
+			transaction_to_sign_index = skip_count - transactions_user_must_sign.size();
+		}
+		
+		if(transactions_to_sign.size() > transaction_to_sign_index) 
 		{
-			transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
+			transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[transaction_to_sign_index].get());
 			transaction_body = transaction->getTransactionBody();
+			// user can only delete there own transactions
+			// TODO: Auto timeout for community transactions
+			if(transaction->getModel()->getUserId() == user_model->getID()) {
+				transaction_removeable = true;
+			}
 		}
 	}
-	size_t sumTransactions = transactions_to_sign.size();
+	size_t sumTransactions = transactions_user_must_sign.size() + transactions_someone_must_sign.size();
 	if(sumTransactions == 0) 
 	{
 		auto lastExternReferer = mSession->getLastReferer();
@@ -216,14 +254,14 @@ enum PageState {
 		return;
 	}
 	
-	if(sumTransactions > 0) 
+	if(transactions_user_must_sign.size() > 0) 
 	{
 		enableLogout = false;
 	}
-	if(PAGE_NO_TRANSACTIONS == state && sumTransactions > 0) 
+	if(PAGE_NO_TRANSACTIONS == state && transaction && !transaction_body.isNull()) 
 	{
 		auto transactionType = transaction_body->getType();
-		auto memo = transaction_body->getMemo();
+		memo = transaction_body->getMemo();
 		switch(transactionType) {
 			case model::gradido::TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
 			case model::gradido::TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
@@ -249,11 +287,14 @@ enum PageState {
 <% } %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
-	<% if(sumTransactions > 0) { %>	
-		<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
-	<% } else if(state == PAGE_NO_TRANSACTIONS) { %>
+	<% if(sumTransactions == 0) { %>
 		<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
-    <% } %>
+    <% } else { %>	
+		<p><%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %></p>
+		<% if(skip_count > 0) { %>
+			<p><%= skip_count %> <%= gettext("Transaktionen &uuml;bersprungen.") %></p>
+		<% } %>
+	<% } %>
 	</small>
 </div>
 <div class="content-container main-container">
@@ -340,6 +381,7 @@ enum PageState {
 			 <% } else if(PAGE_USER_DATA_CORRUPTED == state) { %>
 				<p class="alert-color"><%= gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den")%><a href="mailto:<%= em->getAdminReceiver()%>?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%=gettext("Support") %></a></p>
 			 <% } %>
+<!--
 			<div class="content-table">
 			  <div class="content-row content-row-header">
 				<span class="content-cell">Aktives Konto</span>
@@ -381,6 +423,56 @@ enum PageState {
 					</button>	
 				<% } %>
 			</form>
+-->
+			 <% if(PAGE_NO_TRANSACTIONS == state) { %>
+				<a href="<%= ServerConfig::g_php_serverPath %>"><%= gettext("Zur&uuml;ck") %></a>
+			 <% } else { %>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell">Aktives Konto</span>
+				  </div>
+				  <div class="content-row">
+					<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
+				  </div>
+				</div>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell">Verwendungszweck</span>
+				  </div>
+				  <div class="content-row content-row-bg">
+					<span class="content-cell"><%= memo %></span>
+				  </div>
+				</div>
+				<form>
+					<% if(transaction) { %>
+						<input type="hidden" name="pending-task-id" value="<%= transaction->getModel()->getID() %>">
+					<% } %>
+					<input type="hidden" name="skip-count" value="<%= skip_count %>">
+					<% if(!account_user->hasPassword()) {%>
+					 <div class="form-group">
+						  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
+						  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
+					 </div>
+					<% } %>
+					<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
+						<button type="submit" class="form-button" name="ok" value="ok">
+							<i class="material-icons-outlined">verified_user</i>
+							<%= gettext("Transaktion unterzeichnen") %>
+						</button>
+					<% } %>
+					<% if(transaction_removeable) { %>
+						<button type="submit" class="form-button button-cancel" name="abort" value="abort">
+							<i class="material-icons-outlined">delete</i>
+							<%= gettext("Transaktion verwerfen") %>
+						</button>
+					<% } else { %>
+						<button type="submit" class="form-button button-cancel" name="skip" value="skip">
+							<i class="material-icons-outlined">debug-step-over</i>
+							<%= gettext("Transaktion &uuml;berspringen") %>
+						</button>
+					<% } %>
+				</form>
+			<% } %>
 		</div>
 	</div>
 </div>

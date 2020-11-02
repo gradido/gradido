@@ -7,6 +7,8 @@
 
 #include "../../SingletonManager/MemoryManager.h"
 
+#include "../../controller/Group.h"
+
 using namespace Poco::Data::Keywords;
 
 namespace model {
@@ -426,6 +428,10 @@ namespace model {
 			catch (Poco::Exception ex) {
 				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
 				sendErrorsAsEmail();
+			}
+			auto group = controller::Group::load(mGroupId);
+			if (!group.isNull()) {
+				userObj.set("group_alias", group->getModel()->getAlias());
 			}
 			unlock();
 

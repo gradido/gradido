@@ -84,18 +84,18 @@ namespace model {
 
 				if (!sender_user->load((const unsigned char*)sender_pubkey.data())) {
 					sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)sender_pubkey.data(), sender_pubkey.size());
-					mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, -amount, true));
-				}
-				else {
-					mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), -amount, true));
-				}
-
-				if (!receiver_user->load((const unsigned char*)receiver_pubkey.data())) {
-					sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size());
 					mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, amount, true));
 				}
 				else {
 					mKontoTable.push_back(KontoTableEntry(sender_user->getModel(), amount, true));
+				}
+
+				if (!receiver_user->load((const unsigned char*)receiver_pubkey.data())) {
+					sodium_bin2hex(pubkeyHexTemp, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size());
+					mKontoTable.push_back(KontoTableEntry(pubkeyHexTemp, amount, false));
+				}
+				else {
+					mKontoTable.push_back(KontoTableEntry(receiver_user->getModel(), amount, false));
 				}
 				mMinSignatureCount = 1;
 				auto mm = MemoryManager::getInstance();

@@ -12,6 +12,7 @@
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonNetworkInfos.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUpdateUserInfos.h"
 #include "JsonUnsecureLogin.h"
@@ -57,6 +58,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/getUsers") {
 		return new JsonGetUsers;
 	} 
+	else if (url_first_part == "/networkInfos") {
+		return new JsonNetworkInfos;
+	}
 	else if (url_first_part == "/createUser") {
 		return new JsonCreateUser(client_host);
 	}

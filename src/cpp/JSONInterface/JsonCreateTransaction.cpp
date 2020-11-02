@@ -6,6 +6,8 @@
 
 #include "../model/gradido/Transaction.h"
 
+#include "../SingletonManager/ErrorManager.h"
+
 Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 {
 	auto sm = SessionManager::getInstance();
@@ -40,12 +42,16 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 
 	mSession = sm->getSession(session_id);
 	if (!mSession) {
-		return customStateError("not found", "session not found");
+		return stateError("session not found");
 	}
 	auto user = mSession->getNewUser();
 	if (user.isNull()) {
+		auto em = ErrorManager::getInstance();
+		em->addError(new Error(__FUNCDNAME__, "session hasn't a user, check code"));
+		em->sendErrorsAsEmail();
 		return customStateError("code error", "user is zero");
 	}
+
 	getTargetGroup(params);
 	if (transaction_type == "transfer") {
 		return transfer(params);
@@ -64,43 +70,114 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 {
 	auto target_pubkey = getTargetPubkey(params);
+	if (!target_pubkey) {
+		return customStateError("not found", "receiver not found");
+	}
+
+	auto user = mSession->getNewUser();
 	Poco::UInt32 amount = 0;
+	auto mm = MemoryManager::getInstance();
+	Poco::JSON::Object* result = nullptr;
+
 	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
 		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 		try {
 			paramJsonObject->get("amount").convert(amount);
 		}
 		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
+			result = stateError("json exception", ex.displayText());
 		}
 	}
 	else {
-		return stateError("parameter format unknown");
+		result = stateError("parameter format unknown");
 	}
-
-	model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo);
-	return stateSuccess();
+	if (result) {
+		mm->releaseMemory(target_pubkey);
+		return result;
+	}
+	
+	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
+		auto receiver_user_model = mReceiverUser->getModel();
+		if (receiver_user_model->isDisabled()) {
+			result = customStateError("disabled", "receiver is disabled");
+		}
+		if (!mTargetGroup.isNull() && receiver_user_model->getGroupId() != mTargetGroup->getModel()->getID()) {
+			result = stateError("user not in group", "receiver user isn't in target group");
+		}
+	}
+	if (!result) {
+		model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo);
+		result = stateSuccess();
+	}
+	mm->releaseMemory(target_pubkey);
+	return result;
 }
 Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 {
 	auto target_pubkey = getTargetPubkey(params);
+	if (!target_pubkey) {
+		return customStateError("not found", "receiver not found");
+	} 
+
 	Poco::UInt32 amount = 0;
 	Poco::DateTime target_date;
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
+	auto mm = MemoryManager::getInstance();
+	Poco::JSON::Object* result = nullptr;
+
+	if (params.type() == typeid(Poco::JSON::Object::Ptr)) 
+	{
 		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 		try {
 			paramJsonObject->get("amount").convert(amount);
 			paramJsonObject->get("target_date").convert(target_date);
 		}
 		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
+			result = stateError("json exception", ex.displayText());
 		}
 	}
-	else {
-		return stateError("parameter format unknown");
+	else 
+	{
+		result = stateError("parameter format unknown");
 	}
-	model::gradido::Transaction::createCreation(mSession->getNewUser(), amount, target_date, mMemo);
-	return stateSuccess();
+	
+	if (amount <= 0 || amount > 10000000) {
+		result = customStateError("invalid parameter", "invalid amount", "GDD amount in GDD cent ]0,10000000]");
+	}
+
+	if (mReceiverUser.isNull()) {
+		mReceiverUser = controller::User::create();
+		if (1 != mReceiverUser->load(*target_pubkey)) {
+			mReceiverUser.assign(nullptr);
+			result = customStateError("not found", "receiver not found");
+		}
+	}
+
+	if (result) {
+		mm->releaseMemory(target_pubkey);
+		return result;
+	}
+	
+	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
+		auto receiver_user_model = mReceiverUser->getModel();
+		
+		if (receiver_user_model->isDisabled()) {
+			result = customStateError("disabled", "receiver is disabled");
+		}
+		if (!receiver_user_model->getGroupId()) {
+			result = stateError("receiver user hasn't group");
+		}
+		if (receiver_user_model->getGroupId() != mSession->getNewUser()->getModel()->getGroupId()) {
+			result = stateError("user not in group", "target user is in another group");
+		}
+	}
+	
+	if(!result) {
+		model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo);
+		result = stateSuccess();
+	}
+	mm->releaseMemory(target_pubkey);
+	
+	return result;
 
 }
 Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var params)
@@ -139,12 +216,12 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 	catch (Poco::Exception& ex) {
 		return nullptr;
 	}
-	auto user = controller::User::create();
+	mReceiverUser = controller::User::create();
 	int result_count = 0;
 	
 	MemoryBin* result = nullptr;
 	if (email != "") {
-		result_count = user->load(email);
+		result_count = mReceiverUser->load(email);
 	}
 	else if (target_username != "") {
 		int group_id = 0;
@@ -153,13 +230,16 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 		} else {
 			mSession->getNewUser()->getModel()->getGroupId();
 		}
-		result_count = user->getModel()->loadFromDB({ "username", "group_id" }, target_username, group_id, model::table::MYSQL_CONDITION_AND);
+		result_count = mReceiverUser->getModel()->loadFromDB({ "username", "group_id" }, target_username, group_id, model::table::MYSQL_CONDITION_AND);
 	}
 	else if (target_pubkey_hex != "") {
 		result = DataTypeConverter::hexToBin(target_pubkey_hex);
 	}
 	if (1 == result_count) {
-		result = user->getModel()->getPublicKeyCopy();
+		result = mReceiverUser->getModel()->getPublicKeyCopy();
+	}
+	else {
+		mReceiverUser.assign(nullptr);
 	}
 	return result;
 }

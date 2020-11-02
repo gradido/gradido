@@ -126,7 +126,8 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName();
+			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " 
+				   << getTableName() << " order by id";
 
 			return select;
 		}
@@ -150,7 +151,7 @@ namespace model
 			Poco::Data::Statement insert(session);
 			lock();
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, hedera_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?)"
+				<< " (user_id, hedera_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?)"
 				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
 			unlock();
 			return insert;
