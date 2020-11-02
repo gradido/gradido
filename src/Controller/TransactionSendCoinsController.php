@@ -230,6 +230,11 @@ class TransactionSendCoinsController extends AppController
                    $this->set('timeUsed', microtime(true) - $startTime);
                    return;
                  }
+                 if($answear_data['msg'] === 'user not in group') {
+                   $this->Flash->error(__('Empfänger befindet sich nicht in Zielgruppe!'));
+                   $this->set('timeUsed', microtime(true) - $startTime);
+                   return;
+                 }
                } else if($answear_data['state'] === 'not found' && $answear_data['msg'] === 'receiver not found') {
                   $this->Flash->error(__('Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?'));
                   $this->set('timeUsed', microtime(true) - $startTime);

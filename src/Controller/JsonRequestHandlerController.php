@@ -58,7 +58,7 @@ class JsonRequestHandlerController extends AppController {
             case 'checkUser': return $this->checkUser($jsonData->email, $jsonData->last_name);
             case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
-            case 'errorInTransaction': return $this->errorInTransaction($jsonData->created, $jsonData->transactionGenericHash, $jsonData->error, $jsonData->errorMessage);
+            case 'errorInTransaction': return $this->errorInTransaction($jsonData);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
@@ -71,16 +71,45 @@ class JsonRequestHandlerController extends AppController {
     //!        using sodium_crypto_generichash to calculate
     //         hash also in base64 format
     //! \param $error short error name in user language
-    //! \param $errorDetails more detailed error message in user language 
-    private function errorInTransaction($transactionCreated, $transactionBodyBase64GenericHash, $error, $errorDetails) {
+    //! \param $errorDetails more detailed error message in user language
+    private function errorInTransaction($jsonData) {
       /*
        * payload.set("created", created);
        * payload.set("id", task_model->getID());
+       * payload.set("type", task_model->getTaskTypeString());
        * payload.set("public_key", user_model->getPublicKeyHex());
        * payload.set("error", error);
        * payload.set("errorMessage", errorDetails);
        */
-
+      $stateErrorTable = TableRegistry::getTableLocator()->get('StateErrors');
+      $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+      $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
+      $stateError = $stateErrorTable->newEntity();
+      //
+      $pubkey = hex2bin($jsonData->public_key);
+      $user_query = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $pubkey]);
+      if($user_query->count() != 1) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'user pubkey hex:' . $jsonData->public_key]);
+      }
+      $stateError->state_user_id = $user_query->first()->id;
+      //$stateError->transaction_type_id
+      // TODO:
+      // - show state errors in navi_notify.ctp
+      $transaction_type_query = $transactionTypesTable->find('all')->select(['id'])->where(['name' => $jsonData->type]);
+      if($transaction_type_query->count() != 1) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'transaction type not found', 'details' => 'transaction type name: ' . $jsonData->type]);
+      }
+      $stateError->transaction_type_id = $transaction_type_query->first()->id;
+      $stateError->created = $jsonData->created;
+      $stateError->message_json = json_encode(['task_id' => $jsonData->id, 'error' => $jsonData->error, 'errorMessage' => $jsonData->errorMessage]);
+      if(!$stateErrorTable->save($stateError)) {
+        $this->returnJsonSaveError($stateError, [
+            'state' => 'error', 
+            'msg' => 'error saving state_error in db', 
+            'details' => json_encode($stateError->getErrors())
+        ]);
+      }
+      return $this->returnJson(['state' => 'success']);
     }
   
     private function putTransaction($transactionBase64) {

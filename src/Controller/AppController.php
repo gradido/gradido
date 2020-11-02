@@ -129,6 +129,7 @@ class AppController extends Controller
         if ($this->Auth->user('id')) {
             $GLOBALS['ServerUser'] = $this->Auth->user();
         }
+
         // login server url
         $loginServer = Configure::read('LoginServer');
         if ($loginServer && isset($loginServer['url'])) {
@@ -159,12 +160,14 @@ class AppController extends Controller
             $userStored = $session->read('StateUser');
             
             $transactionPendings = $session->read('Transaction.pending');
-            $transactionExecutings = $session->read('Transaction.executing');          
+            $transactionExecutings = $session->read('Transaction.executing');
+            $transaction_can_signed = $session->read('Transaction.can_signed');
             
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
-              intval($transactionExecutings) > 0) {
+              intval($transactionExecutings) > 0 ||
+              intval($transaction_can_signed > 0)) {
                 $http = new Client();
 
                 try {
@@ -188,9 +191,11 @@ class AppController extends Controller
                           //var_dump($json);
                             $transactionPendings = $json['Transaction.pending'];
                             $transactionExecuting = $json['Transaction.executing'];
+                            $transaction_can_signed = $json['Transaction.can_signed'];
                           //echo "read transaction pending: $transactionPendings<br>";
                             $session->write('Transaction.pending', $transactionPendings);
                             $session->write('Transaction.executing', $transactionExecuting);
+                            $session->write('Transaction.can_signed', $transaction_can_signed);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
 
@@ -204,7 +209,7 @@ class AppController extends Controller
                                     $stateUser = $stateUserQuery->first();
                                     if ($stateUser->first_name != $json['user']['first_name'] ||
                                         $stateUser->last_name  != $json['user']['last_name'] ||
-                                        $stateUser->disabled  != intval($json['user']['disabled']) ||
+                                        $stateUser->disabled  != $json['user']['disabled'] ||
                                         //$stateUser->username  != $json['user']['username'] ||
                                         // -> throws error
                                         $stateUser->email      != $json['user']['email']
