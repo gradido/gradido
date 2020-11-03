@@ -3,6 +3,7 @@
 
 #include "../model/table/NodeServer.h"
 #include "../controller/HederaId.h"
+#include "../lib/JsonRequest.h"
 
 #include "Poco/SharedPtr.h"
 
@@ -20,6 +21,7 @@ namespace controller {
 
 		// without http:// or https://
 		std::string getUriWithPort() const;
+		std::string getUri() const;
 
 		bool isValid() { return url != "" && port; }
 		std::string url;
@@ -38,17 +40,20 @@ namespace controller {
 
 		static Poco::AutoPtr<NodeServer> create(const std::string& url, int port, int groupId, model::table::NodeServerType type, int nodeHederaId);
 
+		//! \param group_id is zero take everyone
 		static std::vector<Poco::AutoPtr<NodeServer>> load(model::table::NodeServerType type, int group_id = 0);		
 		static std::vector<Poco::AutoPtr<NodeServer>> listAll();
 		// pick server randomly
 		static NodeServerConnection pick(model::table::HederaNetworkType type, int group_id = 0);
 		static NodeServerConnection pick(model::table::NodeServerType type, int group_id = 0);
-		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
+		bool deleteFromDB();
 
 		inline Poco::AutoPtr<model::table::NodeServer> getModel() { return _getModel<model::table::NodeServer>(); }
 
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
+
+		JsonRequest createJsonRequest();
 	protected:
 		NodeServer(model::table::NodeServer* dbModel);
 		Poco::AutoPtr<controller::HederaId> mHederaID;

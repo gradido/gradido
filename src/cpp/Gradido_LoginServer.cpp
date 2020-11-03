@@ -9,6 +9,7 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 #include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/CronManager.h"
 
 #include "controller/User.h"
 
@@ -256,14 +257,19 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// load pending tasks not finished in last session
 		PendingTasksManager::getInstance()->load();
 
+		CronManager::getInstance()->init();
+
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
+
+		CronManager::getInstance()->stop();
 
 		// Stop the HTTPServer
 		srv.stop();
 		// Stop the json server
 		json_srv.stop();
+
 
 		ServerConfig::unload();
 		Poco::Net::uninitializeSSL();

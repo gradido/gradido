@@ -31,6 +31,7 @@ public:
 
 	JsonRequestReturn request(const char* methodName, const Poco::Net::NameValueCollection& payload);
 	JsonRequestReturn request(const char* methodName, const Poco::JSON::Object& payload);
+	JsonRequestReturn request(const char* methodName);
 	JsonRequestReturn requestGRPCRelay(const Poco::Net::NameValueCollection& payload);
 
 protected:

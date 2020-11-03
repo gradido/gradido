@@ -38,6 +38,10 @@ namespace model {
 
 			inline void setLastLiveSign(Poco::DateTime lastLiveSign) { UNIQUE_LOCK; mLastLiveSign = lastLiveSign; }
 
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// !ATTENTION! if using set port or set url review CronManager code
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 			inline std::string getUrl() const { return mUrl; }
 			inline int getPort() const { return mPort; }
 			inline std::string getUrlWithPort() const { return mUrl + ":" + std::to_string(mPort); }

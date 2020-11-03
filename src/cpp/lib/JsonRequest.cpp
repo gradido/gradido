@@ -15,6 +15,9 @@
 JsonRequest::JsonRequest(const std::string& serverHost, int serverPort)
 	: mServerHost(serverHost), mServerPort(serverPort)
 {
+	if (mServerHost.data()[mServerHost.size() - 1] == '/') {
+		mServerHost = mServerHost.substr(0, mServerHost.size() - 1);
+	}
 
 }
 
@@ -34,24 +37,26 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 	// TODO: adding port into ServerConfig
 	try {
 		Profiler phpRequestTime;
+		
 		Poco::Net::HTTPSClientSession httpsClientSession(mServerHost, mServerPort);
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
-		std::ostream& requestStream = httpsClientSession.sendRequest(request);
-		requestJson.stringify(requestStream);
+		std::ostream& request_stream = httpsClientSession.sendRequest(request);
+		requestJson.stringify(request_stream);
 
 		Poco::Net::HTTPResponse response;
-		std::istream& request_stream = httpsClientSession.receiveResponse(response);
+		std::istream& response_stream = httpsClientSession.receiveResponse(response);
 
 		// debugging answer
 
 		std::stringstream responseStringStream;
-		for (std::string line; std::getline(request_stream, line); ) {
+		for (std::string line; std::getline(response_stream, line); ) {
 			responseStringStream << line << std::endl;
 		}
 		Poco::Logger& speedLog = Poco::Logger::get("SpeedLog");
-		speedLog.information("[%s] php server time: %s", methodName, phpRequestTime.string());
+		std::string method_name(methodName);
+		speedLog.information("[%s] php server time: %s", method_name, phpRequestTime.string());
 
 		// extract parameter from request
 		Poco::JSON::Parser jsonParser;
@@ -113,6 +118,14 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::
 	}
 	return request(methodName, requestJson);
 }
+
+JsonRequestReturn JsonRequest::request(const char* methodName)
+{
+	Poco::JSON::Object requestJson;
+	requestJson.set("method", methodName);
+	return request(methodName, requestJson);
+}
+
 #include "Poco/JSON/Stringifier.h"
 JsonRequestReturn JsonRequest::requestGRPCRelay(const Poco::Net::NameValueCollection& payload)
 {

@@ -1,6 +1,7 @@
 #include "NodeServer.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/ConnectionManager.h"
+#include "../SingletonManager/CronManager.h"
 #include "Poco/RegularExpression.h"
 
 namespace controller {
@@ -14,17 +15,36 @@ namespace controller {
 		return url.substr(protocol.size()) + ":" + std::to_string(port);
 	}
 
+	std::string NodeServerConnection::getUri() const
+	{
+		std::string protocol;
+		g_filterHttp.extract(url, protocol);
+		return url.substr(protocol.size());
+	}
+
 
 
 
 	NodeServer::NodeServer(model::table::NodeServer* dbModel) 
 	{
 		mDBModel = dbModel;
+		if (model::table::NODE_SERVER_GRADIDO_COMMUNITY == dbModel->getNodeServerType()) {
+			CronManager::getInstance()->addNodeServerToPing(Poco::AutoPtr<controller::NodeServer>(this, true));
+		}
 	}
 
 	NodeServer::~NodeServer()
 	{
 
+	}
+
+	bool NodeServer::deleteFromDB() 
+	{ 
+		auto result = mDBModel->deleteFromDB(); 
+		if (result && model::table::NODE_SERVER_GRADIDO_COMMUNITY == getModel()->getNodeServerType()) {
+			CronManager::getInstance()->removeNodeServerToPing(Poco::AutoPtr<controller::NodeServer>(this, true));
+		}
+		return result;
 	}
 
 	Poco::AutoPtr<NodeServer> NodeServer::create(const std::string& url, int port, int groupId, model::table::NodeServerType type, int nodeHederaId)
@@ -43,7 +63,7 @@ namespace controller {
 		{
 			node_server_list = db->loadFromDB<model::table::NodeServerType, model::table::NodeServerTuple>("server_type", type, 4);
 		}
-		else if (type == model::table::NODE_SERVER_GRADIDO_NODE) 
+		else if (type == model::table::NODE_SERVER_GRADIDO_NODE || type == model::table::NODE_SERVER_GRADIDO_COMMUNITY) 
 		{
 			if (group_id) 
 			{
@@ -160,6 +180,13 @@ namespace controller {
 		}
 		return results;
 		
+	}
+
+	JsonRequest NodeServer::createJsonRequest()
+	{
+		auto model = getModel();
+		NodeServerConnection connection(model->getUrl(), model->getPort());
+		return JsonRequest(connection.getUri(), model->getPort());
 	}
 
 }

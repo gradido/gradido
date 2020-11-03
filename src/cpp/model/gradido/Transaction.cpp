@@ -2,6 +2,7 @@
 #include "../../SingletonManager/ErrorManager.h"
 #include "../../SingletonManager/PendingTasksManager.h"
 #include "../../SingletonManager/LanguageManager.h"
+#include "../../SingletonManager/CronManager.h"
 #include "../../ServerConfig.h"
 
 #include "../../controller/HederaId.h"
@@ -550,6 +551,8 @@ namespace model {
 								// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
 								// TODO: later check, but now I haven't any way to communicate with the gradido node
 								mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
+								// trigger community server update in 5 seconds
+								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5000, 0));
 								return 1;
 							}
 
