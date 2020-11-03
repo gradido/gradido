@@ -48,6 +48,12 @@ namespace ServerConfig {
 		UNSECURE_ALLOW_ALL_PASSWORDS = 8
 	};
 
+	enum HederaConsensusMessageFormat {
+		HEDERA_CONSENSUS_FORMAT_BINARY,
+		HEDERA_CONSENSUS_FORMAT_JSON,
+		HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING
+	};
+
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
@@ -75,6 +81,7 @@ namespace ServerConfig {
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
+	extern HederaConsensusMessageFormat g_ConsensusMessageFormat;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

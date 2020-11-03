@@ -56,7 +56,7 @@ namespace ServerConfig {
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
-	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
+	HederaConsensusMessageFormat g_ConsensusMessageFormat = HEDERA_CONSENSUS_FORMAT_BINARY;
 
 #ifdef __linux__ 
 #include <stdio.h>      
@@ -149,6 +149,20 @@ namespace ServerConfig {
 		return SERVER_TYPE_PRODUCTION;
 	}
 
+	HederaConsensusMessageFormat getHederaConsensusMessageFormatFromString(const std::string& hederaConsensusMessageFormatString)
+	{
+		if ("json" == hederaConsensusMessageFormatString) {
+			return HEDERA_CONSENSUS_FORMAT_JSON;
+		}
+		if ("binary" == hederaConsensusMessageFormatString || "bin" == hederaConsensusMessageFormatString) {
+			return HEDERA_CONSENSUS_FORMAT_BINARY;
+		}
+		if ("base64" == hederaConsensusMessageFormatString) {
+			return HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING;
+		}
+		return HEDERA_CONSENSUS_FORMAT_BINARY;
+	}
+
 
 	bool loadMnemonicWordLists()
 	{
@@ -224,6 +238,9 @@ namespace ServerConfig {
 		//g_ServerSetupType 
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
+
+		auto hedera_consensus_message_format_string = cfg.getString("hedera.consensus.message_format", "bin");
+		g_ConsensusMessageFormat = getHederaConsensusMessageFormatFromString(hedera_consensus_message_format_string);
 
 		// app secret for encrypt user private keys
 		// TODO: encrypt with server admin key

@@ -49,6 +49,7 @@ namespace model {
 			bool isGroupMemberUpdate() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_GROUP_MEMBER_UPDATE; }
 
 			std::string getBodyBytes();
+			const proto::gradido::TransactionBody* getBody() { return &mTransactionBody; }
 
 			TransactionCreation* getCreationTransaction();
 			TransactionTransfer* getTransferTransaction();
