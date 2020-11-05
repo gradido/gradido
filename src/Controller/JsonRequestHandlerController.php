@@ -59,12 +59,27 @@ class JsonRequestHandlerController extends AppController {
             case 'getUsers' : return $this->getUsers($jsonData->page, $jsonData->limit);
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
             case 'errorInTransaction': return $this->errorInTransaction($jsonData);
+            case 'updateReadNode': return $this->updateReadNode();
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
         return $this->returnJson(['state' => 'error', 'msg' => 'no post or get']);
     }
-    
+
+    // Called from login server like a cron job every 10 minutes or after sending transaction to hedera
+    private function updateReadNode()
+    {
+      return $this->returnJson(['state' => 'success']);
+    }
+
+    /*
+     * payload.set("created", created);
+     * payload.set("id", task_model->getID());
+     * payload.set("type", task_model->getTaskTypeString());
+     * payload.set("public_key", user_model->getPublicKeyHex());
+     * payload.set("error", error);
+     * payload.set("errorMessage", errorDetails);
+     */
     //! \param $transactionCreated creation of transaction in timestamp in seconds
     //!        -1 if transaction couldn't decode
     //! \param $transactionBodyBase64Sha256 generic hash from transaction body serialized and converted to base64 
@@ -73,14 +88,6 @@ class JsonRequestHandlerController extends AppController {
     //! \param $error short error name in user language
     //! \param $errorDetails more detailed error message in user language
     private function errorInTransaction($jsonData) {
-      /*
-       * payload.set("created", created);
-       * payload.set("id", task_model->getID());
-       * payload.set("type", task_model->getTaskTypeString());
-       * payload.set("public_key", user_model->getPublicKeyHex());
-       * payload.set("error", error);
-       * payload.set("errorMessage", errorDetails);
-       */
       $stateErrorTable = TableRegistry::getTableLocator()->get('StateErrors');
       $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
       $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
