@@ -146,7 +146,7 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 
 	if (mReceiverUser.isNull()) {
 		mReceiverUser = controller::User::create();
-		if (1 != mReceiverUser->load(*target_pubkey)) {
+		if (1 != mReceiverUser->load(target_pubkey->data())) {
 			mReceiverUser.assign(nullptr);
 			result = customStateError("not found", "receiver not found");
 		}
