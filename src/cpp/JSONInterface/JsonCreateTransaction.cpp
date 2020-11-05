@@ -47,7 +47,7 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 	auto user = mSession->getNewUser();
 	if (user.isNull()) {
 		auto em = ErrorManager::getInstance();
-		em->addError(new Error(__FUNCDNAME__, "session hasn't a user, check code"));
+		em->addError(new Error("JsonCreateTransaction", "session hasn't a user, check code"));
 		em->sendErrorsAsEmail();
 		return customStateError("code error", "user is zero");
 	}
