@@ -156,7 +156,7 @@
 					response.redirect(refererString);
 				} else {
 					//printf("redirect to: %s\n", ServerConfig::g_php_serverPath.data());
-					response.redirect(ServerConfig::g_php_serverPath + "/");
+					response.redirect(user->getGroupBaseUrl() + "/");
 				}
 				return;
 			}

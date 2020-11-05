@@ -267,7 +267,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 		} else if(!account_user->getModel()->getGroupId()) {
 			response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
 		} else {
-			response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
+			response.redirect(account_user->getGroupBaseUrl() + "state-balances/overview");
 		}
 		return;
 	}

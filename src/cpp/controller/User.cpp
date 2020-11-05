@@ -7,6 +7,8 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 
+#include "NodeServer.h"
+
 #include "../lib/DataTypeConverter.h"
 
 #include "../tasks/VerificationEmailResendTask.h"
@@ -515,4 +517,27 @@ namespace controller {
 		}
 		return updated_count;
 	}
+
+
+	std::string User::getGroupBaseUrl()
+	{
+		UNIQUE_LOCK;
+		if (mGroupBaseUrl != "") {
+			return mGroupBaseUrl;
+		}
+		static const char* function_name = "User::getGroupBaseUrl";
+		auto model = getModel();
+		if (!model->getGroupId()) return ServerConfig::g_php_serverPath;
+		auto servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_COMMUNITY, model->getGroupId());
+		if (!servers.size()) return ServerConfig::g_php_serverPath;
+		if (servers.size() > 1) {
+			auto em = ErrorManager::getInstance();
+			em->addError(new ParamError(function_name, "error, more than one community server found for group", model->getGroupId()));
+			em->sendErrorsAsEmail();
+			return ServerConfig::g_php_serverPath;
+		}
+		mGroupBaseUrl = servers[0]->getBaseUri();
+		return mGroupBaseUrl;
+	}
+
 }

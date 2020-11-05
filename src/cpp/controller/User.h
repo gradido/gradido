@@ -146,6 +146,8 @@ namespace controller {
 		inline void setBalance(int gradidoBalance) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mGradidoCurrentBalance = gradidoBalance; }
 		inline int getBalance() { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mGradidoCurrentBalance; }
 
+		std::string getGroupBaseUrl();
+
 		// connection to other tables
 
 		
@@ -163,6 +165,8 @@ namespace controller {
 		//! get this from community-server, later maybe from gradido-node
 		//! use it for showing balance in menu in check transaction
 		int					     mGradidoCurrentBalance;
+
+		std::string				 mGroupBaseUrl;
 
 		mutable std::shared_mutex mSharedMutex;
 	};

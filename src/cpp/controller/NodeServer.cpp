@@ -189,4 +189,11 @@ namespace controller {
 		return JsonRequest(connection.getUri(), model->getPort());
 	}
 
+	std::string NodeServer::getBaseUri()
+	{
+		auto model = getModel();
+		NodeServerConnection connection(model->getUrl(), model->getPort());
+		return connection.getUri();
+	}
+
 }

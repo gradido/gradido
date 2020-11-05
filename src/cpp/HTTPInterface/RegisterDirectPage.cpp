@@ -67,7 +67,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
-				response.redirect(ServerConfig::g_php_serverPath + "/");
+				response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
 				return;
 			}
 		}

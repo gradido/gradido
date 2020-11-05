@@ -226,9 +226,7 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
 			UNIQUE_LOCK;
 			if (fieldNames.size() != fieldValues.size() || fieldNames.size() <= 1) {
-				lock();
 				addError(new Error(getTableName(), "fieldNames and fieldValues size don't match or smaller as 1"));
-				unlock();
 				return results;
 			}
 			if (expectedResults > 0) {

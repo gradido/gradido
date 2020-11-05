@@ -53,6 +53,7 @@ namespace controller {
 		inline void setHederaId(Poco::AutoPtr<controller::HederaId> hederaId) { mHederaID = hederaId; }
 		inline Poco::AutoPtr<controller::HederaId> getHederaId() { return mHederaID; }
 
+		std::string getBaseUri();
 		JsonRequest createJsonRequest();
 	protected:
 		NodeServer(model::table::NodeServer* dbModel);

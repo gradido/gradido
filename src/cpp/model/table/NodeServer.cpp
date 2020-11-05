@@ -86,6 +86,23 @@ namespace model {
 
 			return select;
 		}
+		Poco::Data::Statement NodeServer::_loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			Poco::Data::Statement select(session);
+			select << "SELECT id, url, port, group_id, server_type, node_hedera_id, last_live_sign FROM " << getTableName()
+				<< " where " << fieldNames[0] << " = ? ";
+			if (conditionType == MYSQL_CONDITION_AND) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " AND " << fieldNames[i] << " = ?";
+				}
+			}
+			else if (conditionType == MYSQL_CONDITION_OR) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " OR " << fieldNames[i] << " = ?";
+				}
+			}
+			return select;
+		}
 
 		Poco::Data::Statement NodeServer::_loadIdFromDB(Poco::Data::Session session)
 		{
