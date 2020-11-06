@@ -84,17 +84,42 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 
 		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
 		auto state = object.get("state");
-		std::string stateString = state.convert<std::string>();
-		if (stateString == "error") {
-			addError(new Error(functionName, "php server return error"));
-			if (!object.isNull("msg")) {
-				addError(new ParamError(functionName, "msg:", object.get("msg").convert<std::string>().data()));
-			}
-			if (!object.isNull("details")) {
-				addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
+		auto message = object.get("message");
+		if (state.isEmpty() && !message.isEmpty()) {
+			// than we have maybe get an cakephp exception as result
+			
+			addError(new ParamError(functionName, "cakePHP Exception: ", message.toString()));
+			addError(new ParamError(functionName, "calling: ", methodName));
+			std::string fields[] = { "url", "code", "file", "line" };
+			for (int i = 0; i < 4; i++) {
+				auto field = fields[i];
+				std::string field_name = field + ": ";
+				addError(new ParamError(functionName, field_name.data(), object.get(field).toString()));
 			}
 			sendErrorsAsEmail();
 			return JSON_REQUEST_RETURN_ERROR;
+		}
+		else {
+			std::string stateString = state.convert<std::string>();
+			if (stateString == "error") {
+				addError(new Error(functionName, "php server return error"));
+				if (!object.isNull("msg")) {
+					addError(new ParamError(functionName, "msg:", object.get("msg").convert<std::string>().data()));
+				}
+				if (!object.isNull("details")) {
+					addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
+				}
+				sendErrorsAsEmail();
+				return JSON_REQUEST_RETURN_ERROR;
+			}
+			else if (stateString == "success") {
+				for (auto it = object.begin(); it != object.end(); it++) {
+					if (it->first == "state") continue;
+					std::string index = it->first;
+					std::string value = it->second.toString();
+					printf("[JsonRequest] %s: %s\n", index.data(), value.data());
+				}
+			}
 		}
 	}
 	catch (Poco::Exception& e) {
