@@ -285,6 +285,7 @@ enum PageState {
 	</div>
 </div>
 <% } %>
+<!-- <%= getErrorsHtml() %> -->
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions == 0) { %>
