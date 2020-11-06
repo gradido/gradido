@@ -170,16 +170,21 @@ class StateBalancesController extends AppController
         foreach ($transferTransactions as $sendCoins) {
             $type = '';
             $otherUser = null;
+            $other_user_public = '';
             if ($sendCoins->state_user_id == $user['id']) {
                 $type = 'send';
                 
                 if(isset($involvedUserIndices[$sendCoins->receiver_user_id])) {
                   $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
                 }
+                $other_user_public = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
             } else if ($sendCoins->receiver_user_id == $user['id']) {
                 $type = 'receive';
                 if(isset($involvedUserIndices[$sendCoins->state_user_id])) {
                   $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+                }
+                if($sendCoins->sender_public_key) {
+                  $other_user_public = bin2hex(stream_get_contents($sendCoins->sender_public_key));
                 }
             }
             if(null == $otherUser) {
@@ -192,7 +197,8 @@ class StateBalancesController extends AppController
              'transaction_id' => $sendCoins->transaction_id,
              'date' => $sendCoins->transaction->received,
              'balance' => $sendCoins->amount,
-             'memo' => $sendCoins->transaction->memo
+             'memo' => $sendCoins->transaction->memo,
+             'pubkey' => $other_user_public
             ]);
         }
         uasort($transactions, array($this, 'sortTransactions'));

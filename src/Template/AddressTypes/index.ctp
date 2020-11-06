@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\AddressType[]|\Cake\Collection\CollectionInterface $addressTypes
  */
 ?>
-<nav id="actions-sidebar">
-    <ul class="nav-horizontal nav-smaller">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
+    <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Address Type'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List State Group Addresses'), ['controller' => 'StateGroupAddresses', 'action' => 'index']) ?></li>
@@ -40,8 +40,8 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-    <div>
-        <ul class="nav-horizontal">
+    <div class="paginator">
+        <ul class="pagination">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>
             <?= $this->Paginator->numbers() ?>

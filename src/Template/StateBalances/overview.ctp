@@ -58,8 +58,10 @@ $this->assign('header', $header);
             <a href="mailto:<?= $transaction['email'] ?>" title="<?= $transaction['email'] ?>">
               <small class="tx-email"><?= $transaction['name'] ?></small>
             </a>
-            <?php else : ?>
+            <?php elseif(isset($transaction['name']) && $transaction['name'] != '') : ?>
             <small class="tx-email"><?= $transaction['name'] ?></small>
+            <?php else : ?>
+            <small class="tx-email"><?= $transaction['pubkey'] ?></small>
             <?php endif; ?>
             <!-- noch ungeklärt - icon ist nicht aligned -->
             <div class="cell-icon <?= $cellColorClass ?>">

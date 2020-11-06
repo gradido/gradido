@@ -10,6 +10,7 @@ use Cake\Core\Configure;
 
 use Model\Transactions\TransactionTransfer;
 use Model\Transactions\Transaction;
+use Model\Transactions\Record;
 /*!
  * @author: Dario Rekowski#
  * 
@@ -24,6 +25,7 @@ class JsonRequestHandlerController extends AppController {
     {
         parent::initialize();
         $this->loadComponent('JsonRequestClient');
+        $this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('index');
     }
@@ -69,6 +71,45 @@ class JsonRequestHandlerController extends AppController {
     // Called from login server like a cron job every 10 minutes or after sending transaction to hedera
     private function updateReadNode()
     {
+      $this->autoRender = false;
+      $response = $this->response->withType('application/json');
+      
+      $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+      $last_transaction = $transactionsTable->find('all')->order(['id' => 'DESC'])->first();
+      $group_alias = Configure::read('GroupAlias');
+      $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction->id]);
+      if(isset($result['state']) && $result['state'] == 'error') {
+        return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => $result]);
+      }
+      $part_count = -1;
+      $temp_record = new Record;
+      $errors = [];
+      foreach($result as $_record) {
+          $parse_result = $temp_record->parseRecord($_record);
+          if($parse_result == true) {
+            $sequenceNumber = $temp_record->getSequenceNumber();
+            if($part_count == -1) {
+              $part_count = $temp_record->getPartCount();
+            }
+            $part_count--;
+           
+            if($part_count == 0) {
+                $finalize_result = $temp_record->finalize();
+                if($finalize_result != true) {
+                  $errors[] = ['msg' => 'error in finalize', 'record' => $_record, 'details' => $finalize_result, 'sequenceNumber' => $sequenceNumber];
+                }
+                $temp_record = new Record;
+                $part_count = -1;
+            }
+          } else {
+                $temp_record = new Record;
+                $part_count = -1;
+                $errors[] = ['msg' => 'error in parse record', 'record' => $_record, 'details' => $parse_result];
+          }
+      }
+      if(count($errors)) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'error in parsing records', 'details' => $errors]);
+      }
       return $this->returnJson(['state' => 'success']);
     }
 
