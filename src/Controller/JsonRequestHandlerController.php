@@ -75,9 +75,14 @@ class JsonRequestHandlerController extends AppController {
       $response = $this->response->withType('application/json');
       
       $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
-      $last_transaction = $transactionsTable->find('all')->order(['id' => 'DESC'])->first();
+      $last_transaction_query = $transactionsTable->find('all')->order(['id' => 'DESC']);
+      $last_transaction_id = 0;
+      if(!$last_transaction_query->isEmpty()) {
+        $last_transaction_id = $last_transaction_query->first()->id;
+      }
+      
       $group_alias = Configure::read('GroupAlias');
-      $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction->id]);
+      $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
       if(isset($result['state']) && $result['state'] == 'error') {
         return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => $result]);
       }
