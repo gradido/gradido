@@ -42,7 +42,11 @@ class JsonRpcRequestClientComponent extends Component
     $http = new Client();
     
     try {
-      $response = $http->post($this->pickGradidoNodeUrl(), $message, ['type' => 'json']);
+      $url = $this->pickGradidoNodeUrl();
+      if(is_array($url)) {
+        return $url;
+      }
+      $response = $http->post($url, $message, ['type' => 'json']);
     } catch(Exception $e) {
       return ['state' => 'error', 'type' => 'http exception', 'details' => $e->getMessage()];
     }
@@ -65,7 +69,10 @@ class JsonRpcRequestClientComponent extends Component
    
   static public function pickGradidoNodeUrl()
   {
-    $gradidoNodes = Configure::read('GradidoNode');    
+    $gradidoNodes = Configure::read('GradidoNode');
+    if(count($gradidoNodes) == 0) {
+      return ['state' => 'error', 'msg' => 'no gradido nodes in config'];
+    }    
     $i = rand(0, count($gradidoNodes)-1);
     return $gradidoNodes[$i]['host'] . ':' . $gradidoNodes[$i]['port'];
   }
