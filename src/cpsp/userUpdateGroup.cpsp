@@ -13,7 +13,8 @@
 
 enum PageState {
 	PAGE_STATE_OVERVIEW,
-	PAGE_STATE_REQUEST_IS_RUNNING
+	PAGE_STATE_REQUEST_IS_RUNNING,
+	PAGE_STATE_NO_GROUPS
 };
 
 %>
@@ -56,19 +57,28 @@ enum PageState {
 			}
 		}
 	} else {
-		pt->lock("userUpdateGroup Page");
-		if(pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER)) {
-			state = PAGE_STATE_REQUEST_IS_RUNNING;
-			std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
-			// should be only one
-			Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
-			if(transaction->getSignCount() == 0) {
-				pt->unlock();
-				response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+	    if(groups.size() == 0) {
+			if(user->getModel()->getRole() == model::table::ROLE_ADMIN) {
+				response.redirect(ServerConfig::g_serverPath + "/groups");
 				return;
 			}
+			state = PAGE_STATE_NO_GROUPS;
+		
+		} else {
+			pt->lock("userUpdateGroup Page");
+			if(pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER)) {
+				state = PAGE_STATE_REQUEST_IS_RUNNING;
+				std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+				// should be only one
+				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
+				if(transaction->getSignCount() == 0) {
+					pt->unlock();
+					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					return;
+				}
+			}
+			pt->unlock();
 		}
-		pt->unlock();
 	}
 		
 	
@@ -108,6 +118,8 @@ enum PageState {
 	<% } else if(PAGE_STATE_REQUEST_IS_RUNNING == state) { %>
 		<p><%= gettext("Deine Beitrittsanfrage wird bearbeitet, du bekommst eine E-Mail wenn sie bestätigt oder abgelehnt wurde.") %></p>
 		<p><a href="<%= ServerConfig::g_serverPath %>/logout"><%= gettext("Abmelden") %></a></p>
+	<% } else if(PAGE_STATE_NO_GROUPS == state) { %>
+		<p><%= gettext("Noch keine Gruppen vorhanden, bitte warte bis der Admin welche hinzugef&uuml;gt hat.") %>
 	<% } %>
 </div>
 <%@ include file="footer.cpsp" %>

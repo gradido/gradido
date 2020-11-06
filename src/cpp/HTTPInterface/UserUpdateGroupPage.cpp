@@ -16,7 +16,8 @@
 
 enum PageState {
 	PAGE_STATE_OVERVIEW,
-	PAGE_STATE_REQUEST_IS_RUNNING
+	PAGE_STATE_REQUEST_IS_RUNNING,
+	PAGE_STATE_NO_GROUPS
 };
 
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
@@ -38,7 +39,7 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 20 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 
 	const char* pageName = gettext("Gruppe wählen");
 	auto user = mSession->getNewUser();
@@ -78,19 +79,28 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 			}
 		}
 	} else {
-		pt->lock("userUpdateGroup Page");
-		if(pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER)) {
-			state = PAGE_STATE_REQUEST_IS_RUNNING;
-			std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
-			// should be only one
-			Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
-			if(transaction->getSignCount() == 0) {
-				pt->unlock();
-				response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+	    if(groups.size() == 0) {
+			if(user->getModel()->getRole() == model::table::ROLE_ADMIN) {
+				response.redirect(ServerConfig::g_serverPath + "/groups");
 				return;
 			}
+			state = PAGE_STATE_NO_GROUPS;
+		
+		} else {
+			pt->lock("userUpdateGroup Page");
+			if(pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER)) {
+				state = PAGE_STATE_REQUEST_IS_RUNNING;
+				std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+				// should be only one
+				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
+				if(transaction->getSignCount() == 0) {
+					pt->unlock();
+					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					return;
+				}
+			}
+			pt->unlock();
 		}
-		pt->unlock();
 	}
 		
 	
@@ -153,93 +163,100 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "            </div>";
 	// end include header.cpsp
 	responseStream << "\n";
-#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 88 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"content-list\">\n";
 	responseStream << "\t";
-#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
  if(PAGE_STATE_OVERVIEW == state ) { 	responseStream << "\n";
 	responseStream << "    <div class=\"content-list-title\">\n";
 	responseStream << "        <h1>";
-#line 82 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Gruppe wählen") );
 	responseStream << "</h1>\n";
 	responseStream << "    </div>\n";
 	responseStream << "\t<p>";
-#line 84 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Bitte wähle die Gruppe/Gemeinschaft aus, zu der du gehörst.") );
 	responseStream << "</p>\n";
 	responseStream << "\t<p>";
-#line 85 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Du bekommst eine Bestätigungsmail, nachdem dein Beitritt bestätigt wurde.") );
 	responseStream << "</p>\n";
 	responseStream << "\t<form method=\"POST\">\n";
 	responseStream << "\t\t<div class=\"content-list-table\">\n";
 	responseStream << "\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c1\">";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Auswahl") );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Name</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Alias</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Url</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c5\">";
-#line 93 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Description") );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
  for(auto it = groups.begin(); it != groups.end(); it++) {
 					auto group_model = (*it)->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c1\"><input type=\"radio\" class=\"form-control\" name=\"group_id\" value=\"";
-#line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( group_model->getID());
 	responseStream << "\" /></div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( group_model->getAlias() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 101 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( group_model->getUrl() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c5\">";
-#line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( group_model->getDescription());
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<input class=\"grd-form-bn grd-form-bn-succeed grd_clickable\" type=\"submit\" name=\"submit\" value=\"";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Beitrittsanfrage senden") );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
  } else if(PAGE_STATE_REQUEST_IS_RUNNING == state) { 	responseStream << "\n";
 	responseStream << "\t\t<p>";
-#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Deine Beitrittsanfrage wird bearbeitet, du bekommst eine E-Mail wenn sie bestätigt oder abgelehnt wurde.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t<p><a href=\"";
-#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/logout\">";
-#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
 	responseStream << ( gettext("Abmelden") );
 	responseStream << "</a></p>\n";
 	responseStream << "\t";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+ } else if(PAGE_STATE_NO_GROUPS == state) { 	responseStream << "\n";
+	responseStream << "\t\t<p>";
+#line 122 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
+	responseStream << ( gettext("Noch keine Gruppen vorhanden, bitte warte bis der Admin welche hinzugef&uuml;gt hat.") );
+	responseStream << "\n";
+	responseStream << "\t";
+#line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\userUpdateGroup.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

@@ -27,6 +27,8 @@
 #include "../controller/UserBackup.h"
 #include "../controller/EmailVerificationCode.h"
 
+#include "table/UserRole.h"
+
 #include "table/ModelBase.h"
 
 
@@ -353,7 +355,6 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	user_model->insertIntoDB(true);
 	auto user_id = user_model->getID();
 	
-
 	// one retry in case of connection error
 	if (!user_id) {
 		user_model->insertIntoDB(true);
@@ -365,6 +366,15 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 			return false;
 		}
 	}
+
+
+	// if it gets id 1, it's the first user, so we should give him the admin role
+	if (user_id == 1) {
+		Poco::AutoPtr<model::table::UserRole> user_role(new model::table::UserRole(user_id, model::table::ROLE_ADMIN));
+		user_role->insertIntoDB(false);
+		mNewUser->reload();
+	}
+
 
 	generateKeys(true, true);
 
