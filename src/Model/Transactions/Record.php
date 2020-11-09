@@ -31,11 +31,11 @@ class Signature
     $signaturesTable = TableRegistry::getTableLocator()->get('TransactionSignatures');
     $entity = $signaturesTable->newEntity();
     $entity->transaction_id = $transactionId;
-    if(count($this->signature) != 128) {
-      return ['state' => 'error', 'msg' => 'invalid signature size', 'details' => count($this->signature)];
+    if(strlen($this->signature) != 128) {
+      return ['state' => 'error', 'msg' => 'invalid signature size', 'details' => strlen($this->signature)];
     }
-    if(count($this->publicKey) != 64) {
-      return ['state' => 'error', 'msg' => 'invalid pubkey size', 'details' => count($this->publicKey)];
+    if(strlen($this->publicKey) != 64) {
+      return ['state' => 'error', 'msg' => 'invalid pubkey size', 'details' => strlen($this->publicKey)];
     }
     if(!preg_match('/^[0-9a-fA-F]*$/', $this->signature)) {
       return ['state' => 'error', 'msg' => 'signature isn\'t in hex format'];
@@ -91,8 +91,9 @@ class ManageNodeGroupAdd
     $stateGroupAddresses = TableRegistry::getTableLocator()->get('StateGroupAddresses');
     $transactionGroupEntity = $transactionGroupAddadressTable->newEntity();
     $transactionGroupEntity->transaction_id = $transactionId;
-    if(count($this->user_pubkey) != 64) {
-      return ['state' => 'error', 'msg' => 'invalid size user pubkey', 'details' => count($this->user_pubkey)];
+    $transactionGroupEntity->address_type_id = 1;
+    if(strlen($this->user_pubkey) != 64) {
+      return ['state' => 'error', 'msg' => 'invalid size user pubkey', 'details' => strlen($this->user_pubkey)];
     }
     if(!preg_match('/^[0-9a-fA-F]*$/', $this->user_pubkey)) {
       return ['state' => 'error', 'msg' => 'user_pubkey isn\'t in hex format'];
@@ -261,14 +262,14 @@ class GradidoTransfer extends GradidoModifieUserBalance
   public function finalize($transactionId, $received) 
   {
     $transactionTransferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
-    if(count($this->sender_pubkey) != 64) {
-      return ['state' => 'error', 'msg' => 'invalid size sender pubkey', 'details' => count($this->user_pubkey)];
+    if(strlen($this->sender_pubkey) != 64) {
+      return ['state' => 'error', 'msg' => 'invalid size sender pubkey', 'details' => strlen($this->user_pubkey)];
     }
     if(!preg_match('/^[0-9a-fA-F]*$/', $this->sender_pubkey)) {
       return ['state' => 'error', 'msg' => 'sender_pubkey isn\'t in hex format'];
     }
-    if(count($this->receiver_pubkey) != 64) {
-      return ['state' => 'error', 'msg' => 'invalid size receiver pubkey', 'details' => count($this->user_pubkey)];
+    if(strlen($this->receiver_pubkey) != 64) {
+      return ['state' => 'error', 'msg' => 'invalid size receiver pubkey', 'details' => strlen($this->user_pubkey)];
     }
     if(!preg_match('/^[0-9a-fA-F]*$/', $this->receiver_pubkey)) {
       return ['state' => 'error', 'msg' => 'receiver_pubkey isn\'t in hex format'];
@@ -315,6 +316,7 @@ class GradidoTransfer extends GradidoModifieUserBalance
 class Record
 {
    private $sequenceNumber = 0;
+   private $runningHash = null;
    private $transactionType = '';
    private $memo = '';
    private $signatures = [];
@@ -330,6 +332,7 @@ class Record
      
    
    public function parseRecord($json) {
+     //var_dump($json);
      switch($json['record_type']) {
        case 'GRADIDO_TRANSACTION':
          return $this->parseTransaction($json['transaction']);
@@ -375,19 +378,30 @@ class Record
      $newTransaction->id = $this->sequenceNumber;
      $newTransaction->transaction_type_id = $transactionTypeResults->first()->id;
      $newTransaction->memo = $this->memo;
+     $newTransaction->tx_hash = hex2bin($this->runningHash);
      $newTransaction->received = $this->received;
      
+     //! TODO change into transaction, if at least one fail, rollback
+     /*
+     // In a controller.
+      $articles->getConnection()->transactional(function () use ($articles, $entities) {
+          foreach ($entities as $entity) {
+              $articles->save($entity, ['atomic' => false]);
+          }
+      });
+     */
      if(!$transactionsTable->save($newTransaction)) {
        return ['state' => 'error', 'msg' => 'error saving transaction', 'details' => $newTransaction->getErrors()];
      }
+     
      foreach($this->signatures as $sign) {
        $sign_result = $sign->finalize($this->sequenceNumber);
-       iF($sign_result != true) {
+       iF($sign_result !== true) {
          return ['state' => 'error', 'msg', 'error finalizing signature', 'details' => $sign_result];
        }
      }
      $transaction_obj_result = $this->transactionObj->finalize($newTransaction->id, $this->received);
-     if($transaction_obj_result != true) {
+     if($transaction_obj_result !== true) {
        return ['state' => 'error', 'msg' => 'error finalizing transaction object', 'details' => $transaction_obj_result];
      }
      return true;
@@ -431,6 +445,7 @@ class Record
       
       $hedera = $data['hedera_transaction'];
       $this->sequenceNumber = $hedera['sequenceNumber'];
+      $this->runningHash = $hedera['runningHash'];
       $this->received = Time::createFromTimestamp($hedera['consensusTimestamp']['seconds']);
       
       $field_index = '';
@@ -450,6 +465,7 @@ class Record
       if($class_name == '' || $field_index == '') {
         return ['state' => 'error', 'msg' => 'node transaction type unknown', 'details' => $this->transactionType];
       }
+      $class_name = 'Model\\Transactions\\' . $class_name;
       $this->transactionObj = new $class_name($data[$field_index]);
       if($class_name == 'ManageNodeGroupAdd') {
         $this->transactionObj->setRemoveFromGroup($removeFromGroup);
