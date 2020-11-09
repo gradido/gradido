@@ -11,7 +11,7 @@ namespace model {
 			
 		}
 
-		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, HederaNetworkType type /*= HEDERA_MAINNET*/)
+		HederaAccount::HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, ServerConfig::HederaNetworkType type /*= ServerConfig::HEDERA_MAINNET*/)
 			: mUserId(user_id), mAccountHederaId(account_hedera_id), mAccountKeyId(account_key_id), mBalance(balance), mType(type)
 		{
 			
@@ -38,7 +38,7 @@ namespace model {
 			ss << "account crypto key id: " << std::to_string(mAccountKeyId) << std::endl;
 			// balance in tinybars, 100,000,000 tinybar = 1 HashBar
 			ss << "account balance: " << std::to_string((double)(mBalance) * 100000000.0) << " HBAR" << std::endl;
-			ss << "Hedera Net Type: " << hederaNetworkTypeToString((HederaNetworkType)mType) << std::endl;
+			ss << "Hedera Net Type: " << hederaNetworkTypeToString((ServerConfig::HederaNetworkType)mType) << std::endl;
 			ss << "last update: " << Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S") << std::endl;
 
 			return ss.str();
@@ -57,20 +57,32 @@ namespace model {
 		}
 
 
-		const char* HederaAccount::hederaNetworkTypeToString(HederaNetworkType type)
+		const char* HederaAccount::hederaNetworkTypeToString(ServerConfig::HederaNetworkType type)
 		{
 			switch (type) {
-			case HEDERA_MAINNET: return "Mainnet";
-			case HEDERA_TESTNET: return "Testnet";
+			case ServerConfig::HEDERA_MAINNET: return "Mainnet";
+			case ServerConfig::HEDERA_TESTNET: return "Testnet";
+			case ServerConfig::HEDERA_UNKNOWN: return "unknown";
 			default: return "<unknown>";
 			}
 		}
 
-		NodeServerType HederaAccount::networkTypeToNodeServerType(HederaNetworkType type)
+		ServerConfig::HederaNetworkType HederaAccount::hederaNetworkTypeFromString(const std::string& typeString)
+		{
+			if ("MAINNET" == typeString || "Mainnet" == typeString) {
+				return ServerConfig::HEDERA_MAINNET;
+			}
+			if ("TESTNET" == typeString || "Testnet" == typeString) {
+				return ServerConfig::HEDERA_TESTNET;
+			}
+			return ServerConfig::HEDERA_UNKNOWN;
+		}
+
+		NodeServerType HederaAccount::networkTypeToNodeServerType(ServerConfig::HederaNetworkType type)
 		{
 			switch (type) {
-			case HEDERA_MAINNET: return NODE_SERVER_HEDERA_MAINNET_NODE;
-			case HEDERA_TESTNET: return NODE_SERVER_HEDERA_TESTNET_NODE;
+			case ServerConfig::HEDERA_MAINNET: return NODE_SERVER_HEDERA_MAINNET_NODE;
+			case ServerConfig::HEDERA_TESTNET: return NODE_SERVER_HEDERA_TESTNET_NODE;
 			default: return NODE_SERVER_TYPE_NONE;
 			}
 		}

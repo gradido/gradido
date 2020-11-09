@@ -18,14 +18,14 @@ namespace controller {
 	public:
 		~HederaAccount();
 
-		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, model::table::HederaNetworkType type = model::table::HEDERA_MAINNET);
+		static Poco::AutoPtr<HederaAccount> create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, ServerConfig::HederaNetworkType type = ServerConfig::HEDERA_MAINNET);
 
 		static std::vector<Poco::AutoPtr<HederaAccount>> load(const std::string& fieldName, int fieldValue);
 		static Poco::AutoPtr<HederaAccount> load(int id);
 		static Poco::AutoPtr<HederaAccount> load(Poco::AutoPtr<controller::HederaId> hederaId);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();
 		//! \brief for picking a account for paying transaction, mostly consensusSendMessage
-		static Poco::AutoPtr<HederaAccount> pick(model::table::HederaNetworkType networkType, bool encrypted = false);
+		static Poco::AutoPtr<HederaAccount> pick(ServerConfig::HederaNetworkType networkType, bool encrypted = false);
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 

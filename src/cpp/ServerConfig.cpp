@@ -20,6 +20,8 @@
 #include "Poco/DateTimeFormat.h"
 #include "Poco/DateTimeFormatter.h"
 
+#include "model/table/HederaAccount.h"
+
 
 using Poco::Net::SSLManager;
 using Poco::Net::Context;
@@ -57,6 +59,7 @@ namespace ServerConfig {
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
 	HederaConsensusMessageFormat g_ConsensusMessageFormat = HEDERA_CONSENSUS_FORMAT_BINARY;
+	HederaNetworkType g_HederaNetworkType = HEDERA_TESTNET;
 
 #ifdef __linux__ 
 #include <stdio.h>      
@@ -163,6 +166,8 @@ namespace ServerConfig {
 		return HEDERA_CONSENSUS_FORMAT_BINARY;
 	}
 
+	
+
 
 	bool loadMnemonicWordLists()
 	{
@@ -241,6 +246,12 @@ namespace ServerConfig {
 
 		auto hedera_consensus_message_format_string = cfg.getString("hedera.consensus.message_format", "bin");
 		g_ConsensusMessageFormat = getHederaConsensusMessageFormatFromString(hedera_consensus_message_format_string);
+
+		auto hedera_network_type_string = cfg.getString("hedera.nettype", "Testnet");
+		g_HederaNetworkType = model::table::HederaAccount::hederaNetworkTypeFromString(hedera_network_type_string);
+		if (HEDERA_UNKNOWN == g_HederaNetworkType) {
+			g_HederaNetworkType = HEDERA_TESTNET;
+		}
 
 		// app secret for encrypt user private keys
 		// TODO: encrypt with server admin key

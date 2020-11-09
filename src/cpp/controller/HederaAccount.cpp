@@ -21,7 +21,7 @@ namespace controller {
 	{
 	}
 
-	Poco::AutoPtr<HederaAccount> HederaAccount::create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, model::table::HederaNetworkType type/* = HEDERA_MAINNET*/)
+	Poco::AutoPtr<HederaAccount> HederaAccount::create(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance/* = 0*/, ServerConfig::HederaNetworkType type/* = HEDERA_MAINNET*/)
 	{
 		auto db = new model::table::HederaAccount(user_id, account_hedera_id, account_key_id, balance, type);
 		auto group = new HederaAccount(db);
@@ -75,7 +75,7 @@ namespace controller {
 		return nullptr;
 	}
 
-	Poco::AutoPtr<HederaAccount> HederaAccount::pick(model::table::HederaNetworkType networkType, bool encrypted/* = false*/)
+	Poco::AutoPtr<HederaAccount> HederaAccount::pick(ServerConfig::HederaNetworkType networkType, bool encrypted/* = false*/)
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -269,7 +269,7 @@ namespace controller {
 	{
 		std::stringstream ss;
 		auto model = getModel();
-		ss << model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)model->getNetworkType()) << " ";
+		ss << model::table::HederaAccount::hederaNetworkTypeToString((ServerConfig::HederaNetworkType)model->getNetworkType()) << " ";
 		ss << getHederaId()->getModel()->toString() << " " << ((double)model->getBalance() / 100000000.0) << " Hbar";
 		return ss.str();
 	}

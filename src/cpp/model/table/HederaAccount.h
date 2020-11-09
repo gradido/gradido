@@ -1,7 +1,8 @@
 #ifndef GRADIDO_LOGIN_SERVER_MODEL_TABLE_HEDERA_ACCOUNTS_INCLUDE
 #define GRADIDO_LOGIN_SERVER_MODEL_TABLE_HEDERA_ACCOUNTS_INCLUDE
 
-#include "ModelBase.h"
+//#include "ModelBase.h"
+#include "../../ServerConfig.h"
 #include "Poco/Tuple.h"
 
 #include "NodeServer.h"
@@ -11,17 +12,13 @@ namespace model {
 
 		typedef Poco::Tuple<int, int, int, int, Poco::UInt64, int, Poco::DateTime> HederaAccountTuple;
 
-		enum HederaNetworkType {
-			HEDERA_MAINNET,
-			HEDERA_TESTNET,
-			HEDERA_NET_COUNT,
-		};
+		
 
 		class HederaAccount : public ModelBase
 		{
 		public:
 			HederaAccount();
-			HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, HederaNetworkType type = HEDERA_MAINNET);
+			HederaAccount(int user_id, int account_hedera_id, int account_key_id, Poco::UInt64 balance = 0, ServerConfig::HederaNetworkType type = ServerConfig::HEDERA_MAINNET);
 			HederaAccount(const HederaAccountTuple& tuple);
 			~HederaAccount();
 
@@ -30,8 +27,9 @@ namespace model {
 			std::string toString();
 			
 
-			static const char* hederaNetworkTypeToString(HederaNetworkType type);
-			static NodeServerType networkTypeToNodeServerType(HederaNetworkType type);
+			static const char* hederaNetworkTypeToString(ServerConfig::HederaNetworkType type);
+			static NodeServerType networkTypeToNodeServerType(ServerConfig::HederaNetworkType type);
+			static ServerConfig::HederaNetworkType hederaNetworkTypeFromString(const std::string& typeString);
 
 			inline int getAccountHederaId() const { return mAccountHederaId; }
 			inline int getCryptoKeyId() const { return mAccountKeyId; }
@@ -41,7 +39,7 @@ namespace model {
 			inline double getBalanceDouble() { return (double)mBalance / 100000000.0; }
 			std::string getBalanceString();
 
-			inline HederaNetworkType getNetworkType() { return (HederaNetworkType)mType; }
+			inline ServerConfig::HederaNetworkType getNetworkType() { return (ServerConfig::HederaNetworkType)mType; }
 			
 
 			inline std::string getUpdatedString() { return Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S"); }

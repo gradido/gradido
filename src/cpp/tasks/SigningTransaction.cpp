@@ -165,7 +165,7 @@ int SigningTransaction::run() {
 		return -6;
 	}
 
-	auto network_type = model::table::HEDERA_TESTNET;
+	auto network_type = ServerConfig::HEDERA_TESTNET;
 	auto topic_id = controller::HederaId::find(1, network_type);
 	auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
 	

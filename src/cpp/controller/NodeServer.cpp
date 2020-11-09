@@ -93,11 +93,11 @@ namespace controller {
 	ORDER BY RAND()
 	LIMIT 1;
 	*/
-	NodeServerConnection NodeServer::pick(model::table::HederaNetworkType type, int group_id /*= 0*/)
+	NodeServerConnection NodeServer::pick(ServerConfig::HederaNetworkType type, int group_id /*= 0*/)
 	{
 		model::table::NodeServerType node_server_type = model::table::NODE_SERVER_NONE;
-		if (model::table::HEDERA_MAINNET) node_server_type = model::table::NODE_SERVER_HEDERA_MAINNET_NODE;
-		else if (model::table::HEDERA_TESTNET) node_server_type = model::table::NODE_SERVER_HEDERA_TESTNET_NODE;
+		if (ServerConfig::HEDERA_MAINNET) node_server_type = model::table::NODE_SERVER_HEDERA_MAINNET_NODE;
+		else if (ServerConfig::HEDERA_TESTNET) node_server_type = model::table::NODE_SERVER_HEDERA_TESTNET_NODE;
 		return pick(node_server_type, group_id);
 	}
 	NodeServerConnection NodeServer::pick(model::table::NodeServerType type, int group_id/* = 0*/)

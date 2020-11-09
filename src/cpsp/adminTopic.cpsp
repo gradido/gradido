@@ -103,7 +103,9 @@
 			if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
 				addError(new Error("Int convert error", "Error converting group_id to int"));
 			}
-		}	
+		}
+
+		
 	}
 	
 	

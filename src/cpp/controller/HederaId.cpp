@@ -33,7 +33,7 @@ namespace controller {
 		return nullptr;
 	}
 
-	Poco::AutoPtr<HederaId> HederaId::find(int groupId, model::table::HederaNetworkType networkType)
+	Poco::AutoPtr<HederaId> HederaId::find(int groupId, ServerConfig::HederaNetworkType networkType)
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);

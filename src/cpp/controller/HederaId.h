@@ -23,7 +23,7 @@ namespace controller {
 
 		static Poco::AutoPtr<HederaId> load(int id);
 		//! \return hedera topic id for group and network type (should exist only one)
-		static Poco::AutoPtr<HederaId> find(int groupId, model::table::HederaNetworkType networkType);
+		static Poco::AutoPtr<HederaId> find(int groupId, ServerConfig::HederaNetworkType networkType);
 
 		bool isExistInDB();
 

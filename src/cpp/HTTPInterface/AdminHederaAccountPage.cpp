@@ -188,7 +188,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 				if(DataTypeConverter::strToInt(networkTypeString, networkType) != DataTypeConverter::NUMBER_PARSE_OKAY) {
 					addError(new Error("Int Convert Error", "Error converting network type to int"));
 				}
-				if(networkType < 0 || networkType >= (int)model::table::HEDERA_NET_COUNT) {
+				if(networkType < 0 || networkType >= (int)ServerConfig::HEDERA_NET_COUNT) {
 					addError(new Error("Network Type", "invalid value"));
 				}
 			}
@@ -228,7 +228,7 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 							hedera_id->getModel()->getID(),
 							crypto_key->getModel()->getID(),
 							0,
-							(model::table::HederaNetworkType)networkType
+							(ServerConfig::HederaNetworkType)networkType
 						);
 						if(!hedera_account->getModel()->insertIntoDB(false)) {
 							addError(new Error("DB Error", "Error saving hedera account into DB"));
@@ -414,13 +414,13 @@ void AdminHederaAccountPage::handleRequest(Poco::Net::HTTPServerRequest& request
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"account-network-type\" id=\"account-network-type\">\n";
 	responseStream << "\t\t\t";
 #line 301 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
- for(int i = 0; i < model::table::HEDERA_NET_COUNT; i++) { 	responseStream << "\n";
+ for(int i = 0; i < ServerConfig::HEDERA_NET_COUNT; i++) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<option value=\"";
 #line 302 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
 	responseStream << ( i );
 	responseStream << "\">";
 #line 302 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"
-	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)i) );
+	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString((ServerConfig::HederaNetworkType)i) );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t";
 #line 303 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminHederaAccount.cpsp"

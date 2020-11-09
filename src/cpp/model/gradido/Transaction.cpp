@@ -54,7 +54,7 @@ namespace model {
 				return nullptr;
 			}
 			auto group_model = group->getModel();
-			auto network_type = table::HEDERA_TESTNET;
+			auto network_type = ServerConfig::g_HederaNetworkType;
 			auto topic_id = controller::HederaId::find(group_model->getID(), network_type);
 
 			if (topic_id.isNull()) {
@@ -82,7 +82,7 @@ namespace model {
 			if (receiver.isNull() || !receiver->getModel()) {
 				return nullptr;
 			}
-			auto network_type = table::HEDERA_TESTNET;
+			auto network_type = ServerConfig::g_HederaNetworkType;
 			auto receiver_model = receiver->getModel();
 			auto topic_id = controller::HederaId::find(receiver_model->getGroupId(), network_type);
 
@@ -113,7 +113,7 @@ namespace model {
 			
 			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
 			auto sender_model = sender->getModel();
-			auto network_type = table::HEDERA_TESTNET;
+			auto network_type = ServerConfig::g_HederaNetworkType;
 			// LOCAL Transfer
 			if (receiverGroup.isNull() ||  sender_model->getGroupId() == receiverGroup->getModel()->getID())
 			{	
@@ -463,7 +463,7 @@ namespace model {
 			else 
 			{
 				// send transaction via hedera
-				auto network_type = table::HEDERA_TESTNET;
+				auto network_type = ServerConfig::g_HederaNetworkType;
 				// TODO: get correct topic id for user group
 				//int user_group_id = 1;
 				//auto topic_id = controller::HederaId::find(user_group_id, network_type);

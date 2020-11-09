@@ -54,6 +54,13 @@ namespace ServerConfig {
 		HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING
 	};
 
+	enum HederaNetworkType {
+		HEDERA_MAINNET,
+		HEDERA_TESTNET,
+		HEDERA_NET_COUNT,
+		HEDERA_UNKNOWN
+	};
+
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
@@ -82,6 +89,7 @@ namespace ServerConfig {
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
 	extern HederaConsensusMessageFormat g_ConsensusMessageFormat;
+	extern HederaNetworkType g_HederaNetworkType;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

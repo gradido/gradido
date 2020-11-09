@@ -167,7 +167,7 @@
 				if(DataTypeConverter::strToInt(networkTypeString, networkType) != DataTypeConverter::NUMBER_PARSE_OKAY) {
 					addError(new Error("Int Convert Error", "Error converting network type to int"));
 				}
-				if(networkType < 0 || networkType >= (int)model::table::HEDERA_NET_COUNT) {
+				if(networkType < 0 || networkType >= (int)ServerConfig::HEDERA_NET_COUNT) {
 					addError(new Error("Network Type", "invalid value"));
 				}
 			}
@@ -207,7 +207,7 @@
 							hedera_id->getModel()->getID(),
 							crypto_key->getModel()->getID(),
 							0,
-							(model::table::HederaNetworkType)networkType
+							(ServerConfig::HederaNetworkType)networkType
 						);
 						if(!hedera_account->getModel()->insertIntoDB(false)) {
 							addError(new Error("DB Error", "Error saving hedera account into DB"));
@@ -298,8 +298,8 @@
 			<input class="form-control" id="account-public-key" type="text" name="account-public-key"/>
 			<label class="form-label" for="account-network-type">Network Type</label>
 			<select class="form-control" name="account-network-type" id="account-network-type">
-			<% for(int i = 0; i < model::table::HEDERA_NET_COUNT; i++) { %>
-				<option value="<%= i %>"><%= model::table::HederaAccount::hederaNetworkTypeToString((model::table::HederaNetworkType)i) %></option>
+			<% for(int i = 0; i < ServerConfig::HEDERA_NET_COUNT; i++) { %>
+				<option value="<%= i %>"><%= model::table::HederaAccount::hederaNetworkTypeToString((ServerConfig::HederaNetworkType)i) %></option>
 			<% } %>
 			</select>
 			<input class="center-form-submit form-button" type="submit" name="add" value="<%= gettext("Add Account") %>">
