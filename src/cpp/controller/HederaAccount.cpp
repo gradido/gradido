@@ -49,7 +49,7 @@ namespace controller {
 		if (1 == db->loadFromDB("id", id)) {
 			return new HederaAccount(db);
 		}
-		delete db;
+		db->release();
 		return nullptr;
 	}
 
