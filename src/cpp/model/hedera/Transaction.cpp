@@ -7,6 +7,11 @@ namespace model {
 		{
 			mTransaction = new proto::Transaction;
 		}
+		Transaction::Transaction(proto::Transaction* transaction)
+			: mTransaction(transaction)
+		{
+
+		}
 
 		Transaction::~Transaction()
 		{

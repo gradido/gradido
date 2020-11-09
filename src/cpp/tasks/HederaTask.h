@@ -3,12 +3,14 @@
 
 #include "../model/hedera/TransactionResponse.h"
 #include "../model/hedera/TransactionReceipt.h"
+#include "../model/hedera/Transaction.h"
 #include "../proto/hedera/BasicTypes.pb.h"
 #include "../proto/hedera/Duration.pb.h"
 
 #include "../model/gradido/Transaction.h"
 
 #include "../controller/PendingTask.h"
+#include "../controller/HederaAccount.h"
 
 #include "Poco/Timestamp.h"
 
@@ -27,6 +29,7 @@ class HederaTask : public controller::PendingTask, public NotificationList
 public:
 
 	HederaTask(const model::gradido::Transaction* transaction);
+	HederaTask(const model::hedera::Transaction* transaction);
 	HederaTask(model::table::PendingTask* dbModel);
 	~HederaTask();
 

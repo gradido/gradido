@@ -15,6 +15,7 @@
 #include "HederaId.h"
 #include "HederaAccount.h"
 
+#include "../tasks/HederaTask.h"
 
 namespace controller {
 	class HederaTopic : public TableControllerBase, public NotificationList
@@ -26,16 +27,18 @@ namespace controller {
 		static Poco::AutoPtr<HederaTopic> create(const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId);
 		static std::vector<Poco::AutoPtr<HederaTopic>> listAll();
 		static Poco::AutoPtr<HederaTopic> load(int id);
-		//! \brief hedera call to create a hedera topic
-		Poco::UInt64 hederaCreateTopic();
+		
+		
 		bool updateWithGetTopicInfos(Poco::AutoPtr<User> user);
+
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 		Poco::AutoPtr<HederaId> getTopicHederaId();
 		Poco::AutoPtr<HederaAccount> getAutoRenewAccount();
 
+		//! \brief hedera call to create a hedera topic
+		Poco::AutoPtr<HederaTask> createTopic(Poco::AutoPtr<controller::HederaAccount> operatorAccount, Poco::AutoPtr<controller::User> user);
 		
-
 		inline Poco::AutoPtr<model::table::HederaTopic> getModel() { return _getModel<model::table::HederaTopic>(); }
 
 

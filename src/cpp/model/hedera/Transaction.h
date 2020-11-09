@@ -20,6 +20,7 @@ namespace model {
 		{
 		public:
 			Transaction();
+			Transaction(proto::Transaction* transaction);
 			~Transaction();
 
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, const TransactionBody* transactionBody);

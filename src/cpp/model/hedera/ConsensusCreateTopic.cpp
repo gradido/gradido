@@ -12,7 +12,9 @@ namespace model {
 			auto_renew_period->set_seconds(autoRenewPeriod);
 
 			auto auto_renew_account = mProtoCreateTopic->mutable_autorenewaccount();
-			autoRenewHederaAccountId->copyToProtoAccountId(auto_renew_account);
+			if (!autoRenewHederaAccountId.isNull()) {
+				autoRenewHederaAccountId->copyToProtoAccountId(auto_renew_account);
+			}
 
 		}
 		ConsensusCreateTopic::~ConsensusCreateTopic()

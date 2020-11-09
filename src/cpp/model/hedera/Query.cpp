@@ -67,10 +67,10 @@ namespace model {
 
 			query->mTransactionBody = new TransactionBody(payerAccountId, connection);
 			CryptoTransferTransaction crypto_transaction;
-			// 0.002809 Hashbars
+			// 0.003317 Hashbars
 			// fee from https://www.hedera.com/fees
-			crypto_transaction.addSender(payerAccountId, 2809);
-			crypto_transaction.addReceiver(connection.hederaId, 2809);
+			crypto_transaction.addSender(payerAccountId, 3317);
+			crypto_transaction.addReceiver(connection.hederaId, 3317);
 			query->mTransactionBody->setCryptoTransfer(crypto_transaction);
 
 			return query;

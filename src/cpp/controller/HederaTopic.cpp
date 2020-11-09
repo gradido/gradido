@@ -3,6 +3,9 @@
 #include "HederaRequest.h"
 #include "../lib/Success.h"
 
+#include "../model/hedera/ConsensusCreateTopic.h"
+#include "../model/hedera/Transaction.h"
+
 namespace controller {
 	HederaTopic::HederaTopic(model::table::HederaTopic* dbModel)
 	{
@@ -64,10 +67,6 @@ namespace controller {
 		return mAutoRenewAccount;
 	}
 
-	Poco::UInt64 HederaTopic::hederaCreateTopic()
-	{
-		return 0;
-	}
 
 	bool HederaTopic::updateWithGetTopicInfos(Poco::AutoPtr<User> user)
 	{
@@ -123,5 +122,42 @@ namespace controller {
 		getErrors(&request);
 		return false;
 		
+	}
+
+	Poco::AutoPtr<HederaTask> HederaTopic::createTopic(Poco::AutoPtr<controller::HederaAccount> operatorAccount, Poco::AutoPtr<controller::User> user)
+	{
+		static const char* function_name = "HederaTopic::createTopic";
+		auto model = getModel();
+		Poco::AutoPtr<controller::HederaId> autoRenewAccountId(nullptr);
+		if (model->getAutoRenewAccountId()) {
+			autoRenewAccountId = controller::HederaId::load(model->getAutoRenewAccountId());
+		}
+		model::hedera::ConsensusCreateTopic hederaCreateTopic(autoRenewAccountId, model->getAutoRenewPeriod());
+		auto hederaTransactionBody = operatorAccount->createTransactionBody();
+		hederaTransactionBody->setCreateTopic(hederaCreateTopic);
+		model::hedera::Transaction hederaTransaction;
+		if (!hederaTransaction.sign(operatorAccount->getCryptoKey()->getKeyPair(user), std::move(hederaTransactionBody))) {
+			addError(new Error(function_name, "error signing hedera transaction"));
+			return nullptr;
+		}
+
+		Poco::AutoPtr<HederaTask> receiptTask(new HederaTask(&hederaTransaction));
+		HederaRequest request;
+		auto result = request.request(&hederaTransaction, receiptTask.get());
+		if (HEDERA_REQUEST_RETURN_OK == result) {
+			if (proto::OK == receiptTask->getTransactionResponse()->getPrecheckCode()) {
+				
+				return receiptTask;
+			}
+			else {
+				addError(new ParamError(function_name, "precheck code error", receiptTask->getTransactionResponse()->getPrecheckCodeString()));
+				return nullptr;
+			}
+		}
+		else {
+			addError(new Error(function_name, "error in hedera request"));
+			return nullptr;
+		}
+
 	}
 }

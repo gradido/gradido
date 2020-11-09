@@ -13,6 +13,28 @@ HederaTask::HederaTask(const model::gradido::Transaction* transaction)
 	hedera_task_model->setTaskType(model::table::TASK_TYPE_HEDERA_TOPIC_MESSAGE);
 }
 
+HederaTask::HederaTask(const model::hedera::Transaction* transaction)
+: controller::PendingTask(new model::table::PendingTask), mTransactionReceipt(nullptr)
+{
+	auto hedera_task_model = getModel();
+	//auto gradido_task_model = transaction->getModel();
+	//hedera_task_model->setUserId(gradido_task_model->getUserId());
+	model::table::TaskType task_type;
+	auto transaction_type = transaction->getType();
+	switch (transaction_type) {
+	case model::hedera::TRANSACTION_CONSENSUS_CREATE_TOPIC:
+		task_type = model::table::TASK_TYPE_HEDERA_TOPIC_CREATE; break;
+	case model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE:
+		task_type = model::table::TASK_TYPE_HEDERA_TOPIC_MESSAGE; break;
+	case model::hedera::TRANSACTION_CRYPTO_CREATE:
+		task_type = model::table::TASK_TYPE_HEDERA_ACCOUNT_CREATE; break;
+	case model::hedera::TRANSACTION_CRYPTO_TRANSFER:
+		task_type = model::table::TASK_TYPE_HEDERA_ACCOUNT_TRANSFER; break;
+	}
+	hedera_task_model->setTaskType(task_type);
+	
+}
+
 HederaTask::HederaTask(model::table::PendingTask* dbModel)
     : controller::PendingTask(dbModel), mTransactionReceipt(nullptr)
 {

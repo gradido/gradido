@@ -83,6 +83,23 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 	return HEDERA_REQUEST_UNKNOWN_QUERY;
 }
 
+HederaRequestReturn HederaRequest::request(model::hedera::TransactionGetReceiptQuery* query, model::hedera::Response* response)
+{
+	auto channel = grpc::CreateChannel(query->getConnectionString(), grpc::InsecureChannelCredentials());
+
+	grpc::ClientContext context;
+	std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() +
+		std::chrono::milliseconds(5000);
+	context.set_deadline(deadline);
+
+	auto proto_query = query->getProto();
+	auto proto_response = response->getResponsePtr();
+	grpc::Status status;
+
+	auto stub = proto::CryptoService::NewStub(channel);
+	status = stub->getTransactionReceipts(&context, *proto_query, proto_response);
+}
+
 HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transaction, model::hedera::Response* response)
 {
 	auto channel = grpc::CreateChannel(transaction->getConnectionString(), grpc::InsecureChannelCredentials());
@@ -106,7 +123,8 @@ HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transacti
 	context.set_deadline(deadline);
 	auto transaction_type = transaction->getType();
 	task->setTransactionId(transaction->getTransactionId());
-	if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type) {
+	if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type ||
+		model::hedera::TRANSACTION_CONSENSUS_CREATE_TOPIC == transaction_type) {
 		auto stub = proto::ConsensusService::NewStub(channel);
 		
 		auto status = stub->submitMessage(&context, *transaction->getTransaction(), task->getTransactionResponse()->getProtoResponse());
@@ -119,7 +137,8 @@ HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transacti
 			return HEDERA_REQUEST_RETURN_ERROR;
 		}
 	}
-	addError(new ParamError("Hedera Request", "not implemnetet or unknown transaction type", transaction_type));
+	
+	addError(new ParamError("Hedera Request", "not implementet or unknown transaction type", transaction_type));
 	return HEDERA_REQUEST_UNKNOWN_TRANSACTION;
 }
 
