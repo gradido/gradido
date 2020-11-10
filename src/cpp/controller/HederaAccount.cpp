@@ -75,7 +75,7 @@ namespace controller {
 		return nullptr;
 	}
 
-	Poco::AutoPtr<HederaAccount> HederaAccount::pick(ServerConfig::HederaNetworkType networkType, bool encrypted/* = false*/)
+	Poco::AutoPtr<HederaAccount> HederaAccount::pick(ServerConfig::HederaNetworkType networkType, bool encrypted/* = false*/, int user_id/* = 0*/)
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -91,9 +91,17 @@ namespace controller {
 			<< "JOIN hedera_ids as i ON(i.id = account_hedera_id) "
 			<< "JOIN crypto_keys as k ON(k.id = account.account_key_id) "
 			<< "WHERE account.network_type = ? "
-			<< "AND k.crypto_key_type_id = ? "
-			<< "ORDER BY RAND() LIMIT 1 "
+			<< "AND k.crypto_key_type_id = ? ";
+
+		if (user_id > 0) {
+			select << " AND account.user_id = ? ";
+		}
+		select << "ORDER BY RAND() LIMIT 1 " 
 			, into(result_tuple), use(network_type_int) , use(crypto_key_type);
+
+		if (user_id > 0) {
+			select, use(user_id);
+		}
 
 		try {
 			select.executeAsync();
@@ -261,6 +269,10 @@ namespace controller {
 	{
 		auto account_model = getModel();		
 		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
+		auto hedera_id = getHederaId();
+		if (hedera_id.isNull()) {
+			return nullptr;
+		}
 		return std::make_unique<model::hedera::TransactionBody>(mHederaID, hedera_node);
 	}
 

@@ -20,7 +20,6 @@ namespace model {
 			static Poco::AutoPtr<QueryHeader> createWithPaymentTransaction(
 				Poco::AutoPtr<controller::HederaAccount> operatorAccount,
 				const controller::NodeServerConnection& connection,
-				Poco::AutoPtr<controller::User> keyHolder,
 				Poco::UInt32 cost
 			);
 

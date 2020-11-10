@@ -124,7 +124,26 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 			if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
 				addError(new Error("Int convert error", "Error converting group_id to int"));
 			}
-		}	
+		}
+		//const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId
+
+		auto hedera_topic = controller::HederaTopic::create(name, auto_renew_account, auto_renew_period, group_id); 
+		if(!hedera_topic->getModel()->insertIntoDB(true)) {
+			addError(new Error("Topic", "error saving into db"));
+		} else {
+			auto payer = controller::HederaAccount::load(auto_renew_account);
+			if(payer.isNull()) {
+				addError(new Error("Payer", "payer account not found"));
+			} else {
+				auto hedera_task = hedera_topic->createTopic(payer, user);
+				if(hedera_task.isNull()) {
+					addError(new Error("Create Topic", "Failed"));
+					getErrors(hedera_topic);
+				}
+			}
+		}
+
+		
 	}
 	
 	
@@ -208,7 +227,7 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t}\n";
 	responseStream << "\t\n";
 	responseStream << "</style>\n";
-#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"content-container info-container\">\n";
@@ -233,7 +252,7 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c5\">Aktionen</div>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 155 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) {
 					auto hedera_topic_model = (*it)->getModel();  
 					auto updateUrl = ServerConfig::g_serverPath + "/topic?action=getTopicInfos&topic_id=" + std::to_string(hedera_topic_model->getID());
@@ -245,58 +264,69 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 					} else if((hedera_topic_model->getCurrentTimeout() - Poco::DateTime()) < Poco::Timespan(2,0,0,0,0)) {
 						timeout_color = "orange-color";
 					}
+					std::string topic_hedera_id_string = "";
+					auto topic_hedera_id = (*it)->getTopicHederaId();
+					if(!topic_hedera_id.isNull()) {
+						topic_hedera_id_string = topic_hedera_id->getModel()->toString();
+					}
+					
 						responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 168 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
-	responseStream << ( (*it)->getTopicHederaId()->getModel()->toString() );
+#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+	responseStream << ( topic_hedera_id_string );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 169 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 194 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getName() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 170 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 195 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c4\">";
-#line 171 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 196 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( renew_account_model->getBalanceString() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c4\">";
-#line 172 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getAutoRenewPeriodString() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 173 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getGroupId() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3 ";
-#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 199 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( timeout_color );
 	responseStream << "\">";
-#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 199 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getCurrentTimeoutString() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getSequenceNumber() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 201 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( hedera_topic_model->getUpdatedString() );
 	responseStream << "</div>\n";
-	responseStream << "\t\t\t\t\t<div class=\"cell c5\">\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c5\">";
+#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+ if(!topic_hedera_id.isNull()) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t<button class=\"form-button\" title=\"Query on Hedera, cost some fees\" onclick=\"window.location.href='";
-#line 178 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( updateUrl );
 	responseStream << "'\"  >\n";
 	responseStream << "\t\t\t\t\t\t\tget topic infos\n";
 	responseStream << "\t\t\t\t\t\t</button>\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 183 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 209 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
@@ -305,72 +335,72 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t<form method=\"POST\" action=\"";
-#line 190 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 216 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/topic\">\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"topic-name\">Name</label>\n";
 	responseStream << "\t\t\t<input type=\"text\" class=\"form-control\" id=\"topic-name\" name=\"topic-name\" value=\"";
-#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 218 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( name );
 	responseStream << "\">\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"topic-auto-renew-account\">Auto Renew Hedera Account</label>\n";
 	responseStream << "\t\t\t<select name=\"topic-auto-renew-account\" id=\"topic-auto-renew-account\">\n";
 	responseStream << "\t\t\t\t";
-#line 195 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 221 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) { 
 					auto model = (*it)->getModel();
 					responseStream << "\n";
 	responseStream << "\t\t\t\t\t<option title=\"";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 224 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( model->toString() );
 	responseStream << "\" value=\"";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 224 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( model->getID() );
 	responseStream << "\" ";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 224 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  if(auto_renew_account == model->getID()) {	responseStream << "selected=\"selected\"";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 224 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  } 	responseStream << ">";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 224 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( (*it)->toShortSelectOptionName() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t";
-#line 199 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 225 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"topic-auto-renew-period\">Auto Renew Period in seconds</label>\n";
 	responseStream << "\t\t\t<div><input class=\"form-control input-40\" id=\"topic-auto-renew-period\" value=\"";
-#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 228 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( auto_renew_period );
 	responseStream << "\" type=\"number\" name=\"topic-auto-renew-period\"/><span style=\"margin-left:8px\" id=\"readable-auto-renew-period\"></span><div>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"topic-group\">Group</label>\n";
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"topic-group\" id=\"topic-group\">\t\t\t\n";
 	responseStream << "\t\t\t\t<option value=\"-1\">Keine Gruppe</option>\n";
 	responseStream << "\t\t\t\t";
-#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 232 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  for(auto it = groups.begin(); it != groups.end(); it++) { 
 					auto group_model = (*it)->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t<option title=\"";
-#line 208 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( group_model->getDescription() );
 	responseStream << "\" value=\"";
-#line 208 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( group_model->getID() );
 	responseStream << "\" ";
-#line 208 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  if(group_id == group_model->getID()) {	responseStream << "selected=\"selected\"";
-#line 208 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  } 	responseStream << ">";
-#line 208 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t";
-#line 209 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 235 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"";
-#line 212 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 238 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( gettext("Add Topic") );
 	responseStream << "\">\n";
 	responseStream << "\t\t</form>\n";
@@ -401,7 +431,7 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	// end include footer.cpsp
 	responseStream << "\n";
 	responseStream << "<script type=\"text/javascript\" src=\"";
-#line 217 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
+#line 243 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/time_calculations.js\"></script>\n";
 	responseStream << "<script type=\"text/javascript\">\n";

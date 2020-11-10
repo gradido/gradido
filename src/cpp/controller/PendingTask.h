@@ -4,6 +4,7 @@
 #include "../model/table/PendingTask.h"
 
 #include "Poco/SharedPtr.h"
+#include "Poco/Timer.h"
 
 #include "TableControllerBase.h"
 #include "User.h"
@@ -38,6 +39,9 @@ namespace controller {
 		//! \return -2 critical error, abort, remove
 		virtual int run() { return false; };
 
+		void startTimer();
+		void calledFromTimer(Poco::Timer& timer);
+
 		Poco::AutoPtr<controller::User> getUser();
 		
 	protected:
@@ -45,7 +49,7 @@ namespace controller {
 		PendingTask(model::table::PendingTask* dbModel);
 
 		Poco::AutoPtr<controller::User> mUser;
-		
+		Poco::Timer mTimer;
 
 	};
 }

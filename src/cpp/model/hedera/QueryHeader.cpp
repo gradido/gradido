@@ -18,11 +18,11 @@ namespace model {
 		Poco::AutoPtr<QueryHeader> QueryHeader::createWithPaymentTransaction(
 			Poco::AutoPtr<controller::HederaAccount> operatorAccount,
 			const controller::NodeServerConnection& connection,
-			Poco::AutoPtr<controller::User> keyHolder,
 			Poco::UInt32 cost
 		) {
 			Poco::AutoPtr<QueryHeader> query_header(new QueryHeader);
 			auto proto_query_header = query_header->getProtoQueryHeader();
+			proto_query_header->set_responsetype(proto::ANSWER_ONLY);
 			auto payment_transaction = proto_query_header->payment();
 
 			query_header->mConnectionString = connection.getUriWithPort();
@@ -33,7 +33,7 @@ namespace model {
 			transfer_transaction.addSender(operatorAccount->getHederaId(), cost);
 			transfer_transaction.addReceiver(connection.hederaId, cost);
 			body.setCryptoTransfer(transfer_transaction);
-			transactionObj.sign(operatorAccount->getCryptoKey()->getKeyPair(keyHolder), &body);
+			transactionObj.sign(operatorAccount->getCryptoKey()->getKeyPair(), &body);
 			transactionObj.resetPointer();
 
 			return query_header;

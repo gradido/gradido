@@ -19,7 +19,7 @@ namespace model {
 		}
 
 		HederaTopic::HederaTopic(const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId)
-			: mTopicHederaId(0), mName(name), mAutoRenewAccountHederaId(autoRenewAccountId), mAutoRenewPeriod(autoRenewAccountId), mGroupId(groupId),
+			: mTopicHederaId(0), mName(name), mAutoRenewAccountHederaId(autoRenewAccountId), mAutoRenewPeriod(autoRenewPeriod), mGroupId(groupId),
 				mAdminKeyId(0), mSubmitKeyId(0), mSequenceNumber(0)
 		{
 
@@ -98,9 +98,9 @@ namespace model {
 			lock();
 			insert << "INSERT INTO " << getTableName()
 				<< " (topic_hedera_id, name, auto_renew_account_hedera_id, auto_renew_period,"
-				<< " group_id, admin_key_id, submit_key_id, current_timeout, sequence_number) VALUES(?,?,?,?,?,?,?,?)"
+				<< " group_id, admin_key_id, submit_key_id, current_timeout, sequence_number) VALUES(?,?,?,?,?,?,?,?,?)"
 				, use(mTopicHederaId), use(mName), use(mAutoRenewAccountHederaId), use(mAutoRenewPeriod)
-				, use(mGroupId), use(mAdminKeyId), use(mSubmitKeyId), use(mCurrentTimeout), use(mSequenceNumber), use(mUpdated);
+				, use(mGroupId), use(mAdminKeyId), use(mSubmitKeyId), use(mCurrentTimeout), use(mSequenceNumber);
 			unlock();
 			return insert;
 		}

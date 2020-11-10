@@ -9,6 +9,8 @@ CREATE TABLE `hedera_topics` (
   `submit_key_id` int unsigned DEFAULT NULL,
   `current_timeout` DATETIME NOT NULL DEFAULT '2000-01-01 00:00:00',
   `sequence_number` bigint unsigned DEFAULT '0',
+  `running_hash` VARBINARY(64) DEFAULT NULL,
+  `running_hash_version` int unsigned DEFAULT 0,
   `updated` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `topic_hedera_id` (`topic_hedera_id`)

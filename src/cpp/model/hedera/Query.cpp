@@ -1,4 +1,5 @@
 #include "Query.h"
+#include "QueryHeader.h"
 #include "Poco/Timestamp.h"
 #include "../../SingletonManager/MemoryManager.h"
 
@@ -76,6 +77,23 @@ namespace model {
 			return query;
 		}
 
+		Query* Query::getTransactionGetReceiptQuery(
+			const proto::TransactionID& transactionId,
+			Poco::AutoPtr<controller::HederaAccount> payerAccount,
+			const controller::NodeServerConnection& connection
+		)
+		{
+			assert(!payerAccount.isNull());
+			auto query = new Query;
+			query->mQueryHeader = QueryHeader::createWithPaymentTransaction(payerAccount, connection, 0);
+			auto transaction_get_receipt_query = query->mQueryProto.mutable_transactiongetreceipt();
+			transaction_get_receipt_query->set_allocated_header(query->mQueryHeader->getProtoQueryHeader());
+			auto transaction_id = transaction_get_receipt_query->transactionid();
+			transaction_id = transactionId;
+
+			return query;
+		}
+
 		proto::QueryHeader* Query::getQueryHeader()
 		{
 			if (mQueryProto.has_cryptogetaccountbalance()) {
@@ -83,6 +101,9 @@ namespace model {
 			}
 			else if (mQueryProto.has_consensusgettopicinfo()) {
 				return mQueryProto.mutable_consensusgettopicinfo()->mutable_header();
+			}
+			else {
+				return mQueryHeader->getProtoQueryHeader();
 			}
 			return nullptr;
 		}

@@ -3,7 +3,8 @@
 namespace model {
 	namespace hedera {
 
-		TransactionReceipt::TransactionReceipt()
+		TransactionReceipt::TransactionReceipt(const proto::TransactionReceipt& protoReceipt)
+			: mProtoReceipt(protoReceipt)
 		{
 
 		}
@@ -11,6 +12,14 @@ namespace model {
 		TransactionReceipt::~TransactionReceipt()
 		{
 
+		}
+
+		MemoryBin* TransactionReceipt::getRunningHash()
+		{
+			auto hash = mProtoReceipt.topicrunninghash();
+			auto hashBin = MemoryManager::getInstance()->getFreeMemory(hash.size());
+			memcpy(*hashBin, hash.data(), hash.size());
+			return hashBin;
 		}
 	}
 }

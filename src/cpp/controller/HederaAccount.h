@@ -25,7 +25,7 @@ namespace controller {
 		static Poco::AutoPtr<HederaAccount> load(Poco::AutoPtr<controller::HederaId> hederaId);
 		static std::vector<Poco::AutoPtr<HederaAccount>> listAll();
 		//! \brief for picking a account for paying transaction, mostly consensusSendMessage
-		static Poco::AutoPtr<HederaAccount> pick(ServerConfig::HederaNetworkType networkType, bool encrypted = false);
+		static Poco::AutoPtr<HederaAccount> pick(ServerConfig::HederaNetworkType networkType, bool encrypted = false, int user_id = 0);
 
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 

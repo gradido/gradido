@@ -104,6 +104,23 @@
 				addError(new Error("Int convert error", "Error converting group_id to int"));
 			}
 		}
+		//const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId
+
+		auto hedera_topic = controller::HederaTopic::create(name, auto_renew_account, auto_renew_period, group_id); 
+		if(!hedera_topic->getModel()->insertIntoDB(true)) {
+			addError(new Error("Topic", "error saving into db"));
+		} else {
+			auto payer = controller::HederaAccount::load(auto_renew_account);
+			if(payer.isNull()) {
+				addError(new Error("Payer", "payer account not found"));
+			} else {
+				auto hedera_task = hedera_topic->createTopic(payer, user);
+				if(hedera_task.isNull()) {
+					addError(new Error("Create Topic", "Failed"));
+					getErrors(hedera_topic);
+				}
+			}
+		}
 
 		
 	}
@@ -165,9 +182,15 @@
 					} else if((hedera_topic_model->getCurrentTimeout() - Poco::DateTime()) < Poco::Timespan(2,0,0,0,0)) {
 						timeout_color = "orange-color";
 					}
+					std::string topic_hedera_id_string = "";
+					auto topic_hedera_id = (*it)->getTopicHederaId();
+					if(!topic_hedera_id.isNull()) {
+						topic_hedera_id_string = topic_hedera_id->getModel()->toString();
+					}
+					
 					%>
 				<div class="row">
-					<div class="cell c2"><%= (*it)->getTopicHederaId()->getModel()->toString() %></div>
+					<div class="cell c2"><%= topic_hedera_id_string %></div>
 					<div class="cell c3"><%= hedera_topic_model->getName() %></div>
 					<div class="cell c3"><%= model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) %></div>
 					<div class="cell c4"><%= renew_account_model->getBalanceString() %></div>
@@ -176,10 +199,11 @@
 					<div class="cell c3 <%= timeout_color %>"><%= hedera_topic_model->getCurrentTimeoutString() %></div>
 					<div class="cell c2"><%= hedera_topic_model->getSequenceNumber() %></div>
 					<div class="cell c3"><%= hedera_topic_model->getUpdatedString() %></div>
-					<div class="cell c5">
+					<div class="cell c5"><% if(!topic_hedera_id.isNull()) { %>
 						<button class="form-button" title="Query on Hedera, cost some fees" onclick="window.location.href='<%= updateUrl %>'"  >
 							get topic infos
 						</button>
+						<% } %>
 					</div>
 				</div>
 			<% } %>

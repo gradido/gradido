@@ -28,6 +28,14 @@ namespace model {
 			return nullptr;
 		}
 
+		TransactionReceipt* Response::getTransactionReceipt()
+		{
+			if (mResponseProto.has_transactiongetreceipt()) {
+				return new TransactionReceipt(mResponseProto.transactiongetreceipt().receipt());
+			}
+			return nullptr;
+		}
+
 		Poco::UInt64 Response::getQueryCost()
 		{
 			proto::ResponseHeader* response_header = nullptr;

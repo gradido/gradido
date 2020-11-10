@@ -6,6 +6,8 @@
 #include "../model/hedera/ConsensusCreateTopic.h"
 #include "../model/hedera/Transaction.h"
 
+#include "../SingletonManager/PendingTasksManager.h"
+
 namespace controller {
 	HederaTopic::HederaTopic(model::table::HederaTopic* dbModel)
 	{
@@ -31,7 +33,6 @@ namespace controller {
 		// throw an unresolved external symbol error
 		topic_list = db->loadAllFromDB<model::table::HederaTopicTuple>();
 
-		
 		std::vector<Poco::AutoPtr<HederaTopic>> resultVector;
 
 		resultVector.reserve(topic_list.size());
@@ -39,6 +40,7 @@ namespace controller {
 			Poco::AutoPtr<HederaTopic> topic_ptr(new HederaTopic(new model::table::HederaTopic(*it)));
 			resultVector.push_back(topic_ptr);
 		}
+
 		return resultVector;
 	}
 
@@ -72,7 +74,12 @@ namespace controller {
 	{
 		auto payer_account = getAutoRenewAccount();
 		auto node_server = NodeServer::pick(payer_account->getModel()->getNetworkType(), getModel()->getGroupId());
-		auto query = model::hedera::Query::getTopicInfo(getTopicHederaId(), payer_account->getHederaId(), node_server);
+		auto hedera_topic_id = getTopicHederaId();
+		if (hedera_topic_id.isNull()) {
+			addError(new Error("Hedera Topic", "no hedera topic id exist"));
+			return false;
+		}
+		auto query = model::hedera::Query::getTopicInfo(hedera_topic_id, payer_account->getHederaId(), node_server);
 		query->setResponseType(proto::COST_ANSWER);
 		model::hedera::Response response;
 		HederaRequest request;
@@ -127,13 +134,21 @@ namespace controller {
 	Poco::AutoPtr<HederaTask> HederaTopic::createTopic(Poco::AutoPtr<controller::HederaAccount> operatorAccount, Poco::AutoPtr<controller::User> user)
 	{
 		static const char* function_name = "HederaTopic::createTopic";
+		printf("[HederaTopic::createTopic]\n");
 		auto model = getModel();
+		if (!model->getID()) {
+			addError(new Error(function_name, "no db entry for topic created, id is missing"));
+			return nullptr;
+		}
 		Poco::AutoPtr<controller::HederaId> autoRenewAccountId(nullptr);
 		if (model->getAutoRenewAccountId()) {
-			autoRenewAccountId = controller::HederaId::load(model->getAutoRenewAccountId());
+			//autoRenewAccountId = controller::HederaId::load(model->getAutoRenewAccountId());
 		}
 		model::hedera::ConsensusCreateTopic hederaCreateTopic(autoRenewAccountId, model->getAutoRenewPeriod());
 		auto hederaTransactionBody = operatorAccount->createTransactionBody();
+		if (model->getName() != "") {
+			hederaCreateTopic.setMemo(model->getName());
+		}
 		hederaTransactionBody->setCreateTopic(hederaCreateTopic);
 		model::hedera::Transaction hederaTransaction;
 		if (!hederaTransaction.sign(operatorAccount->getCryptoKey()->getKeyPair(user), std::move(hederaTransactionBody))) {
@@ -142,11 +157,20 @@ namespace controller {
 		}
 
 		Poco::AutoPtr<HederaTask> receiptTask(new HederaTask(&hederaTransaction));
+		auto receipt_task_model = receiptTask->getModel();
+		receipt_task_model->setParentPendingTaskId(model->getID());
+		receipt_task_model->setUserId(user->getModel()->getID());
+
 		HederaRequest request;
+		printf("[HederaTopic::createTopic] before calling request\n");
 		auto result = request.request(&hederaTransaction, receiptTask.get());
 		if (HEDERA_REQUEST_RETURN_OK == result) {
 			if (proto::OK == receiptTask->getTransactionResponse()->getPrecheckCode()) {
-				
+				auto pt = PendingTasksManager::getInstance();
+				printf("[HederaTopic::createTopic] before add task\n");
+				pt->addTask(receiptTask);
+				printf("[HederaTopic::createTopic] before start timer\n");
+				receiptTask->startTimer();
 				return receiptTask;
 			}
 			else {

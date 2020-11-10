@@ -61,6 +61,12 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 		status = stub->getTopicInfo(&context, *proto_query, proto_response);
 
 	}
+	else if (proto_query->has_transactiongetreceipt()) {
+		auto stub = proto::CryptoService::NewStub(channel);
+
+		queryName = "crypto transaction get receipt";
+		status = stub->getTransactionReceipts(&context, *proto_query, proto_response);
+	}
 	if (status.ok()) 
 	{
 		auto response_code = response->getResponseCode();
@@ -83,22 +89,6 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 	return HEDERA_REQUEST_UNKNOWN_QUERY;
 }
 
-HederaRequestReturn HederaRequest::request(model::hedera::TransactionGetReceiptQuery* query, model::hedera::Response* response)
-{
-	auto channel = grpc::CreateChannel(query->getConnectionString(), grpc::InsecureChannelCredentials());
-
-	grpc::ClientContext context;
-	std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() +
-		std::chrono::milliseconds(5000);
-	context.set_deadline(deadline);
-
-	auto proto_query = query->getProto();
-	auto proto_response = response->getResponsePtr();
-	grpc::Status status;
-
-	auto stub = proto::CryptoService::NewStub(channel);
-	status = stub->getTransactionReceipts(&context, *proto_query, proto_response);
-}
 
 HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transaction, model::hedera::Response* response)
 {
@@ -126,13 +116,22 @@ HederaRequestReturn HederaRequest::request(model::hedera::Transaction* transacti
 	if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type ||
 		model::hedera::TRANSACTION_CONSENSUS_CREATE_TOPIC == transaction_type) {
 		auto stub = proto::ConsensusService::NewStub(channel);
-		
-		auto status = stub->submitMessage(&context, *transaction->getTransaction(), task->getTransactionResponse()->getProtoResponse());
+		grpc::Status status;
+		std::string service_name;
+		if (model::hedera::TRANSACTION_CONSENSUS_SUBMIT_MESSAGE == transaction_type) {
+			status = stub->submitMessage(&context, *transaction->getTransaction(), task->getTransactionResponse()->getProtoResponse());
+			service_name = "submitMessage";
+		}
+		else if (model::hedera::TRANSACTION_CONSENSUS_CREATE_TOPIC == transaction_type) {
+			status = stub->createTopic(&context, *transaction->getTransaction(), task->getTransactionResponse()->getProtoResponse());
+			service_name = "createTopic";
+		}
 		if (status.ok()) {
 			return HEDERA_REQUEST_RETURN_OK;
 		}
 		else {
-			addError(new ParamError("Hedera Request", "consensus service submit message error message:", status.error_message()));
+			addError(new ParamError("Hedera Request", "consensus service error message:", status.error_message()));
+			addError(new ParamError("Hedera Request", "service name", service_name));
 			addError(new ParamError("Hedera Request", "details: ", status.error_details()));
 			return HEDERA_REQUEST_RETURN_ERROR;
 		}

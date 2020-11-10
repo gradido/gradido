@@ -40,7 +40,7 @@ namespace model {
 
 		bool ConsensusCreateTopic::validate()
 		{
-			if (mProtoCreateTopic->autorenewperiod().seconds() > 86400 && 0 != mProtoCreateTopic->autorenewaccount().accountnum()) { 
+			if (mProtoCreateTopic->autorenewperiod().seconds() > 86400) {// && 0 != mProtoCreateTopic->autorenewaccount().accountnum()) { 
 				return true; 
 			}
 			return false;

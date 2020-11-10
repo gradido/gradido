@@ -37,7 +37,6 @@ public:
 	~HederaRequest();
 
 	HederaRequestReturn request(model::hedera::Query* query, model::hedera::Response* response, Poco::UInt64 fee = 0);
-	HederaRequestReturn request(model::hedera::TransactionGetReceiptQuery* query, model::hedera::Response* response);
 	HederaRequestReturn request(model::hedera::Transaction* transaction, model::hedera::Response* response);
 	//! 
 	//! \param task goes into HederaTaskManager and will be run after transaction 

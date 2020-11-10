@@ -8,7 +8,7 @@ namespace model {
 			connection.hederaId->copyToProtoAccountId(mTransactionBody.mutable_nodeaccountid());
 			auto transaction_id = mTransactionBody.mutable_transactionid();
 			operatorAccountId->copyToProtoAccountId(transaction_id->mutable_accountid());
-			mTransactionBody.set_transactionfee(1000000);
+			mTransactionBody.set_transactionfee(10000000);
 			auto transaction_valid_duration = mTransactionBody.mutable_transactionvalidduration();
 			transaction_valid_duration->set_seconds(120);
 

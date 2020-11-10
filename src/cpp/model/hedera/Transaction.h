@@ -28,6 +28,7 @@ namespace model {
 			
 			inline proto::Transaction* getTransaction() { return mTransaction; }
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
+			const controller::NodeServerConnection& getConnection() const { return mConnection; }
 			void resetPointer() { mTransaction = nullptr; }
 			inline TransactionBodyType getType() const { return mType; }
 			inline proto::TransactionID getTransactionId() const { return mTransactionId; }
