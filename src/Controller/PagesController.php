@@ -46,6 +46,7 @@ class PagesController extends AppController
      */
     public function display(...$path)
     {
+      
         $count = count($path);
         if (!$count) {
             return $this->redirect('/');
@@ -61,7 +62,14 @@ class PagesController extends AppController
         if (!empty($path[1])) {
             $subpage = $path[1];
         }
-        $this->set(compact('page', 'subpage'));
+        $session = $this->getRequest()->getSession();
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
+        }
+        $user = $session->read('StateUser');
+        $login_server_session = $this->request->getCookie('GRADIDO_LOGIN', '');
+        $this->set(compact('page', 'subpage', 'user', 'login_server_session'));
 
         try {
             $this->render(implode('/', $path));
