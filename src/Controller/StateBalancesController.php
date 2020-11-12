@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions', 'ajaxGdtOverview']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -208,7 +208,7 @@ class StateBalancesController extends AppController
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('gdtSum', $gdtSum);
     }
-    
+
     public function ajaxGetBalance($session_id = 0)
     {
         if(!$session_id) {
@@ -249,8 +249,9 @@ class StateBalancesController extends AppController
         
         return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
     }
-    
-    public function ajaxListTransactions($session_id = 0, $sort = 'ASC')
+
+
+    public function ajaxListTransactions($session_id, $page, $count)
     {
         if(!$session_id) {
             return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
@@ -381,6 +382,17 @@ class StateBalancesController extends AppController
                 'gdtSum' => $gdtSum,
                 'timeUsed' => microtime(true) - $startTime
             ]);
+    }
+
+    public function ajaxListTransactions($page = 0, $count = 20)
+    {
+      // TODO: add efficient paging with additional table: state_user_transactions 
+      return $this->returnJson(['state' => 'success', 'transactions' => [], 'transactionExecutingCount' => 0, 'count' => 0]);
+    }
+
+    public function ajaxGdtOverview()
+    {
+      return $this->returnJson(['state' => 'success', 'gdt' => ['sum' => 0, 'count' => 0]]);
     }
 
     public function overviewGdt()
