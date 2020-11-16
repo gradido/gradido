@@ -20,6 +20,7 @@ class StateUserTransactionsController extends AppController
         $this->Auth->allow(['ajaxListTransactions']);
         //$this->loadComponent('JsonRequestClient');
     }
+
     /**
      * Index method
      *
