@@ -31,6 +31,7 @@ class TransactionGroupAddaddres extends Entity
         'remove_from_group' => true,
         'public_key' => true,
         'transaction' => true,
-        'address_type' => true
+        'address_type' => true,
+        'state_user_id' => true
     ];
 }

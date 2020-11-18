@@ -386,8 +386,100 @@ class StateBalancesController extends AppController
 
     public function ajaxListTransactions($page = 0, $count = 20)
     {
-      // TODO: add efficient paging with additional table: state_user_transactions 
-      return $this->returnJson(['state' => 'success', 'transactions' => [], 'transactionExecutingCount' => 0, 'count' => 0]);
+      $session = $this->getRequest()->getSession();
+      $user = $session->read('StateUser');
+      if(!$user) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'exist a valid session cookie?']);
+      }
+      $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
+      $paged_state_user_transactions = $stateUserTransactionsTable
+              ->find('all')
+              ->where(['state_user_id' => $user['id'], 'transaction_type_id IN' => [1,2]])
+              ->limit($count)
+              ->page($page)
+              ->order(['transaction_id'])
+              ;
+      $creationTransaction_ids = [];
+      $transferTransaction_ids = [];
+      $allTransaction_ids = [];
+      foreach($paged_state_user_transactions as $state_user_transaction) {
+        $allTransaction_ids[] = $state_user_transaction->transaction_id;
+        switch($state_user_transaction->transaction_type_id) {
+          case 1: $creationTransaction_ids[] = $state_user_transaction->transaction_id; break;
+          case 2: $transferTransaction_ids[] = $state_user_transaction->transaction_id; break;
+        }
+      }
+      $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+      $transactionCreationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
+      $transactionSendCoinsTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+      $transactionEntries = $transactionsTable->find('all')->where(['id IN' => $allTransaction_ids])->order(['id'])->toArray();
+      $transactionCreations = $transactionCreationsTable->find('all')->where(['transaction_id IN' => $creationTransaction_ids]);
+      $transactionTransfers = $transactionSendCoinsTable->find('all')->where(['transaction_id IN' => $transferTransaction_ids]);
+      //var_dump($transactions->all());
+      
+      $transactions = [];
+      foreach ($transactionCreations as $creation) {
+          //var_dump($creation);
+         $transaction_entries_index = array_search($creation->transaction_id, $allTransaction_ids);
+         if(FALSE == $transaction_entries_index) {
+           return $this->returnJson(['state' => 'error', 'msg' => 'code error', 'details' => 'transaction_entries_index is FALSE, shouldn\'t occure']);
+         }
+         $transaction = $transactionEntries[$transaction_entries_index];
+          array_push($transactions, [
+            'name' => 'Gradido Akademie',
+            'type' => 'creation',
+            'transaction_id' => $creation->transaction_id,
+            'date' => $transaction->received,
+            'balance' => $creation->amount,
+            'memo' => $transaction->memo
+          ]);
+      }
+        
+      foreach($transactionTransfers as $transfer) 
+      {
+        $transaction_entries_index = array_search($transfer->transaction_id, $allTransaction_ids);
+        if(FALSE == $transaction_entries_index) {
+          return $this->returnJson(['state' => 'error', 'msg' => 'code error', 'details' => 'transaction_entries_index is FALSE, shouldn\'t occure']);
+        }
+        $transaction = $transactionEntries[$transaction_entries_index];
+        $type = '';
+        $otherUser = null;
+        $other_user_public = '';
+        /*
+        if ($sendCoins->state_user_id == $user['id']) {
+            $type = 'send';
+
+            if(isset($involvedUserIndices[$sendCoins->receiver_user_id])) {
+              $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
+            }
+            $other_user_public = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
+        } else if ($sendCoins->receiver_user_id == $user['id']) {
+            $type = 'receive';
+            if(isset($involvedUserIndices[$sendCoins->state_user_id])) {
+              $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
+            }
+            if($sendCoins->sender_public_key) {
+              $other_user_public = bin2hex(stream_get_contents($sendCoins->sender_public_key));
+            }
+        }
+        if(null == $otherUser) {
+          $otherUser = $this->StateBalances->StateUsers->newEntity();
+        }
+        array_push($transactions, [
+         'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
+         'email' => $otherUser->email,
+         'type' => $type,
+         'transaction_id' => $sendCoins->transaction_id,
+         'date' => $sendCoins->transaction->received,
+         'balance' => $sendCoins->amount,
+         'memo' => $sendCoins->transaction->memo,
+         'pubkey' => $other_user_public
+        ]);
+         * */
+         
+      }
+      
+      return $this->returnJson(['state' => 'success', 'transactions' => $transactions, 'transactionExecutingCount' => 0, 'count' => 0]);
     }
 
     public function ajaxGdtOverview()
