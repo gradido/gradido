@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions', 'ajaxGdtOverview']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxListTransactions', 'ajaxGdtOverview', 'ajaxGetBalance']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -208,6 +208,7 @@ class StateBalancesController extends AppController
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('gdtSum', $gdtSum);
     }
+<<<<<<< HEAD
 
     public function ajaxGetBalance($session_id = 0)
     {
@@ -399,6 +400,11 @@ class StateBalancesController extends AppController
               ->page($page)
               ->order(['transaction_id'])
               ;
+      $all_user_transactions_count = $stateUserTransactionsTable
+              ->find('all')
+              ->where(['state_user_id' => $user['id'], 'transaction_type_id IN' => [1,2]])
+              ->count()
+              ;
       $creationTransaction_ids = [];
       $transferTransaction_ids = [];
       $allTransaction_ids = [];
@@ -412,74 +418,126 @@ class StateBalancesController extends AppController
       $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
       $transactionCreationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
       $transactionSendCoinsTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
-      $transactionEntries = $transactionsTable->find('all')->where(['id IN' => $allTransaction_ids])->order(['id'])->toArray();
-      $transactionCreations = $transactionCreationsTable->find('all')->where(['transaction_id IN' => $creationTransaction_ids]);
-      $transactionTransfers = $transactionSendCoinsTable->find('all')->where(['transaction_id IN' => $transferTransaction_ids]);
+      $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+      if(count($allTransaction_ids) > 0) {
+        $transactionEntries = $transactionsTable->find('all')->where(['id IN' => $allTransaction_ids])->order(['id'])->toArray();
+      }
+      if(count($creationTransaction_ids) > 0) {
+        $transactionCreations = $transactionCreationsTable->find('all')->where(['transaction_id IN' => $creationTransaction_ids]);
+      }
+      if(count($transferTransaction_ids)) {
+        $transactionTransfers = $transactionSendCoinsTable->find('all')->where(['transaction_id IN' => $transferTransaction_ids]);
+      }
       //var_dump($transactions->all());
       
       $transactions = [];
-      foreach ($transactionCreations as $creation) {
-          //var_dump($creation);
-         $transaction_entries_index = array_search($creation->transaction_id, $allTransaction_ids);
-         if(FALSE == $transaction_entries_index) {
-           return $this->returnJson(['state' => 'error', 'msg' => 'code error', 'details' => 'transaction_entries_index is FALSE, shouldn\'t occure']);
-         }
-         $transaction = $transactionEntries[$transaction_entries_index];
-          array_push($transactions, [
-            'name' => 'Gradido Akademie',
-            'type' => 'creation',
-            'transaction_id' => $creation->transaction_id,
-            'date' => $transaction->received,
-            'balance' => $creation->amount,
-            'memo' => $transaction->memo
-          ]);
-      }
-        
-      foreach($transactionTransfers as $transfer) 
-      {
-        $transaction_entries_index = array_search($transfer->transaction_id, $allTransaction_ids);
-        if(FALSE == $transaction_entries_index) {
-          return $this->returnJson(['state' => 'error', 'msg' => 'code error', 'details' => 'transaction_entries_index is FALSE, shouldn\'t occure']);
+      // creations
+      if(isset($transactionCreations)) {
+        foreach ($transactionCreations as $creation) {
+            //var_dump($creation);
+           $transaction_entries_index = array_search($creation->transaction_id, $allTransaction_ids);
+           if(FALSE === $transaction_entries_index) {
+             return $this->returnJson(['state' => 'error', 'msg' => 'code error', 'details' => 'creation, transaction_entries_index is FALSE, shouldn\'t occure']);
+           }
+           $transaction = $transactionEntries[$transaction_entries_index];
+            array_push($transactions, [
+              'name' => 'Gradido Akademie',
+              'type' => 'creation',
+              'transaction_id' => $creation->transaction_id,
+              'date' => $transaction->received,
+              'balance' => $creation->amount,
+              'memo' => $transaction->memo
+            ]);
         }
-        $transaction = $transactionEntries[$transaction_entries_index];
-        $type = '';
-        $otherUser = null;
-        $other_user_public = '';
-        /*
-        if ($sendCoins->state_user_id == $user['id']) {
-            $type = 'send';
-
-            if(isset($involvedUserIndices[$sendCoins->receiver_user_id])) {
-              $otherUser = $involvedUserIndices[$sendCoins->receiver_user_id];
-            }
-            $other_user_public = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
-        } else if ($sendCoins->receiver_user_id == $user['id']) {
-            $type = 'receive';
-            if(isset($involvedUserIndices[$sendCoins->state_user_id])) {
-              $otherUser = $involvedUserIndices[$sendCoins->state_user_id];
-            }
-            if($sendCoins->sender_public_key) {
-              $other_user_public = bin2hex(stream_get_contents($sendCoins->sender_public_key));
-            }
-        }
-        if(null == $otherUser) {
-          $otherUser = $this->StateBalances->StateUsers->newEntity();
-        }
-        array_push($transactions, [
-         'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
-         'email' => $otherUser->email,
-         'type' => $type,
-         'transaction_id' => $sendCoins->transaction_id,
-         'date' => $sendCoins->transaction->received,
-         'balance' => $sendCoins->amount,
-         'memo' => $sendCoins->transaction->memo,
-         'pubkey' => $other_user_public
-        ]);
-         * */
-         
       }
       
-      return $this->returnJson(['state' => 'success', 'transactions' => $transactions, 'transactionExecutingCount' => 0, 'count' => 0]);
+      // involved users
+      if(isset($transactionTransfers)) {
+        $involvedUserIds = [];
+
+        foreach ($transactionTransfers as $transfer) {
+          //var_dump($sendCoins);
+            if ($transfer->state_user_id != $user['id']) {
+                array_push($involvedUserIds, intval($transfer->state_user_id));
+            } elseif ($transfer->receiver_user_id != $user['id']) {
+                array_push($involvedUserIds, intval($transfer->receiver_user_id));
+            }
+        }
+
+        // exchange key with values and drop duplicates
+        $involvedUser_temp = array_flip($involvedUserIds);
+        // exchange back
+        $involvedUserIds = array_flip($involvedUser_temp);
+
+        $involvedUser = $stateUsersTable->find('all', [
+            'contain' => false,
+            'where' => ['id IN' => $involvedUserIds],
+            'fields' => ['id', 'first_name', 'last_name', 'email']
+          ]);
+        //var_dump($involvedUser->toArray());
+        $involvedUserIndices = [];
+        foreach ($involvedUser as $involvedUser) {
+            $involvedUserIndices[$involvedUser->id] = $involvedUser;
+        }
+
+        // transfers - send coins
+        foreach($transactionTransfers as $transfer) 
+        {
+          $transaction_entries_index = array_search($transfer->transaction_id, $allTransaction_ids);
+          if(FALSE === $transaction_entries_index) {
+            
+            return $this->returnJson([
+                'state' => 'error',
+                'msg' => 'code error', 
+                'details' => 'transfer, transaction_entries_index is FALSE, shouldn\'t occure',
+                'data' => ['haystack' => $allTransaction_ids, 'needle' => $transfer->transaction_id]
+            ]);
+          }
+          $transaction = $transactionEntries[$transaction_entries_index];
+          $type = '';
+          $otherUser = null;
+          $other_user_public = '';
+
+          if ($transfer->state_user_id == $user['id']) {
+              $type = 'send';
+
+              if(isset($involvedUserIndices[$transfer->receiver_user_id])) {
+                $otherUser = $involvedUserIndices[$transfer->receiver_user_id];
+              }
+              $other_user_public = bin2hex(stream_get_contents($transfer->receiver_public_key));
+          } else if ($transfer->receiver_user_id == $user['id']) {
+              $type = 'receive';
+              if(isset($involvedUserIndices[$transfer->state_user_id])) {
+                $otherUser = $involvedUserIndices[$transfer->state_user_id];
+              }
+              if($transfer->sender_public_key) {
+                $other_user_public = bin2hex(stream_get_contents($transfer->sender_public_key));
+              }
+          }
+          if(null == $otherUser) {
+            $otherUser = $stateUsersTable->newEntity();
+          }
+          array_push($transactions, [
+           'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
+           'email' => $otherUser->email,
+           'type' => $type,
+           'transaction_id' => $transfer->transaction_id,
+           'date' => $transaction->received,
+           'balance' => $transfer->amount,
+           'memo' => $transaction->memo,
+           'pubkey' => $other_user_public
+          ]);
+          //*/
+
+        }
+      }
+      
+      return $this->returnJson([
+          'state' => 'success', 
+          'transactions' => $transactions, 
+          'transactionExecutingCount' => $session->read('Transaction.executing'), 
+          'count' => $all_user_transactions_count
+      ]);
     }
 
     public function ajaxGdtOverview()
