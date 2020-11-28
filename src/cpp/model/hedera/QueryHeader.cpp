@@ -23,11 +23,11 @@ namespace model {
 			Poco::AutoPtr<QueryHeader> query_header(new QueryHeader);
 			auto proto_query_header = query_header->getProtoQueryHeader();
 			proto_query_header->set_responsetype(proto::ANSWER_ONLY);
-			auto payment_transaction = proto_query_header->payment();
+			auto payment_transaction = proto_query_header->mutable_payment();
 
 			query_header->mConnectionString = connection.getUriWithPort();
 
-			Transaction transactionObj(&payment_transaction);
+			Transaction transactionObj(payment_transaction);
 			TransactionBody body(operatorAccount->getHederaId(), connection);
 			CryptoTransferTransaction transfer_transaction;
 			transfer_transaction.addSender(operatorAccount->getHederaId(), cost);

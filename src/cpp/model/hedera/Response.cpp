@@ -33,6 +33,17 @@ namespace model {
 			if (mResponseProto.has_transactiongetreceipt()) {
 				return new TransactionReceipt(mResponseProto.transactiongetreceipt().receipt());
 			}
+			if (mResponseProto.has_transactiongetrecord()) {
+				return new TransactionReceipt(mResponseProto.transactiongetrecord().transactionrecord().receipt());
+			}
+			return nullptr;
+		}
+
+		TransactionRecord* Response::getTransactionRecord()
+		{
+			if (mResponseProto.has_transactiongetrecord()) {
+				return new TransactionRecord(mResponseProto.transactiongetrecord().transactionrecord());
+			}
 			return nullptr;
 		}
 

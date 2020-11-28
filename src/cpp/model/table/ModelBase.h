@@ -43,6 +43,8 @@ namespace model {
 			size_t updateIntoDB(std::string fieldNames[2], const T1& fieldValue1, const T2& fieldValue2);
 			template<class T1, class T2, class T3>
 			size_t updateIntoDB(std::string fieldNames[3], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3);
+			template<class T1, class T2, class T3, class T4>
+			size_t updateIntoDB(std::string fieldNames[4], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3, const T4& fieldValue4);
 			template<class T> 
 			size_t loadFromDB(const std::string& fieldName, const T& fieldValue);
 			//! \brief count columes for "SELECT count(id) from <tableName> where <fieldName> = <fieldValue> group by id";
@@ -200,7 +202,8 @@ namespace model {
 			UNIQUE_LOCK;
 			auto cm = ConnectionManager::getInstance();
 			try {							   
-				Poco::Data::Statement select = _loadAllFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+				auto connection = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+				Poco::Data::Statement select = _loadAllFromDB(connection);
 				select, Poco::Data::Keywords::into(results);
 
 				size_t resultCount = 0;
@@ -375,6 +378,45 @@ namespace model {
 			}
 			catch (Poco::Exception& ex) {
 				addError(new ParamError(getTableName(), "mysql error by update 3", ex.displayText()));
+				for (int i = 0; i < 3; i++) {
+					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
+				}
+
+			}
+			return resultCount;
+		}
+
+		template<class T1, class T2, class T3, class T4>
+		size_t ModelBase::updateIntoDB(std::string fieldNames[4], const T1& fieldValue1, const T2& fieldValue2, const T3& fieldValue3, const T4& fieldValue4)
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement update(session);
+
+			if (mID == 0) {
+				addError(new Error("ModelBase::updateIntoDB", "id is zero"));
+				return 0;
+			}
+
+			update << "UPDATE " << getTableName() << " SET ";
+			for (int i = 0; i < 4; i++) {
+				if (i) update << ", ";
+				update << fieldNames[i] << " = ? ";
+			}
+			update << "WHERE id = ?"
+				, Poco::Data::Keywords::bind(fieldValue1), Poco::Data::Keywords::bind(fieldValue2)
+				, Poco::Data::Keywords::bind(fieldValue3), Poco::Data::Keywords::bind(fieldValue4)
+				, Poco::Data::Keywords::bind(mID);
+
+
+			size_t resultCount = 0;
+			try {
+				resultCount = update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "mysql error by update 4", ex.displayText()));
 				for (int i = 0; i < 3; i++) {
 					addError(new ParamError(getTableName(), "field name for update: ", fieldNames[i]));
 				}

@@ -11,8 +11,8 @@ namespace model {
 			auto auto_renew_period = mProtoCreateTopic->mutable_autorenewperiod();
 			auto_renew_period->set_seconds(autoRenewPeriod);
 
-			auto auto_renew_account = mProtoCreateTopic->mutable_autorenewaccount();
 			if (!autoRenewHederaAccountId.isNull()) {
+				auto auto_renew_account = mProtoCreateTopic->mutable_autorenewaccount();
 				autoRenewHederaAccountId->copyToProtoAccountId(auto_renew_account);
 			}
 
@@ -40,7 +40,8 @@ namespace model {
 
 		bool ConsensusCreateTopic::validate()
 		{
-			if (mProtoCreateTopic->autorenewperiod().seconds() > 86400) {// && 0 != mProtoCreateTopic->autorenewaccount().accountnum()) { 
+			
+			if (mProtoCreateTopic->autorenewperiod().seconds() == 7890000) {// && 0 != mProtoCreateTopic->autorenewaccount().accountnum()) { 
 				return true; 
 			}
 			return false;

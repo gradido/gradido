@@ -20,6 +20,7 @@ namespace controller {
 		~HederaId();
 
 		static Poco::AutoPtr<HederaId> create(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num);
+		static Poco::AutoPtr<HederaId> create(std::string hederaIdString);
 
 		static Poco::AutoPtr<HederaId> load(int id);
 		//! \return hedera topic id for group and network type (should exist only one)

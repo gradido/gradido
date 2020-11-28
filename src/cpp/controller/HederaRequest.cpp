@@ -67,6 +67,17 @@ HederaRequestReturn HederaRequest::request(model::hedera::Query* query, model::h
 		queryName = "crypto transaction get receipt";
 		status = stub->getTransactionReceipts(&context, *proto_query, proto_response);
 	}
+	else if (proto_query->has_transactiongetrecord()) {
+		auto stub = proto::CryptoService::NewStub(channel);
+
+		queryName = "crypto transaction get record";
+		status = stub->getTxRecordByTxID(&context, *proto_query, proto_response);
+
+	}
+	else {
+		addError(new Error("Hedera Request", "unknown or empty query"));
+		return HEDERA_REQUEST_UNKNOWN_QUERY;
+	}
 	if (status.ok()) 
 	{
 		auto response_code = response->getResponseCode();

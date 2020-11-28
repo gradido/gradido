@@ -32,6 +32,7 @@ namespace model {
 		std::string HederaTopic::toString()
 		{
 			std::stringstream ss;
+			ss << std::endl;
 			ss << "Topic Hedera id: " << std::to_string(mTopicHederaId) << std::endl;
 			ss << "Name: " << mName << std::endl;
 			ss << "Auto Renew Account Hedera id: " << std::to_string(mAutoRenewAccountHederaId) << std::endl;
@@ -39,7 +40,7 @@ namespace model {
 			ss << "Group id: " << std::to_string(mGroupId) << std::endl;
 			ss << "Admin Key id: " << std::to_string(mAdminKeyId) << std::endl;
 			ss << "Submit Key id: " << std::to_string(mSubmitKeyId) << std::endl;
-			ss << "Hedera Topic Tiemout: " << Poco::DateTimeFormatter::format(mCurrentTimeout, "%f.%m.%Y %H:%M:%S") << std::endl;
+			ss << "Hedera Topic Timeout: " << Poco::DateTimeFormatter::format(mCurrentTimeout, "%f.%m.%Y %H:%M:%S") << std::endl;
 			ss << "Hedera Topic Sequence Number: " << std::to_string(mSequenceNumber) << std::endl;
 			ss << "Updated: " << Poco::DateTimeFormatter::format(mUpdated, "%f.%m.%Y %H:%M:%S") << std::endl;
 			return ss.str();
@@ -87,8 +88,9 @@ namespace model {
 			Poco::Data::Statement select(session);
 			lock();
 			select << "SELECT id FROM " << getTableName()
-				<< " where topic_hedera_id = ?"
-				, into(mID), use(mTopicHederaId);
+				<< " where topic_hedera_id = ? "
+				<< " AND name = ? "
+				, into(mID), use(mTopicHederaId), use(mName);
 			unlock();
 			return select;
 		}

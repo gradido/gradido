@@ -12,6 +12,7 @@
 */
 #include "TableControllerBase.h"
 #include "../model/table/HederaTopic.h"
+#include "../model/hedera/Response.h"
 #include "HederaId.h"
 #include "HederaAccount.h"
 
@@ -25,6 +26,7 @@ namespace controller {
 		~HederaTopic();
 
 		static Poco::AutoPtr<HederaTopic> create(const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId);
+		static Poco::AutoPtr<HederaTopic> loadFromHedera(Poco::AutoPtr<controller::HederaId> hederaId, Poco::UInt32 groupId, Poco::AutoPtr<User> user);
 		static std::vector<Poco::AutoPtr<HederaTopic>> listAll();
 		static Poco::AutoPtr<HederaTopic> load(int id);
 		
@@ -44,6 +46,9 @@ namespace controller {
 
 	protected:
 		HederaTopic(model::table::HederaTopic* dbModel);
+
+		bool getTopicInfosFromHedera(Poco::AutoPtr<controller::HederaId> topicHederaId, Poco::AutoPtr<User> user, model::hedera::Response& response);
+
 		Poco::AutoPtr<HederaId> mTopicHederaId;
 		Poco::AutoPtr<HederaAccount> mAutoRenewAccount;
 

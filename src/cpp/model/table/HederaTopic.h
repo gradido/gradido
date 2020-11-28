@@ -34,9 +34,12 @@ namespace model {
 			std::string getUpdatedString() const;
 
 			inline void setTopicHederaID(Poco::UInt32 topidHederaId) { mTopicHederaId = topidHederaId;}
-			inline void setSequeceNumber(Poco::UInt64 sequenceNumber) { mSequenceNumber = sequenceNumber; }
-			inline void setCurrentTimeout(Poco::DateTime currentTimeOut) { mCurrentTimeout = currentTimeOut; }
+			inline void setName(std::string name) { mName = name; }
 			inline void setAutoRenewPeriod(Poco::UInt32 autoRenewPeriod) { mAutoRenewPeriod = autoRenewPeriod; }
+			inline void setGroupId(Poco::UInt32 groupId) { mGroupId = groupId; }
+			inline void setCurrentTimeout(Poco::DateTime currentTimeOut) { mCurrentTimeout = currentTimeOut; }
+			inline void setSequeceNumber(Poco::UInt64 sequenceNumber) { mSequenceNumber = sequenceNumber; }
+			
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

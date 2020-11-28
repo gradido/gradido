@@ -12,6 +12,5 @@ CREATE TABLE `hedera_topics` (
   `running_hash` VARBINARY(64) DEFAULT NULL,
   `running_hash_version` int unsigned DEFAULT 0,
   `updated` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `topic_hedera_id` (`topic_hedera_id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 

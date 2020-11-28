@@ -75,6 +75,7 @@ namespace model {
 				consensusCreateTopicTransaction.resetPointer();
 				mHasBody = true;
 				mType = TRANSACTION_CONSENSUS_CREATE_TOPIC;
+				mTransactionBody.set_transactionfee(1000000000);
 				return true;
 			}
 			return false;
@@ -126,11 +127,15 @@ namespace model {
 			auto transaction_id = mTransactionBody.mutable_transactionid();
 			auto timestamp = transaction_id->mutable_transactionvalidstart();
 			Poco::Timestamp now;
+			auto micros = now.epochMicroseconds();
+			auto s = now.epochTime();
+			auto res = now.resolution();
 			auto microseconds = now.epochMicroseconds() - now.epochTime() * now.resolution(); // 1*10^6
-			timestamp->set_seconds(now.epochTime()-1);			
-			//timestamp->set_nanos(microseconds * 1000);
+			// 1s = 1000000000 ns
+			timestamp->set_seconds(now.epochTime()-2);			
+			timestamp->set_nanos(microseconds * 1000);
 			// make sure timestamp is some nanos old
-			timestamp->set_nanos(microseconds * 900);
+			//timestamp->set_nanos(microseconds * 900);
 			printf("hedera transaction body timestamp: %d.%d\n", timestamp->seconds(), timestamp->nanos());
 		}
 	}

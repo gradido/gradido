@@ -114,6 +114,7 @@ namespace controller {
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		static const char* function_name = "PendingTask::startTimer";
 		auto em = ErrorManager::getInstance();
+		
 		if (isTimeoutTask()) {
 			auto next_run_time = getNextRunTime();
 			if (next_run_time >= Poco::DateTime()) {
@@ -128,7 +129,15 @@ namespace controller {
 				em->addError(new ParamError(function_name, "task type", getModel()->getTaskTypeString()));
 				em->sendErrorsAsEmail();
 			}
-			mTimer.setStartInterval(Poco::Timespan(getNextRunTime() - Poco::DateTime()).milliseconds());
+			next_run_time = getNextRunTime();
+			auto interval = next_run_time - Poco::DateTime();
+			printf("interval: %d\n", interval.milliseconds());
+			if (interval.milliseconds() > 0) {
+				mTimer.setStartInterval(interval.milliseconds());
+			}
+			else {
+				mTimer.setStartInterval(100);
+			}
 			Poco::TimerCallback<PendingTask> callback(*this, &PendingTask::calledFromTimer);
 			mTimer.start(callback);
 		}
@@ -136,13 +145,18 @@ namespace controller {
 	}
 	void PendingTask::calledFromTimer(Poco::Timer& timer)
 	{
+		printf("[PendingTask::calledFromTimer]\n");
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		auto result = run();
+		printf("run result: %d\n", result);
 		if (result != 1 && result != -1) {
+			timer.restart(0);
 			return;
 		}
-		mTimer.setStartInterval(Poco::Timespan(getNextRunTime() - Poco::DateTime()).milliseconds());
-		Poco::TimerCallback<PendingTask> callback(*this, &PendingTask::calledFromTimer);
-		mTimer.start(callback);
+		auto interval = Poco::Timespan(getNextRunTime() - Poco::DateTime()).milliseconds();
+		if (interval <= 0) {
+			interval = 100;
+		}
+		timer.restart(interval);
 	}
 }

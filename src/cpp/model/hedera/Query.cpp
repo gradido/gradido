@@ -3,6 +3,8 @@
 #include "Poco/Timestamp.h"
 #include "../../SingletonManager/MemoryManager.h"
 
+#include <google/protobuf/util/json_util.h>
+
 #include "Transaction.h"
 #include "TransactionBody.h"
 #include "CryptoTransferTransaction.h"
@@ -56,8 +58,8 @@ namespace model {
 			assert(!topicId.isNull() && topicId->getModel());
 			assert(!payerAccountId.isNull() && payerAccountId->getModel());
 
-			printf("[Query::getBalance] topic id: %s\n", topicId->getModel()->toString().data());
-			printf("[Query::getBalance] payer account id: %s\n", payerAccountId->getModel()->toString().data());
+			printf("[Query::getTopicInfo] topic id: %s\n", topicId->getModel()->toString().data());
+			printf("[Query::getTopicInfo] payer account id: %s\n", payerAccountId->getModel()->toString().data());
 
 			auto query = new Query;
 			auto get_topic_info = query->mQueryProto.mutable_consensusgettopicinfo();
@@ -85,13 +87,42 @@ namespace model {
 		{
 			assert(!payerAccount.isNull());
 			auto query = new Query;
-			query->mQueryHeader = QueryHeader::createWithPaymentTransaction(payerAccount, connection, 0);
+			query->mQueryHeader = QueryHeader::createWithPaymentTransaction(payerAccount, connection, 1000);
 			auto transaction_get_receipt_query = query->mQueryProto.mutable_transactiongetreceipt();
 			transaction_get_receipt_query->set_allocated_header(query->mQueryHeader->getProtoQueryHeader());
-			auto transaction_id = transaction_get_receipt_query->transactionid();
-			transaction_id = transactionId;
+			auto transaction_id = transaction_get_receipt_query->mutable_transactionid();
+			*transaction_id = transactionId;
 
 			return query;
+			}
+		Query* Query::getTransactionGetRecordQuery(
+			const proto::TransactionID& transactionId,
+			Poco::AutoPtr<controller::HederaAccount> payerAccount,
+			const controller::NodeServerConnection& connection
+		)
+		{
+			assert(!payerAccount.isNull());
+			auto query = new Query;
+			query->mQueryHeader = QueryHeader::createWithPaymentTransaction(payerAccount, connection, 1000);
+			
+			auto transaction_get_record_query = query->mQueryProto.mutable_transactiongetrecord();
+			transaction_get_record_query->set_allocated_header(query->mQueryHeader->getProtoQueryHeader());
+			auto transaction_id = transaction_get_record_query->mutable_transactionid();
+			*transaction_id = transactionId;
+
+			return query;
+		}
+
+
+		std::string Query::getConnectionString() const
+		{
+			if (mTransactionBody) {
+				return mTransactionBody->getConnectionString();
+			}
+			if (!mQueryHeader.isNull()) {
+				return mQueryHeader->getConnectionString();
+			}
+			return "";
 		}
 
 		proto::QueryHeader* Query::getQueryHeader()
@@ -132,6 +163,31 @@ namespace model {
 			return query_header->responsetype();
 		}
 
+		std::string Query::toJsonString() const
+		{
+			std::string json_message = "";
+			std::string json_message_body = "";
+			google::protobuf::util::JsonPrintOptions options;
+			options.add_whitespace = true;
+			options.always_print_primitive_fields = true;
+
+			auto status = google::protobuf::util::MessageToJsonString(mQueryProto, &json_message, options);
+			if (!status.ok()) {
+				return "error parsing query";
+			}
+
+			if (mTransactionBody) {
+				status = google::protobuf::util::MessageToJsonString(*mTransactionBody->getProtoTransactionBody(), &json_message_body, options);
+				if (!status.ok()) {
+					return "error parsing body";
+				}
+				//\"bodyBytes\": \"MigKIC7Sihz14RbYNhVAa8V3FSIhwvd0pWVvZqDnVA91dtcbIgRnZGQx\"
+				int startBodyBytes = json_message.find("bodyBytes") + std::string("\"bodyBytes\": \"").size() - 2;
+				int endCur = json_message.find_first_of('\"', startBodyBytes + 2) + 1;
+				json_message.replace(startBodyBytes, endCur - startBodyBytes, json_message_body);
+			}
+			return json_message;
+		}
 		
 	}
 }

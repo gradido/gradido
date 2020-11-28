@@ -69,19 +69,17 @@ namespace controller {
 		return mAutoRenewAccount;
 	}
 
-
-	bool HederaTopic::updateWithGetTopicInfos(Poco::AutoPtr<User> user)
+	bool HederaTopic::getTopicInfosFromHedera(Poco::AutoPtr<controller::HederaId> topicHederaId, Poco::AutoPtr<User> user, model::hedera::Response& response)
 	{
-		auto payer_account = getAutoRenewAccount();
+		auto payer_account = controller::HederaAccount::pick(ServerConfig::g_HederaNetworkType);
 		auto node_server = NodeServer::pick(payer_account->getModel()->getNetworkType(), getModel()->getGroupId());
-		auto hedera_topic_id = getTopicHederaId();
-		if (hedera_topic_id.isNull()) {
+		
+		if (topicHederaId.isNull()) {
 			addError(new Error("Hedera Topic", "no hedera topic id exist"));
 			return false;
 		}
-		auto query = model::hedera::Query::getTopicInfo(hedera_topic_id, payer_account->getHederaId(), node_server);
+		auto query = model::hedera::Query::getTopicInfo(topicHederaId, payer_account->getHederaId(), node_server);
 		query->setResponseType(proto::COST_ANSWER);
-		model::hedera::Response response;
 		HederaRequest request;
 		query->sign(payer_account->getCryptoKey()->getKeyPair(user));
 		if (HEDERA_REQUEST_RETURN_OK == request.request(query, &response)) {
@@ -91,44 +89,85 @@ namespace controller {
 			query->setTransactionFee(queryCost);
 			query->setResponseType(proto::ANSWER_ONLY);
 			query->sign(payer_account->getCryptoKey()->getKeyPair(user));
-	
+
 
 			if (HEDERA_REQUEST_RETURN_OK == request.request(query, &response)) {
-				auto consensus_topic_info = response.getConsensusTopicInfo();
-				//addNotification(new ParamSuccess("consensus get topic info", "memo: ", consensus_topic_info->getMemo()));
-				//addNotification(new ParamSuccess("consensus get topic info", "string: ", consensus_topic_info->toStringHtml()));
-				auto model = getModel();
-				model->setAutoRenewPeriod(consensus_topic_info->getAutoRenewPeriod().seconds());
-				model->setCurrentTimeout(consensus_topic_info->getExpirationTime());
-				model->setSequeceNumber(consensus_topic_info->getSequenceNumber());
-
-
-				std::string fieldNames[] = { "auto_renew_period", "current_timeout", "sequence_number" };
-				if (model->updateIntoDB(
-					fieldNames,
-					model->getAutoRenewPeriod(),
-					model->getCurrentTimeout(),
-					model->getSequenceNumber()
-				) > 1) {
-					addError(new Error("DB", "error saving changes in DB"));
-					getErrors(model);
-					return false;
-				}
 				return true;
-				
 			}
 			else {
 				addError(new Error("Hedera Query", "Error by query for consensus get topic info"));
 			}
-		
+
 		}
 		else {
 			addError(new Error("Hedera Query", "Error by getting costs for consensus get topic info"));
 		}
-		
-		getErrors(&request);
+		getErrors(&request); 
 		return false;
+
+	}
+
+	bool HederaTopic::updateWithGetTopicInfos(Poco::AutoPtr<User> user)
+	{
+
+		model::hedera::Response response;
+		if (!getTopicInfosFromHedera(getTopicHederaId(), user, response)) {
+			return false;
+		}
 		
+		auto consensus_topic_info = response.getConsensusTopicInfo();
+		//addNotification(new ParamSuccess("consensus get topic info", "memo: ", consensus_topic_info->getMemo()));
+		//addNotification(new ParamSuccess("consensus get topic info", "string: ", consensus_topic_info->toStringHtml()));
+		auto model = getModel();
+		model->setAutoRenewPeriod(consensus_topic_info->getAutoRenewPeriod().seconds());
+		model->setCurrentTimeout(consensus_topic_info->getExpirationTime());
+		model->setSequeceNumber(consensus_topic_info->getSequenceNumber());
+
+
+		std::string fieldNames[] = { "auto_renew_period", "current_timeout", "sequence_number" };
+		if (model->updateIntoDB(
+			fieldNames,
+			model->getAutoRenewPeriod(),
+			model->getCurrentTimeout(),
+			model->getSequenceNumber()
+		) > 1) {
+			addError(new Error("DB", "error saving changes in DB"));
+			getErrors(model);
+			return false;
+		}
+		return true;
+		
+	}
+
+	Poco::AutoPtr<HederaTopic> HederaTopic::loadFromHedera(Poco::AutoPtr<controller::HederaId> hederaId, Poco::UInt32 groupId, Poco::AutoPtr<User> user)
+	{
+		auto db = new model::table::HederaTopic();
+		auto hedera_topic = new HederaTopic(db);
+
+		model::hedera::Response response;
+		if (!hedera_topic->getTopicInfosFromHedera(hederaId, user, response)) {
+			delete hedera_topic;
+			return false;
+		}
+
+		auto consensus_topic_info = response.getConsensusTopicInfo();
+		//addNotification(new ParamSuccess("consensus get topic info", "memo: ", consensus_topic_info->getMemo()));
+		//addNotification(new ParamSuccess("consensus get topic info", "string: ", consensus_topic_info->toStringHtml()));
+		auto group_name = consensus_topic_info->getMemo();
+		auto groups = controller::Group::load(group_name);
+		db->setTopicHederaID(hederaId->getModel()->getID());
+		db->setName(group_name);
+		if (1 == groups.size()) {
+			db->setGroupId(groups[0]->getModel()->getID());
+		}
+		else if (groupId > 0) {
+			db->setGroupId(groupId);
+		}
+		db->setAutoRenewPeriod(consensus_topic_info->getAutoRenewPeriod().seconds());
+		db->setCurrentTimeout(consensus_topic_info->getExpirationTime());
+		db->setSequeceNumber(consensus_topic_info->getSequenceNumber());
+
+		return Poco::AutoPtr<HederaTopic>(hedera_topic);
 	}
 
 	Poco::AutoPtr<HederaTask> HederaTopic::createTopic(Poco::AutoPtr<controller::HederaAccount> operatorAccount, Poco::AutoPtr<controller::User> user)
@@ -149,12 +188,18 @@ namespace controller {
 		if (model->getName() != "") {
 			hederaCreateTopic.setMemo(model->getName());
 		}
-		hederaTransactionBody->setCreateTopic(hederaCreateTopic);
+		if (!hederaTransactionBody->setCreateTopic(hederaCreateTopic)) {
+			addError(new Error(function_name, "error validating create topic transaction"));
+			return nullptr;
+		}
 		model::hedera::Transaction hederaTransaction;
 		if (!hederaTransaction.sign(operatorAccount->getCryptoKey()->getKeyPair(user), std::move(hederaTransactionBody))) {
 			addError(new Error(function_name, "error signing hedera transaction"));
 			return nullptr;
 		}
+
+		auto proto_transaction = hederaTransaction.getTransaction();
+
 
 		Poco::AutoPtr<HederaTask> receiptTask(new HederaTask(&hederaTransaction));
 		auto receipt_task_model = receiptTask->getModel();
@@ -175,6 +220,7 @@ namespace controller {
 			}
 			else {
 				addError(new ParamError(function_name, "precheck code error", receiptTask->getTransactionResponse()->getPrecheckCodeString()));
+
 				return nullptr;
 			}
 		}
@@ -184,4 +230,6 @@ namespace controller {
 		}
 
 	}
+
+
 }

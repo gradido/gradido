@@ -68,6 +68,7 @@ Poco::AutoPtr<HederaTask> HederaTask::load(model::table::PendingTask* dbModel)
 
 Poco::DateTime HederaTask::getNextRunTime()
 {
+	printf("[HederaTask::getNextRunTime]\n");
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	return mLastCheck + 2000 * mTryCount * 2000;
 }
@@ -80,10 +81,9 @@ int HederaTask::run()
 		deleteFromDB();
 		
 	}
-	if (result == -1) {
+	if (result == -1 ) {
 		return 0;
 	}
-
 
 	return result;
 }
@@ -104,6 +104,7 @@ void HederaTask::setTransactionReceipt(model::hedera::TransactionReceipt* transa
 //! \return 1 if hedera query failed
 //! \return -1 if run after failed
 //! \return -2 if not enough data for query
+//! \return -3 if error in query
 
 int HederaTask::tryQueryReceipt()
 {
@@ -121,21 +122,33 @@ int HederaTask::tryQueryReceipt()
 		addError(new ParamError(function_name, "couldn't find unencrypted operator account for hedera network type: ", ServerConfig::g_HederaNetworkType));
 		return -2;
 	}
+	//auto query = model::hedera::Query::getTransactionGetReceiptQuery(mTransactionID, operator_account, connection);
 	auto query = model::hedera::Query::getTransactionGetReceiptQuery(mTransactionID, operator_account, connection);
 	HederaRequest request;
 	model::hedera::Response response;
-	if (HEDERA_REQUEST_RETURN_OK == request.request(query, &response)) {
-		mTransactionReceipt = response.getTransactionReceipt();
-		if (mTransactionReceipt) {
-			if (runAfterGettingReceipt()) {
-				return 0;
-			}
-			else {
-				return -1;
+	try {
+		if (HEDERA_REQUEST_RETURN_OK == request.request(query, &response)) {
+			mTransactionReceipt = response.getTransactionReceipt();
+			if (mTransactionReceipt) {
+				if (runAfterGettingReceipt()) {
+					return 0;
+				}
+				else {
+					return -1;
+				}
 			}
 		}
+		else {
+			if (response.getResponseCode() == proto::NOT_SUPPORTED) {
+
+				return -3;
+			}
+			mLastCheck = Poco::Timestamp();
+			mTryCount++;
+		}
 	}
-	else {
+	catch (std::exception& ex) {
+		addError(new ParamError(function_name, "exception calling hedera request: ", ex.what()));
 		mLastCheck = Poco::Timestamp();
 		mTryCount++;
 	}

@@ -1,5 +1,8 @@
 #include "HederaId.h"
 #include "../SingletonManager/ErrorManager.h"
+#include "../SingletonManager/SessionManager.h"
+
+#include "../lib/DataTypeConverter.h"
 
 using namespace Poco::Data::Keywords;
 
@@ -18,6 +21,31 @@ namespace controller {
 	Poco::AutoPtr<HederaId> HederaId::create(Poco::UInt64 shardNum, Poco::UInt64 realmNum, Poco::UInt64 num)
 	{
 		auto db = new model::table::HederaId(shardNum, realmNum, num);
+
+		auto hedera_id = new HederaId(db);
+		return Poco::AutoPtr<HederaId>(hedera_id);
+	}
+
+	Poco::AutoPtr<HederaId> HederaId::create(std::string hederaIdString)
+	{
+		auto sm = SessionManager::getInstance();
+		if (!sm->isValid(hederaIdString, VALIDATE_HEDERA_ID)) {
+			return nullptr;
+		}
+		std::vector<std::string> number_strings;
+		std::istringstream f(hederaIdString);
+		std::string s;
+		while (getline(f, s, '.')) {
+			std::cout << s << std::endl;
+			number_strings.push_back(s);
+		}
+		Poco::UInt64 numbers[3];
+		for (int i = 0; i < 3; i++) {
+			if (DataTypeConverter::NUMBER_PARSE_OKAY != DataTypeConverter::strToInt(number_strings[i], numbers[i])) {
+				return nullptr;
+			}
+		}
+		auto db = new model::table::HederaId(numbers[0], numbers[1], numbers[2]);
 
 		auto hedera_id = new HederaId(db);
 		return Poco::AutoPtr<HederaId>(hedera_id);

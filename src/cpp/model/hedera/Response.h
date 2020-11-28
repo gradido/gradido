@@ -13,6 +13,7 @@
 #include "../../proto/hedera/Response.pb.h"
 #include "ConsensusTopicInfo.h"
 #include "TransactionReceipt.h"
+#include "TransactionRecord.h"
 #include "Poco/Types.h"
 
 namespace model {
@@ -27,6 +28,7 @@ namespace model {
 			Poco::UInt64 getAccountBalance();
 			std::unique_ptr<ConsensusTopicInfo> getConsensusTopicInfo();
 			TransactionReceipt* getTransactionReceipt();
+			TransactionRecord* getTransactionRecord();
 			Poco::UInt64 getQueryCost();
 			proto::ResponseCodeEnum getResponseCode();
 			

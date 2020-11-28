@@ -29,6 +29,11 @@ namespace model {
 				Poco::AutoPtr<controller::HederaAccount> payerAccount,
 				const controller::NodeServerConnection& connection
 			);
+			static Query* getTransactionGetRecordQuery(
+				const proto::TransactionID& transactionId,
+				Poco::AutoPtr<controller::HederaAccount> payerAccount,
+				const controller::NodeServerConnection& connection
+			);
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera);
 
 			void setResponseType(proto::ResponseType type);
@@ -36,9 +41,11 @@ namespace model {
 			inline bool setTransactionFee(Poco::UInt64 fee) { return mTransactionBody->updateCryptoTransferAmount(fee);}
 			
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
-			inline std::string getConnectionString() const { return mTransactionBody->getConnectionString(); }
+			std::string getConnectionString() const;
 
 			proto::QueryHeader* getQueryHeader();
+
+			std::string toJsonString() const;
 
 		protected:
 			Query();
