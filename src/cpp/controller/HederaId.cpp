@@ -41,7 +41,7 @@ namespace controller {
 		}
 		Poco::UInt64 numbers[3];
 		for (int i = 0; i < 3; i++) {
-			Poco::UInt64 temp_number;
+			unsigned long long temp_number;
 			if (DataTypeConverter::NUMBER_PARSE_OKAY != DataTypeConverter::strToInt(number_strings[i], temp_number)) {
 				return nullptr;
 			}
