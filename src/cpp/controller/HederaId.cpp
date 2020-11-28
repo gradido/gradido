@@ -41,9 +41,11 @@ namespace controller {
 		}
 		Poco::UInt64 numbers[3];
 		for (int i = 0; i < 3; i++) {
-			if (DataTypeConverter::NUMBER_PARSE_OKAY != DataTypeConverter::strToInt(number_strings[i], numbers[i])) {
+			Poco::UInt64 temp_number;
+			if (DataTypeConverter::NUMBER_PARSE_OKAY != DataTypeConverter::strToInt(number_strings[i], temp_number)) {
 				return nullptr;
 			}
+			numbers[i] = temp_number;
 		}
 		auto db = new model::table::HederaId(numbers[0], numbers[1], numbers[2]);
 
