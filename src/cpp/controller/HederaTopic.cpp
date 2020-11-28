@@ -147,7 +147,7 @@ namespace controller {
 		model::hedera::Response response;
 		if (!hedera_topic->getTopicInfosFromHedera(hederaId, user, response)) {
 			delete hedera_topic;
-			return false;
+			return nullptr;
 		}
 
 		auto consensus_topic_info = response.getConsensusTopicInfo();
