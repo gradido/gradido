@@ -140,7 +140,8 @@ int HederaTask::tryQueryReceipt()
 		}
 		else {
 			if (response.getResponseCode() == proto::NOT_SUPPORTED) {
-
+				addError(new ParamError(function_name, "query in json-format:", query->toJsonString()));
+				//query->toJsonString()
 				return -3;
 			}
 			mLastCheck = Poco::Timestamp();

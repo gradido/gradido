@@ -8,6 +8,7 @@
 #include "../SingletonManager/SingletonTaskObserver.h"
 
 #include "NodeServer.h"
+#include "Group.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -529,7 +530,14 @@ namespace controller {
 		auto model = getModel();
 		if (!model->getGroupId()) return ServerConfig::g_php_serverPath;
 		auto servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_COMMUNITY, model->getGroupId());
-		if (!servers.size()) return ServerConfig::g_php_serverPath;
+		if (!servers.size()) {
+			auto group = controller::Group::load(model->getGroupId());
+			if (!group.isNull()) {
+				mGroupBaseUrl = group->getModel()->getUrl();
+				return mGroupBaseUrl;
+			}
+			return ServerConfig::g_php_serverPath;
+		}
 		if (servers.size() > 1) {
 			auto em = ErrorManager::getInstance();
 			em->addError(new ParamError(function_name, "error, more than one community server found for group", model->getGroupId()));
