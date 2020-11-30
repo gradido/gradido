@@ -247,9 +247,9 @@ class TransactionCreationsController extends AppController
                     ['AND' => [
                         'disabled' => 0,
                             'OR' => [
-                                      'LOWER(first_name)' => strtolower($requestData['searchText']),
-                                      'LOWER(last_name)' => strtolower($requestData['searchText']),
-                                      'LOWER(email)' => strtolower($requestData['searchText'])
+                                      'LOWER(first_name) LIKE' => '%'.strtolower($requestData['searchText']).'%',
+                                      'LOWER(last_name) LIKE' => '%'.strtolower($requestData['searchText']).'%',
+                                      'LOWER(email) LIKE' => '%'.strtolower($requestData['searchText']).'%'
                                     ]
                                 ]
                             ]

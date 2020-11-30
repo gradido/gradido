@@ -23,6 +23,7 @@
 </nav>
 <div class="stateUsers view large-10 medium-9 columns content">
   <h3><?= h($stateUser->first_name) ?> <?= h($stateUser->last_name) ?> &lt;<?= h($stateUser->email) ?>&gt;</h3>
+  <small>Konto-Adresse: <?= h(bin2hex(stream_get_contents($stateUser->public_key))) ?></small>
     <div class="related">
         <h4><?= __('State Balance') ?></h4>
         <?php if (!empty($stateUser->state_balances)): ?>
@@ -47,10 +48,11 @@
     <div class="related">
         <h4><?= __('Schöpfungen') ?></h4>
         <?php if (!empty($stateUser->transaction_creations)): ?>
-        <table cellpadding="0" cellspacing="0">
+        <table cellpadding="5">
             <tr>
                 <th scope="col"><?= __('Transaction') ?></th>
                 <th scope="col"><?= __('Erhalten') ?></th>
+		<th scope="col"><?= __('Verrechnungs-Datum') ?></th>
                 <th scope="col"><?= __('Betrag') ?></th>
                 <th scope="col"><?= __('Verwendungszweck') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
@@ -62,6 +64,7 @@
             <tr>
                 <td><?= $this->Html->link(substr($txHash, 0, 12) . '...', ['controller' => 'Transactions', 'action' => 'view', $transactionCreations->transaction_id], ['title' => $txHash] ) ?></td>
                 <td><?= h($transactionCreations->transaction->received) ?></td>
+		<td><?= h($transactionCreations->target_date) ?></td>
                 <td><?= $this->element('printGradido', ['number' =>$transactionCreations->amount]) ?></td>
                 <td title="<?= $memo ?>"><?= h(substr($memo, 0, 20). '...') ?></td>
                 <td class="actions">
@@ -75,7 +78,7 @@
     <div class="related">
         <h4><?= __('Versendete Überweisungen') ?></h4>
         <?php if (!empty($stateUser->transaction_send_coins)): ?>
-        <table cellpadding="0" cellspacing="0">
+        <table cellpadding="5">
             <tr>
                 <th scope="col"><?= __('Überweisung') ?></th>
                 <th scope="col"><?= __('Erhalten') ?></th>
@@ -109,7 +112,7 @@
     <div class="related">
         <h4><?= __('Empfangende Überweisungen') ?></h4>
         <?php if (!empty($stateUser->transaction_received_coins)): ?>
-        <table cellpadding="0" cellspacing="0">
+        <table cellpadding="5">
             <tr>
                 <th scope="col"><?= __('Überweisung') ?></th>
                 <th scope="col"><?= __('Erhalten') ?></th>
