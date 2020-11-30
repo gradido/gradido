@@ -29,6 +29,7 @@ namespace model {
 			inline void setCode(Poco::UInt64 code) { mAccessCode = code; }
 			inline void setUserId(int user_Id) { mUserId = user_Id; }
 
+			size_t update();
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);

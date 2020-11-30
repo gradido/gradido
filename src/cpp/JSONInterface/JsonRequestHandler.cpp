@@ -13,6 +13,14 @@
 #include "../lib/DataTypeConverter.h"
 #include "../SingletonManager/SessionManager.h"
 
+#include "../SingletonManager/SessionManager.h"
+
+JsonRequestHandler::JsonRequestHandler()
+	: mSession(nullptr)
+{
+
+}
+
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 
@@ -28,6 +36,8 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	std::ostream& responseStream = response.send();
 	//Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
 	//std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
+
+	mClientIp = request.clientAddress().host();
 
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
@@ -135,4 +145,57 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 		result->set("details", details);
 	}
 	return result;
+}
+
+Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var params)
+{
+	int session_id = 0;
+	auto sm = SessionManager::getInstance();
+
+	if (params.isStruct()) {
+		session_id = params["session_id"];
+		//std::string miau = params["miau"];
+	}
+	else if (params.isVector()) {
+		try {
+			const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
+			for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
+				if (it->first == "session_id") {
+					auto numberParseResult = DataTypeConverter::strToInt(it->second, session_id);
+					if (DataTypeConverter::NUMBER_PARSE_OKAY != numberParseResult) {
+						return stateError("error parsing session_id", DataTypeConverter::numberParseStateToString(numberParseResult));
+					}
+					break;
+				}
+			}
+			//auto var = params[0];
+		}
+		catch (Poco::Exception& ex) {
+			return stateError("error parsing query params, Poco Error", ex.displayText());
+		}
+	}
+
+	if (!session_id) {
+		return stateError("empty session id");
+	}
+
+	auto session = sm->getSession(session_id);
+	if (!session) {
+		return customStateError("not found", "session not found");
+	}
+	if (!session->isIPValid(mClientIp)) {
+		return stateError("client ip differ from login client ip");
+	}
+	auto userNew = session->getNewUser();
+	//auto user = session->getUser();
+	if (userNew.isNull()) {
+		return customStateError("not found", "Session didn't contain user");
+	}
+	auto userModel = userNew->getModel();
+	if (userModel.isNull()) {
+		return customStateError("not found", "User is empty");
+	}
+	mSession = session;
+	return nullptr;
+	
 }

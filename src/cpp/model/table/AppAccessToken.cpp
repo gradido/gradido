@@ -59,6 +59,11 @@ namespace model
 			return insert;
 		}
 
+		size_t AppAccessToken::update()
+		{
+			return updateIntoDB("update", Poco::DateTime());
+		}
+
 
 		Poco::Data::Statement AppAccessToken::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{

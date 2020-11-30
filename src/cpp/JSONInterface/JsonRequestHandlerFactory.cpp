@@ -5,6 +5,7 @@
 #include "../SingletonManager/SessionManager.h"
 
 #include "JsonAdminEmailVerificationResend.h"
+#include "JsonAquireAccessToken.h"
 #include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
@@ -81,6 +82,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
+	}
+	else if (url_first_part == "/acquireAccessToken") {
+		return new JsonAquireAccessToken;
 	}
 	return new JsonUnknown;
 }
