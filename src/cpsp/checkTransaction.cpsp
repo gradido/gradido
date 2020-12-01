@@ -123,8 +123,6 @@ enum PageState {
 	
 
 %><%@ include file="header_navi_chr.cpsp" %>
-
-<% } %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
@@ -156,6 +154,7 @@ enum PageState {
 			</ul>
 		</div>
 	</div>
+<% } %>
 	<div class="action-form">
 		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
 		<div class="form-content">
