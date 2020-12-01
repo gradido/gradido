@@ -179,7 +179,7 @@ public:
 	bool startProcessingTransaction(const std::string& proto_message_base64);
 	//! \param working if set will filled with transaction running
 	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
-	void finalizeTransaction(bool sign, bool reject);
+	bool finalizeTransaction(bool sign, bool reject);
 	size_t getProcessingTransactionCount();
 
 	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }

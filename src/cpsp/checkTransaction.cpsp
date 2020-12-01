@@ -38,11 +38,16 @@ enum PageState {
 		hasErrors = true;
 	}
 	
+	bool transaction_finalize_run = false;
+	bool transaction_finalize_result = false;
+	
 	if(!form.empty()) {
 		auto ok = form.get("ok", "");
 		auto abort = form.get("abort", "");
+		auto back = form.get("back", "");
 		if(abort != "") {
-			mSession->finalizeTransaction(false, true);
+			transaction_finalize_result = mSession->finalizeTransaction(false, true);
+			transaction_finalize_run = true;
 		} else if(ok != "") {
 			if(!account_user->hasPassword()) {
 				auto pwd = form.get("sign-password", "");
@@ -65,15 +70,26 @@ enum PageState {
 				}
 			}
 			if(!hasErrors) {
-				mSession->finalizeTransaction(true, false);
+				transaction_finalize_result = mSession->finalizeTransaction(true, false);
+				transaction_finalize_run = true;
 			}
+		} else if(back == "back") {
+			auto lastExternReferer = mSession->getLastReferer();
+			//lastExternReferer = "";
+			if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
+				//printf("last extern referer: %s\n", lastExternReferer.data());
+				response.redirect(lastExternReferer);
+			} else {
+				response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
+			}
+			return;
 		}
 	}
 	
 	
 	size_t notReadyTransactions = 0;
 	size_t sumTransactions = mSession->getProcessingTransactionCount();
-	if(sumTransactions == 0) {
+	if(sumTransactions == 0 && !transaction_finalize_run) {
 		/*auto observer = SingletonTaskObserver::getInstance();
 		auto emailHash = DRMakeStringHash(mSession->getUser()->getEmail());
 		int breakCount = 0;
@@ -107,6 +123,17 @@ enum PageState {
 	
 
 %><%@ include file="header_navi_chr.cpsp" %>
+<% if(transaction_finalize_run) { %>
+	<div class="flash-messages" onclick="this.classList.add('hidden')">
+		<ul class='grd-no-style'>
+			<% if(transaction_finalize_result) { %> 
+				<li class='grd-success'>Transaktion erfolgreich</li>
+			<% } else { %>
+				<li class='grd-error'>Transaktion fehlgeschlagen</li>
+			<% } %>
+		</ul>
+	</div>
+<% } %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
@@ -208,6 +235,12 @@ enum PageState {
 					<i class="material-icons-outlined">delete</i>
 					<%= gettext("Transaktion verwerfen") %>
 				</button>
+				<% if(sumTransactions == 0) { %>
+					<button type="submit" class="form-button button-cancel" name="back" value="back">
+						<i class="material-icons-outlined">back</i>
+						Zur&uuml;ck
+					</button>	
+				<% } %>
 			</form>
 		</div>
 	</div>

@@ -243,6 +243,9 @@ int SigningTransaction::run() {
 			if (!object.isNull("details")) {
 				addError(new ParamError("SigningTransaction", "details:", object.get("details").convert<std::string>().data()));
 			}
+			if (!object.isNull("user_error")) {
+				addError(new ParamError("SigningTransaction", "user_error", object.get("user_error").convert<std::string>().data()));
+			}
 			sendErrorsAsEmail();
 			return -10;
 		}

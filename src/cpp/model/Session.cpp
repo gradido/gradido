@@ -726,23 +726,26 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 	return mCurrentActiveProcessingTransaction;
 }
 
-void Session::finalizeTransaction(bool sign, bool reject)
+bool Session::finalizeTransaction(bool sign, bool reject)
 {
+	int result = -1;
 	lock("Session::finalizeTransaction");
 	if (mCurrentActiveProcessingTransaction.isNull()) {
 		unlock();
-		return;
+		return false;
 	}
 	mProcessingTransactions.remove(mCurrentActiveProcessingTransaction);
 	
 	if (!reject) {
 		if (sign) {
 			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mNewUser));
-			signingTransaction->scheduleTask(signingTransaction);
+			//signingTransaction->scheduleTask(signingTransaction);
+			result = signingTransaction->run();
 		}
 	}
 	mCurrentActiveProcessingTransaction.assign(nullptr);
 	unlock();
+	return result == 0;
 }
 
 size_t Session::getProcessingTransactionCount() 
