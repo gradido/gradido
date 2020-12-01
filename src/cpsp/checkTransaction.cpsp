@@ -123,18 +123,7 @@ enum PageState {
 	
 
 %><%@ include file="header_navi_chr.cpsp" %>
-<% if(transaction_finalize_run) { %>
-<div class="col-md-10 equel-grid mb-3">
-	<div class="flash-messages" onclick="this.classList.add('hidden')">
-		<ul class='grd-no-style'>
-			<% if(transaction_finalize_result) { %> 
-				<li class='grd-success'>Transaktion erfolgreich</li>
-			<% } else { %>
-				<li class='grd-error'>Transaktion fehlgeschlagen</li>
-			<% } %>
-		</ul>
-	</div>
-</div>
+
 <% } %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
@@ -155,6 +144,18 @@ enum PageState {
 	</small>
 </div>
 <div class="content-container main-container">
+<% if(transaction_finalize_run) { %>
+	<div class="col-md-10 equel-grid mb-3">
+		<div class="flash-messages" onclick="this.classList.add('hidden')">
+			<ul class='grd-no-style'>
+				<% if(transaction_finalize_result) { %> 
+					<li class='grd-success'>Transaktion erfolgreich</li>
+				<% } else { %>
+					<li class='grd-error'>Transaktion fehlgeschlagen</li>
+				<% } %>
+			</ul>
+		</div>
+	</div>
 	<div class="action-form">
 		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
 		<div class="form-content">
