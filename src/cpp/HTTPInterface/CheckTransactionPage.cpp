@@ -259,90 +259,90 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "            </div>";
 	// end include header_navi_chr.cpsp
 	responseStream << "\n";
+#line 126 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+ if(transaction_finalize_run) { 	responseStream << "\n";
+	responseStream << "<div class=\"col-md-10 equel-grid mb-3\">\n";
+	responseStream << "\t<div class=\"flash-messages\" style=\"background-color: rgba(240,240,240,0.8);\" onclick=\"this.classList.add('hidden')\">\n";
+	responseStream << "\t\t<ul class='grd-no-style'>\n";
+	responseStream << "\t\t\t";
+#line 130 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+ if(transaction_finalize_result) { 	responseStream << " \n";
+	responseStream << "\t\t\t\t<li class='grd-success'>Transaktion erfolgreich</li>\n";
+	responseStream << "\t\t\t";
+#line 132 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+ } else { 	responseStream << "\n";
+	responseStream << "\t\t\t\t<li class='grd-error'>Transaktion fehlgeschlagen</li>\n";
+	responseStream << "\t\t\t";
+#line 134 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t</ul>\n";
+	responseStream << "\t</div>\n";
+	responseStream << "</div>\n";
+#line 138 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+ } 	responseStream << "\n";
 	responseStream << "<div class=\"col-md-10 equel-grid mb-3\">\n";
 	responseStream << "\t<small class=\"text-gray d-block mt-3\">\n";
 	responseStream << "\t";
-#line 128 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 141 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 129 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 142 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  if(notReadyTransactions > 0) { 	responseStream << " \n";
 	responseStream << "\t\t\t";
-#line 130 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions - notReadyTransactions );
 	responseStream << " ";
-#line 130 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("von") );
 	responseStream << " ";
-#line 130 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions );
 	responseStream << " ";
-#line 130 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktionen sind bereit zum best&auml;tigen") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 131 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 144 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 132 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 145 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( sumTransactions );
 	responseStream << " ";
-#line 132 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 145 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktionen warten darauf best&auml;tigt zu werden.") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 133 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 134 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 147 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t";
-#line 135 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 148 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  if(state == PAGE_NO_TRANSACTIONS) { 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 136 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 149 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  if(sumTransactions == 0) { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 137 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 150 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 138 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 151 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 139 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 152 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
 	responseStream << ( gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") );
 	responseStream << "\n";
 	responseStream << "\t\t";
-#line 140 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 153 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "    ";
-#line 141 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
+#line 154 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t</small>\n";
 	responseStream << "</div>\n";
 	responseStream << "<div class=\"content-container main-container\">\n";
-#line 145 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
- if(transaction_finalize_run) { 	responseStream << "\n";
-	responseStream << "\t<div class=\"col-md-10 equel-grid mb-3\">\n";
-	responseStream << "\t\t<div class=\"flash-messages\" onclick=\"this.classList.add('hidden')\">\n";
-	responseStream << "\t\t\t<ul class='grd-no-style'>\n";
-	responseStream << "\t\t\t\t";
-#line 149 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
- if(transaction_finalize_result) { 	responseStream << " \n";
-	responseStream << "\t\t\t\t\t<li class='grd-success'>Transaktion erfolgreich</li>\n";
-	responseStream << "\t\t\t\t";
-#line 151 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
- } else { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t<li class='grd-error'>Transaktion fehlgeschlagen</li>\n";
-	responseStream << "\t\t\t\t";
-#line 153 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t</ul>\n";
-	responseStream << "\t\t</div>\n";
-	responseStream << "\t</div>\n";
-#line 157 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
- } 	responseStream << "\n";
 	responseStream << "\t<div class=\"action-form\">\n";
 	responseStream << "\t\t<p class=\"form-header\">";
 #line 159 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\checkTransaction.cpsp"
