@@ -21,6 +21,12 @@ JsonRequestHandler::JsonRequestHandler()
 
 }
 
+JsonRequestHandler::JsonRequestHandler(Session* session)
+	: mSession(session)
+{
+
+}
+
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 
@@ -147,7 +153,7 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 	return result;
 }
 
-Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var params)
+Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var params, bool checkIp/* = false*/)
 {
 	int session_id = 0;
 	auto sm = SessionManager::getInstance();
@@ -183,8 +189,13 @@ Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var p
 	if (!session) {
 		return customStateError("not found", "session not found");
 	}
-	if (!session->isIPValid(mClientIp)) {
-		return stateError("client ip differ from login client ip");
+	if (checkIp) {
+		if (mClientIp.isLoopback()) {
+			return stateError("client ip is loop back ip");
+		}
+		if (!session->isIPValid(mClientIp)) {
+			return stateError("client ip differ from login client ip");
+		}
 	}
 	auto userNew = session->getNewUser();
 	//auto user = session->getUser();

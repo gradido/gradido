@@ -533,7 +533,8 @@ namespace controller {
 		if (!servers.size()) {
 			auto group = controller::Group::load(model->getGroupId());
 			if (!group.isNull()) {
-				mGroupBaseUrl = group->getModel()->getUrl();
+				auto group_model = group->getModel();
+				mGroupBaseUrl = group_model->getUrl() + group_model->getHome();
 				return mGroupBaseUrl;
 			}
 			return ServerConfig::g_php_serverPath;

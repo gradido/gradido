@@ -44,6 +44,7 @@ void AdminGroupsPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco:
 				alias, 
 				form.get("group-name", ""), 
 				form.get("group-url", ""),
+				form.get("group-home", ""),
 				form.get("group-desc", "")
 			);
 			newGroup->getModel()->insertIntoDB(false);
@@ -113,7 +114,7 @@ void AdminGroupsPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco:
 	responseStream << "\t\t<div class=\"content\">";
 	// end include header_large.cpsp
 	responseStream << "\n";
-#line 38 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 39 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -127,39 +128,44 @@ void AdminGroupsPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco:
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Name</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Alias</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Url</div>\n";
+	responseStream << "\t\t\t\t<div class=\"cell header-cell c2\">Home</div>\n";
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c5\">";
-#line 50 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 52 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( gettext("Description") );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 52 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 54 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
  for(auto it = groups.begin(); it != groups.end(); it++) {
 					auto group_model = (*it)->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c0\">";
-#line 55 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( group_model->getID() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 56 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
-#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 59 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( group_model->getAlias() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">";
-#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 60 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( group_model->getUrl() );
 	responseStream << "</div>\n";
+	responseStream << "\t\t\t\t\t<div class=\"cell c2\">";
+#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+	responseStream << ( group_model->getHome() );
+	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c5\">";
-#line 59 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 62 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( group_model->getDescription());
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 64 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
@@ -174,13 +180,15 @@ void AdminGroupsPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco:
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"group-alias\" type=\"text\" name=\"group-alias\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"group-url\">Url</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"group-url\" type=\"text\" name=\"group-url\"/>\n";
+	responseStream << "\t\t\t<label class=\"form-label\" for=\"group-home\" title=\"Startpage link\">Home</label>\n";
+	responseStream << "\t\t\t<input class=\"form-control\" id=\"group-home\" type=\"text\" name=\"group-home\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"group-desc\">";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( gettext("Description"));
 	responseStream << "</label>\n";
 	responseStream << "\t\t\t<textarea class=\"form-control\" name=\"group-desc\" rows=\"3\" maxlength=\"150\" id=\"group-desc\"></textarea>\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
+#line 82 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminGroups.cpsp"
 	responseStream << ( gettext("Add Group") );
 	responseStream << "\">\n";
 	responseStream << "\t</form>\n";
