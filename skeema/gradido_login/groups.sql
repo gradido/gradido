@@ -3,6 +3,7 @@ CREATE TABLE `groups` (
   `alias` varchar(190) NOT NULL,
   `name` varchar(255) NOT NULL,
   `url` varchar(255) NOT NULL,
+  `home` varchar(255) DEFAULT "/",
   `description` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `alias` (`alias`)

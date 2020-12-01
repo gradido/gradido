@@ -7,13 +7,13 @@
 namespace model {
 	namespace table {
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string> GroupTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, std::string> GroupTuple;
 
 		class Group : public ModelBase
 		{
 		public:
 			Group();
-			Group(const std::string& alias, const std::string& name, const std::string& url, const std::string& description);
+			Group(const std::string& alias, const std::string& name, const std::string& url, const std::string& home, const std::string& description);
 			Group(GroupTuple userTuple);
 			~Group();
 
@@ -25,10 +25,12 @@ namespace model {
 			inline const std::string& getName() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mName; }
 			inline const std::string& getDescription() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex);  return mDescription; }
 			inline const std::string& getUrl() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mUrl; }
+			inline const std::string& getHome() const { SHARED_LOCK; return mHome; }
 
 			inline void setName(const std::string& name) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mName = name; }
 			inline void setDescription(const std::string& desc) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex);  mDescription = desc; }
 			inline void setUrl(const std::string& url) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mUrl = url; }
+			inline void setHome(const std::string& home) { UNIQUE_LOCK; mHome = home; }
 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
@@ -40,6 +42,7 @@ namespace model {
 			std::string mAlias;
 			std::string mName;
 			std::string mUrl;
+			std::string mHome;
 			std::string mDescription;
 
 		};

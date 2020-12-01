@@ -23,6 +23,7 @@
 				alias, 
 				form.get("group-name", ""), 
 				form.get("group-url", ""),
+				form.get("group-home", ""),
 				form.get("group-desc", "")
 			);
 			newGroup->getModel()->insertIntoDB(false);
@@ -47,6 +48,7 @@
 				<div class="cell header-cell c2">Name</div>
 				<div class="cell header-cell c2">Alias</div>
 				<div class="cell header-cell c3">Url</div>
+				<div class="cell header-cell c2">Home</div>
 				<div class="cell header-cell c5"><%= gettext("Description") %></div>
 			</div>
 			<% for(auto it = groups.begin(); it != groups.end(); it++) {
@@ -56,6 +58,7 @@
 					<div class="cell c2"><%= group_model->getName() %></div>
 					<div class="cell c2"><%= group_model->getAlias() %></div>
 					<div class="cell c3"><%= group_model->getUrl() %></div>
+					<div class="cell c2"><%= group_model->getHome() %></div>
 					<div class="cell c5"><%= group_model->getDescription()%></div>
 				</div>
 			<% } %>
@@ -72,6 +75,8 @@
 			<input class="form-control" id="group-alias" type="text" name="group-alias"/>
 			<label class="form-label" for="group-url">Url</label>
 			<input class="form-control" id="group-url" type="text" name="group-url"/>
+			<label class="form-label" for="group-home" title="Startpage link">Home</label>
+			<input class="form-control" id="group-home" type="text" name="group-home"/>
 			<label class="form-label" for="group-desc"><%= gettext("Description")%></label>
 			<textarea class="form-control" name="group-desc" rows="3" maxlength="150" id="group-desc"></textarea>
 			<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Group") %>">
