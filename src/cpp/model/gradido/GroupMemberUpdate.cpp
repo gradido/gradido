@@ -121,6 +121,8 @@ namespace model {
 					// write new group_id in user table
 					user_model->setGroupId(group_model->getID());
 					user_model->updateIntoDB("group_id", group_model->getID());
+					
+					printf("[GroupMemberUpdate::transactionAccepted] finished\n");
 				}
 			}
 			else {
