@@ -307,7 +307,7 @@ namespace model {
 			}
 
 			//getModel()->updateIntoDB("request", )
-
+			printf("[Transaction::sign] reference-count: %d\n", mReferenceCount);
 			return true;
 		}
 
@@ -590,6 +590,7 @@ namespace model {
 		int SendTransactionTask::run()
 		{
 			auto result = mTransaction->runSendTransaction();
+			printf("[SendTransactionTask::run] result: %d\n", result);
 			// delete because of error
 			if (-1 == result) {
 				mTransaction->deleteFromDB();

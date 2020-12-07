@@ -27,6 +27,7 @@ namespace DataTypeConverter {
 
 	NumberParseState strToInt(const std::string& input, int& result);
 	NumberParseState strToInt(const std::string& input, unsigned long long& result);
+	NumberParseState strToInt(const std::string& input, Poco::UInt64& result);
 	NumberParseState strToDouble(const std::string& input, double& result);
 
 	MemoryBin* hexToBin(const std::string& hexString);

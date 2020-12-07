@@ -175,7 +175,7 @@ PingServerTask::~PingServerTask()
 
 int PingServerTask::run()
 {
-	return 0;
+	//return 0;
 	auto current = Poco::DateTime();
 	if (model::table::NODE_SERVER_GRADIDO_COMMUNITY == mNodeServer->getModel()->getNodeServerType()) {
 		std::string url_port = mNodeServer->getModel()->getUrlWithPort();
