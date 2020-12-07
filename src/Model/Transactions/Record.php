@@ -332,6 +332,9 @@ class Record
      
    
    public function parseRecord($json) {
+     if(!isset($json['record_type'])) {
+		 return false;
+     }
      //var_dump($json);
      switch($json['record_type']) {
        case 'GRADIDO_TRANSACTION':
@@ -378,7 +381,9 @@ class Record
      $newTransaction->id = $this->sequenceNumber;
      $newTransaction->transaction_type_id = $transactionTypeResults->first()->id;
      $newTransaction->memo = $this->memo;
-     $newTransaction->tx_hash = hex2bin($this->runningHash);
+	 if($this->runningHash != '') {
+		$newTransaction->tx_hash = hex2bin($this->runningHash);
+	 }
      $newTransaction->received = $this->received;
      
      //! TODO change into transaction, if at least one fail, rollback
