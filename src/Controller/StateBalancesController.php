@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions', 'ajaxGdtOverview']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxListTransactions', 'ajaxGdtOverview', 'ajaxGetBalance', 'ajaxGdtTransactions']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -386,8 +386,45 @@ class StateBalancesController extends AppController
 
     public function ajaxListTransactions($page = 0, $count = 20)
     {
-      // TODO: add efficient paging with additional table: state_user_transactions 
-      return $this->returnJson(['state' => 'success', 'transactions' => [], 'transactionExecutingCount' => 0, 'count' => 0]);
+      
+      return $this->returnJson([
+          'state' => 'error', 
+          'msg' => 'moved',
+          'details' => 'moved to state-user-transactions/ajaxListTransactions/'
+      ]);
+    }
+    
+    public function ajaxGdtOverview()
+    {
+      $gdtSum = 0;
+      $gdtCount = -1;
+      $session = $this->getRequest()->getSession();
+      $user = $session->read('StateUser');
+      
+      if(!$user) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'exist a valid session cookie?']);
+      }
+      $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+      
+      if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
+        $gdtSum = intval($gdtEntries['data']['sum']);
+        if(isset($gdtEntries['data']['count'])) {
+          $gdtCount = intval($gdtEntries['data']['count']);
+        }
+      } else {
+        if($user) {
+          $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, $user['id']);
+        } else {
+          $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, 0);
+        }
+      }
+      
+      return $this->returnJson([
+          'state' => 'success', 
+          'transactions' => $transactions, 
+          'transactionExecutingCount' => $session->read('Transaction.executing'), 
+          'count' => $all_user_transactions_count
+      ]);
     }
 
     public function ajaxGdtOverview()
@@ -440,9 +477,9 @@ class StateBalancesController extends AppController
           //echo "gdtSum: $gdtSum<br>";
             $this->set('gdtSum', $gdtSum);
             $this->set('ownEntries', $ownEntries);
-			$this->set('gdtSumPerEmail', $requestResult['data']['gdtSumPerEmail']);
-			$this->set('moreEntrysAsShown', $requestResult['data']['moreEntrysAsShown']);
-			$this->set('user', $user);
+            $this->set('gdtSumPerEmail', $requestResult['data']['gdtSumPerEmail']);
+            $this->set('moreEntrysAsShown', $requestResult['data']['moreEntrysAsShown']);
+            $this->set('user', $user);
 
             if (isset($requestResult['data']['publishers'])) {
                 $publishers = $requestResult['data']['publishers'];
@@ -452,6 +489,66 @@ class StateBalancesController extends AppController
           $this->addAdminError('StateBalancesController', 'overviewGdt', $requestResult, $user['id']);
           $this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
         }
+    }
+    
+    public function ajaxGdtTransactions()
+    {
+        $startTime = microtime(true);
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        if(!$user) {
+          return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'exist a valid session cookie?']);
+        }
+      
+        $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
+        $connectEntries = [];
+        $publishers = [];
+        
+        //var_dump($requestResult);
+        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
+
+          //var_dump(array_keys($requestResult['data']));
+            $ownEntries = $requestResult['data']['ownEntries'];
+          //$gdtEntries = $requestResult['data']['entries'];
+
+            $gdtSum = 0;
+            foreach ($ownEntries as $i => $gdtEntry) {
+                $gdtSum += $gdtEntry['gdt'];
+              //echo "index: $i<br>";
+              //var_dump($gdtEntry);
+            }
+            if (isset($requestResult['data']['connectEntrys'])) {
+                $connectEntries = $requestResult['data']['connectEntrys'];
+
+                foreach ($connectEntries as $entry) {
+                  //if(!$count) var_dump($entry);
+                  //$count++;
+                    $gdtSum += $entry['connect']['gdt_entry']['gdt'];
+                }
+            }
+
+          //echo "gdtSum: $gdtSum<br>";
+
+            if (isset($requestResult['data']['publishers'])) {
+                $publishers = $requestResult['data']['publishers'];
+            }
+        } else {
+          $this->addAdminError('StateBalancesController', 'ajaxGdtTransactions', $requestResult, $user['id']);
+          //$this->Flash->error(__('Fehler beim GDT Server, bitte abwarten oder den Admin benachrichtigen!'));
+          return $this->returnJson(['state' => 'error', 'msg' => 'error from gdt server', 'details' => $requestResult]);
+        }
+        
+        
+        return $this->returnJson([
+            'state' => 'success',
+            'gdtSum' => $gdtSum,
+            'ownEntries' => $ownEntries,
+            'connectEntries' => $connectEntries,
+            'publishers' => $publishers,
+            'gdtSumPerEmail' => $requestResult['data']['gdtSumPerEmail'],
+            'moreEntrysAsShown' => $requestResult['data']['moreEntrysAsShown'],
+            'timeUsed' =>  microtime(true) - $startTime
+        ]);
     }
 
     public function sortTransactions($a, $b)

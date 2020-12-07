@@ -54,7 +54,55 @@ class Signature
 }
 
 
-class ManageNodeGroupAdd
+
+class GradidoModifieUserBalance
+{
+    private $state_users = [];
+    
+    public function getUserId($userPublicKey)
+    {
+        $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+        $stateUser = $stateUsersTable->find('all')->where(['public_key' => hex2bin($userPublicKey)]);
+        if($stateUser->isEmpty()) {
+          return ['state' => 'error', 'msg' => 'couldn\'t find user via public key'];
+        }
+        $id = $stateUser->first()->id;
+        if($id && is_int($id) && (int)$id > 0 && !in_array((int)$id, $this->state_users)) {
+          array_push($this->state_users, (int)$id);
+        }
+        return $stateUser->first()->id;
+    }
+    
+    public function updateBalance($newBalance, $recordDate, $userId)
+    {
+      $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+      $stateBalanceQuery = $stateBalancesTable->find('all')->where(['state_user_id' => $userId]);
+      $entity = null;
+     
+      if(!$stateBalanceQuery->isEmpty()) {
+        $entity = $stateBalanceQuery->first();
+        if($entity->record_date != NULL && $entity->record_date > $recordDate) {
+          return false;
+        }
+      } else {
+        $entity = $stateBalancesTable->newEntity();
+        $entity->state_user_id = $userId;
+      }
+      $entity->record_date = $recordDate;
+      $entity->amount = $newBalance;
+      if(!$stateBalancesTable->save($entity)) {
+        return ['state' => 'error', 'msg' => 'error saving state balance', 'details' => $entity->getErrors()];
+      }
+      return true;
+    }
+    
+  public function getAllStateUsers() 
+  {
+    return $this->state_users;
+  }
+}
+
+class ManageNodeGroupAdd extends GradidoModifieUserBalance
 {
   /*
     "add_user": {
@@ -100,11 +148,13 @@ class ManageNodeGroupAdd
     }
     
     $transactionGroupEntity->public_key = hex2bin($this->user_pubkey);
+    $transactionGroupEntity->state_user_id = $this->getUserId($this->user_pubkey);
     $transactionGroupEntity->remove_from_group = $this->remove_from_group;
     if(!$transactionGroupAddadressTable->save($transactionGroupEntity)) {
       return ['state' => 'error', 'msg' => 'error saving TransactionGroupAddaddress Entity', 'details' => $transactionGroupEntity->getErrors()];
     }
     $userPubkeyBin = hex2bin($this->user_pubkey);
+    
     if($this->remove_from_group) {
       $stateGroup_query = $stateGroupAddresses->find('all')->where(['public_key' => hex2bin($this->user_pubkey)]);
       if(!$stateGroup_query->isEmpty()) {
@@ -128,42 +178,6 @@ class ManageNodeGroupAdd
   }
 }
 
-class GradidoModifieUserBalance
-{
-    
-    public function getUserId($userPublicKey)
-    {
-        $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
-        $stateUser = $stateUsersTable->find('all')->where(['public_key' => hex2bin($userPublicKey)]);
-        if($stateUser->isEmpty()) {
-          return ['state' => 'error', 'msg' => 'couldn\'t find user via public key'];
-        }
-        return $stateUser->first()->id;
-    }
-    
-    public function updateBalance($newBalance, $recordDate, $userId)
-    {
-      $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
-      $stateBalanceQuery = $stateBalancesTable->find('all')->where(['state_user_id' => $userId]);
-      $entity = null;
-     
-      if(!$stateBalanceQuery->isEmpty()) {
-        $entity = $stateBalanceQuery->first();
-        if($entity->record_date != NULL && $entity->record_date > $recordDate) {
-          return false;
-        }
-      } else {
-        $entity = $stateBalancesTable->newEntity();
-        $entity->state_user_id = $userId;
-      }
-      $entity->record_date = $recordDate;
-      $entity->amount = $newBalance;
-      if(!$stateBalancesTable->save($entity)) {
-        return ['state' => 'error', 'msg' => 'error saving state balance', 'details' => $entity->getErrors()];
-      }
-      return true;
-    }
-}
 
 class GradidoCreation extends GradidoModifieUserBalance
 {
@@ -179,6 +193,7 @@ class GradidoCreation extends GradidoModifieUserBalance
   private $amount;
   private $targetDate; // seems currently not in node server implementet, use hedera date until it is implemented
   private $new_balance;
+  
   
   public function __construct($data) 
   {
@@ -219,6 +234,8 @@ class GradidoCreation extends GradidoModifieUserBalance
     return true;
   }
   
+  
+  
 }
 
 class GradidoTransfer extends GradidoModifieUserBalance
@@ -244,6 +261,7 @@ class GradidoTransfer extends GradidoModifieUserBalance
   
   private $receiver_pubkey;
   private $receiver_new_balance;
+  
   
   public function __construct($data)
   {
@@ -295,7 +313,7 @@ class GradidoTransfer extends GradidoModifieUserBalance
       }
     }
     if(is_int($receiver_id) && $receiver_id > 0) {
-      $transferEntity->receiver_user_id = $receiver_id;
+      $this->state_users[] = $receiver_id;
       $balance_result = $this->updateBalance($this->receiver_new_balance, $received, $receiver_id);
       if(is_array($balance_result)) {
         return $balance_result;
@@ -308,6 +326,7 @@ class GradidoTransfer extends GradidoModifieUserBalance
     
     return true;
   }
+  
 }
 
 
@@ -358,6 +377,7 @@ class Record
    {
      $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
      $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+     $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
              
      $transactionTypeName = $this->nodeTransactionTypeToDBTransactionType($this->transactionType);
      $transactionTypeResults = $transactionTypesTable->find('all')->where(['name' => $transactionTypeName]);
@@ -409,6 +429,22 @@ class Record
      if($transaction_obj_result !== true) {
        return ['state' => 'error', 'msg' => 'error finalizing transaction object', 'details' => $transaction_obj_result];
      }
+     $state_users = $this->transactionObj->getAllStateUsers();
+     $sut_entities = [];
+     foreach($state_users as $state_user_id) {
+       $entity = $stateUserTransactionsTable->newEntity();
+       $entity->state_user_id = $state_user_id;
+       $entity->transaction_id = $newTransaction->id;
+       $entity->transaction_type_id = $newTransaction->transaction_type_id;
+       $sut_entities[] = $entity;
+     }
+     $sut_results = $stateUserTransactionsTable->saveMany($sut_entities);
+     foreach($sut_results as $i => $result) {
+       if(false == $result) {
+         return ['state' => 'error', 'msg' => 'error saving state_user_transaction', 'details' => $sut_entities[$i]->getErrors()];
+       }
+     }
+     
      return true;
      
    }

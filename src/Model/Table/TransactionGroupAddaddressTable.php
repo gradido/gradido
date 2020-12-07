@@ -45,6 +45,10 @@ class TransactionGroupAddaddressTable extends Table
             'foreignKey' => 'address_type_id',
             'joinType' => 'INNER'
         ]);
+        $this->belongsTo('StateUsers', [
+            'foreignKey' => 'state_user_id',
+            'joinType' => 'INNER'
+        ]);
     }
 
     /**
@@ -77,6 +81,7 @@ class TransactionGroupAddaddressTable extends Table
     {
         $rules->add($rules->existsIn(['transaction_id'], 'Transactions'));
         $rules->add($rules->existsIn(['address_type_id'], 'AddressTypes'));
+        $rules->add($rules->existsIn(['state_user_id'], 'StateUsers'));
 
         return $rules;
     }
