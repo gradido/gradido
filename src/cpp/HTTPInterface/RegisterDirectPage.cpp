@@ -43,22 +43,12 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
 			}
-			auto group_id_string = form.get("register-group", "0");
-			int group_id = 0;
-			if(!sm->isValid(group_id_string, VALIDATE_ONLY_INTEGER)) {
-				addError(new Error("Group id", "group_id not integer"));
-			} else {
-				if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
-					addError(new Error("Int Convert Error", "Error converting group_id to int"));
-				}
-			}
-
+			
 			userReturned = session->createUserDirect(
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),
-				form.get("register-password", ""),
-				group_id
+				form.get("register-password", "")
 			);
 
 			getErrors(session);
@@ -78,7 +68,6 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		sm->deleteLoginCookies(request, response);
 	}
 	
-	auto groups = controller::Group::listAll();
 	
 #line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 
@@ -137,7 +126,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "            </div>";
 	// end include header.cpsp
 	responseStream << "\n";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -149,43 +138,23 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "\t\t\t<p>Bitte gib deine Daten um einen Account anzulegen:</p>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-first-name\">Vorname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-first-name\" type=\"text\" name=\"register-first-name\" value=\"";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 66 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-first-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-last-name\">Nachname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-last-name\" type=\"text\" name=\"register-last-name\" value=\"";
-#line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-last-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 81 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 70 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-password\">Passwort</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-password\" type=\"password\" name=\"register-password\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-password\">Passwort Best&auml;tigung</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-password2\" type=\"password\" name=\"register-password2\"/>\n";
-	responseStream << "\t\t\t<select class=\"form-control\" name=\"register-group\">\n";
-	responseStream << "\t\t\t\t<option value=\"0\">Keine Gruppe</option>\n";
-	responseStream << "\t\t\t\t";
-#line 88 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
- for(auto it = groups.begin(); it != groups.end(); it++) { 
-					auto group_model = (*it)->getModel(); 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t<option title=\"";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
-	responseStream << ( group_model->getDescription() );
-	responseStream << "\" value=\"";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
-	responseStream << ( group_model->getID() );
-	responseStream << "\">";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
-	responseStream << ( group_model->getName() );
-	responseStream << "</option>\n";
-	responseStream << "\t\t\t\t";
-#line 91 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"Anmelden\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "</div>\n";

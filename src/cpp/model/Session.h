@@ -74,7 +74,7 @@ public:
 	// ----------------  User functions ----------------------------
 
 	//! \brief new register function, without showing user pubkeys, using controller/user
-	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, int groupId);
+	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
 
 
 	// adminRegister without passwort

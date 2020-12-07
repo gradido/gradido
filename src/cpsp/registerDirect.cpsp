@@ -27,22 +27,12 @@
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
 			}
-			auto group_id_string = form.get("register-group", "0");
-			int group_id = 0;
-			if(!sm->isValid(group_id_string, VALIDATE_ONLY_INTEGER)) {
-				addError(new Error("Group id", "group_id not integer"));
-			} else {
-				if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
-					addError(new Error("Int Convert Error", "Error converting group_id to int"));
-				}
-			}
-
+			
 			userReturned = session->createUserDirect(
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),
-				form.get("register-password", ""),
-				group_id
+				form.get("register-password", "")
 			);
 
 			getErrors(session);
@@ -62,7 +52,6 @@
 		sm->deleteLoginCookies(request, response);
 	}
 	
-	auto groups = controller::Group::listAll();
 	
 %><%@ include file="header.cpsp" %>
 <%= getErrorsHtml() %>
@@ -83,13 +72,6 @@
 			<input class="form-control" id="register-password" type="password" name="register-password"/>
 			<label class="form-label" for="register-password">Passwort Best&auml;tigung</label>
 			<input class="form-control" id="register-password2" type="password" name="register-password2"/>
-			<select class="form-control" name="register-group">
-				<option value="0">Keine Gruppe</option>
-				<% for(auto it = groups.begin(); it != groups.end(); it++) { 
-					auto group_model = (*it)->getModel(); %>
-					<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>"><%= group_model->getName() %></option>
-				<% } %>
-			</select>
 			<input class="center-form-submit form-button" type="submit" name="submit" value="Anmelden">
 	</form>
 </div>
