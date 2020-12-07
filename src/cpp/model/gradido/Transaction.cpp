@@ -295,7 +295,9 @@ namespace model {
 			*pubkeyBytes = std::string((const char*)pubkeyBin, crypto_sign_PUBLICKEYBYTES);
 
 			auto sigBytes = sigPair->mutable_ed25519();
-			*sigBytes = std::string((char*)*sign, sign->size());
+			*sigBytes = std::string((char*)*sign, crypto_sign_BYTES);
+			auto sign_hex_string = DataTypeConverter::binToHex(sign);
+			printf("sign hex: %s\n", sign_hex_string.data());
 			mm->releaseMemory(sign);
 
 			updateRequestInDB();

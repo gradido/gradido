@@ -24,7 +24,7 @@ int AuthenticatedEncryptionCreateKeyTask::run()
 	const static char* function_name = "AuthenticatedEncryptionCreateKeyTask::run";
 	auto authenticated_encryption = new SecretKeyCryptography;
 	Profiler timeUsed;
-	if (SecretKeyCryptography::AUTH_ENCRYPT_OK != authenticated_encryption->createKey(mUser->getModel()->getEmail(), mPassword)) {
+	if (SecretKeyCryptography::AUTH_CREATE_ENCRYPTION_KEY_SUCCEED != authenticated_encryption->createKey(mUser->getModel()->getEmail(), mPassword)) {
 		em->addError(new Error(function_name, "error creating key"));
 		em->addError(new ParamError(function_name, "for email", mUser->getModel()->getEmail()));
 		em->addError(new ParamError(function_name, "strerror: ", strerror(errno)));
