@@ -83,7 +83,7 @@ namespace model {
 			lock();
 			insert << "INSERT INTO " << getTableName()
 				<< " (alias, name, url, home, description) VALUES(?,?,?,?,?)"
-				, use(mAlias), use(mName), use(mUrl), use(mDescription);
+				, use(mAlias), use(mName), use(mUrl), use(mHome), use(mDescription);
 			unlock();
 			return insert;
 		}
