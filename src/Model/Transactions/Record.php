@@ -61,16 +61,36 @@ class GradidoModifieUserBalance
     
     public function getUserId($userPublicKey)
     {
+        $userPublicBin = hex2bin($userPublicKey);
         $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+        
+        // hack for pauls public key format with many FF instead of the real values
+        $stateUsers = $stateUsersTable->find('all')->select(['id', 'public_key']);
+        $debug_user_publics = [];
+        foreach($stateUsers as $user) {
+            $user_public = stream_get_contents($user->public_key);
+            $debug_user_publics[] = bin2hex($user_public);
+            if(($user_public & $userPublicBin) == $user_public) {
+                array_push($this->state_users, (int)$user->id);
+                return $user->id;
+            }
+        }
+        return [
+            'state' => 'error', 
+            'msg' => '[GradidoModifieUserBalance::getUserId] couldn\'t find user via public key binary &',
+            'details' => ['input public' => $userPublicKey, 'user publics' => $debug_user_publics]
+        ];
+        // hack end
+           
         $stateUser = $stateUsersTable->find('all')->where(['public_key' => hex2bin($userPublicKey)]);
         if($stateUser->isEmpty()) {
-          return ['state' => 'error', 'msg' => 'couldn\'t find user via public key'];
+          return ['state' => 'error', 'msg' => '[GradidoModifieUserBalance::getUserId] couldn\'t find user via public key'];
         }
         $id = $stateUser->first()->id;
         if($id && is_int($id) && (int)$id > 0 && !in_array((int)$id, $this->state_users)) {
           array_push($this->state_users, (int)$id);
         }
-        return $stateUser->first()->id;
+        return $id;
     }
     
     public function updateBalance($newBalance, $recordDate, $userId)
@@ -138,6 +158,9 @@ class ManageNodeGroupAdd extends GradidoModifieUserBalance
     $transactionGroupAddadressTable = TableRegistry::getTableLocator()->get('TransactionGroupAddaddress'); 
     $stateGroupAddresses = TableRegistry::getTableLocator()->get('StateGroupAddresses');
     $transactionGroupEntity = $transactionGroupAddadressTable->newEntity();
+    if(!is_int($transactionId)) {
+        return ['state' => 'error', 'msg' => '[ManageNodeGroupAdd::finalize] transaction id is not int', 'details' => $transactionId];
+    }
     $transactionGroupEntity->transaction_id = $transactionId;
     $transactionGroupEntity->address_type_id = 1;
     if(strlen($this->user_pubkey) != 64) {
@@ -147,13 +170,19 @@ class ManageNodeGroupAdd extends GradidoModifieUserBalance
       return ['state' => 'error', 'msg' => 'user_pubkey isn\'t in hex format'];
     }
     
-    $transactionGroupEntity->public_key = hex2bin($this->user_pubkey);
-    $transactionGroupEntity->state_user_id = $this->getUserId($this->user_pubkey);
+    $userPubkeyBin = hex2bin($this->user_pubkey);
+    
+    $transactionGroupEntity->public_key = $userPubkeyBin;
+    $user_id = $this->getUserId($this->user_pubkey);
+    if(!is_int($user_id)) {
+        return ['state' => 'error', 'msg' => '[ManageNodeGroupAdd::finalize] user id is not int', 'details' => $user_id];
+    }
+    $transactionGroupEntity->state_user_id = $user_id;
     $transactionGroupEntity->remove_from_group = $this->remove_from_group;
     if(!$transactionGroupAddadressTable->save($transactionGroupEntity)) {
       return ['state' => 'error', 'msg' => 'error saving TransactionGroupAddaddress Entity', 'details' => $transactionGroupEntity->getErrors()];
     }
-    $userPubkeyBin = hex2bin($this->user_pubkey);
+    
     
     if($this->remove_from_group) {
       $stateGroup_query = $stateGroupAddresses->find('all')->where(['public_key' => hex2bin($this->user_pubkey)]);
@@ -375,77 +404,77 @@ class Record
     */
    public function finalize() 
    {
-     $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
-     $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
-     $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
-             
-     $transactionTypeName = $this->nodeTransactionTypeToDBTransactionType($this->transactionType);
-     $transactionTypeResults = $transactionTypesTable->find('all')->where(['name' => $transactionTypeName]);
-     if($transactionTypeResults->isEmpty()) {
-       return [
-           'state' => 'error', 'msg' => 'transaction type not found', 
-           'details' => ['nodeType' => $this->transactionType, 'dbType' => $transactionTypeName]
-       ];
-     }
-     if(!$this->transactionObj) {
-       return ['state' => 'error', 'msg' => 'transaction obj is null'];
-     }
-     if($this->sequenceNumber <= 0) {
-       return ['state' => 'error', 'msg' => 'sequence number invalid', 'details' => $this->sequenceNumber];
-     }
-     $transactionExistResult = $transactionsTable->find('all')->where(['id' => $this->sequenceNumber]);
-     if(!$transactionExistResult->isEmpty()) {
-       return ['state' => 'warning', 'msg' => 'transaction already exist in db', 'details' => $this->sequenceNumber];
-     }
-     $newTransaction = $transactionsTable->newEntity();
-     $newTransaction->id = $this->sequenceNumber;
-     $newTransaction->transaction_type_id = $transactionTypeResults->first()->id;
-     $newTransaction->memo = $this->memo;
-	 if($this->runningHash != '') {
-		$newTransaction->tx_hash = hex2bin($this->runningHash);
-	 }
-     $newTransaction->received = $this->received;
-     
-     //! TODO change into transaction, if at least one fail, rollback
-     /*
-     // In a controller.
-      $articles->getConnection()->transactional(function () use ($articles, $entities) {
-          foreach ($entities as $entity) {
-              $articles->save($entity, ['atomic' => false]);
+        $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
+        $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
+
+        $transactionTypeName = $this->nodeTransactionTypeToDBTransactionType($this->transactionType);
+        $transactionTypeResults = $transactionTypesTable->find('all')->where(['name' => $transactionTypeName]);
+        if($transactionTypeResults->isEmpty()) {
+          return [
+              'state' => 'error', 'msg' => 'transaction type not found', 
+              'details' => ['nodeType' => $this->transactionType, 'dbType' => $transactionTypeName]
+          ];
+        }
+        if(!$this->transactionObj) {
+          return ['state' => 'error', 'msg' => 'transaction obj is null'];
+        }
+        if($this->sequenceNumber <= 0) {
+          return ['state' => 'error', 'msg' => 'sequence number invalid', 'details' => $this->sequenceNumber];
+        }
+        $transactionExistResult = $transactionsTable->find('all')->where(['id' => $this->sequenceNumber]);
+        if(!$transactionExistResult->isEmpty()) {
+          return ['state' => 'warning', 'msg' => 'transaction already exist in db', 'details' => $this->sequenceNumber];
+        }
+        $newTransaction = $transactionsTable->newEntity();
+        $newTransaction->id = $this->sequenceNumber;
+        $newTransaction->transaction_type_id = $transactionTypeResults->first()->id;
+        $newTransaction->memo = $this->memo;
+        if($this->runningHash != '' && strlen($this->runningHash) % 2 == 0) {
+              $newTransaction->tx_hash = hex2bin($this->runningHash);
+        }
+        $newTransaction->received = $this->received;
+
+        //! TODO change into transaction, if at least one fail, rollback
+        /*
+        // In a controller.
+         $articles->getConnection()->transactional(function () use ($articles, $entities) {
+             foreach ($entities as $entity) {
+                 $articles->save($entity, ['atomic' => false]);
+             }
+         });
+        */
+        if(!$transactionsTable->save($newTransaction)) {
+          return ['state' => 'error', 'msg' => 'error saving transaction', 'details' => $newTransaction->getErrors()];
+        }
+
+        foreach($this->signatures as $sign) {
+          $sign_result = $sign->finalize($this->sequenceNumber);
+          if($sign_result !== true) {
+            return ['state' => 'error', 'msg', 'error finalizing signature', 'details' => $sign_result];
           }
-      });
-     */
-     if(!$transactionsTable->save($newTransaction)) {
-       return ['state' => 'error', 'msg' => 'error saving transaction', 'details' => $newTransaction->getErrors()];
-     }
-     
-     foreach($this->signatures as $sign) {
-       $sign_result = $sign->finalize($this->sequenceNumber);
-       iF($sign_result !== true) {
-         return ['state' => 'error', 'msg', 'error finalizing signature', 'details' => $sign_result];
-       }
-     }
-     $transaction_obj_result = $this->transactionObj->finalize($newTransaction->id, $this->received);
-     if($transaction_obj_result !== true) {
-       return ['state' => 'error', 'msg' => 'error finalizing transaction object', 'details' => $transaction_obj_result];
-     }
-     $state_users = $this->transactionObj->getAllStateUsers();
-     $sut_entities = [];
-     foreach($state_users as $state_user_id) {
-       $entity = $stateUserTransactionsTable->newEntity();
-       $entity->state_user_id = $state_user_id;
-       $entity->transaction_id = $newTransaction->id;
-       $entity->transaction_type_id = $newTransaction->transaction_type_id;
-       $sut_entities[] = $entity;
-     }
-     $sut_results = $stateUserTransactionsTable->saveMany($sut_entities);
-     foreach($sut_results as $i => $result) {
-       if(false == $result) {
-         return ['state' => 'error', 'msg' => 'error saving state_user_transaction', 'details' => $sut_entities[$i]->getErrors()];
-       }
-     }
-     
-     return true;
+        }
+        $transaction_obj_result = $this->transactionObj->finalize($newTransaction->id, $this->received);
+        if($transaction_obj_result !== true) {
+          return ['state' => 'error', 'msg' => 'error finalizing transaction object', 'details' => $transaction_obj_result];
+        }
+        $state_users = $this->transactionObj->getAllStateUsers();
+        $sut_entities = [];
+        foreach($state_users as $state_user_id) {
+          $entity = $stateUserTransactionsTable->newEntity();
+          $entity->state_user_id = $state_user_id;
+          $entity->transaction_id = $newTransaction->id;
+          $entity->transaction_type_id = $newTransaction->transaction_type_id;
+          $sut_entities[] = $entity;
+        }
+        $sut_results = $stateUserTransactionsTable->saveMany($sut_entities);
+        foreach($sut_results as $i => $result) {
+          if(false == $result) {
+            return ['state' => 'error', 'msg' => 'error saving state_user_transaction', 'details' => $sut_entities[$i]->getErrors()];
+          }
+        }
+
+        return true;
      
    }
    
