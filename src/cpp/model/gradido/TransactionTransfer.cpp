@@ -62,7 +62,7 @@ namespace model {
 
 		int TransactionTransfer::prepare()
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			const static char functionName[] = { "TransactionTransfer::prepare" };
 
 			mKontoTable.reserve(2);
@@ -122,7 +122,6 @@ namespace model {
 			//*/
 
 			mIsPrepared = true;
-			unlock();
 			return 0;
 		}
 
@@ -156,25 +155,21 @@ namespace model {
 
 		const std::string& TransactionTransfer::getKontoNameCell(int index)
 		{
-
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			
 			if (index >= mKontoTable.size()) {
-				unlock();
 				return mInvalidIndexMessage;
 			}
-			unlock();
 
 			return mKontoTable[index].kontoNameCell;
 		}
 
 		const std::string& TransactionTransfer::getAmountCell(int index)
 		{
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (index >= mKontoTable.size()) {
-				unlock();
 				return mInvalidIndexMessage;
 			}
-			unlock();
 
 			return mKontoTable[index].amountCell;
 		}

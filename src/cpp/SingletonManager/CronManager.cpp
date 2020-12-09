@@ -13,10 +13,11 @@ CronManager::CronManager()
 
 CronManager::~CronManager()
 {
-	mMainWorkMutex.lock();
+	Poco::ScopedLock<Poco::FastMutex> _lock(mMainWorkMutex);
+	
 	mMainTimer.stop();
 	mInitalized = false;
-	mMainWorkMutex.unlock();
+	
 }
 
 CronManager* CronManager::getInstance()
@@ -52,7 +53,6 @@ void CronManager::runUpdateStep(Poco::Timer& timer)
 	//printf("%s [CronManager::runUpdateStep] \n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data());
 	Poco::ScopedLock<Poco::FastMutex> _lock(mMainWorkMutex);
 	if (!mInitalized) {
-		mMainWorkMutex.unlock();
 		return;
 	}
 	mNodeServersToPingMutex.lock();
@@ -85,7 +85,7 @@ void CronManager::runUpdateStep(Poco::Timer& timer)
 			//mMainTimer.restart(mDefaultIntervalMilliseconds);
 		}
 	}
-	mTimestampsMutex.unlock();	
+	mTimestampsMutex.unlock();
 	//printf("[CronManager::runUpdateStep] end\n");
 }
 

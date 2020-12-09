@@ -135,13 +135,14 @@ namespace model
 		Poco::Data::Statement PendingTask::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
 				<< " AND TIMESTAMPDIFF(SECOND, created, ?) = 0 "
 				<< " AND task_type_id = ? "
 				, into(mID), use(mUserId), use(mCreated), use(mTaskTypeId);
-			unlock();
+			
 			return select;
 		}
 
@@ -149,11 +150,12 @@ namespace model
 		Poco::Data::Statement PendingTask::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (user_id, hedera_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?)"
 				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
-			unlock();
+			
 			return insert;
 		}
 	}

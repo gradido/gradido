@@ -119,11 +119,11 @@ namespace model {
 		Poco::Data::Statement CryptoKey::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			
 			select << "SELECT id FROM " << getTableName()
 				<< " where public_key = ?"
 				, into(mID), use(mPublicKey);
-			unlock();
 			return select;
 		}
 	
@@ -131,11 +131,10 @@ namespace model {
 		Poco::Data::Statement CryptoKey::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			insert << "INSERT INTO " << getTableName()
 				<< " (private_key, public_key, crypto_key_type_id) VALUES(?,?,?)"
 				, use(mPrivateKey), use(mPublicKey), use(mKeyType);
-			unlock();
 			return insert;
 		}
 

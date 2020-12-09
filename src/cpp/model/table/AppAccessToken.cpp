@@ -46,7 +46,7 @@ namespace model
 		{
 			Poco::Data::Statement insert(session);
 
-			lock();
+			lock("AppAccessToken::_insertIntoDB");
 			assert(mUserId > 0);
 			assert(mAccessCode > 0);
 

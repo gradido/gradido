@@ -11,7 +11,7 @@ namespace model {
 
 		TransactionBody::~TransactionBody()
 		{
-			lock();
+			lock("TransactionBody::~TransactionBody");
 			if (mTransactionSpecific) {
 				delete mTransactionSpecific;
 				mTransactionSpecific = nullptr;

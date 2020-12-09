@@ -69,22 +69,24 @@ namespace model {
 		Poco::Data::Statement Group::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			select << "SELECT id FROM " << getTableName()
 				<< " where alias = ?"
 				, into(mID), use(mAlias);
-			unlock();
+			
 			return select;
 
 		}
 		Poco::Data::Statement Group::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (alias, name, url, home, description) VALUES(?,?,?,?,?)"
 				, use(mAlias), use(mName), use(mUrl), use(mHome), use(mDescription);
-			unlock();
+			
 			return insert;
 		}
 	} 

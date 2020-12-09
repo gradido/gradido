@@ -40,7 +40,7 @@ namespace model {
 
 			static Poco::AutoPtr<TransactionBody> load(const std::string& protoMessageBin);
 
-			inline TransactionType getType() { lock(); auto t = mType; unlock(); return t; }
+			inline TransactionType getType() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType; }
 			std::string getMemo();
 			void setMemo(const std::string& memo);
 			

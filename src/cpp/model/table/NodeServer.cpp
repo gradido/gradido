@@ -107,23 +107,24 @@ namespace model {
 		Poco::Data::Statement NodeServer::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			
 			select << "SELECT id FROM " << getTableName()
 				<< " where url = ? AND port = ? "
 				, into(mID), use(mUrl), use(mPort);
 
-			unlock();
 			return select;
 		}
 
 		Poco::Data::Statement NodeServer::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (url, port, group_id, server_type, node_hedera_id) VALUES(?,?,?,?,?)"
 				, use(mUrl), use(mPort), use(mGroupId), use(mServerType), use(mNodeHederaId);
-			unlock();
+			
 			return insert;
 		}
 

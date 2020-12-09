@@ -30,12 +30,12 @@ namespace model {
 		Poco::Data::Statement UserRole::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 
-			lock();
 			insert << "INSERT INTO " << getTableName()
 				<< " (user_id, role_id) VALUES(?,?)"
 				, use(mUserId), bind(mType);
-			unlock();
+			
 			return insert;
 		}
 

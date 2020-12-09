@@ -33,12 +33,12 @@ namespace model {
 		Poco::Data::Statement UserBackup::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			
 			insert << "INSERT INTO " << getTableName()
 				<< " (user_id, passphrase, mnemonic_type) VALUES(?,?,?)"
 				, use(mUserId), bind(mPassphrase), use(mMnemonicType);
-			unlock();
+			
 			return insert;
 		}
 

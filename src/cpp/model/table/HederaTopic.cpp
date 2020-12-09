@@ -86,24 +86,26 @@ namespace model {
 		Poco::Data::Statement HederaTopic::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			select << "SELECT id FROM " << getTableName()
 				<< " where topic_hedera_id = ? "
 				<< " AND name = ? "
 				, into(mID), use(mTopicHederaId), use(mName);
-			unlock();
+			
 			return select;
 		}
 		Poco::Data::Statement HederaTopic::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (topic_hedera_id, name, auto_renew_account_hedera_id, auto_renew_period,"
 				<< " group_id, admin_key_id, submit_key_id, current_timeout, sequence_number) VALUES(?,?,?,?,?,?,?,?,?)"
 				, use(mTopicHederaId), use(mName), use(mAutoRenewAccountHederaId), use(mAutoRenewPeriod)
 				, use(mGroupId), use(mAdminKeyId), use(mSubmitKeyId), use(mCurrentTimeout), use(mSequenceNumber);
-			unlock();
+			
 			return insert;
 		}
 

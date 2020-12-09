@@ -77,21 +77,23 @@ namespace model {
 		Poco::Data::Statement HederaId::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			select << "SELECT id FROM " << getTableName()
 				<< " where shardNum = ? AND realmNum = ? AND num = ?"
 				, into(mID), use(mShardNum), use(mRealmNum), use(mNum);
-			unlock();
+			
 			return select;
 		}
 		Poco::Data::Statement HederaId::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			lock();
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			insert << "INSERT INTO " << getTableName()
 				<< " (shardNum, realmNum, num) VALUES(?,?,?)"
 				, use(mShardNum), use(mRealmNum), use(mNum);
-			unlock();
+			
 			return insert;
 		}
 	}

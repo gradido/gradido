@@ -37,7 +37,8 @@ ErrorManager::~ErrorManager()
 void ErrorManager::addError(Notification* error, bool log/* = true*/)
 {
 	DHASH id = DRMakeStringHash(error->getFunctionName());
-	mWorkingMutex.lock();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkingMutex);
+	
 	auto it = mErrorsMap.find(id);
 	std::list<Notification*>* list = nullptr;
 
@@ -52,13 +53,12 @@ void ErrorManager::addError(Notification* error, bool log/* = true*/)
 		list = it->second;
 		// check if hash collision
 		if (strcmp((*list->begin())->getFunctionName(), error->getFunctionName()) != 0) {
-			mWorkingMutex.unlock();
+			
 			throw "[ErrorManager::addError] hash collision detected";
 		}
 	}
 	list->push_back(error);
 
-	mWorkingMutex.unlock();
 
 }
 

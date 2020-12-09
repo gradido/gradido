@@ -28,7 +28,7 @@ namespace model {
 			int prepare();
 			TransactionValidation validate();
 
-			inline size_t getKontoTableSize() { lock(); size_t s = mKontoTable.size(); unlock(); return s; }
+			inline size_t getKontoTableSize() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mKontoTable.size(); }
 			const std::string& getKontoNameCell(int index);
 			const std::string& getAmountCell(int index);
 

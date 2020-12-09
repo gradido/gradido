@@ -186,7 +186,7 @@ namespace model {
 				resultCount = select.execute();
 			}
 			catch (Poco::Exception& ex) {
-				lock();
+				lock("ModelBase::loadFromDB");
 				addError(new ParamError(getTableName(), "mysql error by multi selecting", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
 				unlock();

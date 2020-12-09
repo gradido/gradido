@@ -84,30 +84,29 @@ MemoryPageStack::~MemoryPageStack()
 
 MemoryBin* MemoryPageStack::getFreeMemory()
 {
-	lock();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	
 	if (!mSize) {
-		unlock();
 		return nullptr;
 	}
 	if (mMemoryBinStack.size() == 0) {
-		unlock();
 		return new MemoryBin(mSize);
 	}
 	MemoryBin* memoryBin = mMemoryBinStack.top();
 	mMemoryBinStack.pop();
-	unlock();
+	
 	return memoryBin;
 }
 void MemoryPageStack::releaseMemory(MemoryBin* memory)
 {
 	if (!memory) return;
-	lock();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	
 	if (memory->size() != mSize) {
-		unlock();
 		throw new Poco::Exception("MemoryPageStack::releaseMemory wron memory page stack");
 	}
 	mMemoryBinStack.push(memory);
-	unlock();
+	
 }
 
 // ***********************************************************************************
