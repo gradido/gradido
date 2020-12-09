@@ -26,7 +26,7 @@ enum PageState {
 	PageState state = PAGE_STATE_OVERVIEW;
 	
 	auto groups = controller::Group::listAll();
-	
+	Poco::AutoPtr<controller::Group> choosen_group;
 
 	if(!form.empty()) {
 		auto group_id_string = form.get("group_id", "");
@@ -36,7 +36,7 @@ enum PageState {
 			int group_id = 0;
 			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(group_id_string, group_id)) {
 				std::string group_alias = "";
-				Poco::AutoPtr<controller::Group> choosen_group;
+				
 				for(auto it = groups.begin(); it != groups.end(); it++) {
 					auto group_model = (*it)->getModel();
 					if(group_model->getID() == group_id) {
@@ -82,8 +82,9 @@ enum PageState {
 				// should be only one
 				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
 				if(transaction->getSignCount() == 0) {
+					
 					pt->unlock();
-					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					response.redirect("https://" + choosen_group->getModel()->getUrl() + "account/checkTransactions");
 					return;
 				}
 			} else if(referer_was_checkTransaction && user->getModel()->getGroupId()) {

@@ -178,9 +178,9 @@
 		sm->deleteLoginCookies(request, response);
 	}
 	
-	std::string form_action_url = ServerConfig::g_serverPath;
+	std::string form_action_url = ServerConfig::g_serverPath + "/";
 	if(mSession && !mSession->getNewUser().isNull()) {
-		form_action_url = "https://" + mSession->getNewUser()->getGroupBaseUrl();
+		form_action_url = "https://" + mSession->getNewUser()->getGroupBaseUrl() + "/";
 	} else {
 	// TODO: find maybe a better way, especially together with language changer
 		form_action_url = "";
@@ -192,7 +192,7 @@
 <div class="center-form-container">
     <%@ include file="flags.cpsp" %>
     <div class="center-form-form">
-		<form action="<%= form_action_url %>/" method="POST">
+		<form action="<%= form_action_url %>" method="POST">
 			<input class="form-control" type="text" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" value="<%= presetEmail %>"/>
 			<input class="form-control" type="password" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />
 		    <button type="submit" name="submit" class="center-form-submit form-button"><%= langCatalog->gettext(" Login ") %></button>
