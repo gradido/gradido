@@ -202,8 +202,19 @@
 			<% for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) {
 					auto hedera_topic_model = (*it)->getModel();  
 					auto updateUrl = ServerConfig::g_serverPath + "/topic?action=getTopicInfos&topic_id=" + std::to_string(hedera_topic_model->getID());
+					std::string kabuto_url = "https://explorer.kabuto.sh/";//testnet/id/0.0.132132;
+					
+					
 					auto auto_renew_account = (*it)->getAutoRenewAccount();
 					auto renew_account_model = auto_renew_account->getModel();
+					
+					if(renew_account_model->getNetworkType() == ServerConfig::HEDERA_TESTNET) {
+						kabuto_url += "testnet/";
+					} else if(renew_account_model->getNetworkType() == ServerConfig::HEDERA_MAINNET) {
+						kabuto_url += "mainnet/";
+					}
+					kabuto_url += "id/";
+					
 					std::string timeout_color = "success-color";
 					if(hedera_topic_model->getCurrentTimeout() < Poco::DateTime()) {
 						timeout_color = "alert-color";
@@ -214,11 +225,13 @@
 					auto topic_hedera_id = (*it)->getTopicHederaId();
 					if(!topic_hedera_id.isNull()) {
 						topic_hedera_id_string = topic_hedera_id->getModel()->toString();
+						kabuto_url += topic_hedera_id_string;
 					}
+					
 					
 					%>
 				<div class="row">
-					<div class="cell c3"><%= topic_hedera_id_string %></div>
+					<div class="cell c3"><a title="Hedera Block Explorer - Kabuto" href="<%= kabuto_url %>"><%= topic_hedera_id_string %></a></div>
 					<div class="cell c3"><%= hedera_topic_model->getName() %></div>
 					<div class="cell c3"><%= model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) %></div>
 					<div class="cell c4"><%= renew_account_model->getBalanceString() %></div>

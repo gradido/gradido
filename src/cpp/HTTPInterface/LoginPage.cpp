@@ -181,7 +181,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 					response.redirect(refererString);
 				} else {
 					printf("redirect to: %s/\n", user->getGroupBaseUrl().data());
-					response.redirect(user->getGroupBaseUrl() + "/");
+					response.redirect("https://" + user->getGroupBaseUrl() + "/");
 				}
 				return;
 			}

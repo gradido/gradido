@@ -193,7 +193,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 #line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") );
 	responseStream << "</p>\n";
-	responseStream << "\t\t<a class=\"link-button\" href=\"";
+	responseStream << "\t\t<a class=\"link-button\" href=\"https://";
 #line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( user->getGroupBaseUrl() );
 	responseStream << "\">";
