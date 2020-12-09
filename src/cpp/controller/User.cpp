@@ -523,18 +523,24 @@ namespace controller {
 	std::string User::getGroupBaseUrl()
 	{
 		UNIQUE_LOCK;
+		static const char* function_name = "User::getGroupBaseUrl";
 		if (mGroupBaseUrl != "") {
+			printf("[%s] return saved group base Url: %s\n", function_name, mGroupBaseUrl.data());
 			return mGroupBaseUrl;
 		}
-		static const char* function_name = "User::getGroupBaseUrl";
+		
 		auto model = getModel();
-		if (!model->getGroupId()) return ServerConfig::g_php_serverPath;
+		if (!model->getGroupId()) {
+			printf("[%s] return ServerConfig::g_php_serverPath because no group id\n", function_name);
+			return ServerConfig::g_php_serverPath;
+		}
 		auto servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_COMMUNITY, model->getGroupId());
 		if (!servers.size()) {
 			auto group = controller::Group::load(model->getGroupId());
 			if (!group.isNull()) {
 				auto group_model = group->getModel();
 				mGroupBaseUrl = group_model->getUrl() + group_model->getHome();
+				printf("[%s] return group base Url: %s from Group\n", function_name, mGroupBaseUrl.data());
 				return mGroupBaseUrl;
 			}
 			return ServerConfig::g_php_serverPath;
@@ -546,6 +552,7 @@ namespace controller {
 			return ServerConfig::g_php_serverPath;
 		}
 		mGroupBaseUrl = servers[0]->getBaseUri();
+		printf("[%s] return group base Url: %s from NodeServer\n", function_name, mGroupBaseUrl.data());
 		return mGroupBaseUrl;
 	}
 

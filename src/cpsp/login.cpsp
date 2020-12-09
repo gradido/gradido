@@ -144,18 +144,19 @@
 					refererString = referer->second;
 				}
 				if(lastExternReferer != "") {
-					//printf("redirect to: %s\n", lastExternReferer.data());
+					printf("redirect to: %s (last extern referer)\n", lastExternReferer.data());
 					response.redirect(lastExternReferer);
 				} else if(refererString != "" &&
 				          refererString.find("login") == std::string::npos &&
 						  refererString.find("logout") == std::string::npos &&
 						  refererString.find("user_delete") == std::string::npos &&
-						  refererString != ServerConfig::g_serverPath + request.getURI()) {
+						  refererString != ServerConfig::g_serverPath + request.getURI() && 
+						  refererString != user->getGroupBaseUrl() + request.getURI()) {
 					std::string uri = request.getURI();
 					printf("request uri: %s, redirect to: %s\n", uri.data(), refererString.data());
 					response.redirect(refererString);
 				} else {
-					//printf("redirect to: %s\n", ServerConfig::g_php_serverPath.data());
+					printf("redirect to: %s/\n", user->getGroupBaseUrl().data());
 					response.redirect(user->getGroupBaseUrl() + "/");
 				}
 				return;
