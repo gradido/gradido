@@ -202,9 +202,9 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 		sm->deleteLoginCookies(request, response);
 	}
 	
-	std::string form_action_url = ServerConfig::g_serverPath;
+	std::string form_action_url = ServerConfig::g_serverPath + "/";
 	if(mSession && !mSession->getNewUser().isNull()) {
-		form_action_url = "https://" + mSession->getNewUser()->getGroupBaseUrl();
+		form_action_url = "https://" + mSession->getNewUser()->getGroupBaseUrl() + "/";
 	} else {
 	// TODO: find maybe a better way, especially together with language changer
 		form_action_url = "";
@@ -307,7 +307,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\t\t<form action=\"";
 #line 184 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( form_action_url );
-	responseStream << "/\" method=\"POST\">\n";
+	responseStream << "\" method=\"POST\">\n";
 	responseStream << "\t\t\t<input class=\"form-control\" type=\"text\" name=\"login-email\" placeholder=\"";
 #line 185 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail") );
