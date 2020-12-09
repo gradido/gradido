@@ -18,7 +18,8 @@
 		//form.get("email-verification-code")
 	}
 	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
-	response.redirect(ServerConfig::g_php_serverPath + "/");
+	//response.redirect(ServerConfig::g_php_serverPath + "/");
+	response.redirect("https://" + user->getGroupBaseUrl() + "/");
 	return;
 %><%@ include file="header_old.cpsp" %>
 <div class="grd_container">

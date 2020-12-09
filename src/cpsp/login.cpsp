@@ -181,6 +181,9 @@
 	std::string form_action_url = ServerConfig::g_serverPath;
 	if(mSession && !mSession->getNewUser().isNull()) {
 		form_action_url = "https://" + mSession->getNewUser()->getGroupBaseUrl();
+	} else {
+	// TODO: find maybe a better way, especially together with language changer
+		form_action_url = "";
 	}
 
 %><%@ include file="header.cpsp" %>
