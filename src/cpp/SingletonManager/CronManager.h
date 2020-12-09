@@ -24,7 +24,7 @@ public:
 
 	static CronManager* getInstance();
 
-	bool init(long defaultPeriodicIntervallMilliseconds = 60000);
+	bool init(long defaultPeriodicIntervallMilliseconds = 600000);
 	void stop();
 
 	void runUpdateStep(Poco::Timer& timer);

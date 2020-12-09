@@ -95,7 +95,7 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
 				if(transaction->getSignCount() == 0) {
 					pt->unlock();
-					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					response.redirect(user->getGroupBaseUrl() + "/checkTransactions");
 					return;
 				}
 			}

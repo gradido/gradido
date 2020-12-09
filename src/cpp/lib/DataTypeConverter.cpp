@@ -31,7 +31,7 @@ namespace DataTypeConverter
 			return NUMBER_PARSE_LOGIC_ERROR;
 		}
 	}
-
+#ifdef __linux__
 	NumberParseState strToInt(const std::string& input, unsigned long long& result)
 	{
 		try {
@@ -54,7 +54,7 @@ namespace DataTypeConverter
 			return NUMBER_PARSE_LOGIC_ERROR;
 		}
 	}
-	
+#endif
 	NumberParseState strToInt(const std::string& input, Poco::UInt64& result)
 	{
 		try {

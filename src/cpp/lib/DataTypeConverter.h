@@ -26,7 +26,9 @@ namespace DataTypeConverter {
 	};
 
 	NumberParseState strToInt(const std::string& input, int& result);
+#ifdef __linux__
 	NumberParseState strToInt(const std::string& input, unsigned long long& result);
+#endif
 	NumberParseState strToInt(const std::string& input, Poco::UInt64& result);
 	NumberParseState strToDouble(const std::string& input, double& result);
 
