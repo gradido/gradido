@@ -51,6 +51,13 @@ PageRequestHandlerFactory::PageRequestHandlerFactory()
 	ServerConfig::g_ServerKeySeed->put(8, DRRandom::r64());
 }
 
+Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::basicSetup(PageRequestMessagedHandler* handler, const Poco::Net::HTTPServerRequest& request, Profiler profiler)
+{
+	handler->setHost(request.getHost());
+	handler->setProfiler(profiler);
+	return handler;
+}
+
 Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 {
 	//printf("request uri: %s\n", request.getURI().data());
@@ -76,17 +83,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 
 	if (url_first_part == "/elopage_webhook_261") {
 		mLogging.information(dateTimeString + " call from elopage");
-		//printf("call from elopage\n");
-		auto pageRequestHandler = new ElopageWebhook;
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new ElopageWebhook, request, timeUsed);
 	}
 
 	if (url_first_part == "/elopage_webhook_211") {
 		mLogging.information(dateTimeString + " call from elopage light");
-		auto pageRequestHandler = new ElopageWebhookLight;
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new ElopageWebhookLight, request, timeUsed);
 	}
 
 	// check if user has valid session
@@ -129,26 +131,18 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}*/
 	if (url_first_part.size() >= 9 && url_first_part.substr(0,9) == "/register") {
 	//if (url_first_part == "/register" || url_first_part == "/registerDirect" ) {
-		auto pageRequestHandler = new RegisterDirectPage;
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new RegisterDirectPage, request, timeUsed);
 	}
 	if (url_first_part == "/resetPassword") {
-		auto resetPassword = new ResetPassword;
-		resetPassword->setProfiler(timeUsed);
-		return resetPassword;
+		return basicSetup(new ResetPassword, request, timeUsed);
 	}
 
 	if (url_first_part == "/decode_transaction") {
 		mLogging.information(dateTimeString + " decode");
-		auto pageRequestHandler = new DecodeTransactionPage(s);
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new DecodeTransactionPage(s), request, timeUsed);
 	}
 	if (url_first_part == "/passphrased_transaction") {
-		auto pageRequestHandler = new PassphrasedTransaction();
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new PassphrasedTransaction, request, timeUsed);
 	}
 	if (s) {
 		if (externReferer != "") {
@@ -162,76 +156,48 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 				s->getErrors(userModel);
 			}
 			s->sendErrorsAsEmail();
-			auto pageRequestHandler = new Error500Page(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new Error500Page(s), request, timeUsed);
 		}
 		if (url_first_part == "/error500") {
-			auto pageRequestHandler = new Error500Page(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new Error500Page(s), request, timeUsed);
 		}
 		if (url_first_part == "/userUpdateGroup") {
-			auto pageRequestHandler = new UserUpdateGroupPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new UserUpdateGroupPage(s), request, timeUsed);
 		}
 
 		if (url_first_part == "/transform_passphrase") {
-			auto pageRequestHandler = new TranslatePassphrase(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new TranslatePassphrase(s), request, timeUsed);
 		}
 		if (url_first_part == "/repairPassphrase") {
-			auto pageRequestHandler = new RepairDefectPassphrase(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new RepairDefectPassphrase(s), request, timeUsed);
 		}
 		if (userModel && userModel->getRole() == model::table::ROLE_ADMIN) {
 			if (url_first_part == "/adminRegister") {
-				auto pageRequestHandler = new RegisterAdminPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new RegisterAdminPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/debugPassphrase") {
-				auto pageRequestHandler = new DebugPassphrasePage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new DebugPassphrasePage(s), request, timeUsed);
 			}
 			if (url_first_part == "/debugMnemonic") {
-				auto pageRequestHandler = new DebugMnemonicPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new DebugMnemonicPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/checkUserBackups") {
-				auto pageRequestHandler = new AdminCheckUserBackup(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminCheckUserBackup(s), request, timeUsed);
 			}
 			if (url_first_part == "/adminUserPasswordReset") {
-				auto pageRequestHandler = new AdminUserPasswordReset(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminUserPasswordReset(s), request, timeUsed);
 			}
 			if (url_first_part == "/groups") {
-				auto pageRequestHandler = new AdminGroupsPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminGroupsPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/topic") {
-				auto pageRequestHandler = new AdminTopicPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminTopicPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/hedera_account") {
-				auto pageRequestHandler = new AdminHederaAccountPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminHederaAccountPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/nodes") {
-				auto pageRequestHandler = new AdminNodeServerPage(s);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
 			}
 		}
 
@@ -240,36 +206,27 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			// remove cookie(s)
 			
 			//printf("session released\n");
-			auto pageRequestHandler = new LoginPage(nullptr);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new LoginPage(nullptr), request, timeUsed);
 		}
 		if(url_first_part == "/user_delete") {
 			if(s->deleteUser()) {
 				sm->releaseSession(s);
-				auto pageRequestHandler = new LoginPage(nullptr);
-				pageRequestHandler->setProfiler(timeUsed);
-				return pageRequestHandler;
+
+				return basicSetup(new LoginPage(nullptr), request, timeUsed);
 			}			
 		}
 		auto sessionState = s->getSessionState();
 		//printf("session state: %s\n", s->getSessionStateString());
 		if (url_first_part == "/updateUserPassword") {
-			auto pageRequestHandler = new UpdateUserPasswordPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new UpdateUserPasswordPage(s), request, timeUsed);
 		}
 		if (url_first_part == "/checkTransactions") {
-			auto pageRequestHandler = new CheckTransactionPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new CheckTransactionPage(s), request, timeUsed);
 
 		}
 		if(s && newUser && newUser->hasPassword() && newUser->hasPublicKey()) {
 			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
-			auto pageRequestHandler = new DashboardPage(s);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new DashboardPage(s), request, timeUsed);
 		}
 		
 	} else {
@@ -278,14 +235,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			return new ConfigPage;
 		}
 		else if (url_first_part == "/login") {
-			auto pageRequestHandler = new LoginPage(nullptr);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new LoginPage(nullptr), request, timeUsed);
 		}
 	}
-	auto pageRequestHandler = new LoginPage(nullptr);
-	pageRequestHandler->setProfiler(timeUsed);
-	return pageRequestHandler;
+	return basicSetup(new LoginPage(nullptr), request, timeUsed);
 	//return new HandleFileRequest;
 	//return new PageRequestHandlerFactory;
 }

@@ -8,6 +8,11 @@
 // detect also lang field from form get
 const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9/_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
 
+PageRequestMessagedHandler::PageRequestMessagedHandler()
+{
+
+}
+
 Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn /*= ""*/)
 {
 

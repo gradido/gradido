@@ -18,6 +18,8 @@ public:
 protected:
 	Poco::Net::HTTPRequestHandler* handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request, Profiler timeUsed);
 
+	Poco::Net::HTTPRequestHandler* basicSetup(PageRequestMessagedHandler* handler, const Poco::Net::HTTPServerRequest& request, Profiler profiler);
+
 	Poco::RegularExpression mRemoveGETParameters;
 	Poco::Logger& mLogging;
 };

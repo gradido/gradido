@@ -14,9 +14,10 @@
 class PageRequestMessagedHandler : public Poco::Net::HTTPRequestHandler, public NotificationList
 {
 public:
-	PageRequestMessagedHandler() {}
+	PageRequestMessagedHandler();
 
 	inline void setProfiler(Profiler profiler) { mTimeProfiler = profiler; }
+	inline void setHost(std::string host) { mHost = host; }
 	//Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 
 protected:
@@ -26,8 +27,10 @@ protected:
 	virtual Languages chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn = "");
 
 	unsigned long long getLastGetAsU64(const std::string& uri);
+	inline std::string getBaseUrl() { return "https://" + mHost; }
 
 	Profiler mTimeProfiler;
+	std::string mHost;
 	
 };
 
