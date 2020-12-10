@@ -80,12 +80,18 @@ class JsonRequestHandlerController extends AppController {
       if(!$last_transaction_query->isEmpty()) {
         $last_transaction_id = $last_transaction_query->first()->id;
       }
+      if($last_transaction_query->count() < $last_transaction_id) {
+          $last_transaction_id = $last_transaction_query->count();
+      }
       
       $group_alias = Configure::read('GroupAlias');
-      $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
+      $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
       if(isset($result['state']) && $result['state'] == 'error') {
         return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => $result]);
       }
+	  if(!isset($result['transaction_count']) || $result['transaction_count'] == 0) {
+		return $this->returnJson(['state' => 'success']);
+	  }		  
       /* example
       $result = json_decode("[
    {
@@ -222,7 +228,12 @@ class JsonRequestHandlerController extends AppController {
       $part_count = -1;
       $temp_record = new Record;
       $errors = [];
-      foreach($result as $_record) {
+	  
+      foreach($result['blocks'] as $_record) {
+		  if(is_string($_record)) {
+			  // if it is a string, it is block validation hash in hex
+			  continue;
+		  }
           $parse_result = $temp_record->parseRecord($_record);
           if($parse_result == true) {
             $sequenceNumber = $temp_record->getSequenceNumber();

@@ -7,7 +7,7 @@ use Cake\ORM\Entity;
  * StateGroupAddress Entity
  *
  * @property int $id
- * @property int $state_group_id
+ * @property int $group_id
  * @property string|resource $public_key
  * @property int $address_type_id
  *
@@ -26,10 +26,10 @@ class StateGroupAddress extends Entity
      * @var array
      */
     protected $_accessible = [
-        'state_group_id' => true,
+        'group_id' => true,
         'public_key' => true,
         'address_type_id' => true,
         'state_group' => true,
-        'address_type' => true
+        'address_type' => true,
     ];
 }

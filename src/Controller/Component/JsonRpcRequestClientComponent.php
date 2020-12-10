@@ -63,7 +63,7 @@ class JsonRpcRequestClientComponent extends Component
         //$responseType = $response->getType();
         return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
     }
-    return $json;
+    return $json['result'];
     //return ['state' => 'success', 'data' => $json];
   }
    
