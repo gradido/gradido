@@ -80,6 +80,9 @@ class JsonRequestHandlerController extends AppController {
       if(!$last_transaction_query->isEmpty()) {
         $last_transaction_id = $last_transaction_query->first()->id;
       }
+      if($last_transaction_query->count() < $last_transaction_id) {
+          $last_transaction_id = $last_transaction_query->count();
+      }
       
       $group_alias = Configure::read('GroupAlias');
       $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
