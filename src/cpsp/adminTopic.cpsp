@@ -231,7 +231,7 @@
 					
 					%>
 				<div class="row">
-					<div class="cell c3"><a title="Hedera Block Explorer - Kabuto" href="<%= kabuto_url %>"><%= topic_hedera_id_string %></a></div>
+					<div class="cell c3"><a title="Hedera Block Explorer - Kabuto" target="_blank" href="<%= kabuto_url %>"><%= topic_hedera_id_string %></a></div>
 					<div class="cell c3"><%= hedera_topic_model->getName() %></div>
 					<div class="cell c3"><%= model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) %></div>
 					<div class="cell c4"><%= renew_account_model->getBalanceString() %></div>

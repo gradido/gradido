@@ -32,7 +32,8 @@
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),
-				form.get("register-password", "")
+				form.get("register-password", ""),
+				getBaseUrl()
 			);
 
 			getErrors(session);
@@ -41,7 +42,7 @@
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
-				response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
+				response.redirect(getBaseUrl() + "/userUpdateGroup");
 				return;
 			}
 		}

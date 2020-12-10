@@ -48,7 +48,8 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),
-				form.get("register-password", "")
+				form.get("register-password", ""),
+				getBaseUrl()
 			);
 
 			getErrors(session);
@@ -57,7 +58,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				auto user_host = request.clientAddress().host();
 				session->setClientIp(user_host);
 				response.addCookie(session->getLoginCookie());
-				response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
+				response.redirect(getBaseUrl() + "/userUpdateGroup");
 				return;
 			}
 		}
@@ -126,7 +127,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "            </div>";
 	// end include header.cpsp
 	responseStream << "\n";
-#line 57 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 58 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -138,17 +139,17 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "\t\t\t<p>Bitte gib deine Daten um einen Account anzulegen:</p>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-first-name\">Vorname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-first-name\" type=\"text\" name=\"register-first-name\" value=\"";
-#line 66 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 67 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-first-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-last-name\">Nachname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-last-name\" type=\"text\" name=\"register-last-name\" value=\"";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-last-name") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 70 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 71 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-password\">Passwort</label>\n";

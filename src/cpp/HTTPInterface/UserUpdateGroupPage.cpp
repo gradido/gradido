@@ -81,7 +81,7 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	} else {
 	    if(groups.size() == 0) {
 			if(user->getModel()->getRole() == model::table::ROLE_ADMIN) {
-				response.redirect(ServerConfig::g_serverPath + "/groups");
+				response.redirect(getBaseUrl() + "/groups");
 				return;
 			}
 			state = PAGE_STATE_NO_GROUPS;
@@ -106,7 +106,7 @@ void UserUpdateGroupPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 				if(transaction->getSignCount() == 0) {
 					
 					pt->unlock();
-					response.redirect("https://" + choosen_group->getModel()->getUrl() + "account/checkTransactions");
+					response.redirect(getBaseUrl() + "/checkTransactions");
 					return;
 				}
 			} else if(referer_was_checkTransaction && user->getModel()->getGroupId()) {

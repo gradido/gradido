@@ -34,7 +34,8 @@
 				form.get("register-first-name", ""),
 				form.get("register-last-name", ""),
 				form.get("register-email", ""),
-				group_id
+				group_id,
+				getBaseUrl()
 			);
 			getErrors(mSession);
 		}

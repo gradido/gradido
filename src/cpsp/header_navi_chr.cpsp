@@ -34,11 +34,11 @@
             <div class="flash-messages" onclick="this.classList.add('hidden')"><%= getErrorsHtmlNewFormat() %></div>
             <div class="nav-vertical">
                 <ul>
-                    <li><a href="<%= ServerConfig::g_php_serverPath %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= model::gradido::TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span
+                    <li><a href="<%= user->getGroupBaseUrl() %>state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  <%= model::gradido::TransactionBase::amountToString(userBalance) %> GDD )">account_balance_wallet</i><span
                                 class="link-title">Kontoübersicht ( <%= model::gradido::TransactionBase::amountToString(userBalance) %> GDD )</span></a></li>
-                    <li><a href="<%= ServerConfig::g_php_serverPath %>dashboard/index" class=""><i class="material-icons-outlined nav-icon " title="Startseite">home</i><span
+                    <li><a href="<%= user->getGroupBaseUrl() %>dashboard/index" class=""><i class="material-icons-outlined nav-icon " title="Startseite">home</i><span
                                 class="link-title">Startseite</span></a></li>
-                    <li class=' selected'><a href="<%= ServerConfig::g_php_serverPath %>transaction-send-coins/create" class=""><i class="material-icons-outlined nav-icon "
+                    <li class=' selected'><a href="<%= user->getGroupBaseUrl() %>transaction-send-coins/create" class=""><i class="material-icons-outlined nav-icon "
                                 title="Überweisung">account_balance</i><span class="link-title">Überweisung</span></a></li>
                     <li><a href="https://elopage.com/s/gradido/sign_in" class="" target="_blank"><i class="material-icons-outlined nav-icon "
                                 title="Mitgliederbereich">people_alt</i><span class="link-title">Mitgliederbereich</span></a></li>
@@ -48,7 +48,7 @@
         <div class="content">
             <div class="nav-content">
                 <ul class='nav-content-list'>
-                    <li><a href="/" class=""><span class="link-title">Startseite</span></a></li>
+                    <li><a href="<%= user->getGroupBaseUrl() %>" class=""><span class="link-title">Startseite</span></a></li>
                     <li class='nav-content-separator'>-</li>
                     <li class='selected'><span class="link-title"><%= pageName %></span></li>
                 </ul>

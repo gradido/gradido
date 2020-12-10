@@ -260,9 +260,20 @@
 					}
 					auto isEncrypted = (*it)->getCryptoKey()->getModel()->isEncrypted();
 					//printf("change encryption: %s\n", changeEncryption.data());
+					
+					std::string kabuto_url = "https://explorer.kabuto.sh/";;
+					
+					if(hedera_account_model->getNetworkType() == ServerConfig::HEDERA_TESTNET) {
+						kabuto_url += "testnet/";
+					} else if(hedera_account_model->getNetworkType() == ServerConfig::HEDERA_MAINNET) {
+						kabuto_url += "mainnet/";
+					}
+					kabuto_url += "id/";
+					auto hedera_id_string = (*it)->getHederaId()->getModel()->toString();
+					kabuto_url += hedera_id_string;
 					%>
 				<div class="row">
-					<div class="cell c2"><%= (*it)->getHederaId()->getModel()->toString() %></div>
+					<div class="cell c2"><a href="<%= kabuto_url %>" title="Hedera Block Explorer - Kabuto"  target="_blank"><%= hedera_id_string %></a></div>
 					<div class="cell c3"><%= hedera_account_model->getBalanceString() %></div>
 					<div class="cell c2"><%= model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) %></div>
 					<div class="cell c3 <%= isEncrypted ? "success-color" : "alert-color"%>"><%= isEncrypted ? "Ja": "Nein" %></div>

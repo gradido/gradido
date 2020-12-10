@@ -95,7 +95,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 				// send reset password email
 				int result = 0;
 				if(user_exist) {
-					result = session->sendResetPasswordEmail(user, sendUserEmail);
+					result = session->sendResetPasswordEmail(user, sendUserEmail, getBaseUrl());
 				}
 
 				if(2 == result) {
@@ -187,7 +187,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "            <div class=\"center-form-form\">\n";
 	responseStream << "\t\t\t\t<form action=\"";
 #line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << ( getBaseUrl() );
 	responseStream << "/resetPassword\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"item-wrapper\">\n";
 	responseStream << "\t\t\t\t\t  <div class=\"form-group\">\n";
@@ -244,7 +244,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\n";
 	responseStream << "\t\t\t\t<form action=\"";
 #line 123 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << ( getBaseUrl() );
 	responseStream << "/resetPassword\">\n";
 	responseStream << "\t\t\t\t\t<label class=\"form-label\" for=\"email\">";
 #line 124 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\resetPassword.cpsp"

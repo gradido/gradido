@@ -38,9 +38,9 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	if(!form.empty()) {
 		//form.get("email-verification-code")
 	}
-	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
-	//response.redirect(ServerConfig::g_php_serverPath + "/");
-	response.redirect("https://" + user->getGroupBaseUrl() + "/");
+	auto uri_start = getBaseUrl();
+	//response.redirect(ServerConfig::g_php_serverPath);
+	response.redirect(user->getGroupBaseUrl());
 	return;
 	std::ostream& _responseStream = response.send();
 	Poco::DeflatingOutputStream _gzipStream(_responseStream, Poco::DeflatingStreamBuf::STREAM_GZIP, 1);
@@ -163,9 +163,12 @@ void DashboardPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 	responseStream << "\t\t<ul class=\"grd-no-style\">\n";
 	responseStream << "\t\t  <li><a href=\"";
 #line 49 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << ( user->getGroupBaseUrl() );
 	responseStream << "\" class=\"grd-nav-bn\">Startseite</a>\n";
-	responseStream << "\t\t  <li><a href=\"./account/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
+	responseStream << "\t\t  <li><a href=\"";
+#line 50 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\dashboard.cpsp"
+	responseStream << ( uri_start );
+	responseStream << "/logout\" class=\"grd-nav-bn\">Logout</a></li>\n";
 	responseStream << "\t\t</ul>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "</nav>\n";

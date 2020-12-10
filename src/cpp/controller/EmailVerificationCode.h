@@ -26,9 +26,13 @@ namespace controller {
 		std::string getLink();
 		inline Poco::Timespan getAge() { return Poco::DateTime() - getModel()->getCreated(); }
 
+		inline void setBaseUrl(const std::string& baseUrl) { mBaseUrl = baseUrl; }
+
 	protected:
 		EmailVerificationCode(model::table::EmailOptIn* dbModel);
 		static Poco::UInt64 createEmailVerificationCode();
+
+		std::string mBaseUrl;
 
 		//table::EmailOptIn* mDBModel;
 	};

@@ -17,7 +17,8 @@ public:
 	PageRequestMessagedHandler();
 
 	inline void setProfiler(Profiler profiler) { mTimeProfiler = profiler; }
-	inline void setHost(std::string host) { mHost = host; }
+	inline void setHost(const std::string &host) { mHost = host; }
+	inline void setLoginServerPath(const std::string& loginServerPath) { mLoginServerPath = loginServerPath; }
 	//Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 
 protected:
@@ -27,10 +28,11 @@ protected:
 	virtual Languages chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn = "");
 
 	unsigned long long getLastGetAsU64(const std::string& uri);
-	inline std::string getBaseUrl() { return "https://" + mHost; }
+	inline std::string getBaseUrl() { return "https://" + mHost + mLoginServerPath; }
 
 	Profiler mTimeProfiler;
 	std::string mHost;
+	std::string mLoginServerPath;
 	
 };
 

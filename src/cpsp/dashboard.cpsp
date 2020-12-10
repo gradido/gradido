@@ -17,9 +17,9 @@
 	if(!form.empty()) {
 		//form.get("email-verification-code")
 	}
-	auto uri_start = ServerConfig::g_serverPath;//request.serverParams().getServerName();
-	//response.redirect(ServerConfig::g_php_serverPath + "/");
-	response.redirect("https://" + user->getGroupBaseUrl() + "/");
+	auto uri_start = getBaseUrl();
+	//response.redirect(ServerConfig::g_php_serverPath);
+	response.redirect(user->getGroupBaseUrl());
 	return;
 %><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
@@ -46,8 +46,8 @@
 <nav class="grd-left-bar expanded" data-topbar role="navigation">
 	<div class="grd-left-bar-section">
 		<ul class="grd-no-style">
-		  <li><a href="<%= ServerConfig::g_php_serverPath %>" class="grd-nav-bn">Startseite</a>
-		  <li><a href="./account/logout" class="grd-nav-bn">Logout</a></li>
+		  <li><a href="<%= user->getGroupBaseUrl() %>" class="grd-nav-bn">Startseite</a>
+		  <li><a href="<%= uri_start %>/logout" class="grd-nav-bn">Logout</a></li>
 		</ul>
 	</div>
 </nav>

@@ -184,7 +184,7 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "    <div class=\"center-form-form\">\n";
 	responseStream << "      <form action=\"";
 #line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( ServerConfig::g_php_serverPath );
+	responseStream << ( getBaseUrl() );
 	responseStream << "account/checkEmail\" method=\"GET\">\n";
 	responseStream << "\t";
 #line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
@@ -193,9 +193,9 @@ void CheckEmailPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 #line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") );
 	responseStream << "</p>\n";
-	responseStream << "\t\t<a class=\"link-button\" href=\"https://";
+	responseStream << "\t\t<a class=\"link-button\" href=\"";
 #line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
-	responseStream << ( user->getGroupBaseUrl() );
+	responseStream << ( getBaseUrl() );
 	responseStream << "\">";
 #line 79 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\checkEmail.cpsp"
 	responseStream << ( langCatalog->gettext("Zur Startseite") );

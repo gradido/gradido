@@ -9,6 +9,7 @@
 const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9/_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
 
 PageRequestMessagedHandler::PageRequestMessagedHandler()
+	: mLoginServerPath("/account")
 {
 
 }

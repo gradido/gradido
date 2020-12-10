@@ -15,6 +15,7 @@
 <%%
 	const char* pageName = "Node Server";
 	auto sm = SessionManager::getInstance();
+	auto user = mSession->getNewUser();
 	
 	// add 
 	if(!form.empty()) {

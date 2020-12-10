@@ -74,11 +74,11 @@ public:
 	// ----------------  User functions ----------------------------
 
 	//! \brief new register function, without showing user pubkeys, using controller/user
-	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
+	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, const std::string &baseUrl);
 
 
 	// adminRegister without passwort
-	bool adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id);
+	bool adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id, const std::string &baseUrl);
 
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	UserState loadUser(const std::string& email, const std::string& password);
@@ -101,7 +101,7 @@ public:
 	//! \return 1 = reset password email already send
 	//! \return 2 = reset password email already shortly before
 	//! \return 0 = ok
-	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
+	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized, const std::string &baseUrl);
 	// 
 	//! \return 0 = not the same
 	//! \return 1 = same

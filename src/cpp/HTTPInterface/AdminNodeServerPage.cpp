@@ -36,6 +36,7 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 
 	const char* pageName = "Node Server";
 	auto sm = SessionManager::getInstance();
+	auto user = mSession->getNewUser();
 	
 	// add 
 	if(!form.empty()) {
@@ -181,19 +182,23 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t\t<ul>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
+	responseStream << ( user->getGroupBaseUrl() );
+	responseStream << "/\"><span class=\"link-title\">Startseite</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
+	responseStream << ( getBaseUrl() );
+	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << ( getBaseUrl() );
+	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << ( getBaseUrl() );
+	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( getBaseUrl() );
 	responseStream << "/topic\"><span class=\"link-title\">Hedera Topics</span></a></li>\n";
 	responseStream << "\t\t\t\t</ul>\n";
 	responseStream << "\t\t\t</div>\n";
@@ -201,7 +206,7 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t<div class=\"content\">";
 	// end include header_large.cpsp
 	responseStream << "\n";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 127 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -216,58 +221,58 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t\t<div class=\"cell header-cell c3\">Group / Hedera Id</div>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 138 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  for(auto it = node_servers.begin(); it != node_servers.end(); it++) {
 					auto node_server_model = (*it)->getModel();  
 						responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c4\">";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( model::table::NodeServer::nodeServerTypeToString(node_server_model->getNodeServerType()) );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c5\">";
-#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 144 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( node_server_model->getUrlWithPort() );
 	responseStream << "</div>\n";
 	responseStream << "\t\t\t\t\t<div class=\"cell c3\">\n";
 	responseStream << "\t\t\t\t\t\t";
-#line 145 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  if(node_server_model->isHederaNode()) { 
 							auto hedera_id_model = (*it)->getHederaId()->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t\t";
-#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( hedera_id_model->toString() );
 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t";
-#line 148 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } else if(node_server_model->hasGroup()){ 
 							auto groupIt = group_indices.find(node_server_model->getGroupId());
 							if(groupIt != group_indices.end()) { 
 								auto group_model = groups[groupIt->second]->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t\t\t<span title=\"";
-#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( group_model->getDescription() );
 	responseStream << "\">";
-#line 152 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</span>\n";
 	responseStream << "\t\t\t\t\t\t\t";
-#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 154 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } else { 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t\t\t";
-#line 154 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 155 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( node_server_model->getGroupId() );
 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t\t";
-#line 155 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t";
-#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t</div>\n";
 	responseStream << "\t\t\t\t</div>\n";
 	responseStream << "\t\t\t";
-#line 159 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
@@ -283,17 +288,17 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"node-server-type\">Network Type</label>\n";
 	responseStream << "\t\t\t<select class=\"form-control\" name=\"node-server-type\" id=\"node-server-type\">\n";
 	responseStream << "\t\t\t";
-#line 173 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  for(int i = 1; i < model::table::NODE_SERVER_TYPE_COUNT; i++) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<option value=\"";
-#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( i );
 	responseStream << "\">";
-#line 174 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( model::table::NodeServer::nodeServerTypeToString((model::table::NodeServerType)i) );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t";
-#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t</select>\n";
 	responseStream << "\t\t\t<fieldset>\n";
@@ -309,27 +314,27 @@ void AdminNodeServerPage::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t\t\t\t<select class=\"form-control\" name=\"node-server-group\">\n";
 	responseStream << "\t\t\t\t\t<option value=\"-1\">Keine Gruppe</option>\n";
 	responseStream << "\t\t\t\t\t";
-#line 189 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 190 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  for(auto it = groups.begin(); it != groups.end(); it++) { 
 						auto group_model = (*it)->getModel(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t<option title=\"";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( group_model->getDescription() );
 	responseStream << "\" value=\"";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( group_model->getID() );
 	responseStream << "\">";
-#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( group_model->getName() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t\t";
-#line 192 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t</select>\n";
 	responseStream << "\t\t\t</fieldset>\n";
 	responseStream << "\t\t\t\n";
 	responseStream << "\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"";
-#line 196 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
+#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServer.cpsp"
 	responseStream << ( gettext("Add Node") );
 	responseStream << "\">\n";
 	responseStream << "\t</form>\n";

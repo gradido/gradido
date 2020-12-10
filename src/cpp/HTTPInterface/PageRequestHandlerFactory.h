@@ -6,6 +6,7 @@
 #include "Poco/Logger.h"
 #include "../model/Session.h"
 #include "../lib/Profiler.h"
+#include "PageRequestMessagedHandler.h"
 
 #define HTTP_PAGES_COUNT 1
 

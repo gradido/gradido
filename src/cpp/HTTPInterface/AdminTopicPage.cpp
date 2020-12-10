@@ -226,19 +226,23 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 	responseStream << "\t\t\t\t<ul>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
+	responseStream << ( user->getGroupBaseUrl() );
+	responseStream << "/\"><span class=\"link-title\">Startseite</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
+	responseStream << ( getBaseUrl() );
+	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
-	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << ( getBaseUrl() );
+	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( ServerConfig::g_serverPath );
+	responseStream << ( getBaseUrl() );
+	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( getBaseUrl() );
 	responseStream << "/topic\"><span class=\"link-title\">Hedera Topics</span></a></li>\n";
 	responseStream << "\t\t\t\t</ul>\n";
 	responseStream << "\t\t\t</div>\n";
@@ -312,7 +316,7 @@ void AdminTopicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::
 					
 						responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"row\">\n";
-	responseStream << "\t\t\t\t\t<div class=\"cell c3\"><a title=\"Hedera Block Explorer - Kabuto\" href=\"";
+	responseStream << "\t\t\t\t\t<div class=\"cell c3\"><a title=\"Hedera Block Explorer - Kabuto\" target=\"_blank\" href=\"";
 #line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminTopic.cpsp"
 	responseStream << ( kabuto_url );
 	responseStream << "\">";

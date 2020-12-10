@@ -142,7 +142,7 @@ Poco::AutoPtr<controller::EmailVerificationCode> Session::getEmailVerificationCo
 	return ret;
 }
 
-bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id)
+bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id, const std::string &baseUrl)
 {
 	Profiler usedTime;
 
@@ -175,7 +175,6 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 	auto newUser = controller::User::create(email, first_name, last_name, group_id);
 	updateTimeout();
 
-
 	auto newUserModel = newUser->getModel();
 	if (!newUserModel->insertIntoDB(true)) {
 		addError(new Error(gettext("Benutzer"), gettext("Fehler beim speichern!")));
@@ -183,10 +182,12 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 	}
 
 	auto email_verification_code = controller::EmailVerificationCode::create(newUserModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+	email_verification_code->setBaseUrl(baseUrl);
 	if (!email_verification_code->getModel()->insertIntoDB(false)) {
 		addError(new Error(gettext("Email Verification Code"), gettext("Fehler beim speichern!")));
 		return false;
 	}
+	
 	
 	EmailManager::getInstance()->addEmail(new model::Email(email_verification_code, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
 
@@ -318,7 +319,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 }
 
 
-bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
+bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, const std::string &baseUrl)
 {
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	static const char* function_name = "Session::createUserDirect";
@@ -384,6 +385,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
+	email_verification->setBaseUrl(baseUrl);
 	email_verification->getModel()->insertIntoDB(false);
 	mEmailVerificationCodeObject = email_verification;
 
@@ -507,7 +509,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 }
 
 
-int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized)
+int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized, const std::string& baseUrl)
 {
 	mNewUser = user;
 	auto em = EmailManager::getInstance();
@@ -538,6 +540,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 
 	if (!frequent_resend) {
 		if (passphraseMemorized) {
+			mEmailVerificationCodeObject->setBaseUrl(baseUrl);
 			em->addEmail(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_RESET_PASSWORD));
 		}
 		else {

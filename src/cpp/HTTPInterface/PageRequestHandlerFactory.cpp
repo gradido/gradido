@@ -55,6 +55,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::basicSetup(PageRequest
 {
 	handler->setHost(request.getHost());
 	handler->setProfiler(profiler);
+	auto login_server_path = request.find("grd-login-server-path");
+	if (login_server_path != request.end()) {
+		handler->setLoginServerPath("/" + login_server_path->second);
+	}
 	return handler;
 }
 
@@ -267,9 +271,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 
 	// if no verification code given or error with given code, show form
 	if (!verificationCode) {
-		auto pageRequestHandler = new CheckEmailPage(session);
-		pageRequestHandler->setProfiler(timeUsed);
-		return pageRequestHandler;
+		return basicSetup(new CheckEmailPage(session), request, timeUsed);
 	}
 
 	// we have a verification code, now let's check that thing
@@ -296,9 +298,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		}
 		else {	
 			//sm->releaseSession(session);
-			auto pageRequestHandler = new CheckEmailPage(session);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new CheckEmailPage(session), request, timeUsed);
 		}
 	}
 	// suitable session found or created
@@ -308,9 +308,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		assert(session->getNewUser());
 		if (!session->getNewUser()->hasPassword()) {
 			// user has no password, maybe account created from elopage webhook
-			auto pageRequestHandler = new UpdateUserPasswordPage(session);
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(new UpdateUserPasswordPage(session), request, timeUsed);
 		}
 		/*
 		//! \return 1 = konto already exist
@@ -332,39 +330,29 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			} else {
 				pageRequestHandler = new PassphrasePage(session);
 			}
-			
-			pageRequestHandler->setProfiler(timeUsed);
-			return pageRequestHandler;
+			return basicSetup(pageRequestHandler, request, timeUsed);
 			
 		}
 		else if (1 == retUpdateEmailVerification) {
 			//auto user = session->getUser();
 			//LoginPage* loginPage = new LoginPage(session);
 			//loginPage->setProfiler(timeUsed);
-			CheckEmailPage* check_email_page = new CheckEmailPage(session);
-			check_email_page->setProfiler(timeUsed);
-			return check_email_page;
-			//return loginPage;
+			return basicSetup(new CheckEmailPage(session), request, timeUsed);
 		}
 		else if (-1 == retUpdateEmailVerification) {
 			auto checkEmail = new CheckEmailPage(session);
-			checkEmail->setProfiler(timeUsed);
 			checkEmail->getErrors(session);
 			sm->releaseSession(session);
-			return checkEmail;
+
+			return basicSetup(checkEmail, request, timeUsed);
 		}
 		else if (-2 == retUpdateEmailVerification) {
-			auto errorPage = new Error500Page(session);
-			errorPage->setProfiler(timeUsed);
-			return errorPage;
+			return basicSetup(new Error500Page(session), request, timeUsed);
 		}
 		
 	}
 	if (session) {
 		sm->releaseSession(session);
 	}
-
-	auto pageRequestHandler = new CheckEmailPage(nullptr);
-	pageRequestHandler->setProfiler(timeUsed);
-	return pageRequestHandler;
+	return basicSetup(new CheckEmailPage(nullptr), request, timeUsed);
 }

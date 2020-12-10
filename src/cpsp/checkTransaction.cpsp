@@ -28,6 +28,7 @@ enum PageState {
 <%% 
 	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
 	auto account_user = mSession->getNewUser();
+	auto user = account_user;
 	auto user_model = account_user->getModel();
 	auto em = EmailManager::getInstance();
 	auto pt = PendingTasksManager::getInstance();
@@ -247,7 +248,7 @@ enum PageState {
 			//printf("last extern referer: %s\n", lastExternReferer.data());
 			response.redirect(lastExternReferer);
 		} else if(!account_user->getModel()->getGroupId()) {
-			response.redirect(ServerConfig::g_serverPath + "/userUpdateGroup");
+			response.redirect(getBaseUrl() + "/userUpdateGroup");
 		} else {
 			response.redirect(account_user->getGroupBaseUrl() + "state-balances/overview");
 		}

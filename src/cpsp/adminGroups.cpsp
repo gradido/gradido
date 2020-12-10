@@ -10,6 +10,8 @@
 <%%
 	const char* pageName = "Gruppen";
 	
+	auto user = mSession->getNewUser();
+	
 	// add 
 	if(!form.empty()) {
 		auto alias = form.get("group-alias");
