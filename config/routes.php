@@ -57,12 +57,12 @@ Router::scope('/', function (RouteBuilder $routes) {
     $csrf->whitelistCallback(function ($request) {
         // Skip token check for API URLs.
       //die($request->getParam('controller'));
-        $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
+        $whitelist = ['JsonRequestHandler', 'ElopageWebhook', 'AppRequests'];
         $ajaxWhitelist = ['TransactionSendCoins', 'TransactionCreations'];
-        
+
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {
-            if($entry == 'ElopageWebhook') {
+            if($entry == 'ElopageWebhook' || $entry == 'AppRequests') {
               return true;
             }
             if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost') {

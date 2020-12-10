@@ -365,6 +365,7 @@ class Record
        case 'BLANK':
           return false;
      }
+     return false;
    }
    
    /*! 
