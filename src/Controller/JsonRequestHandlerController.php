@@ -62,10 +62,23 @@ class JsonRequestHandlerController extends AppController {
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
             case 'errorInTransaction': return $this->errorInTransaction($jsonData);
             case 'updateReadNode': return $this->updateReadNode();
+            case 'setSessionId': return $this->setSessionId($jsonData->session_id);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
         return $this->returnJson(['state' => 'error', 'msg' => 'no post or get']);
+    }
+
+    //! for login via ajax call from login server
+    //! \param session_id from login server
+    private function setSessionId($session_id)
+    {
+      $session = $this->getRequest()->getSession();
+      if($session_id == '' || !preg_match('/^[0-9]*$/', $session_id)) {
+        return $this->returnJson(['state' => 'error', 'msg' => 'session id invalid']);
+      }
+      $session->write('session_id', $session_id);
+      return $this->returnJson(['state' => 'success']);
     }
 
     // Called from login server like a cron job every 10 minutes or after sending transaction to hedera
@@ -80,18 +93,12 @@ class JsonRequestHandlerController extends AppController {
       if(!$last_transaction_query->isEmpty()) {
         $last_transaction_id = $last_transaction_query->first()->id;
       }
-      if($last_transaction_query->count() < $last_transaction_id) {
-          $last_transaction_id = $last_transaction_query->count();
-      }
       
       $group_alias = Configure::read('GroupAlias');
-      $result = $this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
+      $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
       if(isset($result['state']) && $result['state'] == 'error') {
         return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => $result]);
       }
-	  if(!isset($result['transaction_count']) || $result['transaction_count'] == 0) {
-		return $this->returnJson(['state' => 'success']);
-	  }		  
       /* example
       $result = json_decode("[
    {
@@ -228,12 +235,7 @@ class JsonRequestHandlerController extends AppController {
       $part_count = -1;
       $temp_record = new Record;
       $errors = [];
-	  
-      foreach($result['blocks'] as $_record) {
-		  if(is_string($_record)) {
-			  // if it is a string, it is block validation hash in hex
-			  continue;
-		  }
+      foreach($result as $_record) {
           $parse_result = $temp_record->parseRecord($_record);
           if($parse_result == true) {
             $sequenceNumber = $temp_record->getSequenceNumber();
