@@ -238,8 +238,7 @@ class JsonRequestHandlerController extends AppController {
       $part_count = -1;
       $temp_record = new Record;
       $errors = [];
-      foreach($result as $_record) {
-        if($_record == []) continue;
+      foreach($result['blocks'] as $_record) {
           $parse_result = $temp_record->parseRecord($_record);
           if($parse_result == true) {
             $sequenceNumber = $temp_record->getSequenceNumber();
