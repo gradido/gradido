@@ -482,6 +482,38 @@ namespace model {
 
 						if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BINARY == ServerConfig::g_ConsensusMessageFormat) {
 							consensus_submit_message.setMessage(raw_message);
+
+							// print to txt for debugging gradido node
+							static Poco::FastMutex _file_mutex;
+							Poco::ScopedLock<Poco::FastMutex> _lock_file(_file_mutex);
+							std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S") + "\n";
+
+							std::string json_message = getTransactionAsJson();
+							std::string base64_message = DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+							if (json_message != "") 
+							{
+								FILE* f = fopen("transactions_log.txt", "at");
+								if (f) {
+									fwrite(dateTimeString.data(), sizeof(char), dateTimeString.size(), f);
+									fwrite(json_message.data(), sizeof(char), json_message.size(), f);
+									fclose(f);
+								}
+								else {
+									printf("[%s] cannot open transactions_log.txt\n", function_name);
+								}
+							}
+							if (base64_message != "") 
+							{
+								FILE* f2 = fopen("transaction_log_base64.txt", "at");
+								if (f2) {
+									fwrite(dateTimeString.data(), sizeof(char), dateTimeString.size(), f2);
+									fwrite(base64_message.data(), sizeof(char), base64_message.size(), f2);
+									fclose(f2);
+								}
+								else {
+									printf("[%s] cannot open transaction_log_base64.txt\n", function_name);
+								}
+							}
 						}
 						else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING == ServerConfig::g_ConsensusMessageFormat) {
 							consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
