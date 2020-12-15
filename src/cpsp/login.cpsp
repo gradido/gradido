@@ -104,10 +104,9 @@
 			}
 			getErrors(mSession);
 
-			auto uri_start = request.serverParams().getServerName();
 			auto lastExternReferer = mSession->getLastReferer();
 
-			printf("user_state: %d, uri_start: %s\n", user_state, uri_start);
+			//printf("user_state: %d\n", user_state);
 
 			switch(user_state) {
 			case USER_EMPTY:

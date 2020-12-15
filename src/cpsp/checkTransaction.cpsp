@@ -39,6 +39,11 @@ enum PageState {
 	int skip_count = 0;
 	int pending_task_id = 0;
 	
+	std::string community_server_base_path = ServerConfig::g_php_serverPath;
+	if(user_model->getGroupId() != 0) {
+		community_server_base_path = user->getGroupBaseUrl();
+	}
+	
 	PageState state = PAGE_NO_TRANSACTIONS;
 	
 	if(!user_model->isEmailChecked()) {
@@ -250,7 +255,7 @@ enum PageState {
 		} else if(!account_user->getModel()->getGroupId()) {
 			response.redirect(getBaseUrl() + "/userUpdateGroup");
 		} else {
-			response.redirect(account_user->getGroupBaseUrl() + "state-balances/overview");
+			response.redirect(account_user->getGroupBaseUrl() + "/state-balances/overview");
 		}
 		return;
 	}
@@ -266,7 +271,10 @@ enum PageState {
 		switch(transactionType) {
 			case model::gradido::TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
 			case model::gradido::TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
-			case model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE: state = PAGE_TRANSACTION_GROUP_ADD_MEMBER; break;
+			case model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE: 
+			state = PAGE_TRANSACTION_GROUP_ADD_MEMBER;
+			//community_server_base_path
+			break;
 		}
 	}
 	
