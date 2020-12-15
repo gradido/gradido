@@ -59,6 +59,9 @@ namespace model {
 			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
 		protected:
+
+			std::string getTransactionAsJson();
+
 			Poco::AutoPtr<TransactionBody> mTransactionBody;
 			proto::gradido::GradidoTransaction mProtoTransaction;
 			HASH mBodyBytesHash;

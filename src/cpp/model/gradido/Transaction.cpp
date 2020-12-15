@@ -487,34 +487,15 @@ namespace model {
 							consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
 						}
 						else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_JSON == ServerConfig::g_ConsensusMessageFormat) {
-							std::string json_message = "";
-							std::string json_message_body = "";
-							google::protobuf::util::JsonPrintOptions options;
-							options.add_whitespace = true;
-							options.always_print_primitive_fields = true;
-
-							auto status = google::protobuf::util::MessageToJsonString(mProtoTransaction, &json_message, options);
-							if (!status.ok()) {
-								addError(new ParamError(function_name, "error by parsing transaction message to json", status.ToString()));
-								addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+							std::string json_message = getTransactionAsJson();
+							if (json_message != "") {
+								consensus_submit_message.setMessage(json_message);
+							}
+							else {
 								sendErrorsAsEmail();
 								return -7;
 							}
-
-							status = google::protobuf::util::MessageToJsonString(*mTransactionBody->getBody(), &json_message_body, options);
-							if (!status.ok()) {
-								addError(new ParamError(function_name, "error by parsing transaction body message to json", status.ToString()));
-								addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
-								sendErrorsAsEmail();
-								return -8;
-							}
-							//\"bodyBytes\": \"MigKIC7Sihz14RbYNhVAa8V3FSIhwvd0pWVvZqDnVA91dtcbIgRnZGQx\"
-							int startBodyBytes = json_message.find("bodyBytes") + std::string("\"bodyBytes\": \"").size()-2;
-							int endCur = json_message.find_first_of('\"', startBodyBytes+2)+1;
-							json_message.replace(startBodyBytes, endCur - startBodyBytes, json_message_body);
-							//printf("json: %s\n", json_message.data());
 							
-							consensus_submit_message.setMessage(json_message);
 						}
 						// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
 						//if (network_type == table::HEDERA_TESTNET) {
@@ -578,6 +559,38 @@ namespace model {
 				}
 				return 0;
 			}
+
+		}
+
+		std::string Transaction::getTransactionAsJson()
+		{
+			static const char* function_name = "Transaction::getTransactionAsJson";
+			std::string json_message = "";
+			std::string json_message_body = "";
+			google::protobuf::util::JsonPrintOptions options;
+			options.add_whitespace = true;
+			options.always_print_primitive_fields = true;
+
+			auto status = google::protobuf::util::MessageToJsonString(mProtoTransaction, &json_message, options);
+			if (!status.ok()) {
+				addError(new ParamError(function_name, "error by parsing transaction message to json", status.ToString()));
+				addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+				return "";
+			}
+
+			status = google::protobuf::util::MessageToJsonString(*mTransactionBody->getBody(), &json_message_body, options);
+			if (!status.ok()) {
+				addError(new ParamError(function_name, "error by parsing transaction body message to json", status.ToString()));
+				addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+				return "";
+			}
+			//\"bodyBytes\": \"MigKIC7Sihz14RbYNhVAa8V3FSIhwvd0pWVvZqDnVA91dtcbIgRnZGQx\"
+			int startBodyBytes = json_message.find("bodyBytes") + std::string("\"bodyBytes\": \"").size() - 2;
+			int endCur = json_message.find_first_of('\"', startBodyBytes + 2) + 1;
+			json_message.replace(startBodyBytes, endCur - startBodyBytes, json_message_body);
+			//printf("json: %s\n", json_message.data());
+
+			return json_message;
 
 		}
 		
