@@ -332,19 +332,19 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 */
 #line 8 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "favicon.ico\" type=\"image/x-icon\" rel=\"icon\" />\n";
+	responseStream << "/favicon.ico\" type=\"image/x-icon\" rel=\"icon\" />\n";
 	responseStream << "    <link href=\"";
 #line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "favicon.ico\" type=\"image/x-icon\" rel=\"shortcut icon\" />\n";
+	responseStream << "/favicon.ico\" type=\"image/x-icon\" rel=\"shortcut icon\" />\n";
 	responseStream << "    <link rel=\"stylesheet\" href=\"";
 #line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "css/main.css\" />\n";
+	responseStream << "/css/main.css\" />\n";
 	responseStream << "    <script src=\"";
 #line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "js/basic.js\"></script>\n";
+	responseStream << "/js/basic.js\"></script>\n";
 	responseStream << "</head>\n";
 	responseStream << "\n";
 	responseStream << "<body>\n";
@@ -377,15 +377,15 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "                    <source srcset=\"";
 #line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_schrift_half.webp\" type=\"image/webp\">\n";
+	responseStream << "/img/logo_schrift_half.webp\" type=\"image/webp\">\n";
 	responseStream << "                    <source srcset=\"";
 #line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_schrift_half.png\" type=\"image/png\">\n";
+	responseStream << "/img/logo_schrift_half.png\" type=\"image/png\">\n";
 	responseStream << "                    <img src=\"";
 #line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_schrift_half.png\" class=\"logo big visible\" alt=\"Logo\">\n";
+	responseStream << "/img/logo_schrift_half.png\" class=\"logo big visible\" alt=\"Logo\">\n";
 	responseStream << "                </picture>\n";
 	responseStream << "                <picture class=\"logo small\">\n";
 	responseStream << "                    <source srcset=\"";
@@ -403,15 +403,15 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 */
 #line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_half.webp\" type=\"image/webp\">\n";
+	responseStream << "/img/logo_half.webp\" type=\"image/webp\">\n";
 	responseStream << "                    <source srcset=\"";
 #line 27 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_half.png\" type=\"image/png\">\n";
+	responseStream << "/img/logo_half.png\" type=\"image/png\">\n";
 	responseStream << "                    <img src=\"";
 #line 28 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "img/logo_half.png\" class=\"logo small\" alt=\"Logo\">\n";
+	responseStream << "/img/logo_half.png\" class=\"logo small\" alt=\"Logo\">\n";
 	responseStream << "                </picture>\n";
 	responseStream << "            </a>\n";
 	responseStream << "            <div>\n";
@@ -428,9 +428,10 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	//responseStream << ( ServerConfig::g_php_serverPath );
 #line 37 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "state-balances/overview\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Kontoübersicht (  ";
-#line 37 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\header_navi_chr.cpsp"
-	responseStream << ( TransactionBase::amountToString(userBalance) );
+	responseStream << "/state-balances/overview\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Kontoübersicht (  ";
+#line 37 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
+	responseStream << ( model::gradido::TransactionBase::amountToString(userBalance) );
+	// responseStream << ( TransactionBase::amountToString(userBalance) );
 	responseStream << " GDD )\">account_balance_wallet</i><span\n";
 	responseStream << "                                class=\"link-title\">Kontoübersicht ( ";
 #line 38 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\header_navi_chr.cpsp"
@@ -446,7 +447,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	//responseStream << ( ServerConfig::g_php_serverPath );
 #line 39 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "dashboard/index\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Startseite\">home</i><span\n";
+	responseStream << "/dashboard/index\" class=\"\"><i class=\"material-icons-outlined nav-icon \" title=\"Startseite\">home</i><span\n";
 	responseStream << "                                class=\"link-title\">Startseite</span></a></li>\n";
 	responseStream << "                    <li class=' selected'><a href=\"";
 #line 41 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
@@ -464,7 +465,7 @@ void CheckTransactionPage::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "                    <li><a href=\"";
 #line 51 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_navi_chr.cpsp"
 	responseStream << ( community_server_base_path );
-	responseStream << "\" class=\"\"><span class=\"link-title\">Startseite</span></a></li>\n";
+	responseStream << "/\" class=\"\"><span class=\"link-title\">Startseite</span></a></li>\n";
 	responseStream << "                    <li class='nav-content-separator'>-</li>\n";
 	responseStream << "                    <li class='selected'><span class=\"link-title\">";
 #line 53 "F:\\Gradido\\gradido_login_server_production\\src\\cpsp\\header_navi_chr.cpsp"
