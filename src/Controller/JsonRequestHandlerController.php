@@ -93,9 +93,13 @@ class JsonRequestHandlerController extends AppController {
       if(!$last_transaction_query->isEmpty()) {
         $last_transaction_id = $last_transaction_query->first()->id;
       }
+      $last_known_sequence_number = $last_transaction_id;
+      
       if($last_transaction_query->count() < $last_transaction_id) {
         $last_transaction_id = $last_transaction_query->count();
       }
+      $last_transaction_id = 0;
+      
       
       $group_alias = Configure::read('GroupAlias');
       $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
@@ -239,7 +243,9 @@ class JsonRequestHandlerController extends AppController {
       $temp_record = new Record;
       $errors = [];
       foreach($result['blocks'] as $_record) {
+          if(is_string($_record)) continue;
           $parse_result = $temp_record->parseRecord($_record);
+          
           if($parse_result == true) {
             $sequenceNumber = $temp_record->getSequenceNumber();
             if($part_count == -1) {
@@ -248,10 +254,13 @@ class JsonRequestHandlerController extends AppController {
             $part_count--;
            
             if($part_count == 0) {
-                $finalize_result = $temp_record->finalize();
-                if($finalize_result !== true) {
-                  $errors[] = ['msg' => 'error in finalize', 'record' => $_record, 'details' => $finalize_result, 'sequenceNumber' => $sequenceNumber];
+                if($sequenceNumber > $last_known_sequence_number) {
+                    $finalize_result = $temp_record->finalize();
+                    if($finalize_result !== true) {
+                        $errors[] = ['msg' => 'error in finalize', 'record' => $_record, 'details' => $finalize_result, 'sequenceNumber' => $sequenceNumber];
+                    }
                 }
+                
                 $temp_record = new Record;
                 $part_count = -1;
             }

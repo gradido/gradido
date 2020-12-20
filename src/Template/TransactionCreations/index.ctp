@@ -16,14 +16,15 @@
 </nav>
 <div class="transactionCreations index large-9 medium-8 columns content">
     <h3><?= __('Transaction Creations') ?></h3>
-    <table cellpadding="0" cellspacing="0" style="table-layout: auto;">
+    <table cellpadding="5" cellspacing="0" style="table-layout: auto;">
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('transaction_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('state_user_id') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('target_date') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('received') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('amount') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('ident_hash ') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
         </thead>
@@ -33,6 +34,8 @@
                 <td><?= $this->Number->format($transactionCreation->id) ?></td>
                 <td><?= $transactionCreation->has('transaction') ? $this->Html->link($transactionCreation->transaction->id, ['controller' => 'Transactions', 'action' => 'view', $transactionCreation->transaction->id]) : '' ?></td>
                 <td><?= $transactionCreation->has('state_user') ? $this->Html->link($transactionCreation->state_user->getEmailWithName(), ['controller' => 'StateUsers', 'action' => 'view', $transactionCreation->state_user->id]) : '' ?></td>
+                <td><?= h($transactionCreation->target_date) ?></td>
+                <td><?= h($transactionCreation->transaction->received) ?></td>
                 <td><?= $this->element('printGradido', ['number' => $transactionCreation->amount]) ?></td>
                 <td><?= stream_get_contents($transactionCreation->ident_hash) ?></td>
                 <td class="actions">

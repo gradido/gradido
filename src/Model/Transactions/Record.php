@@ -63,24 +63,6 @@ class GradidoModifieUserBalance
     {
         $userPublicBin = hex2bin($userPublicKey);
         $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
-        
-        // hack for pauls public key format with many FF instead of the real values
-        $stateUsers = $stateUsersTable->find('all')->select(['id', 'public_key']);
-        $debug_user_publics = [];
-        foreach($stateUsers as $user) {
-            $user_public = stream_get_contents($user->public_key);
-            $debug_user_publics[] = bin2hex($user_public);
-            if(($user_public & $userPublicBin) == $user_public) {
-                array_push($this->state_users, (int)$user->id);
-                return $user->id;
-            }
-        }
-        return [
-            'state' => 'error', 
-            'msg' => '[GradidoModifieUserBalance::getUserId] couldn\'t find user via public key binary &',
-            'details' => ['input public' => $userPublicKey, 'user publics' => $debug_user_publics]
-        ];
-        // hack end
            
         $stateUser = $stateUsersTable->find('all')->where(['public_key' => hex2bin($userPublicKey)]);
         if($stateUser->isEmpty()) {
@@ -342,7 +324,7 @@ class GradidoTransfer extends GradidoModifieUserBalance
       }
     }
     if(is_int($receiver_id) && $receiver_id > 0) {
-      $this->state_users[] = $receiver_id;
+      $transferEntity->receiver_user_id = $receiver_id;
       $balance_result = $this->updateBalance($this->receiver_new_balance, $received, $receiver_id);
       if(is_array($balance_result)) {
         return $balance_result;
@@ -397,7 +379,6 @@ class Record
        case 'BLANK':
           return false;
      }
-     return false;
    }
    
    /*! 

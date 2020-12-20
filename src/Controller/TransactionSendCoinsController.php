@@ -57,8 +57,9 @@ class TransactionSendCoinsController extends AppController
             'contain' => ['Transactions', 'StateUsers', 'ReceiverUsers']
         ];
         $transactionSendCoins = $this->paginate($this->TransactionSendCoins);
+        $simple = $this->TransactionSendCoins->find('all');
 
-        $this->set(compact('transactionSendCoins'));
+        $this->set(compact('transactionSendCoins', 'simple'));
     }
 
     /**
