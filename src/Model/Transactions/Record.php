@@ -370,7 +370,7 @@ class Record
        case 'GRADIDO_TRANSACTION':
          return $this->parseTransaction($json['transaction']);
        case 'MEMO':
-         $this->memo = $json['memo'];
+         $this->memo .= $json['memo'];
          return true;
        case 'SIGNATURES':
          return $this->parseSignatures($json['signature']);
