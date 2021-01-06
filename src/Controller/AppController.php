@@ -91,12 +91,11 @@ class AppController extends Controller
             $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
             $stateBalanceQuery = $stateBalancesTable
                   ->find('all')
-                  ->select('amount')
                   ->contain(false)
                   ->where(['state_user_id' => $state_user_id]);
             if ($stateBalanceQuery->count() == 1) {
               //var_dump($stateBalanceEntry->first());
-                $session->write('StateUser.balance', $stateBalanceQuery->first()->amount);
+                $session->write('StateUser.balance', $stateBalanceQuery->first()->decay);
               //echo "stateUser.balance: " . $session->read('StateUser.balance');
             }
         }
@@ -229,7 +228,7 @@ class AppController extends Controller
                                     }
                                   //var_dump($stateUser);
                                     if (count($stateUser->state_balances) > 0) {
-                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->amount);
+                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->decay);
                                     }
                                     $session->write('StateUser.id', $stateUser->id);
                               //echo $stateUser['id'];

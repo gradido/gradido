@@ -48,6 +48,8 @@ $this->assign('header', $header);
         $cellColorClass = 'alert-color';
       } else if($transaction['type'] == 'creation') {
         $cellColorClass = 'orange-color';
+      } else if($transaction['type'] == 'decay') {
+        $cellColorClass = 'red-color';
       }
     ?>
       <div class="row">
@@ -60,7 +62,7 @@ $this->assign('header', $header);
             </a>
             <?php elseif(isset($transaction['name']) && $transaction['name'] != '') : ?>
             <small class="tx-email"><?= $transaction['name'] ?></small>
-            <?php else : ?>
+            <?php elseif(isset($transaction['pubkey'])) : ?>
             <small class="tx-email"><?= $transaction['pubkey'] ?></small>
             <?php endif; ?>
             <!-- noch ungeklärt - icon ist nicht aligned -->
@@ -75,6 +77,9 @@ $this->assign('header', $header);
               <?php elseif($transaction['type'] == 'receive') : ?>
               <i class="material-icons-outlined">arrow_forward</i>
                 <?= __('Empfangen') ?>
+              <?php elseif($transaction['type'] == 'decay') : ?>
+              <i class="material-icons-outlined">minus_circle_multiple</i>
+                <?= __('Vergangen') ?>
               <?php endif; ?>
             </div>
           </div>
@@ -86,10 +91,18 @@ $this->assign('header', $header);
           <?= $transaction['memo'] ?>
         <?php endif;?>
         </div>
-        <div class="cell c4"><?= $transaction['date']->nice() ?></div>
+        <div class="cell c4">
+            <?php if(isset($transaction['date'])) : ?>
+                <?= $transaction['date']->nice() ?>
+            <?php elseif(isset($transaction['decay_duration'])) : ?>
+                <?= h($transaction['decay_duration']) ?> 
+            <?php endif; ?>
+        </div>
         <div class="cell c3"><?= $this->element('printGradido', ['number' => $balance]) ?></div>
         <div class="cell c2">
-          <?= $transaction['transaction_id'] ?>
+            <?php if(isset($transaction['transaction_id'])) : ?>
+                <?= $transaction['transaction_id'] ?>
+            <?php endif; ?>
         </div>
       </div>
     <?php endforeach; ?>

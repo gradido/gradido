@@ -92,9 +92,9 @@ class GradidoModifieUserBalance
       }
       $entity->record_date = $recordDate;
       $entity->amount = $newBalance;
-      if(!$stateBalancesTable->save($entity)) {
+      /*if(!$stateBalancesTable->save($entity)) {
         return ['state' => 'error', 'msg' => 'error saving state balance', 'details' => $entity->getErrors()];
-      }
+      }*/
       return true;
     }
     

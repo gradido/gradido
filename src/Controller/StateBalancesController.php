@@ -2,10 +2,13 @@
 namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
-use App\Controller\AppController;
+use Cake\I18n\Time;
 
 use Model\Navigation\NaviHierarchy;
 use Model\Navigation\NaviHierarchyEntry;
+
+use App\Controller\AppController;
+
 
 /**
  * StateBalances Controller
@@ -202,7 +205,53 @@ class StateBalancesController extends AppController
             ]);
         }
         uasort($transactions, array($this, 'sortTransactions'));
-        $this->set('transactions', $transactions);
+        
+        // add decay transactions 
+        $month_start_state_balance = null;
+        $current_state_balance = null;
+        $cursor = 0;
+        $transactions_reversed = array_reverse($transactions);
+        foreach($transactions_reversed as $i => $transaction) {
+            $date = $transaction['date'];
+            $month = $date->month;
+            $year  = $date->year;
+            if(!$month_start_state_balance)  {
+                $month_start_state_balance = $this->StateBalances->chooseForMonthAndUser($month, $year, $user['id']);
+                if(is_array($month_start_state_balance)) {
+                    $this->Flash->error(__('Error in state balance: ' . json_encode($month_start_state_balance)));
+                    break;
+                }   
+                $current_state_balance = $month_start_state_balance;
+                
+            }
+            $prev_amount = $current_state_balance->amount;
+            $decay_duration = $current_state_balance->decayDuration($date);
+            $current_state_balance->amount = $current_state_balance->partDecay($date);
+            
+            $decay_transaction = [
+                'type' => 'decay',
+                'balance' => -($prev_amount - $current_state_balance->amount),
+                'decay_duration' => $decay_duration . ' ' . __('seconds'),
+                'memo' => ''
+            ];
+            if($decay_duration > 0) {
+                array_splice($transactions_reversed, $i + $cursor, 0, [$decay_transaction]);
+                $cursor++;
+            }
+            
+            $current_state_balance->record_date = $date;
+            $current_state_balance->amount += $transaction['balance'];
+            
+        }
+        echo "amount: ". $current_state_balance->amount . ", duration: " . $current_state_balance->decayDuration(Time::now()) . "<br>";
+        array_push($transactions_reversed, [
+            'type' => 'decay',
+            'balance' => -($current_state_balance->amount - $current_state_balance->decay),
+            'decay_duration' => $current_state_balance->record_date->timeAgoInWords(),// $current_state_balance->decayDuration(Time::now()),
+            'memo' => ''
+        ]);
+        
+        $this->set('transactions', array_reverse($transactions_reversed));
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);

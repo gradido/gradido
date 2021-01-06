@@ -28,6 +28,7 @@ class StateBalance extends Entity
     protected $_accessible = [
         'state_user_id' => true,
         'modified' => true,
+        'record_date' => true,
         'amount' => true,
         'record_date' => true,
         'state_user' => true
@@ -65,3 +66,4 @@ class StateBalance extends Entity
         return intval($target_date->getTimestamp() - $this->record_date->getTimestamp());
     }
 }
+
