@@ -187,6 +187,10 @@ namespace controller {
 
 		auto account_model = getModel();
 		auto hedera_node = NodeServer::pick(account_model->networkTypeToNodeServerType(account_model->getNetworkType()));
+		if (hedera_node.url == "") {
+			addError(new Error("Hedera Node", "no hedera node found"));
+			return false;
+		}
 		auto crypto_key = controller::CryptoKey::load(account_model->getCryptoKeyId());
 		if (crypto_key.isNull()) {
 			addError(new Error("Keys", "could not found crypto key for account"));

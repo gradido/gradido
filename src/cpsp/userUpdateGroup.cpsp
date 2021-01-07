@@ -115,7 +115,7 @@ enum PageState {
 				<div class="cell header-cell c1"><%= gettext("Auswahl") %></div>
 				<div class="cell header-cell c2">Name</div>
 				<div class="cell header-cell c2">Alias</div>
-				<div class="cell header-cell c3">Url</div>
+				<div class="cell header-cell c4">Url</div>
 				<div class="cell header-cell c5"><%= gettext("Description") %></div>
 			</div>
 			<% for(auto it = groups.begin(); it != groups.end(); it++) {
@@ -124,7 +124,7 @@ enum PageState {
 					<div class="cell c1"><input type="radio" class="form-control" name="group_id" value="<%= group_model->getID()%>" /></div>
 					<div class="cell c2"><%= group_model->getName() %></div>
 					<div class="cell c2"><%= group_model->getAlias() %></div>
-					<div class="cell c3"><%= group_model->getUrl() %></div>
+					<div class="cell c4"><%= group_model->getUrl() %></div>
 					<div class="cell c5"><%= group_model->getDescription()%></div>
 				</div>
 			<% } %>

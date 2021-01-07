@@ -539,7 +539,12 @@ namespace controller {
 			auto group = controller::Group::load(model->getGroupId());
 			if (!group.isNull()) {
 				auto group_model = group->getModel();
-				mGroupBaseUrl = "https://" + group_model->getUrl() + group_model->getHome();
+				if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+					mGroupBaseUrl = "http://" + group_model->getUrl() + group_model->getHome();
+				}
+				else {
+					mGroupBaseUrl = "https://" + group_model->getUrl() + group_model->getHome();
+				}
 				printf("[%s] return group base Url: %s from Group\n", function_name, mGroupBaseUrl.data());
 				return mGroupBaseUrl;
 			}
@@ -551,7 +556,12 @@ namespace controller {
 			em->sendErrorsAsEmail();
 			return ServerConfig::g_php_serverPath;
 		}
-		mGroupBaseUrl = "https://" + servers[0]->getBaseUri();
+		if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+			mGroupBaseUrl = "http://" + servers[0]->getBaseUri();
+		}
+		else {
+			mGroupBaseUrl = "https://" + servers[0]->getBaseUri();
+		}
 		printf("[%s] return group base Url: %s from NodeServer\n", function_name, mGroupBaseUrl.data());
 		return mGroupBaseUrl;
 	}
