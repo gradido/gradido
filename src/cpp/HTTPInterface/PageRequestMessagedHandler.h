@@ -28,7 +28,7 @@ protected:
 	virtual Languages chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn = "");
 
 	unsigned long long getLastGetAsU64(const std::string& uri);
-	inline std::string getBaseUrl() { return "https://" + mHost + mLoginServerPath; }
+	std::string getBaseUrl();
 
 	Profiler mTimeProfiler;
 	std::string mHost;

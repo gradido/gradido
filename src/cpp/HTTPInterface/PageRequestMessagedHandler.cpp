@@ -76,3 +76,11 @@ unsigned long long PageRequestMessagedHandler::getLastGetAsU64(const std::string
 	}
 	return result;
 }
+
+std::string PageRequestMessagedHandler::getBaseUrl() 
+{
+	if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+		return "http://" + mHost + mLoginServerPath;
+	}
+	return "https://" + mHost + mLoginServerPath; 
+}
