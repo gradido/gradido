@@ -8,6 +8,7 @@ use Cake\Validation\Validator;
 
 use Cake\ORM\TableRegistry;
 use Cake\I18n\Date;
+use Cake\I18n\Time;
 
 /**
  * StateBalances Model
@@ -102,23 +103,33 @@ class StateBalancesTable extends Table
         return ['state' => 'error', 'msg' => 'couldn\'t save', 'details' => $entity->getErrors()];
     }
     
-    // getting start balance for month, if exist else create and create all missing state_balances before, recursive
+    // getting start balance for month, if exist else create and create all missing state_balances before, in while loop
     public function chooseForMonthAndUser($month, $year, $state_user_id)
     {
         //'created' => 'identifier'
+        
+        $first_of_month = new Time("$year-$month-01 00:00");
+        $last_of_month = new Time($first_of_month);
+        $last_of_month->addMonth(1);
+        $last_of_month->subSecond(1);
+        echo "first of month: " . $first_of_month->i18nFormat() . ", last of month: " . $last_of_month->i18nFormat() . "<br>";
         $query = $this->find('all');
+                      
         $query->select([
             'month' => $query->func()->month(['record_date' => 'identifier']),
             'year'  => $query->func()->year(['record_date' => 'identifier'])
         ])->select($this)
           //->where(['month' => $month, 'year' => $year, 'state_user_id' => $state_user_id])
-          ->where(['state_user_id' => $state_user_id])
+          ->where(['AND' => [
+                    'state_user_id' => $state_user_id,
+                    'record_date >=' => $first_of_month,
+                    'record_date <=' => $last_of_month
+                   ]
+                  ])
+          ->order(['record_date' => 'ASC'])     
           ->contain([]);
-        // TODO: fix query with correct month and year
-        //debug($query);
         if($query->count() == 0) 
-        {
-            
+        {   
             // if any state balance for user exist, pick last one
             $state_balances = $this->find('all')
                     ->where(['state_user_id' => $state_user_id])

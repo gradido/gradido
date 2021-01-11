@@ -228,6 +228,7 @@ class StateBalancesController extends AppController
             $decay_duration = $current_state_balance->decayDuration($date);
             $current_state_balance->amount = $current_state_balance->partDecay($date);
             
+            echo "amount: ". ($current_state_balance->amount / 10000) . ", duration: " . $decay_duration . "<br>";
             $decay_transaction = [
                 'type' => 'decay',
                 'balance' => -($prev_amount - $current_state_balance->amount),
@@ -239,11 +240,17 @@ class StateBalancesController extends AppController
                 $cursor++;
             }
             
+            if($current_state_balance->record_date != $date) {
+                if($transaction['type'] == 'send') {
+                    $current_state_balance->amount -= $transaction['balance'];
+                } else {
+                    $current_state_balance->amount += $transaction['balance'];
+                }
+            }
             $current_state_balance->record_date = $date;
-            $current_state_balance->amount += $transaction['balance'];
             
         }
-        echo "amount: ". $current_state_balance->amount . ", duration: " . $current_state_balance->decayDuration(Time::now()) . "<br>";
+        echo "amount: ". ($current_state_balance->amount / 10000) . ", duration: " . $current_state_balance->decayDuration(Time::now()) . "<br>";
         array_push($transactions_reversed, [
             'type' => 'decay',
             'balance' => -($current_state_balance->amount - $current_state_balance->decay),
