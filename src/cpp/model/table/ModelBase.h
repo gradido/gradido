@@ -124,7 +124,7 @@ namespace model {
 			size_t count = 0;
 			select 
 				<< "SELECT count(id) from " << getTableName()
-				<< " where " << fieldName << " LIKE ? group by id"
+				<< " where " << fieldName << " LIKE ? group by group_id"
 				,Poco::Data::Keywords::into(count)
 				,Poco::Data::Keywords::useRef(fieldValue);
 
