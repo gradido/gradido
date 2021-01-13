@@ -65,7 +65,7 @@ namespace model {
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
 							addError(new ParamError(getTableName(), "data set: ", toString().data()));
 						}
-						select.reset(session);
+						session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 						select = _loadIdFromDB(session);
 						//Poco::Data::Statement select = _loadIdFromDB(session);
 						select.execute();

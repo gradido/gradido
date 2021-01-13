@@ -66,7 +66,10 @@ namespace model
 		std::string PendingTask::toString()
 		{
 			std::stringstream ss;
-			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
+			ss << "id: " << mID << std::endl;
+			ss << "user_id: " << mUserId << std::endl;
+			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << std::endl;
+			ss << "task type: " << typeToString((TaskType)mTaskTypeId);
 			return ss.str();
 		}
 

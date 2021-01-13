@@ -41,15 +41,21 @@ namespace UniLib {
 				std::string name = mWaitingTask->getName();
 				//l->addTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder(), mWaitingTask->getResourceType(), mName.data(), name);
 #endif 
-				int returnValue = mWaitingTask->run();
-				if (!returnValue) {
-					mWaitingTask->setTaskFinished();
-				}
+				try {
+					int returnValue = mWaitingTask->run();
+					if (!returnValue) {
+						mWaitingTask->setTaskFinished();
+					}
 #ifdef _UNI_LIB_DEBUG
-				//l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
-				mSpeedLog.information("%s used on thread: %s by Task: %s of: %s (returned: %d)",
-					counter.string(), mName, std::string(mWaitingTask->getResourceType()), name, returnValue);
+					//l->removeTaskLogEntry((HASH)mWaitingTask.getResourcePtrHolder());
+					mSpeedLog.information("%s used on thread: %s by Task: %s of: %s (returned: %d)",
+						counter.string(), mName, std::string(mWaitingTask->getResourceType()), name, returnValue);
 #endif
+				}
+				catch (Poco::NullPointerException& ex) {
+					printf("[CPUShedulerThread::ThreadFunction] Null Pointer Exception for Task type: %s\n", mWaitingTask->getResourceType());			
+				}
+
 				mWaitingTask = mParent->getNextUndoneTask(this);
 			}
 			return 0;

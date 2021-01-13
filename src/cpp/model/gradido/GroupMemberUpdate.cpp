@@ -106,6 +106,10 @@ namespace model {
 		{
 			static const char* function_name = "GroupMemberUpdate::transactionAccepted";
 			auto sm = SessionManager::getInstance();
+			if (user.isNull()) {
+				printf("[%s] user is zero, was transaction created from test call, without saving user into db?\n", function_name);
+				return;
+			}
 
 			auto target_group = mProtoMemberUpdate.target_group();
 			

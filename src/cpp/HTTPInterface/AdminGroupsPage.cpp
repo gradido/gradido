@@ -94,24 +94,30 @@ void AdminGroupsPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco:
 	responseStream << "\t\t<div class=\"sidebar1 nav-menu initial\">\n";
 	responseStream << "\t\t\t<div class=\"nav-vertical\">\n";
 	responseStream << "\t\t\t\t<ul>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
+	responseStream << "\t\t\t\t\t";
 #line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+ if(!user.isNull()) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<li><a href=\"";
+#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
 	responseStream << ( user->getGroupBaseUrl() );
 	responseStream << "/\"><span class=\"link-title\">Startseite</span></a></li>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( getBaseUrl() );
-	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
-	responseStream << "\t\t\t\t\t<li><a href=\"";
+	responseStream << "\t\t\t\t\t";
 #line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
-	responseStream << ( getBaseUrl() );
-	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
+ } 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
 	responseStream << ( getBaseUrl() );
-	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << "/groups\"><span class=\"link-title\">Gruppen</span></a></li>\n";
 	responseStream << "\t\t\t\t\t<li><a href=\"";
 #line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( getBaseUrl() );
+	responseStream << "/nodes\"><span class=\"link-title\">Node Server</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 27 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
+	responseStream << ( getBaseUrl() );
+	responseStream << "/hedera_account\"><span class=\"link-title\">Hedera Accounts</span></a></li>\n";
+	responseStream << "\t\t\t\t\t<li><a href=\"";
+#line 28 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_large.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/topic\"><span class=\"link-title\">Hedera Topics</span></a></li>\n";
 	responseStream << "\t\t\t\t</ul>\n";
