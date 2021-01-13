@@ -1,3 +1,9 @@
+https://gruhn.github.io/vue-qrcode-reader/api/QrcodeStream.html
+https://github.com/gruhn/vue-qrcode-reader
+
+https://bootstrap-vue.org/docs/components/image
+
+
 # [BootstrapVue Argon Dashboard](https://demos.creative-tim.com/bootstrap-vue-argon-dashboard/?ref=bvad-github-readme) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/home?status=BootstrapVue%20Argon%20Dashboard%20is%20a%20Free%20Bootstrap%20and%Vue.js%20Dashboard%20made%20using%vue-cli%20%E2%9D%A4%EF%B8%8F%0Ahttps%3A//demos.creative-tim.com/bootstrap-vue-argon-dashboard%20%vue.js%20%23vue-cli%20%23argon%20%23argondesign%20%23angulardashboard%20%23argonvue%20%23vuedesign%20%23bootstrap%20%23design%20%23uikit%20%23freebie%20%20via%20%40CreativeTim)
 
 

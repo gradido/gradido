@@ -17,6 +17,13 @@
           </div>
         </slot>
       </b-col>
+        <b-col cols="auto" v-if="$slots.img || img">
+        <slot name="img">
+        
+          <img :src="img" width="80" />
+
+        </slot>
+      </b-col>
     </b-row>
 
     <p class="mt-3 mb-0 text-sm">
@@ -40,6 +47,7 @@
         default: 'primary'
       },
       icon: String,
+      img: String,
       title: String,
       subTitle: String,
       iconClasses: [String, Array]
