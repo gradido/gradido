@@ -1,0 +1,173 @@
+<%@ page class="AdminNodeServerTestPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="PageRequestMessagedHandler.h" %>
+<%!
+
+#include "../controller/NodeServer.h"
+#include "../controller/User.h"
+#include "../controller/HederaTopic.h"
+#include "../lib/DataTypeConverter.h"
+#include "../lib/Profiler.h"
+#include "../model/gradido/Transaction.h"
+
+#include "Poco/Thread.h"
+
+enum PageType
+{
+	PAGE_CHOOSE_TEST,
+	PAGE_RUN_4_SET_TEST
+};
+
+%>
+<%%
+	const char* pageName = "Node Server Test";
+	PageType page = PAGE_CHOOSE_TEST;
+	Poco::AutoPtr<controller::NodeServer> node_server;
+	Poco::AutoPtr<controller::User> user;
+	Poco::AutoPtr<controller::HederaTopic> hedera_topic;
+	int hedera_timeout = 15;
+	
+	
+	if(!form.empty()) 
+	{
+		auto node_server_id_string = form.get("test-node-servers", "");
+		if(node_server_id_string != "") {
+			int node_server_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(node_server_id_string, node_server_id )) {
+				node_server = controller::NodeServer::load(node_server_id);
+			}
+		}
+		auto topic_id_string = form.get("test-hedera-topic", "");
+		if(topic_id_string != "") {
+			int topic_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(topic_id_string, topic_id)) {
+				hedera_topic = controller::HederaTopic::load(topic_id);
+			}
+		}
+		auto test_timeout_string = form.get("test-timeout", "");
+		if(test_timeout_string != "") {
+			DataTypeConverter::strToInt(test_timeout_string, hedera_timeout);
+		}
+		auto submit = form.get("submit", "");
+		if(submit == "Run 4-Test") {
+			page = PAGE_RUN_4_SET_TEST;
+		}
+	}		
+
+	auto node_servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_NODE);	
+	auto hedera_topics = controller::HederaTopic::listAll();
+	
+%><%@ include file="header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+	<!-- Tab links -->
+	<div class="tab">
+	  <button class="tablinks" onclick="openTab(event, 'test-4')">Test 4-Set (2 AddMember, Creation, Transfer)</button>
+	</div>
+	<div id="test-4" class="tabcontent">
+		<div class="center-form-title">
+			<h3>Test 4-Set (2 AddMember, Creation, Transfer)</</h3>
+		</div>
+		<div class="center-form-form">
+			<p>1. Create two new accounts and show user public keys for comparisation</p>
+			<p>2. Send a add-member transaction to hedera topic with one signature (first user)</p>
+			<p>3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>
+			<p>4. Send a creation transaction to second user, signed by first user</p>
+			<p>5. Send a transfer transaction from second user to first user signed by second user</p>
+			<p>6. Wait x seconds to give hedera time to process transactions</p>
+			<p>7. Ask choosen node for transaction and print result</p>
+			<form method="POST" action="<%= getBaseUrl() %>/adminNodeServerTest">
+				<label class="form-label" for="test-node-servers">Node Server for tests</label>
+				<% if(node_servers.size() == 0) { %>
+					<a href="<%= getBaseUrl() %>/nodes"><span class="link-title">Edit Node-Servers</span></a>
+				<% } %>
+				<select name="test-node-servers" id="test-node-servers">
+					<% for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
+						auto model = (*it)->getModel();
+					%>
+						<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!node_server.isNull() && node_server->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getUrlWithPort() %>, group: <%= model->getGroupId() %></option>
+					<% } %>
+				</select>
+				<label class="form-label" for="test-hedera-topic">Hedera Topic for tests</label>
+				<% if(hedera_topics.size() == 0) { %>
+					<a href="<%= getBaseUrl() %>/topic"><span class="link-title">Edit Hedera-Topics</span></a>
+				<% } %>
+				<select name="test-hedera-topic" id="test-hedera-topic">
+					<% for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) { 
+						auto model = (*it)->getModel();
+						auto hedera_account = (*it)->getAutoRenewAccount();
+						if(hedera_account->getModel()->getNetworkType() != ServerConfig::HEDERA_TESTNET) {
+							continue;
+						}
+					%>
+						<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!hedera_topic.isNull() && hedera_topic->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getName() %>, group: <%= model->getGroupId() %></option>
+					<% } %>
+				</select>
+				<label class="form-label" for="test-timeout">Timeout waiting for hedera in seconds</label>
+				<input name="test-timeout" id="test-timeout" type="number" value="<%= hedera_timeout %>"> seconds 
+				<input class="center-form-submit form-button" type="submit" name="submit" value="Run 4-Test">
+			</form>
+		</div>
+	</div>
+	<% if(PAGE_RUN_4_SET_TEST == page && !hedera_topic.isNull() && !node_server.isNull()) { %>
+	<ul>
+		<li>
+			<p>1. Create two new accounts and show user public keys for comparisation: </p>
+			<% 
+			Profiler time2;
+			auto group_id = hedera_topic->getModel()->getGroupId();
+			auto user_group = controller::Group::load(group_id);
+			auto mnemonic_type = ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+			
+			std::string password1 = "hsaj(2askaslASlllak3wjjeudsaj";
+			auto user_1 = controller::User::create("testEmail@google.de", "Max", "Mustermann", group_id);
+			auto passphrase_1 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_1 = KeyPairEd25519::create(passphrase_1);
+			user_1->setGradidoKeyPair(gradido_key_pair_1);
+			user_1->login(password1);
+			
+			std::string password2 = "uweia8saiSale,dsasA";
+			auto user_2 = controller::User::create("testEmail2@google.de", "MJax", "Mustrermann", group_id);
+			auto passphrase_2 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_2 = KeyPairEd25519::create(passphrase_2);
+			user_2->setGradidoKeyPair(gradido_key_pair_2);
+			user_2->login(password2);
+			%>			
+			<p>User 1: <%= user_1->getPublicHex() %></p>
+			<p>User 2: <%= user_2->getPublicHex() %></p>
+			<p>Time: <%= time2.string() %>
+		</li>
+		<li>
+			<p>2. Send a add-member transaction to hedera topic with one signature (first user)</p>
+			<% 
+			time2.reset(); 
+			{
+				auto transaction1 = model::gradido::Transaction::createGroupMemberUpdate(user_1, user_group);
+				transaction1->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(1);
+				transaction1->sign(user_1);
+			}
+			%>
+			<p>Time: <%= time2.string() %>
+		</li>
+		<li>
+			<p>3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>
+			<% 
+			time2.reset();  
+			{
+				auto transaction2 = model::gradido::Transaction::createGroupMemberUpdate(user_2, user_group);
+				transaction2->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(2);
+				transaction2->sign(user_2);
+				transaction2->sign(user_1);
+			}
+			
+			%>
+			<p>Time: <%= time2.string() %>
+		</li>
+	</ul>
+	<% } %>
+	
+</div>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/tabs.js"></script>
+<%@ include file="footer.cpsp" %>

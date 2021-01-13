@@ -42,6 +42,7 @@ namespace controller {
 
 		//! \param group_id is zero take everyone
 		static std::vector<Poco::AutoPtr<NodeServer>> load(model::table::NodeServerType type, int group_id = 0);		
+		static Poco::AutoPtr<NodeServer> load(int id);
 		static std::vector<Poco::AutoPtr<NodeServer>> listAll();
 		// pick server randomly
 		static NodeServerConnection pick(ServerConfig::HederaNetworkType type, int group_id = 0);

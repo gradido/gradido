@@ -32,6 +32,7 @@
 #include "AdminTopicPage.h"
 #include "AdminHederaAccountPage.h"
 #include "AdminNodeServerPage.h"
+#include "AdminNodeServerTestPage.h"
 
 #include "DecodeTransactionPage.h"
 #include "RepairDefectPassphrase.h"
@@ -147,6 +148,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 	if (url_first_part == "/passphrased_transaction") {
 		return basicSetup(new PassphrasedTransaction, request, timeUsed);
+	}
+	if (url_first_part == "/adminNodeServerTest") {
+		return basicSetup(new AdminNodeServerTestPage, request, timeUsed);
 	}
 	if (s) {
 		if (externReferer != "") {

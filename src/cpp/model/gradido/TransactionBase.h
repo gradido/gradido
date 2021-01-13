@@ -55,6 +55,7 @@ namespace model {
 			bool isPublicKeyForbidden(const unsigned char* pubkey);
 
 			inline Poco::UInt32 getMinSignatureCount() { return mMinSignatureCount; }
+			void setMinSignatureCount(Poco::UInt32 minSignatureCount) { mMinSignatureCount = minSignatureCount; }
 
 			// called after sending transaction over hedera and after they was accepted from gradido node (at least one)
 			virtual void transactionAccepted(Poco::AutoPtr<controller::User> user) = 0;

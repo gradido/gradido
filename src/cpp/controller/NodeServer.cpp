@@ -54,6 +54,15 @@ namespace controller {
 		return Poco::AutoPtr<NodeServer>(group);
 	}
 
+	Poco::AutoPtr<NodeServer> NodeServer::load(int id)
+	{
+		auto db = new model::table::NodeServer();
+		if (1 == db->loadFromDB("id", id)) {
+			return new NodeServer(db);
+		}
+		return nullptr;
+	}
+
 	std::vector<Poco::AutoPtr<NodeServer>> NodeServer::load(model::table::NodeServerType type, int group_id/* = 0*/)
 	{
 		auto db = new model::table::NodeServer();
