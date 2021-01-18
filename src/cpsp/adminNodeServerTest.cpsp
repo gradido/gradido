@@ -266,8 +266,9 @@ enum PageType
 				auto gn_answear = jsonrpc.request("getTransactions", params);
 				if(!gn_answear.isNull()) {
 					std::stringstream ss;
-					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); %>
-					<%= DataTypeConverter::replaceNewLineWithBr(ss.str()) %><%
+					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
+					auto answear_string = ss.str(); %>
+					<%= DataTypeConverter::replaceNewLineWithBr(answear_string) %><%
 				}
 			   } %>
 			<p>Time: <%= time2.string() %></p>
@@ -285,8 +286,8 @@ enum PageType
 		if(!gn_answear.isNull()) {
 			std::stringstream ss;
 			Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
-			//printf("result: %s\n", ss.str().data());%>
-			<%= DataTypeConverter::replaceNewLineWithBr(ss.str()) %><%
+			auto answear_string = ss.str();%>
+			<%= DataTypeConverter::replaceNewLineWithBr(answear_string) %><%
 		}
 		%>
 		<p>Time: <%= time3.string() %></p>
