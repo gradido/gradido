@@ -8,6 +8,7 @@
 #include "Poco/Nullable.h"
 #include "Poco/Data/LOB.h"
 #include "Poco/JSON/Object.h"
+#include "Poco/JSON/Array.h"
 #include "../SingletonManager/LanguageManager.h"
 
 #include "../proto/hedera/Timestamp.pb.h"
@@ -63,6 +64,7 @@ namespace DataTypeConverter {
 	//! \brief go through json object and replace every string entry in base64 format into hex format
 	//! \return count of replaced strings
 	int replaceBase64WithHex(Poco::JSON::Object::Ptr json);
+	int replaceBase64WithHex(Poco::JSON::Array::Ptr json);
 	std::string replaceNewLineWithBr(std::string& in);
 };
 

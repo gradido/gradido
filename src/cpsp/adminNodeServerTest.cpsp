@@ -31,9 +31,9 @@ enum PageType
 	Poco::AutoPtr<controller::NodeServer> node_server;
 	Poco::AutoPtr<controller::User> user;
 	Poco::AutoPtr<controller::HederaTopic> hedera_topic;
-	int hedera_timeout = 15;
+	int hedera_timeout = 9;
 	
-	bool steps[6]; memset(steps, 0, 6 * sizeof(bool));
+	bool steps[6]; memset(steps, 1, 6 * sizeof(bool));
 	
 	
 	if(!form.empty()) 
@@ -69,6 +69,8 @@ enum PageType
 			step_temp = form.get(name, "");
 			if(step_temp == "1") {
 				steps[i] = true;
+			} else {
+				steps[i] = false;
 			}
 		}
 	}		
@@ -81,22 +83,22 @@ enum PageType
 <div class="center-form-container">
 	<!-- Tab links -->
 	<div class="tab">
-	  <button class="tablinks" onclick="openTab(event, 'test-4')">Test 4-Set (2 AddMember, Creation, Transfer)</button>
-	  <button class="tablinks" onclick="openTab(event, 'gn-jsonrpc')" title="call via json-rpc to gradido node with getTransactions">getTransactions</button>
+	  <button class="tablinks <% if(PAGE_RUN_4_SET_TEST == page) { %> active <% } %>" onclick="openTab(event, 'test-4')">Test 4-Set (2 AddMember, Creation, Transfer)</button>
+	  <button class="tablinks <% if(PAGE_GET_TRANSACTION_RPC_CALL == page) { %> active <% } %>" onclick="openTab(event, 'gn-jsonrpc')" title="call via json-rpc to gradido node with getTransactions">getTransactions</button>
 	</div>
-	<div id="test-4" class="tabcontent">
+	<div id="test-4" class="tabcontent" <% if(PAGE_RUN_4_SET_TEST == page) { %> style="display:block" <% } %>>
 		<div class="center-form-title">
 			<h3>Test 4-Set (2 AddMember, Creation, Transfer)</</h3>
 		</div>
 		<div class="center-form-form">
 			<form method="POST" action="<%= getBaseUrl() %>/adminNodeServerTest">
 				<p>1. Create two new accounts and show user public keys for comparisation</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-2" value="1"/> 2. Send a add-member transaction to hedera topic with one signature (first user)</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-3" value="1"/> 3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-4" value="1"/> 4. Send a creation transaction to second user, signed by first user</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-5" value="1"/> 5. Send a transfer transaction from second user to first user signed by second user</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-6" value="1"/> 6. Wait x seconds to give hedera time to process transactions</p>
-				<p><input class="form-checkbox" type="checkbox" checked="checked" name="step-7" value="1"/> 7. Ask choosen node for transaction and print result</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[0]) { %> checked="checked" <% } %> name="step-2" value="1"/> 2. Send a add-member transaction to hedera topic with one signature (first user)</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[1]) { %> checked="checked" <% } %> name="step-3" value="1"/> 3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[2]) { %> checked="checked" <% } %> name="step-4" value="1"/> 4. Send a creation transaction to second user, signed by first user</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[3]) { %> checked="checked" <% } %> name="step-5" value="1"/> 5. Send a transfer transaction from second user to first user signed by second user</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[4]) { %> checked="checked" <% } %> name="step-6" value="1"/> 6. Wait x seconds to give hedera time to process transactions</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[5]) { %> checked="checked" <% } %> name="step-7" value="1"/> 7. Ask choosen node for transaction and print result</p>
 			
 				<label class="form-label" for="test-node-servers">Node Server for tests</label>
 				<% if(node_servers.size() == 0) { %>
@@ -130,7 +132,7 @@ enum PageType
 			</form>
 		</div>
 	</div>
-	<div id="gn-jsonrpc" class="tabcontent">
+	<div id="gn-jsonrpc" class="tabcontent" <% if(PAGE_GET_TRANSACTION_RPC_CALL == page) { %> style="display:block" <% } %>>
 		<div class="center-form-title">
 			<h3>Test 4-Set (2 AddMember, Creation, Transfer)</</h3>
 		</div>
@@ -187,7 +189,7 @@ enum PageType
 				<p>skipped</p>
 			<% } else {
 			auto transaction1 = model::gradido::Transaction::createGroupMemberUpdate(user_1, user_group);
-			transaction1->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(2);
+			transaction1->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(1);
 			transaction1->sign(user_1);
 			
 			%>
@@ -203,7 +205,7 @@ enum PageType
 				<p>skipped</p>
 			<% } else {
 			auto transaction2 = model::gradido::Transaction::createGroupMemberUpdate(user_2, user_group);
-			transaction2->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(3);
+			transaction2->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(2);
 			transaction2->sign(user_2);
 			transaction2->sign(user_1);
 
@@ -219,7 +221,7 @@ enum PageType
 			if(!steps[2]) { %>
 				<p>skipped</p>
 			<% } else {
-			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 1000, Poco::DateTime(), "Test Creation");
+			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation");
 			transaction3->sign(user_1);
 			%>
 			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction3->getTransactionAsJson(true)) %></p>
@@ -234,7 +236,7 @@ enum PageType
 				<p>skipped</p>
 			<% } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
-			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 500, "Test Transfer");
+			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
 			%>
 			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4[0]->getTransactionAsJson(true)) %></p>
 			<% } %>
@@ -242,7 +244,7 @@ enum PageType
 		</li>
 		<li>
 			<p>6. Wait <%= hedera_timeout %> seconds to give hedera time to process transactions</p>
-			<% if(!steps[3]) { %>
+			<% if(!steps[4]) { %>
 				<p>skipped</p>
 			<% } else { 
 				Poco::Thread::sleep(hedera_timeout * 1000); 
@@ -250,8 +252,9 @@ enum PageType
 		</li>
 		<li>
 			<p>7. Ask choosen node for transaction and print result</p>
-			<% if(!steps[3] || node_server.isNull()) { %>
-				<p>skipped</p>
+			<%  time2.reset(); 
+				if(!steps[5] || node_server.isNull()) { 
+				%><p>skipped</p>
 			<% } else { 
 				auto node_server_model = node_server->getModel();
 				JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
@@ -265,9 +268,11 @@ enum PageType
 					<%= DataTypeConverter::replaceNewLineWithBr(ss.str()) %><%
 				}
 			   } %>
+			<p>Time: <%= time2.string() %></p>
 		</li>
 	</ul>
 	<% } else if(PAGE_GET_TRANSACTION_RPC_CALL == page && !node_server.isNull()) { 
+		Profiler time3;
 		auto node_server_model = node_server->getModel();
 		auto user_group = controller::Group::load(node_server_model->getGroupId());
 		JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
@@ -281,7 +286,9 @@ enum PageType
 			//printf("result: %s\n", ss.str().data());%>
 			<%= DataTypeConverter::replaceNewLineWithBr(ss.str()) %><%
 		}
-	} %>
+		%>
+		<p>Time: <%= time3.string() %></p>
+	<% } %>
 	
 </div>
 <script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/tabs.js"></script>

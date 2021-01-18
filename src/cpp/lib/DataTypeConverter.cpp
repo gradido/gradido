@@ -340,20 +340,19 @@ namespace DataTypeConverter
 
 		for (auto it = json->begin(); it != json->end(); it++) 
 		{
-			if (it->first == "sigPair")
-			{
-				int zahl = 1;
-			}
 			if (json->isObject(it)) {
 				auto local_json = it->second.extract<Poco::JSON::Object::Ptr>();
 				count_replacements += replaceBase64WithHex(local_json);
 				json->set(it->first, local_json);
 			}
 			else if (json->isArray(it)) {
-
+				auto local_json = it->second.extract<Poco::JSON::Array::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(it->first, local_json);
 			}
 			else if (it->second.isString()) 
 			{
+				if (it->first == "amount") continue;
 				auto field_value = it->second.extract<std::string>();
 				if(!g_rexExpBase64.match(field_value)) continue;
 
@@ -362,9 +361,46 @@ namespace DataTypeConverter
 
 				auto hex = binToHex(bin);
 				mm->releaseMemory(bin);
-				json->set(it->first, hex);
+				json->set(it->first, hex.substr(0, hex.size()-1));
 				count_replacements++;
 			}
+		}
+
+		return count_replacements;
+	}
+
+	int replaceBase64WithHex(Poco::JSON::Array::Ptr json)
+	{
+		auto mm = MemoryManager::getInstance();
+		int count_replacements = 0;
+		int count = 0;
+		for (auto it = json->begin(); it != json->end(); it++)
+		{
+			if (json->isObject(it)) {
+				
+				auto local_json = it->extract<Poco::JSON::Object::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(count, local_json);
+			}
+			else if (json->isArray(it)) {
+				auto local_json = it->extract<Poco::JSON::Array::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(count, local_json);
+			}
+			else if (it->isString())
+			{
+				auto field_value = it->extract<std::string>();
+				if (!g_rexExpBase64.match(field_value)) continue;
+
+				auto bin = base64ToBin(field_value);
+				if (!bin) continue;
+
+				auto hex = binToHex(bin);
+				mm->releaseMemory(bin);
+				json->set(count, hex.substr(0, hex.size()-1));
+				count_replacements++;
+			}
+			count++;
 		}
 
 		return count_replacements;
