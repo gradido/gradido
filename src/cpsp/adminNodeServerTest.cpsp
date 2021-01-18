@@ -191,9 +191,9 @@ enum PageType
 			auto transaction1 = model::gradido::Transaction::createGroupMemberUpdate(user_1, user_group);
 			transaction1->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(1);
 			transaction1->sign(user_1);
-			
+			auto transaction1_json = transaction1->getTransactionAsJson(true);
 			%>
-			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction1->getTransactionAsJson(true)) %></p>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction1_json) %></p>
 			<% } %>
 			<p>Time: <%= time2.string() %>
 		</li>
@@ -208,9 +208,9 @@ enum PageType
 			transaction2->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(2);
 			transaction2->sign(user_2);
 			transaction2->sign(user_1);
-
+			auto transaction2_json = transaction2->getTransactionAsJson(true);
 			%>
-			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction2->getTransactionAsJson(true)) %></p>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction2_json) %></p>
 			<% } %>
 			<p>Time: <%= time2.string() %>
 		</li>
@@ -223,8 +223,9 @@ enum PageType
 			<% } else {
 			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation");
 			transaction3->sign(user_1);
+			auto transaction3_json = transaction3->getTransactionAsJson(true);
 			%>
-			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction3->getTransactionAsJson(true)) %></p>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction3_json) %></p>
 			<% } %>
 			<p>Time: <%= time2.string() %></p>
 		</li>
@@ -237,8 +238,9 @@ enum PageType
 			<% } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
+			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
 			%>
-			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4[0]->getTransactionAsJson(true)) %></p>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4_json) %></p>
 			<% } %>
 			<p>Time: <%= time2.string() %></p>
 		</li>
