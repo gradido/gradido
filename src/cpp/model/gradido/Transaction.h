@@ -58,9 +58,10 @@ namespace model {
 			//! \return true if at least one sign is missing and user isn't forbidden and isn't required
 			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
+			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
+
 		protected:
 
-			std::string getTransactionAsJson();
 
 			Poco::AutoPtr<TransactionBody> mTransactionBody;
 			proto::gradido::GradidoTransaction mProtoTransaction;

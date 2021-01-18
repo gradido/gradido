@@ -7,6 +7,7 @@
 #include "Poco/Timespan.h"
 #include "Poco/Nullable.h"
 #include "Poco/Data/LOB.h"
+#include "Poco/JSON/Object.h"
 #include "../SingletonManager/LanguageManager.h"
 
 #include "../proto/hedera/Timestamp.pb.h"
@@ -58,6 +59,11 @@ namespace DataTypeConverter {
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp);
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
 	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
+
+	//! \brief go through json object and replace every string entry in base64 format into hex format
+	//! \return count of replaced strings
+	int replaceBase64WithHex(Poco::JSON::Object::Ptr json);
+	std::string replaceNewLineWithBr(std::string& in);
 };
 
 #endif // __GRADIDO_LOGIN_SERVER_LIB_DATA_TYPE_CONVERTER_H

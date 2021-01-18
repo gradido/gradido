@@ -90,6 +90,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 			
 			addError(new ParamError(functionName, "cakePHP Exception: ", message.toString()));
 			addError(new ParamError(functionName, "calling: ", methodName));
+			addError(new ParamError(functionName, "for server host: ", mServerHost));
 			std::string fields[] = { "url", "code", "file", "line" };
 			for (int i = 0; i < 4; i++) {
 				auto field = fields[i];

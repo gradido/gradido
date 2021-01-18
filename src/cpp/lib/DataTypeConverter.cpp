@@ -1,5 +1,7 @@
 #include "DataTypeConverter.h"
 
+#include "Poco/RegularExpression.h"
+
 #include <stdexcept>
 #include "sodium.h"
 #include <assert.h>
@@ -9,6 +11,8 @@
 
 namespace DataTypeConverter
 {
+	Poco::RegularExpression g_rexExpBase64("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
+
 	NumberParseState strToInt(const std::string& input, int& result)
 	{
 		try {
@@ -326,5 +330,61 @@ namespace DataTypeConverter
 	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
 	{
 		return Poco::Timespan(duration.seconds(), 0);
+	}
+
+	int replaceBase64WithHex(Poco::JSON::Object::Ptr json)
+	{
+		//g_rexExpBase64
+		auto mm = MemoryManager::getInstance();
+		int count_replacements = 0;
+
+		for (auto it = json->begin(); it != json->end(); it++) 
+		{
+			if (it->first == "sigPair")
+			{
+				int zahl = 1;
+			}
+			if (json->isObject(it)) {
+				auto local_json = it->second.extract<Poco::JSON::Object::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(it->first, local_json);
+			}
+			else if (json->isArray(it)) {
+
+			}
+			else if (it->second.isString()) 
+			{
+				auto field_value = it->second.extract<std::string>();
+				if(!g_rexExpBase64.match(field_value)) continue;
+
+				auto bin = base64ToBin(field_value);
+				if(!bin) continue;
+
+				auto hex = binToHex(bin);
+				mm->releaseMemory(bin);
+				json->set(it->first, hex);
+				count_replacements++;
+			}
+		}
+
+		return count_replacements;
+	}
+
+	std::string replaceNewLineWithBr(std::string& in)
+	{
+		
+		std::string::size_type pos = 0; // Must initialize
+		while ((pos = in.find("\r\n", pos)) != std::string::npos) {
+			in.replace(pos, 2, "<br>");
+		}
+		pos = 0;
+		while ((pos = in.find("\n", pos)) != std::string::npos) {
+			in.replace(pos, 1, "<br>"); 
+		}
+		pos = 0;
+		while ((pos = in.find(" ", pos)) != std::string::npos) {
+			in.replace(pos, 1, "&nbsp;");
+		}
+		return in;
 	}
 }

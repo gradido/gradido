@@ -9,11 +9,15 @@
 #include "../../controller/HederaAccount.h"
 #include "../../controller/HederaRequest.h"
 
+#include "../lib/DataTypeConverter.h"
+
 #include "../hedera/Transaction.h"
 
 #include "../../tasks/HederaTask.h"
 
 #include <google/protobuf/util/json_util.h>
+
+#include "Poco/JSON/Parser.h"
 
 #include <inttypes.h>
 
@@ -594,7 +598,7 @@ namespace model {
 
 		}
 
-		std::string Transaction::getTransactionAsJson()
+		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
 		{
 			static const char* function_name = "Transaction::getTransactionAsJson";
 			std::string json_message = "";
@@ -621,6 +625,23 @@ namespace model {
 			int endCur = json_message.find_first_of('\"', startBodyBytes + 2) + 1;
 			json_message.replace(startBodyBytes, endCur - startBodyBytes, json_message_body);
 			//printf("json: %s\n", json_message.data());
+
+			if (replaceBase64WithHex) {
+				Poco::JSON::Parser json_parser;
+				try {
+					auto json = json_parser.parse(json_message);
+					Poco::JSON::Object::Ptr object = json.extract<Poco::JSON::Object::Ptr>();
+					if (DataTypeConverter::replaceBase64WithHex(object)) {
+						std::ostringstream oss;
+						Poco::JSON::Stringifier::stringify(json, oss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER);
+						json_message = oss.str();
+					}
+				}
+				catch (Poco::Exception& ex) {
+					addError(new ParamError(function_name, "exception by parsing or printing json", ex.message()));
+					addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+				}
+			}
 
 			return json_message;
 
