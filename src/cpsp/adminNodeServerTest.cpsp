@@ -267,7 +267,7 @@ enum PageType
 				if(!gn_answear.isNull()) {
 					std::stringstream ss;
 					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
-					auto answear_string = ss.str(); %>
+					std::string answear_string = ss.str(); %>
 					<%= DataTypeConverter::replaceNewLineWithBr(answear_string) %><%
 				}
 			   } %>
@@ -286,7 +286,7 @@ enum PageType
 		if(!gn_answear.isNull()) {
 			std::stringstream ss;
 			Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
-			auto answear_string = ss.str();%>
+			std::string answear_string = ss.str();%>
 			<%= DataTypeConverter::replaceNewLineWithBr(answear_string) %><%
 		}
 		%>

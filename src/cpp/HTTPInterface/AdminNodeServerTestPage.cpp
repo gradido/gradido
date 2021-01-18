@@ -553,22 +553,23 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 				auto gn_answear = jsonrpc.request("getTransactions", params);
 				if(!gn_answear.isNull()) {
 					std::stringstream ss;
-					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 	responseStream << "\n";
+					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
+					std::string answear_string = ss.str(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t";
-#line 270 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
-	responseStream << ( DataTypeConverter::replaceNewLineWithBr(ss.str()) );
-#line 270 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
+#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 				}
 			   } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 273 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t</ul>\n";
 	responseStream << "\t";
-#line 276 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 277 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else if(PAGE_GET_TRANSACTION_RPC_CALL == page && !node_server.isNull()) { 
 		Profiler time3;
 		auto node_server_model = node_server->getModel();
@@ -581,25 +582,25 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 		if(!gn_answear.isNull()) {
 			std::stringstream ss;
 			Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
-			//printf("result: %s\n", ss.str().data());	responseStream << "\n";
+			std::string answear_string = ss.str();	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 289 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
-	responseStream << ( DataTypeConverter::replaceNewLineWithBr(ss.str()) );
-#line 289 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 290 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
+#line 290 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 		}
 			responseStream << "\n";
 	responseStream << "\t\t<p>Time: ";
-#line 292 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time3.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 294 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\n";
 	responseStream << "</div>\n";
 	responseStream << "<script type=\"text/javascript\" src=\"";
-#line 296 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 297 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/tabs.js\"></script>\n";
 	// begin include footer.cpsp
