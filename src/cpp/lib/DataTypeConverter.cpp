@@ -338,7 +338,7 @@ namespace DataTypeConverter
 		auto mm = MemoryManager::getInstance();
 		int count_replacements = 0;
 
-		for (auto it = json->begin(); it != json->end(); it++) 
+		for (Poco::JSON::Object::ConstIterator it = json->begin(); it != json->end(); it++)
 		{
 			if (json->isObject(it)) {
 				auto local_json = it->second.extract<Poco::JSON::Object::Ptr>();
@@ -374,7 +374,7 @@ namespace DataTypeConverter
 		auto mm = MemoryManager::getInstance();
 		int count_replacements = 0;
 		int count = 0;
-		for (auto it = json->begin(); it != json->end(); it++)
+		for (Poco::JSON::Array::ValueVec::const_iterator it = json->begin(); it != json->end(); it++)
 		{
 			if (json->isObject(it)) {
 				
