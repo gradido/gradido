@@ -19,6 +19,7 @@
 #include "Poco/LocalDateTime.h"
 #include "Poco/DateTimeFormat.h"
 #include "Poco/DateTimeFormatter.h"
+#include "Poco/Environment.h"
 
 #include "model/table/HederaAccount.h"
 
