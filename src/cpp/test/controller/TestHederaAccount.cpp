@@ -8,7 +8,7 @@ namespace controller {
 	}
 		
 	TEST_F(TestHederaAccount, TestPick) {
-		auto hedera_account = controller::HederaAccount::pick(model::table::HEDERA_TESTNET, false);
+		auto hedera_account = controller::HederaAccount::pick(ServerConfig::HEDERA_TESTNET, false);
 		EXPECT_FALSE(hedera_account.isNull());
 	}
 }

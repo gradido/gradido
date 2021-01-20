@@ -8,7 +8,7 @@ namespace controller {
 	}
 
 	TEST_F(TestHederaId, TestFindTopicId) {
-		auto hedera_topic_id = controller::HederaId::find(1, model::table::HEDERA_TESTNET);
+		auto hedera_topic_id = controller::HederaId::find(1, ServerConfig::HEDERA_TESTNET);
 		EXPECT_FALSE(hedera_topic_id.isNull());
 	}
 }
