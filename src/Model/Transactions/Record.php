@@ -77,13 +77,22 @@ class GradidoModifieUserBalance
     
     public function updateBalance($newBalance, $recordDate, $userId)
     {
+        
       $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
-      $stateBalanceQuery = $stateBalancesTable->find('all')->where(['state_user_id' => $userId]);
+      return $stateBalancesTable->updateBalanceWithTransaction($newBalance, $recordDate,  $userId);
+      
+      /*$first_of_month = new Time("$year-$month-01 00:00");
+      $stateBalanceQuery = $stateBalancesTable
+              ->find('all')
+              ->where(['state_user_id' => $userId])
+              ->order(['record_date' => 'DESC'])
+              ->limit(1);
       $entity = null;
      
       if(!$stateBalanceQuery->isEmpty()) {
         $entity = $stateBalanceQuery->first();
-        if($entity->record_date != NULL && $entity->record_date > $recordDate) {
+        if($entity->record_date != NULL && 
+                ($entity->record_date > $recordDate || $entity->record_date->day == 1)) {
           return false;
         }
       } else {
@@ -95,7 +104,7 @@ class GradidoModifieUserBalance
       /*if(!$stateBalancesTable->save($entity)) {
         return ['state' => 'error', 'msg' => 'error saving state balance', 'details' => $entity->getErrors()];
       }*/
-      return true;
+      //return true;
     }
     
   public function getAllStateUsers() 
@@ -209,8 +218,8 @@ class GradidoCreation extends GradidoModifieUserBalance
   public function __construct($data) 
   {
     $this->userPubkey = $data['user'];
-    $this->amount = $data['amount'];
-    $this->new_balance = $data['new_balance'];
+    $this->amount = $data['amount']['amount'];
+    $this->new_balance = $data['new_balance']['amount'];
     //$this->targetDate = $received;
   }
   
@@ -276,15 +285,15 @@ class GradidoTransfer extends GradidoModifieUserBalance
   
   public function __construct($data)
   {
-    $this->amount = $data['amount'];
+    $this->amount = $data['amount']['amount'];
     
     $sender = $data['sender'];
     $this->sender_pubkey = $sender['user'];
-    $this->sender_new_balance = $sender['new_balance'];
+    $this->sender_new_balance = $sender['new_balance']['amount'];
     
     $receiver = $data['receiver'];
     $this->receiver_pubkey = $receiver['user'];
-    $this->receiver_new_balance = $receiver['new_balance'];
+    $this->receiver_new_balance = $receiver['new_balance']['amount'];
     
   }
   

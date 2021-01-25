@@ -79,7 +79,7 @@ $this->assign('header', $header);
                 <?= __('Empfangen') ?>
               <?php elseif($transaction['type'] == 'decay') : ?>
               <i class="material-icons-outlined">minus_circle_multiple</i>
-                <?= __('Vergangen') ?>
+                <?= __('Vergänglichkeit') ?>
               <?php endif; ?>
             </div>
           </div>

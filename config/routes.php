@@ -110,8 +110,10 @@ Router::scope('/', function (RouteBuilder $routes) {
      */
     //$routes->connect('/', ['controller' => 'Pages', 'action' => 'display', 'home']);
     $routes->connect('/', ['controller' => 'Dashboard', 'action' => 'index']);
-    $routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'js']);
+    //$routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'js']);
     $routes->connect('/server', ['controller' => 'Dashboard', 'action' => 'serverIndex']);
+    $routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'vue']);
+    $routes->connect('/vue-dev', ['controller' => 'Pages', 'action' => 'display', 'vue-dev']);
     //$routes->connect('/', 'https://gradido2.dario-rekowski.de/account', array('status' => 303));
 
     /**

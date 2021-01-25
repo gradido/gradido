@@ -207,7 +207,10 @@ class AppController extends Controller
                                 $stateUserQuery = $stateUserTable
                                 ->find('all')
                                 ->where(['public_key' => $public_key_bin])
-                                ->contain(['StateBalances']);
+                                ->contain('StateBalances', function ($q) {
+                                            return $q->order(['record_date' => 'DESC'])
+                                                     ->limit(1);
+                                        });
                                 if ($stateUserQuery->count() == 1) {
                                     $stateUser = $stateUserQuery->first();
                                     if ($stateUser->first_name != $json['user']['first_name'] ||
@@ -228,6 +231,7 @@ class AppController extends Controller
                                     }
                                   //var_dump($stateUser);
                                     if (count($stateUser->state_balances) > 0) {
+
                                         $session->write('StateUser.balance', $stateUser->state_balances[0]->decay);
                                     }
                                     $session->write('StateUser.id', $stateUser->id);

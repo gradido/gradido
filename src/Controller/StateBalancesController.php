@@ -250,13 +250,16 @@ class StateBalancesController extends AppController
             $current_state_balance->record_date = $date;
             
         }
-        echo "amount: ". ($current_state_balance->amount / 10000) . ", duration: " . $current_state_balance->decayDuration(Time::now()) . "<br>";
-        array_push($transactions_reversed, [
-            'type' => 'decay',
-            'balance' => -($current_state_balance->amount - $current_state_balance->decay),
-            'decay_duration' => $current_state_balance->record_date->timeAgoInWords(),// $current_state_balance->decayDuration(Time::now()),
-            'memo' => ''
-        ]);
+        if($current_state_balance) {
+            echo "amount: ". ($current_state_balance->amount / 10000) . ", duration: " . $current_state_balance->decayDuration(Time::now()) . "<br>";
+        
+            array_push($transactions_reversed, [
+                'type' => 'decay',
+                'balance' => -($current_state_balance->amount - $current_state_balance->decay),
+                'decay_duration' => $current_state_balance->record_date->timeAgoInWords(),// $current_state_balance->decayDuration(Time::now()),
+                'memo' => ''
+            ]);
+        }
         
         $this->set('transactions', array_reverse($transactions_reversed));
         $this->set('transactionExecutingCount', $session->read('Transaction.executing'));

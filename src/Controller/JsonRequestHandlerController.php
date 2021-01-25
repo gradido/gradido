@@ -62,10 +62,33 @@ class JsonRequestHandlerController extends AppController {
             case 'getUserBalance': return $this->getUserBalance($jsonData->email, $jsonData->last_name);
             case 'errorInTransaction': return $this->errorInTransaction($jsonData);
             case 'updateReadNode': return $this->updateReadNode();
+            case 'addUser' : return $this->addUser($jsonData->user);
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for post', 'details' => $method]);
         }
         return $this->returnJson(['state' => 'error', 'msg' => 'no post or get']);
+    }
+
+    private function addUser($newUser) 
+    {
+        $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+        $entity = $stateUsersTable->newEntity();
+        $required_fields = ['first_name', 'last_name', 'email', 'public_key', 'disabled'];
+        foreach($required_fields as $required_field) {
+            if(!isset($newUser->$required_field)) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'missing required field in addUser', 'details' => $required_field]);
+            }
+            if('public_key' == $required_field) {
+                $entity->$required_field = hex2bin($newUser->public_hex);
+            } else {
+                $entity->$required_field = $newUser->$required_field;
+            }
+        }
+        if($stateUsersTable->save($entity)) {
+            return $this->returnJson(['state' => 'success']);
+        } else {
+            return $this->returnJson(['state' => 'error', 'msg' => 'error saving state_user', 'details' => $entity->getErrors()]);
+        }
     }
 
     // Called from login server like a cron job every 10 minutes or after sending transaction to hedera
