@@ -9,18 +9,25 @@
 
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "Poco/URI.h"
 #include "Poco/Logger.h"
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/ErrorManager.h"
 
 #include "../lib/JsonRequest.h"
+
+
 %>
 <%%
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
 	auto lm = LanguageManager::getInstance();
 	auto em = ErrorManager::getInstance();
+	
+	auto uri = Poco::URI(request.getURI());
+	auto query_parameter = uri.getQueryParameters();
+	std::string caller_uri = "";
 
 	auto lang = chooseLanguage(request);
 	//printf("choose language return: %d\n", lang);
@@ -32,7 +39,10 @@
 	}
 
 	if(!form.empty()) {
-
+		
+		caller_uri = form.get("caller_uri", "");
+		printf("form.get: caller_uri: %s\n", caller_uri.data());
+		
 		bool langUpdatedByBtn = false;
 		auto langBtn = form.get("lang", "");
 		if(langBtn != "") {
@@ -55,7 +65,7 @@
 		 */
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
-
+/*
 		if(email != "" && password != "") {
 			//auto session = sm->getSession(request);
 			//if(!mSession) mSession = sm->findByEmail(email);
@@ -81,7 +91,44 @@
 				response.addCookie(mSession->getLoginCookie());
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
+*/
+		
+		if(mSession) {
+			printf("start with session: %d\n", mSession->getHandle());
+		} else {
+			printf("start without session\n");
+		}
+		
+		if(!mSession) {
+			mSession = sm->getNewSession();
+			mSession->setLanguageCatalog(langCatalog);
+			// get language
+			// first check url, second check language header
+			// for debugging client ip
+			auto client_ip = request.clientAddress();
+			std::string clientIpString = "client ip: ";
+			clientIpString += client_ip.toString();
+			Poco::Logger::get("requestLog").information(clientIpString);
+			// debugging end
+			auto user_host = request.clientAddress().host();
+			mSession->setClientIp(user_host);
+			// TODO: check for valid url
+			if(caller_uri != "") {
+				mSession->setCallerUri(caller_uri);
 			}
+			response.addCookie(mSession->getLoginCookie());
+		} else {
+			langCatalog = mSession->getLanguageCatalog();
+			if(caller_uri == "") {
+				caller_uri = mSession->getCallerUri();
+			}
+		}
+		
+		printf("after session: caller_uri: %s\n", caller_uri.data());
+		
+		
+		if(email != "" && password != "") {
+			
 			UserState user_state;
 			try {
 				user_state = mSession->loadUser(email, password);
@@ -138,41 +185,47 @@
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
 			case USER_EMAIL_NOT_ACTIVATED:
+				for(auto it = query_parameter.begin(); it != query_parameter.end(); it++) {
+					printf("query parameter: %s: %s\n", it->first.data(), it->second.data());
+					if(it->first == "caller_uri") {
+						std::string redirect_url = it->second;
+						redirect_url += "?session_id=" + std::to_string(mSession->getHandle());
+						response.redirect(redirect_url);	
+					}
+				}
 				auto referer = request.find("Referer");
 				std::string refererString;
 				if (referer != request.end()) {
 					refererString = referer->second;
 				}
-				if(lastExternReferer != "") {
+				if(caller_uri != "") 
+				{
+					std::string redirect_url = caller_uri;
+					redirect_url += "?session_id=" + std::to_string(mSession->getHandle());
+					response.redirect(redirect_url);
+				} 
+				else if(lastExternReferer != "") {
 					printf("redirect to: %s (last extern referer)\n", lastExternReferer.data());
 					response.redirect(lastExternReferer);
-				} else if(refererString != "" && refererString != "/" &&
+				}
+				else if(refererString != "" && refererString != "/" &&
 				          refererString.find("login") == std::string::npos &&
 						  refererString.find("logout") == std::string::npos &&
 						  refererString.find("user_delete") == std::string::npos &&
 						  refererString != getBaseUrl() + request.getURI() && 
-						  refererString != user->getGroupBaseUrl() + request.getURI()) {
+						  refererString != user->getGroupBaseUrl() + request.getURI()) 
+			    {
 					std::string uri = request.getURI();
 					printf("request uri: %s, redirect to: %s\n", uri.data(), refererString.data());
 					response.redirect(refererString);
-				} else {
+				} 
+				else 
+				{
 					if(user->getModel()->getGroupId() != 0) {
 						printf("redirect to: %s/\n", user->getGroupBaseUrl().data());
 						
 						auto group = controller::Group::load(user->getModel()->getGroupId());
-						if(!group.isNull() && group->getModel()) {
-							JsonRequest json_request(group->getModel()->getUrl(), 443);	
-							Poco::JSON::Object params;
-							params.set("session_id", mSession->getHandle());
-							params.set("method", "setSessionId");
-							auto result = json_request.request("setSessionId", params);
-							if(JSON_REQUEST_RETURN_OK != result) {
-								addError(new Error("login", "error setting session id"));
-								addError(new ParamError("login", "community server url", group->getModel()->getUrl()));
-								getErrors(&json_request);
-								sendErrorsAsEmail();
-							}
-						}
+						
 						response.redirect(user->getGroupBaseUrl() + "/");
 					} else {
 						response.redirect("https://" + request.getHost() + "/");
@@ -181,7 +234,7 @@
 				return;
 			}
 
-		} else if(!langUpdatedByBtn) {
+		} else if(!langUpdatedByBtn && caller_uri == "") {
 			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")), false);
 		}
 

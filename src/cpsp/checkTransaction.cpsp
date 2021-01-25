@@ -36,6 +36,7 @@ enum PageState {
 	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
+	bool enableSign = true;
 	int skip_count = 0;
 	int pending_task_id = 0;
 	
@@ -45,7 +46,7 @@ enum PageState {
 	}
 	
 	PageState state = PAGE_NO_TRANSACTIONS;
-	
+
 	if(!user_model->isEmailChecked()) {
 		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
 		hasErrors = true;
@@ -186,6 +187,7 @@ enum PageState {
 							addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
 							hasErrors = true;
 							state = PAGE_USER_DATA_CORRUPTED;
+							enableSign = false;
 							break;
 						case -3: 
 							addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
@@ -247,10 +249,12 @@ enum PageState {
 	if(sumTransactions == 0) 
 	{
 		auto lastExternReferer = mSession->getLastReferer();
+		auto callerUri = mSession->getCallerUri();
 		//lastExternReferer = "";
 		account_user->reload();
-		if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
-			//printf("last extern referer: %s\n", lastExternReferer.data());
+		if(callerUri != "") {
+			response.redirect(callerUri);
+		} else if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {		
 			response.redirect(lastExternReferer);
 		} else if(!account_user->getModel()->getGroupId()) {
 			response.redirect(getBaseUrl() + "/userUpdateGroup");
@@ -275,6 +279,14 @@ enum PageState {
 			state = PAGE_TRANSACTION_GROUP_ADD_MEMBER;
 			//community_server_base_path
 			break;
+		}
+		if(model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE != transactionType) 
+		{
+			if(!user_model->isEmailChecked()) {
+				addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
+				hasErrors = true;
+				enableSign = false;
+			}
 		}
 	}
 	
@@ -464,7 +476,7 @@ enum PageState {
 						  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
 					 </div>
 					<% } %>
-					<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
+					<% if(enableSign && !hasErrors) { %>
 						<button type="submit" class="form-button" name="ok" value="ok">
 							<i class="material-icons-outlined">verified_user</i>
 							<%= gettext("Transaktion unterzeichnen") %>

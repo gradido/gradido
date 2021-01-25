@@ -11,12 +11,15 @@
 
 #include "Poco/Net/HTTPCookie.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "Poco/URI.h"
 #include "Poco/Logger.h"
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
 #include "../SingletonManager/ErrorManager.h"
 
 #include "../lib/JsonRequest.h"
+
+
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 
 #include "../ServerConfig.h"
@@ -36,12 +39,16 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 19 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 22 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 
 	const char* pageName = "Login";
 	auto sm = SessionManager::getInstance();
 	auto lm = LanguageManager::getInstance();
 	auto em = ErrorManager::getInstance();
+	
+	auto uri = Poco::URI(request.getURI());
+	auto query_parameter = uri.getQueryParameters();
+	std::string caller_uri = "";
 
 	auto lang = chooseLanguage(request);
 	//printf("choose language return: %d\n", lang);
@@ -58,7 +65,10 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	*/
 	
 	if(!form.empty()) {
-
+		
+		caller_uri = form.get("caller_uri", "");
+		printf("form.get: caller_uri: %s\n", caller_uri.data());
+		
 		bool langUpdatedByBtn = false;
 		auto langBtn = form.get("lang", "");
 		if(langBtn != "") {
@@ -81,7 +91,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 		 */
 		auto email = form.get("login-email", "");
 		auto password = form.get("login-password", "");
-
+/*
 		if(email != "" && password != "") {
 			//auto session = sm->getSession(request);
 			//if(!mSession) mSession = sm->findByEmail(email);
@@ -105,7 +115,43 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 				response.addCookie(mSession->getLoginCookie());
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
+*/
+		if(mSession) {
+			printf("start with session: %d\n", mSession->getHandle());
+		} else {
+			printf("start without session\n");
+		}
+		
+		if(!mSession) {
+			mSession = sm->getNewSession();
+			mSession->setLanguageCatalog(langCatalog);
+			// get language
+			// first check url, second check language header
+			// for debugging client ip
+			auto client_ip = request.clientAddress();
+			std::string clientIpString = "client ip: ";
+			clientIpString += client_ip.toString();
+			Poco::Logger::get("requestLog").information(clientIpString);
+			// debugging end
+			auto user_host = request.clientAddress().host();
+			mSession->setClientIp(user_host);
+			// TODO: check for valid url
+			if(caller_uri != "") {
+				mSession->setCallerUri(caller_uri);
 			}
+			response.addCookie(mSession->getLoginCookie());
+		} else {
+			langCatalog = mSession->getLanguageCatalog();
+			if(caller_uri == "") {
+				caller_uri = mSession->getCallerUri();
+			}
+		}
+		
+		printf("after session: caller_uri: %s\n", caller_uri.data());
+		
+		
+		if(email != "" && password != "") {
+			
 			UserState user_state;
 			try {
 				user_state = mSession->loadUser(email, password);
@@ -162,41 +208,47 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			case USER_NO_PRIVATE_KEY:
 			case USER_COMPLETE:
 			case USER_EMAIL_NOT_ACTIVATED:
+				for(auto it = query_parameter.begin(); it != query_parameter.end(); it++) {
+					printf("query parameter: %s: %s\n", it->first.data(), it->second.data());
+					if(it->first == "caller_uri") {
+						std::string redirect_url = it->second;
+						redirect_url += "?session_id=" + std::to_string(mSession->getHandle());
+						response.redirect(redirect_url);	
+					}
+				}
 				auto referer = request.find("Referer");
 				std::string refererString;
 				if (referer != request.end()) {
 					refererString = referer->second;
 				}
-				if(lastExternReferer != "") {
+				if(caller_uri != "") 
+				{
+					std::string redirect_url = caller_uri;
+					redirect_url += "?session_id=" + std::to_string(mSession->getHandle());
+					response.redirect(redirect_url);
+				} 
+				else if(lastExternReferer != "") {
 					printf("redirect to: %s (last extern referer)\n", lastExternReferer.data());
 					response.redirect(lastExternReferer);
-				} else if(refererString != "" && refererString != "/" &&
+				}
+				else if(refererString != "" && refererString != "/" &&
 				          refererString.find("login") == std::string::npos &&
 						  refererString.find("logout") == std::string::npos &&
 						  refererString.find("user_delete") == std::string::npos &&
 						  refererString != getBaseUrl() + request.getURI() && 
-						  refererString != user->getGroupBaseUrl() + request.getURI()) {
+						  refererString != user->getGroupBaseUrl() + request.getURI()) 
+			    {
 					std::string uri = request.getURI();
 					printf("request uri: %s, redirect to: %s\n", uri.data(), refererString.data());
 					response.redirect(refererString);
-				} else {
+				} 
+				else 
+				{
 					if(user->getModel()->getGroupId() != 0) {
 						printf("redirect to: %s/\n", user->getGroupBaseUrl().data());
 						
 						auto group = controller::Group::load(user->getModel()->getGroupId());
-						if(!group.isNull() && group->getModel()) {
-							JsonRequest json_request(group->getModel()->getUrl(), 443);	
-							Poco::JSON::Object params;
-							params.set("session_id", mSession->getHandle());
-							params.set("method", "setSessionId");
-							auto result = json_request.request("setSessionId", params);
-							if(JSON_REQUEST_RETURN_OK != result) {
-								addError(new Error("login", "error setting session id"));
-								addError(new ParamError("login", "community server url", group->getModel()->getUrl()));
-								getErrors(&json_request);
-								sendErrorsAsEmail();
-							}
-						}
+						
 						response.redirect(user->getGroupBaseUrl() + "/");
 					} else {
 						response.redirect("https://" + request.getHost() + "/");
@@ -205,7 +257,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 				return;
 			}
 
-		} else if(!langUpdatedByBtn) {
+		} else if(!langUpdatedByBtn && caller_uri == "") {
 			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")), false);
 		}
 
@@ -285,11 +337,11 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "            </div>";
 	// end include header.cpsp
 	responseStream << "\n";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 229 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<!--<input type=\"hidden\" name=\"lang\" value=\"";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 230 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( LanguageManager::keyForLanguage(lang) );
 	responseStream << "\">-->\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -323,22 +375,22 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "\n";
 	responseStream << "    <div class=\"center-form-form\">\n";
 	responseStream << "\t\t<form action=\"";
-#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( form_action_url );
 	responseStream << "\" method=\"POST\">\n";
 	responseStream << "\t\t\t<input class=\"form-control\" type=\"text\" name=\"login-email\" placeholder=\"";
-#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 235 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("E-Mail") );
 	responseStream << "\" value=\"";
-#line 203 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 235 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( presetEmail );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" type=\"password\" name=\"login-password\" placeholder=\"";
-#line 204 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 236 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Password") );
 	responseStream << "\" />\n";
 	responseStream << "\t\t    <button type=\"submit\" name=\"submit\" class=\"center-form-submit form-button\">";
-#line 205 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 237 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext(" Login ") );
 	responseStream << "</button>\n";
 	responseStream << "\t\t</form>\n";
@@ -346,7 +398,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << "    <div class=\"center-form-bottom\">\n";
 	responseStream << "        <div class=\"signup-link\">\n";
 	responseStream << "\t      <p>";
-#line 210 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 242 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") );
 	responseStream << "</p>\n";
 	responseStream << "\t      <a href=\"";
@@ -354,17 +406,17 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	responseStream << ( ServerConfig::g_serverPath );
 	responseStream << "/registerDirect\">\n";
 	responseStream << "\t\t\t";
-#line 212 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 244 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Create New Account") );
 	responseStream << "\n";
 	responseStream << "\t\t  </a>\n";
 	responseStream << "\t    </div>\n";
 	responseStream << "\t\t<div class=\"reset-pwd-link\">\n";
 	responseStream << "\t\t\t<a href=\"";
-#line 216 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/resetPassword\">";
-#line 216 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
+#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\login.cpsp"
 	responseStream << ( langCatalog->gettext("Passwort vergessen") );
 	responseStream << "</a>\n";
 	responseStream << "\t\t</div>\n";

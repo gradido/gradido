@@ -236,6 +236,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			//printf("[PageRequestHandlerFactory] go to dashboard page with user\n");
 			return basicSetup(new DashboardPage(s), request, timeUsed);
 		}
+		if (url_first_part == "/login" || url_first_part == "/") {
+			return basicSetup(new LoginPage(s), request, timeUsed);
+		}
 		
 	} else {
 

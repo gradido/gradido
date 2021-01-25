@@ -181,6 +181,9 @@ public:
 	inline void setLastReferer(const std::string& lastReferer) { mLastExternReferer = lastReferer; }
 	inline const std::string& getLastReferer() const { return mLastExternReferer; }
 
+	inline void setCallerUri(const std::string& callerUri) { mCallerUri = callerUri; }
+	inline const std::string& getCallerUri() { return mCallerUri; }
+
 protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
@@ -199,6 +202,8 @@ private:
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
 	std::string          mLastExternReferer;
+	//! should be used by vue-client and similar clients
+	std::string			 mCallerUri;
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 	std::shared_mutex	 mSharedMutex;
 
