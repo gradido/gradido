@@ -142,9 +142,11 @@ namespace model
 
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
+				<< " AND hedera_id = ? "
+				<< " AND request = ?"
 				<< " AND TIMESTAMPDIFF(SECOND, created, ?) = 0 "
 				<< " AND task_type_id = ? "
-				, into(mID), use(mUserId), use(mCreated), use(mTaskTypeId);
+				, into(mID), use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mTaskTypeId);
 			
 			return select;
 		}

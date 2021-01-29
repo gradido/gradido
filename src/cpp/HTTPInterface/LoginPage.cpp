@@ -67,7 +67,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 	if(!form.empty()) {
 		
 		caller_uri = form.get("caller_uri", "");
-		printf("form.get: caller_uri: %s\n", caller_uri.data());
+		//printf("form.get: caller_uri: %s\n", caller_uri.data());
 		
 		bool langUpdatedByBtn = false;
 		auto langBtn = form.get("lang", "");
@@ -116,11 +116,12 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			} else {
 				langCatalog = mSession->getLanguageCatalog();
 */
-		if(mSession) {
+		
+		/*if(mSession) {
 			printf("start with session: %d\n", mSession->getHandle());
 		} else {
 			printf("start without session\n");
-		}
+		}*/
 		
 		if(!mSession) {
 			mSession = sm->getNewSession();
@@ -147,7 +148,7 @@ void LoginPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::
 			}
 		}
 		
-		printf("after session: caller_uri: %s\n", caller_uri.data());
+		//printf("after session: caller_uri: %s\n", caller_uri.data());
 		
 		
 		if(email != "" && password != "") {

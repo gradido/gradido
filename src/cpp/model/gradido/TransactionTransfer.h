@@ -12,12 +12,15 @@
 #pragma warning(disable:4800)
 
 #include "TransactionBase.h"
+//#include "Transaction.h"
 #include "../proto/gradido/GradidoTransfer.pb.h"
 
 #include "../controller/User.h"
 
 namespace model {
 	namespace gradido {
+
+		class Transaction;
 
 		class TransactionTransfer : public TransactionBase
 		{
@@ -32,10 +35,17 @@ namespace model {
 			const std::string& getKontoNameCell(int index);
 			const std::string& getAmountCell(int index);
 
+			std::string getTargetGroupAlias();
+			bool isInbound() { return mProtoTransfer.has_inbound(); }
+			Poco::AutoPtr<Transaction> createOutbound(const std::string& memo);
+
 			void transactionAccepted(Poco::AutoPtr<controller::User> user);
 
 		protected:
 			const static std::string mInvalidIndexMessage;
+
+			int prepare(proto::gradido::TransferAmount* sender, std::string* receiver_pubkey);
+			TransactionValidation validate(proto::gradido::TransferAmount* sender, std::string* receiver_pubkey);
 
 			struct KontoTableEntry
 			{

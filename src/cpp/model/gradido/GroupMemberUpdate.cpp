@@ -2,6 +2,7 @@
 #include "../../Crypto/KeyPairEd25519.h"
 #include "../../controller/Group.h"
 #include "../../SingletonManager/SessionManager.h"
+#include "../../lib/JsonRequest.h"
 
 namespace model {
 	namespace gradido {
@@ -125,6 +126,9 @@ namespace model {
 					// write new group_id in user table
 					user_model->setGroupId(group_model->getID());
 					user_model->updateIntoDB("group_id", group_model->getID());
+
+					JsonRequest request(group_model->getUrl(), 443);
+					request.request("addUser", user->getJson());
 					
 					printf("[GroupMemberUpdate::transactionAccepted] finished\n");
 				}

@@ -105,7 +105,7 @@ namespace model {
 			return result;
 		}
 
-		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo)
+		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo, bool inbound/* = true*/)
 		{
 			std::vector<Poco::AutoPtr<Transaction>> results;
 			auto em = ErrorManager::getInstance();
@@ -140,12 +140,13 @@ namespace model {
 				Poco::AutoPtr<controller::Group> topic_group;
 				// default constructor set it to now
 				Poco::Timestamp pairedTransactionId;
-				for (int i = 0; i < 2; i++) {
-					if (0 == i) {
+				// create only inbound transaction, and outbound before sending to hedera
+				//for (int i = 0; i < 1; i++) {
+					if (inbound) {
 						transaction_group = receiverGroup;
 						topic_group = sender_group;
 					}
-					else {
+					else if(!inbound) {
 						transaction_group = sender_group;
 						topic_group = receiverGroup;
 					}
@@ -157,7 +158,7 @@ namespace model {
 						return results;
 					}
 					if (transaction_group.isNull()) {
-						em->addError(new ParamError(function_name, "transaction group is zero, i:", i));
+						em->addError(new ParamError(function_name, "transaction group is zero, inbound", inbound));
 						em->sendErrorsAsEmail();
 						return results;
 					}
@@ -166,12 +167,14 @@ namespace model {
 					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
 					results.push_back(transaction);
-				}
+			//	}
 			}
+			
 			for (auto it = results.begin(); it != results.end(); it++) {
 				(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
 				PendingTasksManager::getInstance()->addTask(*it);
 			}
+			
 			return results;
 
 		}
@@ -308,6 +311,13 @@ namespace model {
 			// check if enough signatures exist for next step
 			if (getSignCount() >= mTransactionBody->getTransactionBase()->getMinSignatureCount())
 			{
+				if (getTransactionBody()->isTransfer()) {
+					auto transfer = getTransactionBody()->getTransferTransaction();
+					if (transfer->isInbound()) {
+						auto transaction = transfer->createOutbound(getTransactionBody()->getMemo());
+						transaction->sign(user);
+					}
+				}
 				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
 				transaction_send_task->scheduleTask(transaction_send_task);
 			}
@@ -657,7 +667,22 @@ namespace model {
 
 		int SendTransactionTask::run()
 		{
-			auto result = mTransaction->runSendTransaction();
+			int result = 1;
+			// if transfer inbound, create also transfer outbound
+			/*if (mTransaction->getTransactionBody()->isTransfer()) {
+				auto transfer = mTransaction->getTransactionBody()->getTransferTransaction();
+				if (transfer->isInbound()) {
+					auto outbound = transfer->createOutbound(mTransaction->getTransactionBody()->getMemo());
+					if (outbound.isNull()) { result = -1;}
+
+					result = outbound->runSendTransaction();
+				}
+			}
+			if (result != 1) {
+				mTransaction->deleteFromDB();
+				return 0;
+			}*/
+			result = mTransaction->runSendTransaction();
 			printf("[SendTransactionTask::run] result: %d\n", result);
 			// delete because of error
 			if (-1 == result) {

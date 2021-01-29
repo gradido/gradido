@@ -339,6 +339,9 @@ enum PageState {
 						<div class="content-row content-row-bg">
 					<% } %>
 						<%= transferTransaction->getKontoNameCell(i) %>
+						<% if(((i+1) % 2) == 0 && transferTransaction->getTargetGroupAlias() != "") { %>
+						 (<%= transferTransaction->getTargetGroupAlias() %>)
+						<% } %>
 						<%= transferTransaction->getAmountCell(i) %>
 					</div>
 			  <% } %>
