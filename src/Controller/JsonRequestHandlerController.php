@@ -114,7 +114,7 @@ class JsonRequestHandlerController extends AppController {
       $group_alias = Configure::read('GroupAlias');
       $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['groupAlias' => $group_alias, 'lastKnownSequenceNumber' => $last_transaction_id]);
       if(isset($result['state']) && $result['state'] == 'error') {
-        return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => $result]);
+        return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => ['return' => $result, 'groupAlias' => $group_alias]]);
       }
       /* example
       $result = json_decode("[
