@@ -6,3 +6,13 @@ gtest/1.8.1@bincrafters/stable
 
 [generators]
 cmake
+
+[options]
+Poco:shared=True
+Poco:enable_data_sqlite=False
+Poco:enable_mongodb=False
+Poco:enable_redis=False
+boost:shared=True
+ 
+[generators]
+virtualrunenv
