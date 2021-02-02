@@ -1,0 +1,2 @@
+# gradido
+Gradido as Software
