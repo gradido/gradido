@@ -581,6 +581,9 @@ namespace model {
 								// TODO: later check, but now I haven't any way to communicate with the gradido node
 								mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
 								// trigger community server update in 5 seconds
+								Poco::DateTime now;
+								std::string now_string = Poco::DateTimeFormatter::format(now, "%f.%m.%Y %H:%M:%S");
+								printf("[%s] trigger community server update in 5 second, now: %s\n", function_name, now_string.data());
 								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5000, 0));
 								return 1;
 							}

@@ -145,7 +145,9 @@ namespace controller {
 	}
 	void PendingTask::calledFromTimer(Poco::Timer& timer)
 	{
-		printf("[PendingTask::calledFromTimer]\n");
+		Poco::DateTime now;
+		std::string now_string = Poco::DateTimeFormatter::format(now, "%f.%m.%Y %H:%M:%S");
+		printf("[PendingTask::calledFromTimer] now: %s\n", now_string.data());
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		auto result = run();
 		printf("run result: %d\n", result);
