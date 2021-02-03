@@ -1,0 +1,34 @@
+<mxfile host="65bd71144e" modified="2021-02-03T12:09:21.322Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) VSCodium/1.52.1 Chrome/83.0.4103.122 Electron/9.3.5 Safari/537.36" etag="voCulOtX5bAUOH0SeX0l" version="13.10.0" type="embed">
+    <diagram id="LOPLIZo8giDguHxApGSV" name="Page-1">
+        <mxGraphModel dx="735" dy="670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="gradido" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#a20025;strokeColor=#6F0000;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="100" width="440" height="590" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="node&lt;br&gt;(former gn)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#60a917;strokeColor=#2D7600;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="130" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="community_server&lt;br&gt;(former gradido_community_server)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#60a917;strokeColor=#2D7600;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="210" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="login_server&lt;br&gt;(former gradido_login_server)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#60a917;strokeColor=#2D7600;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="290" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="frontend&lt;br&gt;(former gradido_vue_wallet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="370" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="scripts / deployment(?)&lt;br&gt;(former scripts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6a00ff;strokeColor=#3700CC;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="450" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="docu&lt;br&gt;(former gradido_concept)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="530" width="390" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="protocol&lt;br&gt;(former gradido_protocol)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="610" width="390" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
