@@ -172,6 +172,18 @@ namespace model {
 			return "<uninitalized>";
 		}
 
+		const char* TransactionBody::transactionTypeToString(TransactionType type)
+		{
+			switch (type)
+			{
+			case model::gradido::TRANSACTION_NONE: return "NONE";
+			case model::gradido::TRANSACTION_CREATION: return "Creation";
+			case model::gradido::TRANSACTION_TRANSFER: return "Transfer";
+			case model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE: return "Group Member Update";
+			}
+			return "<unknown>";
+		}
+
 		
 
 		TransactionCreation* TransactionBody::getCreationTransaction()

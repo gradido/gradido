@@ -113,6 +113,17 @@ namespace model {
 			return false;
 		}
 
+		const char* TransactionBody::TransactionBodyTypeToString(TransactionBodyType type)
+		{
+			switch (type) {
+			case TRANSACTION_CONSENSUS_CREATE_TOPIC: return "Consensus Create Topic";
+			case TRANSACTION_CONSENSUS_SUBMIT_MESSAGE: return "Consensus Submit Message";
+			case TRANSACTION_CRYPTO_CREATE: return "Crypto Create";
+			case TRANSACTION_CRYPTO_TRANSFER: return "Crypto Transfer";
+			}
+			return "<unknown>";
+		}
+
 		void TransactionBody::setMemo(const std::string& memo)
 		{
 			mTransactionBody.set_memo(memo);
@@ -136,7 +147,7 @@ namespace model {
 			timestamp->set_nanos(microseconds * 1000);
 			// make sure timestamp is some nanos old
 			//timestamp->set_nanos(microseconds * 900);
-			printf("hedera transaction body timestamp: %d.%d\n", timestamp->seconds(), timestamp->nanos());
+		//	printf("hedera transaction body timestamp: %d.%d\n", timestamp->seconds(), timestamp->nanos());
 		}
 	}
 }

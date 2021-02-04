@@ -50,6 +50,7 @@ namespace model {
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 			inline controller::NodeServerConnection getConnection() const { return mConnection; }
 			inline TransactionBodyType getType() const { return mType; }
+			static const char* TransactionBodyTypeToString(TransactionBodyType type);
 
 			void updateTimestamp();
 		protected:

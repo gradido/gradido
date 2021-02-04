@@ -304,7 +304,7 @@ namespace model {
 			auto sigBytes = sigPair->mutable_ed25519();
 			*sigBytes = std::string((char*)*sign, crypto_sign_BYTES);
 			auto sign_hex_string = DataTypeConverter::binToHex(sign);
-			printf("sign hex: %s\n", sign_hex_string.data());
+			//printf("sign hex: %s\n", sign_hex_string.data());
 			mm->releaseMemory(sign);
 
 			updateRequestInDB();
@@ -323,7 +323,7 @@ namespace model {
 			}
 
 			//getModel()->updateIntoDB("request", )
-			printf("[Transaction::sign] reference-count: %d\n", mReferenceCount);
+			//printf("[Transaction::sign] reference-count: %d\n", mReferenceCount);
 			return true;
 		}
 
@@ -570,8 +570,10 @@ namespace model {
 							auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
 							auto precheck_code = hedera_transaction_response->getPrecheckCode();
 							auto cost = hedera_transaction_response->getCost();
-
-							printf("hedera response: %s, cost: %" PRIu64 "\n", hedera_precheck_code_string.data(), cost);
+							
+							printf("hedera response: %s, cost: %" PRIu64 ", type: %s\n", 
+								hedera_precheck_code_string.data(), cost,
+								TransactionBody::transactionTypeToString(mTransactionBody->getType()));
 							if (precheck_code == proto::INVALID_TRANSACTION_START) {
 								int zahl = 0;
 								return -5;
@@ -583,8 +585,8 @@ namespace model {
 								// trigger community server update in 5 seconds
 								Poco::DateTime now;
 								std::string now_string = Poco::DateTimeFormatter::format(now, "%f.%m.%Y %H:%M:%S");
-								printf("[%s] trigger community server update in 5 second, now: %s\n", function_name, now_string.data());
-								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5000, 0));
+								//printf("[%s] trigger community server update in 5 second, now: %s\n", function_name, now_string.data());
+								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5, 0));
 								return 1;
 							}
 
@@ -686,7 +688,7 @@ namespace model {
 				return 0;
 			}*/
 			result = mTransaction->runSendTransaction();
-			printf("[SendTransactionTask::run] result: %d\n", result);
+			//printf("[SendTransactionTask::run] result: %d\n", result);
 			// delete because of error
 			if (-1 == result) {
 				mTransaction->deleteFromDB();
