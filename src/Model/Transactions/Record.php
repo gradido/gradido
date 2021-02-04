@@ -276,11 +276,11 @@ class GradidoTransfer extends GradidoModifieUserBalance
       },
    * */
   private $amount;
-  private $sender_new_balance;
+  private $sender_new_balance = null;
   private $sender_pubkey;
   
   private $receiver_pubkey;
-  private $receiver_new_balance;
+  private $receiver_new_balance = null;
   
   
   public function __construct($data)
@@ -289,11 +289,15 @@ class GradidoTransfer extends GradidoModifieUserBalance
     
     $sender = $data['sender'];
     $this->sender_pubkey = $sender['user'];
-    $this->sender_new_balance = $sender['new_balance']['amount'];
+    if(isset($sender['new_balance'])) {
+        $this->sender_new_balance = $sender['new_balance']['amount'];
+    }
     
     $receiver = $data['receiver'];
     $this->receiver_pubkey = $receiver['user'];
-    $this->receiver_new_balance = $receiver['new_balance']['amount'];
+    if(isset($receiver['new_balance'])) {
+        $this->receiver_new_balance = $receiver['new_balance']['amount'];
+    }
     
   }
   
@@ -323,16 +327,18 @@ class GradidoTransfer extends GradidoModifieUserBalance
     $transferEntity->sender_public_key = hex2bin($this->sender_pubkey);
     $transferEntity->receiver_public_key = hex2bin($this->receiver_pubkey);
     $transferEntity->amount = $this->amount;
-    $transferEntity->sender_final_balance = $this->sender_new_balance;
+    if($this->sender_new_balance != null) {
+        $transferEntity->sender_final_balance = $this->sender_new_balance;
     
-    if(is_int($sender_id) && $sender_id > 0) {
-      $transferEntity->state_user_id = $sender_id;
-      $balance_result = $this->updateBalance($this->sender_new_balance, $received, $sender_id);
-      if(is_array($balance_result)) {
-        return $balance_result;
-      }
+        if(is_int($sender_id) && $sender_id > 0) {
+          $transferEntity->state_user_id = $sender_id;
+          $balance_result = $this->updateBalance($this->sender_new_balance, $received, $sender_id);
+          if(is_array($balance_result)) {
+            return $balance_result;
+          }
+        }
     }
-    if(is_int($receiver_id) && $receiver_id > 0) {
+    if($this->receiver_new_balance != null && is_int($receiver_id) && $receiver_id > 0) {
       $transferEntity->receiver_user_id = $receiver_id;
       $balance_result = $this->updateBalance($this->receiver_new_balance, $received, $receiver_id);
       if(is_array($balance_result)) {
@@ -413,7 +419,7 @@ class Record
         if($this->sequenceNumber <= 0) {
           return ['state' => 'error', 'msg' => 'sequence number invalid', 'details' => $this->sequenceNumber];
         }
-        $transactionExistResult = $transactionsTable->find('all')->where(['id' => $this->sequenceNumber]);
+        $transactionExistResult = $transactionsTable->find('all')->where(['id' => intval($this->sequenceNumber)]);
         if(!$transactionExistResult->isEmpty()) {
           return ['state' => 'warning', 'msg' => 'transaction already exist in db', 'details' => $this->sequenceNumber];
         }
