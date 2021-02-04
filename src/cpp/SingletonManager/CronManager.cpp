@@ -68,14 +68,17 @@ void CronManager::runUpdateStep(Poco::Timer& timer)
 	mTimestampsMutex.lock();
 	//printf("update timestamp sizes: %d\n", mUpdateTimestamps.size());
 	if (mUpdateTimestamps.size() > 0) {
-		while (mUpdateTimestamps.size() > 0 && mUpdateTimestamps.front() < Poco::Timestamp()) {
+		Poco::Timestamp now;
+		// update maximal once per second
+		now += Poco::Timespan(1, 0);
+		while (mUpdateTimestamps.size() > 0 && mUpdateTimestamps.front() < now) {
 		//	printf("remove update time in past: %d\n", mUpdateTimestamps.front().epochTime());
 			mUpdateTimestamps.pop_front();
 		}
-		Poco::Timespan next_run = mUpdateTimestamps.front() - Poco::Timestamp();
+		Poco::Timespan next_run = mUpdateTimestamps.front() - now;
 		//printf("timer restart called with: %d\n", next_run.seconds());
-		mMainTimer.setPeriodicInterval(next_run.milliseconds());
-		//mMainTimer.restart(next_run.milliseconds());
+		//mMainTimer.setPeriodicInterval(next_run.totalMilliseconds());
+		mMainTimer.restart(next_run.totalMilliseconds());
 		mUpdateTimestamps.pop_front();
 	}
 	else {
@@ -103,10 +106,14 @@ void CronManager::scheduleUpdateRun(Poco::Timespan timespanInFuture)
 	//printf("[CronManager::scheduleUpdateRun] front timestamp and back timestamp:\n%d\n%d\n", frontTimestamp.epochTime(), backTimestamp.epochTime());
 	//printf("current: \n%d\n", Poco::Timestamp().epochTime());
 	Poco::Timespan next_run = mUpdateTimestamps.front() - Poco::Timestamp();
-	//printf("next run:\n%d\n", next_run.seconds());
+
+	Poco::DateTime now;
+	std::string now_string = Poco::DateTimeFormatter::format(now, "%d.%m.%y %H:%M:%S.%i");
+	//printf("%s [CronManager::scheduleUpdateRun]  next run in %d seconds, %d millis (intervall: %d, default: %d)\n", 
+		//now_string.data(), next_run.seconds(), next_run.milliseconds(), mMainTimer.getPeriodicInterval(), mDefaultIntervalMilliseconds);
 	if (next_run.seconds() > 0 && mMainTimer.getPeriodicInterval() == mDefaultIntervalMilliseconds) {
-		if (mMainWorkMutex.tryLock()) {
-			mMainTimer.restart(next_run.milliseconds());
+		if (mMainWorkMutex.tryLock(100)) {
+			mMainTimer.restart(next_run.totalMilliseconds());
 			mUpdateTimestamps.pop_front();
 			mMainWorkMutex.unlock();
 		}
@@ -179,7 +186,7 @@ int PingServerTask::run()
 	auto current = Poco::DateTime();
 	if (model::table::NODE_SERVER_GRADIDO_COMMUNITY == mNodeServer->getModel()->getNodeServerType()) {
 		std::string url_port = mNodeServer->getModel()->getUrlWithPort();
-		//printf("%s [PingServerTask::run] call update for %s\n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data(), url_port.data());
+		printf("%s [PingServerTask::run] call update for %s\n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data(), url_port.data());
 
 		auto json_request = mNodeServer->createJsonRequest();
 		json_request.request("updateReadNode");
