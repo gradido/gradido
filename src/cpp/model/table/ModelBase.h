@@ -35,6 +35,7 @@ namespace model {
 			virtual ~ModelBase();
 
 			virtual const char* getTableName() const = 0;
+			//! called from within of some catch to give more information for debugging, don't lock mutex!
 			virtual std::string toString() = 0;
 			
 			template<class T> 
@@ -122,9 +123,9 @@ namespace model {
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select(session);
 			size_t count = 0;
-			select 
+			select
 				<< "SELECT count(id) from " << getTableName()
-				<< " where " << fieldName << " LIKE ? group by group_id"
+				<< " where " << fieldName << " LIKE ? group by " << fieldName
 				,Poco::Data::Keywords::into(count)
 				,Poco::Data::Keywords::useRef(fieldValue);
 

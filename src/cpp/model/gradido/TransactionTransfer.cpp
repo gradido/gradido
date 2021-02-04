@@ -197,6 +197,7 @@ namespace model {
 				auto outbound_transfer = mProtoTransfer.outbound();
 				return outbound_transfer.other_group();
 			}
+			return "<unkown>";
 		}
 
 		Poco::AutoPtr<Transaction> TransactionTransfer::createOutbound(const std::string& memo)

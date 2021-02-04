@@ -69,7 +69,9 @@ namespace model
 			ss << "id: " << mID << std::endl;
 			ss << "user_id: " << mUserId << std::endl;
 			ss << "created: " << Poco::DateTimeFormatter::format(mCreated, "%f.%m.%Y %H:%M:%S") << std::endl;
-			ss << "task type: " << typeToString((TaskType)mTaskTypeId);
+			ss << "task type: " << typeToString((TaskType)mTaskTypeId) << std::endl;
+			ss << "child pending task id: " << std::to_string(mChildPendingTaskId) << std::endl;
+			ss << "parent pending task id: " << std::to_string(mParentPendingTaskId) << std::endl;
 			return ss.str();
 		}
 
@@ -138,7 +140,6 @@ namespace model
 		Poco::Data::Statement PendingTask::_loadIdFromDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement select(session);
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
@@ -155,7 +156,6 @@ namespace model
 		Poco::Data::Statement PendingTask::_insertIntoDB(Poco::Data::Session session)
 		{
 			Poco::Data::Statement insert(session);
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 
 			insert << "INSERT INTO " << getTableName()
 				<< " (user_id, hedera_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?)"
