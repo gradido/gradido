@@ -238,6 +238,9 @@ enum PageType
 			<% } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
+			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
+			Poco::Thread::sleep(hedera_timeout * 100);
+			transaction4[0]->sign(user_2);
 			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
 			%>
 			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4_json) %></p>

@@ -506,31 +506,34 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
  } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
+			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
+			Poco::Thread::sleep(hedera_timeout * 100);
+			transaction4[0]->sign(user_2);
 			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 243 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 246 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction4_json) );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 244 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 247 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 245 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>6. Wait ";
-#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 251 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( hedera_timeout );
 	responseStream << " seconds to give hedera time to process transactions</p>\n";
 	responseStream << "\t\t\t";
-#line 249 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 252 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(!steps[4]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 251 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 254 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else { 
 				Poco::Thread::sleep(hedera_timeout * 1000); 
 			   } 	responseStream << "\n";
@@ -538,12 +541,12 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>7. Ask choosen node for transaction and print result</p>\n";
 	responseStream << "\t\t\t";
-#line 257 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 260 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
   time2.reset(); 
 				if(!steps[5] || node_server.isNull()) { 
 					responseStream << "<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 260 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 263 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else { 
 				auto node_server_model = node_server->getModel();
 				JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
@@ -556,20 +559,20 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
 					std::string answear_string = ss.str(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t";
-#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
-#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 				}
 			   } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 277 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t</ul>\n";
 	responseStream << "\t";
-#line 277 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 280 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else if(PAGE_GET_TRANSACTION_RPC_CALL == page && !node_server.isNull()) { 
 		Profiler time3;
 		auto node_server_model = node_server->getModel();
@@ -584,23 +587,23 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 			Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
 			std::string answear_string = ss.str();	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 290 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
-#line 290 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 		}
 			responseStream << "\n";
 	responseStream << "\t\t<p>Time: ";
-#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 296 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time3.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 294 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 297 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\n";
 	responseStream << "</div>\n";
 	responseStream << "<script type=\"text/javascript\" src=\"";
-#line 297 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 300 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/tabs.js\"></script>\n";
 	// begin include footer.cpsp
