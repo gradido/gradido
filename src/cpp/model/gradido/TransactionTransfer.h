@@ -22,6 +22,13 @@ namespace model {
 
 		class Transaction;
 
+		enum TransactionTransferType
+		{
+			TRANSFER_LOCAL,
+			TRANSFER_CROSS_GROUP_INBOUND,
+			TRANSFER_CROSS_GROUP_OUTBOUND
+		};
+
 		class TransactionTransfer : public TransactionBase
 		{
 		public:
@@ -37,9 +44,14 @@ namespace model {
 
 			std::string getTargetGroupAlias();
 			bool isInbound() { return mProtoTransfer.has_inbound(); }
+			bool isOutbound() { return mProtoTransfer.has_outbound(); }
 			Poco::AutoPtr<Transaction> createOutbound(const std::string& memo);
+			Poco::AutoPtr<Transaction> createInbound(const std::string& memo);
 
 			void transactionAccepted(Poco::AutoPtr<controller::User> user);
+
+			inline void setOwnGroupAlias(const std::string& ownGroupAlias) { mOwnGroupAlias = ownGroupAlias; }
+			inline void setTargetGroupAlias(const std::string& targetGroupAlias) { mTargetGroupAlias = targetGroupAlias; }
 
 		protected:
 			const static std::string mInvalidIndexMessage;
@@ -62,6 +74,8 @@ namespace model {
 
 			const proto::gradido::GradidoTransfer& mProtoTransfer;
 			std::vector<KontoTableEntry> mKontoTable;
+			std::string mOwnGroupAlias;
+			std::string mTargetGroupAlias;
 		};
 	}
 }

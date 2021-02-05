@@ -34,6 +34,8 @@ namespace model {
 			//! \param group if group.isNull() it is a local transfer, else cross group transfer, 
 			//! \param group if group is same as sender group outbound, else inbound
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId = Poco::Timestamp(), Poco::AutoPtr<controller::Group> group = nullptr);
+			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, const MemoryBin* senderPublicKey, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId = Poco::Timestamp(), Poco::AutoPtr<controller::Group> group = nullptr);
+			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, const MemoryBin* senderPublicKey, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, const std::string groupAlias, TransactionTransferType transferType, Poco::Timestamp pairedTransactionId = Poco::Timestamp());
 			//! \brief GradidoCreation Transaction
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate);
 

@@ -31,6 +31,7 @@ namespace model {
 			//! \brief transfer
 			//! \return for cross group transaction return two transactions
 			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo, bool inbound = true);
+			Poco::AutoPtr<Transaction> createTransfer(const MemoryBin* senderPubkey, Poco::AutoPtr<controller::User> receiver, std::string senderGroupAlias, Poco::UInt32 amount, const std::string& memo);
 			//! \brief creation transaction
 			static Poco::AutoPtr<Transaction> createCreation(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo);
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
@@ -59,6 +60,8 @@ namespace model {
 			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
 			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
+
+			bool setTopicIdByGroup(const std::string& alias);
 
 
 		protected:

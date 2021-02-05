@@ -1,5 +1,7 @@
 #include "TransactionTransfer.h"
 #include "Transaction.h"
+#include "../../SingletonManager/ErrorManager.h"
+#include "../../controller/HederaId.h"
 
 namespace model {
 	namespace gradido {
@@ -204,26 +206,63 @@ namespace model {
 		{
 			const char* function_name = "TransactionTransfer::createOutbound";
 			auto mm = MemoryManager::getInstance();
+			auto em = ErrorManager::getInstance();
 			if (!mProtoTransfer.has_inbound()) {
 				return nullptr;
 			}
 			// Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo
 			//Transaction::createTransfer()
 			auto inbound = mProtoTransfer.inbound();
-			auto sender = controller::User::create();
-			if (1 != sender->load((const unsigned char*)inbound.sender().pubkey().data())) {
-				return nullptr;
-			}
+
+			auto sender_pubkey = mm->getFreeMemory(inbound.sender().pubkey().size());
+			memcpy(*sender_pubkey, inbound.sender().pubkey().data(), inbound.sender().pubkey().size());
 			auto receiver_pubkey = mm->getFreeMemory(inbound.receiver().size());
 			memcpy(*receiver_pubkey, inbound.receiver().data(), inbound.receiver().size());
-			auto groups = controller::Group::load(inbound.other_group());
-			if (1 != groups.size()) {
+
+			auto body = TransactionBody::create(
+				memo, sender_pubkey, receiver_pubkey,
+				inbound.sender().amount(), mTargetGroupAlias, TRANSFER_CROSS_GROUP_OUTBOUND,
+				DataTypeConverter::convertFromProtoTimestamp(inbound.paired_transaction_id())
+			);
+
+			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
+			transaction->setTopicIdByGroup(mOwnGroupAlias);
+
+			mm->releaseMemory(receiver_pubkey);
+			mm->releaseMemory(sender_pubkey);
+			return transaction;
+			
+		}
+
+		Poco::AutoPtr<Transaction> TransactionTransfer::createInbound(const std::string& memo)
+		{
+			const char* function_name = "TransactionTransfer::createInbound";
+			auto mm = MemoryManager::getInstance();
+
+			if (!mProtoTransfer.has_outbound()) {
 				return nullptr;
 			}
-			auto transaction = Transaction::createTransfer(sender, receiver_pubkey, groups[0], inbound.sender().amount(), memo, false);
-			mm->releaseMemory(receiver_pubkey);
-			return transaction[0];
+			// Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo
+			//Transaction::createTransfer()
+			auto outbound = mProtoTransfer.outbound();
 			
+			auto sender_pubkey = mm->getFreeMemory(outbound.sender().pubkey().size());
+			memcpy(*sender_pubkey, outbound.sender().pubkey().data(), outbound.sender().pubkey().size());
+			auto receiver_pubkey = mm->getFreeMemory(outbound.receiver().size());
+			memcpy(*receiver_pubkey, outbound.receiver().data(), outbound.receiver().size());
+			
+			auto body = TransactionBody::create(
+				memo, sender_pubkey, receiver_pubkey,
+				outbound.sender().amount(), mOwnGroupAlias, TRANSFER_CROSS_GROUP_INBOUND,
+				DataTypeConverter::convertFromProtoTimestamp(outbound.paired_transaction_id())
+			);
+
+			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
+			transaction->setTopicIdByGroup(mTargetGroupAlias);
+			
+			mm->releaseMemory(receiver_pubkey);
+			mm->releaseMemory(sender_pubkey);
+			return transaction;
 		}
 
 		const std::string& TransactionTransfer::getKontoNameCell(int index)

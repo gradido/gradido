@@ -304,6 +304,13 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
+	Poco::Timestamp convertFromProtoTimestamp(const proto::gradido::Timestamp& timestamp)
+	{
+		// microseconds
+		google::protobuf::int64 microseconds = timestamp.seconds() * (google::protobuf::int64)10e5 + (google::protobuf::int64)(timestamp.nanos()) / (google::protobuf::int64)10e2;
+		return microseconds;
+	}
+
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp)
 	{
 		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();

@@ -136,17 +136,24 @@ namespace model {
 			else 
 			{
 				auto sender_group = controller::Group::load(sender_model->getGroupId());
+				if (sender_group.isNull()) 
+				{
+					em->addError(new ParamError(function_name, "couldn't find group with id: ", sender_model->getGroupId()));
+					em->sendErrorsAsEmail();
+					return results;
+				}
 				Poco::AutoPtr<controller::Group> transaction_group;
 				Poco::AutoPtr<controller::Group> topic_group;
 				// default constructor set it to now
 				Poco::Timestamp pairedTransactionId;
 				// create only inbound transaction, and outbound before sending to hedera
 				//for (int i = 0; i < 1; i++) {
-					if (inbound) {
+					if (!inbound) {
 						transaction_group = receiverGroup;
 						topic_group = sender_group;
 					}
-					else if(!inbound) {
+					// transaction send to receiver blockchain
+					else if(inbound) {
 						transaction_group = sender_group;
 						topic_group = receiverGroup;
 					}
@@ -166,20 +173,107 @@ namespace model {
 					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, pairedTransactionId, transaction_group);
 					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
+					auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
+					transfer_transaction->setOwnGroupAlias(sender_group->getModel()->getAlias());
+					transfer_transaction->setTargetGroupAlias(receiverGroup->getModel()->getAlias());
+					
 					results.push_back(transaction);
 			//	}
 			}
 			
+			
 			for (auto it = results.begin(); it != results.end(); it++) {
-				(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
-				PendingTasksManager::getInstance()->addTask(*it);
+				if (!(*it)->getTransactionBody()->getTransferTransaction()->isInbound()) {
+					(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
+					PendingTasksManager::getInstance()->addTask(*it);
+				}
 			}
+			
 			
 			return results;
 
 		}
 
-		
+		bool Transaction::setTopicIdByGroup(const std::string& alias)
+		{
+			static const char* function_name = "Transaction::setTopicIdByGroup";
+			auto topic_groups = controller::Group::load(alias);
+			if (topic_groups.size() != 1) {
+				addError(new ParamError(function_name, "not one group found for alias: ", alias));
+				sendErrorsAsEmail();
+				return false;
+			}
+			auto topic = controller::HederaId::find(topic_groups[0]->getModel()->getID(), ServerConfig::g_HederaNetworkType);
+			if (topic.isNull()) {
+				addError(new ParamError(function_name, "no topic found for group id", topic_groups[0]->getModel()->getID()));
+				addError(new ParamError(function_name, "and network type: ", ServerConfig::g_HederaNetworkType));
+				sendErrorsAsEmail();
+				return false;
+			}
+			getModel()->setHederaId(topic->getModel()->getID());
+			return true;
+		}
+
+		Poco::AutoPtr<Transaction> Transaction::createTransfer(const MemoryBin* senderPubkey, Poco::AutoPtr<controller::User> receiver, std::string senderGroupAlias, Poco::UInt32 amount, const std::string& memo)
+		{
+			Poco::AutoPtr<Transaction> result;
+			auto em = ErrorManager::getInstance();
+			static const char* function_name = "Transaction::create transfer 2";
+
+			if (receiver.isNull() || !receiver->getModel() || !senderPubkey || !amount) {
+				return result;
+			}
+
+			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
+			auto receiver_model = receiver->getModel();
+			auto network_type = ServerConfig::g_HederaNetworkType;
+			
+			auto sender_groups = controller::Group::load(senderGroupAlias);
+			if (!sender_groups.size()) {
+				em->addError(new ParamError(function_name, "couldn't find group", senderGroupAlias));
+				em->sendErrorsAsEmail();
+				return result;
+			}
+			Poco::AutoPtr<controller::Group> transaction_group;
+			Poco::AutoPtr<controller::Group> topic_group = controller::Group::load(receiver_model->getGroupId());
+			if (topic_group.isNull()) {
+				em->addError(new ParamError(function_name, "topic group not found", receiver_model->getGroupId()));
+				em->sendErrorsAsEmail();
+				return result;
+			}
+			// default constructor set it to now
+			Poco::Timestamp pairedTransactionId;
+			// create only inbound transaction, and outbound before sending to hedera
+			//for (int i = 0; i < 1; i++) {
+			
+			//transaction_group = receiverGroup;
+			//topic_group = sender_group;
+			
+			auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
+			if (topic_id.isNull()) {
+				em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
+				em->addError(new ParamError(function_name, "network type: ", network_type));
+				em->sendErrorsAsEmail();
+				return result;
+			}
+			if (transaction_group.isNull()) {
+				em->addError(new Error(function_name, "transaction group is zero, inbound"));
+				em->sendErrorsAsEmail();
+				return result;
+			}
+
+			auto body = TransactionBody::create(memo, senderPubkey, receiver, amount, pairedTransactionId, transaction_group);
+			result = new Transaction(body);
+			result->getModel()->setHederaId(topic_id->getModel()->getID());
+			
+			//	}
+			
+			//result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
+			//PendingTasksManager::getInstance()->addTask(result);
+
+			return result;
+		}
+	
 
 		Poco::AutoPtr<Transaction> Transaction::load(model::table::PendingTask* dbModel)
 		{
@@ -313,9 +407,18 @@ namespace model {
 			{
 				if (getTransactionBody()->isTransfer()) {
 					auto transfer = getTransactionBody()->getTransferTransaction();
-					if (transfer->isInbound()) {
-						auto transaction = transfer->createOutbound(getTransactionBody()->getMemo());
-						transaction->sign(user);
+					if (transfer->isOutbound()) {
+						auto transaction = transfer->createInbound(getTransactionBody()->getMemo());
+						if (!transaction.isNull()) {
+							transaction->sign(user);
+							// dirty hack because gn crashes if its get transactions out of order
+							Poco::Thread::sleep(1000);
+						}
+						else {
+							addError(new Error(function_name, "Error creating outbound transaction"));
+							return false;
+						}
+						
 					}
 				}
 				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));

@@ -45,11 +45,14 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 	const char* pageName = "Node Server Test";
 	PageType page = PAGE_CHOOSE_TEST;
 	Poco::AutoPtr<controller::NodeServer> node_server;
+	Poco::AutoPtr<controller::NodeServer> node_server2;
 	Poco::AutoPtr<controller::User> user;
 	Poco::AutoPtr<controller::HederaTopic> hedera_topic;
-	int hedera_timeout = 9;
+	Poco::AutoPtr<controller::HederaTopic> hedera_topic2;
+	int hedera_timeout = 4;
+	int sleep_ms_between_transactions = 1000;
 	
-	bool steps[6]; memset(steps, 1, 6 * sizeof(bool));
+	bool steps[8]; memset(steps, 1, 8 * sizeof(bool));
 	
 	
 	if(!form.empty()) 
@@ -61,6 +64,13 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 				node_server = controller::NodeServer::load(node_server_id);
 			}
 		}
+		node_server_id_string = form.get("test-node-servers2", "");
+		if(node_server_id_string != "") {
+			int node_server_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(node_server_id_string, node_server_id )) {
+				node_server2 = controller::NodeServer::load(node_server_id);
+			}
+		}
 		auto topic_id_string = form.get("test-hedera-topic", "");
 		if(topic_id_string != "") {
 			int topic_id = 0;
@@ -68,18 +78,25 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 				hedera_topic = controller::HederaTopic::load(topic_id);
 			}
 		}
+		topic_id_string = form.get("test-hedera-topic2", "");
+		if(topic_id_string != "") {
+			int topic_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(topic_id_string, topic_id)) {
+				hedera_topic2 = controller::HederaTopic::load(topic_id);
+			}
+		}
 		auto test_timeout_string = form.get("test-timeout", "");
 		if(test_timeout_string != "") {
 			DataTypeConverter::strToInt(test_timeout_string, hedera_timeout);
 		}
 		auto submit = form.get("submit", "");
-		if(submit == "Run 4-Test") {
+		if(submit == "Run 6-Test") {
 			page = PAGE_RUN_4_SET_TEST;
 		} else if(submit == "json-rpc getTransactions") {
 			page = PAGE_GET_TRANSACTION_RPC_CALL;
 		}
 		std::string step_temp;
-		for(int i = 0; i < 6; i++) {
+		for(int i = 0; i < 8; i++) {
 			std::string name = "step-";
 			name += std::to_string(i+2);
 			step_temp = form.get(name, "");
@@ -162,206 +179,302 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 	responseStream << "\t\t<div class=\"content\">";
 	// end include header_large.cpsp
 	responseStream << "\n";
-#line 82 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
 	responseStream << "\t<!-- Tab links -->\n";
 	responseStream << "\t<div class=\"tab\">\n";
 	responseStream << "\t  <button class=\"tablinks ";
-#line 86 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(PAGE_RUN_4_SET_TEST == page) { 	responseStream << " active ";
-#line 86 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- } 	responseStream << "\" onclick=\"openTab(event, 'test-4')\">Test 4-Set (2 AddMember, Creation, Transfer)</button>\n";
+#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\" onclick=\"openTab(event, 'test-4')\">Test 6-Set (3 AddMember, Creation, 2 Transfer)</button>\n";
 	responseStream << "\t  <button class=\"tablinks ";
-#line 87 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(PAGE_GET_TRANSACTION_RPC_CALL == page) { 	responseStream << " active ";
-#line 87 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\" onclick=\"openTab(event, 'gn-jsonrpc')\" title=\"call via json-rpc to gradido node with getTransactions\">getTransactions</button>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div id=\"test-4\" class=\"tabcontent\" ";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(PAGE_RUN_4_SET_TEST == page) { 	responseStream << " style=\"display:block\" ";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "\t\t<div class=\"center-form-title\">\n";
-	responseStream << "\t\t\t<h3>Test 4-Set (2 AddMember, Creation, Transfer)</</h3>\n";
+	responseStream << "\t\t\t<h3>Test 6-Set (3 AddMember, Creation, 2 Transfer)</</h3>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t\t<form method=\"POST\" action=\"";
-#line 94 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/adminNodeServerTest\">\n";
-	responseStream << "\t\t\t\t<p>1. Create two new accounts and show user public keys for comparisation</p>\n";
+	responseStream << "\t\t\t\t<p>1. Create three new accounts and show user public keys for comparisation</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[0]) { 	responseStream << " checked=\"checked\" ";
-#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 113 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << " name=\"step-2\" value=\"1\"/> 2. Send a add-member transaction to hedera topic with one signature (first user)</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 97 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[1]) { 	responseStream << " checked=\"checked\" ";
-#line 97 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 114 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << " name=\"step-3\" value=\"1\"/> 3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[2]) { 	responseStream << " checked=\"checked\" ";
-#line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << " name=\"step-4\" value=\"1\"/> 4. Send a creation transaction to second user, signed by first user</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[3]) { 	responseStream << " checked=\"checked\" ";
-#line 99 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << " name=\"step-5\" value=\"1\"/> 5. Send a transfer transaction from second user to first user signed by second user</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 117 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[4]) { 	responseStream << " checked=\"checked\" ";
-#line 100 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- } 	responseStream << " name=\"step-6\" value=\"1\"/> 6. Wait x seconds to give hedera time to process transactions</p>\n";
+#line 117 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << " name=\"step-6\" value=\"1\"/> 6. Send a add-member transaction to hedera topic 2 with one signature (third user)</p>\n";
 	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
-#line 101 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(steps[5]) { 	responseStream << " checked=\"checked\" ";
-#line 101 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- } 	responseStream << " name=\"step-7\" value=\"1\"/> 7. Ask choosen node for transaction and print result</p>\n";
-	responseStream << "\t\t\t\n";
-	responseStream << "\t\t\t\t<label class=\"form-label\" for=\"test-node-servers\">Node Server for tests</label>\n";
-	responseStream << "\t\t\t\t";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << " name=\"step-7\" value=\"1\"/> 7. Send a cross group transfer from second user to third user signed by second user</p>\n";
+	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
+#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(steps[6]) { 	responseStream << " checked=\"checked\" ";
+#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << " name=\"step-8\" value=\"1\"/> 8. Wait x seconds to give hedera time to process transactions</p>\n";
+	responseStream << "\t\t\t\t<p><input class=\"form-checkbox\" type=\"checkbox\" ";
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(steps[7]) { 	responseStream << " checked=\"checked\" ";
+#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << " name=\"step-9\" value=\"1\"/> 9. Ask choosen node for transaction and print result</p>\n";
+	responseStream << "\t\t\t\t<fieldset>\n";
+	responseStream << "\t\t\t\t\t<legend>Group 1 </legend>\n";
+	responseStream << "\t\t\t\t\t<label class=\"form-label\" for=\"test-node-servers\">Node Server for tests</label>\n";
+	responseStream << "\t\t\t\t\t";
+#line 124 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(node_servers.size() == 0) { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t<a href=\"";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t\t\t<a href=\"";
+#line 125 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/nodes\"><span class=\"link-title\">Edit Node-Servers</span></a>\n";
-	responseStream << "\t\t\t\t";
-#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t\t<select name=\"test-node-servers\" id=\"test-node-servers\">\n";
 	responseStream << "\t\t\t\t\t";
-#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<select name=\"test-node-servers\" id=\"test-node-servers\">\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
-						auto model = (*it)->getModel();
-						responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t<option title=\"";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+							auto model = (*it)->getModel();
+							responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t\t<option title=\"";
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->toString() );
 	responseStream << "\" value=\"";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getID() );
 	responseStream << "\" ";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(!node_server.isNull() && node_server->getModel()->getID() == model->getID()) {	responseStream << "selected=\"selected\"";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << ">";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getUrlWithPort() );
 	responseStream << ", group: ";
-#line 111 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getGroupId() );
 	responseStream << "</option>\n";
-	responseStream << "\t\t\t\t\t";
-#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t\t\t";
+#line 132 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
-	responseStream << "\t\t\t\t</select>\n";
-	responseStream << "\t\t\t\t<label class=\"form-label\" for=\"test-hedera-topic\">Hedera Topic for tests</label>\n";
-	responseStream << "\t\t\t\t";
-#line 115 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t\t</select>\n";
+	responseStream << "\t\t\t\t\t<label class=\"form-label\" for=\"test-hedera-topic\">Hedera Topic for tests</label>\n";
+	responseStream << "\t\t\t\t\t";
+#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(hedera_topics.size() == 0) { 	responseStream << "\n";
-	responseStream << "\t\t\t\t\t<a href=\"";
-#line 116 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t\t\t<a href=\"";
+#line 136 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/topic\"><span class=\"link-title\">Edit Hedera-Topics</span></a>\n";
-	responseStream << "\t\t\t\t";
-#line 117 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- } 	responseStream << "\n";
-	responseStream << "\t\t\t\t<select name=\"test-hedera-topic\" id=\"test-hedera-topic\">\n";
 	responseStream << "\t\t\t\t\t";
-#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 137 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<select name=\"test-hedera-topic\" id=\"test-hedera-topic\">\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 139 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) { 
-						auto model = (*it)->getModel();
-						auto hedera_account = (*it)->getAutoRenewAccount();
-						if(hedera_account->getModel()->getNetworkType() != ServerConfig::HEDERA_TESTNET) {
-							continue;
-						}
-						responseStream << "\n";
-	responseStream << "\t\t\t\t\t\t<option title=\"";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+							auto model = (*it)->getModel();
+							auto hedera_account = (*it)->getAutoRenewAccount();
+							if(hedera_account->getModel()->getNetworkType() != ServerConfig::HEDERA_TESTNET) {
+								continue;
+							}
+							responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t\t<option title=\"";
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->toString() );
 	responseStream << "\" value=\"";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getID() );
 	responseStream << "\" ";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(!hedera_topic.isNull() && hedera_topic->getModel()->getID() == model->getID()) {	responseStream << "selected=\"selected\"";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << ">";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getName() );
 	responseStream << ", group: ";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getGroupId() );
 	responseStream << "</option>\n";
-	responseStream << "\t\t\t\t\t";
-#line 127 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t\t\t";
+#line 147 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
-	responseStream << "\t\t\t\t</select>\n";
+	responseStream << "\t\t\t\t\t</select>\n";
+	responseStream << "\t\t\t\t</fieldset>\n";
+	responseStream << "\t\t\t\t<fieldset>\n";
+	responseStream << "\t\t\t\t\t<legend>Group 2 </legend>\n";
+	responseStream << "\t\t\t\t\t<label class=\"form-label\" for=\"test-node-servers2\">Node Server for tests</label>\n";
+	responseStream << "\t\t\t\t\t";
+#line 153 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(node_servers.size() == 0) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<a href=\"";
+#line 154 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( getBaseUrl() );
+	responseStream << "/nodes\"><span class=\"link-title\">Edit Node-Servers</span></a>\n";
+	responseStream << "\t\t\t\t\t";
+#line 155 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<select name=\"test-node-servers2\" id=\"test-node-servers2\">\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 157 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
+							auto model = (*it)->getModel();
+							responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t\t<option title=\"";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->toString() );
+	responseStream << "\" value=\"";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getID() );
+	responseStream << "\" ";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(!node_server2.isNull() && node_server2->getModel()->getID() == model->getID()) {	responseStream << "selected=\"selected\"";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << ">";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getUrlWithPort() );
+	responseStream << ", group: ";
+#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getGroupId() );
+	responseStream << "</option>\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 161 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t</select>\n";
+	responseStream << "\t\t\t\t\t<label class=\"form-label\" for=\"test-hedera-topic2\">Hedera Topic for tests</label>\n";
+	responseStream << "\t\t\t\t\t";
+#line 164 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(hedera_topics.size() == 0) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t<a href=\"";
+#line 165 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( getBaseUrl() );
+	responseStream << "/topic\"><span class=\"link-title\">Edit Hedera-Topics</span></a>\n";
+	responseStream << "\t\t\t\t\t";
+#line 166 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t<select name=\"test-hedera-topic2\" id=\"test-hedera-topic2\">\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 168 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) { 
+							auto model = (*it)->getModel();
+							auto hedera_account = (*it)->getAutoRenewAccount();
+							if(hedera_account->getModel()->getNetworkType() != ServerConfig::HEDERA_TESTNET) {
+								continue;
+							}
+							responseStream << "\n";
+	responseStream << "\t\t\t\t\t\t\t<option title=\"";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->toString() );
+	responseStream << "\" value=\"";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getID() );
+	responseStream << "\" ";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(!hedera_topic2.isNull() && hedera_topic2->getModel()->getID() == model->getID()) {	responseStream << "selected=\"selected\"";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << ">";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getName() );
+	responseStream << ", group: ";
+#line 175 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( model->getGroupId() );
+	responseStream << "</option>\n";
+	responseStream << "\t\t\t\t\t\t";
+#line 176 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t\t\t</select>\n";
+	responseStream << "\t\t\t\t</fieldset>\n";
+	responseStream << "\t\t\t\t\n";
 	responseStream << "\t\t\t\t<label class=\"form-label\" for=\"test-timeout\">Timeout waiting for hedera in seconds</label>\n";
 	responseStream << "\t\t\t\t<input name=\"test-timeout\" id=\"test-timeout\" type=\"number\" value=\"";
-#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 181 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( hedera_timeout );
 	responseStream << "\"> seconds \n";
-	responseStream << "\t\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"Run 4-Test\">\n";
+	responseStream << "\t\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"Run 6-Test\">\n";
 	responseStream << "\t\t\t</form>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "\t<div id=\"gn-jsonrpc\" class=\"tabcontent\" ";
-#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(PAGE_GET_TRANSACTION_RPC_CALL == page) { 	responseStream << " style=\"display:block\" ";
-#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << ">\n";
 	responseStream << "\t\t<div class=\"center-form-title\">\n";
 	responseStream << "\t\t\t<h3>Test 4-Set (2 AddMember, Creation, Transfer)</</h3>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t\t<div class=\"center-form-form\">\n";
 	responseStream << "\t\t\t<form method=\"POST\" action=\"";
-#line 140 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 191 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/adminNodeServerTest\">\n";
 	responseStream << "\t\t\t\t<label class=\"form-label\" for=\"test-node-servers\">Node Server to call</label>\n";
 	responseStream << "\t\t\t\t";
-#line 142 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 193 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(node_servers.size() == 0) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t<a href=\"";
-#line 143 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 194 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( getBaseUrl() );
 	responseStream << "/nodes\"><span class=\"link-title\">Edit Node-Servers</span></a>\n";
 	responseStream << "\t\t\t\t";
-#line 144 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 195 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t<select name=\"test-node-servers\" id=\"test-node-servers\">\n";
 	responseStream << "\t\t\t\t\t";
-#line 146 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
 						auto model = (*it)->getModel();
 						responseStream << "\n";
 	responseStream << "\t\t\t\t\t\t<option title=\"";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->toString() );
 	responseStream << "\" value=\"";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getID() );
 	responseStream << "\" ";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(!node_server.isNull() && node_server->getModel()->getID() == model->getID()) {	responseStream << "selected=\"selected\"";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << ">";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getUrlWithPort() );
 	responseStream << ", group: ";
-#line 149 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 200 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( model->getGroupId() );
 	responseStream << "</option>\n";
 	responseStream << "\t\t\t\t\t";
-#line 150 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 201 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t\t</select>\n";
 	responseStream << "\t\t\t\t<input class=\"center-form-submit form-button\" type=\"submit\" name=\"submit\" value=\"json-rpc getTransactions\">\n";
@@ -369,17 +482,19 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t</div>\n";
 	responseStream << "\t";
-#line 156 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 207 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  if(PAGE_RUN_4_SET_TEST == page && !hedera_topic.isNull() && !node_server.isNull()) { 	responseStream << "\n";
 	responseStream << "\t<ul>\n";
 	responseStream << "\t\t<li>\n";
-	responseStream << "\t\t\t<p>1. Create two new accounts and show user public keys for comparisation: </p>\n";
+	responseStream << "\t\t\t<p>1. Create three new accounts and show user public keys for comparisation: </p>\n";
 	responseStream << "\t\t\t";
-#line 160 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 211 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  
 			Profiler time2;
 			auto group_id = hedera_topic->getModel()->getGroupId();
+			auto group_id2 = hedera_topic2->getModel()->getGroupId();
 			auto user_group = controller::Group::load(group_id);
+			auto user_group2 = controller::Group::load(group_id2);
 			auto mnemonic_type = ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 			
 			std::string password1 = "hsaj(2askaslASlllak3wjjeudsaj";
@@ -395,30 +510,51 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 			auto gradido_key_pair_2 = KeyPairEd25519::create(passphrase_2);
 			user_2->setGradidoKeyPair(gradido_key_pair_2);
 			user_2->login(password2);
+			
+			std::string password3 = "jaue_skaiellasealaK";
+			auto user_3 = controller::User::create("testEmail3@gmail.com", "Morpheus", "Miaufull", group_id2);
+			auto passphrase_3 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_3 = KeyPairEd25519::create(passphrase_3);
+			user_3->setGradidoKeyPair(gradido_key_pair_3);
+			user_3->login(password3);
 				responseStream << "\t\t\t\n";
-	responseStream << "\t\t\t<p>User 1: ";
-#line 180 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t<fieldset><legend>";
+#line 240 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( user_group->getModel()->getName() );
+	responseStream << "</legend>\n";
+	responseStream << "\t\t\t\t<p>User 1: ";
+#line 241 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( user_1->getPublicHex() );
 	responseStream << "</p>\n";
-	responseStream << "\t\t\t<p>User 2: ";
-#line 181 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t\t<p>User 2: ";
+#line 242 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( user_2->getPublicHex() );
 	responseStream << "</p>\n";
+	responseStream << "\t\t\t</fieldset>\n";
+	responseStream << "\t\t\t<fieldset><legend>";
+#line 244 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( user_group2->getModel()->getName() );
+	responseStream << "</legend>\n";
+	responseStream << "\t\t\t\t<p>User 3: ";
+#line 245 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( user_3->getPublicHex() );
+	responseStream << "</p>\n";
+	responseStream << "\t\t\t</fieldset>\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 182 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 247 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>2. Send a add-member transaction to hedera topic with one signature (first user)</p>\n";
 	responseStream << "\t\t\t";
-#line 186 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 251 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  
 			time2.reset(); 
 			if(!steps[0]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 190 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 255 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else {
 			auto transaction1 = model::gradido::Transaction::createGroupMemberUpdate(user_1, user_group);
 			transaction1->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(1);
@@ -426,127 +562,202 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 			auto transaction1_json = transaction1->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 196 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 261 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction1_json) );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 197 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 262 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 198 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 263 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>3. Send a add-member transaction to hedera topic with two signatures (first user and second user)</p>\n";
 	responseStream << "\t\t\t";
-#line 202 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 267 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  
 			time2.reset();  
 			if(!steps[1]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 206 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 271 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else {
 			auto transaction2 = model::gradido::Transaction::createGroupMemberUpdate(user_2, user_group);
 			transaction2->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(2);
 			transaction2->sign(user_2);
+			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
+			Poco::Thread::sleep(sleep_ms_between_transactions);
 			transaction2->sign(user_1);
 			auto transaction2_json = transaction2->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 213 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 280 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction2_json) );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 214 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 281 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 215 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 282 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>4. Send a creation transaction to second user, signed by first user</p>\n";
 	responseStream << "\t\t\t";
-#line 219 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 286 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 			time2.reset();
 			if(!steps[2]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 223 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 290 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else {
 			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation");
+			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
+			Poco::Thread::sleep(sleep_ms_between_transactions);
 			transaction3->sign(user_1);
 			auto transaction3_json = transaction3->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 228 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 297 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction3_json) );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 229 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 298 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 230 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 299 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
 	responseStream << "\t\t\t<p>5. Send a transfer transaction from second user to first user signed by second user</p>\n";
 	responseStream << "\t\t\t";
-#line 234 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 303 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  
 			time2.reset(); 
 			if(!steps[3]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 238 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 307 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
 			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
-			Poco::Thread::sleep(hedera_timeout * 100);
+			Poco::Thread::sleep(sleep_ms_between_transactions);
 			transaction4[0]->sign(user_2);
 			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
-#line 246 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 315 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction4_json) );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t";
-#line 247 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 316 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 248 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 317 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
-	responseStream << "\t\t\t<p>6. Wait ";
-#line 251 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << "\t\t\t<p>6. Send a add-member transaction to hedera topic 2 with one signature (third user)</p>\n";
+	responseStream << "\t\t\t";
+#line 321 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ 
+			time2.reset();
+			if(!steps[4]) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t<p>skipped</p>\n";
+	responseStream << "\t\t\t";
+#line 325 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } else { 
+			auto transaction5 = model::gradido::Transaction::createGroupMemberUpdate(user_3, user_group2);
+			transaction5->getTransactionBody()->getGroupMemberUpdate()->setMinSignatureCount(1);
+			Poco::Thread::sleep(sleep_ms_between_transactions);
+			transaction5->sign(user_3);
+			auto transaction5_json = transaction5->getTransactionAsJson(true);
+				responseStream << "\n";
+	responseStream << "\t\t\t<p>";
+#line 332 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction5_json) );
+	responseStream << "</p>\n";
+	responseStream << "\t\t\t";
+#line 333 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t<p>Time: ";
+#line 334 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( time2.string() );
+	responseStream << "</p>\n";
+	responseStream << "\t\t</li>\n";
+	responseStream << "\t\t<li>\n";
+	responseStream << "\t\t\t<p>7. Send a cross group transfer from second user to third user signed by second user</p>\n";
+	responseStream << "\t\t\t";
+#line 338 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ 
+			time2.reset(); 
+			if(!steps[5]) { 	responseStream << "\n";
+	responseStream << "\t\t\t\t<p>skipped</p>\n";
+	responseStream << "\t\t\t";
+#line 342 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } else {
+				auto user_3_pubkey = user_3->getModel()->getPublicKeyCopy();
+				auto transaction6 = model::gradido::Transaction::createTransfer(user_2, user_3_pubkey, user_group2, 4000000, "Test Group Transfer", false);
+				if(!transaction6.size()) {
+						responseStream << "\n";
+	responseStream << "\t\t\t\t<div class=\"alert alert-error\" role=\"alert\">\n";
+	responseStream << "\t\t\t\t\t<i class=\"material-icons-outlined\">report_problem</i>\n";
+	responseStream << "\t\t\t\t\t<span>Error creating Transaction</span>\n";
+	responseStream << "\t\t\t\t</div>\n";
+	responseStream << "\t\t\t\t";
+#line 351 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ 
+				} else {
+					Poco::Thread::sleep(sleep_ms_between_transactions);
+					transaction6[0]->sign(user_2);
+					auto transaction6_json = transaction6[0]->getTransactionAsJson(true);
+						responseStream << "\n";
+	responseStream << "\t\t\t\t\t<p>";
+#line 357 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( DataTypeConverter::replaceNewLineWithBr(transaction6_json) );
+	responseStream << "</p>\t\t\n";
+	responseStream << "\t\t\t\t";
+#line 358 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << "\n";
+	responseStream << "\t\t\t";
+#line 359 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ } 	responseStream << " \n";
+	responseStream << "\t\t\t<p>Time: ";
+#line 360 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+	responseStream << ( time2.string() );
+	responseStream << "</p>\n";
+	responseStream << "\t\t</li>\n";
+	responseStream << "\t\t<li>\n";
+	responseStream << "\t\t\t<p>8. Wait ";
+#line 363 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( hedera_timeout );
 	responseStream << " seconds to give hedera time to process transactions</p>\n";
 	responseStream << "\t\t\t";
-#line 252 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
- if(!steps[4]) { 	responseStream << "\n";
+#line 364 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+ if(!steps[6]) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 254 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 366 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else { 
 				Poco::Thread::sleep(hedera_timeout * 1000); 
 			   } 	responseStream << "\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t\t<li>\n";
-	responseStream << "\t\t\t<p>7. Ask choosen node for transaction and print result</p>\n";
+	responseStream << "\t\t\t<p>9. Ask choosen node for transaction and print result</p>\n";
 	responseStream << "\t\t\t";
-#line 260 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 372 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
   time2.reset(); 
-				if(!steps[5] || node_server.isNull()) { 
+				if(!steps[7] || node_server.isNull()) { 
 					responseStream << "<p>skipped</p>\n";
 	responseStream << "\t\t\t";
-#line 263 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 375 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else { 
 				auto node_server_model = node_server->getModel();
 				JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
@@ -559,20 +770,20 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
 					std::string answear_string = ss.str(); 	responseStream << "\n";
 	responseStream << "\t\t\t\t\t";
-#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 386 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
-#line 274 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 386 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 				}
 			   } 	responseStream << "\n";
 	responseStream << "\t\t\t<p>Time: ";
-#line 277 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 389 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time2.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</li>\n";
 	responseStream << "\t</ul>\n";
 	responseStream << "\t";
-#line 280 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 392 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } else if(PAGE_GET_TRANSACTION_RPC_CALL == page && !node_server.isNull()) { 
 		Profiler time3;
 		auto node_server_model = node_server->getModel();
@@ -587,23 +798,23 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 			Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
 			std::string answear_string = ss.str();	responseStream << "\n";
 	responseStream << "\t\t\t";
-#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 405 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( DataTypeConverter::replaceNewLineWithBr(answear_string) );
-#line 293 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 405 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 
 		}
 			responseStream << "\n";
 	responseStream << "\t\t<p>Time: ";
-#line 296 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 408 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( time3.string() );
 	responseStream << "</p>\n";
 	responseStream << "\t";
-#line 297 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 409 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\n";
 	responseStream << "</div>\n";
 	responseStream << "<script type=\"text/javascript\" src=\"";
-#line 300 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
+#line 412 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/js/tabs.js\"></script>\n";
 	// begin include footer.cpsp
