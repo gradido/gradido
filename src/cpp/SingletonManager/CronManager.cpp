@@ -67,7 +67,10 @@ void CronManager::runUpdateStep(Poco::Timer& timer)
 
 	mTimestampsMutex.lock();
 	//printf("update timestamp sizes: %d\n", mUpdateTimestamps.size());
-	if (mUpdateTimestamps.size() > 0) {
+	bool timerRestarted = false;
+
+	if (mUpdateTimestamps.size() > 0) 
+	{
 		Poco::Timestamp now;
 		// update maximal once per second
 		now += Poco::Timespan(1, 0);
@@ -75,18 +78,20 @@ void CronManager::runUpdateStep(Poco::Timer& timer)
 		//	printf("remove update time in past: %d\n", mUpdateTimestamps.front().epochTime());
 			mUpdateTimestamps.pop_front();
 		}
-		Poco::Timespan next_run = mUpdateTimestamps.front() - now;
-		//printf("timer restart called with: %d\n", next_run.seconds());
-		//mMainTimer.setPeriodicInterval(next_run.totalMilliseconds());
-		mMainTimer.restart(next_run.totalMilliseconds());
-		mUpdateTimestamps.pop_front();
-	}
-	else {
-		if (mMainTimer.getPeriodicInterval() != mDefaultIntervalMilliseconds) {
-			//printf("reset to default interval\n"); 
-			mMainTimer.setPeriodicInterval(mDefaultIntervalMilliseconds);
-			//mMainTimer.restart(mDefaultIntervalMilliseconds);
+		if (mUpdateTimestamps.size() > 0) {
+			Poco::Timespan next_run = mUpdateTimestamps.front() - now;
+			//printf("timer restart called with: %d\n", next_run.seconds());
+			//mMainTimer.setPeriodicInterval(next_run.totalMilliseconds());
+			mMainTimer.restart(next_run.totalMilliseconds());
+			mUpdateTimestamps.pop_front();
+			timerRestarted = true;
 		}
+	}
+	
+	if (!timerRestarted && mMainTimer.getPeriodicInterval() != mDefaultIntervalMilliseconds) {
+		//printf("reset to default interval\n"); 
+		mMainTimer.setPeriodicInterval(mDefaultIntervalMilliseconds);
+		//mMainTimer.restart(mDefaultIntervalMilliseconds);
 	}
 	mTimestampsMutex.unlock();
 	//printf("[CronManager::runUpdateStep] end\n");
@@ -188,8 +193,8 @@ int PingServerTask::run()
 		std::string url_port = mNodeServer->getModel()->getUrlWithPort();
 		printf("%s [PingServerTask::run] call update for %s\n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data(), url_port.data());
 
-		auto json_request = mNodeServer->createJsonRequest();
-		json_request.request("updateReadNode");
+		//auto json_request = mNodeServer->createJsonRequest();
+		//json_request.request("updateReadNode");
 	}
 	return 0;
 }
