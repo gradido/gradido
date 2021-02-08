@@ -82,28 +82,45 @@
                 <!--Divider-->
                 <hr class="my-3">
                 <!--Heading-->
-                <h6 class="navbar-heading text-muted">Documentation</h6>
+                <h6 class="navbar-heading text-muted">{{ $t('site.sidebar.community') }}</h6>
                 <!--Navigation-->
                 <ul class="navbar-nav mb-md-3">
                     <li class="nav-item">
                         <a class="nav-link"
-                           href="https://www.creative-tim.com/learning-lab/bootstrap-vue/alerts/argon-dashboard">
-                            <i class="ni ni-spaceship"></i> Getting started
+                           href="https://gradido.net/de/">
+                            <i class="ni ni-spaceship"></i> Gradido.net
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
-                           href="https://www.creative-tim.com/learning-lab/bootstrap-vue/colors/argon-dashboard">
-                            <i class="ni ni-palette"></i> Foundation
+                           href="https://elopage.com/s/gradido/sign_in">
+                            <i class="ni ni-palette"></i> {{ $t('site.sidebar.members_area') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
-                           href="https://www.creative-tim.com/learning-lab/bootstrap-vue/alerts/argon-dashboard">
-                            <i class="ni ni-ui-04"></i> Components
+                           href="https://gradido.net/de/memberships/">
+                            <i class="ni ni-ui-04"></i> {{ $t('site.sidebar.membership') }}
                         </a>
                     </li>
                 </ul>
+                 <!--Divider-->
+                <hr class="my-3">
+                  <!--Heading-->
+                <h6 class="navbar-heading text-muted">{{ $t('site.sidebar.language') }}</h6>
+                <!--Navigation-->
+                <ul class="navbar-nav mb-md-3">
+                    <li class="nav-item">
+                        <div class="nav-link"  @click.prevent="setLocale('en')">
+                          <i class="ni ni-ui-04"></i> English</div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link" @click.prevent="setLocale('de')">
+                          <i class="ni ni-ui-04"></i> Deutsch</div>
+                    </li>
+                     
+                </ul>
+
             </div>
             </div>
     </nav>
@@ -139,7 +156,14 @@
       },
       showSidebar() {
         this.$sidebar.displaySidebar(true)
-      }
+      },
+      setLocale(locale) {
+      this.$i18n.locale = locale
+      this.$router.push({
+        params: { lang: locale }
+      })
+      this.hideDropdown()
+    }
     },
     beforeDestroy() {
       if (this.$sidebar.showSidebar) {
