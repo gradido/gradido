@@ -6,6 +6,7 @@
 
 Bootstrap Vue Gradido Wallet -  
  
+ **DEMO:** [https://vast-atoll-44277.herokuapp.com/](https://vast-atoll-44277.herokuapp.com/) 
  
 
 ## File Structure
