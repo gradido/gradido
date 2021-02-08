@@ -56,6 +56,7 @@ namespace ServerConfig {
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
+	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
 
 #ifdef __linux__ 
 #include <stdio.h>      
@@ -233,6 +234,15 @@ namespace ServerConfig {
 		//g_CryptoAppSecret
 
 		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
+
+		// unsecure flags
+		//g_AllowUnsecureFlags
+		if (cfg.getInt("unsecure.allow_passwort_via_json_request", 0) == 1) {
+			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_PASSWORD_REQUESTS);
+		}
+		if (cfg.getInt("unsecure.allow_auto_sign_transactions", 0) == 1) {
+			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_AUTO_SIGN_TRANSACTIONS);
+		}
 
 		return true;
 	}

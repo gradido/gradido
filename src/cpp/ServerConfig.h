@@ -39,6 +39,13 @@ namespace ServerConfig {
 		SERVER_TYPE_PRODUCTION
 	};
 
+	// used with bit-operators, so only use numbers with control exactly one bit (1,2,4,8,16...)
+	enum AllowUnsecure {
+		NOT_UNSECURE = 0,
+		UNSECURE_PASSWORD_REQUESTS = 1,
+		UNSECURE_AUTO_SIGN_TRANSACTIONS = 2
+	};
+
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
@@ -65,6 +72,7 @@ namespace ServerConfig {
 	extern ServerSetupType g_ServerSetupType;
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
+	extern AllowUnsecure g_AllowUnsecureFlags;
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

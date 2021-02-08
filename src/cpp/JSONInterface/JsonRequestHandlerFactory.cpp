@@ -13,6 +13,7 @@
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUpdateUserInfos.h"
+#include "JsonUnsecureLogin.h"
 
 JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
@@ -45,7 +46,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		return new JsonGetUsers;
 	} 
 	else if (url_first_part == "/createUser") {
-		return new JsonCreateUser;
+		return new JsonCreateUser(request.clientAddress().host());
 	}
 	else if (url_first_part == "/adminEmailVerificationResend") {
 		return new JsonAdminEmailVerificationResend;
@@ -55,6 +56,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/updateUserInfos") {
 		return new JsonUpdateUserInfos;
+	}
+	else if (url_first_part == "/unsecureLogin" && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
+		return new JsonUnsecureLogin(request.clientAddress().host());
 	}
 
 	return new JsonUnknown;

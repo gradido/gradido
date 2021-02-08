@@ -6,9 +6,11 @@
 class JsonCreateUser : public JsonRequestHandler
 {
 public:
+	JsonCreateUser(Poco::Net::IPAddress ip) : mClientIP(ip) {}
 	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
 
 protected:
+	Poco::Net::IPAddress mClientIP;
 
 
 };
