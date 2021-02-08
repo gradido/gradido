@@ -1,0 +1,70 @@
+{
+  "message": "hallo gradido !!",
+  "site": {
+     "welcome":"Willkommen!",
+     "logout":"Logout",
+     "login":"Login",
+      "overview":{
+        "account_overview":"Kontoübersicht",
+        "current_balance":"Aktueller Kontostand",
+        "gradido_received":"Erhaltene Gradido",
+        "since_last_month": "seid letzten Monat",
+        "send_gradido":"Gradido versenden",
+        "table" : {
+          "status":"Status",
+          "amount":"Betrag",
+          "name":"Name",
+          "date":"Datum",
+          "details":"Details",
+          "view":"Anzeigen",
+          "hide":"Ausblenden",
+          "decay":"Vergänglichkeit",
+          "sender":"Absender",
+          "hide_details":"Details ausblenden"
+        },
+        "add_work":"neuer Gemeinschaftsbeitrag",
+        "xx":"xx",
+        "xxxx":"xxxx"
+      },
+      "navbar" : {
+        "my-profil":"Mein Profil",
+        "settings":"Einstellung",
+        "activity":"Aktivität",
+        "support":"Support",
+        "logout":"Logout"
+      },
+      "sidebar" : {
+         "community":"Gemeinschaft",
+         "members_area":"Mitgliederbereich",
+         "membership":"Mitgliedschaft",
+         "language":"Sprachen"
+      },
+      "landing1" : {
+        "explore": "Erkunden Sie Gradido",
+        "text": "Gesundes Geld für eine gesunde Welt - Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
+        "link": "Seiten erkunden"
+      },
+      "404" : {
+         "ooops" : "Ooops!",
+         "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
+         "back" : "zurück zur Übersicht!"
+      }
+  },
+  "admin": {
+    "site": {
+      "overview": {
+        "created": "created",
+        "transience" : "Transience",
+        "exchanged": "Exchanged",
+        "members" : "Members"
+      }
+    }
+  },
+  "nav": {
+    "features": "Neuigkeiten"
+  },
+  "about": {
+    "title": "Über uns",
+    "content": "Lorem ipsum deutsch dolor sit amet consectetur adipisicing elit. Aut dicta incidunt ea ut commodi quidem temporibus illo quia. Et itaque deleniti veniam tempore facere ipsum animi totam culpa minima vel voluptatem adipisci natus blanditiis similique sunt expedita, ex dicta doloremque repellat vitae temporibus. Quisquam quia, accusantium blanditiis architecto facilis saepe! Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad unde laborum ut suscipit iure aliquam sapiente doloribus exercitationem nam sint."
+  }
+}
