@@ -353,8 +353,13 @@ enum PageType
 					Poco::Thread::sleep(sleep_ms_between_transactions);
 					transaction6[0]->sign(user_2);
 					auto transaction6_json = transaction6[0]->getTransactionAsJson(true);
+					auto paired_transaction = transaction6[0]->getPairedTransaction();
 					%>
 					<p><%= DataTypeConverter::replaceNewLineWithBr(transaction6_json) %></p>		
+					<% if(!paired_transaction.isNull()) { 
+					    auto transaction6_2_json = paired_transaction->getTransactionAsJson(true);
+					%><p><%= DataTypeConverter::replaceNewLineWithBr(transaction6_2_json) %></p>
+					<% } %>
 				<% } %>
 			<% } %> 
 			<p>Time: <%= time2.string() %></p>

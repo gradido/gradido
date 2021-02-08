@@ -60,12 +60,13 @@ namespace model {
 			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
 			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
+			inline Poco::AutoPtr<Transaction> getPairedTransaction() { return mPairedTransaction; }
 
 			bool setTopicIdByGroup(const std::string& alias);
 
 
 		protected:
-
+			Poco::AutoPtr<Transaction> mPairedTransaction;
 
 			Poco::AutoPtr<TransactionBody> mTransactionBody;
 			proto::gradido::GradidoTransaction mProtoTransaction;

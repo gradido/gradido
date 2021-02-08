@@ -412,6 +412,7 @@ namespace model {
 						if (!transaction.isNull()) {
 							transaction->sign(user);
 							// dirty hack because gn crashes if its get transactions out of order
+							mPairedTransaction = transaction;
 							Poco::Thread::sleep(1000);
 						}
 						else {
