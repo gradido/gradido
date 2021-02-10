@@ -6,13 +6,26 @@ ENV DOCKER_WORKDIR="/code"
 
 USER root
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends protobuf-compiler && \
+    apt-get install -y --no-install-recommends protobuf-compiler libprotobuf-dev && \
 	apt-get autoclean && \
 	apt-get autoremove && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
-	
 
+#RUN grep processor /proc/cpuinfo | wc -l
+
+#RUN mkdir -p "/helper"
+#WORKDIR "/helper"
+#RUN git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git
+#RUN cd protobuf && \
+	#git checkout v3.14.0 && \
+    #./autogen.sh && \
+	#./configure && \
+	#make -j$(grep processor /proc/cpuinfo | wc -l) && \
+	#make check && \
+	#make install && \
+	#ldconfig	
+	
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
@@ -43,3 +56,5 @@ RUN mkdir build && \
 	cmake .. && \
 	make -j$(grep processor /proc/cpuinfo | wc -l)
 
+# deploy
+#From 
