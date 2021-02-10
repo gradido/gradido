@@ -119,8 +119,6 @@ set(CMAKE_CXX_FLAGS         "/MP /EHsc")
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 else()
-find_package(Protobuf REQUIRED)
-include_directories(${Protobuf_INCLUDE_DIRS})
 
 find_library(IROHA_ED25519 ed25519 PATHS "dependencies/iroha-ed25519/build" REQUIRED)
 # set vars for mariadb cmake files 
@@ -143,7 +141,7 @@ if(WIN32)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else()
-target_link_libraries(Gradido_LoginServer libmariadb ${Protobuf_LIBRARIES} -pthread)
+target_link_libraries(Gradido_LoginServer libmariadb -pthread)
 endif()
 
 # install 
@@ -173,7 +171,7 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else()
-	target_link_libraries(Gradido_LoginServer_Test libmariadb ${Protobuf_LIBRARIES} -pthread)
+	target_link_libraries(Gradido_LoginServer_Test libmariadb -pthread)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
