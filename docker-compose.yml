@@ -1,0 +1,75 @@
+# This file defines the production settings. It is overwritten by docker-compose.override.yml,
+# which defines the development settings. The override.yml is loaded by default. Therefore it
+# is required to explicitly define if you want an production build:
+# > docker-compose -f docker-compose.yml up 
+
+version: "3.4"
+
+services:
+  ########################################################
+  # FRONTEND #############################################
+  ########################################################
+  frontend:
+    image: gradido/frontend:latest
+    build:
+      context: ./frontend
+      target: production
+    networks:
+      - external-net
+    #depends_on:
+    #  - backend
+    ports:
+      - 8080:8080
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT="8080"
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      # Application only envs
+      #- HOST=0.0.0.0 # This is nuxt specific, alternative value is HOST=webapp
+    #env_file:
+    #  - ./frontend/.env
+
+  #########################################################
+  ## BACKEND ##############################################
+  #########################################################
+  #backend:
+  #  image: ocelotsocialnetwork/backend:latest
+  #  build:
+  #    context: ./backend
+  #    target: production
+  #  networks:
+  #    - external-net
+  #    - internal-net
+  #  depends_on:
+  #    - neo4j
+  #  ports:
+  #    - 4000:4000
+  #  volumes:
+  #    - backend_uploads:/app/public/uploads
+  #  environment:
+  #    # Envs used in Dockerfile
+  #    # - DOCKER_WORKDIR="/app"
+  #    # - PORT="4000"
+  #    - BUILD_DATE
+  #    - BUILD_VERSION
+  #    - BUILD_COMMIT
+  #    - NODE_ENV="production"
+  #    # Application only envs
+  #    - DEBUG=false
+  #    - NEO4J_URI=bolt://neo4j:7687
+  #    - GRAPHQL_URI=http://backend:4000
+  #    - CLIENT_URI=http://webapp:3000
+  #  env_file:
+  #    - ./backend/.env
+
+networks:
+  external-net:
+  internal-net:
+    internal: true
+
+# volumes:
+ 
