@@ -5,6 +5,14 @@ function resolveSrc(_path) {
 }
 // vue.config.js
 module.exports = {
+  pluginOptions: {
+    i18n: {
+      locale: 'de',
+      fallbackLocale: 'de',
+      localeDir: 'locales',
+      enableInSFC: false
+    }
+  },
   lintOnSave: true,
   configureWebpack: {
     // Set up all the aliases we use in our app.

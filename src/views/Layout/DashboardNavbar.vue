@@ -36,6 +36,7 @@
                      title-classes="nav-link pr-0">
         <a href="#" class="nav-link pr-0" @click.prevent slot="title-container">
           <b-media no-body class="align-items-center">
+            
                   <span class="avatar avatar-sm rounded-circle">
                     <img alt="Image placeholder" src="img/theme/team-4.jpg">
                   </span>
@@ -48,28 +49,28 @@
         <template>
 
           <b-dropdown-header class="noti-title">
-            <h6 class="text-overflow m-0">Welcome!</h6>
+            <h6 class="text-overflow m-0"> {{ $t('site.welcome')  }}</h6>
           </b-dropdown-header>
           <b-dropdown-item href="#!">
             <i class="ni ni-single-02"></i>
-            <span>My profile</span>
+            <span>{{ $t('site.navbar.my-profil')}}</span>
           </b-dropdown-item>
           <b-dropdown-item href="#!">
             <i class="ni ni-settings-gear-65"></i>
-            <span>Settings</span>
+            <span>{{ $t('site.navbar.settings') }}</span>
           </b-dropdown-item>
           <b-dropdown-item href="#!">
             <i class="ni ni-calendar-grid-58"></i>
-            <span>Activity</span>
+            <span>{{ $t('site.navbar.activity') }}</span>
           </b-dropdown-item>
           <b-dropdown-item href="#!">
             <i class="ni ni-support-16"></i>
-            <span>Support</span>
+            <span>{{ $t('site.navbar.support') }}</span>
           </b-dropdown-item>
           <div class="dropdown-divider"></div>
           <b-dropdown-item href="#!">
             <i class="ni ni-user-run"></i>
-            <span>Logout</span>
+            <span>{{ $t('site.logout') }}</span>
           </b-dropdown-item>
 
         </template>
