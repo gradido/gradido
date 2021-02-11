@@ -14,7 +14,10 @@
 
 # install mit docker
 ```
+ ### build
     $ docker build -t [project-name] .
+
+ ### run
     $ docker run -it -p 80:80 --rm [project-name]
 ```
 
