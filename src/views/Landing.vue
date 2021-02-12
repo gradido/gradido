@@ -3,13 +3,16 @@
     <!-- Header -->
     <div class="header bg-gradient-info py-7 py-lg-8 pt-lg-9">
       <b-container>
-        <div class="header-body text-center mb-7">
+        <div class="header-body text-center mb-7"> 
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="6" class="px-5">
-              <h1 class="text-light">{{ $t('site.404.oops')  }}</h1>
-              <p class="text-lead text-white">{{ $t('site.404.text')  }}</p>
-
-              <router-link to="/dashboard" class="font-weight-bold text-white mt-5"> {{ $t('site.404.back')  }}</router-link>
+              <h1 class="text-light">Landing Gradido</h1>               
+              <br>
+              <router-link to="/KontoOverview" class="font-weight-bold text-white mt-5"> LoginUser</router-link>
+              <br><br>
+              <router-link  to="/AdminOverview" class="font-weight-bold text-white mt-5"> Login Admin</router-link>
+               <br><br>
+              <router-link to="/register" class="font-weight-bold text-white mt-5"> Register</router-link>
             </b-col>
           </b-row>
         </div>
@@ -39,10 +42,22 @@
     </section>
   </div>
 </template>
-
 <script>
-
 export default {
-  name: 'not-found'
+  name: 'Landing',
+   methods: {
+    login() {
+      console.log("app.vue user login() : " + this.$store.state.is_auth)
+      this.$store.commit('login')      
+      this.$router.push('/KontoOverview')
+      
+    },
+    loginAsAdmin () {      
+       console.log("app.vue admin login(): " + this.$store.state.is_admin)
+      this.modals = false
+      this.$store.commit('loginAsAdmin')
+      this.$router.push('/AdminOverview')   
+    }
+   }
 };
 </script>

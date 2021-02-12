@@ -18,9 +18,6 @@
                 icon: 'ni ni-single-02 text-yellow'
                 }">
         </sidebar-item>
-
-        
-
         <sidebar-item
                   :link="{
                     name: 'Login',

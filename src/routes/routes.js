@@ -1,54 +1,41 @@
-import DashboardLayout from '@/views/Layout/DashboardLayout.vue';
-import AuthLayout from '@/views/Pages/AuthLayout.vue';
+import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
+import AuthLayout from '@/views/Pages/AuthLayout.vue'
 
-import NotFound from '@/views/NotFoundPage.vue';
+import NotFound from '@/views/NotFoundPage.vue'
+
 
 const routes = [
   {
     path: '/',
-    redirect: 'dashboard',
+    redirect: 'landing',
+    component: AuthLayout,
+    children: [
+      {
+        path: '/Landing',
+        name: 'Landing',
+        component: () => import(/* webpackChunkName: "demo" */ '../views/Landing.vue')
+      }
+      
+    ]
+  },
+  {
+    path: '/',
+    redirect: 'KontoOverview',
     component: DashboardLayout,
     children: [
       {
         path: '/KontoOverview',
         name: 'Kontoübersicht',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/KontoOverview.vue')
-      },
-      {
-        path: '/dashboard',
-        name: 'dashboard',
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Dashboard.vue')
-      },
-      {
-        path: '/icons',
-        name: 'icons',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Icons.vue')
-      },
+        component: () => import(/* webpackChunkName: "demo" */ '../views/KontoOverview.vue'),
+        meta: {
+          requiresAuth: true
+        }
+      },     
       {
         path: '/profile',
         name: 'profile',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/UserProfile.vue')
       },
-      {
-        path: '/maps',
-        name: 'maps',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/GoogleMaps.vue')
-      },
-      {
-        path: '/tables',
-        name: 'tables',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/RegularTables.vue')
-      }
-    ]
-  },
-  {
-    path: '/',
-    redirect: 'login',
-    component: AuthLayout,
-    children: [
       {
         path: '/login',
         name: 'login',
@@ -59,6 +46,30 @@ const routes = [
         name: 'register',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Register.vue')
       },
+    ]
+  },
+  ,
+  {
+    path: '/',
+    redirect: 'AdminOverview',
+    component: AuthLayout,
+    children: [
+      {
+        path: '/AdminOverview',
+        name: 'Adminübersicht',
+        component: () => import(/* webpackChunkName: "demo" */ '../views/AdminOverview.vue'),
+        meta: {
+          requiresAuth: true
+        }
+      }
+    ]
+  },
+  {
+    path: '/',
+    redirect: 'login',
+    component: AuthLayout,
+    children: [
+     
       { path: '*', component: NotFound }
     ]
   }

@@ -1,19 +1,14 @@
 # Vue Gradido Wallet
 
-
-
-**Fully Coded Components**
-
-Bootstrap Vue Gradido Wallet -  
  
  **DEMO:** [https://vast-atoll-44277.herokuapp.com/](https://vast-atoll-44277.herokuapp.com/) 
- 
+
 
 ISSUES:
 
  - [ ]  csrf token management 
  
-
+ 
  - [ ]  Userdaten - Testbenutzer - test.json
  
 
@@ -25,7 +20,6 @@ ISSUES:
  
  
  
- ___________
 
 
 # 🌟 [EPIC] - Gradido Web- and App- Client
@@ -40,6 +34,7 @@ https://staging.gradido.net/client
 
 Hiermit kann ein Konto anlegt werden:
 https://staging.gradido.net/account/registerDirect
+
 
 # Fehler im Code
 Wenn etwas nicht stimmt, entweder mit den Input-Paremetern, oder ein Fehler im Code gibt es meistens folgendes als Ergebnis:
@@ -171,6 +166,7 @@ GET https://staging.gradido.net/state-balances/ajaxGdtOverview
 
 Holt die letzten 100 GDT-Einträge für den Benutzer
 
+
 Ein GDT Eintrag sieht so aus:
 ```
 {
@@ -187,6 +183,7 @@ Ein GDT Eintrag sieht so aus:
 	"gdt": 1000
 }
 ```
+
 gdt entry types: (Auf welchen Weg der Eintrag eingetragen wurde)
 1. Form: einzeln über das Formular, sollte nur wenige Einträg e betreffen
 2. CVS: CVS Import, betrifft vor allem ältere Einträge von Spenden die weder über Elopage noch über Digistore reinkamen
@@ -215,10 +212,3 @@ Insbesondere durch den publishersPath, connect enthält einfach nur alle möglic
 TODO: Update GDT-Server um paging und Zugriff auf alle Einträge zu erhalten, optimierter Zugriff
 GET https://staging.gradido.net/state-balances/ajaxGdtTransactions
 Liefert wenn alles in Ordnung ist:
-
-
-
-
-
-
-

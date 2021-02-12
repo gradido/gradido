@@ -1,121 +1,81 @@
 <template>
-  <SlideYUpTransition :duration="animationDuration">
-    <b-modal class="modal fade"
-        ref="app-modal"
-        :size="size"
-        :hide-header="!$slots.header"
-        :modal-class="[{'modal-mini': type === 'mini'}, ...modalClasses]"
-        @mousedown.self="closeModal"
-        tabindex="-1"
-        role="dialog"
-        centered
-        @close="closeModal"
-        @hide="closeModal"
-        :header-class="headerClasses"
-        :footer-class="footerClasses"
-        :content-class="[gradient ? `bg-gradient-${gradient}` : '', ...modalContentClasses]"
-        :body-class="bodyClasses"
-        :aria-hidden="!show">
+    <!--Notice modal-->
+        <modal :show.sync="$store.state.modals"
+              modal-classes="modal-danger"
+              modal-content-classes="bg-gradient-danger">
+          <h6 slot="header" class="modal-title">Your attention is required</h6>
 
-      <template v-slot:modal-header>
-        <slot name="header"></slot>
-            <slot name="close-button">
-              <button type="button"
-                      class="close"
-                      v-if="showClose"
-                      @click="closeModal"
-                      data-dismiss="modal"
-                      aria-label="Close">
-                <span :aria-hidden="!show">×</span>
-              </button>
-            </slot>
-      </template>
+          <div class="py-3 text-center">
+             
+             <form ref="form" @submit.stop.prevent="handleSubmit">
+                <b-form-group
+                  label="Name"
+                  label-for="name-input"
+                  invalid-feedback="Name is required"
+                  :state="nameState"
+                >
+                  <b-form-input
+                    id="name-input"
+                    v-model="name"
+                    :state="nameState"
+                    required
+                  ></b-form-input>
+                </b-form-group>
+              </form>
+          </div>
 
-      <slot />
-
-      <template v-slot:modal-footer>
-        <slot name="footer"></slot> 
-      </template>
-
-    </b-modal>
-  </SlideYUpTransition>
+          <template slot="footer">
+            <base-button type="white">Ok</base-button>
+            <base-button type="link" class="text-white ml-auto" @click="$store.state.modals = false">abbrechen</base-button>
+          </template>
+        </modal>
+     
 </template>
-<script>
-  import { SlideYUpTransition } from "vue2-transitions";
 
-  export default {
-    name: "modal",
-    components: {
-      SlideYUpTransition
-    },
-    props: {
-      show: Boolean,
-      showClose: {
-        type: Boolean,
-        default: true
-      },
-      type: {
-        type: String,
-        default: "",
-        validator(value) {
-          let acceptedValues = ["", "notice", "mini"];
-          return acceptedValues.indexOf(value) !== -1;
-        },
-        description: 'Modal type (notice|mini|"") '
-      },
-      modalClasses: {
-        type: [Object, String],
-        description: "Modal dialog css classes"
-      },
-      size: {
-        type: String,
-        description: 'Modal size',
-        validator(value) {
-          let acceptedValues = ["", "sm", "lg"];
-          return acceptedValues.indexOf(value) !== -1;
-        },
-      },
-      modalContentClasses: {
-        type: [Object, String],
-        description: "Modal dialog content css classes"
-      },
-      gradient: {
-        type: String,
-        description: "Modal gradient type (danger, primary etc)"
-      },
-      headerClasses: {
-        type: [Object, String],
-        description: "Modal Header css classes"
-      },
-      bodyClasses: {
-        type: [Object, String],
-        description: "Modal Body css classes"
-      },
-      footerClasses: {
-        type: [Object, String],
-        description: "Modal Footer css classes"
-      },
-      animationDuration: {
-        type: Number,
-        default: 500,
-        description: "Modal transition duration"
+<script>
+ 
+
+ export default {
+   name: 'modal',
+    data() {
+      return {
+        name: '',
+        nameState: null,
+        submittedNames: []
       }
     },
-    methods: {
-      closeModal() {
-        this.$emit("update:show", false);
-        this.$emit("close");
-      }
+     /*Modal*/
+    checkFormValidity() {
+        const valid = this.$refs.form.checkValidity()
+        this.nameState = valid
+        return valid
     },
-    watch: {
-      show(val) {
-        if (val) {
-          this.$refs['app-modal'].show();
-        } else {
-          this.$refs['app-modal'].hide();
+    resetModal() {
+        this.name = ''
+        this.nameState = null
+      },
+    handleOk(bvModalEvt) {
+        // Prevent modal from closing
+        bvModalEvt.preventDefault()
+        // Trigger submit handler
+        this.handleSubmit()
+      },
+    handleSubmit() {
+        // Exit when the form isn't valid
+        if (!this.checkFormValidity()) {
+          return
         }
-      }
-    }
+         // Push the name to submitted names
+         this.submittedNames.push(this.name)
+         this.$store.state.modals = false
+         this.$store.commit('loginAsAdmin')
+         this.$router.push('/AdminOverview')        
+        
+        // Hide the modal manually
+        this.$nextTick(() => {
+          this.$bvModal.hide('modal-prevent-closing')
+        })
+      } 
   };
 </script>
 <style>
