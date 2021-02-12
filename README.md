@@ -1,14 +1,41 @@
 # Vue Gradido Wallet
 
  
- **DEMO:** [https://vast-atoll-44277.herokuapp.com/](https://vast-atoll-44277.herokuapp.com/) 
+# install mit npm 
+```
+    $ git clone https://github.com/gradido/gradido_vue_wallet.git [project-name]
+    $ cd [project-name]
+    $ npm install
+    $ npm run serve
 
+### Build
+    $ npm run build
+```
+
+# install mit docker
+```
+ ### build
+    $ docker build -t [project-name] .
+
+ ### run
+    $ docker run -it -p 80:80 --rm [project-name]
+```
+
+
+
+
+**Fully Coded Components**
+
+Bootstrap Vue Gradido Wallet -  
+ 
+ **DEMO:** [https://vast-atoll-44277.herokuapp.com/](https://vast-atoll-44277.herokuapp.com/) 
+ 
 
 ISSUES:
 
  - [ ]  csrf token management 
  
- 
+
  - [ ]  Userdaten - Testbenutzer - test.json
  
 
@@ -16,12 +43,158 @@ ISSUES:
  
 
  - [ ]  🚀 [Feature] - Create a dockerfile for the frontend application enhancement
-
  
  
+ **DEMO:** [https://vast-atoll-44277.herokuapp.com/](https://vast-atoll-44277.herokuapp.com/) 
+
+
+
+ ___________
  
 
+# 🌟 [EPIC] - Gradido Web- and App- Client
 
+Web-App:
+Einstiegspunkt:
+[ ] Login-Server for app-requests (Sollte in der App einstellbar sein) https://staging.gradido.net/appRequest
+
+[ ] Auch die url für Community-Server requests sollte in einer Variable gespeichert sein.
+CakePHP Seite auf die der Login-Server nach dem Login weiterleitet.
+https://staging.gradido.net/client
+
+Hiermit kann ein Konto anlegt werden:
+https://staging.gradido.net/account/registerDirect
+
+# Fehler im Code
+Wenn etwas nicht stimmt, entweder mit den Input-Paremetern, oder ein Fehler im Code gibt es meistens folgendes als Ergebnis:
+```
+{
+	"state": "error",
+	"msg": "<kurze Fehlerbeschreibung>",
+	"details": "<optional zusätzliche Informationen zum Fehler, z.B. Framework Fehlermeldung>"
+}
+  ```
+  
+# csfr Token
+Bindet das js ein.
+Stellt folgende js-Variablen zur Verfügung:
+
+csfr : string
+csfr Token (https://book.cakephp.org/3/en/controllers/components/csrf.html)
+user: object
+
+# Testbenutzer
+Enthält Daten des aktuell eingeloggten Benutzers, z.B.: mein Testbenutzer:
+console.log(user);
+```
+{
+  "created": 1578688666,
+  "disabled": false,
+  "email": "dervommond@gmail.com",
+  "email_checked": true,
+  "first_name": "Max",
+  "group_alias": "gdd1",
+  "ident_hash": 2928827813,
+  "last_name": "Miau",
+  "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71b",
+  "role": "admin",
+  "username": "",
+  "balance": 174500, // Gradido Cent, 4 Nachkommastellen (2 Reserve) entspricht 17,45 
+  "id": 1,
+  "errorCount": 0
+}
+```
+Das sind im Grunde die Benutzerangaben aus der Login-Server Datenbank.
+
+session :int
+Login-Server session id, notwendig für alle ajax-request.
+
+# Seiten
+Navigation:
+Für alle Benutzer:
+
+Kontoübersicht
+Startseite
+Überweisung
+Mitgliederbereich (externer Link zu elopage: https://elopage.com/s/gradido/sign_in)
+Rechts oben:
+Profil
+Abmelden
+Startseite:
+Für alle Benutzer:
+Kontoübersicht
+Überweisung
+Benutzer Suche:
+http://daten.einhornimmond.de/gradido_mithril_user_search.zip
+
+# Mobile App
+Login über eingebundene Login-Seite
+auslesen der session_id aus dem Session Cookie: GRADIDO_LOGIN
+Access Token vom Login-Server anfragen:
+GET https://staging.gradido.net/appRequest/acquireAccessToken?session_id = <GRADIDO_LOGIN>
+Du kannst auch den Cookie wieder mitschicken, solange die Login-Server Basis-url die gleiche ist, müsste das auch funktionieren.
+Antwort:
+```
+{
+  "state":"success", 
+  "access_token" : "<integer>",
+  "group_base_url":"<Community Server Base Url>"
+}
+```
+Unterschied Access Token von der session_id: Access Tokens sind länger gültig
+Du kannst über eine gültige session_id einen Access Token erhalten der eine Woche gültig ist. Die Client-IP des Aufrufess muss die gleiche sein, mit der eingeloggt wurde.
+ 
+
+Mit einem gültigen Access-Token kannst du eine session_id erhalten.
+GET https://staging.gradido.net/appRequest/appLogin?access_token =
+Mit jedem Aufruf wird die Gültigkeit der Access-Tokens erneuert.
+Antwort:
+```
+{
+  "state":"success", 
+  "session_id" : "<integer>"
+}
+```
+# Kontoübersicht:
+Liefert den aktuellen Kontostand.
+Ajax:
+GET https://staging.gradido.net/state-balances/ajaxGetBalance
+Antwort:
+`{"state":"success","balance":<GDD cent (4 Nachkommastellen)>}`
+
+Listet die letzten Transaktionen auf, mit Paging.
+Ajax:
+GET https://staging.gradido.net/state-user-transactions/ajaxListTransactions//
+page: Seite der Transaktionen, default = 1
+count: Wie viele Transaktionen pro Seite, default = 20
+
+Antwort:
+Wenn alles okay:
+```
+{"state":"success", "transactions": 
+	[
+		{
+			"name": "<first_name last_name>",
+			"email": "<other_user.email>", //optional, only if send or receive and other user is known
+			"type": "creation|send|receive",
+			"transaction_id": <transaction_id>, // db id not id from blockchain
+			"date": "<date string>",
+			"balance": <GDD balance in GDD cent /10000>,
+			"memo": "<Verwendungszweck>",
+			"pubkey": "<other_user.public_key in hex>"
+		 
+		 }
+	],
+	"transactionExecutingCount": <how many transaction for this user currently pending>,
+	"count": <sum of finished transactions user is involved>
+}
+```
+Holt die aktuelle Summe und Anzahl Einträge vom GDT Server für den Benutzer.
+Ajax:
+GET https://staging.gradido.net/state-balances/ajaxGdtOverview
+```{"state": "success", "gdt": {"sum": <sum of all gdt transactions>, "count":<count of all gdt transactions>}}```
+
+ 
 # 🌟 [EPIC] - Gradido Web- and App- Client
 
 Web-App:
@@ -166,6 +339,7 @@ GET https://staging.gradido.net/state-balances/ajaxGdtOverview
 
 Holt die letzten 100 GDT-Einträge für den Benutzer
 
+ 
 
 Ein GDT Eintrag sieht so aus:
 ```
@@ -183,7 +357,7 @@ Ein GDT Eintrag sieht so aus:
 	"gdt": 1000
 }
 ```
-
+ 
 gdt entry types: (Auf welchen Weg der Eintrag eingetragen wurde)
 1. Form: einzeln über das Formular, sollte nur wenige Einträg e betreffen
 2. CVS: CVS Import, betrifft vor allem ältere Einträge von Spenden die weder über Elopage noch über Digistore reinkamen
@@ -212,3 +386,4 @@ Insbesondere durch den publishersPath, connect enthält einfach nur alle möglic
 TODO: Update GDT-Server um paging und Zugriff auf alle Einträge zu erhalten, optimierter Zugriff
 GET https://staging.gradido.net/state-balances/ajaxGdtTransactions
 Liefert wenn alles in Ordnung ist:
+ 
