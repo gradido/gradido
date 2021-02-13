@@ -13,21 +13,19 @@ RUN make check
 
 CMD ["./protobuf"]
 #########################################################################################################
-# Buld debug
+# Build debug
 #########################################################################################################
 From conanio/gcc7 as debug
 
 ENV DOCKER_WORKDIR="/code"
 
 USER root
-#RUN apt-get update && \
-#    apt-get install -y --no-install-recommends protobuf-compiler libprotobuf-dev && \
-#	 apt-get autoclean && \
-#	 apt-get autoremove && \
-#    apt-get clean && \
-#	 rm -rf /var/lib/apt/lists/*
-
-#RUN grep processor /proc/cpuinfo | wc -l
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gdb && \
+	apt-get autoclean && \
+	apt-get autoremove && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=protoc_build /protobuf/src/.libs/protoc /usr/bin/
 COPY --from=protoc_build /protobuf/src/.libs/libprotobuf.so.20.0.1 /usr/lib/libprotobuf.so.20
@@ -70,7 +68,7 @@ RUN mkdir build && \
 #########################################################################################################
 # Build release 
 #########################################################################################################
-From conanio/gcc7 as login_server
+From conanio/gcc7 as release
 
 ENV DOCKER_WORKDIR="/code"
 
@@ -119,7 +117,23 @@ RUN mkdir build && \
 	cd build && \
 	conan install .. --build=missing && \
 	cmake .. && \
-	make -j$(grep processor /proc/cpuinfo | wc -l)
+	make -j$(grep processor /proc/cpuinfo | wc -l) Gradido_LoginServer 
+	
+RUN  ls -la *
+RUN  ls -la build/*	
+RUN  ls -la build/bin/
+CMD ["./code"]
+	
+#########################################################################################################
+# run release 
+#########################################################################################################
+#From alpine:latest as login_server
+FROM ubuntu:latest as login_server
 
-# deploy
-#From 
+WORKDIR "/usr/bin"
+
+COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
+COPY --from=release /code/build/lib/libmariadb.so.3 /usr/lib/
+RUN chmod +x /usr/bin/Gradido_LoginServer
+#ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
+CMD "while ! curl -s mariadb:3306 > /dev/null; do echo waiting for xxx; sleep 3; done; /usr/bin/Gradido_LoginServer"
