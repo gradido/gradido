@@ -18,10 +18,16 @@ services:
       - frontend_node_modules:/app/node_modules
       # bind the local folder to the docker to allow live reload
       - ./frontend:/app
+      
+     
 
   ########################################################
   # BACKEND ##############################################
   ########################################################
+  ## login server
+  login-server:
+    build: 
+      target: login_server_debug
   #backend:
   #  image: ocelotsocialnetwork/backend:development
   #  build:

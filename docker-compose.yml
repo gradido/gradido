@@ -36,6 +36,54 @@ services:
   #########################################################
   ## BACKEND ##############################################
   #########################################################
+  ## mariadb
+  mariadb:
+    build:
+      context: .
+      dockerfile: ./mariadb/Dockerfile
+      target: mariadb_DIV
+    environment:
+      - MARIADB_ALLOW_EMPTY_PASSWORD=1
+      - MARIADB_USER='root'
+      - MARIADB_DATABASE='gradido_login'
+    networks: 
+      - internal-net
+    ports: 
+      - 3306:3306
+    volumes: 
+      - db_vol:/var/lib/mysql      
+    
+  ## login server
+  login-server:
+    build: 
+      context: ./login_server/
+      target: login_server
+    depends_on: 
+      - mariadb
+    networks: 
+      - internal-net
+    ports:
+      - 1200:1200
+      - 1201:1201
+    volumes:
+      - ./configs/login_server:/etc/grd_login
+      
+  ## community server (cakephp with php-fpm and nginx)
+  community-server:
+    build: 
+      context: ./gradido_community_server/      
+    environment:
+      - DB_PASSWORD=''
+      - DB_USER='root'
+      - DB_DATABASE='gradido_community'
+    depends_on: 
+      - mariadb
+    ports:
+      - 80:80
+    networks: 
+      - internal-net
+      - external-net
+  
   #backend:
   #  image: ocelotsocialnetwork/backend:latest
   #  build:
@@ -71,5 +119,5 @@ networks:
   internal-net:
     internal: true
 
-# volumes:
- 
+volumes:
+  db_vol:    
