@@ -22,7 +22,7 @@ WORKDIR ${DOCKER_WORKDIR}
 #COPY ./mariadb/.skeema .
 COPY ./login_server/skeema/ .
 #COPY ./mariadb/.skeema.login ./gradido_login/.skeema
-COPY ./gradido_community_server/skeema/ . 
+COPY ./community_server/skeema/ . 
 
 
 
