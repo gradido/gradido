@@ -71,7 +71,7 @@ services:
   ## community server (cakephp with php-fpm and nginx)
   community-server:
     build: 
-      context: ./gradido_community_server/      
+      context: ./community_server/      
     environment:
       - DB_PASSWORD=''
       - DB_USER='root'
