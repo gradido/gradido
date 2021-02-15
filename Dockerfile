@@ -128,12 +128,43 @@ CMD ["./code"]
 # run release 
 #########################################################################################################
 #From alpine:latest as login_server
-FROM ubuntu:latest as login_server
+FROM alpine:latest as login_server
 
 WORKDIR "/usr/bin"
 
 COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
 COPY --from=release /code/build/lib/libmariadb.so.3 /usr/lib/
+COPY start_after_mysql.sh . 
 RUN chmod +x /usr/bin/Gradido_LoginServer
 #ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
-CMD "while ! curl -s mariadb:3306 > /dev/null; do echo waiting for xxx; sleep 3; done; /usr/bin/Gradido_LoginServer"
+# Wait on mariadb to started
+#CMD ["sleep 5", "/usr/bin/Gradido_LoginServer"]
+RUN chmod +x ./start_after_mysql.sh
+#CMD ./start_after_mysql.sh
+ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
+CMD Gradido_LoginServer
+
+#########################################################################################################
+# run debug
+#########################################################################################################
+FROM alpine:latest as login_server_debug
+
+WORKDIR "/usr/bin"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gdb && \
+	apt-get autoclean && \
+	apt-get autoremove && \
+    apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
+
+COPY --from=debug /code/build/bin/Gradido_LoginServer /usr/bin/
+COPY --from=debug /code/build/lib/libmariadb.so.3 /usr/lib/
+COPY start_after_mysql.sh . 
+RUN chmod +x /usr/bin/Gradido_LoginServer
+#ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
+# Wait on mariadb to started
+#CMD ["sleep 5", "/usr/bin/Gradido_LoginServer"]
+RUN chmod +x ./start_after_mysql.sh
+ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
+CMD Gradido_LoginServer
