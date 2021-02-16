@@ -436,38 +436,38 @@ class StateUsersController extends AppController
         return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
     
-    public function ajaxGetCSFRToken()
+    public function ajaxGetCSFRToken($session_id)
     {
-        if ($this->request->is('post')) {
-            $jsonData = $this->request->input('json_decode', true);
-            $session_id = $jsonData['session_id'];
-            $client_ip = $this->request->clientIp();
-             
-            $loginServer = Configure::read('LoginServer');
-            $url = $loginServer['host'] . ':' . $loginServer['port'];
-            
-            $http = new Client();
-            $response = $http->get($url . '/login', ['session_id' => $session_id]);
-            $json = $response->getJson();
+        if(!isset($session_id) || $session_id == 0) {
+            $this->returnJson(['state' => 'error', 'msg' => 'no session id']);
+        }
+        
+        $client_ip = $this->request->clientIp();
 
-            if (isset($json) && count($json) > 0) {
-                if ($json['state'] === 'success') {
-                    if($json['clientIP'] == $client_ip) {
-                        return $this->returnJson(['state' => 'success', 'csfr' => $this->request->getParam('_csrfToken')]);
-                    } else {
-                        return $this->returnJson([
-                            'state' => 'error',
-                            'msg' => 'client ip mismatch',
-                            'details' => ['login_server' => $json['clientIP'], 'caller' => $client_ip]]);
-                    }
+        $loginServer = Configure::read('LoginServer');
+        $url = $loginServer['host'] . ':' . $loginServer['port'];
+
+        $http = new Client();
+        $response = $http->get($url . '/login', ['session_id' => $session_id]);
+        $json = $response->getJson();
+
+        if (isset($json) && count($json) > 0) {
+            if ($json['state'] === 'success') {
+                if($json['clientIP'] == $client_ip) {
+                    return $this->returnJson(['state' => 'success', 'csfr' => $this->request->getParam('_csrfToken')]);
                 } else {
-                    return $this->returnJson($json);
+                    return $this->returnJson([
+                        'state' => 'error',
+                        'msg' => 'client ip mismatch',
+                        'details' => ['login_server' => $json['clientIP'], 'caller' => $client_ip]]);
                 }
             } else {
-                return $this->returnJson(['state' => 'error', 'invalid response form logins server']);
+                return $this->returnJson($json);
             }
+        } else {
+            return $this->returnJson(['state' => 'error', 'invalid response form logins server']);
         }
-        return $this->returnJson(['state' => 'error', 'msg' => 'no post']);
+        
     }
     /*
 
