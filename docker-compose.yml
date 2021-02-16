@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: ./mariadb/Dockerfile
-      target: mariadb_DIV
+      target: mariadb_server
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER='root'
