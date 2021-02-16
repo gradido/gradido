@@ -13,6 +13,3 @@
 [submodule "dependencies/spirit-po"]
 	path = dependencies/spirit-po
 	url = https://github.com/cbeck88/spirit-po.git
-[submodule "dependencies/protobuf"]
-	path = dependencies/protobuf
-	url = https://github.com/protocolbuffers/protobuf.git
