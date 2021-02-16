@@ -181,7 +181,20 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		auto conn = ConnectionManager::getInstance();
 		//conn->setConnection()
 		//printf("try connect login server mysql db\n");
-		conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		try {
+			conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		}
+		catch (Poco::Exception& ex) {
+			// maybe we in docker environment and db needs some time to start up
+			// let's wait 10 seconds
+			int count = 10;
+			while (count > 0) {
+				printf("\rwait on mysql/mariadb %d seconds...", count);
+				count--;
+				Poco::Thread::sleep(1000);
+			}
+			conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_LOGIN_SERVER);
+		}
 		//printf("try connect php server mysql \n");
 		//conn->setConnectionsFromConfig(config(), CONNECTION_MYSQL_PHP_SERVER);
 
