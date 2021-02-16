@@ -263,9 +263,9 @@ return [
              * the following line and set the port accordingly
              */
             //'port' => 'non_standard_port_number',
-            'username' => 'my_app',
-            'password' => 'secret',
-            'database' => 'my_app',
+            'username' => env('DB_USER', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'database' => env('DB_DATABASE', 'gradido_community'),
             /*
              * You do not need to set this flag to use full utf-8 encoding (internal default since CakePHP 3.6).
              */
@@ -294,7 +294,7 @@ return [
              */
             //'init' => ['SET GLOBAL innodb_stats_on_metadata = 0'],
 
-            'url' => env('DATABASE_URL', null),
+            'url' => env('MARIADB_URL', null),
         ],
 
         /**
@@ -394,7 +394,7 @@ return [
     // Gradido specific configuration
     // Login Server ip and port
     'LoginServer' => [
-        'host' => 'http://127.0.0.1',
+        'host' => 'login-server',
         'port' => 1201
     ],
     
