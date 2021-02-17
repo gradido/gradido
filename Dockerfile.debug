@@ -29,6 +29,7 @@ COPY --from=protoc_build /protobuf/src/.libs/libprotoc.so.20.0.1 /usr/lib/libpro
 COPY --from=protoc_build /protobuf/src/google/protobuf/*.proto /usr/include/google/protobuf/
 COPY --from=protoc_build /protobuf/src/google/protobuf/*.h /usr/include/google/protobuf/
 
+#VOLUME /root/.conan
 	
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
@@ -67,6 +68,8 @@ From debug_preparation as debug
 ENV DOCKER_WORKDIR="/code"
 
 USER root
+#VOLUME /root/.conan
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gdb && \
 	apt-get autoclean && \
