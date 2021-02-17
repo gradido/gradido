@@ -29,19 +29,23 @@ services:
     build: 
       context: ./login_server/
       target: login_server_debug
+      dockerfile: Dockerfile.debug
     security_opt:
       - seccomp:unconfined
-    #cap-add:SYS_PTRACE
+    cap_add:
+      - SYS_PTRACE
     depends_on: 
       - mariadb
     networks: 
       - internal-net
+      #- external-net
     ports:
       - 1200:1200
       - 1201:1201
     volumes:
       - ./configs/login_server:/etc/grd_login
       - ./logs:/var/log/grd_login 
+      - conan:/root/.conan
   #  image: ocelotsocialnetwork/backend:development
   #  build:
   #    target: development
@@ -58,4 +62,5 @@ services:
    
 volumes:
   frontend_node_modules:
+  conan:
   # backend_node_modules:

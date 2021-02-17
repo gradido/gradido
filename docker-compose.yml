@@ -58,8 +58,8 @@ services:
     build: 
       context: ./login_server/
       target: login_server
-    depends_on: 
-      - mariadb
+    #depends_on: 
+      #- mariadb
     networks: 
       - internal-net
     ports:
