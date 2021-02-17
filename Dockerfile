@@ -11,5 +11,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 WORKDIR /usr/share/nginx/html
 
 COPY . .
-COPY ./config/nginx/nginx.conf /etc/nginx/sites-enabled/nginx.conf
+COPY ./config/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./config/nginx/fastcgi.conf /etc/nginx/
+COPY ./config/nginx/mime.types /etc/nginx/
 RUN composer update --no-scripts --no-autoloader
