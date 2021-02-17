@@ -1,17 +1,12 @@
-FROM nginx
+FROM phpdockerio/php74-fpm
 
 # install php fpm 
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install curl unzip php7.3-curl php7.3-fpm php7.3-mbstring php7.3-intl php7.3-xml php7.3-pdo php7.3-mysql \
+    && apt-get -y --no-install-recommends install curl unzip php7.4-curl php7.4-fpm php7.4-mbstring php7.4-intl php7.4-xml php7.4-pdo php7.4-mysql \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-	
-# install composer
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-WORKDIR /usr/share/nginx/html
+WORKDIR /var/www/cakephp
 
-COPY . .
-COPY ./config/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./config/nginx/fastcgi.conf /etc/nginx/
-COPY ./config/nginx/mime.types /etc/nginx/
-RUN composer update --no-scripts --no-autoloader
+COPY ./community_server/ .
+COPY ./configs/community_server/app.php ./config/
+RUN composer update
