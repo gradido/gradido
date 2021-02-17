@@ -42,6 +42,7 @@ services:
       context: .
       dockerfile: ./mariadb/Dockerfile
       target: mariadb_server
+    container_name: mariadb
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER='root'
@@ -58,31 +59,45 @@ services:
     build: 
       context: ./login_server/
       target: login_server
-    #depends_on: 
-      #- mariadb
+    container_name: login-server
+    depends_on: 
+      - mariadb
     networks: 
       - internal-net
-    ports:
-      - 1200:1200
-      - 1201:1201
     volumes:
       - ./configs/login_server:/etc/grd_login
       
-  ## community server (cakephp with php-fpm and nginx)
+  ## nginx, connect login-server and community-server together (and php-fpm to community-server)    
+  nginx:
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    container_name: nginx
+    networks:
+      - external-net
+      - internal-net
+    depends_on:
+      - community-server
+      - login-server
+    ports:
+      - 80:80
+  
+  ## community server (cakephp with php-fpm)
   community-server:
     build: 
-      context: ./community_server/      
+      context: .
+      dockerfile: ./community_server/Dockerfile
+    container_name: community-server
     environment:
       - DB_PASSWORD=''
       - DB_USER='root'
       - DB_DATABASE='gradido_community'
     depends_on: 
       - mariadb
-    ports:
-      - 80:80
     networks: 
       - internal-net
-      - external-net
+    volumes:
+      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
   
   #backend:
   #  image: ocelotsocialnetwork/backend:latest
@@ -120,4 +135,4 @@ networks:
     internal: true
 
 volumes:
-  db_vol:    
+  db_vol:      

@@ -30,6 +30,7 @@ services:
       context: ./login_server/
       target: login_server_debug
       dockerfile: Dockerfile.debug
+    container_name: login-server
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -38,7 +39,7 @@ services:
       - mariadb
     networks: 
       - internal-net
-      #- external-net
+      - external-net
     ports:
       - 1200:1200
       - 1201:1201
@@ -46,6 +47,24 @@ services:
       - ./configs/login_server:/etc/grd_login
       - ./logs:/var/log/grd_login 
       - conan:/root/.conan
+      
+  ## community server (cakephp with php-fpm and nginx)
+  nginx:
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    container_name: nginx
+    networks:
+      - external-net
+      - internal-net
+    depends_on:
+      - community-server
+      - login-server
+    ports:
+      - 80:80
+    volumes: 
+      - ./logs:/var/log/nginx 
+  
   #  image: ocelotsocialnetwork/backend:development
   #  build:
   #    target: development
