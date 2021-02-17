@@ -10,7 +10,7 @@ The dominant financial system threatens to fail around the globe, followed by ma
 
 ## Software requirements
 
-Currently we only support `docker` as environment to rull all services, since many different programming languages ad frameworks are used.
+Currently we only support `docker` as environment to run all services, since many different programming languages and frameworks are used.
 
 - [docker](https://www.docker.com/)
 
