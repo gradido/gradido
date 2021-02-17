@@ -5,6 +5,8 @@ use Cake\Routing\Router;
 use Cake\I18n\I18n;
 use Cake\I18n\FrozenTime;
 use Cake\ORM\TableRegistry;
+use Cake\Http\Client;
+use Cake\Core\Configure;
 
 use App\Controller\AppController;
 use App\Form\UserSearchForm;
@@ -43,7 +45,7 @@ class StateUsersController extends AppController
         $this->Auth->allow([
             'search', 'ajaxCopyLoginToCommunity', 'ajaxCopyCommunityToLogin',
             'ajaxDelete', 'ajaxCountTransactions', 'ajaxVerificationEmailResend',
-            'ajaxGetUserEmailVerificationCode'
+            'ajaxGetUserEmailVerificationCode', 'ajaxGetCSFRToken'
          ]);
         $this->set(
             'naviHierarchy',
@@ -432,6 +434,40 @@ class StateUsersController extends AppController
             return $this->returnJson(['state' => 'success', 'counts' => $counts]);
         }
         return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
+    }
+    
+    public function ajaxGetCSFRToken($session_id)
+    {
+        if(!isset($session_id) || $session_id == 0) {
+            $this->returnJson(['state' => 'error', 'msg' => 'no session id']);
+        }
+        
+        $client_ip = $this->request->clientIp();
+
+        $loginServer = Configure::read('LoginServer');
+        $url = $loginServer['host'] . ':' . $loginServer['port'];
+
+        $http = new Client();
+        $response = $http->get($url . '/login', ['session_id' => $session_id]);
+        $json = $response->getJson();
+
+        if (isset($json) && count($json) > 0) {
+            if ($json['state'] === 'success') {
+                if($json['clientIP'] == $client_ip) {
+                    return $this->returnJson(['state' => 'success', 'csfr' => $this->request->getParam('_csrfToken')]);
+                } else {
+                    return $this->returnJson([
+                        'state' => 'error',
+                        'msg' => 'client ip mismatch',
+                        'details' => ['login_server' => $json['clientIP'], 'caller' => $client_ip]]);
+                }
+            } else {
+                return $this->returnJson($json);
+            }
+        } else {
+            return $this->returnJson(['state' => 'error', 'invalid response form logins server']);
+        }
+        
     }
     /*
 
