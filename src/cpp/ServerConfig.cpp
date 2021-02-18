@@ -243,6 +243,9 @@ namespace ServerConfig {
 		if (cfg.getInt("unsecure.allow_auto_sign_transactions", 0) == 1) {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_AUTO_SIGN_TRANSACTIONS);
 		}
+		if (cfg.getInt("unsercure.allow_cors_all", 0) == 1) {
+			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_CORS_ALL);
+		}
 
 		return true;
 	}

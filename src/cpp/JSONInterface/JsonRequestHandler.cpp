@@ -8,6 +8,8 @@
 
 #include "Poco/JSON/Parser.h"
 
+#include "../ServerConfig.h"
+
 #include "../lib/DataTypeConverter.h"
 
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
@@ -15,6 +17,9 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 
 	response.setChunkedTransferEncoding(false);
 	response.setContentType("application/json");
+	if (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_CORS_ALL) {
+		response.set("Access-Control-Allow-Origin", "*");
+	}
 	//bool _compressResponse(request.hasToken("Accept-Encoding", "gzip"));
 	//if (_compressResponse) response.set("Content-Encoding", "gzip");
 
