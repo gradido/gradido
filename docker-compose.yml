@@ -45,8 +45,7 @@ services:
     container_name: mariadb
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
-      - MARIADB_USER='root'
-      - MARIADB_DATABASE='gradido_login'
+      - MARIADB_USER=root
     networks: 
       - internal-net
     ports: 

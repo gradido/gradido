@@ -65,6 +65,21 @@ services:
     volumes: 
       - ./logs:/var/log/nginx 
   
+  ## for debugging mariadb
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    environment:
+     - PMA_ARBITRARY=1
+    restart: always
+    ports:
+     - 8080:80
+    networks: 
+     - internal-net
+     - external-net
+    volumes:
+     - /sessions
+  
   #  image: ocelotsocialnetwork/backend:development
   #  build:
   #    target: development
