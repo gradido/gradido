@@ -394,7 +394,7 @@ return [
     // Gradido specific configuration
     // Login Server ip and port
     'LoginServer' => [
-        'host' => 'login-server',
+        'host' => 'http://login-server',
         'port' => 1201
     ],
 
