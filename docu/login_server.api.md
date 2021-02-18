@@ -18,9 +18,12 @@ Einloggen über:
 # unsecureLogin
 
 POST http://localhost/login_api/unsecureLogin 
+```
 data: {"username": "<username>", "password": "<password>"}
+```
 
 Wenn alles okay ist erhältst du:
+```
 {"state":"success", "session_id": <session_id as int>, "clientIP":"<client ip of user>",
   "user": {
 	"created": <timestamp in seconds>,
@@ -38,6 +41,7 @@ Wenn alles okay ist erhältst du:
 	"id": <id in login-server db>,
 	"errorCount": <errors occured in this session, should be normally 0>
 }}
+```
 
 Anmelden
 Registrieren kannst du einen neuen Benutzer mit: 
@@ -46,11 +50,15 @@ Registrieren kannst du einen neuen Benutzer mit:
 ## createUser
 
 POST http://localhost/login_api/createUser
+```
 data: {"email":"<email>", "first_name":"<first name>", "last_name":"<last name>" ,
           "emailType": 2, "password":"<password>"}
+```
 
 Wenn alles okay ist erhältst du:
+```
 {"state":"success"}
+```
 
 Dann wurde für den Benutzer ein neues Konto angelegt, seine Schlüssel generiert und ihm eine Bestätigungs-Email geschickt. 
 
@@ -59,7 +67,11 @@ Dann wurde für den Benutzer ein neues Konto angelegt, seine Schlüssel generier
 
 Abmelden
 POST http://localhost/login_api/logout
+```
 data: {"session_id": <session_id as int>}
+```
 
 Wenn alles okay ist erhältst du:
+```
 {"state":"success"}
+```
