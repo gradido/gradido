@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -189,7 +189,8 @@ class StateBalancesController extends AppController
             return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
         }
         $user = $session->read('StateUser');
-        return $this->returnJson(['state' => 'success', 'balance' => $session->read('StateUser.balance')]);
+        //var_dump($user);
+        return $this->returnJson(['state' => 'success', 'balance' => $user['balance']]);
         
     }
     

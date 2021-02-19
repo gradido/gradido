@@ -158,6 +158,7 @@ class AppController extends Controller
 
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
+            
 
             $transactionPendings = $session->read('Transaction.pending');
             $transactionExecutings = $session->read('Transaction.executing');

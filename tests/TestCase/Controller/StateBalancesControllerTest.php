@@ -1,7 +1,6 @@
 <?php
 namespace App\Test\TestCase\Controller;
 
-use App\Controller\StateBalancesController;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -67,7 +66,21 @@ class StateBalancesControllerTest extends TestCase
      */
     public function testAjaxGetBalance()
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $session_id = rand();
+        $balance = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'id' => 2, // 1 don't work, I don't know why
+                'email_checked' => 1,
+                'balance' => $balance
+            ]
+        ]);
+        //echo "balance: $balance";
+        $this->getAndParse('/state-balances/ajaxGetBalance/' . $session_id, 
+                ['state' => 'success', 'balance' => $balance]
+        );
     }
 
     /**
@@ -138,5 +151,28 @@ class StateBalancesControllerTest extends TestCase
     public function testDelete()
     {
         $this->markTestIncomplete('Not implemented yet.');
+    }
+    
+    
+    private function getAndParse($path, $expected)
+    {
+        $this->configRequest([
+            'headers' => ['Accept' => 'application/json']
+        ]);
+        
+        $this->disableErrorHandlerMiddleware();
+        $this->get($path);        
+        
+        // Check that the response was a 200
+        $this->assertResponseOk();     
+        
+        $responseBodyString = (string)$this->_response->getBody();
+        $json = json_decode($responseBodyString);
+        $this->assertNotFalse($json);
+        
+        if(is_array($expected)) {
+          $expected = json_encode($expected);
+        }
+        $this->assertEquals($expected, $responseBodyString);
     }
 }
