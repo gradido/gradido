@@ -36,23 +36,42 @@ class TransactionsFixture extends TestFixture
      */
     public function init()
     {
-      //(17, 0, 1, 0x0000000000000000000000000000000000000000000000000000000000000000, '', '2019-11-05 15:13:27');
+      // (1, NULL, 1, 0x7dc55cf3a1a39b441d87d5452c40cad8e7fd8aab573ed1da0bf118129fc77987, 'AGE Dezember 2020', '2021-02-19 13:18:52'),
+      // (2, NULL, 1, 0xdea38d4dd72af1e0d90621ae8139efbbdb3b44b60be04b0d40cfc157afd2c19c, 'AGE Januar 2021', '2021-02-19 13:25:36'),
+      // (3, NULL, 1, 0x4e7734ed84dcd8ddc5286b87ff85eb12704092d51f485e7c4dbcb4a68ba296ce, 'AGE Februar 2021', '2021-02-19 13:25:37'),
+      // (4, NULL, 2, 0x065b5b75b7f4b156fe2b07b54b1a3df0c4eadc40c0f6940c666fed4d75751f8f, 'Ich teile mit dir\r\n \r\nmiau _=', '2021-02-19 13:27:14');
         $this->records = [
             [
                 'id' => 1,
-                'group_id' => 0,
+                'group_id' => NULL,
                 'transaction_type_id' => 1,
-                'tx_hash' => '0x0000000000000000000000000000000000000000000000000000000000000000',
-                'memo' => '',
-                'received' => 1571314633
+                'tx_hash' => '0x7dc55cf3a1a39b441d87d5452c40cad8e7fd8aab573ed1da0bf118129fc77987',
+                'memo' => 'AGE Dezember 2020',
+                'received' => '2021-02-19 13:18:52'
             ],
             [
-                'id' => 17,
-                'group_id' => 0,
+                'id' => 2,
+                'group_id' => NULL,
                 'transaction_type_id' => 1,
-                'tx_hash' => '0x0000000000000000000000000000000000000000000000000000000000000000',
-                'memo' => '',
-                'received' => 1572966807
+                'tx_hash' => '0xdea38d4dd72af1e0d90621ae8139efbbdb3b44b60be04b0d40cfc157afd2c19c',
+                'memo' => 'AGE Januar 2021',
+                'received' => '2021-02-19 13:25:36'
+            ],
+            [
+                'id' => 3,
+                'group_id' => NULL,
+                'transaction_type_id' => 1,
+                'tx_hash' => '0x4e7734ed84dcd8ddc5286b87ff85eb12704092d51f485e7c4dbcb4a68ba296ce',
+                'memo' => 'AGE Februar 2021',
+                'received' => '2021-02-19 13:25:37'
+            ],
+            [
+                'id' => 4,
+                'group_id' => NULL,
+                'transaction_type_id' => 2,
+                'tx_hash' => '0x065b5b75b7f4b156fe2b07b54b1a3df0c4eadc40c0f6940c666fed4d75751f8f',
+                'memo' => 'Ich teile mit dir\r\n \r\nmiau _=',
+                'received' => '2021-02-19 13:27:14'
             ],
         ];
         parent::init();

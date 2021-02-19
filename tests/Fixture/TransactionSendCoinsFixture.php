@@ -38,15 +38,16 @@ class TransactionSendCoinsFixture extends TestFixture
      */
     public function init()
     {
+        // (1, 4, 2, 0x80183e03535d17a54ff1fd7dbaed86939d423a19a258c26b8e338ce601338355, 1, 15000000, 15000000);
         $this->records = [
             [
                 'id' => 1,
-                'transaction_id' => 1,
-                'state_user_id' => 1,
-                'receiver_public_key' => 'Lorem ipsum dolor sit amet',
-                'receiver_user_id' => 'Lorem ipsum dolor sit amet',
-                'amount' => 1,
-                'sender_final_balance' => 1
+                'transaction_id' => 4,
+                'state_user_id' => 2,
+                'receiver_public_key' => '0x80183e03535d17a54ff1fd7dbaed86939d423a19a258c26b8e338ce601338355',
+                'receiver_user_id' => 1,
+                'amount' => 150000001,
+                'sender_final_balance' => 15000000
             ],
         ];
         parent::init();
