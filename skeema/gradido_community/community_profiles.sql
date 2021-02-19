@@ -4,6 +4,5 @@ CREATE TABLE `community_profiles` (
   `profile_img` longblob,
   `profile_desc` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `state_user_id` (`state_user_id`),
-  CONSTRAINT `community_profiles_ibfk_1` FOREIGN KEY (`state_user_id`) REFERENCES `state_users` (`id`)
+  KEY `state_user_id` (`state_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

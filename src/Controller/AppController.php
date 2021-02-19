@@ -139,13 +139,15 @@ class AppController extends Controller
         }
     }
 
-    protected function requestLogin()
+    protected function requestLogin($session_id = 0)
     {
         $session = $this->getRequest()->getSession();
         // check login
         // disable encryption for cookies
         //$this->Cookie->configKey('User', 'encryption', false);
-        $session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
+        if(!$session_id) {
+            $session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
+        }
         $ip = $this->request->clientIp();
         if (!$session->check('client_ip')) {
             $session->write('client_ip', $ip);
@@ -156,8 +158,9 @@ class AppController extends Controller
 
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
+            
 
-            $transactionPendings = $session->read('Transactions.pending');
+            $transactionPendings = $session->read('Transaction.pending');
             $transactionExecutings = $session->read('Transaction.executing');
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
@@ -185,7 +188,7 @@ class AppController extends Controller
                             $transactionPendings = $json['Transaction.pending'];
                             $transactionExecuting = $json['Transaction.executing'];
                           //echo "read transaction pending: $transactionPendings<br>";
-                            $session->write('Transactions.pending', $transactionPendings);
+                            $session->write('Transaction.pending', $transactionPendings);
                             $session->write('Transaction.executing', $transactionExecuting);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');

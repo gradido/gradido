@@ -248,7 +248,11 @@ class JsonRequestHandlerController extends AppController {
         $stateErrorEntity->transaction_type_id = $transaction->getTransactionBody()->getTransactionTypeId();
         $stateErrorEntity->message_json = $json;
         $stateErrorsTable->save($stateErrorEntity);
+      } else {
+	$errorArray['user_error'] = "user with $pub not found";
+	$json = json_encode($errorArray);
       }
+
       return $this->returnJsonEncoded($json);
     }
     
