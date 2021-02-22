@@ -123,7 +123,38 @@ class StateBalancesControllerTest extends TestCase
      */
     public function testAjaxListTransactions()
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        //ajaxListTransactions
+        $session_id = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'id' => 1,
+                'first_name' => 'Dario',
+                'last_name' => 'Frodo',
+                'email_checked' => 1,
+                'email' => 'fördertest@gradido.org',
+                'public_hex' => '94ae135b93cd9f33752b4e55c41903a3faa13a75bb90bfd411ea1d4a1a5e711f'
+            ]
+        ]);
+        //echo "balance: $balance";
+        $this->getAndParse('/state-balances/ajaxListTransactions/' . $session_id, 
+                [
+                    'state' => 'success', 'transactions' => [[
+                        'name' => 'Dario Frodo',
+                        'email'=> 'dariofrodo@gmx.de',
+                        'type'=> '',
+                        'transaction_id' => 4,
+                        'date' => '2021-02-19T13:27:14+00:00',
+                        'balance' => 150000001,
+                        'memo' => ''
+                    ]],
+                    'transactionExecutingCount' => 0,
+                    'count' => 1,
+                    'gdtSum' => 0,
+                    'timeUsed' => 0.03168010711669922
+                ]
+        );
     }
 
     /**
@@ -202,10 +233,16 @@ class StateBalancesControllerTest extends TestCase
         $responseBodyString = (string)$this->_response->getBody();
         $json = json_decode($responseBodyString);
         $this->assertNotFalse($json);
-        
+
         if(is_array($expected)) {
+            // copy timeUsed because this value will be variy always
+          if(isset($expected['timeUsed']) && isset($json->timeUsed)) {
+              $expected['timeUsed'] = $json->timeUsed;
+          }
           $expected = json_encode($expected);
         }
+        
+        
         $this->assertEquals($expected, $responseBodyString);
     }
 }

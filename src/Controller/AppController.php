@@ -159,9 +159,9 @@ class AppController extends Controller
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
             
-
             $transactionPendings = $session->read('Transaction.pending');
-            $transactionExecutings = $session->read('Transaction.executing');
+            $transactionExecutings = $session->read('Transaction.executing');          
+            
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
@@ -182,6 +182,8 @@ class AppController extends Controller
                                 $session->destroy();
                             }
                             foreach ($json['user'] as $key => $value) {
+                                // we don't need the id of user in login server db
+                                if($key  == 'id') continue;
                                 $session->write('StateUser.' . $key, $value);
                             }
                           //var_dump($json);

@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -215,34 +215,32 @@ class StateBalancesController extends AppController
         return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
     }
     
-    public function ajaxListTransactions($session_id, $page, $count)
+    public function ajaxListTransactions($session_id = 0)
     {
-        if(!isset($session_id) || !$session_id) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+        if(!$session_id) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
         }
+        
         $startTime = microtime(true);
-        $session = $this->getRequest()->getSession();
-        $result = $this->requestLogin($session_id);
-        if ($result !== true) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
         }
+        $session = $this->getRequest()->getSession();
         $user = $session->read('StateUser');
-        
-        $gdtSum = 0;
-        
+
+        $gdtSum = 0;        
         $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
 
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
-          if($user) {
-              
+          if($user) {   
             $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id']);
           } else {
             $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, 0);
           }
         }
-        
 
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable

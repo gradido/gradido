@@ -43,10 +43,10 @@ class TransactionSendCoinsFixture extends TestFixture
             [
                 'id' => 1,
                 'transaction_id' => 4,
-                'state_user_id' => 2,
-                'receiver_public_key' => '0x80183e03535d17a54ff1fd7dbaed86939d423a19a258c26b8e338ce601338355',
-                'receiver_user_id' => 1,
-                'amount' => 150000001,
+                'state_user_id' => 1,
+                'receiver_public_key' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d',
+                'receiver_user_id' => 4,
+                'amount' => 15000000,
                 'sender_final_balance' => 15000000
             ],
         ];
