@@ -50,6 +50,7 @@ enum SessionStates {
 };
 
 class SessionManager;
+
 class UpdateUserPasswordPage;
 class PassphrasePage;
 class RepairDefectPassphrase;

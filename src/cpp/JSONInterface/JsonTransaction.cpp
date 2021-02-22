@@ -3,6 +3,7 @@
 #include "Poco/Dynamic/Struct.h"
 
 #include "../SingletonManager/SessionManager.h"
+#include "../ServerConfig.h"
 
 Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 {
@@ -46,7 +47,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 				std::string transactionBase64String;
 				Poco::Dynamic::Var transaction_base64 = paramJsonObject->get("transaction_base64");
-				int alreadyEnlisted = 0;
+				
 				if (transaction_base64.isString()) {
 					paramJsonObject->get("transaction_base64").convert(transactionBase64String);
 
@@ -60,6 +61,8 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 				} else {
 					Poco::DynamicStruct ds = *paramJsonObject;
+					int alreadyEnlisted = 0;
+
 					for (int i = 0; i < ds["transaction_base64"].size(); i++) {
 						ds["transaction_base64"][i].convert(transactionBase64String);
 						if (!session->startProcessingTransaction(transactionBase64String)) {
@@ -155,4 +158,12 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 	}
 
 	return result;
+}
+
+bool JsonTransaction::startProcessingTransaction(Session* session, const std::string& transactionBase64)
+{
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
+
+	}
+	return session->startProcessingTransaction(transactionBase64);
 }

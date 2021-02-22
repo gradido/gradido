@@ -687,8 +687,25 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			DRMakeStringHash(mSessionUser->getEmail()),
 			mSessionUser->getLanguage())
 	);
-	processorTask->scheduleTask(processorTask);
-	mProcessingTransactions.push_back(processorTask);
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
+		if (processorTask->run() != 0) {
+			getErrors(processorTask);
+			unlock();
+			return false;
+		}
+		Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(processorTask, mNewUser));
+		//signingTransaction->scheduleTask(signingTransaction);
+		if (signingTransaction->run() != 0) {
+			getErrors(signingTransaction);
+			unlock();
+			return false;
+		}
+		
+	}
+	else {
+		processorTask->scheduleTask(processorTask);
+		mProcessingTransactions.push_back(processorTask);
+	}
 	unlock();
 	return true;
 	
