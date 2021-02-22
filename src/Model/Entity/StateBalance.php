@@ -28,6 +28,39 @@ class StateBalance extends Entity
         'state_user_id' => true,
         'modified' => true,
         'amount' => true,
+        'record_date' => true,
         'state_user' => true
     ];
+    
+    protected $_virtual = ['decay'];
+    
+    protected function _getDecay()
+    {
+      // decay factor in seconds per year
+      // q = e^((lg Kn - lg K0) / n)
+      // 0.999999978
+      // 
+      // SELECT TIMESTAMPDIFF(SECOND, modified, CURDATE()) AS age_in_seconds from state_balances
+      // decay_for_duration = decay_factor^seconds
+      // decay = gradido_cent * decay_for_duration 
+      $decay_duration = intval(Time::now()->getTimestamp() - $this->record_date->getTimestamp());
+      if($decay_duration === 0) {
+          return $this->amount;
+      }
+      return $this->amount * pow(0.99999997802044727, $decay_duration);
+        
+    }
+    public function partDecay($target_date)
+    {
+        $decay_duration = intval($target_date->getTimestamp() - $this->record_date->getTimestamp());
+        if($decay_duration <= 0) {
+            return $this->amount;
+        }
+        return $this->amount * pow(0.99999997802044727, $decay_duration);
+    }
+    
+    public function decayDuration($target_date)
+    {
+        return intval($target_date->getTimestamp() - $this->record_date->getTimestamp());
+    }
 }
