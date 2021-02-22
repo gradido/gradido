@@ -94,7 +94,7 @@ Dann wurde für den Benutzer ein neues Konto angelegt, seine Schlüssel generier
 Abmelden
 POST http://localhost/login_api/logout
 ```json
-data: {"session_id": <session_id as int>}
+data: {"session_id": -127182}
 ```
 
 Wenn alles okay ist erhältst du:
