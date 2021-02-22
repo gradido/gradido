@@ -32,12 +32,11 @@ Wenn alles okay:
 			"balance": 1920000,
 			"memo": "a piece of cake :)",
 			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
-		 
 		 }
 	],
 	"transactionExecutingCount": 0,
 	"count": 1,
-	"gdtSum": 0
+	"gdtSum": 0,
 	"timeUsed": 0.04562687873840332
 }
 ```
