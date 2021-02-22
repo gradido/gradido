@@ -5,9 +5,18 @@ Gradido js-Frontend vereinfachte Zusammenarbeit mit Login-Server und Community-S
 Es ist mit einer Zusatz-Option möglich das Login und Registrieren via ajax-Request passiern kann.
 Dafür muss in der Login-Server Config 
 
+```ini
 unsecure.allow_passwort_via_json_request   = 1 
+```
 
 gesetzt sein. 
+
+mit:
+```ini
+unsercure.allow_cors_all = 1
+```
+Wird bei allen JSON-Requests zum Header: Access-Control-Allow-Origin:* 
+hinzugefügt. 
 
 In diesen Beispielen gehe ich jetzt davon aus, das du das gesamte Gradido Projekt mit Docker gebaut hast und auf dem lokalen Rechner laufen lässt.
 
@@ -18,12 +27,12 @@ Einloggen über:
 # unsecureLogin
 
 POST http://localhost/login_api/unsecureLogin 
-```
+```json
 data: {"username": "<username>", "password": "<password>"}
 ```
 
 Wenn alles okay ist erhältst du:
-```
+```json
 {"state":"success", "session_id": <session_id as int>, "clientIP":"<client ip of user>",
   "user": {
 	"created": <timestamp in seconds>,
@@ -50,13 +59,13 @@ Registrieren kannst du einen neuen Benutzer mit:
 ## createUser
 
 POST http://localhost/login_api/createUser
-```
+```json
 data: {"email":"<email>", "first_name":"<first name>", "last_name":"<last name>" ,
           "emailType": 2, "password":"<password>"}
 ```
 
 Wenn alles okay ist erhältst du:
-```
+```json
 {"state":"success"}
 ```
 
@@ -67,11 +76,11 @@ Dann wurde für den Benutzer ein neues Konto angelegt, seine Schlüssel generier
 
 Abmelden
 POST http://localhost/login_api/logout
-```
+```json
 data: {"session_id": <session_id as int>}
 ```
 
 Wenn alles okay ist erhältst du:
-```
+```json
 {"state":"success"}
 ```
