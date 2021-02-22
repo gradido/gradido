@@ -150,6 +150,60 @@
  
       <admin-user-creation/>
 
+
+    <br> 
+       
+      <b-card-header> 
+     <hr>
+    <h3>Admin Participation List</h3>
+    <small>/public/json-example/admin_card_statistic.json</small>
+    <p>
+      {{cardstatistic}}
+    </p>
+
+     </b-card-header>
+      <b-card-header> 
+   <hr>
+    <h3>Admin Charts Statistic</h3>
+    <small>/public/json-example/admin_charts_statistic.json</small>
+    <p>
+      {{chartsstatistic}}
+    </p>
+
+     </b-card-header>
+      <b-card-header> 
+       <hr>
+    <h3>Admin Community Statistic</h3>
+    <small>/public/json-example/admin_community_statistic.json</small>
+    <p>
+      {{communitystatistic}}
+    </p>
+     </b-card-header>
+      <b-card-header> 
+    <hr>
+    <h3>Admin User List</h3>
+    <small>/public/json-example/admin_userlist.json</small>
+    <p>
+      {{userlist}}
+    </p>
+     </b-card-header>
+      <b-card-header> 
+      <hr>
+    <h3>Admin Transaction List</h3>
+    <small>/public/json-example/admin_transaction_list.json</small>
+    <p>
+      {{transactionlist}}
+    </p>
+
+      <hr>
+       </b-card-header>
+      <b-card-header> 
+    <h3>Admin Transience List</h3>
+    <small>/public/json-example/admin_transience_list.json</small>
+    <p>
+      {{transiencelist}}
+    </p>
+    </b-card-header>
       <!--End tables-->
     </b-container>
 
@@ -171,6 +225,7 @@
   import PageVisitsTable from './Dashboard/PageVisitsTable';
   import AdminUserSearch from './AdminOverview/AdminUserSearch';
   import AdminUserCreation from './AdminOverview/AdminUserCreation';
+  import axios from 'axios';
 
 
   export default {
@@ -186,14 +241,21 @@
     },
     data() {
       return {
+        statisticdata: [],
+        cardstatistic:[], 
+        chartsstatistic: [],
+        communitystatistic: [],
+        userlist: [],
+        transactionlist: [],
+        transiencelist: [],
         filter: '',
-      items: [
-        { id: 1, first_name: "Mikkel", last_name: "Hansen", age: 54 },
-        { id: 2, first_name: "Kasper", last_name: "Hvidt", age: 42 },
-        { id: 3, first_name: "Lasse", last_name: "Boesen", age: 39 },
-        { id: 4, first_name: "Kasper", last_name: "Hansen", age: 62 },
-        { id: 5, first_name: "Mads", last_name: "Mikkelsen", age: 31 },
-      ],
+        items: [
+          { id: 1, first_name: "Mikkel", last_name: "Hansen", age: 54 },
+          { id: 2, first_name: "Kasper", last_name: "Hvidt", age: 42 },
+          { id: 3, first_name: "Lasse", last_name: "Boesen", age: 39 },
+          { id: 4, first_name: "Kasper", last_name: "Hansen", age: 62 },
+          { id: 5, first_name: "Mads", last_name: "Mikkelsen", age: 31 },
+        ],
         bigLineChart: {
           allData: [
             [0, 20, 10, 30, 15, 40, 20, 60, 60],
@@ -226,6 +288,69 @@
       };
     },
     methods: {
+     TransienceList() {
+          axios.get("/json-example/admin_transience_list.json").then((d) => {
+          console.log(d);
+          this.transiencelist = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+     TransactionList() {
+          axios.get("/json-example/admin_transaction_list.json").then((d) => {
+          console.log(d);
+          this.transactionlist = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+      UserList() {
+          axios.get("/json-example/admin_userlist.json").then((d) => {
+          console.log(d);
+          this.userlist = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+      CommunityStatistic() {
+          axios.get("/json-example/admin_community_statistic.json").then((d) => {
+          console.log(d);
+          this.communitystatistic = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+      ChartsStatistic() {
+          axios.get("/json-example/admin_charts_statistic.json").then((d) => {
+          console.log(d);
+          this.chartsstatistic = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+      CardStatistic() {
+          axios.get("/json-example/admin_card_statistic.json").then((d) => {
+          console.log(d);
+          this.cardstatistic = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
+       StatisticDatas() {
+          axios.get("/json-example/admin_statisticdatas.json").then((d) => {
+          console.log(d);
+          this.userdata = d.data;
+          
+        }, (error) => {
+          console.log(error);
+        });
+        },
       initBigChart(index) {
         let chartData = {
           datasets: [
@@ -242,6 +367,12 @@
     },
     mounted() {
       this.initBigChart(0);
+      this.TransienceList();
+      this.TransactionList(); 
+      this.UserList(); 
+      this.CommunityStatistic();
+      this.ChartsStatistic();
+      this.CardStatistic();
     }
  
   }

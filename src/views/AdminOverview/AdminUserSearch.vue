@@ -81,7 +81,10 @@
                 </b-col>
               </b-row>
             </template>
-            <b-card-body>            
+            <b-card-body>       
+              <img style="width: 147px" src="https://demos.creative-tim.com/argon-dashboard-pro/assets/img/theme/team-4.jpg" />
+
+   
               <form>
                 <b-row class="">
                     <label class="col-md-3 col-form-label form-control-label">Name</label>

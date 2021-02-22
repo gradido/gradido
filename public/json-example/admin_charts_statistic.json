@@ -1,0 +1,64 @@
+{"state":"success", "statisticdata": 
+	[
+      {
+        "charts_creation_0_mon": 5635,
+        "charts_creation_1_mon": 5635,
+        "charts_creation_2_mon": 5635,
+        "charts_creation_3_mon": 5635,
+        "charts_creation_4_mon": 5635,
+        "charts_creation_5_mon": 5635,
+        "charts_creation_6_mon": 5635,
+        "charts_creation_7_mon": 5635,
+        "charts_creation_8_mon": 5635,
+        "charts_creation_9_mon": 5635,
+        "charts_creation_10_mon": 5635,
+        "charts_creation_11_mon": 5635,
+        "charts_creation_12_mon": 5635       
+      },
+      {
+        "charts_transience_0_mon": 5635,
+        "charts_transience_1_mon": 5635,
+        "charts_transience_2_mon": 5635,
+        "charts_transience_3_mon": 5635,
+        "charts_transience_4_mon": 5635,
+        "charts_transience_5_mon": 5635,
+        "charts_transience_6_mon": 5635,
+        "charts_transience_7_mon": 5635,
+        "charts_transience_8_mon": 5635,
+        "charts_transience_9_mon": 5635,
+        "charts_transience_10_mon": 5635,
+        "charts_transience_11_mon": 5635,
+        "charts_transience_12_mon": 5635       
+      },
+      {
+        "charts_exchange_0_mon": 5635,
+        "charts_exchange_1_mon": 5635,
+        "charts_exchange_2_mon": 5635,
+        "charts_exchange_3_mon": 5635,
+        "charts_exchange_4_mon": 5635,
+        "charts_exchange_5_mon": 5635,
+        "charts_exchange_6_mon": 5635,
+        "charts_exchange_7_mon": 5635,
+        "charts_exchange_8_mon": 5635,
+        "charts_exchange_9_mon": 5635,
+        "charts_exchange_10_mon": 5635,
+        "charts_exchange_11_mon": 5635,
+        "charts_exchange_12_mon": 5635       
+      },
+      {
+        "charts_members_0_mon": 5635,
+        "charts_members_1_mon": 5635,
+        "charts_members_2_mon": 5635,
+        "charts_members_3_mon": 5635,
+        "charts_members_4_mon": 5635,
+        "charts_members_5_mon": 5635,
+        "charts_members_6_mon": 5635,
+        "charts_members_7_mon": 5635,
+        "charts_members_8_mon": 5635,
+        "charts_members_9_mon": 5635,
+        "charts_members_10_mon": 5635,
+        "charts_members_11_mon": 5635,
+        "charts_members_12_mon": 5635       
+      }
+    ]
+}

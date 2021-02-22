@@ -1,0 +1,36 @@
+{"state":"success", "statisticdata": 
+	[
+    {
+      "i_creation_sum": 29288278.4653,
+      "i_creation_mon": 68278.4653,
+      "i_creation_365d": 19288278.4653,
+      "i_creation_30d": 288278.4653,
+      "i_creation_14d": 88278.4653,
+      "i_creation_7d": 3278.4653
+      },
+      {
+      "i_transience_sum": 8278.4653,
+      "i_transience_mon": 8278.4653,
+      "i_transience_365d": 8278.4653,
+      "i_transience_30d": 178.4653,
+      "i_transience_14d": 78.4653,
+      "i_transience_7d": 8.4653
+      },
+      {
+      "i_exchange_sum": 23345.2324,
+      "i_exchange_mon": 2,
+      "i_exchange_365d": 2,
+      "i_exchange_30d": 2,
+      "i_exchange_14d": 2,
+      "i_exchange_7d": 2
+      },
+      {
+      "i_members_sum": 5398,
+      "i_members_mon": 234,
+      "i_members_365d": 2356,
+      "i_members_30d": 123,
+      "i_members_14d": 23,
+      "i_members_7d": 24
+      }
+    ]
+}

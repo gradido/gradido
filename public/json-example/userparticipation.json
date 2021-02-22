@@ -1,0 +1,45 @@
+{"state":"success", "participation": 
+	[
+		{
+			"type": "submitted",
+			"participation_id": 412, 
+			"date_submitted": "9-12-2020",
+			"titel": "Lorem Ipsum panta lore es Tastina sero was.  ",
+			"text": "Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  ",
+      "date_participation": "8-12-2020",
+      "plz_participation": "01099",
+			"pubkey": "abcdefghi123456789"		 
+		 },
+     {
+			"type": "in progress",
+			"participation_id": 312, 
+			"date_submitted": "2-11-2020",
+			"titel": "Lorem Ipsum panta lore es Tastina sero was.  ",
+			"text": "Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  ",
+      "date_participation": "2-11-2020",
+      "plz_participation": "01099",
+			"pubkey": "abcdefghi123456789"		 
+		 },
+     {
+			"type": "confirmed",
+			"participation_id": 212, 
+			"date_submitted": "20-10-2020",
+			"titel": "Lorem Ipsum panta lore es Tastina sero was.  ",
+			"text": "Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  ",
+      "date_participation": "20-10-2020",
+      "plz_participation": "01099",
+			"pubkey": "abcdefghi123456789"		 
+		 },
+     {
+			"type": "rejected",
+			"participation_id": 142, 
+			"date_submitted": "17-9-2020",
+			"titel": "Lorem Ipsum panta lore es Tastina sero was.  ",
+			"text": "Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  Lorem Ipsum panta lore es Tastina sero was.  ",
+      "date_participation": "17-9-2020",
+      "plz_participation": "01099",
+			"pubkey": "abcdefghi123456789"		 
+		 }    
+	],
+	"count": 4
+}
