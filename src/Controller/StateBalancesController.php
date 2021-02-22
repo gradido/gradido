@@ -206,12 +206,13 @@ class StateBalancesController extends AppController
               'details' => ['public_key' => $user['public_hex'], 'entry_count' => $result_count]
           ]);
         }
-        $state_balances_count = count($stateUserQuery->first()->state_balances);
+        $state_balances = $stateUserQuery->first()->state_balances;
+        $state_balances_count = count($state_balances);
         if($state_balances_count != 1) {
             return $this->returnJson(['state' => 'error', 'msg' => 'state balances count isn\'t as expected, expect 1', 'details' => $state_balances_count]);
         }
         
-        return $this->returnJson(['state' => 'success', 'balance' => $stateUserQuery->first()->state_balances[0]->amount]);
+        return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
     }
     
     public function ajaxListTransactions($session_id, $page, $count)
