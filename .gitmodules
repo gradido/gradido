@@ -1,6 +1,6 @@
 [submodule "mithril_client"]
 	path = mithril_client
-	url = ssh://git@***REMOVED***/~/frontend/gradido_mithrilJS_client
+	url = git@github.com:gradido/gradido_mithrilJS_client.git
 [submodule "src/protobuf"]
 	path = src/protobuf
-	url =  ssh://git@***REMOVED***/~/gradido_protocol
+	url =  git@github.com:gradido/gradido_protocol.git
