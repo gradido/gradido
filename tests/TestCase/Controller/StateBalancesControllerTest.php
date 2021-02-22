@@ -67,19 +67,52 @@ class StateBalancesControllerTest extends TestCase
     public function testAjaxGetBalance()
     {
         $session_id = rand();
-        $balance = rand();
         $this->session([
             'session_id' => $session_id,
             'Transaction' => ['pending' => 0, 'executing' => 0],
             'StateUser' => [
-                'id' => 2, // 1 don't work, I don't know why
+                'id' => 1,
                 'email_checked' => 1,
-                'balance' => $balance
+                'public_hex' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'
             ]
         ]);
         //echo "balance: $balance";
         $this->getAndParse('/state-balances/ajaxGetBalance/' . $session_id, 
-                ['state' => 'success', 'balance' => $balance]
+                ['state' => 'success', 'balance' => 1200000]
+        );
+    }
+    
+    public function testAjaxGetBalanceInvalidSession()
+    {
+        $session_id = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'email_checked' => 1,
+                'public_hex' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'
+            ]
+        ]);
+        //echo "balance: $balance";
+        $this->getAndParse('/state-balances/ajaxGetBalance/' . 1211, 
+                ['state' => 'not found', 'msg' => 'invalid session']
+        );
+    }
+    
+    public function testAjaxGetBalanceInvalidSessionId()
+    {
+        $session_id = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'email_checked' => 1,
+                'public_hex' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'
+            ]
+        ]);
+        //echo "balance: $balance";
+        $this->getAndParse('/state-balances/ajaxGetBalance' , 
+                ['state' => 'error', 'msg' => 'invalid session id']
         );
     }
 

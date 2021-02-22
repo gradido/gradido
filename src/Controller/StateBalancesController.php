@@ -177,21 +177,41 @@ class StateBalancesController extends AppController
         $this->set('gdtSum', $gdtSum);
     }
     
-    public function ajaxGetBalance($session_id)
+    public function ajaxGetBalance($session_id = 0)
     {
-        if(!isset($session_id) || !$session_id) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+        if(!$session_id) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
         }
-        $startTime = microtime(true);
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
         $session = $this->getRequest()->getSession();
-        $result = $this->requestLogin($session_id);
-        if ($result !== true) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
-        }
         $user = $session->read('StateUser');
-        //var_dump($user);
-        return $this->returnJson(['state' => 'success', 'balance' => $user['balance']]);
         
+        $public_key_bin = hex2bin($user['public_hex']);
+        $stateUserQuery = $this->StateBalances->StateUsers
+            ->find('all')
+            ->where(['public_key' => $public_key_bin])
+            ->contain(['StateBalances']);
+                
+        $result_user_count =  $stateUserQuery->count();
+        if($result_user_count < 1) {
+          return $this->returnJson(['state' => 'success', 'balance' => 0]);
+        }
+        else if($result_user_count > 1) {
+          return $this->returnJson([
+              'state' => 'error', 
+              'msg' => 'multiple entrys found',
+              'details' => ['public_key' => $user['public_hex'], 'entry_count' => $result_count]
+          ]);
+        }
+        $state_balances_count = count($stateUserQuery->first()->state_balances);
+        if($state_balances_count != 1) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'state balances count isn\'t as expected, expect 1', 'details' => $state_balances_count]);
+        }
+        
+        return $this->returnJson(['state' => 'success', 'balance' => $stateUserQuery->first()->state_balances[0]->amount]);
     }
     
     public function ajaxListTransactions($session_id, $page, $count)
