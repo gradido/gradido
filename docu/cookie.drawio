@@ -1,21 +1,23 @@
-<mxfile host="65bd71144e" modified="2021-02-23T12:11:21.224Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.53.2 Chrome/87.0.4280.141 Electron/11.2.1 Safari/537.36" version="14.2.4" etag="_YyFqY9ubX8V06zNDlcb" type="embed">
+<mxfile host="65bd71144e" modified="2021-02-23T13:35:37.984Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.53.2 Chrome/87.0.4280.141 Electron/11.2.1 Safari/537.36" etag="N8u8mMRnuiJVpLw-QHeI" version="14.2.4" type="embed">
     <diagram id="01e3cn_y3fmrmVdLCV0V" name="Page-1">
-        <mxGraphModel dx="1554" dy="302" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1650" dy="298" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="4" value="Start" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f0a30a;strokeColor=#BD7000;fontColor=#ffffff;" vertex="1" parent="1">
+                <mxCell id="4" value="Start" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f0a30a;strokeColor=#BD7000;fontColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry y="100" width="130" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="5" target="6">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="5" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="310" y="100.00000000000011" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="13" value="false" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF3333;fontSize=19;" vertex="1" connectable="0" parent="10">
+                <mxCell id="13" value="false" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF3333;fontSize=19;" parent="10" vertex="1" connectable="0">
                     <mxGeometry x="0.1333" y="-2" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="7">
+                <mxCell id="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="5" target="7" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="240" y="140"/>
@@ -23,85 +25,47 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="12" value="true" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#00FF00;fontSize=19;" vertex="1" connectable="0" parent="11">
+                <mxCell id="12" value="true" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#00FF00;fontSize=19;" parent="11" vertex="1" connectable="0">
                     <mxGeometry x="0.1167" y="2" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="5" value="is cookie ?" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#a0522d;strokeColor=#6D1F00;fontColor=#ffffff;" vertex="1" parent="1">
+                <mxCell id="5" value="is cookie ?" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#a0522d;strokeColor=#6D1F00;fontColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry x="110" y="100" width="100" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.376;entryY=-0.021;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="6" target="22">
+                <mxCell id="24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=#00FF00;" parent="1" source="22" target="5" edge="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="470" y="35" as="targetPoint"/>
-                        <Array as="points">
-                            <mxPoint x="410" y="35"/>
-                            <mxPoint x="675" y="35"/>
-                        </Array>
+                        <mxPoint x="310" y="100.00000000000011" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="19" value="false" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF3333;fontSize=19;" vertex="1" connectable="0" parent="16">
-                    <mxGeometry x="0.2525" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="6" target="14">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="18" value="true" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#6EF018;fontSize=19;" vertex="1" connectable="0" parent="17">
-                    <mxGeometry x="0.2101" y="-1" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=#00FF00;" edge="1" parent="1" source="6" target="5">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="6" value="is store auth ?" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#a0522d;strokeColor=#6D1F00;fontColor=#ffffff;" vertex="1" parent="1">
-                    <mxGeometry x="290" y="70" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="7" value="Kontooverview" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontColor=#ffffff;" vertex="1" parent="1">
+                <mxCell id="7" value="Kontooverview" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry x="640" y="240" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="14" target="7">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="570" y="280"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="21" value="true" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#00FF00;fontSize=19;" vertex="1" connectable="0" parent="20">
-                    <mxGeometry x="0.1029" y="-2" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="14" value="set new cookie" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="450" y="115" width="120" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="22" value="Landingpage&lt;br&gt;Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#6a00ff;strokeColor=#3700CC;fontColor=#ffffff;" vertex="1" parent="1">
+                <mxCell id="22" value="Landingpage&lt;br&gt;Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#6a00ff;strokeColor=#3700CC;fontColor=#ffffff;" parent="1" vertex="1">
                     <mxGeometry x="630" y="70" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="27" value="Cookie Abfrage" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="27" value="Cookie Abfrage" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="10" y="10" width="100" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="29" value="Cookie setzen" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="29" value="Cookie setzen" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="10" y="380" width="90" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="31" value="&lt;font color=&quot;#ffffff&quot;&gt;Landingpage&lt;br&gt;Login&lt;/font&gt;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#ffffff;fillColor=#6a00ff;strokeColor=#3700CC;" vertex="1" parent="1">
+                <mxCell id="31" value="&lt;font color=&quot;#ffffff&quot;&gt;Landingpage&lt;br&gt;Login&lt;/font&gt;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#ffffff;fillColor=#6a00ff;strokeColor=#3700CC;" parent="1" vertex="1">
                     <mxGeometry x="30" y="520" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="32" value="API&lt;br&gt;&lt;font color=&quot;#ffff99&quot;&gt;unsecureLogin&lt;/font&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="32" value="API&lt;br&gt;&lt;font color=&quot;#ffff99&quot;&gt;unsecureLogin&lt;/font&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="130" y="480" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="33" value="LOGINSERVER" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="33" value="LOGINSERVER" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="230" y="480" width="140" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="34" value="&lt;pre style=&quot;box-sizing: border-box ; font-family: , &amp;#34;consolas&amp;#34; , &amp;#34;liberation mono&amp;#34; , &amp;#34;menlo&amp;#34; , monospace ; font-size: 13.6px ; margin-top: 0px ; margin-bottom: 0px ; overflow-wrap: normal ; padding: 16px ; overflow: auto ; line-height: 1.45 ; border-radius: 6px ; word-break: normal&quot;&gt;&lt;span class=&quot;pl-s&quot; style=&quot;box-sizing: border-box&quot;&gt;&lt;font color=&quot;rgba(0, 0, 0, 0)&quot;&gt;success &lt;br/&gt;request&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#66ff66&quot;&gt;session_id&lt;/font&gt;&lt;/span&gt;&lt;span class=&quot;pl-s&quot; style=&quot;box-sizing: border-box&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/pre&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="34" value="&lt;pre style=&quot;box-sizing: border-box ; font-family: , &amp;#34;consolas&amp;#34; , &amp;#34;liberation mono&amp;#34; , &amp;#34;menlo&amp;#34; , monospace ; font-size: 13.6px ; margin-top: 0px ; margin-bottom: 0px ; overflow-wrap: normal ; padding: 16px ; overflow: auto ; line-height: 1.45 ; border-radius: 6px ; word-break: normal&quot;&gt;&lt;span class=&quot;pl-s&quot; style=&quot;box-sizing: border-box&quot;&gt;&lt;font color=&quot;rgba(0, 0, 0, 0)&quot;&gt;success &lt;br/&gt;request&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#66ff66&quot;&gt;session_id&lt;/font&gt;&lt;/span&gt;&lt;span class=&quot;pl-s&quot; style=&quot;box-sizing: border-box&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/pre&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="350" y="519" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="35" value="set Cookie&lt;br&gt;&lt;font color=&quot;#00ff00&quot;&gt;session_id&lt;/font&gt;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" vertex="1" parent="1">
+                <mxCell id="35" value="set Cookie&lt;br&gt;&lt;font color=&quot;#00ff00&quot;&gt;session_id&lt;/font&gt;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#FF3333;" parent="1" vertex="1">
                     <mxGeometry x="450" y="520" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="36" value="" style="curved=1;endArrow=none;html=1;fontColor=#FF3333;dashed=1;startArrow=block;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="31" target="22">
+                <mxCell id="36" value="" style="curved=1;endArrow=none;html=1;fontColor=#FF3333;dashed=1;startArrow=block;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="31" target="22" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="30" y="519" as="sourcePoint"/>
                         <mxPoint x="80" y="469" as="targetPoint"/>
@@ -111,16 +75,16 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="38" value="KontoOverview" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#ffffff;fillColor=#1ba1e2;strokeColor=#006EAF;" vertex="1" parent="1">
+                <mxCell id="38" value="KontoOverview" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontColor=#ffffff;fillColor=#1ba1e2;strokeColor=#006EAF;" parent="1" vertex="1">
                     <mxGeometry x="605" y="520" width="170" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="39" value="" style="shape=flexArrow;endArrow=classic;html=1;dashed=1;fontColor=#FF3333;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="35" target="38">
+                <mxCell id="39" value="" style="shape=flexArrow;endArrow=classic;html=1;dashed=1;fontColor=#FF3333;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="35" target="38" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="190" y="330" as="sourcePoint"/>
                         <mxPoint x="240" y="280" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="40" value="" style="curved=1;endArrow=none;html=1;fontColor=#FF3333;dashed=1;startArrow=block;endFill=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="38" target="7">
+                <mxCell id="40" value="" style="curved=1;endArrow=none;html=1;fontColor=#FF3333;dashed=1;startArrow=block;endFill=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="38" target="7" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="60" y="570" as="sourcePoint"/>
                         <mxPoint x="734.8387096774195" y="160" as="targetPoint"/>
