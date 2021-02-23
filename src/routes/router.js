@@ -28,9 +28,9 @@ router.beforeEach((to, from, next) => {
      }
    
   //console.log("----------------")
-  console.log("ROUTER.js to", to)
-  console.log("ROUTER.js store.state.is_auth", store.state.is_auth)
-  console.log("ROUTER.js store.commit('isActive')", store.commit('isActive'))
+  //("ROUTER.js to", to)
+  //console.log("ROUTER.js store.state.is_auth", store.state.is_auth)
+  //console.log("ROUTER.js store.commit('isActive')", store.commit('isActive'))
   
   //if (store.commit('isActive') ) {
   //  next()

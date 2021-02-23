@@ -57,13 +57,14 @@ export const store = new Vuex.Store({
       //}
       //  console.log("STORE login() to " + state.is_auth)      
     },
-    creatUser( formdata) {
+    creatUser( state, formdata) {
       //console.log("Im Store creatUser() start " ) 
       axios.post("http://localhost/login_api/createUser", formdata).then((ldata) => {
          
-        //console.log("Im Store creatUser() axios then ", ldata);
-       // this.ldata = ldata.data;
-        //return true
+         console.log("Im Store creatUser() axios then ", ldata);
+         // this.ldata = ldata.data;
+         return true
+         
       }, (error) => {
         console.log(error);
       });
