@@ -61,3 +61,32 @@ Wenn alles okay:
 - count: sum of finished transactions user is involved
 - gdtSum: sum of gdt of user in cent with 2 places (Nachkommastellen)
 - timeUsed: time used for getting data from db in seconds, only for analyse backend performance
+
+## Send Coins Transaction
+Make a simple GDD Transaction, send Coins from one user to other. 
+With new Option set in Login-Server: 
+```ini
+unsecure.allow_auto_sign_transactions = 1
+```
+transactions can be auto-signed directly with handing in transaction.
+Normally a forwarding to login-server check transactions side is neccessary to minimize security risks.
+
+POST http://localhost/transaction-send-coins/ajaxCreate
+```json
+{"session_id" : -127182, "amount": 2000000, "email": "maxim.mustermann@gmail.com", "memo":"Thank you :)"}
+```
+- amout: amount to transfer, 2000000 = 200,00 GDD
+- email: receiver email address, must be differ from user email
+- memo: Details about transaction 
+
+return if everything is ok:
+```json
+{"state":"success", "timeUsed": 0.0122}
+```
+- timeUsed: time used for getting data from db in seconds, only for analyse backend performance
+
+Than the transaction was created on community server, send to login-server, signed (if unsecure.allow_auto_sign_transactions = 1)
+and send back to community server and put into db. 
+After you get this answear you see the new transaction if you list transactions or call for the balance
+
+
