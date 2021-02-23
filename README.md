@@ -15,8 +15,10 @@ Currently we only support `docker` as environment to run all services, since man
 - [docker](https://www.docker.com/)
 
 ## How to run?
-`git submodule update --recursive --init`
-`docker-compose up`
+```bash
+git submodule update --recursive --init
+docker-compose up
+```
 
 ## Useful Links
 
