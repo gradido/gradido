@@ -1,0 +1,70 @@
+{
+  "message": "hello gradido !!",
+  "site": {
+    "welcome":"Welcome!",
+    "logout":"Logout",
+    "login":"Login",
+    "overview":{
+      "account_overview":"Account overview",
+      "current_balance":"Current account balance",
+      "gradido_received":"Gradido received",
+      "since_last_month": "since last month",
+      "send_gradido":"Send Gradido",
+      "table" : {
+        "status":"Status",
+        "amount":"Amount",
+        "name":"Name",
+        "date":"Date",
+        "details":"Details",
+        "view":"View",
+        "hide":"hide",
+        "decay":"Decay",
+        "sender":"Sender",
+        "hide_details":"Hide details"
+      },
+      "add_work":"New Community Contribution",
+      "xx":"xx",
+      "xxxx":"xxxx"
+    },
+    "navbar" : {
+      "my-profil":"My Profil",
+      "settings":"Settings",
+      "activity":"Activity",
+      "support":"Support",
+      "logout":"Logout"
+    },
+    "sidebar" : {
+       "community":"Community",
+       "members_area":"Members area",
+       "membership":"Membership",
+       "language":"Language"
+    },
+    "landing1" : {
+        "explore":"Explore Gradido",
+        "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
+        "link":"Explore pages"
+    },
+    "404" : {
+       "ooops" : "Ooops!",
+       "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
+       "back" : "Back to dashboard!"
+    }    
+},
+"admin": {
+  "site": {
+    "overview": {
+      "creation": "Creation",
+      "transience" : "Transience",
+      "exchanged": "Exchanged",
+      "members" : "Members"
+    }
+  }
+},
+  "nav": {
+    "features": "Features"
+  },
+  "about": {
+    "title": "About",
+    "content": "Lorem ipsum english dolor sit amet consectetur adipisicing elit. Aut dicta incidunt ea ut commodi quidem temporibus illo quia. Et itaque deleniti veniam tempore facere ipsum animi totam culpa minima vel voluptatem adipisci natus blanditiis similique sunt expedita, ex dicta doloremque repellat vitae temporibus. Quisquam quia, accusantium blanditiis architecto facilis saepe! Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad unde laborum ut suscipit iure aliquam sapiente doloribus exercitationem nam sint."
+  }
+}

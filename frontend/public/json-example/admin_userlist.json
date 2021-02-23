@@ -1,0 +1,52 @@
+{"state":"success", "admin0userlist": 
+	[
+    {
+      "created": 1578688666,
+      "disabled": false,
+      "email": "dervommond@gmail.com",
+      "email_checked": true,
+      "first_name": "Max",
+      "group_alias": "gdd1",
+      "ident_hash": 2928827813,
+      "last_name": "Miau",
+      "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71b",
+      "role": "admin",
+      "username": "",
+      "balance_gdd": 174500, 
+      "balance_gdt": 4500, 
+      "errorCount": 0
+    },
+    {
+      "created": 1578685678,
+      "disabled": false,
+      "email": "ttwer@gmail.com",
+      "email_checked": true,
+      "first_name": "John",
+      "group_alias": "gdd1",
+      "ident_hash": 2928827813,
+      "last_name": "Doe",
+      "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71x",
+      "role": "user",
+      "username": "",
+      "balance_gdd": 144500, 
+      "balance_gdt": 0, 
+      "errorCount": 0
+    },
+    {
+      "created": 1578635671,
+      "disabled": false,
+      "email": "test@gmail.com",
+      "email_checked": true,
+      "first_name": "Alice",
+      "group_alias": "gdd1",
+      "ident_hash": 4928827813,
+      "last_name": "Seer",
+      "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71a",
+      "role": "user",
+      "username": "",
+      "balance_gdd": 444500, 
+      "balance_gdt": 4500, 
+      "errorCount": 0
+    }
+  ]
+}

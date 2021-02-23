@@ -1,0 +1,61 @@
+{"state":"success", "transactions": 
+	[
+		{
+			"name": "Jon Tester",
+			"email": "jon@example.de",
+			"type": "send",
+			"transaction_id": 12, 
+			"date": "29-11-2020",
+			"balance": 7000,
+			"memo": "Reperatur Waschbecken",
+			"pubkey": "abcdefghi123456789"
+		 
+		 },
+     {
+			"name": "Gradido Community",
+			"email": "gradido@example.de",
+			"type": "creation",
+			"transaction_id": 11, 
+			"date": "1-11-2020",
+			"balance": 10000,
+			"memo": "Müll gesammelt im Wald",
+			"pubkey": "abcdefghi123456789"
+		 
+		 },
+     {
+			"name": "Maria Tester",
+			"email": "maria@example.de",
+			"type": "receive",
+			"transaction_id": 7, 
+			"date": "23-10-2020",
+			"balance": 5000,
+			"memo": "Spende an Alice ",
+			"pubkey": "abcdefghi123456789"
+		 
+		 },
+     {
+			"name": "Alice Tester",
+			"email": "alice@example.de",
+			"type": "receive",
+			"transaction_id": 5, 
+			"date": "2-8-2020",
+			"balance": 1000,
+			"memo": "Bob hat meinen Müll getrennt",
+			"pubkey": "abcdefghi123456789"
+		 
+		 },
+     {
+			"name": "Gradido Community",
+			"email": "gradido@example.de",
+			"type": "creation",
+			"transaction_id": 1, 
+			"date": "11-7-2020",
+			"balance": 10000,
+			"memo": "Bob hat meinen Müll getrennt",
+			"pubkey": "abcdefghi123456789"
+		 
+		 }
+	],
+	"transactionExecutingCount": 8750,
+	"count": 5
+}
