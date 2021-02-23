@@ -31,10 +31,11 @@ export const store = new Vuex.Store({
          
         //console.log("Im Store LOGIN() axios then.statusText ", ldata.statusText);
         if (ldata.statusText === "OK") {          
-          //console.log("STORE login() from" + state.is_auth)                
+          console.log("STORE login() ldatasession_id",  ldata.data.session_id)                
             state.is_auth = true 
             state.active = true
             $cookies.set('gdd_is_auth','true');
+            $cookies.set('gdd_session_id', ldata.data.session_id);
             $cookies.set('gdd_email',logindata.email);
             state.user.email = logindata.email
      
@@ -80,6 +81,7 @@ export const store = new Vuex.Store({
         state.active = false
         $cookies.set('gdd_is_auth','false');
         $cookies.remove('gdd_email');
+        $cookies.remove('gdd_session_id');
         router.push('/Landing')
       }, (error) => {
         console.log(error);
