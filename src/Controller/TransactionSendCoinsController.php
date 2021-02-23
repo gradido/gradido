@@ -37,6 +37,7 @@ class TransactionSendCoinsController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow('create');
         $this->Auth->allow('createRaw');
+        $this->Auth->allow('ajaxCreate');
         $this->set(
             'naviHierarchy',
             (new NaviHierarchy())->
@@ -287,6 +288,126 @@ class TransactionSendCoinsController extends AppController
         }
 
         $this->set('timeUsed', microtime(true) - $startTime);
+    }
+    
+    public function ajaxCreate() 
+    {
+        if ($this->request->is('post')) {
+            $startTime = microtime(true);
+            $jsonData = $this->request->input('json_decode', true);
+            $session_id = $jsonData['session_id'];
+            if(!$session_id) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
+            }
+            
+            $login_result = $this->requestLogin($session_id, false);
+            if($login_result !== true) {
+                return $this->returnJson($login_result);
+            }
+            $session = $this->getRequest()->getSession();
+            $user = $session->read('StateUser');            
+            
+            $receiverPubKeyHex = '';
+            $senderPubKeyHex = $user['public_hex'];
+
+            if(!isset($user['balance']) || $jsonData['amount'] > $user['balance']) {
+              return $this->returnJson(['state' => 'error', 'msg' => 'not enough GDD']);
+            }
+
+            $receiverEmail = $jsonData['email'];
+            if($receiverEmail === $user['email']) {
+              return $this->returnJson(['state' => 'error', 'msg' => 'sender and receiver email are the same']);
+            }
+
+            $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
+                'session_id' => $session_id,
+                'email' => $receiverEmail,
+                'ask' => ['user.pubkeyhex', 'user.disabled']
+            ]), '/getUserInfos');
+            if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+              // will be allways 64 byte long, even if it is empty
+              $receiverPubKeyHex = $requestAnswear['data']['userData']['pubkeyhex'];
+            } else {
+              return $this->returnJson([
+                  'state' => 'error', 
+                  'msg' => 'receiver email not found on login-server', 
+                  'details' => $requestAnswear,
+                  'timeUsed' => microtime(true) - $startTime
+              ]);
+            }
+            if($requestAnswear['data']['userData']['disabled']) {
+                return $this->returnJson([
+                    'state' => 'error',
+                    'msg' => 'receiver is currently disabled, he cannot receive payments',
+                    'timeUsed' => microtime(true) - $startTime
+                ]);
+            }
+
+            
+            //var_dump($sessionStateUser);
+
+            $builderResult = TransactionTransfer::build(
+                    $jsonData['amount'],
+                    $jsonData['memo'],
+                    $receiverPubKeyHex,
+                    $senderPubKeyHex
+            );
+            if($builderResult['state'] === 'success') {
+
+              $http = new Client();
+              try {
+                $loginServer = Configure::read('LoginServer');
+                $url = $loginServer['host'] . ':' . $loginServer['port'];
+               
+                $response = $http->post($url . '/checkTransaction', json_encode([
+                    'session_id' => $session_id,
+                    'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+                    'balance' => $user['balance']
+                ]), ['type' => 'json']);
+                $json = $response->getJson();
+                if($json['state'] != 'success') {
+                  if($json['msg'] == 'session not found') {
+                    $session->destroy();
+                    return $this->returnJson([
+                        'state' => 'error',
+                        'msg' => 'session not found',
+                        'details' => $session_id,
+                        'timeUsed' => microtime(true) - $startTime
+                    ]);
+                    //$this->Flash->error(__('session not found, please login again'));
+                  } else {
+                      return $this->returnJson([
+                          'state' => 'error',
+                          'msg' => 'login server return error',
+                          'details' => $json,
+                          'timeUsed' => microtime(true) - $startTime
+                      ]);
+                  }
+                } else {
+                    return $this->returnJson(['state' => 'success', 'timeUsed' => microtime(true) - $startTime]);
+                }
+
+              } catch(\Exception $e) {
+                  $msg = $e->getMessage();
+                  //$this->Flash->error(__('error http request: ') . $msg);
+                  return $this->returnJson([
+                      'state' => 'error',
+                      'msg' => 'error http request',
+                      'details' => $msg,
+                      'timeUsed' => microtime(true) - $startTime
+                  ]);
+              }
+
+            } else {
+                return $this->returnJson([
+                    'state' => 'error',
+                    'msg' => 'no valid receiver public key given',
+                    'details' => $receiverPubKeyHex,
+                    'timeUsed' => microtime(true) - $startTime
+                ]);
+            }
+        }
+        return $this->returnJson(['state' => 'error', 'msg' => 'no post request']);
     }
 
     public function createRaw()

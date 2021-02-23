@@ -225,7 +225,7 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      if(false === $this->updateStateBalance($receiverUserId, $this->getAmount())) {
+      if(false === $this->updateStateBalance($receiverUserId, $this->getAmount(), $transactionCreationEntity->target_date)) {
         return false;
       }
       

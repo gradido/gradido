@@ -158,7 +158,7 @@ class TransactionTransfer extends TransactionBase {
       return true;
     }
     
-    public function save($transaction_id, $firstPublic) {
+    public function save($transaction_id, $firstPublic, $received) {
       
       static $functionName = 'TransactionCreation::save';
       
@@ -182,11 +182,11 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount());
+      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received);
       if(false === $finalSenderBalance) {
         return false;
       }
-      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount())) {
+      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount(), $received)) {
         return false;
       }
       

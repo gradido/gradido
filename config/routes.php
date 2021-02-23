@@ -58,6 +58,7 @@ Router::scope('/', function (RouteBuilder $routes) {
         // Skip token check for API URLs.
       //die($request->getParam('controller'));
         $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
+        $ajaxWhitelist = ['TransactionSendCoins'];
         
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {
@@ -74,8 +75,18 @@ Router::scope('/', function (RouteBuilder $routes) {
                   $ip = gethostbyname($allowed);
                   if($ip === $callerIp) return true;
                 }
+                die("caller ip: $callerIp<br>");
             }
           }
+        }
+        // disable csfr for all ajax requests in ajax whitelisted controller
+        foreach($ajaxWhitelist as $entry) {
+            if($request->getParam('controller') === $entry) {
+                $action = $request->getParam('action');
+                if(preg_match('/^ajax/', $action)) {
+                    return true;
+                }
+            }
         }
     });
 
