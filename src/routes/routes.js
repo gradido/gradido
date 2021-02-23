@@ -1,5 +1,6 @@
 import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
-import AuthLayout from '@/views/Pages/AuthLayout.vue'
+import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
+import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
 import NotFound from '@/views/NotFoundPage.vue'
 
@@ -8,13 +9,18 @@ const routes = [
   {
     path: '/',
     redirect: 'landing',
-    component: AuthLayout,
+    component: AuthLayoutGDD,
     children: [
       {
         path: '/Landing',
         name: 'Landing',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Landing.vue')
-      }
+      },
+      {
+        path: '/login',
+        name: 'login',
+        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Login.vue')
+      },
       
     ]
   },
@@ -35,11 +41,6 @@ const routes = [
         path: '/profile',
         name: 'profile',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/UserProfile.vue')
-      },
-      {
-        path: '/login',
-        name: 'login',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Login.vue')
       },
       {
         path: '/register',
