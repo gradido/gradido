@@ -28,13 +28,15 @@ router.beforeEach((to, from, next) => {
      }
    
   //console.log("----------------")
-  console.log("to", to)
-  console.log("store.state.is_auth", store.state.is_auth)
-  // if (store.state.is_auth != true && to.path != "/login" ) {
-  //   next()
-  // } else {
-  //   next("/login")
-  // }
+  //("ROUTER.js to", to)
+  //console.log("ROUTER.js store.state.is_auth", store.state.is_auth)
+  //console.log("ROUTER.js store.commit('isActive')", store.commit('isActive'))
+  
+  //if (store.commit('isActive') ) {
+  //  next()
+  //} else {
+  //  next("/login")
+  //}
   //console.log(from)
   //console.log(next)
 

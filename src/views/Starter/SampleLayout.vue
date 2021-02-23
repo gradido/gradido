@@ -52,6 +52,7 @@ import DashboardContent from '../Layout/Content.vue';
 import { FadeTransition } from 'vue2-transitions';
 
 export default {
+  props: [],
   components: {
     DashboardNavbar,
     ContentFooter,

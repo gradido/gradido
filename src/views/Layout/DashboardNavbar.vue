@@ -41,7 +41,7 @@
                     <img alt="Image placeholder" src="img/theme/team-4.jpg">
                   </span>
             <b-media-body class="ml-2 d-none d-lg-block">
-              <span class="mb-0 text-sm  font-weight-bold">Grad Dido</span>
+              <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.user.email}}</span>
             </b-media-body>
           </b-media>
         </a>
@@ -68,7 +68,7 @@
             <span>{{ $t('site.navbar.support') }}</span>
           </b-dropdown-item>
           <div class="dropdown-divider"></div>
-          <b-dropdown-item href="#!">
+          <b-dropdown-item href="#!" @click="logout">
             <i class="ni ni-user-run"></i>
             <span>{{ $t('site.logout') }}</span>
           </b-dropdown-item>
@@ -118,7 +118,11 @@ export default {
     },
     closeDropDown() {
       this.activeNotifications = false;
-    }
+    },
+    logout(){
+      //console.log("DashboardNavbar.vue user logout() : ")
+      this.$store.commit('logout')
+    }  
   }
 };
 </script>

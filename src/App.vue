@@ -2,54 +2,54 @@
 <div id="app" class="font-sans text-gray-800">
     <header class="border-t-4 border-blue-700 bg-white z-10 absolute w-full shadow-md">     
     </header>
-    <div class="bg-gray-100 min-h-screen pt-40 text-lg">
-      <div style="text-align:center">
-       
-
-        <modal v-if="this.$store.state.modals"/>
-     
-
-       </div>
+    <div class="bg-gray-100 min-h-screen pt-40 text-lg">     
       <router-view />
     </div>
   </div> 
 </template>
 
 <script>
-import Modal from '@/components/Modal'
 
 export default {
    name: 'app',
-   component: {
-     Modal
-   },
-    data() {
-      return {
-        name: '',
-        nameState: null,
-        submittedNames: []
-      }
-    },
     created () { 
-      if ( this.$store.state.is_auth == false && this.$store.state.is_admin == false) {
-        this.$router.push("/Landing")
-      }
-    },
-    methods: {
+      if (this.$cookies.get('gdd_is_auth') == 'true' && this.$store.state.is_auth == true) {
+        this.$store.state.user.email = this.$cookies.get('gdd_email')
+      
+        // if ( this.$store.state.is_auth == false && this.$store.state.is_admin == false) {
+        //  this.$router.push("/Landing")
+        // }  else {
+         this.$router.push('/KontoOverview') 
+        // }
+     }else {
+       this.$router.push("/Landing")
+     } 
+      
+      //var user = { id:1, name:'Journal',session:'25j_7Sl6xDq2Kc3ym0fmrSSk2xV2XkUkX' };
+      //this.$cookies.set('user',user);
+      //// print user name
+     //console.log("APP.vue START created get cookie is_auth=>",this.$cookies.get('gdd_is_auth'))
+     
+     },
+     methods: {
+       /*
         login() {
-          console.log("app.vue user login() : " + this.$store.state.is_auth)
+          //console.log("app.vue user login() : " + this.$store.state.is_auth)
           this.$store.commit('login')
           //this.$router.push('/KontoOverview')      
         },
         loginAsAdmin () {      
-          console.log("app.vue admin login(): " + this.$store.state.is_admin)
+         // console.log("app.vue admin login(): " + this.$store.state.is_admin)
           this.$store.state.modals = true
           //this.$store.commit('loginAsAdmin')
           //this.$router.push('/AdminOverview')
         },
+         
         logout(){
+         // console.log("app.vue user logout() : ")
           this.$store.commit('logout')
-        }   
+        }       
+        */
     }
 }
 </script>

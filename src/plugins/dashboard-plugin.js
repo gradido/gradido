@@ -31,7 +31,7 @@ import VueQrcodeReader from "vue-qrcode-reader";
 
 import VueGoodTablePlugin from 'vue-good-table';
 // import the styles
-import 'vue-good-table/dist/vue-good-table.css'
+import 'vue-good-table/dist/vue-good-table.css';
 
 
 Object.keys(rules).forEach(rule => {

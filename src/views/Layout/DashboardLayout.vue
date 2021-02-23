@@ -13,28 +13,15 @@
         </sidebar-item> 
         <sidebar-item
               :link="{
-                name: 'User Profile',
+                name: 'Profil',
                 path: '/profile',
                 icon: 'ni ni-single-02 text-yellow'
                 }">
         </sidebar-item>
-
-        
-
-        <sidebar-item
-                  :link="{
-                    name: 'Login',
-                    path: '/login',
-                    icon: 'ni ni-key-25 text-info'
-                  }">
-        </sidebar-item>
-        <sidebar-item
-                  :link="{
-                    name: 'Register',
-                    path: '/register',
-                    icon: 'ni ni-circle-08 text-pink'
-                  }">
-        </sidebar-item>
+         <b-nav-item href="#!" @click="logout">
+              <i class="ni ni-palette"></i>
+              <b-nav-text class="p-0">Logout</b-nav-text>
+          </b-nav-item>
       </template>
 
       <template slot="links-after">
@@ -110,7 +97,11 @@
         if (isWindows) {
           initScrollbar('sidenav');
         }
-      }
+      },
+       logout(){
+          //console.log("DashboardLayout.vue user logout() : ")
+          this.$store.commit('logout')
+        }  
     },
     mounted() {
       this.initScrollbar()
