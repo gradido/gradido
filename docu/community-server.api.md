@@ -73,11 +73,12 @@ Normally a forwarding to login-server check transactions side is neccessary to m
 
 POST http://localhost/transaction-send-coins/ajaxCreate
 ```json
-{"session_id" : -127182, "amount": 2000000, "email": "maxim.mustermann@gmail.com", "memo":"Thank you :)"}
+{"session_id" : -127182, "amount": 2000000, "email": "maxim.mustermann@gmail.com", "memo":"Thank you :)", "auto_sign": true}
 ```
 - amout: amount to transfer, 2000000 = 200,00 GDD
 - email: receiver email address, must be differ from user email
 - memo: Details about transaction 
+- auto_sign: set to true to directly sign transaction if unsecure.allow_auto_sign_transactions = 1 is set
 
 return if everything is ok:
 ```json
@@ -85,8 +86,11 @@ return if everything is ok:
 ```
 - timeUsed: time used for getting data from db in seconds, only for analyse backend performance
 
-Than the transaction was created on community server, send to login-server, signed (if unsecure.allow_auto_sign_transactions = 1)
+Than the transaction was created on community server, send to login-server, signed (if unsecure.allow_auto_sign_transactions = 1 and auto_sign = true)
 and send back to community server and put into db. 
-After you get this answear you see the new transaction if you list transactions or call for the balance
+After you get this answear you see the new transaction if you list transactions or call for the balance.
+
+Without auto-sign the transaction is pending on login-server and waits for the user to review it at 
+http://localhost/account/checkTransactions
 
 
