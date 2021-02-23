@@ -31,6 +31,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				}
 
 				int balance = 0;
+				
 				if (!paramJsonObject->isNull("balance")) {
 					paramJsonObject->get("balance").convert(balance);
 					if (balance) {
@@ -47,11 +48,16 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 				std::string transactionBase64String;
 				Poco::Dynamic::Var transaction_base64 = paramJsonObject->get("transaction_base64");
+				bool auto_sign = false;
+				auto auto_sign_json = paramJsonObject->get("auto_sign");
+				if (!auto_sign_json.isEmpty()) {
+					auto_sign_json.convert(auto_sign);
+				}
 				
 				if (transaction_base64.isString()) {
 					paramJsonObject->get("transaction_base64").convert(transactionBase64String);
 
-					if (!session->startProcessingTransaction(transactionBase64String)) {
+					if (!session->startProcessingTransaction(transactionBase64String, auto_sign)) {
 						auto lastError = session->getLastError();
 						if (lastError) delete lastError;
 						result->set("state", "error");
@@ -65,7 +71,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 					for (int i = 0; i < ds["transaction_base64"].size(); i++) {
 						ds["transaction_base64"][i].convert(transactionBase64String);
-						if (!session->startProcessingTransaction(transactionBase64String)) {
+						if (!session->startProcessingTransaction(transactionBase64String, auto_sign)) {
 							auto lastError = session->getLastError();
 							if (lastError) delete lastError;
 							alreadyEnlisted++;
@@ -148,7 +154,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 	}
 	else if (params.isDeque()) {
 		result->set("state", "error");
-		result->set("meg", "deque not implemented yet");
+		result->set("msg", "deque not implemented yet");
 	}
 	else {
 
@@ -160,10 +166,3 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 	return result;
 }
 
-bool JsonTransaction::startProcessingTransaction(Session* session, const std::string& transactionBase64)
-{
-	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
-
-	}
-	return session->startProcessingTransaction(transactionBase64);
-}

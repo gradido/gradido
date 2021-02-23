@@ -659,7 +659,7 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 	return 0;
 }
 
-bool Session::startProcessingTransaction(const std::string& proto_message_base64)
+bool Session::startProcessingTransaction(const std::string& proto_message_base64, bool autoSign/* = false*/)
 {
 	static const char* funcName = "Session::startProcessingTransaction";
 	lock(funcName);
@@ -687,7 +687,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			DRMakeStringHash(mSessionUser->getEmail()),
 			mSessionUser->getLanguage())
 	);
-	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
+	if (autoSign && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
 		if (processorTask->run() != 0) {
 			getErrors(processorTask);
 			unlock();
