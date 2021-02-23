@@ -362,6 +362,7 @@ class TransactionSendCoinsController extends AppController
                 $response = $http->post($url . '/checkTransaction', json_encode([
                     'session_id' => $session_id,
                     'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
+                    'auto_sign' => true,
                     'balance' => $user['balance']
                 ]), ['type' => 'json']);
                 $json = $response->getJson();
