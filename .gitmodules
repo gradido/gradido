@@ -1,6 +1,3 @@
-[submodule "frontend"]
-	path = frontend
-	url = git@github.com:gradido/gradido_vue_wallet.git
 [submodule "gn"]
 	path = gn
 	url = https://github.com/gradido/gn.git
