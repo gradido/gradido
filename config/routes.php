@@ -69,14 +69,18 @@ Router::scope('/', function (RouteBuilder $routes) {
               return true;
             }
             $allowedCaller = Configure::read('API.allowedCaller');
+            $ipPerHost = [];
             if($allowedCaller && count($allowedCaller) > 0) {
                 $callerIp = $request->clientIp();
                 foreach($allowedCaller as $allowed) {
                   $ip = gethostbyname($allowed);
+                  $ipPerHost[$allowed] = $ip;
                   if($ip === $callerIp) return true;
                 }
-                die("caller ip: $callerIp<br>");
+                //die("caller ip: $callerIp<br>");
             }
+			//var_dump(['caller_ip' => $callerIp, 'ips' => $ipPerHost]);
+            die(json_encode(['state' => 'error', 'details' => ['caller_ip' => $callerIp, 'ips' => $ipPerHost]]));
           }
         }
         // disable csfr for all ajax requests in ajax whitelisted controller
