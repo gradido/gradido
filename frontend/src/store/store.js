@@ -12,11 +12,12 @@ export const store = new Vuex.Store({
     is_admin: false,
     active: false,
     modals: false,
+    url: "",
     user : {
       name:"",
-      email:""
-    },
-    dataLogout: {"session_id": -127182}
+      email:"",
+      sessionID: 0
+    }
   },
   mutations: {   
     isActive(state) {
@@ -31,14 +32,16 @@ export const store = new Vuex.Store({
          
         //console.log("Im Store LOGIN() axios then.statusText ", ldata.statusText);
         if (ldata.statusText === "OK") {          
-          console.log("STORE login() ldatasession_id",  ldata.data.session_id)                
+            //console.log("STORE login() ldatasession_id",  ldata.data.session_id)                
             state.is_auth = true 
             state.active = true
+            state.user.sessionID = ldata.data.session_id
+            state.user.email = logindata.email
             $cookies.set('gdd_is_auth','true');
             $cookies.set('gdd_session_id', ldata.data.session_id);
             $cookies.set('gdd_email',logindata.email);
-            state.user.email = logindata.email
-     
+            console.log("cookie ? GRADIDO_LOGIN",  $cookies.get('GRADIDO_LOGIN'))  
+           
             //console.log("STORE login() to " + state.is_auth)      
             router.push('/KontoOverview')
            
@@ -71,7 +74,7 @@ export const store = new Vuex.Store({
       });
     },     
     logout(state){
-      axios.post("http://localhost/login_api/logout", this.dataLogout).then((ldata) => {
+      axios.post("http://localhost/login_api/logout", {"session_id": state.user.sessionID}).then((ldata) => {
          
       //console.log("Im Store logout() axios then ", ldata);
        // this.ldata = ldata.data;
@@ -79,6 +82,8 @@ export const store = new Vuex.Store({
         state.is_auth = false 
         state.is_admin = false 
         state.active = false
+        state.user.sessionID = ''
+        state.user.email = ''
         $cookies.set('gdd_is_auth','false');
         $cookies.remove('gdd_email');
         $cookies.remove('gdd_session_id');
@@ -87,6 +92,24 @@ export const store = new Vuex.Store({
         console.log(error);
       });
         
+    },
+    accountBalance0(state) {
+      console.log("accountBalance0 => START")
+      axios.get("http://localhost/state-balances/ajaxGetBalance/739420303").then((req) => {
+        console.log("accountBalance => ", req)
+      }, (error) => {
+        console.log(error);
+      });
+    },
+    accountBalance1(state) {
+      console.log("accountBalance1 => START")
+      state.url = "http://localhost/state-balances/ajaxGetBalance/"+ state.user.sessionID
+      console.log(state.url)
+      axios.get(state.url).then((req) => {
+        console.log("accountBalance => ", req)
+      }, (error) => {
+        console.log(error);
+      });
     }
   }
 })

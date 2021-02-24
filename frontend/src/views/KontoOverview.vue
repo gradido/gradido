@@ -30,6 +30,8 @@
        
       </div>
     </base-header>
+    <div @click="$store.commit('accountBalance0')">this.$store.commit('accountBalance0')</div>
+    <div @click="$store.commit('accountBalance1')">this.$store.commit('accountBalance1')</div>
      <hr>
     <h3>User Data</h3>
     <small>/public/json-example/userdata.json</small>
@@ -80,6 +82,9 @@
         GddAddWork,
         GddWorkTable,
         axios
+     },
+     created() {
+        
      },
      methods: {
          UserData() {
