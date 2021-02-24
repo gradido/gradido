@@ -1,28 +1,25 @@
 # Vue Gradido Wallet
 
  
-# install mit npm 
-```
-    $ git clone https://github.com/gradido/gradido_vue_wallet.git [project-name]
-    $ cd [project-name]
-    $ npm install
-    $ npm run serve
+## install mit npm 
+```bash
+cd frontend
+npm install
+npm run serve
 
-### Build
-    $ npm run build
-```
-
-# install mit docker
-```
- ### build
-    $ docker build -t [project-name] .
-
- ### run
-    $ docker run -it -p 80:80 --rm [project-name]
+# build
+npm run build
 ```
 
+## install mit docker
 
+```bash
+# build
+docker build -t gradido-frontend .
 
+# run
+docker run -it -p 80:80 --rm gradido-frontend
+```
 
 **Fully Coded Components**
 
