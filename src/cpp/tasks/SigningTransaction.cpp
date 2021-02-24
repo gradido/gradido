@@ -243,8 +243,8 @@ int SigningTransaction::run() {
 		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
 		auto state = object.get("state");
 		std::string stateString = state.convert<std::string>();
-		if (stateString == "error") {
-			addError(new Error("SigningTransaction", "php server return error"));
+		if (stateString != "success") {
+			addError(new Error("SigningTransaction", "php server don't return success"));
 			if (!object.isNull("msg")) {
 				addError(new ParamError("SigningTransaction", "msg:", object.get("msg").convert<std::string>().data()));
 			}
