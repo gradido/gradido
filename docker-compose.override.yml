@@ -39,7 +39,6 @@ services:
       - mariadb
     networks: 
       - internal-net
-      - external-net
     ports:
       - 1200:1200
       - 1201:1201
