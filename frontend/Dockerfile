@@ -53,7 +53,7 @@ FROM base as development
 # Run command
 # (for development we need to execute npm install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "npm install && npm run dev"
+CMD /bin/sh -c "yarn install && yarn run dev"
 
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################
@@ -63,9 +63,9 @@ FROM base as build
 # Copy everything
 COPY . .
 # npm install
-RUN npm install --production=false --frozen-lockfile --non-interactive
+RUN yarn install --production=false --frozen-lockfile --non-interactive
 # npm build
-RUN npm run build
+RUN yarn run build
 
 ##################################################################################
 # TEST ###########################################################################
@@ -73,7 +73,7 @@ RUN npm run build
 FROM build as test
 
 # Run command
-CMD /bin/sh -c "npm run dev"
+CMD /bin/sh -c "yarn run dev"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -93,7 +93,7 @@ COPY --from=build ${DOCKER_WORKDIR}/nuxt.config.js ./nuxt.config.js
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
 
 # Run command
-CMD /bin/sh -c "npm run start"
+CMD /bin/sh -c "yarn run start"
 
 
  
