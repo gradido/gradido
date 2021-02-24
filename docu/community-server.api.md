@@ -62,6 +62,32 @@ Wenn alles okay:
 - gdtSum: sum of gdt of user in cent with 2 places (Nachkommastellen)
 - timeUsed: time used for getting data from db in seconds, only for analyse backend performance
 
+## Creation Transaction
+Make a creation transaction
+With new Option set in Login-Server: 
+```ini
+unsecure.allow_auto_sign_transactions = 1
+```
+transactions can be auto-signed directly with handing in transaction.
+Normally a forwarding to login-server check transactions side is neccessary to minimize security risks.
+
+POST http://localhost/transaction-creations/ajaxCreate
+```json
+{
+	"session_id" : -127182,
+	"email": "max.musterman@gmail.de",
+	"amount": 10000000,
+	"target_date":"2021-02-19T13:25:36+00:00", 
+	"memo":"AGE",
+	"auto_sign": true
+}
+```
+return if everything is ok:
+```json
+{"state":"success", "timeUsed": 0.0122}
+```
+- timeUsed: time used for getting data from db in seconds, only for analyse backend performance
+
 ## Send Coins Transaction
 Make a simple GDD Transaction, send Coins from one user to other. 
 With new Option set in Login-Server: 
@@ -73,7 +99,13 @@ Normally a forwarding to login-server check transactions side is neccessary to m
 
 POST http://localhost/transaction-send-coins/ajaxCreate
 ```json
-{"session_id" : -127182, "amount": 2000000, "email": "maxim.mustermann@gmail.com", "memo":"Thank you :)", "auto_sign": true}
+{
+	"session_id" : -127182,
+	"amount": 2000000,
+	"email": "max.musterman@gmail.de",
+	"memo":"Thank you :)",
+	"auto_sign": true
+}
 ```
 - amout: amount to transfer, 2000000 = 200,00 GDD
 - email: receiver email address, must be differ from user email
