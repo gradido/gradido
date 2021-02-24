@@ -97,36 +97,6 @@ services:
       - internal-net
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-  
-  #backend:
-  #  image: ocelotsocialnetwork/backend:latest
-  #  build:
-  #    context: ./backend
-  #    target: production
-  #  networks:
-  #    - external-net
-  #    - internal-net
-  #  depends_on:
-  #    - neo4j
-  #  ports:
-  #    - 4000:4000
-  #  volumes:
-  #    - backend_uploads:/app/public/uploads
-  #  environment:
-  #    # Envs used in Dockerfile
-  #    # - DOCKER_WORKDIR="/app"
-  #    # - PORT="4000"
-  #    - BUILD_DATE
-  #    - BUILD_VERSION
-  #    - BUILD_COMMIT
-  #    - NODE_ENV="production"
-  #    # Application only envs
-  #    - DEBUG=false
-  #    - NEO4J_URI=bolt://neo4j:7687
-  #    - GRAPHQL_URI=http://backend:4000
-  #    - CLIENT_URI=http://webapp:3000
-  #  env_file:
-  #    - ./backend/.env
 
 networks:
   external-net:
