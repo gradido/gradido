@@ -23,17 +23,18 @@ git clone git@github.com:gradido/gradido.git
 git submodule update --recursive --init
 ```
 
-2.1 Run docker compose for the debug build
+2. Run docker compose
+    1. Run docker compose for the debug build
 
-```bash
-docker-compose up
-```
+    ```bash
+    docker-compose up
+    ```
 
-2.2 Or run docker compose in production build
+   2. Or run docker compose in production build
 
-```bash
-docker-compose -f docker-compose.yml up
-```
+    ```bash
+    docker-compose -f docker-compose.yml up
+    ```
 
 ## Useful Links
 
