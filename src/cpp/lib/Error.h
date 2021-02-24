@@ -23,6 +23,8 @@ public:
 	const char* getMessage() { return mMessage.data(); }
 	virtual std::string getString(bool withNewline = true);
 	virtual std::string getHtmlString();
+	
+
 
 protected:
 	std::string mFunctionName;
