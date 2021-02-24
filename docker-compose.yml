@@ -16,8 +16,8 @@ services:
       target: production
     networks:
       - external-net
-    #depends_on:
-    #  - backend
+    depends_on:
+      - nginx
     ports:
       - 8080:8080
     environment:
@@ -34,9 +34,8 @@ services:
     #  - ./frontend/.env
 
   #########################################################
-  ## BACKEND ##############################################
+  ## MARIADB ##############################################
   #########################################################
-  ## mariadb
   mariadb:
     build:
       context: .
@@ -53,20 +52,28 @@ services:
     volumes: 
       - db_vol:/var/lib/mysql      
     
-  ## login server
+  #########################################################
+  ## LOGIN SERVER #########################################
+  #########################################################
   login-server:
     build: 
       context: ./login_server/
       target: login_server
     container_name: login-server
-    depends_on: 
+    depends_on:
       - mariadb
     networks: 
       - internal-net
+    ports:
+      - 1200:1200
+      - 1201:1201
     volumes:
       - ./configs/login_server:/etc/grd_login
       
-  ## nginx, connect login-server and community-server together (and php-fpm to community-server)    
+  #########################################################
+  ## NGINX ################################################
+  #########################################################
+  ## nginx, connect login-server and community-server together (and php-fpm to community-server)
   nginx:
     build: 
       context: .
@@ -81,7 +88,9 @@ services:
     ports:
       - 80:80
   
-  ## community server (cakephp with php-fpm)
+  #########################################################
+  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
+  #########################################################
   community-server:
     build: 
       context: .
