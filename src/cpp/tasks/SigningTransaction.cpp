@@ -20,8 +20,11 @@
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 
-SigningTransaction::SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser)
-	: mProcessingeTransaction(processingeTransaction), mNewUser(newUser)
+SigningTransaction::SigningTransaction(
+	Poco::AutoPtr<ProcessingTransaction> processingeTransaction,
+	Poco::AutoPtr<controller::User> newUser
+	, bool sendErrorsToAdmin/* = true*/)
+	: mProcessingeTransaction(processingeTransaction), mNewUser(newUser), mSendErrorsToAdminEmail(sendErrorsToAdmin)
 {
 	auto ob = SingletonTaskObserver::getInstance();
 	auto email = getUserEmail();
@@ -64,7 +67,7 @@ int SigningTransaction::run() {
 	//if (mUser.isNull() || !mUser->hasCryptoKey()) {
 	if(mNewUser.isNull() || !mNewUser->hasPassword()) {
 		addError(new Error("SigningTransaction", "user hasn't crypto key or is null"));
-		sendErrorsAsEmail();
+		if(mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -1;
 	}
 
@@ -82,7 +85,7 @@ int SigningTransaction::run() {
 		}
 		else {
 			addError(new Error("SigningTransaction", "user cannot decrypt private key"));
-			sendErrorsAsEmail();
+			if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 			return -2;
 		}
 	}
@@ -92,7 +95,7 @@ int SigningTransaction::run() {
 	*bodyBytes = mProcessingeTransaction->getBodyBytes();
 	if (*bodyBytes == "") {
 		getErrors(mProcessingeTransaction);
-		sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -3;
 	}
 	// sign
@@ -106,7 +109,7 @@ int SigningTransaction::run() {
 	}
 	if (!sign) {
 		ErrorManager::getInstance()->sendErrorsAsEmail();
-		sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		mm->releaseMemory(sign);
 		return -4;
 	}
@@ -148,7 +151,7 @@ int SigningTransaction::run() {
 	std::string finalTransactionBin = transaction.SerializeAsString();
 	if (finalTransactionBin == "") {
 		addError(new Error("SigningTransaction", "error serializing final transaction"));
-		sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -6;
 	}
 
@@ -157,7 +160,7 @@ int SigningTransaction::run() {
 	auto finalBase64Bin = mm->getFreeMemory(finalBase64Size);
 	if (!sodium_bin2base64(*finalBase64Bin, finalBase64Size, (const unsigned char*)finalTransactionBin.data(), finalTransactionBin.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
 		addError(new Error("SigningTransaction", "error convert final transaction to base64"));
-		sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		mm->releaseMemory(finalBase64Bin);
 		return -7;
 	}
@@ -226,7 +229,7 @@ int SigningTransaction::run() {
 				fclose(f);
 			}
 		//	*/
-			sendErrorsAsEmail(responseStringStream.str());
+			if (mSendErrorsToAdminEmail) sendErrorsAsEmail(responseStringStream.str());
 			return -9;
 		}
 
@@ -246,7 +249,7 @@ int SigningTransaction::run() {
 			if (!object.isNull("user_error")) {
 				addError(new ParamError("SigningTransaction", "user_error", object.get("user_error").convert<std::string>().data()));
 			}
-			sendErrorsAsEmail();
+			if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 			return -10;
 		}
 		delete clientSession;
@@ -256,7 +259,7 @@ int SigningTransaction::run() {
 	catch (Poco::Exception& e) {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));
 		printf("url: %s\n", ServerConfig::g_php_serverHost.data());
-		sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -8;
 	}
 	

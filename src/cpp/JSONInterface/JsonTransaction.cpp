@@ -58,6 +58,13 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 					paramJsonObject->get("transaction_base64").convert(transactionBase64String);
 
 					if (!session->startProcessingTransaction(transactionBase64String, auto_sign)) {
+						if (auto_sign) {
+							auto errorJson = session->getErrorsArray();
+							result->set("state", "error");
+							result->set("msg", "error processing transaction");
+							result->set("details", errorJson);
+							return result;
+						}
 						auto lastError = session->getLastError();
 						if (lastError) delete lastError;
 						result->set("state", "error");
