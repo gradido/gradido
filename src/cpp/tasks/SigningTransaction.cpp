@@ -181,18 +181,23 @@ int SigningTransaction::run() {
 	// 443 = HTTPS Default
 	// or http via port 80 if it is a test server
 	// TODO: adding port into ServerConfig
+	bool choose_ssl = false;
 	try {
 		Profiler phpRequestTime;
 		Poco::Net::HTTPClientSession* clientSession = nullptr;
+		
 		if (ServerConfig::g_phpServerPort) {
 			clientSession = new Poco::Net::HTTPSClientSession(ServerConfig::g_php_serverHost, ServerConfig::g_phpServerPort);
+			choose_ssl = true;
 		}
 		else if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
 			ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
 			clientSession = new Poco::Net::HTTPSClientSession(ServerConfig::g_php_serverHost, 443);
+			choose_ssl = true;
 		}
 		else {
 			clientSession = new Poco::Net::HTTPClientSession(ServerConfig::g_php_serverHost, 80);
+			choose_ssl = false;
 		}
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
@@ -258,7 +263,8 @@ int SigningTransaction::run() {
 	}
 	catch (Poco::Exception& e) {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));
-		printf("url: %s\n", ServerConfig::g_php_serverHost.data());
+		addError(new ParamError("SigningTransaction", "url", ServerConfig::g_php_serverHost.data()));
+		addError(new ParamError("SigningTransaction", "choose_ssl", choose_ssl));
 		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -8;
 	}
