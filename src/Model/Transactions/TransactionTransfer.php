@@ -214,7 +214,9 @@ class TransactionTransfer extends TransactionBase {
     public function sendNotificationEmail($memo)
     {
       // send notification email
-      
+       $disable_email = Configure::read('disableEmail', false);  
+       if($disable_email) return true;
+        
       $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
       $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
       $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());

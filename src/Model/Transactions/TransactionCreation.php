@@ -235,6 +235,8 @@ class TransactionCreation extends TransactionBase {
     
     public function sendNotificationEmail($memo) 
     {
+        $disable_email = Configure::read('disableEmail', false);  
+        if($disable_email) return true;
       // send notification email
         $receiverUserId = $this->getStateUserId($this->getReceiverPublic());
         $receiverUser = $this->getStateUser($receiverUserId);
