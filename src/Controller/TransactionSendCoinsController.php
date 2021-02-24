@@ -310,8 +310,16 @@ class TransactionSendCoinsController extends AppController
             $receiverPubKeyHex = '';
             $senderPubKeyHex = $user['public_hex'];
 
+            if(!isset($jsonData['amount']) || !isset($jsonData['email'])) {
+                return $this->returnJson(['state' => 'parameter missing', 'msg' => 'amount and/or email not set']);
+            }
+            
             if(!isset($user['balance']) || $jsonData['amount'] > $user['balance']) {
               return $this->returnJson(['state' => 'error', 'msg' => 'not enough GDD']);
+            }
+            $memo = '';
+            if(isset($jsonData['memo'])) {
+                $memo = $jsonData['memo'];
             }
 
             $receiverEmail = $jsonData['email'];
@@ -348,10 +356,14 @@ class TransactionSendCoinsController extends AppController
 
             $builderResult = TransactionTransfer::build(
                     $jsonData['amount'],
-                    $jsonData['memo'],
+                    $memo,
                     $receiverPubKeyHex,
                     $senderPubKeyHex
             );
+            $auto_sign = true;
+            if(isset($jsonData['auto_sign'])) {
+                $auto_sign = $jsonData['auto_sign'];
+            }
             if($builderResult['state'] === 'success') {
 
               $http = new Client();
@@ -362,7 +374,7 @@ class TransactionSendCoinsController extends AppController
                 $response = $http->post($url . '/checkTransaction', json_encode([
                     'session_id' => $session_id,
                     'transaction_base64' => base64_encode($builderResult['transactionBody']->serializeToString()),
-                    'auto_sign' => true,
+                    'auto_sign' => $auto_sign,
                     'balance' => $user['balance']
                 ]), ['type' => 'json']);
                 $json = $response->getJson();

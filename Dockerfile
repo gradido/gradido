@@ -9,5 +9,9 @@ WORKDIR /var/www/cakephp
 RUN mkdir logs && mkdir tmp && chmod 777 logs && chmod 777 tmp 
 COPY ./community_server/ .
 COPY ./configs/community_server/app.php ./config/
+
 RUN composer update
+RUN composer dump-autoload
+
+
 

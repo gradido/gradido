@@ -35,6 +35,7 @@ class TransactionCreationsController extends AppController
         $this->loadComponent('JsonRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         //$this->Auth->allow('create');
+        $this->Auth->allow('ajaxCreate');
         $this->set(
             'naviHierarchy',
             (new NaviHierarchy())->
@@ -442,6 +443,118 @@ class TransactionCreationsController extends AppController
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    
+    public function ajaxCreate()
+    {
+        if ($this->request->is('post')) {
+            $startTime = microtime(true);
+            $jsonData = $this->request->input('json_decode', true);
+            $session_id = $jsonData['session_id'];
+            if(!isset($jsonData['session_id']) || intval($jsonData['session_id']) == 0) {
+                return $this->returnJson(['state' => 'parameter missing', 'msg' => 'invalid session id']);
+            }
+            
+            $login_result = $this->requestLogin($session_id, false);
+            if($login_result !== true) {
+                return $this->returnJson($login_result);
+            }
+            $session = $this->getRequest()->getSession();
+            $user = $session->read('StateUser');        
+
+            $memo = '';
+            if(isset($jsonData['memo'])) {
+                $memo = $jsonData['memo'];
+            }   
+            $auto_sign = true;
+            if(isset($jsonData['auto_sign'])) {
+                $auto_sign = $jsonData['auto_sign'];
+            }
+            if(!isset($jsonData['amount']) || intval($jsonData['amount']) <= 0) {
+                return $this->returnJson(['state' => 'parameter missing', 'msg' => 'amount not set or <= 0']);
+            }
+            if(!isset($jsonData['email'])) {
+                return $this->returnJson(['state' => 'parameter missing', 'msg' => 'no receiver email set']);
+            }
+            $amount = intval($jsonData['amount']);
+            if($amount > 10000000) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'amount is to big']);
+            }
+            if(!isset($jsonData['target_date'])) {
+                return $this->returnJson(['state' => 'parameter missing', 'msg' => 'target_date not found']);
+            }
+          //$targetDate = $requestData['target_date'];
+            $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+            $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
+                'session_id' => $session_id,
+                'email' => $jsonData['email'],
+                'ask' => ['user.pubkeyhex', 'user.disabled', 'user.identHash']
+            ]), '/getUserInfos');
+            $receiverPubKeyHex = '';
+            if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+              // will be allways 64 byte long, even if it is empty
+              $receiverPubKeyHex = $requestAnswear['data']['userData']['pubkeyhex'];
+            } else {
+              return $this->returnJson([
+                  'state' => 'error', 
+                  'msg' => 'receiver email not found on login-server', 
+                  'details' => $requestAnswear,
+                  'timeUsed' => microtime(true) - $startTime
+              ]);
+            }
+            if($requestAnswear['data']['userData']['disabled']) {
+                return $this->returnJson([
+                    'state' => 'error',
+                    'msg' => 'receiver is currently disabled, he cannot receive creations',
+                    'timeUsed' => microtime(true) - $startTime
+                ]);
+            }
+            
+            $builderResult = TransactionCreation::build(
+                        $amount,
+                        $memo,
+                        $receiverPubKeyHex,
+                        $requestAnswear['data']['userData']['identHash'],
+                        new FrozenDate($jsonData['target_date'])
+            );
+            $transaction_base64 = '';
+            if ($builderResult['state'] == 'success') {
+                // todo: maybe use sodium base 64 encoder to make sure it can be readed from login-server
+                 $transaction_base64 = base64_encode($builderResult['transactionBody']->serializeToString());
+            }
+            
+            $requestResult = $this->JsonRequestClient->sendTransaction(
+                $session_id,
+                $transaction_base64,
+                $user['balance'],
+                $auto_sign
+            );
+            if ($requestResult['state'] != 'success') {                
+                $msg = 'error returned from login server';
+                if ($requestResult['type'] === 'request error') {
+                    $msg = 'login server couldn\'t reached';
+                }
+                    //$this->Flash->error(__('Error, please wait for the admin to fix it'));
+                return $this->returnJson([
+                            'state' => 'request error',
+                            'msg' => $msg, 
+                            'details' => $requestResult,
+                            'timeUsed' => microtime(true) - $startTime
+                       ]);
+            } else {
+                $json = $requestResult['data'];
+                if ($json['state'] != 'success') {
+                    if ($json['msg'] == 'session not found') {
+                        $session->destroy();
+                        return $this->returnJson(['state' => 'error', 'msg' => 'session not found', 'timeUsed' => microtime(true) - $startTime]);
+                    } else {
+                        return $this->returnJson(['state' => 'error', 'msg' => 'login server error', 'details' => $json, 'timeUsed' => microtime(true) - $startTime]);
+                    }
+                } else {
+                    return $this->returnJson(['state' => 'success', 'timeUsed' => microtime(true) - $startTime]);
                 }
             }
         }

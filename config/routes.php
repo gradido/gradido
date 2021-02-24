@@ -58,7 +58,7 @@ Router::scope('/', function (RouteBuilder $routes) {
         // Skip token check for API URLs.
       //die($request->getParam('controller'));
         $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
-        $ajaxWhitelist = ['TransactionSendCoins'];
+        $ajaxWhitelist = ['TransactionSendCoins', 'TransactionCreations'];
         
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {

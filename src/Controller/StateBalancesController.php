@@ -208,8 +208,11 @@ class StateBalancesController extends AppController
         }
         $state_balances = $stateUserQuery->first()->state_balances;
         $state_balances_count = count($state_balances);
-        if($state_balances_count != 1) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'state balances count isn\'t as expected, expect 1', 'details' => $state_balances_count]);
+        if($state_balances_count > 1) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'state balances count isn\'t as expected, expect 1 or 0', 'details' => $state_balances_count]);
+        }
+        if(!$state_balances_count) {
+            return $this->returnJson(['state' => 'success', 'balance' => 0]);
         }
         
         return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
