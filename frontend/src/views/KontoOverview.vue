@@ -31,12 +31,18 @@
       </div>
     </base-header>
     <div @click="$store.commit('accountBalance0')">this.$store.commit('accountBalance0')</div>
-    <div @click="$store.commit('accountBalance1')">this.$store.commit('accountBalance1')</div>
+    <div @click="$store.commit('accountBalance')">this.$store.commit('accountBalance')</div> 
      <hr>
-    <h3>User Data</h3>
-    <small>/public/json-example/userdata.json</small>
+    <h3>User Balanace</h3>
+    <small>this.$store.state.user.balance</small>
     <p>
-      {{userdata}}
+       {{this.$store.state.user}}
+    </p>
+     <hr>
+    <h3>User Balanace</h3>
+    <small>this.$store.state.user.balance</small>
+    <p>
+      {{this.$store.state.user.balance}}
     </p>
 
  <hr>

@@ -16,7 +16,8 @@ export const store = new Vuex.Store({
     user : {
       name:"",
       email:"",
-      sessionID: 0
+      sessionID: 0,
+      balance: 0
     }
   },
   mutations: {   
@@ -30,7 +31,7 @@ export const store = new Vuex.Store({
       //console.log("logon TEST =>", logindata )  
       axios.post("http://localhost/login_api/unsecureLogin", logindata).then((ldata) => {
          
-        //console.log("Im Store LOGIN() axios then.statusText ", ldata.statusText);
+        console.log("Im Store LOGIN() axios then.statusText ", ldata);
         if (ldata.statusText === "OK") {          
             //console.log("STORE login() ldatasession_id",  ldata.data.session_id)                
             state.is_auth = true 
@@ -41,7 +42,7 @@ export const store = new Vuex.Store({
             $cookies.set('gdd_session_id', ldata.data.session_id);
             $cookies.set('gdd_email',logindata.email);
             console.log("cookie ? GRADIDO_LOGIN",  $cookies.get('GRADIDO_LOGIN'))  
-           
+            //this.$store.commit('accountBalance')
             //console.log("STORE login() to " + state.is_auth)      
             router.push('/KontoOverview')
            
@@ -101,12 +102,13 @@ export const store = new Vuex.Store({
         console.log(error);
       });
     },
-    accountBalance1(state) {
-      console.log("accountBalance1 => START")
+    accountBalance(state) {
+      console.log(" => START")
       state.url = "http://localhost/state-balances/ajaxGetBalance/"+ state.user.sessionID
       console.log(state.url)
       axios.get(state.url).then((req) => {
-        console.log("accountBalance => ", req)
+        console.log("accountBalance => ", req.data.balance)
+        state.user.balance = req.data.balance
       }, (error) => {
         console.log(error);
       });

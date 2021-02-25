@@ -4,13 +4,12 @@
         <b-col xl="6" md="6">
           <stats-card :title="$t('site.overview.current_balance')"
                       type="gradient-red"
-                      sub-title="3500,897 GDD"
+                      sub-title="balance_gdd"
                       img="img/icons/gradido/my_gradido.png"
                       class="mb-4">
-
+                {{ balance_gdd }} GDD
             <template slot="footer">
-              <span class="text-success mr-2">+ 3.48%</span>
-              <span class="text-nowrap">{{ $t('site.overview.since_last_month') }}</span>
+              <span class="text-success mr-2">{{ balance_gtt }} GTT</span>
             </template>
           </stats-card>
         </b-col>
@@ -34,5 +33,11 @@
 <script>
 export default {
   name: 'GddStatus',
+  data(){
+    return {
+      balance_gdd: this.$store.state.user.balance,
+      balance_gtt: 2000,
+    }
+  }
 };
 </script>
