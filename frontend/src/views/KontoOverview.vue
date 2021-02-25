@@ -79,7 +79,7 @@
         GddTable,
         GddAddWork,
         GddWorkTable,
-        axios
+        //axios
      },
      methods: {
          UserData() {

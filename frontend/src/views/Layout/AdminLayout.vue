@@ -98,7 +98,7 @@
     components: {
       DashboardNavbar,
       ContentFooter,
-      DashboardContent,
+      //DashboardContent,
       FadeTransition
     },
     methods: {

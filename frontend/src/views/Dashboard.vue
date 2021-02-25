@@ -153,7 +153,7 @@
     components: {
       LineChart,
       BarChart,
-      BaseProgress,
+      //BaseProgress,
       StatsCard,
       PageVisitsTable,
       SocialTrafficTable
