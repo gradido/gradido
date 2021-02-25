@@ -1,14 +1,14 @@
 # Vue Gradido Wallet
 
  
-## install mit npm 
+## install mit yarn 
 ```bash
 cd frontend
-npm install
-npm run serve
+yarn install
+yarn run serve
 
 # build
-npm run build
+yarn run build
 ```
 
 ## install mit docker
