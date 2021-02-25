@@ -3,7 +3,7 @@ const LOGIN_API_URL = 'http://localhost/login_api/'
 
 // define a mixin object
 const loginAPI = {
-  mutations: {
+  actions: {
     login: async () => {
       return axios.post(LOGIN_API_URL + 'unsecureLogin', data);
     },
