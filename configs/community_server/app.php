@@ -397,6 +397,12 @@ return [
         'host' => 'http://login-server',
         'port' => 1201
     ],
+	'API' => [
+        'allowedCaller' => ['login-server']
+    ],
+	'ServerAdminEmail' => 'info@gradido.net',
+    'noReplyEmail' => 'no-reply@gradido.net',
+	'disableEmail' => true,
 
     'GroupNode' => false
 ];

@@ -15,10 +15,26 @@ Currently we only support `docker` as environment to run all services, since man
 - [docker](https://www.docker.com/)
 
 ## How to run?
+
+1. Clone the repo and pull all submodules
+
 ```bash
+git clone git@github.com:gradido/gradido.git
 git submodule update --recursive --init
-docker-compose up
 ```
+
+2. Run docker compose
+    1. Run docker compose for the debug build
+
+    ```bash
+    docker-compose up
+    ```
+
+   2. Or run docker compose in production build
+
+    ```bash
+    docker-compose -f docker-compose.yml up
+    ```
 
 ## Useful Links
 
