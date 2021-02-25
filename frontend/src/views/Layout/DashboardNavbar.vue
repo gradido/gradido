@@ -41,7 +41,7 @@
                     <img alt="Image placeholder" src="img/theme/team-4.jpg">
                   </span>
             <b-media-body class="ml-2 d-none d-lg-block">
-              <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.user.email}}</span>
+              <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.email}}</span>
             </b-media-body>
           </b-media>
         </a>
@@ -84,9 +84,9 @@ import { BaseNav, Modal } from '@/components';
 
 export default {
   components: {
-    CollapseTransition,
+    // CollapseTransition,
     BaseNav,
-    Modal
+    // Modal
   },
   props: {
     type: {
@@ -121,7 +121,7 @@ export default {
     },
     logout(){
       //console.log("DashboardNavbar.vue user logout() : ")
-      this.$store.commit('logout')
+      this.$store.dispatch('logout')
     }  
   }
 };

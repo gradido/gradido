@@ -81,7 +81,7 @@
                 </b-col>
               </b-row>            
             </form>
-             <b-button block type="submit" @click="creatUser()">Anmelden</b-button>
+             <b-button block type="submit" @click="createUser()">Anmelden</b-button>
             </b-col>
           </b-row>
     
@@ -114,25 +114,12 @@ export default {
   },
    methods: {
     login() {
-      if (this.lemail != '' || this.lpwd != '') {
-      //console.log("landingpage login()  ")
-      //console.log("landingpage login() lemail  ", this.lemail)
-      //console.log("landingpage login()  lpwd ", this.lpwd)
-      this.$store.commit('login', {"email":  this.lemail, "password":  this.lpwd})   
-      }
-       
-      //this.$router.push('/KontoOverview')
-      
+      //if (this.lemail !== '' || this.lpwd !== '') { // TODO this should be done via form validation
+      this.$store.dispatch('login', {email: this.lemail, password: this.lpwd})   
+      //}
     },
-     creatUser() {
-      console.log("landingpage creatUser()  ")
-       console.log("landingpage login() remail  ", this.remail)
-       console.log("landingpage login()  rfname ", this.rfname)
-       console.log("landingpage login()  rlname ", this.rlname)
-       console.log("landingpage login()  rpwd ", this.rpwd)
-      this.$store.commit('creatUser', {"email":this.remail, "first_name":this.rfname, "last_name":this.rlname , "emailType": 2, "password":this.rpwd})      
-      //this.$router.push('/KontoOverview')
-      
+    createUser() {
+      this.$store.dispatch('createUser', {email:this.remail, first_name:this.rfname, last_name:this.rlname, password:this.rpwd})            
     },
     loginAsAdmin () {      
        console.log("app.vue admin login(): " + this.$store.state.is_admin)

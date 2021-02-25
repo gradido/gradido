@@ -88,7 +88,7 @@
     components: {
       DashboardNavbar,
       ContentFooter,
-      DashboardContent,
+      // DashboardContent,
       FadeTransition
     },
     methods: {
@@ -100,7 +100,7 @@
       },
        logout(){
           //console.log("DashboardLayout.vue user logout() : ")
-          this.$store.commit('logout')
+          this.$store.dispatch('logout')
         }  
     },
     mounted() {
