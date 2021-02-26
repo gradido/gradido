@@ -61,8 +61,8 @@ export const store = new Vuex.Store({
       } 
     },
     createUser: async ({ dispatch }, data) => {
-      console.log('action: createUser')
-      console.log('data ', data)
+      //console.log('action: createUser')
+      //console.log('data ', data)
       const result = await loginAPI.create(data.email,data.first_name,data.last_name,data.password)
       if( result.success ){
         // TODO We are not logged in, we need to do that manually.

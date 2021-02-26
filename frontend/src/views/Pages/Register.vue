@@ -92,10 +92,8 @@
                   </div>
 
                   <div>
+
  
-   <!--Notice modal-->
- 
-<notifications></notifications>
 </div>
     </b-container>
   </div>
@@ -112,18 +110,13 @@
           email: '',
           password: '',
           agree: false          
-        },
-        modals: false
+        }
       }
-    },
-    created() {
-      console.log("this.modals =>", this.modals)
     },
     methods: {
       onSubmit() {
-         console.log("this.modals =>", this.modals)
-         //this.$store.dispatch('createUser', {"email":this.model.email, "first_name":this.model.firstname, "last_name":this.model.lastname , "emailType": 2, "password":this.model.password}) 
-          this.$notify({type: 'danger', message: 'Danger Notification'})
+        // console.log("this.modals =>", this.modals)
+         this.$store.dispatch('createUser', {"email":this.model.email, "first_name":this.model.firstname, "last_name":this.model.lastname , "emailType": 2, "password":this.model.password}) 
           this.model.email = ""
           this.model.firstname = ""
           this.model.lastname = ""
