@@ -38,7 +38,7 @@
       </b-row>
       <div class="text-center">
         <h5 class="h3">
-         {{this.$store.state.user.email}}<span class="font-weight-light"></span>
+         {{this.$store.state.email}}<span class="font-weight-light"></span>
         </h5>
         <div class="h5 font-weight-300">
           <i class="ni location_pin mr-2"></i>Bucharest, Romania
