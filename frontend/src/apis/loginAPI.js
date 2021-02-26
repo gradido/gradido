@@ -9,7 +9,6 @@ const EMAIL_TYPE = {
   ADMIN: 5, // if user was registered by an admin
 }
 
-// define a mixin object
 const loginAPI = {
   login: async (email, password) => {
     const payload = {
