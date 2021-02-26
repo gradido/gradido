@@ -21,7 +21,8 @@ export const store = new Vuex.Store({
       target_date:"2021-02-19T13:25:36+00:00", 
       memo:"AGE",
       auto_sign: true
-    }
+    },
+    modals: false
   },
   // Retrieve a state variable
   getters: {
@@ -61,6 +62,7 @@ export const store = new Vuex.Store({
     },
     createUser: async ({ dispatch }, data) => {
       console.log('action: createUser')
+      console.log('data ', data)
       const result = await loginAPI.create(data.email,data.first_name,data.last_name,data.password)
       if( result.success ){
         // TODO We are not logged in, we need to do that manually.

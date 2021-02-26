@@ -92,11 +92,10 @@
                   </div>
 
                   <div>
-  <b-button v-b-modal.modal-1 variant="primary">Launch demo modal</b-button>
-
-  <b-modal id="modal-1" title="New message to undefined">
-    <p class="my-4">...</p>
-  </b-modal>
+ 
+   <!--Notice modal-->
+ 
+<notifications></notifications>
 </div>
     </b-container>
   </div>
@@ -112,15 +111,26 @@
           lastname: '',
           email: '',
           password: '',
-          agree: false
-        }
+          agree: false          
+        },
+        modals: false
       }
+    },
+    created() {
+      console.log("this.modals =>", this.modals)
     },
     methods: {
       onSubmit() {
-       this.$store.dispatch('creatUser', {"email":this.model.email, "first_name":this.model.firstname, "last_name":this.model.lastname , "emailType": 2, "password":this.model.password})      
-       
-      }
+         console.log("this.modals =>", this.modals)
+         //this.$store.dispatch('createUser', {"email":this.model.email, "first_name":this.model.firstname, "last_name":this.model.lastname , "emailType": 2, "password":this.model.password}) 
+          this.$notify({type: 'danger', message: 'Danger Notification'})
+          this.model.email = ""
+          this.model.firstname = ""
+          this.model.lastname = ""
+          this.model.password = ""
+          this.$router.push('/thx')
+          
+     }
     }
   };
 </script>
