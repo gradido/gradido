@@ -59,13 +59,17 @@ export const store = new Vuex.Store({
         dispatch('logout')
       } 
     },
-    createUser: async ({ dispatch }, data) => {
+    createUser: async ({ commit, dispatch }, data) => {
       //console.log('action: createUser')
       //console.log('data ', data)
       const result = await loginAPI.create(data.email,data.first_name,data.last_name,data.password)
       if( result.success ){
-        // TODO We are not logged in, we need to do that manually.
-        // TODO show user a success message
+        console.log(result)
+        commit('session_id', result.result.data.session_id)
+        commit('email', data.email)
+        $cookies.set('gdd_session_id', result.result.data.session_id);
+        $cookies.set('gdd_u',  data.email);
+        router.push('/KontoOverview')
       } else {
         // Register failed, we perform a logout
         dispatch('logout')

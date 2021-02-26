@@ -56,7 +56,8 @@ const loginAPI = {
       first_name,
       last_name,
       password,
-      emailType: EMAIL_TYPE.DEFAULT
+      emailType: EMAIL_TYPE.DEFAULT,
+      login_after_register: true
     }
     try {
       const result = await axios.post(LOGIN_API_URL + 'createUser', payload);
