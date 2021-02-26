@@ -9,45 +9,32 @@ const EMAIL_TYPE = {
   ADMIN: 5, // if user was registered by an admin
 }
 
+const apiPost = async (url, payload) => {
+  try {
+    const result = await axios.post(url, payload);
+    if(result.status !== 200){
+      throw new Error('HTTP Status Error '+result.status)
+    }
+    if(result.data.state !== 'success'){
+      throw new Error(result.data.msg)
+    }
+    return { success: true, result }
+  } catch(error){
+    return { success: false, result: error}
+  }
+}
+
 const loginAPI = {
   login: async (email, password) => {
     const payload = {
       email,
       password,
     }
-    try {
-      const result = await axios.post(LOGIN_API_URL + 'unsecureLogin', payload);
-      if(result.status !== 200){
-        throw new Error('HTTP Status Error '+result.status)
-      }
-      if(result.data.state === 'error'){
-        throw new Error(result.data.msg)
-      }
-      if(result.data.state !== 'success'){
-        throw new Error(result.data)
-      }
-      return { success: true, result }
-    } catch(error){
-      return { success: false, result: error}
-    }
+    return apiPost(LOGIN_API_URL + 'unsecureLogin', payload)
   },
   logout: async (session_id) => {
     const payload= { session_id }
-    try {
-      const result = await axios.post(LOGIN_API_URL + 'logout', payload);
-      if(result.status !== 200){
-        throw new Error('HTTP Status Error '+result.status)
-      }
-      if(result.data.state === 'error'){
-        throw new Error(result.data.details)
-      }
-      if(result.data.state !== 'success'){
-        throw new Error(result.data)
-      }
-      return { success: true, result }
-    } catch(error){
-      return { success: false, result: error}
-    }
+    return apiPost(LOGIN_API_URL + 'logout', payload)
   },
   create : async (email, first_name, last_name, password) => {
     const payload = {
@@ -58,24 +45,7 @@ const loginAPI = {
       emailType: EMAIL_TYPE.DEFAULT,
       login_after_register: true
     }
-    try {
-      const result = await axios.post(LOGIN_API_URL + 'createUser', payload);
-      if(result.status !== 200){
-        throw new Error('HTTP Status Error '+result.status)
-      }
-      if(result.data.state === 'error'){
-        throw new Error(result.data.details)
-      }
-      if(result.data.state === 'exists'){
-        throw new Error(result.data.msg)
-      }
-      if(result.data.state !== 'success'){
-        throw new Error(result.data)
-      }
-      return { success: true, result }
-    } catch(error){
-      return { success: false, result: error}
-    }
+    return apiPost(LOGIN_API_URL + 'createUser', payload)
   },     
 }
 
