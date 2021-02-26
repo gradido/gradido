@@ -37,6 +37,10 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		if (parsedResult.size() != 0) {
 			json_result = handle(parsedResult);
 		}
+		else {
+			json_result = stateError("empty body");
+		}
+
 	}
 	else if(method == "GET") {		
 		Poco::URI uri(request.getURI());

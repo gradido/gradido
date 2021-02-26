@@ -51,7 +51,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	if (password.size()) {
 		ErrorList errors;
-		if (!sm->checkPwdValidation(password, &errors)) {
+		if (!(ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) && !sm->checkPwdValidation(password, &errors)) {
 			Poco::JSON::Object* result = new Poco::JSON::Object;
 			result->set("state", "error");
 			result->set("msg", errors.getLastError()->getString(false));

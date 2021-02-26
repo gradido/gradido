@@ -246,6 +246,9 @@ namespace ServerConfig {
 		if (cfg.getInt("unsecure.allow_cors_all", 0) == 1) {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_CORS_ALL);
 		}
+		if (cfg.getInt("unsecure.allow_all_passwords", 0) == 1) {
+			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
+		}
 
 		return true;
 	}
