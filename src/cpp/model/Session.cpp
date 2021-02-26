@@ -1110,7 +1110,8 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 {
 	auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId));
 	// prevent reading or changing cookie with js
-	keks.setHttpOnly();
+//	keks.setHttpOnly();
+
 	keks.setPath("/");
 	// send cookie only via https, on linux, except in test builds 
 #ifndef WIN32
