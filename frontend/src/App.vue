@@ -22,7 +22,7 @@ export default {
          this.$router.push('/KontoOverview') 
         // }
      }else {
-       this.$router.push("/Landing")
+       this.$router.push("/Login")
      } 
       
       //var user = { id:1, name:'Journal',session:'25j_7Sl6xDq2Kc3ym0fmrSSk2xV2XkUkX' };

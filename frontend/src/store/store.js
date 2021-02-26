@@ -18,6 +18,14 @@ export const store = new Vuex.Store({
       email:"",
       sessionID: 0,
       balance: 0
+    },
+    ajaxCreateData:  {
+      session_id : '',
+      email: "max.musterman@gmail.de",
+      amount: 10000000,
+      target_date:"2021-02-19T13:25:36+00:00", 
+      memo:"AGE",
+      auto_sign: true
     }
   },
   mutations: {   
@@ -68,7 +76,7 @@ export const store = new Vuex.Store({
          
          console.log("Im Store creatUser() axios then ", ldata);
          // this.ldata = ldata.data;
-         return true
+         router.push('/Login')
          
       }, (error) => {
         console.log(error);
@@ -88,16 +96,25 @@ export const store = new Vuex.Store({
         $cookies.set('gdd_is_auth','false');
         $cookies.remove('gdd_email');
         $cookies.remove('gdd_session_id');
-        router.push('/Landing')
+        router.push('/Login')
       }, (error) => {
         console.log(error);
       });
         
     },
-    accountBalance0(state) {
-      console.log("accountBalance0 => START")
-      axios.get("http://localhost/state-balances/ajaxGetBalance/739420303").then((req) => {
-        console.log("accountBalance => ", req)
+    ajaxCreate(state){
+      state.ajaxCreateData.session_id = state.user.sessionID
+      console.log(" state.ajaxCreateData => ",  state.ajaxCreateData)
+      axios.post(" http://localhost/transaction-creations/ajaxCreate/", state.ajaxCreateData).then((req) => {
+        console.log("ajaxCreate => ", req)
+      }, (error) => { 
+        console.log(error);
+      });
+    },
+    ajaxListTransactions(state) {
+      console.log("ajaxListTransactions => START")
+      axios.get("http://localhost/state-balances/ajaxListTransactions/"+ state.user.sessionID).then((req) => {
+        console.log("ajaxListTransactions => ", req)
       }, (error) => {
         console.log(error);
       });

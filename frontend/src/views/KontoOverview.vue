@@ -30,7 +30,8 @@
        
       </div>
     </base-header>
-    <div @click="$store.commit('accountBalance0')">this.$store.commit('accountBalance0')</div>
+    <div @click="$store.commit('ajaxCreate')">this.$store.commit('ajaxCreate')</div>
+    <div @click="$store.commit('ajaxListTransactions')">this.$store.commit('ajaxListTransactions')</div>
     <div @click="$store.commit('accountBalance')">this.$store.commit('accountBalance')</div> 
      <hr>
     <h3>User Balanace</h3>

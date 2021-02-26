@@ -12,16 +12,20 @@ const routes = [
     component: AuthLayoutGDD,
     children: [
       {
-        path: '/Landing',
-        name: 'Landing',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Landing.vue')
-      },
-      {
         path: '/login',
         name: 'login',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Login.vue')
       },
-      
+      {
+        path: '/Landing',
+        name: 'Landing',
+        component: () => import(/* webpackChunkName: "demo" */ '../views/Landing.vue')
+      },      
+      {
+        path: '/register',
+        name: 'register',
+        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Register.vue')
+      },
     ]
   },
   {
@@ -41,12 +45,7 @@ const routes = [
         path: '/profile',
         name: 'profile',
         component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/UserProfile.vue')
-      },
-      {
-        path: '/register',
-        name: 'register',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Register.vue')
-      },
+      }
     ]
   },
   ,
