@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
-import axios from 'axios'
+import communityAPI from '../apis/communityAPI'
 
 export const store = new Vuex.Store({
   state: {
@@ -21,6 +21,7 @@ export const store = new Vuex.Store({
       memo:"AGE",
       auto_sign: true
     },
+    transactions: [],
     modals: false
   },
   // Retrieve a state variable
@@ -39,6 +40,14 @@ export const store = new Vuex.Store({
       console.log('mutation: session_id')
       state.session_id = session_id
     },
+    user_balance: (state,balance) => {
+      console.log('mutation: user_balance')
+      state.user.balance = balance
+    },
+    transactions: (state,transactions) => {
+      console.log('mutation: transactions')
+      state.transactions = transactions
+    }
   },
   // Asyncronous actions - used for api calls
   actions: {
@@ -84,33 +93,41 @@ export const store = new Vuex.Store({
       $cookies.remove('gdd_u');
       router.push('/Login')
     },
-    ajaxCreate: async (state) => {
-      state.ajaxCreateData.session_id = state.session_id
-      console.log(" state.ajaxCreateData => ",  state.ajaxCreateData)
-      axios.post(" http://localhost/transaction-creations/ajaxCreate/", state.ajaxCreateData).then((req) => {
-        console.log("ajaxCreate => ", req)
-      }, (error) => { 
-        console.log(error);
-      });
+    ajaxCreate: async ({ dispatch, state }) => {
+      console.log('action: ajaxCreate')
+      console.log(state)
+      const result = await communityAPI.create(
+        state.session_id,
+        state.ajaxCreateData.email,
+        state.ajaxCreateData.amount,
+        state.ajaxCreateData.memo,
+        state.ajaxCreateData.target_date,
+      )
+      if( result.success ){
+        // TODO
+      } else {
+        dispatch('logout')
+      }
     },
-    ajaxListTransactions: async (state) => {
-     // console.log("ajaxListTransactions => START")
-      axios.get("http://localhost/state-balances/ajaxListTransactions/" + state.session_id).then((req) => {
-        console.log("ajaxListTransactions => ", req)
-      }, (error) => {
-        console.log(error);
-      });
+    ajaxListTransactions: async ({commit, dispatch, state}) => {
+      console.log('action: ajaxListTransactions')
+      const result = await communityAPI.transactions(state.session_id)
+      console.log(result)
+      if(result.success) {
+        commit('transactions', result.result.data.transactions)
+      } else {
+        dispatch('logout')
+      }
     },
-    accountBalance: async ({ state }) => {
-      //console.log(" => START")
-      state.url = "http://localhost/state-balances/ajaxGetBalance/" + state.session_id
-      //console.log(state.url)
-      axios.get(state.url).then((req) => {
-        console.log("accountBalance => ", req.data.balance)
-        state.user.balance = req.data.balance
-      }, (error) => {
-        console.log(error);
-      });
+    accountBalance: async ({ commit, dispatch, state }) => {
+      console.log('action: accountBalance')
+      const result = await communityAPI.balance(state.session_id)
+      console.log(result)
+      if(result.success) {
+        commit('user_balance', result.result.data.balance)
+      } else {
+        dispatch('logout')
+      }
     }
   }  
 })

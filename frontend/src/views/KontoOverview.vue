@@ -48,9 +48,9 @@
 
  <hr>
     <h3>User Transactions List</h3>
-    <small>/public/json-example/usertransactions.json</small>
+    <small>this.$store.state.transactions</small>
     <p>
-      {{usertransactions}}
+      {{this.$store.state.transactions}}
     </p>
 
 
@@ -103,7 +103,7 @@
           console.log(error);
         });
         },
-        UserTransactions() {
+        /*UserTransactions() {
           axios.get("/json-example/usertransactions.json").then((transactions) => {
           console.log(transactions);
           this.usertransactions = transactions.data;
@@ -111,7 +111,7 @@
         }, (error) => {
           console.log(error);
         });
-        },
+        },*/
         UserParticitions() {
           axios.get("/json-example/userparticipation.json").then((participation) => {
           console.log(participation);
@@ -135,7 +135,7 @@
       },
       mounted() {
         this.UserData();
-        this.UserTransactions();
+        //this.UserTransactions();
         this.UserParticitions();
       },
   };
