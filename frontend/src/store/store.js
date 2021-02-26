@@ -5,7 +5,6 @@ import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import axios from 'axios'
 
-// TODO make persistent: https://translate.google.de/translate?hl=de&sl=en&u=https://sandulat.com/safely-persisting-vuex-store-in-local-storage/&prev=search&pto=aue
 export const store = new Vuex.Store({
   state: {
     session_id: null,
@@ -26,9 +25,9 @@ export const store = new Vuex.Store({
   },
   // Retrieve a state variable
   getters: {
-    /*isActive: (state, getters) => {
-      return state.active;
-    }*/
+    isLoggedIn: (state /*, getters */) => {
+      return state.session_id !== null;
+    }
   },
   // Syncronous mutation of the state
   mutations: {
