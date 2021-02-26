@@ -30,11 +30,20 @@
        
       </div>
     </base-header>
+    <div @click="$store.dispatch('ajaxCreate')">this.$store.dispatch('ajaxCreate')</div>
+    <div @click="$store.dispatch('ajaxListTransactions')">this.$store.dispatch('ajaxListTransactions')</div>
+    <div @click="$store.dispatch('accountBalance')">this.$store.dispatch('accountBalance')</div> 
      <hr>
-    <h3>User Data</h3>
-    <small>/public/json-example/userdata.json</small>
+    <h3>User Balanace</h3>
+    <small>this.$store.state.user.balance</small>
     <p>
-      {{userdata}}
+       {{this.$store.state.user}}
+    </p>
+     <hr>
+    <h3>User Balanace</h3>
+    <small>this.$store.state.user.balance</small>
+    <p>
+      {{this.$store.state.user.balance}}
     </p>
 
  <hr>
@@ -80,6 +89,9 @@
         GddAddWork,
         GddWorkTable,
         //axios
+     },
+     created() {
+        
      },
      methods: {
          UserData() {
