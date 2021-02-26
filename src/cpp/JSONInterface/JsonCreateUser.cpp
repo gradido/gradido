@@ -15,6 +15,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string first_name;
 	std::string last_name;
 	std::string password;
+	bool login_after_register = false;
 	int emailType;
 	auto em = EmailManager::getInstance();
 	auto sm = SessionManager::getInstance();
@@ -32,8 +33,12 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
+
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
+			}
+			if (!paramJsonObject->isNull("login_after_register")) {
+				paramJsonObject->get("login_after_register").convert(login_after_register);
 			}
 		}
 		catch (Poco::Exception& ex) {
@@ -71,7 +76,6 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		userModel->sendErrorsAsEmail();
 		return stateError("insert user failed");
 	}
-
 	if (password.size()) {
 		session = sm->getNewSession();
 		session->setUser(user);
@@ -91,6 +95,13 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	}
 
 	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+
+	if (login_after_register && session) {
+		Poco::JSON::Object* result = stateSuccess();
+
+		result->set("session_id", session->getHandle());
+		return result;
+	}
 
 	return stateSuccess();
 	

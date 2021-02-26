@@ -11,6 +11,8 @@
 #include "../ServerConfig.h"
 
 #include "../lib/DataTypeConverter.h"
+#include "../SingletonManager/SessionManager.h"
+
 
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
@@ -50,6 +52,21 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 
 	if (json_result) {
+		if (!json_result->isNull("session_id")) {
+			int session_id = 0;
+			try {
+				json_result->get("session_id").convert(session_id);
+			}
+			catch (Poco::Exception& e) {
+				ErrorList erros;
+				erros.addError(new Error("json request", "invalid session_id"));
+				erros.sendErrorsAsEmail();
+			}
+			if (session_id) {
+				auto session = SessionManager::getInstance()->getSession(session_id);
+				response.addCookie(session->getLoginCookie());
+			}
+		}
 		json_result->stringify(responseStream);
 		delete json_result;
 	}
