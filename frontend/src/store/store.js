@@ -66,6 +66,7 @@ export const store = new Vuex.Store({
       }
     },     
     logout: async ({ commit , state }) => {
+      console.log('action: logout')
       // Are we actually logged in?
       if(state.session_id){
         const result = await loginAPI.logout(state.session_id)
