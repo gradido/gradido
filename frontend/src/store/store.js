@@ -95,9 +95,9 @@ export const store = new Vuex.Store({
     },
     ajaxCreate: async ({ dispatch, state }) => {
       console.log('action: ajaxCreate')
-      console.log(state)
+      console.log(state.ajaxCreateData)
       const result = await communityAPI.create(
-        state.session_id,
+        state.ajaxCreateData.session_id,
         state.ajaxCreateData.email,
         state.ajaxCreateData.amount,
         state.ajaxCreateData.memo,
