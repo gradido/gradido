@@ -483,6 +483,9 @@ class TransactionCreationsController extends AppController
             if($amount > 10000000) {
                 return $this->returnJson(['state' => 'error', 'msg' => 'amount is to big']);
             }
+            if($amount <= 0) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'amount must be > 0']);
+            }
             if(!isset($jsonData['target_date'])) {
                 return $this->returnJson(['state' => 'parameter missing', 'msg' => 'target_date not found']);
             }

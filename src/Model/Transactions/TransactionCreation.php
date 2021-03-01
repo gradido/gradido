@@ -189,6 +189,12 @@ class TransactionCreation extends TransactionBase {
           return false;
         }
      } else {*/
+       if($newSum2 <= 0) {
+           $this->addError(
+                'TransactionCreation::validate',
+                'Creation less than 0 GDD per Month for '. $receiverEmail .' in target_date not allowed'   
+           );
+       }
        if($newSum2 > 10000000) {
          $this->addError(
                  'TransactionCreation::validate',

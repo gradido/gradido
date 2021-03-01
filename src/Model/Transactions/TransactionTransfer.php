@@ -154,6 +154,10 @@ class TransactionTransfer extends TransactionBase {
         $this->addError($functionName, 'sender amount doesn\'t match receiver amount');
         return false;
       }
+      if($senderSum < 0) {
+          $this->addError($functionName, 'negative amount not supported');
+          return false;
+      }
       //die("\n");
       return true;
     }

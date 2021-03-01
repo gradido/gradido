@@ -313,6 +313,9 @@ class TransactionSendCoinsController extends AppController
             if(!isset($jsonData['amount']) || !isset($jsonData['email'])) {
                 return $this->returnJson(['state' => 'parameter missing', 'msg' => 'amount and/or email not set']);
             }
+            if($jsonData['amount'] < 0) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'amout must be > 0']);
+            }
             
             if(!isset($user['balance']) || $jsonData['amount'] > $user['balance']) {
               return $this->returnJson(['state' => 'error', 'msg' => 'not enough GDD']);
