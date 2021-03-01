@@ -14,7 +14,7 @@ cd /var/www/html
 if [ ! -d "$FOLDER_NAME" ] ; then
 	mkdir $FOLDER_NAME
 else
-	chmod -R 0744 $FOLDER_NAME
+	chmod -R 0755 $FOLDER_NAME
 fi
 cd $FOLDER_NAME
 cp -r $SCRIPTPATH/src .
@@ -33,6 +33,6 @@ fi
 
 cd ..
 chown -R www-data:www-data $FOLDER_NAME
-chmod -R 0600 $FOLDER_NAME/src
-chmod -R 0600 $FOLDER_NAME/config
-chmod -R 0600 $FOLDER_NAME/webroot 
+chmod -R 0755 $FOLDER_NAME/src
+chmod -R 0755 $FOLDER_NAME/config
+chmod -R 0755 $FOLDER_NAME/webroot 
