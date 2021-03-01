@@ -54,7 +54,7 @@ skeema push -p$LOGIN_DB_PASSWD
 
 cd ../../..
 # populate db of community-server
-cd community-server/skeema
+cd community_server/skeema
 sudo cat << EOF > .skeema
 [production]
 flavor=mariadb:10.1.47
