@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 	}
 	
 	Gradido_LoginServer app;
+	app.setUnixOptions(true);
 	return app.run(argc, argv);
 }
 #endif

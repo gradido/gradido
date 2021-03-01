@@ -54,16 +54,28 @@ void Gradido_LoginServer::defineOptions(Poco::Util::OptionSet& options)
 {
 	ServerApplication::defineOptions(options);
 
-	options.addOption(
+	/*options.addOption(
 		Poco::Util::Option("help", "h", "display help information on command line arguments")
 		.required(false)
-		.repeatable(false));
+		.repeatable(false));*/
+	options.addOption(
+		Poco::Util::Option("config", "c", "use non default config file (default is /etc/grd_login.properties)", false)
+		.repeatable(false)
+		.argument("Gradido_LoginServer.properties", true)
+		.callback(Poco::Util::OptionCallback<Gradido_LoginServer>(this, &Gradido_LoginServer::handleOption)));
+
 }
 
 void Gradido_LoginServer::handleOption(const std::string& name, const std::string& value)
 {
+	//printf("handle option: %s with value: %s\n", name.data(), value.data());
+	if (name == "config") {
+		mConfigPath = value;
+		return;
+	}
 	ServerApplication::handleOption(name, value);
 	if (name == "help") _helpRequested = true;
+	
 }
 
 void Gradido_LoginServer::displayHelp()
@@ -93,6 +105,7 @@ void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::st
 
 int Gradido_LoginServer::main(const std::vector<std::string>& args)
 {
+	
 	Profiler usedTime;
 	if (_helpRequested)
 	{
@@ -134,12 +147,16 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// *************** load from config ********************************************
 
-		std::string cfg_Path = Poco::Path::config() + "grd_login/";
+		std::string cfg_Path = Poco::Path::config() + "grd_login/grd_login.properties";
+		if (mConfigPath != "") {
+			cfg_Path = mConfigPath;
+		}
+
 		try {
-			loadConfiguration(cfg_Path + "grd_login.properties");
+			loadConfiguration(cfg_Path);
 		}
 		catch (Poco::Exception& ex) {
-			errorLog.error("error loading config: %s", ex.displayText());
+			errorLog.error("error loading config: %s from path: %s", ex.displayText(), cfg_Path);
 		}
 
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
