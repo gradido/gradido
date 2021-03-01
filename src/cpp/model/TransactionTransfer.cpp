@@ -122,7 +122,11 @@ int TransactionTransfer::prepare()
 		unlock();
 		return -5;
 	}
-
+	if (senderSum < 0) {
+		addError(new Error(functionName, "negative amount not supported"));
+		unlock();
+		return -6;
+	}
 
 	/*
 	mReceiverUser = new User(receiverPublic.data());
