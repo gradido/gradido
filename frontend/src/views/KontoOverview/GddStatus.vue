@@ -15,11 +15,11 @@
         <b-col xl="6" md="6">
           <stats-card :title="$t('site.overview.gradido_received')"
                       type="gradient-orange"
-                      :sub-title="balance_gtt"
+                      :sub-title="balance_gdt"
                       class="mb-4">
-                  {{ balance_gtt }} GTT
+                  {{ balance_gdt }} GDT
             <template slot="footer"> 
-              <span class="text-nowrap">Wird nur angezeigt wenn user GTT besitzt.</span>
+              <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
             </template>
           </stats-card>
         </b-col>
@@ -33,7 +33,7 @@ export default {
   data(){
     return {
       balance_gdd: this.$store.state.user.balance,
-      balance_gtt: "0",
+      balance_gdt: "0",
     }
   },
 };

@@ -181,7 +181,7 @@ export default {
         console.log("this.form.amount", this.form.amount)
         console.log("this.form.memo", this.form.memo)
 
-        this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id'),
+        this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
         this.$store.state.ajaxCreateData.email = this.form.email,
         this.$store.state.ajaxCreateData.amount = this.form.amount,
         this.$store.state.ajaxCreateData.memo = this.form.memo,
