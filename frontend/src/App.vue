@@ -17,7 +17,7 @@ export default {
         this.$store.state.email = this.$cookies.get('gdd_u')
         this.$router.push('/KontoOverview') 
       }else {
-        this.$router.push("/Login")
+       this.$router.push("/Login")
       } 
     }
 }

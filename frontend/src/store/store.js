@@ -4,6 +4,8 @@ Vue.use(Vuex)
 import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
+import axios from 'axios'
+
 
 export const store = new Vuex.Store({
   state: {
@@ -11,7 +13,8 @@ export const store = new Vuex.Store({
     email: null,
     user : {
       name:"",
-      balance: 0
+      balance: 0,
+      balance_gdt: 0
     },
     ajaxCreateData:  {
       session_id : '',
@@ -43,6 +46,10 @@ export const store = new Vuex.Store({
     user_balance: (state,balance) => {
       console.log('mutation: user_balance')
       state.user.balance = balance / 10000
+    },
+    user_balance_gdt: (state,balance) => {
+      console.log('mutation: user_balance_gdt')
+      state.user.balance_gdt = balance / 10000
     },
     transactions: (state,transactions) => {
       console.log('mutation: transactions')
@@ -110,14 +117,29 @@ export const store = new Vuex.Store({
       }
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
-      console.log('action: ajaxListTransactions')
-      const result = await communityAPI.transactions(state.session_id)
-      console.log(result)
-      if(result.success) {
-        commit('transactions', result.result.data.transactions)
-      } else {
-        dispatch('logout')
-      }
+      console.log('action: ajaxListTransactions', state.session_id)
+     // const result = await communityAPI.transactions(state.session_id)
+     
+       axios.get("http://localhost/state-balances/ajaxListTransactions/"+ state.session_id).then((result) => {
+         console.log("result",result)
+         console.log("result.state",result.data.state)
+        
+         console.log("result.data.state == 'success'",result.data.state == "success")
+       if(result.data.state == "success") {
+        console.log("result.count",result.data.count)
+         console.log("result.gdtSum",result.data.gdtSum)
+         console.log("result.transactions",result.data.transactions)
+        commit('transactions', result.data.transactions)
+        commit('user_balance_gdt', result.data.gdtSum)
+     } else {
+       dispatch('logout')
+     }
+
+      }, (error) => {
+        console.log(error);
+      });
+      
+      
     },
     accountBalance: async ({ commit, dispatch, state }) => {
       console.log('action: accountBalance')

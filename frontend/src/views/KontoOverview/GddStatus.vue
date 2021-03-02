@@ -15,9 +15,9 @@
         <b-col xl="6" md="6">
           <stats-card :title="$t('site.overview.gradido_received')"
                       type="gradient-orange"
-                      :sub-title="balance_gdt"
+                      sub-title="balance_gdt"
                       class="mb-4">
-                  {{ balance_gdt }} GDT
+                  {{  $store.state.user.balance_gdt.toFixed(4) }} GDT
             <template slot="footer"> 
               <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
             </template>
@@ -33,11 +33,10 @@ export default {
   data(){
     return {
       balance_gdd: this.$store.state.user.balance,
-      balance_gdt: "0",
+      balance_gdt: this.$store.state.user.balance_gdt,
     }
   },
   mounted() {
-  
     this.$store.dispatch('accountBalance')
   },
 };
