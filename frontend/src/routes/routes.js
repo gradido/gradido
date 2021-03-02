@@ -8,23 +8,23 @@ import NotFound from '@/views/NotFoundPage.vue'
 const routes = [
   {
     path: '/',
-    redirect: 'landing',
+    redirect: 'login',
     component: AuthLayoutGDD,
     children: [
       {
         path: '/login',
         name: 'login',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Login.vue')
+        component: () => import('../views/Pages/Login.vue')
       },
       {
         path: '/thx',
         name: 'Thanks',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/thx.vue')
+        component: () => import('../views/Pages/thx.vue')
       },      
       {
         path: '/register',
         name: 'register',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/Register.vue')
+        component: () => import('../views/Pages/Register.vue')
       },
     ]
   },
@@ -36,7 +36,7 @@ const routes = [
       {
         path: '/KontoOverview',
         name: 'Kontoübersicht',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/KontoOverview.vue'),
+        component: () => import('../views/KontoOverview.vue'),
         meta: {
           requiresAuth: true
         }
@@ -44,7 +44,7 @@ const routes = [
       {
         path: '/profile',
         name: 'profile',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/Pages/UserProfile.vue')
+        component: () => import('../views/Pages/UserProfile.vue')
       }
     ]
   },
@@ -57,7 +57,7 @@ const routes = [
       {
         path: '/AdminOverview',
         name: 'Adminübersicht',
-        component: () => import(/* webpackChunkName: "demo" */ '../views/AdminOverview.vue'),
+        component: () => import('../views/AdminOverview.vue'),
         meta: {
           requiresAuth: true
         }
