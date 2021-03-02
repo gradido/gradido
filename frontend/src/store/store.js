@@ -125,7 +125,7 @@ export const store = new Vuex.Store({
 
 
       axios.post("http://localhost/transaction-creations/ajaxCreate", state.ajaxCreateData).then((result) => {
-        console.log("ajaxCreate result", result)
+        console.log("store ajaxCreate result", result)
        
       if( result.success ){
         // TODO

@@ -8,7 +8,7 @@
           </template>
           <template #cell(details)="row">
             <b-button size="md" @click="row.toggleDetails" class="mr-2">
-              {{ row.detailsShowing ? $t('site.overview.table.hide')  : $t('site.overview.table.view') }}
+               {{ row.detailsShowing ? $t('site.overview.table.hide')  : $t('site.overview.table.view') }}
             </b-button>        
           </template>
 
@@ -73,10 +73,10 @@ export default {
    
     //console.log("result.count",result.data.count)
     // console.log("result.gdtSum",result.data.gdtSum)
-    // console.log("result.transactions",result.data.transactions)
+     console.log("result.transactions",result.data.transactions)
      //commit('transactions', result.data.transactions)
       this.$store.state.user.balance_gdt =  result.data.gdtSum
-      this.items = result.data.transactions
+      this.items = JSON.parse(result.data.transactions)
      
    }, (error) => {
      console.log(error);

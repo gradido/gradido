@@ -14,22 +14,23 @@
         <gdd-table />
        
       </div>
-     <hr>
-      <!-- Card table -->
+     
+      <!-- Card table 
+      <hr>
       <div>
         <gdd-add-work />
        
       </div>
       <br>
-      <!-- Card table -->
+      -->
+      <!-- Card table 
       <div>
         <gdd-work-table />
        
       </div>
+      -->
     </base-header>
-    <div @click="$store.dispatch('ajaxCreate')">this.$store.dispatch('ajaxCreate')</div>
-    <div @click="$store.dispatch('ajaxListTransactions')">this.$store.dispatch('ajaxListTransactions')</div>
-    <div @click="$store.dispatch('accountBalance')">this.$store.dispatch('accountBalance')</div> 
+     
      <hr>
   </div>
 </template>
@@ -39,22 +40,19 @@
    import GddStatus from './KontoOverview/GddStatus.vue';
    import GddSent from './KontoOverview/GddSent.vue';
    import GddTable from './KontoOverview/GddTable.vue';
-   import GddAddWork from './KontoOverview/GddAddWork.vue';
-   import GddWorkTable from './KontoOverview/GddWorkTable.vue';
+   //import GddAddWork from './KontoOverview/GddAddWork.vue';
+  // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
   export default {  
     components: {
         GddStatus,
         GddSent,
-        GddTable,
-        GddAddWork,
-        GddWorkTable
+        GddTable
+        //GddAddWork
+        //GddWorkTable
      },
-     created() {
-       
- 
-       this.$store.dispatch('accountBalance')
-        
+     created() { 
+       this.$store.dispatch('accountBalance')        
      },
   };
 </script>
