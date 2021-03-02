@@ -6,7 +6,7 @@
                       type="gradient-red"
                       sub-title="balance_gdd"
                       class="mb-4">
-                {{ balance_gdd }} GDD
+                {{ $store.state.user.balance.toFixed(4) }} GDD
             <template slot="footer">
               <span class="text-success mr-2">Wird immer angezeigt</span>
             </template>
@@ -35,6 +35,10 @@ export default {
       balance_gdd: this.$store.state.user.balance,
       balance_gdt: "0",
     }
+  },
+  mounted() {
+  
+    this.$store.dispatch('accountBalance')
   },
 };
 </script>

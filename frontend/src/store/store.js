@@ -42,7 +42,7 @@ export const store = new Vuex.Store({
     },
     user_balance: (state,balance) => {
       console.log('mutation: user_balance')
-      state.user.balance = balance
+      state.user.balance = balance / 10000
     },
     transactions: (state,transactions) => {
       console.log('mutation: transactions')
