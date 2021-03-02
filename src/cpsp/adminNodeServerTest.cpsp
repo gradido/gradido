@@ -73,6 +73,10 @@ enum PageType
 		if(test_timeout_string != "") {
 			DataTypeConverter::strToInt(test_timeout_string, hedera_timeout);
 		}
+		auto test_part_timeout_string = form.get("test-part-timeout", "");
+		if(test_part_timeout_string != "") {
+			DataTypeConverter::strToInt(test_part_timeout_string, sleep_ms_between_transactions);
+		}
 		auto submit = form.get("submit", "");
 		if(submit == "Run 6-Test") {
 			page = PAGE_RUN_4_SET_TEST;
@@ -179,6 +183,8 @@ enum PageType
 				
 				<label class="form-label" for="test-timeout">Timeout waiting for hedera in seconds</label>
 				<input name="test-timeout" id="test-timeout" type="number" value="<%= hedera_timeout %>"> seconds 
+				<label class="form-label" for="test-part-timeout">Timeout between transactions to prevent out-of-order</label>
+				<input name="test-part-timeout" id="test-part-timeout" type="number" value="<%= sleep_ms_between_transactions %>"> ms
 				<input class="center-form-submit form-button" type="submit" name="submit" value="Run 6-Test">
 			</form>
 		</div>
