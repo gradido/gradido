@@ -3,7 +3,7 @@
   
         <b-table striped hover :items="items" :fields="fields" :tbody-tr-class="rowClass" responsive="true" >
           <template  #cell(status)="row">   
-            <img  v-if="row.item.type === 'sent' " src="img/icons/gradido/minus.png" width="50" />          
+            <img  v-if="row.item.type === 'send' " src="img/icons/gradido/minus.png" width="50" />          
             <img  v-else src="img/icons/gradido/plus-low.png" width="50" />            
           </template>
           <template #cell(details)="row">
@@ -39,9 +39,9 @@
         <b-list-group > 
           <b-list-group-item v-for="item in items" :key="item.id"> 
           <div class="d-flex w-100 justify-content-between"  @click="toogle(item)" >
-            <b-icon v-if="item.type === 'sent'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
+            <b-icon v-if="item.type === 'send'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
             <b-icon v-else icon="box-arrow-right" class="m-1"  font-scale="2" style="color:green" ></b-icon>       
-              <h1 class="mb-1">{{item.balance}} <small>GDD</small></h1>
+              <h1 class="mb-1">{{ setComma(item.balance) }} <small>GDD</small></h1>
               <h2 class="text-muted"><small>{{item.date}}</small> - {{item.name}}</h2>
             </div>
           </b-list-group-item>
@@ -51,7 +51,7 @@
 </template>
 
 <script>
-
+import axios from 'axios';
 
 export default {
   name: 'GddTable',  
@@ -59,26 +59,50 @@ export default {
     return {
         form: [],
         fields: [ 'balance', 'date', 'memo', 'name', 'transaction_id', 'type','details'],       
-        items: this.$store.state.transactions
-
+        items: []
     };
   },
+    
+    created() {
+     
+     axios.get("http://localhost/state-balances/ajaxListTransactions/"+ this.$store.state.session_id).then((result) => {
+      //console.log("result",result)
+      //console.log("result.state",result.data.state)
+     //
+      //console.log("result.data.state == 'success'",result.data.state == "success")
+   
+    //console.log("result.count",result.data.count)
+    // console.log("result.gdtSum",result.data.gdtSum)
+    // console.log("result.transactions",result.data.transactions)
+     //commit('transactions', result.data.transactions)
+      this.$store.state.user.balance_gdt =  result.data.gdtSum
+      this.items = result.data.transactions
+     
+   }, (error) => {
+     console.log(error);
+   });
+ 
+    
+   },
+  
   methods: {
      rowClass(item, type) {
         if (!item || type !== 'row') return
-        if (item.type === 'received') return 'table-success'
-        if (item.type === 'sent') return 'table-warning'
-        if (item.type === 'create') return 'table-primary'
+        if (item.type === 'receive') return 'table-success'
+        if (item.type === 'send') return 'table-warning'
+        if (item.type === 'creation') return 'table-primary'
       },
       toogle(item) {
         const temp = '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>'
 
+      },
+      setComma(int){
+        return int / 10000
+
       }
   },
-  mounted() {
-     this.$store.dispatch('ajaxListTransactions')
-     console.log("this.items", this.items)
-  }
+
+ 
 };
 </script>
 <style>

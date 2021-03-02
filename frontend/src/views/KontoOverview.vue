@@ -49,7 +49,13 @@
         GddTable,
         GddAddWork,
         GddWorkTable
-     }
+     },
+     created() {
+       
+ 
+       this.$store.dispatch('accountBalance')
+        
+     },
   };
 </script>
 

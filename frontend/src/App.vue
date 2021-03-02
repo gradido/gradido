@@ -13,8 +13,10 @@
 export default {
    name: 'app',
     created () { 
-      if ( $cookies.isKey("gdd_session_id") == true  ) {
-        this.$store.state.email = this.$cookies.get('gdd_u')
+      //console.log("this.$cookies.get('gdd_session_id') ", this.$cookies.get('gdd_session_id') )
+      //console.log(" $cookies.isKey('gdd_session_id') == true", this.$cookies.isKey("gdd_session_id") == true )
+      if ( this.$cookies.get('gdd_session_id')  == this.$store.state.session_id ) {
+        //this.$store.state.email = this.$cookies.get('gdd_u')       
         this.$router.push('/KontoOverview') 
       }else {
        this.$router.push("/Login")

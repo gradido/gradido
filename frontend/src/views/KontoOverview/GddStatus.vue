@@ -6,7 +6,7 @@
                       type="gradient-red"
                       sub-title="balance_gdd"
                       class="mb-4">
-                {{ $store.state.user.balance.toFixed(4) }} GDD
+                {{ setComma($store.state.user.balance) }} GDD
             <template slot="footer">
               <span class="text-success mr-2">Wird immer angezeigt</span>
             </template>
@@ -17,7 +17,7 @@
                       type="gradient-orange"
                       sub-title="balance_gdt"
                       class="mb-4">
-                  {{  $store.state.user.balance_gdt.toFixed(4) }} GDT
+                  {{  setComma($store.state.user.balance_gdt) }} GDT 
             <template slot="footer"> 
               <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
             </template>
@@ -36,8 +36,11 @@ export default {
       balance_gdt: this.$store.state.user.balance_gdt,
     }
   },
-  mounted() {
-    this.$store.dispatch('accountBalance')
+  methods: {
+    setComma(int){
+        return int / 10000
+
+      }
   },
 };
 </script>

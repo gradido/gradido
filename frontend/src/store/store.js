@@ -18,10 +18,10 @@ export const store = new Vuex.Store({
     },
     ajaxCreateData:  {
       session_id : '',
-      email: "max.musterman@gmail.de",
-      amount: 10000000,
+      email: "",
+      amount: 0,
       target_date:"2021-02-19T13:25:36+00:00", 
-      memo:"AGE",
+      memo:"",
       auto_sign: true
     },
     transactions: [],
@@ -36,30 +36,30 @@ export const store = new Vuex.Store({
   // Syncronous mutation of the state
   mutations: {
     email: (state, email) => {
-      console.log('mutation: email')
+      //console.log('mutation: email')
       state.email = email
     },
     session_id: (state,session_id) => {
-      console.log('mutation: session_id')
+      //console.log('mutation: session_id')
       state.session_id = session_id
     },
     user_balance: (state,balance) => {
-      console.log('mutation: user_balance')
-      state.user.balance = balance / 10000
+      //console.log('mutation: user_balance')
+      state.user.balance = balance
     },
     user_balance_gdt: (state,balance) => {
-      console.log('mutation: user_balance_gdt')
-      state.user.balance_gdt = balance / 10000
+      //console.log('mutation: user_balance_gdt')
+      state.user.balance_gdt = balance
     },
     transactions: (state,transactions) => {
-      console.log('mutation: transactions')
+      //console.log('mutation: transactions')
       state.transactions = transactions
     }
   },
   // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
-      console.log('action: login')
+      //console.log('action: login')
       const result = await loginAPI.login(data.email,data.password)
       if( result.success ){
         commit('session_id', result.result.data.session_id)
@@ -101,50 +101,52 @@ export const store = new Vuex.Store({
       router.push('/Login')
     },
     ajaxCreate: async ({ dispatch, state }) => {
-      console.log('action: ajaxCreate')
-      console.log(state.ajaxCreateData)
+      //console.log('action: ajaxCreate')
+      //console.log("dispatch", dispatch)
+      //console.log("state.ajaxCreateData", state.ajaxCreateData)
+      /*
       const result = await communityAPI.create(
         state.ajaxCreateData.session_id,
         state.ajaxCreateData.email,
         state.ajaxCreateData.amount,
-        state.ajaxCreateData.memo,
         state.ajaxCreateData.target_date,
+        state.ajaxCreateData.memo
       )
+        */
+
+      /*
+        this.ajaxCreateData.session_id : '',
+        this.ajaxCreateData.email: "max.musterman@gmail.de",
+        this.ajaxCreateData.amount: 10000000,
+        this.ajaxCreateData.target_date:"2021-02-19T13:25:36+00:00", 
+        this.ajaxCreateData.memo:"AGE",
+        this.ajaxCreateData.auto_sign: true
+      */
+
+
+      axios.post("http://localhost/transaction-creations/ajaxCreate", state.ajaxCreateData).then((result) => {
+        console.log("ajaxCreate result", result)
+       
       if( result.success ){
         // TODO
       } else {
-        dispatch('logout')
+        //dispatch('logout')
       }
-    },
-    ajaxListTransactions: async ({commit, dispatch, state}) => {
-      console.log('action: ajaxListTransactions', state.session_id)
-     // const result = await communityAPI.transactions(state.session_id)
-     
-       axios.get("http://localhost/state-balances/ajaxListTransactions/"+ state.session_id).then((result) => {
-         console.log("result",result)
-         console.log("result.state",result.data.state)
-        
-         console.log("result.data.state == 'success'",result.data.state == "success")
-       if(result.data.state == "success") {
-        console.log("result.count",result.data.count)
-         console.log("result.gdtSum",result.data.gdtSum)
-         console.log("result.transactions",result.data.transactions)
-        commit('transactions', result.data.transactions)
-        commit('user_balance_gdt', result.data.gdtSum)
-     } else {
-       dispatch('logout')
-     }
-
       }, (error) => {
         console.log(error);
       });
+    },
+    ajaxListTransactions: async ({commit, dispatch, state}) => {
+     // console.log('action: ajaxListTransactions', state.session_id)
+     // const result = await communityAPI.transactions(state.session_id)
+     
       
       
     },
     accountBalance: async ({ commit, dispatch, state }) => {
-      console.log('action: accountBalance')
+      //console.log('action: accountBalance')
       const result = await communityAPI.balance(state.session_id)
-      console.log(result)
+      //console.log(result)
       if(result.success) {
         commit('user_balance', result.result.data.balance)
       } else {

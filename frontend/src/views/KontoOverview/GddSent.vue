@@ -162,16 +162,17 @@ export default {
       async onSubmit() {
         //event.preventDefault()
         console.log("onSubmit", this.form)
-        console.log("this.form.img", this.form.img)
-        console.log("this.form.email", this.form.email)
-        console.log("this.form.amount", this.form.amount)
-        console.log("this.form.memo", this.form.memo)
+        //console.log("this.form.img", this.form.img)
+        //console.log("this.form.email", this.form.email)
+        //console.log("this.form.amount", this.form.amount)
+        //console.log("this.form.memo", this.form.memo)
 
         this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
-        this.$store.state.ajaxCreateData.email = this.form.email,
-        this.$store.state.ajaxCreateData.amount = this.form.amount,
-        this.$store.state.ajaxCreateData.memo = this.form.memo,
-         
+        this.$store.state.ajaxCreateData.email = this.form.email
+        this.$store.state.ajaxCreateData.amount = this.form.amount
+        this.$store.state.ajaxCreateData.memo = this.form.memo
+         this.$store.state.ajaxCreateData.target_date =  Date.now()
+
          this.$store.dispatch('ajaxCreate')
       },
       onReset(event) {
