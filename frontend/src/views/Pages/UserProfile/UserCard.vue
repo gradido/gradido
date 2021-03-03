@@ -4,7 +4,7 @@
       <b-col lg="3" class="order-lg-2">
         <div class="card-profile-image">
           <a href="#">
-            <b-img src="img/theme/team-4.jpg" rounded="circle" />
+            <vue-qrcode :value="$store.state.email" />
           </a>
         </div>
       </b-col>
@@ -12,8 +12,7 @@
 
     <b-card-header class="text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
       <div class="d-flex justify-content-between">
-        <a href="#" class="btn btn-sm btn-info mr-4">Connect</a>
-        <a href="#" class="btn btn-sm btn-default float-right">Message</a>
+       <br>
       </div>
     </b-card-header>
 
@@ -23,15 +22,15 @@
           <div class="card-profile-stats d-flex justify-content-center mt-md-5">
             <div>
               <span class="heading">22</span>
-              <span class="description">Friends</span>
+              <span class="description">Transactions</span>
             </div>
             <div>
               <span class="heading">10</span>
-              <span class="description">Photos</span>
+              <span class="description">Community</span>
             </div>
             <div>
-              <span class="heading">89</span>
-              <span class="description">Comments</span>
+              <span class="heading"> {{ setComma(this.$store.state.user.balance) }} </span>
+              <span class="description">GDD</span>
             </div>
           </div>
         </b-col>
@@ -58,6 +57,19 @@
   </b-card>
 </template>
 <script>
-export default {};
+import VueQrcode from 'vue-qrcode'
+
+export default {
+  name: "profilecard",
+   components: {
+    VueQrcode,
+  },
+  methods: {    
+        setComma(int){
+          console.log("setComma", int)
+          return int / 10000
+        }
+      } 
+};
 </script>
 <style></style>

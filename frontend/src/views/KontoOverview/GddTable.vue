@@ -20,6 +20,12 @@
               </b-card>
             </b-collapse>
           </b-list-group-item>
+           <b-list-group-item>
+                <b-alert v-if="count < 5" show variant="secondary">
+                  Die letzten <strong>{{count}}</strong> Transaktionen
+                </b-alert>
+              <router-link to="/activity"  > mehr (+ {{count}})</router-link>  
+            </b-list-group-item>
           
  
         </b-list-group>
@@ -36,7 +42,8 @@ export default {
     return {
         form: [],
         fields: [ 'balance', 'date', 'memo', 'name', 'transaction_id', 'type','details'],       
-        items: []
+        items: [],
+        count: 0
     };
   },
     
@@ -54,6 +61,7 @@ export default {
      //commit('transactions', result.data.transactions)
       this.$store.state.user.balance_gdt =  result.data.gdtSum
       this.items = result.data.transactions
+      this.count = result.data.count
      
    }, (error) => {
      console.log(error);
@@ -75,11 +83,8 @@ export default {
       },
       setComma(int){
         return int / 10000
-
       }
-  },
-
- 
+  } 
 };
 </script>
 <style>

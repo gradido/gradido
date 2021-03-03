@@ -38,7 +38,7 @@
           <b-media no-body class="align-items-center">
             
                   <span class="avatar avatar-sm rounded-circle">
-                    <img alt="Image placeholder" src="img/theme/team-4.jpg">
+                     <vue-qrcode :value="$store.state.email" />
                   </span>
             <b-media-body class="ml-2 d-none d-lg-block">
               <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.email}}</span>
@@ -84,13 +84,14 @@
 </template>
 <script>
 import { CollapseTransition } from 'vue2-transitions';
-import { BaseNav, Modal } from '@/components';
+import { BaseNav } from '@/components';
+import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-    // CollapseTransition,
+   CollapseTransition,
     BaseNav,
-    // Modal
+    VueQrcode
   },
   props: {
     type: {

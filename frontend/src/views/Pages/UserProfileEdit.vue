@@ -21,17 +21,22 @@
           <edit-profile-form></edit-profile-form>
         </b-col>
       </b-row>
+        <b-row>        
+        <b-col xl="12" class="order-xl-1">
+          <image-uploader-avatar> </image-uploader-avatar>
+        </b-col>
+      </b-row>
     </b-container>
   </div>
 </template>
 <script>
   import EditProfileForm from './UserProfile/EditProfileForm.vue';
-  import UserCard from './UserProfile/UserCard.vue';
+  import ImageUploaderAvatar from './UserProfile/ImageUploaderAvatar.vue';
 
   export default {
     components: {
       EditProfileForm,
-      UserCard
+      ImageUploaderAvatar
     }
   };
 </script>
