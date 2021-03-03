@@ -161,11 +161,11 @@ class AppController extends Controller
 
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
-            
-            $transactionPendings = $session->read('Transaction.pending');
-            $transactionExecutings = $session->read('Transaction.executing');
-            $transaction_can_signed = $session->read('Transaction.can_signed');
-            
+
+            $transactionPendings = $session->read('Transactions.pending');
+            $transactionExecutings = $session->read('Transactions.executing');
+            $transaction_can_signed = $session->read('Transactions.can_signed');
+
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
@@ -192,13 +192,13 @@ class AppController extends Controller
                                 $session->write('StateUser.' . $key, $value);
                             }
                           //var_dump($json);
-                            $transactionPendings = $json['Transaction.pending'];
-                            $transactionExecuting = $json['Transaction.executing'];
-                            $transaction_can_signed = $json['Transaction.can_signed'];
+                            $transactionPendings = $json['Transactions.pending'];
+                            $transactionExecuting = $json['Transactions.executing'];
+                            $transaction_can_signed = $json['Transactions.can_signed'];
                           //echo "read transaction pending: $transactionPendings<br>";
-                            $session->write('Transaction.pending', $transactionPendings);
-                            $session->write('Transaction.executing', $transactionExecuting);
-                            $session->write('Transaction.can_signed', $transaction_can_signed);
+                            $session->write('Transactions.pending', $transactionPendings);
+                            $session->write('Transactions.executing', $transactionExecuting);
+                            $session->write('Transactions.can_signed', $transaction_can_signed);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
 

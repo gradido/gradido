@@ -11,7 +11,7 @@ use Cake\Routing\Router;
 $session = $this->getRequest()->getSession();
 $errorCount = intval($session->read('StateUser.errorCount'));
 $transactionPendings = $session->read('Transactions.pending');
-$transactionPendings += $session->read('Transaction.can_signed');
+$transactionPendings += $session->read('Transactions.can_signed');
 
 /*
 class NavHeaderEntry
