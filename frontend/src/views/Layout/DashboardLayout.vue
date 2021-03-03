@@ -18,6 +18,20 @@
                 icon: 'ni ni-single-02 text-yellow'
                 }">
         </sidebar-item>
+        <sidebar-item
+              :link="{
+                name: 'Settings',
+                path: '/profileedit',
+                icon: 'ni ni-single-02 text-yellow'
+                }">
+        </sidebar-item>
+        <sidebar-item
+              :link="{
+                name: 'Activity',
+                path: '/activity',
+                icon: 'ni ni-single-02 text-yellow'
+                }">
+        </sidebar-item>
          <b-nav-item href="#!" @click="logout">
               <i class="ni ni-palette"></i>
               <b-nav-text class="p-0">Logout</b-nav-text>

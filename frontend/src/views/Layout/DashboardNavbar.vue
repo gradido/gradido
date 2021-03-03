@@ -51,11 +51,15 @@
           <b-dropdown-header class="noti-title">
             <h6 class="text-overflow m-0"> {{ $t('site.welcome')  }}</h6>
           </b-dropdown-header>
-          <b-dropdown-item href="#!">
+           <b-dropdown-item href="#!" to="/KontoOverview">
+            <i class="ni ni-single-02"></i>
+            <span>{{ $t('site.overview.account_overview')}}</span>
+          </b-dropdown-item>
+          <b-dropdown-item href="#!" to="/profile">
             <i class="ni ni-single-02"></i>
             <span>{{ $t('site.navbar.my-profil')}}</span>
           </b-dropdown-item>
-          <b-dropdown-item href="#!">
+          <b-dropdown-item href="#!" to="/profileedit">
             <i class="ni ni-settings-gear-65"></i>
             <span>{{ $t('site.navbar.settings') }}</span>
           </b-dropdown-item>

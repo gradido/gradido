@@ -44,7 +44,17 @@ const routes = [
       {
         path: '/profile',
         name: 'profile',
-        component: () => import('../views/Pages/UserProfile.vue')
+        component: () => import('../views/Pages/UserProfileCard.vue')
+      },         
+      {
+        path: '/profileedit',
+        name: 'profileedit',
+        component: () => import('../views/Pages/UserProfileEdit.vue')
+      },         
+      {
+        path: '/activity',
+        name: 'activity',
+        component: () => import('../views/Pages/UserProfileActivity.vue')
       }
     ]
   },
