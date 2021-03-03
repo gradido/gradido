@@ -145,8 +145,8 @@ Poco::AutoPtr<controller::EmailVerificationCode> Session::getEmailVerificationCo
 bool Session::adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id, const std::string &baseUrl)
 {
 	Profiler usedTime;
-
-	if (mNewUser->getModel()->getRole() != model::table::ROLE_ADMIN) {
+	auto user_model = mNewUser->getModel();
+	if (user_model->getRole() != model::table::ROLE_ADMIN) {
 		addError(new Error(gettext("Benutzer"), gettext("Eingeloggter Benutzer ist kein Admin")), false);
 		return false;
 	}
@@ -167,7 +167,7 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 
 
 	// check if user with that email already exist
-	if (mNewUser->getModel()->isExistInDB("email", email)) {
+	if (user_model->isExistInDB("email", email)) {
 		addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")), false);
 		return false;
 	}
