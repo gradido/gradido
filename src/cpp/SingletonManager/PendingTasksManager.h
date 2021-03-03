@@ -17,8 +17,11 @@
 #include "../controller/User.h"
 #include "../model/gradido/Transaction.h"
 
-class PendingTasksManager: public UniLib::lib::MultithreadContainer
+class UserUpdateGroupPage;
+
+class PendingTasksManager: protected UniLib::lib::MultithreadContainer
 {
+	friend UserUpdateGroupPage;
 public:
 	typedef std::list<Poco::AutoPtr<controller::PendingTask>>  PendingTaskList;
 
@@ -33,6 +36,9 @@ public:
 	//! \return 0 if added
 	int addTask(Poco::AutoPtr<controller::PendingTask> task);
 	bool removeTask(Poco::AutoPtr<controller::PendingTask> task);
+
+	//! check if tasks can be removed
+	void checkForFinishedTasks(Poco::Timer& timer);
 
 	//! by calling this, important is to call lock to prevent vanishing the list while working with it,
 	//! and unlock afterwards
@@ -49,7 +55,7 @@ public:
 protected:
 	PendingTasksManager();
 
-	
+	Poco::Timer mCheckForFinishedTimer;
 	
 	
 	std::map<int, PendingTaskList*> mPendingTasks;

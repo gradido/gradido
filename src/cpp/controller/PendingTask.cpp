@@ -87,10 +87,6 @@ namespace controller {
 	{
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		auto result = mDBModel->deleteFromDB(); 
-		if (result) {
-
-			PendingTasksManager::getInstance()->removeTask(Poco::AutoPtr<PendingTask>(this, true));
-		}
 		return result;
 	}
 
