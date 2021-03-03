@@ -1,5 +1,6 @@
 #include "PendingTask.h"
 
+#include "Poco/JSON/Parser.h"
 //#include <sstream>
 
 using namespace Poco::Data::Keywords;
@@ -37,6 +38,36 @@ namespace model
 			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
 		}
 		
+		void PendingTask::setResultJson(Poco::JSON::Object::Ptr result)
+		{
+			UNIQUE_LOCK;
+			std::stringstream ss;
+			result->stringify(ss);
+			mResultJsonString = ss.str();
+		}
+
+		Poco::JSON::Object::Ptr PendingTask::getResultJson() const
+		{
+			std::string temp;
+			{
+				SHARED_LOCK;
+				temp = mResultJsonString;
+			}
+			Poco::JSON::Parser parser;
+			Poco::Dynamic::Var result;
+			try
+			{
+				result = parser.parse(temp);
+			}
+			catch (Poco::JSON::JSONException& jsone)
+			{
+				return nullptr;
+			}
+
+			return result.extract<Poco::JSON::Object::Ptr>();
+
+		}
+
 		bool PendingTask::updateRequest()
 		{
 			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
@@ -62,6 +93,34 @@ namespace model
 			//printf("data valid: %s\n", toString().data());
 			return 0;
 		}
+
+		bool PendingTask::updateFinishedAndResult()
+		{
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			SHARED_LOCK;
+			if (!mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET finished = ?, result_json = ? where id = ?;",
+				use(mFinished), use(mResultJsonString), use(mID);
+
+			try {
+				return 1 == update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateFinishedAndResult] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return 0;
+		}
+
+		
 
 		std::string PendingTask::toString()
 		{

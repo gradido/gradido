@@ -10,8 +10,10 @@
 #include "../../controller/HederaRequest.h"
 
 #include "../lib/DataTypeConverter.h"
+#include "../lib/Profiler.h"
 
 #include "../hedera/Transaction.h"
+#include "../hedera/TransactionId.h"
 
 #include "../../tasks/HederaTask.h"
 
@@ -413,7 +415,8 @@ namespace model {
 							transaction->sign(user);
 							// dirty hack because gn crashes if its get transactions out of order
 							mPairedTransaction = transaction;
-							Poco::Thread::sleep(1000);
+							// removed because now using only one hedera node
+							//Poco::Thread::sleep(1000);
 						}
 						else {
 							addError(new Error(function_name, "Error creating outbound transaction"));
@@ -533,11 +536,11 @@ namespace model {
 					|| TRANSACTION_VALID_MISSING_PARAM == result || TRANSCATION_VALID_INVALID_PUBKEY == result
 					|| TRANSACTION_VALID_INVALID_SIGN == result) {
 					addError(new ParamError(function_name, "code error", TransactionValidationToString(result)));
-					sendErrorsAsEmail();
+					//sendErrorsAsEmail();
 
 				} else if (mTransactionBody->isGroupMemberUpdate()) {
 					addError(new ParamError(function_name, "validation return: ", TransactionValidationToString(result)));
-					sendErrorsAsEmail();
+					//sendErrorsAsEmail();
 				}
 				else 
 				{
@@ -572,7 +575,7 @@ namespace model {
 						error_name = t->gettext_str("Unknown Error");
 						error_description = t->gettext_str("Admin gets an E-Mail");
 						addError(new ParamError(function_name, "unknown error", TransactionValidationToString(result)));
-						sendErrorsAsEmail();
+						//sendErrorsAsEmail();
 					}
 
 					auto pt = PendingTasksManager::getInstance();
@@ -642,7 +645,7 @@ namespace model {
 								consensus_submit_message.setMessage(json_message);
 							}
 							else {
-								sendErrorsAsEmail();
+								//sendErrorsAsEmail();
 								return -7;
 							}
 							
@@ -657,6 +660,7 @@ namespace model {
 						auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
 						hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
 						model::hedera::Transaction hedera_transaction;
+						
 						hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
 
 						HederaRequest hedera_request;
@@ -666,7 +670,7 @@ namespace model {
 						{
 							addError(new Error(function_name, "error send transaction to hedera"));
 							getErrors(&hedera_request);
-							sendErrorsAsEmail();
+							//sendErrorsAsEmail();
 							return -2;
 						}
 						else {
@@ -686,10 +690,19 @@ namespace model {
 								// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
 								// TODO: later check, but now I haven't any way to communicate with the gradido node
 								mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
+								auto transaction_model = getModel();
+								transaction_model->setFinished(Poco::DateTime());
+								Poco::JSON::Object::Ptr result = new Poco::JSON::Object; 
+								model::hedera::TransactionId transaction_id(hedera_task->getTransactionId());
+								result->set("state", "success");
+								result->set("transactionId", transaction_id.convertToJSON());
+								
+								transaction_model->setResultJson(result);
+								Profiler timer;
+								transaction_model->updateFinishedAndResult();
+								printf("time for update 2 fields in db: %s\n", timer.string().data());
+
 								// trigger community server update in 5 seconds
-								Poco::DateTime now;
-								std::string now_string = Poco::DateTimeFormatter::format(now, "%f.%m.%Y %H:%M:%S");
-								//printf("[%s] trigger community server update in 5 second, now: %s\n", function_name, now_string.data());
 								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5, 0));
 								return 1;
 							}
@@ -700,7 +713,7 @@ namespace model {
 					else 
 					{
 						addError(new ParamError(function_name, "hedera crypto key not found for paying for consensus submit message! NetworkType: ", network_type));
-						sendErrorsAsEmail();
+						//sendErrorsAsEmail();
 						return -3;
 					}
 				}
@@ -709,7 +722,7 @@ namespace model {
 					addError(new Error(function_name, "hedera topic id or operator account not found!"));
 					addError(new ParamError(function_name, "topic id: ", topic_id->getModel()->toString()));
 					addError(new ParamError(function_name, "network type: ", network_type));
-					sendErrorsAsEmail();
+					//sendErrorsAsEmail();
 					return -4;
 				}
 				return 0;
@@ -795,11 +808,17 @@ namespace model {
 			//printf("[SendTransactionTask::run] result: %d\n", result);
 			// delete because of error
 			if (-1 == result) {
-				mTransaction->deleteFromDB();
+				//mTransaction->deleteFromDB();
+				Poco::JSON::Object::Ptr errors = new Poco::JSON::Object;
+				errors->set("errors", mTransaction->getErrorsArray());
+				errors->set("state", "error");
+				auto model = mTransaction->getModel();
+				model->setResultJson(errors);
+				model->updateFinishedAndResult();
 			}
 			// delete because succeed, maybe change later
 			if (1 == result) {
-				mTransaction->deleteFromDB();
+				//mTransaction->deleteFromDB();
 			}
 			return 0;
 		}

@@ -41,10 +41,13 @@ namespace model {
 			//! \brief update table row with current request
 			bool updateRequest();
 
+			bool updateFinishedAndResult();
+
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
 			inline int getHederaId() const { SHARED_LOCK; return mHederaId; }
 			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
+			Poco::JSON::Object::Ptr getResultJson() const;
 			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
 			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
 			inline const char* getTaskTypeString() const { SHARED_LOCK; return typeToString((TaskType)mTaskTypeId); }
@@ -54,6 +57,8 @@ namespace model {
 			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
 			inline void setHederaId(int hederaId) { UNIQUE_LOCK; mHederaId = hederaId; }
 			void setRequest(const std::string& serializedProto);
+			inline void setFinished(Poco::DateTime date) { UNIQUE_LOCK; mFinished = date; }
+			void setResultJson(Poco::JSON::Object::Ptr result);
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
 			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
 			inline void setParentPendingTaskId(int parentPendingTaskId) { UNIQUE_LOCK; mParentPendingTaskId = parentPendingTaskId; }

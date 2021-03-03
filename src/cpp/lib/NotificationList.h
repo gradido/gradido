@@ -45,6 +45,7 @@ public:
 	void printErrors();
 	std::string getErrorsHtml();
 	std::string getErrorsHtmlNewFormat();
+	std::vector<std::string> getErrorsArray();
 
 	void sendErrorsAsEmail(std::string rawHtml = "");
 
