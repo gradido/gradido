@@ -76,17 +76,17 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	int pending = 0;
 	auto user_must_sign = pt->getTransactionsUserMustSign(userNew);
 	pending = user_must_sign.size();
-	result->set("Transaction.pending", pending);
+	result->set("Transactions.pending", pending);
 
 	auto some_must_sign = pt->getTransactionSomeoneMustSign(userNew);
 	//pending = some_must_sign.size();
-	result->set("Transaction.can_signed", some_must_sign.size());
+	result->set("Transactions.can_signed", some_must_sign.size());
 
 	auto executing = observer->getTaskCount(userModel->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	if (executing < 0) {
 		executing = 0;
 	}
-	result->set("Transaction.executing", executing);
+	result->set("Transactions.executing", executing);
 	//printf("pending: %d\n", session->getProcessingTransactionCount());
 	//std::string user_string = userModel->toString();
 	//printf("[JsonGetLogin] %s\n", user_string.data());
