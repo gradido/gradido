@@ -9,4 +9,5 @@ jobs:
         run: docker-compose up -d
       - name: Test
         run: docker run gradido-node-test
-timeout-minutes: 2
+        timeout-minutes: 2
+
