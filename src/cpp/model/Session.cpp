@@ -736,6 +736,8 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 {
 	static const char* functionName = "Session::loadUser";
 	auto observer = SingletonTaskObserver::getInstance();
+	auto sm = SessionManager::getInstance();
+
 	if (email != "") {
 		if (observer->getTaskCount(email, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
 			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
@@ -765,6 +767,14 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 		return USER_DISABLED;
 	}
 	if (mNewUser->getUserState() >= USER_LOADED_FROM_DB) {
+		
+		NotificationList pwd_errors;
+		if (!sm->checkPwdValidation(password, &pwd_errors))
+		{
+			Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+			return USER_PASSWORD_INCORRECT;
+		}
+
 		int loginResult = mNewUser->login(password);
 		int exitCount = 0;
 		if (loginResult == -3) 
