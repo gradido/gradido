@@ -58,10 +58,10 @@ class Signature
 class GradidoModifieUserBalance
 {
     private $state_users = [];
+    private $user_balances = [];
     
     public function getUserId($userPublicKey)
     {
-        $userPublicBin = hex2bin($userPublicKey);
         $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
            
         $stateUser = $stateUsersTable->find('all')->where(['public_key' => hex2bin($userPublicKey)]);
@@ -77,9 +77,23 @@ class GradidoModifieUserBalance
     
     public function updateBalance($newBalance, $recordDate, $userId)
     {
-        
       $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
-      return $stateBalancesTable->updateBalanceWithTransaction($newBalance, $recordDate,  $userId);
+      $state_balance_query = $stateBalancesTable->find()->where(['state_user_id' => $userId])->order(['record_date ASC']);
+      $state_balance = null;
+      if($state_balance_query->count() > 0) {
+          $state_balance = $state_balance_query->last();
+      } else {
+          $state_balance = $stateBalancesTable->newEntity();
+          $state_balance->state_user_id = $userId;
+      }
+      $state_balance->amount = $newBalance;
+      $state_balance->record_date = $recordDate;
+      $this->user_balances[$userId] = $state_balance;
+      $stateBalancesTable->save($state_balance);
+      return true;
+      //$this->user_balances[$userId] = ['balance' => $newBalance, '']
+      //
+      //return $stateBalancesTable->updateBalanceWithTransaction($newBalance, $recordDate,  $userId);
       
       /*$first_of_month = new Time("$year-$month-01 00:00");
       $stateBalanceQuery = $stateBalancesTable
@@ -110,6 +124,10 @@ class GradidoModifieUserBalance
   public function getAllStateUsers() 
   {
     return $this->state_users;
+  }
+  public function getAllStateUserBalances()
+  {
+      return $this->user_balances;
   }
 }
 
@@ -457,11 +475,14 @@ class Record
         }
         $state_users = $this->transactionObj->getAllStateUsers();
         $sut_entities = [];
+        $state_user_balances = $this->transactionObj->getAllStateUserBalances();
         foreach($state_users as $state_user_id) {
           $entity = $stateUserTransactionsTable->newEntity();
           $entity->state_user_id = $state_user_id;
           $entity->transaction_id = $newTransaction->id;
           $entity->transaction_type_id = $newTransaction->transaction_type_id;
+          $entity->balance = $state_user_balances[$state_user_id]->amount;
+          $entity->balance_date = $state_user_balances[$state_user_id]->record_date;
           $sut_entities[] = $entity;
         }
         $sut_results = $stateUserTransactionsTable->saveMany($sut_entities);

@@ -9,6 +9,7 @@ $this->assign('title', __('Kontoübersicht'));
 
 $header = '<h1>' . __('Aktueller Kontostand: ') . '</h1>' .
   '<h1>' . $this->element('printGradido', ['number' => $balance]) . '</h1>';
+  
 if($gdtSum > 0) {
   $header .= '<h1>'.$this->Html->link(
     $this->element('printGDT', ['number' => $gdtSum]),
@@ -27,6 +28,7 @@ $this->assign('header', $header);
 <?php endif; ?>
 <div class="content-list">
   <p class="content-list-title">Überweisungen</p>
+  <p style="margin-left:25px;color:grey;font-size:smaller;">Berechnet (debugging):  <?= $this->element('printGradido', ['number' => $calculated_balance]) ?></p>
   <div class="content-list-table">
     <div class="row">
       <div class="cell header-cell c4"><?= __('Absender') . ' / ' . ('Empfänger') ?></div>

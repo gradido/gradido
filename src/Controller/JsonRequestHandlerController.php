@@ -108,7 +108,7 @@ class JsonRequestHandlerController extends AppController {
       if($last_transaction_query->count() < $last_transaction_id) {
         $last_transaction_id = $last_transaction_query->count();
       }
-      $last_transaction_id = 0;
+      //$last_transaction_id = 0;
       
       
       $group_alias = Configure::read('GroupAlias');
