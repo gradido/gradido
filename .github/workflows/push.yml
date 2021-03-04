@@ -9,7 +9,7 @@ jobs:
         run: docker-compose up -d
       - name: Test
         env:
-          GN_INSTANCE_FOLDER: /tmp
+          GN_INSTANCE_FOLDER: /tmp/gradio-node-instance
           GN_CONTAINER_NAME: gradido-node-build
         run: docker run gradido-node-test
         timeout-minutes: 2
