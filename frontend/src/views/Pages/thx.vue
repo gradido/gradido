@@ -4,11 +4,11 @@
     <div class="header bg-gradient-info py-7 py-lg-8 pt-lg-9">
       <b-container>
         <div class="header-body text-center mb-7"> 
-          <p class="h1">Danke für die Anmeldung</p>
-          <p class="h4">Bitte prüfe deine Mail und bestäige diese Anmeldung letztmalig. Dann kannst du dich in deiner Gradido Wallet einloggen. </p>
-          
-          <b-button to="/login"> zum Login</b-button>
-
+          <p class="h1">{{$t('site.thx.title')}}</p>
+          <p class="h4">{{$t('site.thx.subtitle')}}</p>
+         <hr>
+          <b-button to="/login">{{$t('login')}}</b-button>
+             
         </div>
       </b-container>
       <div class="separator separator-bottom separator-skew zindex-100">

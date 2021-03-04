@@ -72,6 +72,9 @@ export const store = new Vuex.Store({
         dispatch('logout')
       } 
     },
+    passwordReset: async (data) => {
+      console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
+    },
     createUser: async ({ commit, dispatch }, data) => {
       console.log('action: createUser')
       const result = await loginAPI.create(data.email,data.first_name,data.last_name,data.password)

@@ -61,7 +61,7 @@
           </b-card>
           <b-row class="mt-3">
             <b-col cols="6">
-              <router-link to="/dashboard" class="text-light"><small>{{ $t('site.login.forgot_pwd')}}</small></router-link>
+              <router-link to="/password" class="text-light"><small>{{ $t('site.login.forgot_pwd')}}</small></router-link>
             </b-col>
             <b-col cols="6" class="text-right">
               <router-link to="/register" class="text-light"><small>{{ $t('site.login.new_wallet')}}</small></router-link>

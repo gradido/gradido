@@ -7,7 +7,7 @@
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
   "license":"Lizenz",
-  "back":"back",
+  "back":"zurück",
   "form": {
     "firstname":"Vorname",
     "lastname":"Nachname",
@@ -38,6 +38,15 @@
       "strength":"Passwortsicherheit:",
       "strong":"stark",
       "agree":"habe ich gelesen und verstanden und stimme diesen zu."
+    },
+    "password": {
+      "title": "Passwort zurücksetzen",
+      "subtitle": "Wenn sie das Passwort vergessen haben oder ändern möchten.",
+      "reset_now": "jetzt zurücksetzen"
+    },
+    "thx": {
+      "title": "Danke!",
+      "subtitle": "Wir haben dir eine eMail gesendet."
     },
       "overview":{
         "account_overview":"Kontoübersicht",

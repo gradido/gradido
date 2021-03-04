@@ -39,6 +39,15 @@
       "strong":"strong",
       "agree":"I have read and understood and agree to them the"
     },
+    "password": {
+      "title": "reset password",
+      "subtitle": "If you have forgotten the password or want to change it.",
+      "reset_now": "reset now"
+    },
+    "thx": {
+      "title": "Thank you",
+      "subtitle": "We have sent you an eMail."
+    },
     "overview":{
       "account_overview":"Account overview",
       "current_balance":"Current account balance",

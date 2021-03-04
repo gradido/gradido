@@ -88,7 +88,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4" >
-        <b-button type="button" variant="success" class="mt-3" to="/Login">zurück</b-button>
+        <b-button type="button" variant="success" class="mt-3" to="/Login">{{ $t('back')}}</b-button>
       </div>           
     </b-container>
   </div>
