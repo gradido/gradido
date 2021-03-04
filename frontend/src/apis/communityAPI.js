@@ -1,8 +1,5 @@
 import axios from 'axios';
-
-// TODO move this
-const COMMUNITY_API_STATE_BALANCE_URL = 'http://localhost/state-balances/'
-const COMMUNITY_API_TRANSACTION_CREATION_URL = 'http://localhost/transaction-creations/'
+import CONFIG from '../config'
 
 const apiGet = async (url) => {
   try {
@@ -36,10 +33,10 @@ const apiPost = async (url, payload) => {
 
 const communityAPI = {
   balance: async (session_id) => {
-    return apiGet(COMMUNITY_API_STATE_BALANCE_URL + 'ajaxGetBalance/' + session_id)
+    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxGetBalance/' + session_id)
   },
   transactions: async (session_id) => {
-    return apiGet(COMMUNITY_API_STATE_BALANCE_URL + 'ajaxListTransactions/' + session_id)
+    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxListTransactions/' + session_id)
   },
   create: async (session_id, email, amount, memo, target_date = new Date() ) => {
     const payload = {
@@ -50,7 +47,7 @@ const communityAPI = {
       memo,
       auto_sign: true
     }
-    return apiPost(COMMUNITY_API_TRANSACTION_CREATION_URL + 'ajaxCreate/', payload)
+    return apiPost(CONFIG.COMMUNITY_API_TRANSACTION_CREATION_URL + 'ajaxCreate/', payload)
   }
 }
 
