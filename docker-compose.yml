@@ -117,6 +117,17 @@ services:
     volumes:
       - ${GN_INSTANCE_FOLDER}:/opt/instance
     container_name: ${GN_CONTAINER_NAME}
+
+  #########################################################  
+  ## GRADIDO NODE test ###################################
+  #########################################################
+  gradido-node-test:
+    build:
+      context: .
+      dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
+    container_name: gn-test
+    working_dir: /opt/gn/build
+    command: ["./unit_tests"]
       
 networks:
   external-net:
