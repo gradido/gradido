@@ -1,4 +1,5 @@
 const path = require('path');
+const dotenv = require('dotenv-webpack');
 
 function resolveSrc(_path) {
   return path.join(__dirname, _path);
@@ -20,7 +21,11 @@ module.exports = {
       alias: {
         assets: resolveSrc('src/assets')
       }
-    }
+    },
+    plugins: [
+      new dotenv()
+    ]
+    
   },
   css: {
     // Enable CSS source maps.

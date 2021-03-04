@@ -1,7 +1,5 @@
 import axios from 'axios';
-
-// TODO move this
-const LOGIN_API_URL = 'http://localhost/login_api/'
+import CONFIG from '../config'
 
 // control email-text sended with email verification code
 const EMAIL_TYPE = {
@@ -30,11 +28,11 @@ const loginAPI = {
       email,
       password,
     }
-    return apiPost(LOGIN_API_URL + 'unsecureLogin', payload)
+    return apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', payload)
   },
   logout: async (session_id) => {
     const payload= { session_id }
-    return apiPost(LOGIN_API_URL + 'logout', payload)
+    return apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
   },
   create : async (email, first_name, last_name, password) => {
     const payload = {
@@ -45,7 +43,7 @@ const loginAPI = {
       emailType: EMAIL_TYPE.DEFAULT,
       login_after_register: true
     }
-    return apiPost(LOGIN_API_URL + 'createUser', payload)
+    return apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
   },     
 }
 
