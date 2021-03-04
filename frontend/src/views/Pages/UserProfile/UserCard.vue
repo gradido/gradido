@@ -66,9 +66,11 @@ export default {
   },
   methods: {    
         setComma(int){
-          console.log("setComma", int)
-          return int / 10000
-        }
+       if (int !== '' || int !== undefined || int !== 0  || int !== '0' || int !== null) {
+          int = int /10000
+        return int.toFixed(2).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
+       }
+      }
       } 
 };
 </script>
