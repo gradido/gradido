@@ -6,7 +6,7 @@
                       type="gradient-red"
                       sub-title="balance_gdd"
                       class="mb-4">
-                {{ setComma($store.state.user.balance) }} GDD
+                {{ $n($store.state.user.balance) }} GDD
             <template slot="footer">
               <span class="text-success mr-2">Wird immer angezeigt</span>
             </template>
@@ -17,13 +17,14 @@
                       type="gradient-orange"
                       sub-title="balance_gdt"
                       class="mb-4">
-                  {{  setComma($store.state.user.balance_gdt) }} GDT 
+                  {{  $n($store.state.user.balance_gdt) }} GDT 
             <template slot="footer"> 
               <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
             </template>
           </stats-card>
         </b-col>
       </b-row>
+      
   </div>
 </template>
 
@@ -35,15 +36,6 @@ export default {
       balance_gdd: this.$store.state.user.balance,
       balance_gdt: this.$store.state.user.balance_gdt,
     }
-  },
-  methods: {
-    setComma(int){
-       if (int !== '' || int !== undefined || int !== 0  || int !== '0' || int !== null) {
-          int = int /10000
-        return int.toFixed(2).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
-        //return int / 10000
-       }
-      }
-  },
+  }
 };
 </script>

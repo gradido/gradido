@@ -45,11 +45,11 @@ export const store = new Vuex.Store({
     },
     user_balance: (state,balance) => {
       //console.log('mutation: user_balance')
-      state.user.balance = balance
+      state.user.balance = (balance)/10000
     },
     user_balance_gdt: (state,balance) => {
       //console.log('mutation: user_balance_gdt')
-      state.user.balance_gdt = balance
+      state.user.balance_gdt = (balance)/10000
     },
     transactions: (state,transactions) => {
       //console.log('mutation: transactions')
@@ -102,27 +102,6 @@ export const store = new Vuex.Store({
     },
     ajaxCreate: async ({ dispatch, state }) => {
       //console.log('action: ajaxCreate')
-      //console.log("dispatch", dispatch)
-      //console.log("state.ajaxCreateData", state.ajaxCreateData)
-      /*
-      const result = await communityAPI.create(
-        state.ajaxCreateData.session_id,
-        state.ajaxCreateData.email,
-        state.ajaxCreateData.amount,
-        state.ajaxCreateData.target_date,
-        state.ajaxCreateData.memo
-      )
-        */
-
-      /*
-        this.ajaxCreateData.session_id : '',
-        this.ajaxCreateData.email: "max.musterman@gmail.de",
-        this.ajaxCreateData.amount: 10000000,
-        this.ajaxCreateData.target_date:"2021-02-19T13:25:36+00:00", 
-        this.ajaxCreateData.memo:"AGE",
-        this.ajaxCreateData.auto_sign: true
-      */
-
 
       axios.post("http://localhost/transaction-creations/ajaxCreate", state.ajaxCreateData).then((result) => {
         console.log("store ajaxCreate result", result)
@@ -138,10 +117,7 @@ export const store = new Vuex.Store({
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
      // console.log('action: ajaxListTransactions', state.session_id)
-     // const result = await communityAPI.transactions(state.session_id)
-     
-      
-      
+     // const result = await communityAPI.transactions(state.session_id)     
     },
     accountBalance: async ({ commit, dispatch, state }) => {
       //console.log('action: accountBalance')

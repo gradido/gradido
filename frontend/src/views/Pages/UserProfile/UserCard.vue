@@ -29,7 +29,7 @@
               <span class="description">Community</span>
             </div>
             <div>
-              <span class="heading"> {{ setComma(this.$store.state.user.balance) }} </span>
+              <span class="heading"> {{ $n(this.$store.state.user.balance) }} </span>
               <span class="description">GDD</span>
             </div>
           </div>
@@ -63,15 +63,7 @@ export default {
   name: "profilecard",
    components: {
     VueQrcode,
-  },
-  methods: {    
-        setComma(int){
-       if (int !== '' || int !== undefined || int !== 0  || int !== '0' || int !== null) {
-          int = int /10000
-        return int.toFixed(2).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
-       }
-      }
-      } 
+  }
 };
 </script>
 <style></style>

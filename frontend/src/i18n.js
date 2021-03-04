@@ -16,8 +16,23 @@ function loadLocaleMessages () {
   return messages
 }
 
+const numberFormats = {
+  'en-US': {
+    currency: {
+      style: 'currency'
+    }
+  },
+  'de-DE': {
+    currency: {
+      style: 'currency'
+    }
+  }
+}
+
+
 export default new VueI18n({
   locale: 'en',
   fallbackLocale: 'en',
-  messages: loadLocaleMessages()
+  messages: loadLocaleMessages(),
+  numberFormats
 })

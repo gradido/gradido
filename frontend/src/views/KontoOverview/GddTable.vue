@@ -6,7 +6,7 @@
           <div class="d-flex w-100 justify-content-between"  @click="toogle(item)" >
             <b-icon v-if="item.type === 'send'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
             <b-icon v-else icon="box-arrow-right" class="m-1"  font-scale="2" style="color:green" ></b-icon>       
-              <h1 class="mb-1">{{ setComma(item.balance) }} <small>GDD</small></h1>
+              <h1 class="mb-1">{{ $n((item.balance)/1000) }} <small>GDD</small></h1>
               <h2 class="text-muted">{{item.name}}</h2>
                 <b-button v-b-toggle="'a'+item.transaction_id" variant="primary"><b>i</b></b-button>
             </div>
@@ -80,12 +80,6 @@ export default {
       toogle(item) {
         const temp = '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>'
 
-      },
-      setComma(int){
-       if (int !== '' || int !== undefined || int !== 0  || int !== '0' || int !== null) {
-          int = int /10000
-        return int.toFixed(2).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
-       }
       }
   } 
 };
