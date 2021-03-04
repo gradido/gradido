@@ -27,6 +27,7 @@ import * as rules from 'vee-validate/dist/rules';
 import { messages } from 'vee-validate/dist/locale/en.json';
 
 import VueQrcodeReader from "vue-qrcode-reader";
+import VueQrcode from "vue-qrcode";
 
 
 import VueGoodTablePlugin from 'vue-good-table';
@@ -50,6 +51,7 @@ export default {
     Vue.use(IconsPlugin);
     Vue.use(VueGoodTablePlugin);
     Vue.use(VueQrcodeReader);
+    Vue.use(VueQrcode);
     configure({
       classes: {
         valid: 'is-valid',

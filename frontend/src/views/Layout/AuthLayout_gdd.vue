@@ -45,8 +45,8 @@
 
   export default {
     components: {
-      BaseNav,
-      ZoomCenterTransition
+      //BaseNav,
+      //ZoomCenterTransition
     },
     props: {
       backgroundColor: {

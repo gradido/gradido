@@ -2,7 +2,7 @@
   <div class="wrapper">
     <notifications></notifications>
     <side-bar>
-      <template slot-scope="props" slot="links">
+      <template slot-scope="" slot="links">
         <sidebar-item
           :link="{
             name: 'Dashboards',
@@ -56,7 +56,7 @@ export default {
   components: {
     DashboardNavbar,
     ContentFooter,
-    DashboardContent,
+    //DashboardContent,
     FadeTransition,
   },
   methods: {

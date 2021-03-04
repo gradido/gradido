@@ -19,9 +19,7 @@
                       </b-col>
                     </b-row>               
                     <b-form @submit="onSubmit" @reset="onReset" v-if="show">
-                      <br>
-                      <qrcode-drop-zone id="input-0" v-model="form.img" ></qrcode-drop-zone>
-                      <br>
+                     
                       <div>
                          
                          <b-row class="form-group">
@@ -58,10 +56,7 @@ export default {
     return {
       show: true,
        form: {
-          img: '',
-          email: '',
-          amount1: '',          
-          amount2: ''          
+               
         }
     };
   },
@@ -69,28 +64,18 @@ export default {
     onSubmit(event) {
         event.preventDefault()
         alert(JSON.stringify(this.form))
-        this.modal = true
-        this.modal.h4 = 'TODO 1'
+     
       },
       onReset(event) {
         event.preventDefault()
         // Reset our form values
-        this.form.email = ''
-        this.form.amount1 = ''
-        this.form.amount2 = ''   
+       
         // Trick to reset/clear native browser form validation state
         this.show = false
         this.$nextTick(() => {
           this.show = true
         })
-      },
-         adressbook() {
-        this.modal = true
-        this.modaldata.h4 = 'Adressbuch'
-        this.modaldata.p = 'TODO ADRESSBUCH LISTE'
       }
-  },
-  watch: {
   }
 };
 </script>

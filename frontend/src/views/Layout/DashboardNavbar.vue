@@ -38,10 +38,10 @@
           <b-media no-body class="align-items-center">
             
                   <span class="avatar avatar-sm rounded-circle">
-                    <img alt="Image placeholder" src="img/theme/team-4.jpg">
+                     <vue-qrcode :value="$store.state.email" />
                   </span>
             <b-media-body class="ml-2 d-none d-lg-block">
-              <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.user.email}}</span>
+              <span class="mb-0 text-sm  font-weight-bold">{{this.$store.state.email}}</span>
             </b-media-body>
           </b-media>
         </a>
@@ -51,11 +51,15 @@
           <b-dropdown-header class="noti-title">
             <h6 class="text-overflow m-0"> {{ $t('site.welcome')  }}</h6>
           </b-dropdown-header>
-          <b-dropdown-item href="#!">
+           <b-dropdown-item href="#!" to="/KontoOverview">
+            <i class="ni ni-single-02"></i>
+            <span>{{ $t('site.overview.account_overview')}}</span>
+          </b-dropdown-item>
+          <b-dropdown-item href="#!" to="/profile">
             <i class="ni ni-single-02"></i>
             <span>{{ $t('site.navbar.my-profil')}}</span>
           </b-dropdown-item>
-          <b-dropdown-item href="#!">
+          <b-dropdown-item href="#!" to="/profileedit">
             <i class="ni ni-settings-gear-65"></i>
             <span>{{ $t('site.navbar.settings') }}</span>
           </b-dropdown-item>
@@ -80,13 +84,14 @@
 </template>
 <script>
 import { CollapseTransition } from 'vue2-transitions';
-import { BaseNav, Modal } from '@/components';
+import { BaseNav } from '@/components';
+import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-    CollapseTransition,
+   CollapseTransition,
     BaseNav,
-    Modal
+    VueQrcode
   },
   props: {
     type: {
@@ -121,7 +126,7 @@ export default {
     },
     logout(){
       //console.log("DashboardNavbar.vue user logout() : ")
-      this.$store.commit('logout')
+      this.$store.dispatch('logout')
     }  
   }
 };

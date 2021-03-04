@@ -90,9 +90,9 @@
 
   export default {
     components: {
-      CollapseTransition,
+      //CollapseTransition,
       BaseNav,
-      Modal
+      //Modal
     },
     computed: {
       routeName() {

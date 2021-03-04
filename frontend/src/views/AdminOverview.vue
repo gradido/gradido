@@ -232,12 +232,12 @@
     components: {
       LineChart,
       BarChart,
-      BaseProgress,
+      //BaseProgress,
       StatsCard,
-      PageVisitsTable,
+      //PageVisitsTable,
       AdminUserSearch,
       AdminUserCreation,
-      SearchUser
+      //SearchUser
     },
     data() {
       return {

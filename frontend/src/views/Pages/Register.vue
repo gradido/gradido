@@ -1,12 +1,12 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header bg-gradient-success py-7 py-lg-8 pt-lg-9">
+    <div class="header bg-gradient-success py-7 py-lg-5 pt-lg-1">
       <b-container class="container">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-5">
-              <h1 class="text-white">Erstelle eine Gradido Wallet</h1>
+              <h1 class="text-white">Erstelle deine Gradido Wallet</h1>
               <p class="text-lead text-white">Werde teil der Community</p>
             </b-col>
           </b-row>
@@ -25,23 +25,28 @@
       <b-row class="justify-content-center">
         <b-col lg="6" md="8" >
           <b-card no-body class="bg-secondary border-0">
-            <b-card-header class="bg-transparent pb-5">
-              <div class="text-muted text-center mt-2 mb-4"><small>Sign up with</small></div>
-            
-            </b-card-header>
+             
             <b-card-body class="px-lg-5 py-lg-5">
               <div class="text-center text-muted mb-4">
-                <small>Or sign up with credentials</small>
+                <small>sign up </small>
               </div>
               <validation-observer v-slot="{handleSubmit}" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
                   <base-input alternative
                               class="mb-3"
                               prepend-icon="ni ni-hat-3"
-                              placeholder="Name"
-                              name="Name"
+                              placeholder="Vorname"
+                              name="Vorname"
                               :rules="{required: true}"
-                              v-model="model.name">
+                              v-model="model.firstname">
+                  </base-input>
+                   <base-input alternative
+                              class="mb-3"
+                              prepend-icon="ni ni-hat-3"
+                              placeholder="Nachname"
+                              name="Nachname"
+                              :rules="{required: true}"
+                              v-model="model.lastname">
                   </base-input>
 
                   <base-input alternative
@@ -82,6 +87,14 @@
           </b-card>
         </b-col>
       </b-row>
+      <div class="text-center py-lg-5" >
+                    <b-button type="button" variant="success" class="mt-4" to="/Login">zurück</b-button>
+                  </div>
+
+                  <div>
+
+ 
+</div>
     </b-container>
   </div>
 </template>
@@ -92,19 +105,26 @@
     data() {
       return {
         model: {
-          name: '',
+          firstname: '',
+          lastname: '',
           email: '',
           password: '',
-          agree: false
+          agree: false          
         }
       }
     },
     methods: {
       onSubmit() {
-        // this will be called only after form is valid. You can do an api call here to register users
-      }
+        // console.log("this.modals =>", this.modals)
+         this.$store.dispatch('createUser', {"email":this.model.email, "first_name":this.model.firstname, "last_name":this.model.lastname , "emailType": 2, "password":this.model.password}) 
+          this.model.email = ""
+          this.model.firstname = ""
+          this.model.lastname = ""
+          this.model.password = ""
+          this.$router.push('/thx')
+          
+     }
     }
-
   };
 </script>
 <style></style>

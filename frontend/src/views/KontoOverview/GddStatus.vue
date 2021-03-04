@@ -4,35 +4,38 @@
         <b-col xl="6" md="6">
           <stats-card :title="$t('site.overview.current_balance')"
                       type="gradient-red"
-                      sub-title="3500,897 GDD"
-                      img="img/icons/gradido/my_gradido.png"
+                      sub-title="balance_gdd"
                       class="mb-4">
-
+                {{ $n($store.state.user.balance) }} GDD
             <template slot="footer">
-              <span class="text-success mr-2">+ 3.48%</span>
-              <span class="text-nowrap">{{ $t('site.overview.since_last_month') }}</span>
+              <span class="text-success mr-2">Wird immer angezeigt</span>
             </template>
           </stats-card>
         </b-col>
         <b-col xl="6" md="6">
           <stats-card :title="$t('site.overview.gradido_received')"
                       type="gradient-orange"
-                      sub-title="2,356 GDD"
-                      img="img/icons/gradido/plus.png"
+                      sub-title="balance_gdt"
                       class="mb-4">
-
-            <template slot="footer">
-              <span class="text-success mr-2">+ 12.18%</span>
-              <span class="text-nowrap">{{ $t('site.overview.since_last_month') }}</span>
+                  {{  $n($store.state.user.balance_gdt) }} GDT 
+            <template slot="footer"> 
+              <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
             </template>
           </stats-card>
         </b-col>
       </b-row>
+      
   </div>
 </template>
 
 <script>
 export default {
   name: 'GddStatus',
+  data(){
+    return {
+      balance_gdd: this.$store.state.user.balance,
+      balance_gdt: this.$store.state.user.balance_gdt,
+    }
+  }
 };
 </script>

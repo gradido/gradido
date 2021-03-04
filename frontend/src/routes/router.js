@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './routes'
-import {store} from '../store/store';
 
 Vue.use(VueRouter)
 
@@ -26,22 +25,7 @@ router.beforeEach((to, from, next) => {
      if (!language) {
        language = 'de'
      }
-   
-  //console.log("----------------")
-  //("ROUTER.js to", to)
-  //console.log("ROUTER.js store.state.is_auth", store.state.is_auth)
-  //console.log("ROUTER.js store.commit('isActive')", store.commit('isActive'))
-  
-  //if (store.commit('isActive') ) {
-  //  next()
-  //} else {
-  //  next("/login")
-  //}
-  //console.log(from)
-  //console.log(next)
-
-  next()
-  
+     next()  
 })
 
 export default router
