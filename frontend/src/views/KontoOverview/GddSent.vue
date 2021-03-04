@@ -131,15 +131,15 @@ export default {
   },
   methods: {
      async onDecode (decodedString) {
-           console.log('JSON.parse(decodedString)',JSON.parse(decodedString) )
+           console.log('onDecode JSON.parse(decodedString)',JSON.parse(decodedString) )
            const arr = JSON.parse(decodedString) 
-            console.log('arr',arr[0].email )
+           console.log('arr',arr[0].email )
            this.modal.h4 = 'Scan erfolgreich'
            this.modal.p = arr
            this.form.email = arr[0].email
            this.form.amount1 = arr[0].amount
-            console.log('arr mail',arr.email)
-            console.log('arr mail',arr.amount)
+           console.log('arr mail',arr.email)
+           console.log('arr mail',arr.amount)
       
           this.modals2 = true
       },
@@ -150,9 +150,9 @@ export default {
             content,      // decoded String
             location      // QR code coordinates
           } = await promise
-            console.log('promise',promise)
-             console.log('JSON.parse(decodedString)',JSON.parse(promise) )
-           const arr = JSON.parse(decodedString) 
+            console.log('onDetect promise',promise)
+            //console.log('JSON.parse(decodedString)',JSON.parse(promise) )
+            const arr = JSON.parse(decodedString) 
             console.log('arr',arr)
           
         } catch (error) {
@@ -161,26 +161,19 @@ export default {
       },
       async onSubmit() {
         //event.preventDefault()
-        console.log("onSubmit", this.form)
-        //console.log("this.form.img", this.form.img)
-        //console.log("this.form.email", this.form.email)
-        //console.log("this.form.amount", this.form.amount)
-        //console.log("this.form.memo", this.form.memo)
-
+        //console.log("onSubmit", this.form)
         this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
         this.$store.state.ajaxCreateData.email = this.form.email
         this.$store.state.ajaxCreateData.amount = this.form.amount
         this.$store.state.ajaxCreateData.memo = this.form.memo
-         this.$store.state.ajaxCreateData.target_date =  Date.now()
+        this.$store.state.ajaxCreateData.target_date =  Date.now()
 
-         this.$store.dispatch('ajaxCreate')
+        this.$store.dispatch('ajaxCreate')
       },
       onReset(event) {
         event.preventDefault()
-        // Reset our form values
         this.form.email = ''
         this.form.amount = ''  
-        // Trick to reset/clear native browser form validation state
         this.show = false
         this.$nextTick(() => {
           this.show = true

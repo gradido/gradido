@@ -33,28 +33,32 @@
                         </a>
 
                         <div class=" dropdown-header noti-title">
-                            <h6 class="text-overflow m-0">Welcome!</h6>
+                            <h6 class="text-overflow m-0">{{ $t('welcome')  }}</h6>
                         </div>
+                        <router-link to="/KontoOverview" class="dropdown-item">
+                            <i class="ni ni-single-02"></i>
+                            <span>{{ $t('site.overview.account_overview')}}</span>
+                        </router-link>
                         <router-link to="/profile" class="dropdown-item">
                             <i class="ni ni-single-02"></i>
-                            <span>My profile</span>
+                            <span>{{ $t('site.navbar.my-profil')}}</span>
                         </router-link>
-                        <router-link to="/profile" class="dropdown-item">
+                        <router-link to="/profileedit" class="dropdown-item">
                             <i class="ni ni-settings-gear-65"></i>
-                            <span>Settings</span>
+                            <span>{{ $t('site.navbar.settings') }}</span>
                         </router-link>
-                        <router-link to="/profile" class="dropdown-item">
+                        <router-link to="/activity" class="dropdown-item">
                             <i class="ni ni-calendar-grid-58"></i>
-                            <span>Activity</span>
+                            <span>{{ $t('site.navbar.activity') }}</span>
                         </router-link>
                         <router-link to="/profile" class="dropdown-item">
                             <i class="ni ni-support-16"></i>
-                            <span>Support</span>
+                            <span>{{ $t('site.navbar.support') }}</span>
                         </router-link>
                         <div class="dropdown-divider"></div>
-                        <a href="#!" class="dropdown-item">
+                        <a href="#!" class="dropdown-item" @click="logout">
                             <i class="ni ni-user-run"></i>
-                            <span>Logout</span>
+                            <span>{{ $t('logout') }}</span>
                         </a>
                     </base-dropdown>
                 </ul>
@@ -163,7 +167,11 @@
       //  params: { lang: locale }
       //})
       //this.hideDropdown()
-    }
+    },
+    logout(){
+      //console.log("DashboardNavbar.vue user logout() : ")
+      this.$store.dispatch('logout')
+    }  
     },
     beforeDestroy() {
       if (this.$sidebar.showSidebar) {

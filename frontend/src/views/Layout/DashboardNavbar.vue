@@ -49,7 +49,7 @@
         <template>
 
           <b-dropdown-header class="noti-title">
-            <h6 class="text-overflow m-0"> {{ $t('site.welcome')  }}</h6>
+            <h6 class="text-overflow m-0"> {{ $t('welcome')  }}</h6>
           </b-dropdown-header>
            <b-dropdown-item href="#!" to="/KontoOverview">
             <i class="ni ni-single-02"></i>
@@ -74,7 +74,7 @@
           <div class="dropdown-divider"></div>
           <b-dropdown-item href="#!" @click="logout">
             <i class="ni ni-user-run"></i>
-            <span>{{ $t('site.logout') }}</span>
+            <span>{{ $t('logout') }}</span>
           </b-dropdown-item>
 
         </template>

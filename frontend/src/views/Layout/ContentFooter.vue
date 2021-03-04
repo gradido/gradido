@@ -12,17 +12,21 @@
             Gradido
           </b-nav-item>
           <b-nav-item href="https://gradido.net/" target="_blank">
-           Impressum
+           {{$t('imprint')}}
           </b-nav-item>
           <b-nav-item href="https://gradido.net/" target="_blank">
-            Datenschutzerklärung
+            {{$t('privacy_policy')}}
           </b-nav-item>
           <b-nav-item href="https://gradido.net/" target="_blank">
-            License
+            {{$t('license')}}
           </b-nav-item>
         </b-nav>
       </b-col>
     </b-row>
+   <b-row >
+            <b-col class="nav-link text-center"  @click.prevent="setLocale('en')">English</b-col>
+            <b-col class="nav-link text-center" @click.prevent="setLocale('de')">Deutsch</b-col>
+        </b-row>
   </footer>
 </template>
 <script>
@@ -31,7 +35,16 @@ export default {
     return {
       year: new Date().getFullYear()
     };
-  }
+  },
+  methods: {
+      setLocale(locale) {
+      this.$i18n.locale = locale
+      //this.$router.push({
+      //  params: { lang: locale }
+      //})
+      //this.hideDropdown()
+    }
+  },
 };
 </script>
 <style></style>

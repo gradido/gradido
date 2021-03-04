@@ -1,9 +1,44 @@
 {
   "message": "hello gradido !!",
+  "welcome":"Welcome!",
+  "logout":"Logout",
+  "login":"Login",
+  "signup": "Sign up",
+  "imprint":"Imprint",
+  "privacy_policy":"Privacy policy",
+  "license":"License",
+  "back":"back",
+  "form": {
+    "firstname":"firstname",
+    "lastname":"lastname",
+    "email":"email",
+    "email_repeat":"repeat_email",
+    "password":"password",
+    "password_repeat":"repeat password",
+    "amount":"amount",
+    "memo":"memo",
+    "message":"message",
+    "date":"date",
+    "from":"from",
+    "to":"to",
+    "at":"at",
+    "time":"time"
+  },
   "site": {
-    "welcome":"Welcome!",
-    "logout":"Logout",
-    "login":"Login",
+    "login": {
+      "community":"You are the community",
+      "remember":"Remember me",
+      "signin":"Sign in",
+      "forgot_pwd":"Forgot password?",
+      "new_wallet":"Create new wallet"
+    },
+    "signup": {
+      "title": "Create your Gradido Wallet",
+      "subtitle": "Become a part of the community!",
+      "strength":"password strength:",
+      "strong":"strong",
+      "agree":"I have read and understood and agree to them the"
+    },
     "overview":{
       "account_overview":"Account overview",
       "current_balance":"Current account balance",
@@ -30,8 +65,7 @@
       "my-profil":"My Profil",
       "settings":"Settings",
       "activity":"Activity",
-      "support":"Support",
-      "logout":"Logout"
+      "support":"Support"
     },
     "sidebar" : {
        "community":"Community",

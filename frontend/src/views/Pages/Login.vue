@@ -7,7 +7,7 @@
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-5">
               <h1 class="text-white">Gradido Wallet</h1>
-              <p class="text-lead text-white">Du bist die Community</p>
+              <p class="text-lead text-white">{{ $t('site.login.community')}}</p>
             </b-col>
           </b-row>
         </div>
@@ -28,7 +28,7 @@
             <b-card-body class="px-lg-5 py-lg-5">
               
                 <div class="text-center text-muted mb-4">
-                <small>login</small>
+                <small>{{ $t('login')}}</small>
               </div>
                <validation-observer v-slot="{handleSubmit}" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
@@ -51,9 +51,9 @@
                               v-model="model.password">
                   </base-input>
 
-                  <b-form-checkbox v-model="model.rememberMe">Remember me</b-form-checkbox>
+                  <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox>
                   <div class="text-center">
-                    <base-button type="primary" native-type="submit" class="my-4">Sign in</base-button>
+                    <base-button type="primary" native-type="submit" class="my-4">{{ $t('site.login.signin')}}</base-button>
                   </div>
                 </b-form>
               </validation-observer>  
@@ -61,10 +61,10 @@
           </b-card>
           <b-row class="mt-3">
             <b-col cols="6">
-              <router-link to="/dashboard" class="text-light"><small>Forgot password?</small></router-link>
+              <router-link to="/dashboard" class="text-light"><small>{{ $t('site.login.forgot_pwd')}}</small></router-link>
             </b-col>
             <b-col cols="6" class="text-right">
-              <router-link to="/register" class="text-light"><small>Create new account</small></router-link>
+              <router-link to="/register" class="text-light"><small>{{ $t('site.login.new_wallet')}}</small></router-link>
             </b-col>
           </b-row>
         </b-col>

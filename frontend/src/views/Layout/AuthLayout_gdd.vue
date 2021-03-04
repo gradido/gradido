@@ -18,21 +18,25 @@
             </div>
           </b-col>
           <b-col xl="6" class="col-xl-6">
-            <b-nav class="nav-footer justify-content-center justify-content-lg-end">
+            <b-nav class="nav-footer justify-content-center justify-content-xl-end">
               <b-nav-item ref="https://www.creative-tim.com" target="_blank">
                 Gradido
               </b-nav-item>
               <b-nav-item href="https://www.creative-tim.com/presentation" target="_blank">
-               Impressum
+               {{$t('imprint')}}
               </b-nav-item>
               <b-nav-item href="http://blog.creative-tim.com" target="_blank">
-                Datenschutzerklärung
+                {{$t('privacy_policy')}}
               </b-nav-item>
               <b-nav-item href="https://www.creative-tim.com/license" target="_blank">
-                License
+                 {{$t('license')}}
               </b-nav-item>
             </b-nav>
           </b-col>
+        </b-row>
+         <b-row >
+            <b-col class="nav-link text-center"  @click.prevent="setLocale('en')">English</b-col>
+            <b-col class="nav-link text-center" @click.prevent="setLocale('de')">Deutsch</b-col>
         </b-row>
       </b-container>
     </footer>
@@ -69,6 +73,13 @@
       }
     },
     methods: {
+      setLocale(locale) {
+        this.$i18n.locale = locale
+        //this.$router.push({
+        //  params: { lang: locale }
+        //})
+        //this.hideDropdown()
+      },
       toggleNavbar() {
         document.body.classList.toggle('nav-open');
         this.showMenu = !this.showMenu;
