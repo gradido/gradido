@@ -18,6 +18,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	bool login_after_register = false;
 	int emailType;
 	int group_id;
+
 	auto em = EmailManager::getInstance();
 	auto sm = SessionManager::getInstance();
 
@@ -35,6 +36,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
 			paramJsonObject->get("group_id").convert(group_id);
+
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
 			}
@@ -52,15 +54,15 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	auto user = controller::User::create();
 	if (user->load(email) > 0) {
-		// return customStateError("exist", "user already exist");
-		Poco::JSON::Object* result = new Poco::JSON::Object;
+		/*Poco::JSON::Object* result = new Poco::JSON::Object;
 		result->set("state", "exist");
 		result->set("msg", "user already exist");
-		return result;
+		return result;*/
+		return customStateError("exist", "user already exist");
 	}
 
 	if (password.size()) {
-		ErrorList errors;
+		NotificationList errors;
 		if (!sm->checkPwdValidation(password, &errors)) {
 			Poco::JSON::Object* result = new Poco::JSON::Object;
 			result->set("state", "error");
@@ -91,7 +93,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
 		create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
 	}
-
+	
 	auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
 	auto emailOptInModel = emailOptIn->getModel();
 	if (!emailOptInModel->insertIntoDB(false)) {

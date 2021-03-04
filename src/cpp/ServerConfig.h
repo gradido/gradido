@@ -61,6 +61,8 @@ namespace ServerConfig {
 		HEDERA_UNKNOWN
 	};
 
+	
+
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
@@ -90,6 +92,8 @@ namespace ServerConfig {
 	extern AllowUnsecure g_AllowUnsecureFlags;
 	extern HederaConsensusMessageFormat g_ConsensusMessageFormat;
 	extern HederaNetworkType g_HederaNetworkType;
+	extern Poco::Timespan  g_HederaDefaultTimeout;
+
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

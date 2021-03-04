@@ -29,7 +29,6 @@ JsonRequestHandler::JsonRequestHandler(Session* session)
 
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
-
 	response.setChunkedTransferEncoding(false);
 	response.setContentType("application/json");
 	if (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_CORS_ALL) {
@@ -72,12 +71,12 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 				json_result->get("session_id").convert(session_id);
 			}
 			catch (Poco::Exception& e) {
-				ErrorList erros;
+				NotificationList erros;
 				erros.addError(new Error("json request", "invalid session_id"));
 				erros.sendErrorsAsEmail();
 			}
 			if (session_id) {
-				auto session = SessionManager::getInstance()->getSession("session_id");
+				auto session = SessionManager::getInstance()->getSession(session_id);
 				response.addCookie(session->getLoginCookie());
 			}
 		}

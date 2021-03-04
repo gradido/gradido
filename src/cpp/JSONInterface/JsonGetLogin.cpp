@@ -16,50 +16,15 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	auto pt = PendingTasksManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();
 
-	if (params.isStruct()) {
-		session_id = params["session_id"];
-		//std::string miau = params["miau"];
+	auto session_check_result = checkAndLoadSession(params, true);
+	if (session_check_result) {
+		return session_check_result;
 	}
-	else if (params.isVector()) {
-		try {
-			const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
-			for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
-				if (it->first == "session_id") {
-					auto numberParseResult = DataTypeConverter::strToInt(it->second, session_id);
-					if (DataTypeConverter::NUMBER_PARSE_OKAY != numberParseResult) {
-						return stateError("error parsing session_id", DataTypeConverter::numberParseStateToString(numberParseResult));
-					}
-					break;
-				}
-			}
-			//auto var = params[0];
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("error parsing query params, Poco Error", ex.displayText());
-		}
-	}
-	
-	if (!session_id) {
-		return stateError("empty session id");
-	}
-	
-	auto session = sm->getSession(session_id);
-	if (!session) {
-		return customStateError("not found", "session not found");
-	}
-	
-	auto userNew = session->getNewUser();
-	//auto user = session->getUser();
-	if (userNew.isNull()) {
-		return customStateError("not found", "Session didn't contain user");
-	}
-	auto userModel = userNew->getModel();
-	if(userModel.isNull()) {
-		return customStateError("not found", "User is empty");
-	}
+
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 	result->set("state", "success");
-	result->set("clientIP", session->getClientIp().toString());
+	//result->set("clientIP", mSession->getClientIp().toString());
+	auto userNew = mSession->getNewUser();
 	try {
 		result->set("user", userNew->getJson());
 	}
@@ -82,7 +47,7 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	//pending = some_must_sign.size();
 	result->set("Transactions.can_signed", some_must_sign.size());
 
-	auto executing = observer->getTaskCount(userModel->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
+	auto executing = observer->getTaskCount(userNew->getModel()->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	if (executing < 0) {
 		executing = 0;
 	}

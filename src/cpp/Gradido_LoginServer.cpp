@@ -256,8 +256,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// load pending tasks not finished in last session
 		PendingTasksManager::getInstance()->load();
-
-		CronManager::getInstance()->init();
+		int php_server_ping = config().getInt("phpServer.ping", 600000);
+		CronManager::getInstance()->init(php_server_ping);
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		// wait for CTRL-C or kill
@@ -269,7 +269,6 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		srv.stop();
 		// Stop the json server
 		json_srv.stop();
-
 
 		ServerConfig::unload();
 		Poco::Net::uninitializeSSL();
