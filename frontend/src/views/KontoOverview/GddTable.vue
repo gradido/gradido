@@ -20,7 +20,7 @@
                   <b-list-group-item> <b-badge class="mr-4" variant="primary" pill>gdd</b-badge>{{item.balance}}</b-list-group-item>
                   <b-list-group-item> <b-badge class="mr-4" variant="primary" pill>memo</b-badge>{{item.memo}}</b-list-group-item>
                 </b-list-group>
-                <b-button v-b-toggle="'collapse-1-inner'+ item.transaction_id" size="sm">\i/ more</b-button>
+                <b-button v-b-toggle="'collapse-1-inner'+ item.transaction_id" size="sm">{{$t('transaction.more')}}</b-button>
                 <b-collapse :id="'collapse-1-inner'+ item.transaction_id" class="mt-2">
                   <b-card>{{item}}</b-card>
                 </b-collapse>
@@ -28,10 +28,8 @@
             </b-collapse>
           </b-list-group-item>
            <b-list-group-item>
-                <b-alert v-if="count < 5" show variant="secondary">
-                  Die letzten <strong>{{count}}</strong> Transaktionen
-                </b-alert>
-              <router-link to="/activity"  > mehr (+ {{count}})</router-link>  
+                <b-alert v-if="count < 5" show variant="secondary" v-html="$t('transaction.show_part', {'count':count} )"></b-alert>
+              <router-link else to="/activity"  v-html="$t('transaction.show_all', {'count':count})"> </router-link>  
             </b-list-group-item>
           
  

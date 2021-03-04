@@ -47,7 +47,7 @@
                               :rules="{required: true, min: 6}"
                               prepend-icon="ni ni-lock-circle-open"
                               type="password"
-                              placeholder="Password"
+                              :placeholder="$t('form.password')"
                               v-model="model.password">
                   </base-input>
 

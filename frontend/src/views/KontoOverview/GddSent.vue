@@ -2,8 +2,7 @@
   <div>
     <b-row>
       <b-col xl="12" md="12">
-          <base-button  icon type="primary" size="lg"  v-b-toggle.collapse-1>
-            <span class="btn-inner--icon"><i class="ni ni-curved-next"></i></span>
+          <base-button  block icon type="primary" size="lg"  v-b-toggle.collapse-1>
             <span class="btn-inner--text">{{ $t('site.overview.send_gradido') }} </span>
           </base-button>
           <b-collapse id="collapse-1" class="mt-2">
@@ -92,8 +91,8 @@
  
                   </div>
                   <br>
-                  <b-button type="submit" variant="primary">jetzt versenden</b-button>
-                  <b-button type="reset" variant="danger">Cancel</b-button>
+                  <b-button type="submit" variant="primary">{{$t('form.send_now')}}</b-button>
+                  <b-button type="reset" variant="danger">{{$t('form.cancel')}}</b-button>
                   <br>
                 </b-form> 
               </validation-observer>

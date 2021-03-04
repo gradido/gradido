@@ -8,7 +8,14 @@
   "privacy_policy":"Datenschutzerklärung",
   "license":"Lizenz",
   "back":"zurück",
+  "transactions":"Transaktionen",
+  "language":"Sprachen",
+  "languages":{
+    "de": "Deutsch",
+    "en": "English"
+  },
   "form": {
+    "cancel":"abbrechen",
     "firstname":"Vorname",
     "lastname":"Nachname",
     "email":"eMail",
@@ -22,12 +29,17 @@
     "from":"von",
     "to":"bis",
     "at":"am",
-    "time":"Zeit"
+    "send_now":"jetzt versenden"
+  },
+  "transaction":{
+    "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
+    "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
+    "more": "mehr"
   },
   "site": {
     "login": {
       "community":"Du bist die Gemeinschaft",
-      "remember":"merken",
+      "remember":"Passwort merken",
       "signin":"Anmelden",
       "forgot_pwd":"Passwort vergessen?",
       "new_wallet":"Neues Wallet erstellen"
@@ -50,25 +62,9 @@
     },
       "overview":{
         "account_overview":"Kontoübersicht",
-        "current_balance":"Aktueller Kontostand",
-        "gradido_received":"Erhaltene Gradido",
         "since_last_month": "seid letzten Monat",
         "send_gradido":"Gradido versenden",
-        "table" : {
-          "status":"Status",
-          "amount":"Betrag",
-          "name":"Name",
-          "date":"Datum",
-          "details":"Details",
-          "view":"Anzeigen",
-          "hide":"Ausblenden",
-          "decay":"Vergänglichkeit",
-          "sender":"Absender",
-          "hide_details":"Details ausblenden"
-        },
-        "add_work":"neuer Gemeinschaftsbeitrag",
-        "xx":"xx",
-        "xxxx":"xxxx"
+        "add_work":"neuer Gemeinschaftsbeitrag"
       },
       "navbar" : {
         "my-profil":"Mein Profil",

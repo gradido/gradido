@@ -23,9 +23,11 @@
         </b-nav>
       </b-col>
     </b-row>
+      <br>
+     <br>
    <b-row >
-            <b-col class="nav-link text-center"  @click.prevent="setLocale('en')">English</b-col>
-            <b-col class="nav-link text-center" @click.prevent="setLocale('de')">Deutsch</b-col>
+            <b-col class="nav-link text-center"  @click.prevent="setLocale('en')">{{ $t('languages.en') }}</b-col>
+            <b-col class="nav-link text-center" @click.prevent="setLocale('de')">{{ $t('languages.de') }}</b-col>
         </b-row>
   </footer>
 </template>

@@ -8,21 +8,34 @@
   "privacy_policy":"Privacy policy",
   "license":"License",
   "back":"back",
+  "transactions":"transactions",
+  "language":"Language",
+  "languages":{
+      "de": "Deutsch",
+      "en": "English"
+  },
   "form": {
-    "firstname":"firstname",
-    "lastname":"lastname",
-    "email":"email",
+    "cancel":"Cancel",
+    "firstname":"Firstname",
+    "lastname":"Lastname",
+    "email":"Email",
     "email_repeat":"repeat_email",
-    "password":"password",
+    "password":"Password",
     "password_repeat":"repeat password",
-    "amount":"amount",
-    "memo":"memo",
-    "message":"message",
-    "date":"date",
+    "amount":"Amount",
+    "memo":"Memo",
+    "message":"Message",
+    "date":"Date",
     "from":"from",
     "to":"to",
     "at":"at",
-    "time":"time"
+    "time":"Time",
+    "send_now":"send now"
+  },
+  "transaction":{
+    "show_part": "The last <strong>{count}</strong> transactions",
+    "show_all":"View all <strong>{count}</strong> transactions",
+    "more": "more"
   },
   "site": {
     "login": {
@@ -50,25 +63,9 @@
     },
     "overview":{
       "account_overview":"Account overview",
-      "current_balance":"Current account balance",
-      "gradido_received":"Gradido received",
       "since_last_month": "since last month",
       "send_gradido":"Send Gradido",
-      "table" : {
-        "status":"Status",
-        "amount":"Amount",
-        "name":"Name",
-        "date":"Date",
-        "details":"Details",
-        "view":"View",
-        "hide":"hide",
-        "decay":"Decay",
-        "sender":"Sender",
-        "hide_details":"Hide details"
-      },
-      "add_work":"New Community Contribution",
-      "xx":"xx",
-      "xxxx":"xxxx"
+      "add_work":"New Community Contribution"
     },
     "navbar" : {
       "my-profil":"My Profil",
@@ -79,8 +76,7 @@
     "sidebar" : {
        "community":"Community",
        "members_area":"Members area",
-       "membership":"Membership",
-       "language":"Language"
+       "membership":"Membership"
     },
     "landing1" : {
         "explore":"Explore Gradido",

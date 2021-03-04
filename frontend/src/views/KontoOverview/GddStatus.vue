@@ -2,25 +2,17 @@
   <div>
     <b-row>
         <b-col xl="6" md="6">
-          <stats-card :title="$t('site.overview.current_balance')"
-                      type="gradient-red"
+          <stats-card type="gradient-red"
                       sub-title="balance_gdd"
                       class="mb-4">
-                {{ $n($store.state.user.balance) }} GDD
-            <template slot="footer">
-              <span class="text-success mr-2">Wird immer angezeigt</span>
-            </template>
+              {{ $n($store.state.user.balance) }} GDD
           </stats-card>
         </b-col>
         <b-col xl="6" md="6">
-          <stats-card :title="$t('site.overview.gradido_received')"
-                      type="gradient-orange"
+          <stats-card type="gradient-orange"
                       sub-title="balance_gdt"
                       class="mb-4">
-                  {{  $n($store.state.user.balance_gdt) }} GDT 
-            <template slot="footer"> 
-              <span class="text-nowrap">Wird nur angezeigt wenn user GDT besitzt.</span>
-            </template>
+              {{  $n($store.state.user.balance_gdt) }} GDT 
           </stats-card>
         </b-col>
       </b-row>

@@ -56,10 +56,7 @@
                             <span>{{ $t('site.navbar.support') }}</span>
                         </router-link>
                         <div class="dropdown-divider"></div>
-                        <a href="#!" class="dropdown-item" @click="logout">
-                            <i class="ni ni-user-run"></i>
-                            <span>{{ $t('logout') }}</span>
-                        </a>
+                       
                     </base-dropdown>
                 </ul>
             </slot>
@@ -92,39 +89,46 @@
                     <li class="nav-item">
                         <a class="nav-link"
                            href="https://gradido.net/de/">
-                            <i class="ni ni-spaceship"></i> Gradido.net
+                            Gradido.net
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
                            href="https://elopage.com/s/gradido/sign_in">
-                            <i class="ni ni-palette"></i> {{ $t('site.sidebar.members_area') }}
+                           {{ $t('site.sidebar.members_area') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
                            href="https://gradido.net/de/memberships/">
-                            <i class="ni ni-ui-04"></i> {{ $t('site.sidebar.membership') }}
+                           {{ $t('site.sidebar.membership') }}
                         </a>
                     </li>
                 </ul>
                  <!--Divider-->
                 <hr class="my-3">
                   <!--Heading-->
-                <h6 class="navbar-heading text-muted">{{ $t('site.sidebar.language') }}</h6>
+                <h6 class="navbar-heading text-muted">{{ $t('language') }}</h6>
                 <!--Navigation-->
                 <ul class="navbar-nav mb-md-3">
                     <li class="nav-item">
                         <div class="nav-link"  @click.prevent="setLocale('en')">
-                          <i class="ni ni-ui-04"></i> English</div>
+                         {{ $t('languages.en') }}</div>
                     </li>
-                    <li class="nav-item">
-                        <div class="nav-link" @click.prevent="setLocale('de')">
-                          <i class="ni ni-ui-04"></i> Deutsch</div>
+                    <li class="nav-item">                       
+                        <a class="nav-link" href="#!"  @click.prevent="setLocale('de')">
+                           {{ $t('languages.de') }} 
+                         </a>
                     </li>
-                     
-                </ul>
+                     <li class="nav-item"> 
 
+                        <hr class="my-3">
+                        <a class="nav-link" href="#!"  @click="logout">
+                        {{ $t('logout') }}
+                        </a>
+                     </li>
+                  </ul>
+                 
             </div>
             </div>
     </nav>

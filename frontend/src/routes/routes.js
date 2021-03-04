@@ -13,22 +13,18 @@ const routes = [
     children: [
       {
         path: '/login',
-        name: 'login',
         component: () => import('../views/Pages/Login.vue')
       },
       {
         path: '/thx',
-        name: 'Thanks',
         component: () => import('../views/Pages/thx.vue')
       },      
       {
         path: '/register',
-        name: 'register',
         component: () => import('../views/Pages/Register.vue')
       },      
       {
         path: '/password',
-        name: 'password',
         component: () => import('../views/Pages/Password.vue')
       }
     ]
@@ -40,7 +36,6 @@ const routes = [
     children: [
       {
         path: '/KontoOverview',
-        name: 'Kontoübersicht',
         component: () => import('../views/KontoOverview.vue'),
         meta: {
           requiresAuth: true
@@ -48,17 +43,14 @@ const routes = [
       },     
       {
         path: '/profile',
-        name: 'profile',
         component: () => import('../views/Pages/UserProfileCard.vue')
       },         
       {
         path: '/profileedit',
-        name: 'profileedit',
         component: () => import('../views/Pages/UserProfileEdit.vue')
       },         
       {
         path: '/activity',
-        name: 'activity',
         component: () => import('../views/Pages/UserProfileActivity.vue')
       }
     ]

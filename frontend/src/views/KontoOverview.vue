@@ -1,49 +1,36 @@
 <template>
   <div>
     <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-gradient-success">
-      <!-- Card stats GDD User Status -->
-      <gdd-status />
-        
+      <gdd-status />        
       <br>
-      
-      <!-- Card sent GDD-->
       <gdd-sent />
       <hr>
-      <!-- Card table -->
-      <div>
-        <gdd-table />
-       
-      </div>
-     
-      <!-- Card table 
+      <gdd-table />
+      <!--  
       <hr>
       <div>
-        <gdd-add-work />
-       
+        <gdd-add-work />       
       </div>
       <br>
       -->
-      <!-- Card table 
+      <!-- 
       <div>
-        <gdd-work-table />
-       
+        <gdd-work-table />       
       </div>
       -->
-    </base-header>
-     
+    </base-header>     
      <hr>
   </div>
 </template>
-
 <script>
-
    import GddStatus from './KontoOverview/GddStatus.vue';
    import GddSent from './KontoOverview/GddSent.vue';
    import GddTable from './KontoOverview/GddTable.vue';
-   //import GddAddWork from './KontoOverview/GddAddWork.vue';
-  // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
+   // import GddAddWork from './KontoOverview/GddAddWork.vue';
+   // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
   export default {  
+    name: "Overview",
     components: {
         GddStatus,
         GddSent,
