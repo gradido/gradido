@@ -6,7 +6,7 @@
           <div class="d-flex w-100 justify-content-between"  @click="toogle(item)" >
             <b-icon v-if="item.type === 'send'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
             <b-icon v-else icon="box-arrow-right" class="m-1"  font-scale="2" style="color:green" ></b-icon>       
-              <h1 class="mb-1">{{ $n((item.balance)/1000) }} <small>GDD</small></h1>
+              <h1 class="mb-1">{{ $n((item.balance)/10000) }} <small>GDD</small></h1>
               <h2 class="text-muted">{{item.name}}</h2>
                 <b-button v-b-toggle="'a'+item.transaction_id" variant="primary"><b>i</b></b-button>
             </div>
