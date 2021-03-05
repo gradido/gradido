@@ -50,7 +50,14 @@ export default {
 }
 </script>
 <style>
+    .btn {
+          background-color: #5A7B02;
+    border-color: #5e72e4;
+    }
+     a, .copyright{
+        color: #5A7B02;
     
+    }
     gradido-global-color-text{color:  #3D443B }
     gradido-global-color-accent{color:  #047006 }
     gradido-global-color-6e0a9c9e{color:  #000 } 

@@ -390,7 +390,7 @@ anime:{
 body
 {
   background-color:#141019;
-  background: radial-gradient(at 50% -20%, #908392, #0d060e) fixed;
+  background: radial-gradient(at 50% -20%, #047006, #F5F9F7) fixed;
 }
 
 

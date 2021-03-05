@@ -2,62 +2,25 @@
   <div class="wrapper">
     <notifications></notifications>
     <side-bar>
-      <template slot="links">
-        <sidebar-item
-          :link="{
-            name: 'Kontoübersicht',
-            path: 'KontoOverview',
-            icon: 'ni ni-tv-2 text-primary',
-          }"
-        >
-        </sidebar-item> 
-        <sidebar-item
-              :link="{
-                name: 'Profil',
-                path: '/profile',
-                icon: 'ni ni-single-02 text-yellow'
-                }">
-        </sidebar-item>
-        <sidebar-item
-              :link="{
-                name: 'Settings',
-                path: '/profileedit',
-                icon: 'ni ni-single-02 text-yellow'
-                }">
-        </sidebar-item>
-        <sidebar-item
-              :link="{
-                name: 'Activity',
-                path: '/activity',
-                icon: 'ni ni-single-02 text-yellow'
-                }">
-        </sidebar-item>
-         <b-nav-item href="#!" @click="logout">
-              <i class="ni ni-palette"></i>
-              <b-nav-text class="p-0">Logout</b-nav-text>
+      <template slot="links" >
+       
+         <b-nav-item href="#!" to="/KontoOverview">
+               
+              <b-nav-text class="p-0 text-lg text-muted">Senden</b-nav-text>
           </b-nav-item>
-      </template>
-
-      <template slot="links-after">
-        <hr class="my-3">
-        <h6 class="navbar-heading p-0 text-muted">Community</h6>
-
-        <b-nav class="navbar-nav mb-md-3">
-          <b-nav-item
-               href="https://gradido.net/de/" target="_blank"
-               >
-              <i class="ni ni-spaceship"></i>
-              <b-nav-text class="p-0">GRADIDO.net</b-nav-text>
+         <b-nav-item href="#!" to="/profile">
+             
+              <b-nav-text class="p-0 text-lg text-muted">Profil</b-nav-text>
           </b-nav-item>
-          <b-nav-item href="https://elopage.com/s/gradido/sign_in">
-              <i class="ni ni-palette"></i>
-              <b-nav-text class="p-0">Mitgliederbereich</b-nav-text>
+         <b-nav-item href="#!" to="/profileedit">
+              
+              <b-nav-text class="p-0 text-lg text-muted">Settings</b-nav-text>
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/de/memberships/">
-              <i class="ni ni-ui-04"></i>
-              <b-nav-text class="p-0">Mitgliedschaft</b-nav-text>
+         <b-nav-item href="#!" to="/activity">
+             
+              <b-nav-text class="p-0 text-lg text-muted">Activity</b-nav-text>
           </b-nav-item>
-        </b-nav>
+          
       </template>
     </side-bar>
     <div class="main-content">

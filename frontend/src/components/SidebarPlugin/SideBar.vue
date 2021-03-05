@@ -1,5 +1,5 @@
 <template>
-    <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
+    <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-transparent" id="sidenav-main">
         <div class="container-fluid">
 
             <!--Toggler-->
@@ -12,17 +12,7 @@
 
             <slot name="mobile-right">
                 <ul class="nav align-items-center d-md-none">
-                    <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
-                        <a slot="title-container" class="nav-link nav-link-icon" href="#" role="button"
-                           aria-haspopup="true" aria-expanded="false">
-                            <i class="ni ni-bell-55"></i>
-                        </a>
-
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </base-dropdown>
+                
                     <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
                         <a slot="title-container" class="nav-link" href="#" role="button">
                             <div class="media align-items-center">
@@ -31,32 +21,29 @@
                               </span>
                             </div>
                         </a>
-
-                        <div class=" dropdown-header noti-title">
-                            <h6 class="text-overflow m-0">{{ $t('welcome')  }}</h6>
-                        </div>
-                        <router-link to="/KontoOverview" class="dropdown-item">
+ 
+                        <router-link to="/KontoOverview" class="dropdown-item text-lg text-muted">
                             <i class="ni ni-single-02"></i>
                             <span>{{ $t('site.overview.account_overview')}}</span>
                         </router-link>
-                        <router-link to="/profile" class="dropdown-item">
+                        <router-link to="/profile" class="dropdown-item  text-lg text-muted">
                             <i class="ni ni-single-02"></i>
                             <span>{{ $t('site.navbar.my-profil')}}</span>
                         </router-link>
-                        <router-link to="/profileedit" class="dropdown-item">
+                        <router-link to="/profileedit" class="dropdown-item  text-lg text-muted">
                             <i class="ni ni-settings-gear-65"></i>
                             <span>{{ $t('site.navbar.settings') }}</span>
                         </router-link>
-                        <router-link to="/activity" class="dropdown-item">
+                        <router-link to="/activity" class="dropdown-item  text-lg text-muted">
                             <i class="ni ni-calendar-grid-58"></i>
                             <span>{{ $t('site.navbar.activity') }}</span>
                         </router-link>
-                        <router-link to="/profile" class="dropdown-item">
-                            <i class="ni ni-support-16"></i>
-                            <span>{{ $t('site.navbar.support') }}</span>
-                        </router-link>
-                        <div class="dropdown-divider"></div>
                        
+                        <div class="dropdown-divider"></div>
+                        <router-link @click="logout" class="dropdown-item  text-lg text-muted">
+                            <i class="ni ni-support-16"></i>
+                            <span>{{ $t('logout') }}</span>
+                        </router-link>
                     </base-dropdown>
                 </ul>
             </slot>
@@ -80,50 +67,14 @@
                     <slot name="links">
                     </slot>
                 </ul>
-                <!--Divider-->
+              
                 <hr class="my-3">
-                <!--Heading-->
-                <h6 class="navbar-heading text-muted">{{ $t('site.sidebar.community') }}</h6>
-                <!--Navigation-->
+     
                 <ul class="navbar-nav mb-md-3">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="https://gradido.net/de/">
-                            Gradido.net
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="https://elopage.com/s/gradido/sign_in">
-                           {{ $t('site.sidebar.members_area') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="https://gradido.net/de/memberships/">
-                           {{ $t('site.sidebar.membership') }}
-                        </a>
-                    </li>
-                </ul>
-                 <!--Divider-->
-                <hr class="my-3">
-                  <!--Heading-->
-                <h6 class="navbar-heading text-muted">{{ $t('language') }}</h6>
-                <!--Navigation-->
-                <ul class="navbar-nav mb-md-3">
-                    <li class="nav-item">
-                        <div class="nav-link"  @click.prevent="setLocale('en')">
-                         {{ $t('languages.en') }}</div>
-                    </li>
-                    <li class="nav-item">                       
-                        <a class="nav-link" href="#!"  @click.prevent="setLocale('de')">
-                           {{ $t('languages.de') }} 
-                         </a>
-                    </li>
+                   
                      <li class="nav-item"> 
-
-                        <hr class="my-3">
-                        <a class="nav-link" href="#!"  @click="logout">
+ 
+                        <a class="nav-link text-lg bg-light" href="#!"  @click="logout">
                         {{ $t('logout') }}
                         </a>
                      </li>

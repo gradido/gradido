@@ -1,16 +1,12 @@
 <template>
   <div>
     <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header" style="max-height:200px">
-            <b-container fluid>
-        <!-- Mask -->
-        <span class="mask bg-gradient-success opacity-8"></span>
-        <!-- Header container -->
+        <b-container fluid>
         <b-container fluid class="d-flex align-items-center">
           <b-row >
             <b-col lg="7" md="10">
               <h1 class="display-2 text-white">{{this.$store.state.email}} </h1>
                
-           
             </b-col>
           </b-row>
         </b-container>
