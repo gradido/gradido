@@ -1,5 +1,5 @@
 <template>
-  <div class="main-content bg-default">    
+  <div class="main-content">    
     <template>
       <div class="main-content">
         <router-view></router-view>    

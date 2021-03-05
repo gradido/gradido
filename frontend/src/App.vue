@@ -1,17 +1,18 @@
 <template>
 <div id="app" class="font-sans text-gray-800">
-    <header class="border-t-4 border-blue-700 bg-white z-10 absolute w-full shadow-md">     
+    <header class="">     
     </header>
-    <div class="bg-gray-100 min-h-screen pt-40 text-lg">     
+    <div class="">   
+      <particles-bg type="custom" :config="config" :bg="true" />  
       <router-view />
-       <particles-bg type="custom" :config="config" :bg="true" />
+       
     </div>
   </div> 
 </template>
 
 <script>
 import { ParticlesBg } from "particles-bg-vue";
-import icon from "./icon.js";
+import icon from "./icon.js"; 
 
 export default {
   name: 'app',
