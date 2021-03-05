@@ -39,8 +39,9 @@
                         class="mb-3"
                         >
                           <b-input-group-prepend>
-                              <b-button variant="outline-primary"> 
-                                <img src="img/icons/gradido/qr-scan-pure.png" width="50" @click="scan=true"/></b-button>
+                            
+                                <img src="img/icons/gradido/qr-scan-pure.png" width="90" @click="scan=true"/>
+                             
                           </b-input-group-prepend>
                       <b-form-input 
                           id="input-1"
@@ -58,9 +59,9 @@
                       size="lg"
                       class="mb-3"> 
                         <b-input-group-prepend>
-                          <b-button variant="outline-primary"> 
-                             <img src="img/icons/gradido/plus.png" width="50">  
-                          </b-button>
+                           
+                             <img src="img/icons/gradido/plus.png" width="90">  
+                           
                         </b-input-group-prepend>
                         <b-form-input  
                           id="input-2"                          
@@ -74,17 +75,17 @@
                         </b-form-input>
                         
                         <b-input-group-prepend>                           
-                          <b-button > 
+                           
                             <div class="h1">GDD</div>
-                          </b-button>
+                           
                         </b-input-group-prepend>
 
                     </b-input-group>                           
                     <b-input-group>
                       <b-input-group-prepend>                          
-                        <b-button > 
-                          <h1><b-icon icon="chat-right-text"></b-icon></h1>
-                        </b-button>
+                        
+                           <b-icon icon="chat-right-text" class="display-1 mp-1"></b-icon> 
+                        
                       </b-input-group-prepend>
                       <b-form-textarea v-model="form.memo"></b-form-textarea>
                     </b-input-group>
