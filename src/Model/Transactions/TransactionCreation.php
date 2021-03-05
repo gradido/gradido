@@ -231,10 +231,19 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      if(false === $this->updateStateBalance($receiverUserId, $this->getAmount(), $transactionCreationEntity->target_date)) {
+      $final_balance = $this->updateStateBalance($receiverUserId, $this->getAmount(), $transactionCreationEntity->target_date);
+      if(false === $final_balance) {
         return false;
       }
-      
+      $target_date =  new DateTime($transactionCreationEntity->target_date);
+      $stateBalancesTable = self::getTable('stateBalances');
+      $state_balance = $stateBalancesTable->newEntity();
+      $state_balance->amount = $this->getAmount();
+      $state_balance->record_date = $target_date;
+      // decay is a virtual field which is calculated from amount and now() - record_date
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $state_balance->decay)) {
+          return false;
+      }
       
       return true;
     }

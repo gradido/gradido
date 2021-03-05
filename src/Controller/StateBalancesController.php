@@ -39,7 +39,33 @@ class StateBalancesController extends AppController
         $this->set(compact('stateBalances'));
     }
   
-    
+    private function updateBalances($state_user_id)
+    {
+        $state_balances = $this->StateBalances->find('all')->where(['state_user_id' => $state_user_id]);
+        if($state_balances->count() == 1) {
+            $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
+            $state_user_transactions = $stateUserTransactionsTable
+                                            ->find('all')
+                                            ->where(['state_user_id' => $state_user_id])
+                                            ->order(['transaction_id ASC'])
+                                            ->contain(['']);
+            if($state_user_transactions->count() == 0){
+                return;
+            }
+            $last_state_user_transaction = $state_user_transactions->last();
+            $last_transaction = $this->StateBalance->newEntity();
+            $last_transaction->amount = $last_state_user_transaction->balance;
+            $last_transaction->record_date = $last_state_user_transaction->balance_date;
+            // if entrys are nearly the same, we don't need doing anything
+            if(abs($last_transaction->decay - $state_balances->decay) < 100) {
+                return;
+            }
+            foreach($state_user_transactions as $state_user_transaction) {
+                
+            }
+            
+        }
+    }
 
     public function overview()
     {
