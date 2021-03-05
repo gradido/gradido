@@ -313,8 +313,9 @@ class TransactionSendCoinsController extends AppController
             if(!isset($jsonData['amount']) || !isset($jsonData['email'])) {
                 return $this->returnJson(['state' => 'parameter missing', 'msg' => 'amount and/or email not set']);
             }
-            if($jsonData['amount'] < 0) {
-                return $this->returnJson(['state' => 'error', 'msg' => 'amout must be > 0']);
+            $amount = intval($jsonData['amount']);
+            if($amount < 0) {
+                return $this->returnJson(['state' => 'error', 'msg' => 'amout must be > 0 and int']);
             }
             
             if(!isset($user['balance']) || $jsonData['amount'] > $user['balance']) {
@@ -358,7 +359,7 @@ class TransactionSendCoinsController extends AppController
             //var_dump($sessionStateUser);
 
             $builderResult = TransactionTransfer::build(
-                    $jsonData['amount'],
+                    $amount,
                     $memo,
                     $receiverPubKeyHex,
                     $senderPubKeyHex

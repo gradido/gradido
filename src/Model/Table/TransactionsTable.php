@@ -73,6 +73,9 @@ class TransactionsTable extends Table
         $this->hasMany('TransactionSignatures', [
             'foreignKey' => 'transaction_id'
         ]);
+        $this->hasMany('StateUserTransactions', [
+            'foreignKey' => 'transaction_id'
+        ]);
     }
 
     /**

@@ -207,8 +207,12 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      
-      
+      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount())) {
+          return false;
+      }
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount())) {
+          return false;
+      }
       
       //$this->addError('TransactionTransfer::save', 'not implemented yet');
       //return false;
