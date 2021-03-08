@@ -6,8 +6,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: git submodule update --init --recursive
-        run: docker-compose up -d
+        run: |
+         git submodule update --init --recursive
+         docker-compose up -d
       - name: Test
         env:
           GN_INSTANCE_FOLDER: /tmp/gradio-node-instance
