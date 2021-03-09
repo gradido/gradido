@@ -244,7 +244,7 @@ class StateBalancesController extends AppController
         return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
     }
     
-    public function ajaxListTransactions($session_id = 0)
+    public function ajaxListTransactions($session_id = 0, $sort = 'ASC')
     {
         if(!$session_id) {
             return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
@@ -364,6 +364,9 @@ class StateBalancesController extends AppController
             ]);
         }
         uasort($transactions, array($this, 'sortTransactions'));
+        if($sort == 'DESC') {
+            $transactions = array_reverse($transactions);
+        }
         return $this->returnJson([
                 'state' => 'success',
                 'transactions' => $transactions,
