@@ -34,6 +34,7 @@ import VueGoodTablePlugin from 'vue-good-table';
 // import the styles
 import 'vue-good-table/dist/vue-good-table.css';
 
+import VueMoment from 'vue-moment';
 
 Object.keys(rules).forEach(rule => {
   extend(rule, {
@@ -50,6 +51,7 @@ export default {
     Vue.use(BootstrapVue);
     Vue.use(IconsPlugin);
     Vue.use(VueGoodTablePlugin);
+    Vue.use(VueMoment);
     Vue.use(VueQrcodeReader);
     Vue.use(VueQrcode);
     configure({
