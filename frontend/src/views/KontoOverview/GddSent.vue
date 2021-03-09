@@ -40,7 +40,7 @@
                         >
                           <b-input-group-prepend>
                             
-                                <img src="img/icons/gradido/qr-scan-pure.png" width="90" @click="scan=true"/>
+                                <img src="img/icons/gradido/qr-scan-pure.png" width="80" height="auto" @click="scan=true"/>
                              
                           </b-input-group-prepend>
                       <b-form-input 
@@ -60,7 +60,7 @@
                       class="mb-3"> 
                         <b-input-group-prepend>
                            
-                             <img src="img/icons/gradido/plus.png" width="90">  
+                             <img src="img/icons/gradido/plus.png" width="80">  
                            
                         </b-input-group-prepend>
                         <b-form-input  
@@ -84,7 +84,7 @@
                     <b-input-group>
                       <b-input-group-prepend>                          
                         
-                           <b-icon icon="chat-right-text" class="display-1 mp-1"></b-icon> 
+                           <b-icon icon="chat-right-text" class="display-1"></b-icon> 
                         
                       </b-input-group-prepend>
                       <b-form-textarea v-model="form.memo"></b-form-textarea>

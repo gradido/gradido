@@ -75,6 +75,9 @@ export const store = new Vuex.Store({
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
     },
+    schoepfen: async (data) => {
+       // http://localhost/transaction-creations/ajaxCreate
+    },
     createUser: async ({ commit, dispatch }, data) => {
       console.log('action: createUser')
       const result = await loginAPI.create(data.email,data.first_name,data.last_name,data.password)
@@ -105,9 +108,9 @@ export const store = new Vuex.Store({
     },
     ajaxCreate: async ({ dispatch, state }) => {
       //console.log('action: ajaxCreate')
-
-      axios.post("http://localhost/transaction-creations/ajaxCreate", state.ajaxCreateData).then((result) => {
-        console.log("store ajaxCreate result", result)
+      state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
+      axios.post("http://localhost/transaction-send-coins/ajaxCreate", state.ajaxCreateData).then((result) => {
+      console.log("store ajaxCreate result", result)
        
       if( result.success ){
         // TODO
