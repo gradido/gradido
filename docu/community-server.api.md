@@ -16,7 +16,10 @@ If session is valid, return:
 ## List Transactions
 List all transactions from logged in user, currently without paging 
 Ajax:
-GET http://localhost/state-balances/ajaxListTransactions/-127182
+GET http://localhost/state-balances/ajaxListTransactions/-127182/
+or 
+GET http://localhost/state-balances/ajaxListTransactions/-127182/DESC 
+to get transaction in descending order 
 
 Antwort: 
 Wenn alles okay: 
