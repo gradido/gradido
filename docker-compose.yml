@@ -110,13 +110,13 @@ services:
   #########################################################  
   ## GRADIDO NODE v1 ######################################
   #########################################################
-  gradido-node:
-    build:
-      context: .
-      dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
-    volumes:
-      - ${GN_INSTANCE_FOLDER}:/opt/instance
-    container_name: ${GN_CONTAINER_NAME}
+ # gradido-node:
+ #   build:
+ #     context: .
+ #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
+ #   volumes:
+ #     - ${GN_INSTANCE_FOLDER}:/opt/instance
+ #   container_name: ${GN_CONTAINER_NAME}
 
   #########################################################  
   ## GRADIDO NODE test ###################################

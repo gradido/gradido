@@ -6,13 +6,13 @@
       <gdd-sent />
       <hr>
       <gdd-table />
-      <!--  
+     
       <hr>
       <div>
         <gdd-add-work />       
       </div>
       <br>
-      -->
+    
       <!-- 
       <div>
         <gdd-work-table />       
@@ -26,7 +26,7 @@
    import GddStatus from './KontoOverview/GddStatus.vue';
    import GddSent from './KontoOverview/GddSent.vue';
    import GddTable from './KontoOverview/GddTable.vue';
-   // import GddAddWork from './KontoOverview/GddAddWork.vue';
+ import GddAddWork from './KontoOverview/GddAddWork.vue';
    // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
   export default {  
@@ -34,8 +34,8 @@
     components: {
         GddStatus,
         GddSent,
-        GddTable
-        //GddAddWork
+        GddTable,
+        GddAddWork
         //GddWorkTable
      },
      created() { 

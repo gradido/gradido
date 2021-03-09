@@ -2,7 +2,7 @@
   <div>
   
         <b-list-group > 
-          <b-list-group-item v-for="item in items" :key="item.id"> 
+          <b-list-group-item v-for="item in filteredItems" :key="item.id"> 
           <div class="d-flex w-100 justify-content-between"  @click="toogle(item)" >
             <b-icon v-if="item.type === 'send'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
             <b-icon v-else icon="box-arrow-right" class="m-1"  font-scale="2" style="color:green" ></b-icon>       
@@ -62,10 +62,10 @@ export default {
    
     //console.log("result.count",result.data.count)
     // console.log("result.gdtSum",result.data.gdtSum)
-     console.log("result.transactions",result.data.transactions)
+     console.log("result.transactions",typeof(result.data.transactions))
      //commit('transactions', result.data.transactions)
       this.$store.state.user.balance_gdt =  result.data.gdtSum
-      this.items = result.data.transactions
+      this.items =  result.data.transactions
       this.count = result.data.count
      
    }, (error) => {
@@ -74,7 +74,13 @@ export default {
  
     
    },
-  
+  computed: {
+  filteredItems(a) {
+    console.log("filteredItems date",a.items)
+    return a.items
+    
+  }
+},
   methods: {
      rowClass(item, type) {
         if (!item || type !== 'row') return
