@@ -235,7 +235,7 @@ class TransactionCreation extends TransactionBase {
       if(false === $final_balance) {
         return false;
       }
-      $target_date =  new DateTime($transactionCreationEntity->target_date);
+      $target_date =  new FrozenDate($transactionCreationEntity->target_date);
       $stateBalancesTable = self::getTable('stateBalances');
       $state_balance = $stateBalancesTable->newEntity();
       $state_balance->amount = $this->getAmount();
