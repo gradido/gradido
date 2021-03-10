@@ -22,27 +22,53 @@
                     <b-form @submit="onSubmit" @reset="onReset" v-if="show">
                       
                          <b-row class="form-group">
-                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label">von</label>
+                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label form-control-lg">von</label>
                           <b-col md="10">
-                            <base-input type="datetime-local" value="2018-11-23T10:30:00" v-model="form.from"/>
+                            <base-input type="datetime-local" value="2018-11-23T10:30:00" v-model="form.from" @change="dateDiff" />
                           </b-col>
                         </b-row>
                            <b-row class="form-group">
-                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label">bis</label>
+                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label form-control-lg">bis</label>
                           <b-col md="10">
-                            <base-input type="datetime-local" value="2018-11-23T10:30:00" v-model="form.to"/>
+                            <base-input type="datetime-local" value="2018-11-23T10:30:00" v-model="form.to"  @change="dateDiff" />
+                          </b-col>
+                        </b-row>
+                           <b-row class="form-group">
+                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label form-control-lg">Stunden</label>
+                          <b-col md="10">
+                            <base-input type="text" v-model="form.hours" disabled class="form-control-lg"/>
                           </b-col>
                         </b-row>
                           <b-row class="form-group">
-                            <label class="col-md-2 col-form-label form-control-label">Ort</label>
+                          <label for="example-datetime-local-input" class="col-md-2 col-form-label form-control-label form-control-lg">GDD Shöpfen</label>
+                          <b-col md="10">
+                             <base-input type="text" :value="(form.hours * 20)" disabled class="form-control-lg"/>
+                          </b-col>
+
+                        </b-row>
+                          <b-row class="form-group">
+                            <label class="col-md-2 col-form-label form-control-label form-control-lg">Ort</label>
                             <b-col md="10">
-                              <base-input placeholder="Berlin" v-model="form.location"></base-input>
+                              <base-input placeholder="Berlin" v-model="form.location" class="form-control-lg"></base-input>
                             </b-col>
                           </b-row>
+                              <b-row class="form-group">
+                            <label class="col-md-2 col-form-label form-control-label form-control-lg">Kategorie</label>
+                            <b-col md="10">
+                                        <base-input >
+                            <select class="form-control form-control-lg">
+                              <option>Umwelt</option>
+                              <option>Helfen</option>
+                              <option>Verein</option>
+                            </select>
+                          </base-input>
+                            </b-col>
+                          </b-row>
+                
                           
                           
                          <base-input label="Beitrag">
-                          <textarea class="form-control" id="exampleFormControlTextarea3" rows="3" v-model="form.text"></textarea>
+                          <textarea class="form-control form-control-lg" rows="3" v-model="form.text" ></textarea>
                         </base-input>
                       
                       <br>                
@@ -61,6 +87,7 @@
 </template>
 
 <script>
+ 
 export default {
   name: 'GDDAddWork',
   data(){
@@ -69,11 +96,12 @@ export default {
        form: {
            from:'',
            to: '',
-           hours: 0,
+           hours: '',
            text: '',
            gdd: 0.00,
            location: '',
-           text2: ''
+           text2: '',
+           sendtime: ''
         },
         timestamp: ""
     }
@@ -82,24 +110,23 @@ export default {
     setInterval(this.getNow, 2000);
   },
   methods: {
-    getNow: function() {
-      const today = new Date();      
-      const date = today.getDate()+'.'+(today.getMonth()+1)+'.'+ today.getFullYear();
-      const time = today.getHours() + ":" + today.getMinutes();
-      const dateTime = date +', '+ time;      
-      this.timestamp = new Date();
+    dateDiff() {
+      this.form.hours = ((((this.$moment(this.form.to)) - (this.$moment(this.form.from)))/1000)/3600)
     },
-    getHours: function (from,to) {
-      const a = (to - from)
-      console.log("(to - from)", (to - from)) 
-      console.log("a summe", a) 
+    getNow: function() {
+      //const today = new Date()      
+      //const date = today.getDate()+'.'+(today.getMonth()+1)+'.'+ today.getFullYear();
+      //const time = today.getHours() + ":" + today.getMinutes();
+      //const dateTime = date +', '+ time;      
+      this.timestamp = new Date()
     },
     onSubmit(event) {
         event.preventDefault()
         console.log("onSUBMIT this.form.from >>>>",  this.form.from)
-        console.log("onSUBMIT this.form.from >>>>",  this.moment(this.form.from))
+        console.log("onSUBMIT this.form.from >>>>",  this.$moment(this.form.from))
         console.log("onSUBMIT this.form.to >>>>",  this.form.to)
        // console.log("onSUBMIT >>>>", this.getHours(this.form.from, this.form.to))
+       this.form.sendtime = new Date()
         alert(JSON.stringify(this.form))
      
       },

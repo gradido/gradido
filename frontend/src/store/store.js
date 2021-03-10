@@ -59,8 +59,10 @@ export const store = new Vuex.Store({
   // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
-      //console.log('action: login')
+      console.log('action: login')
       const result = await loginAPI.login(data.email,data.password)
+      console.log('result',result)
+      console.log('result.success',result.success)
       if( result.success ){
         commit('session_id', result.result.data.session_id)
         commit('email', data.email)

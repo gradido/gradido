@@ -17,19 +17,21 @@ import icon from "./icon.js";
 export default {
   name: 'app',
   components: {
-      ParticlesBg,
+      ParticlesBg
     },
     created () { 
       //console.log("this.$cookies.get('gdd_session_id') ", this.$cookies.get('gdd_session_id') )
-      //console.log(" $cookies.isKey('gdd_session_id') == true", this.$cookies.isKey("gdd_session_id") == true )
-      if ( this.$cookies.get('gdd_session_id')  == this.$store.state.session_id ) {
-        //this.$store.state.email = this.$cookies.get('gdd_u')       
+       console.log(" $cookies.isKey('gdd_session_id') ", this.$cookies.isKey("gdd_session_id")  )
+      if ( this.$cookies.isKey('gdd_session_id') ) {
+        //this.$store.state.email = this.$cookies.get('gdd_u') 
+         console.log("login to kontooverview")      
         this.$router.push('/KontoOverview') 
       }else {
+        console.log("login to LOGIN")
        this.$router.push("/Login")
       } 
     },
-     data: function () {
+     data() {
     return {
       config: {
         num: [1, 7],
@@ -51,12 +53,11 @@ export default {
 </script>
 <style>
     .btn {
-          background-color: #5A7B02;
-    border-color: #5e72e4;
+      background-color: #5A7B02;
+      border-color: #5e72e4;
     }
      a, .copyright{
-        color: #5A7B02;
-    
+      color: #5A7B02;    
     }
     gradido-global-color-text{color:  #3D443B }
     gradido-global-color-accent{color:  #047006 }
