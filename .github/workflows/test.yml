@@ -48,7 +48,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: docker-frontend-image
+          name: docker-frontend-test
           path: /tmp/frontend.tar
 
   ##############################################################################
