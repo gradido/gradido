@@ -1,7 +1,6 @@
 <?php
 namespace App\Test\TestCase\Controller;
 
-use App\Controller\JsonRequestHandlerController;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -70,14 +69,14 @@ class JsonRequestHandlerControllerTest extends TestCase
     
     public function testNotSetTransaction() 
     {
-      $this->postAndParse(
+        $this->postAndParse(
               ['method' => 'putTransaction'],
               ['state' => 'error', 'msg' => 'parameter error']
       );
     }
     public function testNotSetMethod()
     {
-      $this->postAndParse(
+        $this->postAndParse(
               ['transaction' => $this->transactions['validCreation']],
               ['state' => 'error', 'msg' => 'parameter error']
       );
@@ -86,7 +85,7 @@ class JsonRequestHandlerControllerTest extends TestCase
     public function testUnknownMethod()
     {
         //$this->post('/TransactionJsonRequestHandler', ['method' => 'putTransaction', 'transaction' => 'CgpIYWxsbyBXZWx0EgYIyfSG7gVKLwonCiCboKikqwjZfes9xuqgthFH3/cHHaWchkUhWiGhQjB23xCg2pMBELWJ7ZYK']);
-      $this->postAndParse(
+        $this->postAndParse(
               ['method' => 'foobar', 'transaction' => $this->transactions['validCreation']], 
               ['state' => 'error', 'msg' => 'unknown method', 'details' => 'foobar']
       );
@@ -160,9 +159,14 @@ class JsonRequestHandlerControllerTest extends TestCase
     
     private function postAndParse($params, $expected) 
     {
-     
+        //$this->enableCsrfToken();
+        //$this->enableSecurityToken();
+        
+        $token = 'my-csrf-token';
+        $this->cookie('csrfToken', $token);
+
         $this->configRequest([
-            'headers' => ['Accept' => 'application/json']
+            'headers' => ['Accept' => 'application/json', 'X-CSRF-Token' => $token]
         ]);
         
         $this->disableErrorHandlerMiddleware();

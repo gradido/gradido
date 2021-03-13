@@ -397,6 +397,11 @@ return [
         'host' => 'http://127.0.0.1',
         'port' => 1201
     ],
+    'API' => [
+        'allowedCaller' => [''] // insert domains or ips from login-server and gdt if they not at localhost
+    ],
+    'ServerAdminEmail' => 'info@gradido.net', // email 'from' field for transfer notification emails
+    'noReplyEmail' => 'no-replay@gradido.net', // email sender for creation notification emails to user 
     
     'GroupNode' => false
 ];
