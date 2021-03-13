@@ -109,7 +109,7 @@ set(WITH_SSL OFF)
 add_subdirectory("dependencies/mariadb-connector-c")
 
 set(DEP_PATH "dependencies")
-#set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
+set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
 
 set(GRPC_PATH "${DEP_PATH}/grpc/build")
 set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
