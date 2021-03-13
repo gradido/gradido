@@ -33,7 +33,7 @@ jobs:
   build_production_frontend:
     name: Docker Build Production - Frontend
     runs-on: ubuntu-latest
-    needs: [prepare]
+    #needs: [prepare] [nothing]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
