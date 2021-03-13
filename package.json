@@ -1,9 +1,15 @@
 {
   "name": "gradido",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
   "author": "Ulf Gebhardt <ulf.gebhardt@webcraft-media.de>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "release": "yarn version --no-git-tag-version --no-commit-hooks --no-commit && auto-changelog --latest-version $(node -p -e \"require('./package.json').version\") && cd frontend && yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version $(node -p -e \"require('./../package.json').version\")"
+  },
+  "dependencies": {
+    "auto-changelog": "^2.2.1"
+  }
 }
