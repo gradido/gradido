@@ -81,9 +81,9 @@ CMD /bin/sh -c "yarn run dev"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/.nuxt ./.nuxt
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-COPY --from=build ${DOCKER_WORKDIR}/nuxt.config.js ./nuxt.config.js
+COPY --from=build ${DOCKER_WORKDIR}/dist ./dist
+#COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+#COPY --from=build ${DOCKER_WORKDIR}/nuxt.config.js ./nuxt.config.js
 # Copy static files
 # TODO - this should be one Folder containign all stuff needed to be copied
 #COPY --from=build ${DOCKER_WORKDIR}/constants ./constants
