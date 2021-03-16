@@ -21,7 +21,7 @@ class StateBalancesController extends AppController
     {
         parent::initialize();
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance']);
+        $this->Auth->allow(['overview', 'overviewGdt', 'ajaxGetBalance', 'ajaxListTransactions']);
         $this->loadComponent('JsonRequestClient');
     }
     /**
@@ -39,7 +39,33 @@ class StateBalancesController extends AppController
         $this->set(compact('stateBalances'));
     }
   
-    
+    private function updateBalances($state_user_id)
+    {
+        $state_balances = $this->StateBalances->find('all')->where(['state_user_id' => $state_user_id]);
+        if($state_balances->count() == 1) {
+            $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
+            $state_user_transactions = $stateUserTransactionsTable
+                                            ->find('all')
+                                            ->where(['state_user_id' => $state_user_id])
+                                            ->order(['transaction_id ASC'])
+                                            ->contain(['']);
+            if($state_user_transactions->count() == 0){
+                return;
+            }
+            $last_state_user_transaction = $state_user_transactions->last();
+            $last_transaction = $this->StateBalance->newEntity();
+            $last_transaction->amount = $last_state_user_transaction->balance;
+            $last_transaction->record_date = $last_state_user_transaction->balance_date;
+            // if entrys are nearly the same, we don't need doing anything
+            if(abs($last_transaction->decay - $state_balances->decay) < 100) {
+                return;
+            }
+            foreach($state_user_transactions as $state_user_transaction) {
+                
+            }
+            
+        }
+    }
 
     public function overview()
     {
@@ -177,51 +203,73 @@ class StateBalancesController extends AppController
         $this->set('gdtSum', $gdtSum);
     }
     
-    public function ajaxGetBalance($session_id)
+    public function ajaxGetBalance($session_id = 0)
     {
-        if(!isset($session_id) || !$session_id) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+        if(!$session_id) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
         }
-        $startTime = microtime(true);
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
         $session = $this->getRequest()->getSession();
-        $result = $this->requestLogin($session_id);
-        if ($result !== true) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
-        }
         $user = $session->read('StateUser');
-        //var_dump($user);
-        return $this->returnJson(['state' => 'success', 'balance' => $user['balance']]);
         
+        $public_key_bin = hex2bin($user['public_hex']);
+        $stateUserQuery = $this->StateBalances->StateUsers
+            ->find('all')
+            ->where(['public_key' => $public_key_bin])
+            ->contain(['StateBalances']);
+                
+        $result_user_count =  $stateUserQuery->count();
+        if($result_user_count < 1) {
+          return $this->returnJson(['state' => 'success', 'balance' => 0]);
+        }
+        else if($result_user_count > 1) {
+          return $this->returnJson([
+              'state' => 'error', 
+              'msg' => 'multiple entrys found',
+              'details' => ['public_key' => $user['public_hex'], 'entry_count' => $result_count]
+          ]);
+        }
+        $state_balances = $stateUserQuery->first()->state_balances;
+        $state_balances_count = count($state_balances);
+        if($state_balances_count > 1) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'state balances count isn\'t as expected, expect 1 or 0', 'details' => $state_balances_count]);
+        }
+        if(!$state_balances_count) {
+            return $this->returnJson(['state' => 'success', 'balance' => 0]);
+        }
+        
+        return $this->returnJson(['state' => 'success', 'balance' => $state_balances[0]->amount]);
     }
     
-    public function ajaxListTransactions($session_id, $page, $count)
+    public function ajaxListTransactions($session_id = 0, $sort = 'ASC')
     {
-        if(!isset($session_id) || !$session_id) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session']);
+        if(!$session_id) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
         }
+        
         $startTime = microtime(true);
-        $session = $this->getRequest()->getSession();
-        $result = $this->requestLogin($session_id);
-        if ($result !== true) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'session not found']);
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
         }
+        $session = $this->getRequest()->getSession();
         $user = $session->read('StateUser');
-        
-        $gdtSum = 0;
-        
+
+        $gdtSum = 0;        
         $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
 
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
-          if($user) {
-              
+          if($user) {   
             $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id']);
           } else {
             $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, 0);
           }
         }
-        
 
         $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
         $creationTransactions = $creationsTable
@@ -316,6 +364,9 @@ class StateBalancesController extends AppController
             ]);
         }
         uasort($transactions, array($this, 'sortTransactions'));
+        if($sort == 'DESC') {
+            $transactions = array_reverse($transactions);
+        }
         return $this->returnJson([
                 'state' => 'success',
                 'transactions' => $transactions,

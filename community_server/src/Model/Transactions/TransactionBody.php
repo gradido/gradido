@@ -79,7 +79,7 @@ class TransactionBody extends TransactionBase {
       if ($transactionsTable->save($transactionEntity)) {
         // success
         $this->mTransactionID = $transactionEntity->id;
-        if(!$this->mSpecificTransaction->save($transactionEntity->id, $firstPublic)) {
+        if(!$this->mSpecificTransaction->save($transactionEntity->id, $firstPublic, $transactionEntity->received)) {
           $this->addErrors($this->mSpecificTransaction->getErrors());
           return false;
         }  

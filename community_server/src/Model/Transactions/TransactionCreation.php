@@ -189,6 +189,12 @@ class TransactionCreation extends TransactionBase {
           return false;
         }
      } else {*/
+       if($newSum2 <= 0) {
+           $this->addError(
+                'TransactionCreation::validate',
+                'Creation less than 0 GDD per Month for '. $receiverEmail .' in target_date not allowed'   
+           );
+       }
        if($newSum2 > 10000000) {
          $this->addError(
                  'TransactionCreation::validate',
@@ -225,16 +231,27 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      if(false === $this->updateStateBalance($receiverUserId, $this->getAmount())) {
+      $final_balance = $this->updateStateBalance($receiverUserId, $this->getAmount(), $transactionCreationEntity->target_date);
+      if(false === $final_balance) {
         return false;
       }
-      
+      $target_date =  new FrozenDate($transactionCreationEntity->target_date);
+      $stateBalancesTable = self::getTable('stateBalances');
+      $state_balance = $stateBalancesTable->newEntity();
+      $state_balance->amount = $this->getAmount();
+      $state_balance->record_date = $target_date;
+      // decay is a virtual field which is calculated from amount and now() - record_date
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $state_balance->decay)) {
+          return false;
+      }
       
       return true;
     }
     
     public function sendNotificationEmail($memo) 
     {
+        $disable_email = Configure::read('disableEmail', false);  
+        if($disable_email) return true;
       // send notification email
         $receiverUserId = $this->getStateUserId($this->getReceiverPublic());
         $receiverUser = $this->getStateUser($receiverUserId);

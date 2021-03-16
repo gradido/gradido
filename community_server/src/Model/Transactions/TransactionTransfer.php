@@ -154,11 +154,15 @@ class TransactionTransfer extends TransactionBase {
         $this->addError($functionName, 'sender amount doesn\'t match receiver amount');
         return false;
       }
+      if($senderSum < 0) {
+          $this->addError($functionName, 'negative amount not supported');
+          return false;
+      }
       //die("\n");
       return true;
     }
     
-    public function save($transaction_id, $firstPublic) {
+    public function save($transaction_id, $firstPublic, $received) {
       
       static $functionName = 'TransactionCreation::save';
       
@@ -182,11 +186,11 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount());
+      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received);
       if(false === $finalSenderBalance) {
         return false;
       }
-      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount())) {
+      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount(), $received)) {
         return false;
       }
       
@@ -203,8 +207,12 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      
-      
+      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount())) {
+          return false;
+      }
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount())) {
+          return false;
+      }
       
       //$this->addError('TransactionTransfer::save', 'not implemented yet');
       //return false;
@@ -214,7 +222,9 @@ class TransactionTransfer extends TransactionBase {
     public function sendNotificationEmail($memo)
     {
       // send notification email
-      
+       $disable_email = Configure::read('disableEmail', false);  
+       if($disable_email) return true;
+        
       $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
       $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
       $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());

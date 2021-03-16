@@ -139,7 +139,7 @@ class AppController extends Controller
         }
     }
 
-    protected function requestLogin($session_id = 0)
+    protected function requestLogin($session_id = 0, $redirect = true)
     {
         $session = $this->getRequest()->getSession();
         // check login
@@ -159,9 +159,9 @@ class AppController extends Controller
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
             
-
             $transactionPendings = $session->read('Transaction.pending');
-            $transactionExecutings = $session->read('Transaction.executing');
+            $transactionExecutings = $session->read('Transaction.executing');          
+            
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
@@ -182,6 +182,8 @@ class AppController extends Controller
                                 $session->destroy();
                             }
                             foreach ($json['user'] as $key => $value) {
+                                // we don't need the id of user in login server db
+                                if($key  == 'id') continue;
                                 $session->write('StateUser.' . $key, $value);
                             }
                           //var_dump($json);
@@ -238,12 +240,18 @@ class AppController extends Controller
                                   //echo $newStateUser->id;
                                 }
                             } else {
+                                if(!$redirect) {
+                                    return ['state' => 'error', 'msg' => 'no pubkey'];
+                                }
                           // we haven't get a pubkey? something seems to gone wrong on the login-server
                                 $this->Flash->error(__('no pubkey'));
                           //var_dump($json);
                                 return $this->redirect($this->loginServerUrl . 'account/error500/noPubkey', 303);
                             }
                         } else {
+                            if(!$redirect) {
+                                return ['state' => 'not found', 'msg' => 'invalid session'];
+                            }
                             if ($json['state'] === 'not found') {
                                 $this->Flash->error(__('invalid session'));
                             } else {
@@ -255,6 +263,9 @@ class AppController extends Controller
                     }
                 } catch (\Exception $e) {
                     $msg = $e->getMessage();
+                    if(!$redirect) {
+                        return ['state' => 'error', 'msg' => 'login-server http request error', 'details' => $msg];
+                    }
                     $this->Flash->error(__('error http request: ') . $msg);
                     return $this->redirect(['controller' => 'Dashboard', 'action' => 'errorHttpRequest']);
                   //continue;
@@ -263,6 +274,9 @@ class AppController extends Controller
         } else {
           // no login
           //die("no login");
+            if(!$redirect) {
+                return ['state' => 'error', 'msg' => 'not logged in'];
+            }
             if (isset($loginServer['path'])) {
                 return $this->redirect($loginServer['path'], 303);
             } else {

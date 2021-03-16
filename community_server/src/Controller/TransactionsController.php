@@ -7,6 +7,7 @@ use Model\Transactions\Transaction;
 use Model\Transactions\TransactionBody;
 
 use Cake\Core\Configure;
+use Cake\ORM\TableRegistry;
 
 /**
  * Transactions Controller
@@ -39,6 +40,118 @@ class TransactionsController extends AppController
         $transactions = $this->paginate($this->Transactions);
 
         $this->set(compact('transactions'));
+    }
+    
+    public function synchronizeWithStateUserTransactions()
+    {
+      $startTime = microtime(true);
+      $missing_transaction_ids = [];
+      $transaction_ids = $this->Transactions
+              ->find('all')
+              ->select(['id', 'transaction_type_id'])
+              ->order(['id'])
+              ->all()
+              ;
+      $state_user_transaction_ids = $this->Transactions->StateUserTransactions
+              ->find('all')
+              ->select(['transaction_id'])
+              ->group(['transaction_id'])
+              ->order(['transaction_id'])
+              ->toArray()
+              ;
+      $i2 = 0;
+      $count1 = count($transaction_ids);
+      $count2 = count($state_user_transaction_ids);
+      foreach($transaction_ids as $i1 => $tr_id) {
+        //echo "$i1: ";
+        if($i2 >= $count2) {
+          $missing_transaction_ids[] = $tr_id;
+          //echo "adding to missing: $tr_id, continue <br>";
+          continue;
+        }
+        $stu_id = $state_user_transaction_ids[$i2];
+        if($tr_id->id == $stu_id->transaction_id) {
+          $i2++;
+          //echo "after i2++: $i2<br>";
+        } else if($tr_id->id < $stu_id->transaction_id) {
+          $missing_transaction_ids[] = $tr_id;
+          //echo "adding to missing: $tr_id<br>";
+        }
+      }
+      
+      if($this->request->is('POST')) {
+        $tablesForType = [
+            1 => $this->Transactions->TransactionCreations,
+            2 => $this->Transactions->TransactionSendCoins,
+            3 => $this->Transactions->TransactionGroupCreates,
+            4 => $this->Transactions->TransactionGroupAddaddress,
+            5 => $this->Transactions->TransactionGroupAddaddress
+        ];
+        $idsForType = [];
+        foreach($missing_transaction_ids as $i => $transaction) {
+          if(!isset($idsForType[$transaction->transaction_type_id])) {
+            $idsForType[$transaction->transaction_type_id] = [];
+          }
+          $idsForType[$transaction->transaction_type_id][] = $transaction->id;
+          if($i > 200) break;
+        }
+        $entities = [];
+        $state_user_ids = [];
+        foreach($idsForType as $type_id => $transaction_ids) {
+          $specific_transactions = $tablesForType[$type_id]->find('all')->where(['transaction_id IN' => $transaction_ids])->toArray();
+          $keys = $tablesForType[$type_id]->getSchema()->columns();
+          //var_dump($keys);
+          foreach($specific_transactions as $specific) {
+            
+            foreach($keys as $key) {
+              if(preg_match('/_user_id/', $key)) {
+                $entity = $this->Transactions->StateUserTransactions->newEntity();
+                $entity->transaction_id = $specific['transaction_id'];
+                $entity->transaction_type_id = $type_id;
+                $entity->state_user_id = $specific[$key];
+                if(!in_array($entity->state_user_id, $state_user_ids)) {
+                  array_push($state_user_ids, $entity->state_user_id);
+                }
+                $entities[] = $entity;
+              }
+            } 
+          }
+        }
+        //var_dump($entities);
+        $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+        $existingStateUsers = $stateUsersTable->find('all')->select(['id'])->where(['id IN' => $state_user_ids])->order(['id'])->all();
+        $existing_state_user_ids = [];
+        $finalEntities = [];
+        foreach($existingStateUsers as $stateUser) {
+          $existing_state_user_ids[] = $stateUser->id;
+        }
+        foreach($entities as $entity) {
+          if(in_array($entity->state_user_id, $existing_state_user_ids)) {
+            array_push($finalEntities, $entity);
+          }
+        }
+        
+        
+        $results = $this->Transactions->StateUserTransactions->saveMany($finalEntities);
+        foreach($entities as $i => $entity) {
+          $errors = $entity->getErrors();
+        /*  if(count($errors)) {
+            echo "$i: ";
+            echo json_encode($errors); 
+            echo "<br>";
+            echo "state_user_id: " . $entity->state_user_id;
+            echo "<br>";
+          }*/
+        }
+        $this->set('results', $results);
+        $this->set('entities', $entities);
+      }
+      
+      $this->set('missing_transactions', $missing_transaction_ids);
+      $this->set('count1', $count1);
+      $this->set('count2', $count2);
+      $timeUsed = microtime(true) - $startTime;
+      $this->set('timeUsed', $timeUsed);
     }
 
     /**

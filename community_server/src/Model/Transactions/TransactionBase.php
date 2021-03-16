@@ -6,7 +6,7 @@ use Cake\ORM\TableRegistry;
 
 class TransactionBase {
     private $errors = [];
-    static $stateUsersTable = null;
+    static $tables = [];
   
     public function getErrors() {
       return $this->errors;
@@ -24,18 +24,17 @@ class TransactionBase {
        return count($this->errors) > 0;
     }
     
-    public static function getStateUsersTable()
-    {
-      if(!self::$stateUsersTable) {
-        self::$stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+    public static function getTable($tableName) {
+      if(!isset(self::$tables[$tableName])) {
+        self::$tables[$tableName] = TableRegistry::getTableLocator()->get($tableName);
       }
-      return self::$stateUsersTable;
+      return self::$tables[$tableName];
     }
 
 
     protected function getStateUserId($publicKey) {
       
-      $stateUsersTable = self::getStateUsersTable();
+      $stateUsersTable = self::getTable('state_users');
       $stateUser = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $publicKey])->first();
       if($stateUser) {
         return $stateUser->id;
@@ -53,7 +52,7 @@ class TransactionBase {
     }
     
     protected function getStateUser($id) {
-      $stateUsersTable = self::getStateUsersTable();
+      $stateUsersTable = self::getTable('state_users');
       $stateUser = $stateUsersTable->get($id);
       if($stateUser) {
         return $stateUser;
@@ -63,9 +62,9 @@ class TransactionBase {
     }
 
 
-    protected function updateStateBalance($stateUserId, $addAmountCent) {
+    protected function updateStateBalance($stateUserId, $addAmountCent, $recordDate) {
         $finalBalance = 0;
-        $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
+        $stateBalancesTable = self::getTable('stateBalances');
         $stateBalanceQuery = $stateBalancesTable
                 ->find('all')
                 ->select(['amount', 'id'])
@@ -75,12 +74,14 @@ class TransactionBase {
         
         if($stateBalanceQuery->count() > 0) {
           $stateBalanceEntry = $stateBalanceQuery->first();
+          $stateBalanceEntry->amount = $stateBalanceEntry->partDecay($recordDate) + $addAmountCent;
           $stateBalanceEntry->amount += $addAmountCent;
         } else {
           $stateBalanceEntry = $stateBalancesTable->newEntity();
           $stateBalanceEntry->state_user_id = $stateUserId;
           $stateBalanceEntry->amount = $addAmountCent;
         }
+        $stateBalanceEntry->record_date = $recordDate;
         $finalBalance = $stateBalanceEntry->amount;
         //echo "\ntry to save: "; var_dump($stateBalanceEntry); echo "\n";
         if(!$stateBalancesTable->save($stateBalanceEntry)) {
@@ -89,5 +90,33 @@ class TransactionBase {
           return false;
         }
         return $finalBalance;
+    }
+    
+    protected function addStateUserTransaction($stateUserId, $transactionId, $transactionTypeId, $balance) {
+        $stateUserTransactionTable = self::getTable('state_user_transactions');
+        $stateUserTransactions = $stateUserTransactionTable
+                                    ->find('all')
+                                    ->where(['state_user_id' => $stateUserId])
+                                    ->order(['transaction_id DESC']);
+        
+        if($stateUserTransactions->count() > 0) {
+            $stateBalanceTable = self::getTable('state_balances');
+            $balance_entity = $stateBalanceTable->newEntity();
+            $balance_entity->amount = $stateUserTransactions->first()->balance;
+            $balance_entity->record_date = $stateUserTransactions->first()->balance_date;
+            $balance = $balance_entity->decay + $balance;
+        }
+        $entity = $stateUserTransactionTable->newEntity();
+        $entity->state_user_id = $stateUserId;
+        $entity->transaction_id = $transactionId;
+        $entity->transaction_type_id =  $transactionTypeId;
+        $entity->balance = $balance;
+        
+        if(!$stateUserTransactionTable->save($entity)) {
+            $errors = $entity->getErrors();
+            $this->addError('TransactionBase::addStateUserTransaction', 'error saving state user balance with: ' . json_encode($errors));
+            return false;
+        }
+        return true;
     }
 }

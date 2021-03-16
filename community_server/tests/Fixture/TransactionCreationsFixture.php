@@ -45,21 +45,21 @@ class TransactionCreationsFixture extends TestFixture
             [
                 'id' => 1,
                 'transaction_id' => 1,
-                'state_user_id' => 2,
+                'state_user_id' => 1,
                 'amount' => 10000000,
                 'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
             ],
             [
                 'id' => 2,
                 'transaction_id' => 2,
-                'state_user_id' => 2,
+                'state_user_id' => 1,
                 'amount' => 10000000,
                 'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
             ],
             [
                 'id' => 3,
                 'transaction_id' => 3,
-                'state_user_id' => 2,
+                'state_user_id' => 1,
                 'amount' => 10000000,
                 'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
             ],
