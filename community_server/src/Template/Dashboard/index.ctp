@@ -53,9 +53,8 @@ $this->assign(
   <div class="content-collection">
     <div class="content-item action-button">
       <i class="material-icons-outlined">redeem</i>
-      <!-- insights / redeem -->
       <?= $this->Html->link(
-              __('schöpfen'),
+              __('viele schöpfen'),
               ['controller' => 'TransactionCreations', 'action' => 'createMulti'],
               ['class' => 'action-button-link']
           );?>
@@ -63,7 +62,7 @@ $this->assign(
   </div>
 </div>
 <div class="content-region">
-  <h3>Statistik</h3>
+  <legend>Statistik</legend>
   <div class="content-collection">
     <div class="content-item info-item">
       <i class="material-icons-outlined">cached</i>
@@ -111,4 +110,34 @@ $this->assign(
     </div>
   </div>
 </div>
+<div class="content-region">
+  <h3>Login Server ...</h3>
+  <div class="content-collection">
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">groups</i>
+      <a href="<?= Router::url('./', true) ?>account/groups" class="info-item-link">
+        <?= __("Gruppen") ?>
+      </a>
+    </div>
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">servers</i>
+      <a href="<?= Router::url('./', true) ?>account/nodes" class="info-item-link">
+        <?= __("Server") ?>
+      </a>
+    </div>
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">topics</i>
+      <a href="<?= Router::url('./', true) ?>account/topic" class="info-item-link">
+        <?= __("Topics") ?>
+      </a>
+    </div>
+  </div>
+  <div class="content-collection">
+    <div class="content-item action-button">
+      <i class="material-icons-outlined">hedera_accounts</i>
+      <a href="<?= Router::url('./', true) ?>account/hedera_account" class="info-item-link">
+        <?= __("Hedera Accounts") ?>
+      </a>
+    </div>
+  </div>
 <?php endif; ?>

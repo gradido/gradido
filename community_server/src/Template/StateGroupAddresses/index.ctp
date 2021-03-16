@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\StateGroupAddress[]|\Cake\Collection\CollectionInterface $stateGroupAddresses
  */
 ?>
-<nav id="actions-sidebar">
-    <ul class="nav-horizontal nav-smaller">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
+    <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New State Group Address'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List State Groups'), ['controller' => 'StateGroups', 'action' => 'index']) ?></li>
@@ -20,8 +20,9 @@
         <thead>
             <tr>
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('state_group_id') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('group_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('address_type_id') ?></th>
+                <th scope="col"><?= __('user public key') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
         </thead>
@@ -29,8 +30,9 @@
             <?php foreach ($stateGroupAddresses as $stateGroupAddress): ?>
             <tr>
                 <td><?= $this->Number->format($stateGroupAddress->id) ?></td>
-                <td><?= $stateGroupAddress->has('state_group') ? $this->Html->link($stateGroupAddress->state_group->name, ['controller' => 'StateGroups', 'action' => 'view', $stateGroupAddress->state_group->id]) : '' ?></td>
+                <td><?= $this->Number->format($stateGroupAddress->group_id) ?></td>
                 <td><?= $stateGroupAddress->has('address_type') ? $this->Html->link($stateGroupAddress->address_type->name, ['controller' => 'AddressTypes', 'action' => 'view', $stateGroupAddress->address_type->id]) : '' ?></td>
+                <td><?= bin2hex(stream_get_contents($stateGroupAddress->public_key)) ?>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $stateGroupAddress->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['action' => 'edit', $stateGroupAddress->id]) ?>
@@ -40,8 +42,8 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-    <div>
-        <ul class="nav-horizontal">
+    <div class="paginator">
+        <ul class="pagination">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>
             <?= $this->Paginator->numbers() ?>

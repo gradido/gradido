@@ -17,6 +17,7 @@ $this->loadHelper('Form', [
   <div class="form-body">
     <?= $this->Form->create($transferForm) ?>
       <?= $this->Form->control('email', ['label' => __('Empfänger'), 'placeholder' => 'E-Mail']) ?>
+      <?= $this->Form->control('group', ['label' => __('Community Alias'), 'options' => $groups, 'default' => $user['group_alias']]) ?>
       <?= $this->Form->control('memo', ['label' => __('Verwendungszweck'), 'rows' => 3]) ?>
       <?= $this->Form->control('amount', ['label' => __('Betrag in GDD')]) ?>
       <?= $this->Form->button(__('Transaktion abschließen'), ['name' => 'next', 'class' => 'form-button']) ?>

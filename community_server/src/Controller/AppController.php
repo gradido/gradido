@@ -91,12 +91,11 @@ class AppController extends Controller
             $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
             $stateBalanceQuery = $stateBalancesTable
                   ->find('all')
-                  ->select('amount')
                   ->contain(false)
                   ->where(['state_user_id' => $state_user_id]);
             if ($stateBalanceQuery->count() == 1) {
               //var_dump($stateBalanceEntry->first());
-                $session->write('StateUser.balance', $stateBalanceQuery->first()->amount);
+                $session->write('StateUser.balance', $stateBalanceQuery->first()->decay);
               //echo "stateUser.balance: " . $session->read('StateUser.balance');
             }
         }
@@ -147,6 +146,10 @@ class AppController extends Controller
         //$this->Cookie->configKey('User', 'encryption', false);
         if(!$session_id) {
             $session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
+            // TODO: This is unclear if correct
+            if($session_id == 0 && $session->check('session_id')) {
+          	  $session_id = intval($session->read('session_id'));
+          	}
         }
         $ip = $this->request->clientIp();
         if (!$session->check('client_ip')) {
@@ -158,14 +161,16 @@ class AppController extends Controller
 
         if ($session_id != 0) {
             $userStored = $session->read('StateUser');
-            
-            $transactionPendings = $session->read('Transaction.pending');
-            $transactionExecutings = $session->read('Transaction.executing');          
-            
+
+            $transactionPendings = $session->read('Transactions.pending');
+            $transactionExecutings = $session->read('Transactions.executing');
+            $transaction_can_signed = $session->read('Transactions.can_signed');
+
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
-              intval($transactionExecutings) > 0) {
+              intval($transactionExecutings) > 0 ||
+              intval($transaction_can_signed > 0)) {
                 $http = new Client();
 
                 try {
@@ -187,11 +192,13 @@ class AppController extends Controller
                                 $session->write('StateUser.' . $key, $value);
                             }
                           //var_dump($json);
-                            $transactionPendings = $json['Transaction.pending'];
-                            $transactionExecuting = $json['Transaction.executing'];
+                            $transactionPendings = $json['Transactions.pending'];
+                            $transactionExecuting = $json['Transactions.executing'];
+                            $transaction_can_signed = $json['Transactions.can_signed'];
                           //echo "read transaction pending: $transactionPendings<br>";
-                            $session->write('Transaction.pending', $transactionPendings);
-                            $session->write('Transaction.executing', $transactionExecuting);
+                            $session->write('Transactions.pending', $transactionPendings);
+                            $session->write('Transactions.executing', $transactionExecuting);
+                            $session->write('Transactions.can_signed', $transaction_can_signed);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
 
@@ -200,12 +207,15 @@ class AppController extends Controller
                                 $stateUserQuery = $stateUserTable
                                 ->find('all')
                                 ->where(['public_key' => $public_key_bin])
-                                ->contain(['StateBalances']);
+                                ->contain('StateBalances', function ($q) {
+                                            return $q->order(['record_date' => 'DESC'])
+                                                     ->limit(1);
+                                        });
                                 if ($stateUserQuery->count() == 1) {
                                     $stateUser = $stateUserQuery->first();
                                     if ($stateUser->first_name != $json['user']['first_name'] ||
                                         $stateUser->last_name  != $json['user']['last_name'] ||
-                                        $stateUser->disabled  != intval($json['user']['disabled']) ||
+                                        $stateUser->disabled  != $json['user']['disabled'] ||
                                         //$stateUser->username  != $json['user']['username'] ||
                                         // -> throws error
                                         $stateUser->email      != $json['user']['email']
@@ -221,7 +231,8 @@ class AppController extends Controller
                                     }
                                   //var_dump($stateUser);
                                     if (count($stateUser->state_balances) > 0) {
-                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->amount);
+
+                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->decay);
                                     }
                                     $session->write('StateUser.id', $stateUser->id);
                               //echo $stateUser['id'];
@@ -258,6 +269,9 @@ class AppController extends Controller
                                 $this->Flash->error(__('Konto ist nicht aktiviert!'));
                             }
                       //die(json_encode($json));
+                            if(preg_match('/client ip/', $json['msg'])) {
+                                return $this->redirect($this->loginServerUrl . 'account/error500/ipError', 303);
+                            }
                             return $this->redirect($this->loginServerUrl . 'account/', 303);
                         }
                     }

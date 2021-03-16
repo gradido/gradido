@@ -28,8 +28,10 @@ class TransactionGroupAddaddres extends Entity
     protected $_accessible = [
         'transaction_id' => true,
         'address_type_id' => true,
+        'remove_from_group' => true,
         'public_key' => true,
         'transaction' => true,
-        'address_type' => true
+        'address_type' => true,
+        'state_user_id' => true
     ];
 }

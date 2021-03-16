@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\AddressType $addressType
  */
 ?>
-<nav id="actions-sidebar">
-    <ul class="nav-horizontal nav-smaller">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
+    <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('Edit Address Type'), ['action' => 'edit', $addressType->id]) ?> </li>
         <li><?= $this->Form->postLink(__('Delete Address Type'), ['action' => 'delete', $addressType->id], ['confirm' => __('Are you sure you want to delete # {0}?', $addressType->id)]) ?> </li>
@@ -39,7 +39,7 @@
         <table cellpadding="0" cellspacing="0">
             <tr>
                 <th scope="col"><?= __('Id') ?></th>
-                <th scope="col"><?= __('State Group Id') ?></th>
+                <th scope="col"><?= __('Group Id') ?></th>
                 <th scope="col"><?= __('Public Key') ?></th>
                 <th scope="col"><?= __('Address Type Id') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
@@ -47,7 +47,7 @@
             <?php foreach ($addressType->state_group_addresses as $stateGroupAddresses): ?>
             <tr>
                 <td><?= h($stateGroupAddresses->id) ?></td>
-                <td><?= h($stateGroupAddresses->state_group_id) ?></td>
+                <td><?= h($stateGroupAddresses->group_id) ?></td>
                 <td><?= h($stateGroupAddresses->public_key) ?></td>
                 <td><?= h($stateGroupAddresses->address_type_id) ?></td>
                 <td class="actions">
@@ -68,6 +68,7 @@
                 <th scope="col"><?= __('Id') ?></th>
                 <th scope="col"><?= __('Transaction Id') ?></th>
                 <th scope="col"><?= __('Address Type Id') ?></th>
+                <th scope="col"><?= __('Remove From Group') ?></th>
                 <th scope="col"><?= __('Public Key') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
@@ -76,6 +77,7 @@
                 <td><?= h($transactionGroupAddaddress->id) ?></td>
                 <td><?= h($transactionGroupAddaddress->transaction_id) ?></td>
                 <td><?= h($transactionGroupAddaddress->address_type_id) ?></td>
+                <td><?= h($transactionGroupAddaddress->remove_from_group) ?></td>
                 <td><?= h($transactionGroupAddaddress->public_key) ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['controller' => 'TransactionGroupAddaddress', 'action' => 'view', $transactionGroupAddaddress->id]) ?>

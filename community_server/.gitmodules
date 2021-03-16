@@ -1,6 +1,3 @@
-[submodule "mithril_client"]
-	path = mithril_client
-	url = git@github.com:gradido/gradido_mithrilJS_client.git
 [submodule "src/protobuf"]
 	path = src/protobuf
 	url =  git@github.com:gradido/gradido_protocol.git

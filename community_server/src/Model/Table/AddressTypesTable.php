@@ -38,10 +38,10 @@ class AddressTypesTable extends Table
         $this->setPrimaryKey('id');
 
         $this->hasMany('StateGroupAddresses', [
-            'foreignKey' => 'address_type_id'
+            'foreignKey' => 'address_type_id',
         ]);
         $this->hasMany('TransactionGroupAddaddress', [
-            'foreignKey' => 'address_type_id'
+            'foreignKey' => 'address_type_id',
         ]);
     }
 
@@ -54,19 +54,20 @@ class AddressTypesTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->integer('id')
+            ->nonNegativeInteger('id')
             ->allowEmptyString('id', null, 'create');
 
         $validator
             ->scalar('name')
-            ->maxLength('name', 25)
+            ->maxLength('name', 45)
             ->requirePresence('name', 'create')
             ->notEmptyString('name');
 
         $validator
             ->scalar('text')
             ->maxLength('text', 255)
-            ->allowEmptyString('text');
+            ->requirePresence('text', 'create')
+            ->notEmptyString('text');
 
         return $validator;
     }
