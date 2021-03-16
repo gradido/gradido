@@ -36,7 +36,7 @@ EOFMYSQL
 cd ../login_server/skeema 
 sudo cat << EOF > .skeema
 [production]
-flavor=mariadb:10.1.47
+flavor=mariadb:10.3.25
 host=127.0.0.1
 port=3306
 user=$LOGIN_DB_USER
@@ -57,7 +57,7 @@ cd ../../..
 cd community_server/skeema
 sudo cat << EOF > .skeema
 [production]
-flavor=mariadb:10.1.47
+flavor=mariadb:10.3.25
 host=127.0.0.1
 port=3306
 user=$COMMUNITY_DB_USER
