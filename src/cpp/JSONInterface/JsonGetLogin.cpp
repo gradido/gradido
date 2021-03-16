@@ -16,7 +16,8 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	auto pt = PendingTasksManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();
 
-	auto session_check_result = checkAndLoadSession(params, true);
+	//if(!mClientIp.isLoopback())
+	auto session_check_result = checkAndLoadSession(params, false);
 	if (session_check_result) {
 		return session_check_result;
 	}
