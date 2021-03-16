@@ -1,0 +1,134 @@
+/* ============================================================
+
+  User Menu
+
+  Datei     :   user.less
+  Datum     :   2020-07-03
+  Autor     :   Christine Slotty
+  Copyright :   Gradido
+
+   ============================================================*/
+@media screen {
+  .header-user {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    align-content: flex-end;
+    position: relative;
+    width: 100%;
+    min-width: 12em;
+    height: 40px;
+    background-color: @container-background;
+    border: 1px solid @menu-border-color;
+    border-radius: 0 0 0 18px;
+  }
+
+  .user-menu-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: .8em;
+    font-weight: 300;
+    padding: .25em .5em;
+    z-index: 20;
+    height: 40px;
+  }
+
+  .user-name,
+  .user-icon {
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .user-name {
+    padding-right: .25em;
+  }
+
+  .nav-vertical.user-menu {
+    display: none;
+    background-color: @container-background;
+    border-left: 1px solid @menu-border-color;
+    border-bottom: 1px solid @menu-border-color;
+    border-radius: 0 0 16px 16px;
+    z-index: 15;
+    font-size: .9em;
+    margin-top: 0 !important;
+    position: fixed;
+    top: 39px;
+    right: 0;
+  }
+
+  .nav-vertical.user-menu.visible {
+    display: inherit;
+  }
+
+  .nav-vertical.user-menu > ul {
+    padding: 2em;
+    padding-top: .5em;
+    padding-bottom: 1em;
+    margin-block-end: 0;
+    margin-block-start: 0;
+  }
+
+  .nav-vertical.user-menu li {
+    padding: .0125em;
+  }
+
+  .nav-top > ul {
+    padding: 0;
+    padding-right: 2em;
+  }
+
+  .material-icons-outlined.user-info {
+    color: @unobtrusive;
+  }
+
+  .material-icons-outlined.user-info.success {
+    color: @success;
+  }
+
+  @media @tablet-down {
+    .header-user {
+      position: relative;
+      min-width: 3em;
+      background-color: transparent;
+      justify-content: center;
+      height: 100%;
+      margin-top: -13px;
+      margin-left: -16px;
+      color: @action-button-background1;
+    }
+
+    .user-menu-container {
+      margin: 0;
+      padding: 0;
+    }
+
+    .user-icon {
+
+    }
+    .user-name {
+      display: none;
+    }
+
+    .nav-vertical {
+      margin-top: 55px;
+    }
+
+    .nav-vertical.user-menu {
+      position: fixed;
+      top: 1px;
+      right: 0;
+      margin-top: 0;
+    }
+
+    .nav-vertical.user-menu > ul {
+      padding: 1em 1em;
+      padding-top: 3em;
+    }
+
+  }
+
+}

@@ -1,0 +1,62 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+/* ============================================================
+
+  Screen styles for plain facts.
+
+  Datei     :   facts.css
+  Datum     :   08.07.2020
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+    .fact-list {
+        display: flex;
+        flex-direction: column;
+        list-style-type: none;
+        width: 100%;
+        padding-inline-start: 0;
+        font-weight: 300;
+    }
+
+    .fact {
+        display: inline-block;
+        padding-left: 1em;
+    }
+
+    .label {
+        width: 150px;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    @media @tablet-down {
+        .fact-list {
+            margin-block-start: 0;
+            margin-block-end: 0;
+        }
+
+        li.fact {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fact {
+            padding-left: .5em;
+        }
+
+        .label {
+            width: 250px;
+            text-align: left;
+            font-size: .9em;
+            font-weight: normal;
+        }
+
+    }
+
+}

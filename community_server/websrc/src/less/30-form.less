@@ -1,0 +1,238 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+/* ============================================================
+
+  Screen styles for forms.
+
+  Datei     :   form.css
+  Datum     :   2020-06-07
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+
+  /* =========
+      FORMS
+     =========*/
+
+  /* Form Content */
+  .action-form {
+    width: 100%;
+  }
+
+  .form-header {
+    border-left: 3px solid @form-header-border;
+    background: @form-header-background;
+    padding: 15px 20px;
+    margin: 0;
+    margin-bottom: 15px;
+    border-radius: 0 6px 0 0;
+  }
+
+  .form-label {
+    grid-column: 1 / 2;
+    font-weight: 400;
+    text-align: right;
+    padding-right: .5em;
+  }
+
+  .form-control {
+    grid-column: 2 / 3;
+    display: block;
+    padding: .4em .75em;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin: 0;
+    margin-right: .5em;
+    color: rgba(16, 16, 16, .8);
+    display: block;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #6c757d;
+    background-color: #f6f7f9;
+    background-clip: padding-box;
+    border: 1px solid #f0f2f5;
+    border-radius: .25rem;
+    -webkit-transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  }
+
+  .form-control:focus {
+    color: #495057;
+    background-color: #f6f7f9;
+    border-color: #d7dee5;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: .45rem 1rem;
+    font-size: 80%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+    -webkit-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+  }
+
+  .badge-warning {
+    color: @badge-color-warning;
+    background-color: @badge-background-warning;
+  }
+
+  .badge-error {
+    color: @badge-color-error;
+    background-color: @badge-background-error;
+  }
+
+  .form-full-width {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-button {
+    cursor: pointer;
+    font: 600 13.3333px Arial;
+    font-size: .875rem;
+    line-height: 1.5;
+    text-align: center;
+    vertical-align: middle;
+    color: @action-button-text;
+    background-color: @action-button-background1;
+    border-color: @action-button-border;
+    border: 1px solid transparent;
+    border-radius: .2rem;
+    height: 35px;
+    max-height: 35px;
+    padding: 4px 15px;
+    margin-right: .5em;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .2);
+  }
+
+  .form-button:hover {
+    background-color: #034b04;
+    border-color: #023f03;
+  }
+
+  .button-cancel {
+    color: #fff !important;
+    background-color: #f0825f;
+    border-color: #f0825f;
+  }
+
+  .button-cancel:hover {
+    background-color: #ec5e30;
+    border-color: #eb5425;
+  }
+
+  .link-button {
+    display: inline-block;
+    background: @action-button-background;
+    color: @action-button-text;
+    height: 17px;
+    padding: 1em 2em;
+    line-height: 1em;
+    border-radius: 6px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .action-link {
+    color: @action-button-background1 !important;
+  }
+
+  .action-link-button {
+    background-color: @action-button-background1 !important;
+    color: @action-button-text !important;
+    margin-top: 1em;
+    padding: .5em 1em;
+  }
+
+  .edit-profile-img {
+    width: 100px;
+  }
+
+  .note-smaller {
+    font-size: smaller;
+  }
+
+  .form-row,
+  .grid-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    -webkit-transition-duration: .5s;
+    transition-duration: .5s;
+  }
+
+  .justify-end {
+    justify-content: flex-end;
+  }
+
+  @media @tablet-down {
+    .grid-row {
+      flex-direction: column;
+    }
+
+  }
+
+  .form-row {
+    border-top: 1px solid #f2f4f9;
+  }
+
+  .form-row:hover {
+    background-color: #f6f7f9;
+  }
+
+  /* CENTER FORM SPECIFICS */
+  .form-body form {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    margin: 36px 75px;
+    grid-gap: 1em;
+  }
+
+  .center-form {
+    width: 450px;
+  }
+
+  .center-form .form-control {
+    width: 90%;
+  }
+
+  .center-form fieldset {
+    margin-bottom: 1em;
+  }
+
+  @media @tablet-down {
+    .form-body form {
+      grid-template-columns: 1fr;
+      margin: 20px;
+      grid-gap: .25em;
+    }
+
+    .form-label {
+      text-align: left;
+    }
+
+  }
+
+}

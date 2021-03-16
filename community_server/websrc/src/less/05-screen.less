@@ -1,0 +1,174 @@
+/* ============================================================
+
+  Basic screen styles.
+
+  Datei     :   screen.less
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@font-face {
+    font-family: 'Material Icons Outlined';
+    font-style: normal;
+    font-weight: 400;
+    src: url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.eot); /* For IE6-8 */
+    src: local('Material Icons Outlined'), local('Material-Icons-Outlined'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.woff2) format('woff2'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.woff) format('woff'), url(../fonts/MaterialIconsOutlined/Material-Icons-Outline.ttf) format('truetype');
+}
+
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    vertical-align: middle;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+@media screen {
+
+    /* =======================
+        Basis
+       =======================*/
+    html,
+    body {
+        font-family: 'Roboto', sans-serif;
+        font-size: @body-fs;
+        line-height: @body-lh;
+        color: @main-text;
+        background-color: @main-background;
+        margin: 0;
+        overflow: auto;
+    }
+
+    div {
+        border-collapse: collapse;
+        box-sizing: border-box;
+    }
+
+    /* =======================
+        Kopfbereich
+       =======================*/
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex: flex-grow;
+        width: 100%;
+        padding: 1em;
+        background-color: @menu-background;
+    }
+
+    /* =======================
+        Fußbereich
+       =======================*/
+    .footer {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: @footer-fs;
+        font-style: italic;
+        line-height: 0;
+    }
+
+    .bottomright {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        color: @unobtrusive;
+        font-size: @devinfo-fs;
+        line-height: .125em;
+        padding-right: .25em;
+        text-align: right;
+    }
+
+    @media @tablet-down {
+        .bottomright {
+            font-size: @devinfo-fs-mobile;
+            font-weight: 300;
+            line-height: 1em;
+            width: 100px;
+        }
+
+        .bottomright p {
+            margin-block-start: 0;
+            margin-block-end: 2px;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+        }
+
+    }
+
+    .bottomleft {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        color: @unobtrusive;
+        font-size: @devinfo-fs;
+        line-height: 1.125em;
+        padding-left: 0.25em;
+    }
+
+    /* =======================
+        Sonstige
+       =======================*/
+
+    /* Hyperlinks */
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    main a {
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    a:link,
+    a:visited {
+        color: inherit;
+    }
+
+    a:hover,
+    a:focus {
+        text-decoration: underline;
+    }
+
+    a:active {
+        background-color: @menu-background;
+        color: @main-link-text;
+    }
+
+    a:focus,
+    a:active {
+        outline: none;
+    }
+
+    a.grd_invisible_link {
+        color: @main-link-text;
+        text-decoration: none;
+    }
+
+    a.grd_invisible_link:hover {
+        color: @unobtrusive;
+    }
+
+    [type=button]:not(:disabled),
+    [type=reset]:not(:disabled),
+    [type=submit]:not(:disabled),
+    button:not(:disabled) {
+        cursor: pointer
+    }
+
+}
+
+/* Ende @media screen */

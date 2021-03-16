@@ -1,0 +1,224 @@
+/* ============================================================
+
+  Screen styles for the regular center part.
+
+  Datei     :   center.css
+  Datum     :   2020-04-30
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+@media screen {
+
+  /* =========
+    CONTENT
+   =========*/
+  .content-default {
+    display: flex;
+    justify-content: center;
+    max-width: 90%;
+  }
+
+  .content {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    overflow: auto;
+    width: 100%;
+    background-color: @main-background;
+    line-height: @content-lh;
+    letter-spacing: @content-letter-spacing;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    padding-right: 5em;
+  }
+
+  @media @tablet-down {
+    .content {
+      padding-right: 0;
+    }
+
+  }
+
+  /* Center Navigation Top */
+  .nav-content {
+    position: relative;
+    color: @content-nav;
+    margin: 0 .25em;
+  }
+
+  .nav-content-list {
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    margin-left: .25em;
+  }
+
+  .nav-content-separator {
+    margin: 0 1em;
+  }
+
+  @media @tablet-down {
+    .nav-content-list {
+      display: flex;
+      font-size: small;
+      margin-bottom: 0;
+      justify-content: center;
+    }
+
+  }
+
+  /* Center Content Container */
+  .content-container {
+    background-color: @container-background;
+    color: @container-text;
+    border-radius: .5em;
+    box-shadow: 0 0 10px 0 @container-shadow;
+    border: 1px solid @container-border;
+    margin: 1em .25em;
+  }
+
+  /* Block Container Above Main */
+  .block-container {
+    width: 100%;
+    display: flex;
+  }
+
+  /* Top Info Above Main */
+  .info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 70%;
+    padding: 1em 25px;
+  }
+
+  @media @wide-screen-down {
+    .info-container {
+      flex-direction: column;
+      max-width: 90%;
+      line-height: .25em;
+    }
+
+  }
+
+  /* Main Container */
+  .main-container {
+    width: 100%;
+  }
+
+  @media @tablet-down {
+    .main-container {
+      max-width: 97%;
+    }
+
+  }
+
+  .default-container {
+    width: 90%;
+    margin: auto;
+    padding: 1em;
+  }
+
+  /* Content Block */
+  .content-block {
+    width: 170px;
+    padding: 20px 25px 20px;
+    border: 1px dashed grey;
+    border-radius: 16px;
+    margin: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .block-img {
+    width: 40px;
+    height: 40px;
+    line-height: 20px;
+    font-size: 24px;
+    padding: 8px;
+    border-radius: 20px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border-style: none;
+    box-sizing: border-box;
+  }
+
+  /* Generic Content */
+  .content-region h3 {
+    color: @container-header;
+  }
+
+  .content-region {
+    border-bottom: 1px dashed @light;
+    padding: 0 25px;
+    padding-bottom: 2em;
+    margin: 1em .25em;
+  }
+
+  .content-collection {
+    display: flex;
+  }
+
+  .content-item {
+    margin: .5em 0;
+    margin-right: 5em;
+    width: 220px;
+    padding: 1em 2em;
+  }
+
+  .action-button {
+    background: @action-button-background;
+    border-left: 3px solid @action-button-border;
+  }
+
+  .info-item {
+    border-left: 2px solid @info-item-border;
+  }
+
+  .inline-header {
+    display: inline;
+  }
+
+  .show-profile-img {
+    display: block;
+    height: 100px;
+    vertical-align: middle;
+    border-radius: 10px;
+    border: 2px dotted @info-background;
+  }
+
+  @media @tablet-down {
+    .content-region {
+      padding-left: 5px;
+    }
+
+    .content-collection {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .content-item {
+      margin: .5em 0;
+      margin-right: 0;
+      width: 160px;
+      padding: 1em 2em;
+    }
+
+  }
+
+  /* OTHER */
+  .info-item i,
+  .info-item-link,
+  .action-button i,
+  .action-button-link {
+    vertical-align: middle;
+  }
+
+}
+
+/* Ende @media screen */
