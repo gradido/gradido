@@ -587,15 +587,7 @@ class StateBalancesController extends AppController
             ]);
     }
 
-    public function ajaxListTransactions($page = 0, $count = 20)
-    {
-      
-      return $this->returnJson([
-          'state' => 'error', 
-          'msg' => 'moved',
-          'details' => 'moved to state-user-transactions/ajaxListTransactions/'
-      ]);
-    }
+
     
     public function ajaxGdtOverview()
     {
@@ -630,10 +622,6 @@ class StateBalancesController extends AppController
       ]);
     }
 
-    public function ajaxGdtOverview()
-    {
-      return $this->returnJson(['state' => 'success', 'gdt' => ['sum' => 0, 'count' => 0]]);
-    }
 
     public function overviewGdt()
     {
