@@ -3,12 +3,10 @@
 
 #include "CPUTask.h"
 
-#include "../lib/ErrorList.h"
-#include "../model/TransactionBase.h"
-#include "../model/User.h"
+#include "../lib/NotificationList.h"
 #include "../controller/User.h"
 
-#include "../proto/gradido/Transaction.pb.h"
+#include "../proto/gradido/GradidoTransaction.pb.h"
 
 #include "ProcessingTransaction.h"
 
@@ -19,10 +17,10 @@
 * @desc: Task for signing Transactions
 */
 
-class SigningTransaction : public UniLib::controller::CPUTask, public ErrorList
+class SigningTransaction : public UniLib::controller::CPUTask, public NotificationList
 {
 public:
-	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser, bool sendErrorsToAdmin = true);
+	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser);
 	virtual ~SigningTransaction();
 
 	int run();
@@ -41,6 +39,5 @@ private:
 	std::string getUserEmail();
 
 };
-
 
 #endif //GRADIDO_LOGIN_SERVER_TASKS_SIGNING_TRANSACTION_INCLUDE

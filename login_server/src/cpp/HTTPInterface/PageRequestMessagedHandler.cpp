@@ -8,6 +8,12 @@
 // detect also lang field from form get
 const Poco::RegularExpression PageRequestMessagedHandler::mDetectLanguageGET("^(?:/[a-zA-Z0-9/_-]*)?(?:/(en|de)|\\?.*lang=(en|de))");
 
+PageRequestMessagedHandler::PageRequestMessagedHandler()
+	: mLoginServerPath("/account")
+{
+
+}
+
 Languages PageRequestMessagedHandler::chooseLanguage(Poco::Net::HTTPServerRequest& request, std::string lang_btn /*= ""*/)
 {
 
@@ -69,4 +75,12 @@ unsigned long long PageRequestMessagedHandler::getLastGetAsU64(const std::string
 		return 0;
 	}
 	return result;
+}
+
+std::string PageRequestMessagedHandler::getBaseUrl() 
+{
+	if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+		return "http://" + mHost + mLoginServerPath;
+	}
+	return "https://" + mHost + mLoginServerPath; 
 }

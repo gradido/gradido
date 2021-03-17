@@ -3,7 +3,7 @@
 
 #include "Poco/Net/MediaType.h"
 
-#include "../TransactionBase.h"
+#include "../gradido/TransactionBase.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -320,7 +320,7 @@ Gradido Login-Server\n\
 		static const char* functionName = "Email::replaceAmount";
 		int findPos = result.find("[amount]");
 		if (findPos != result.npos) {
-			result.replace(findPos, 8, TransactionBase::amountToString(gradido_cent));
+			result.replace(findPos, 8, model::gradido::TransactionBase::amountToString(gradido_cent));
 		}
 		else {
 			addError(new Error(functionName, "no amount placeholder found"));

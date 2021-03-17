@@ -4,7 +4,7 @@
 #include "Poco/Net/SecureSMTPClientSession.h"
 #include "Poco/Net/StringPartSource.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 #include "../model/email/Email.h"
 
@@ -34,37 +34,37 @@ ErrorManager::~ErrorManager()
 	mErrorsMap.clear();
 }
 
-void ErrorManager::addError(Error* error, bool log/* = true*/)
+void ErrorManager::addError(Notification* error, bool log/* = true*/)
 {
 	DHASH id = DRMakeStringHash(error->getFunctionName());
-	mWorkingMutex.lock();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkingMutex);
+	
 	auto it = mErrorsMap.find(id);
-	std::list<Error*>* list = nullptr;
+	std::list<Notification*>* list = nullptr;
 
 	//printf("[ErrorManager::addError] error with function: %s, %s\n", error->getFunctionName(), error->getMessage());
 	if(log) mLogging.error("[ErrorManager::addError] %s", error->getString(false));
 
 	if (it == mErrorsMap.end()) {
-		list = new std::list<Error *>;
-		mErrorsMap.insert(std::pair<DHASH, std::list<Error*>*>(id, list));
+		list = new std::list<Notification *>;
+		mErrorsMap.insert(std::pair<DHASH, std::list<Notification*>*>(id, list));
 	}
 	else {
 		list = it->second;
 		// check if hash collision
 		if (strcmp((*list->begin())->getFunctionName(), error->getFunctionName()) != 0) {
-			mWorkingMutex.unlock();
+			
 			throw "[ErrorManager::addError] hash collision detected";
 		}
 	}
 	list->push_back(error);
 
-	mWorkingMutex.unlock();
 
 }
 
-int ErrorManager::getErrors(ErrorList* send)
+int ErrorManager::getErrors(NotificationList* send)
 {
-	Error* error = nullptr;
+	Notification* error = nullptr;
 	int iCount = 0;
 	while (error = send->getLastError()) {
 		addError(error, false);

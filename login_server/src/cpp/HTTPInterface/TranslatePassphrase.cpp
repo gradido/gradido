@@ -7,7 +7,7 @@
 
 #line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
  
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
 
@@ -50,16 +50,17 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	{
 	
 	   inputPassphrase = form.get("inputPassphrase", "");
-	   auto localPassphrase = KeyPair::filterPassphrase(inputPassphrase);
+	   auto localPassphrase = Passphrase::filter(inputPassphrase);
 	   
 	   auto btnGenerate = form.get("btnGenerate", "");
 	   if("" != btnGenerate) {
-			mSession->generatePassphrase();
-			localPassphrase = mSession->getOldPassphrase();
+			auto passphrase_gen = Passphrase::generate(wordSource);
+			
+			localPassphrase = passphrase_gen->getString();
 			inputPassphrase = localPassphrase;
 	   }
-	   
-	   if(localPassphrase != "" && !User::validatePassphrase(localPassphrase, &wordSource)) {
+	   auto passphrase_object = Passphrase::create(localPassphrase, wordSource);
+	   if(localPassphrase != "" && passphrase_object.isNull() || !passphrase_object->checkIfValid()) {
 			addError(new Error(
 				gettext("Fehler"), 
 				gettext("Diese Passphrase ist ung&uuml;ltig, bitte &uuml;berpr&uuml;fen oder neu generieren (lassen).")
@@ -70,7 +71,8 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 			} else {
 				targetSource = &ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER];
 			}
-			passphrase = KeyPair::passphraseTransform(localPassphrase, wordSource, targetSource);
+			auto transformed_passphrase_obj = passphrase_object->transform(targetSource);
+			passphrase = transformed_passphrase_obj->getString();
 	   }
 	   
 	   
@@ -197,7 +199,7 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\n";
 	responseStream << "<div class=\"row mb-3\" style=\"margin-top:70px;\">\n";
 	responseStream << "\t<h2 class=\"mx-auto\">";
-#line 59 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 61 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Passphrase umwandeln") );
 	responseStream << "</h2>\n";
 	responseStream << "</div>\n";
@@ -208,57 +210,57 @@ void TranslatePassphrase::handleRequest(Poco::Net::HTTPServerRequest& request, P
 	responseStream << "\t  <div class=\"col-md-12 col-lg-12 \">\n";
 	responseStream << "\t\t<div class=\"alert alert-orange\">\n";
 	responseStream << "\t\t  <h5 class=\"alert-heading\">";
-#line 67 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Was zu tun ist:") );
 	responseStream << "</h5>\n";
 	responseStream << "\t\t  <p>";
-#line 68 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 70 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Kopiere/schreibe deine Passphrase in die Textbox und du bekommst sie in die jeweils andere Sprache umgewandelt.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t  <p>";
-#line 69 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 71 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("Du kannst mit beiden Varianten dein Konto wiederherstellen oder dein Passwort ändern.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t  <div class=\"col-lg-12 col-md-12 mb-5\">\n";
 	responseStream << "\t\t<form action=\"";
-#line 73 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "/transform_passphrase\">\n";
 	responseStream << "\t\t  <div class=\"form-group row-showcase_row_area\">\n";
 	responseStream << "\t\t\t<textarea name=\"inputPassphrase\" cols=\"20\" rows=\"10\" id=\"inputPassphrase\" class=\"form-control\" placeholder=\"";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( gettext("deine Passphrase") );
 	responseStream << "\">";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( inputPassphrase );
 	responseStream << "</textarea>\n";
 	responseStream << "\t\t  </div>\n";
 	responseStream << "\t\t  <input name=\"btnTransform\" type=\"submit\" value=\"Umwandeln\" class=\"btn btn btn-orange\">\n";
 	responseStream << "\t\t  ";
-#line 78 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
  if(model::table::ROLE_ADMIN == role) { 	responseStream << "\n";
 	responseStream << "\t\t\t<input name=\"btnGenerate\" type=\"submit\" value=\"Neue generieren\" class=\"btn btn-secondary\">\n";
 	responseStream << "\t\t  ";
-#line 80 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 82 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</form>\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t  ";
-#line 83 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 85 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
  if(passphrase != "") { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"col-lg-12 col-md-12\">\n";
 	responseStream << "\t\t\t<div class=\"alert alert-success\">\n";
 	responseStream << "\t\t\t\t<h5 class=\"alert-heading\">Umgewandelte Passphrase: </h5>\n";
 	responseStream << "\t\t\t\t<p>";
-#line 87 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
 	responseStream << ( passphrase );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t</div>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t  ";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
+#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\translatePassphrase.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t  </div>\n";
 	responseStream << "\t</div>\n";

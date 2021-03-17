@@ -9,9 +9,8 @@
 //#include "Poco/Nullable.h"
 //#include "Poco/Data/LOB.h"
 
-#include <shared_mutex>
 
-#include "UserRoles.h"
+#include "UserRole.h"
 
 namespace model {
 	namespace table {
@@ -29,14 +28,14 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int> UserTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
 
 		class User : public ModelBase 
 		{
 		public:
 			User();
 			User(UserTuple tuple);
-			User(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
+			User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 			~User();
 
 			// generic db operations
@@ -54,34 +53,42 @@ namespace model {
 			size_t updateFieldsFromCommunityServer();
 
 			// default getter unlocked
-			inline const std::string getEmail() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mEmail; }
-			inline const std::string getFirstName() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName; }
-			inline const std::string getLastName() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mLastName; }
-			inline std::string getNameWithEmailHtml() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
-			inline std::string getNameWithEmail() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mFirstName + " " + mLastName + "<" + mEmail + ">"; }
-			inline const Poco::UInt64 getPasswordHashed() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mPasswordHashed; }
-			inline RoleType getRole() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
-			inline const unsigned char* getPublicKey() const { if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			inline const std::string getEmail() const { SHARED_LOCK; return mEmail; }
+			inline const std::string getFirstName() const { SHARED_LOCK; return mFirstName; }
+			inline const std::string getLastName() const { SHARED_LOCK; return mLastName; }
+			inline const std::string getUsername() const { SHARED_LOCK; return mUsername; }
+			inline std::string getNameWithEmailHtml() const { SHARED_LOCK; return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
+			inline const Poco::UInt64 getPasswordHashed() const { SHARED_LOCK; return mPasswordHashed; }
+			inline int getGroupId() const { SHARED_LOCK; return mGroupId; }
+			inline RoleType getRole() const { SHARED_LOCK; if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
+			inline const unsigned char* getPublicKey() const { SHARED_LOCK; if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
+			MemoryBin* getPublicKeyCopy() const;
+			inline size_t getPublicKeySize() const { SHARED_LOCK; if (mPublicKey.isNull()) return 0; return mPublicKey.value().content().size(); }
 			std::string getPublicKeyHex() const;
+			std::string getPrivateKeyEncryptedHex() const;
 
-			inline bool hasPrivateKeyEncrypted() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return !mPrivateKey.isNull(); }
-			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { return mPrivateKey.value().content(); }
-			inline bool isEmailChecked() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mEmailChecked; }
-			inline const std::string getLanguageKey() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mLanguageKey; }
-			inline bool isDisabled() const { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mDisabled; }
+			inline bool hasPrivateKeyEncrypted() const { SHARED_LOCK; return !mPrivateKey.isNull(); }
+			inline bool hasPublicKey() const { SHARED_LOCK; return !mPublicKey.isNull(); }
+			inline bool hasEmailHash() const { SHARED_LOCK; return !mEmailHash.isNull(); }
+			inline const std::vector<unsigned char>& getPrivateKeyEncrypted() const { SHARED_LOCK; return mPrivateKey.value().content(); }
+			inline bool isEmailChecked() const { SHARED_LOCK; return mEmailChecked; }
+			inline const std::string getLanguageKey() const { SHARED_LOCK; return mLanguageKey; }
+			inline bool isDisabled() const { SHARED_LOCK; return mDisabled; }
 
 			// default setter unlocked
-			inline void setEmail(const std::string& email) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mEmail = email; }
-			inline void setFirstName(const std::string& first_name) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mFirstName = first_name; }
-			inline void setLastName(const std::string& last_name) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mLastName = last_name; }
-			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mPasswordHashed = passwordHashed; }
+			void setEmail(const std::string& email);
+			inline void setFirstName(const std::string& first_name) { UNIQUE_LOCK; mFirstName = first_name; }
+			inline void setLastName(const std::string& last_name) { UNIQUE_LOCK; mLastName = last_name; }
+			inline void setUsername(const std::string& username) { UNIQUE_LOCK; mUsername = username; }
+			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { UNIQUE_LOCK; mPasswordHashed = passwordHashed; }
 			void setPublicKey(const unsigned char* publicKey);
 			//! \brief set encrypted private key
 			//! \param privateKey copy data, didn't move memory bin
 			void setPrivateKey(const MemoryBin* privateKey);
-			inline void setEmailChecked(bool emailChecked) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mEmailChecked = emailChecked; }
-			inline void setLanguageKey(const std::string& languageKey) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mLanguageKey = languageKey; }
-			inline void setDisabled(bool disabled) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mDisabled = disabled; }
+			inline void setEmailChecked(bool emailChecked) { UNIQUE_LOCK; mEmailChecked = emailChecked; }
+			inline void setLanguageKey(const std::string& languageKey) { UNIQUE_LOCK; mLanguageKey = languageKey; }
+			inline void setDisabled(bool disabled) { UNIQUE_LOCK; mDisabled = disabled; }
+			inline void setGroupId(int groupId) { UNIQUE_LOCK; mGroupId = groupId; }
 
 			Poco::JSON::Object getJson();			
 
@@ -97,11 +104,13 @@ namespace model {
 			std::string mEmail;
 			std::string mFirstName;
 			std::string mLastName;
+			std::string mUsername;
 
 			Poco::UInt64 mPasswordHashed;
 
 			Poco::Nullable<Poco::Data::BLOB> mPublicKey;
 			Poco::Nullable<Poco::Data::BLOB> mPrivateKey;
+			Poco::Nullable<Poco::Data::BLOB> mEmailHash; // sodium generic hash (currently blake2b)
 			// created: Mysql DateTime
 			Poco::DateTime mCreated;
 
@@ -111,10 +120,12 @@ namespace model {
 			//! if set to true, prevent login
 			bool mDisabled;
 
+			int mGroupId;
+
 			// from neighbor tables
 			Poco::Nullable<int> mRole;
 
-			mutable std::shared_mutex mSharedMutex;
+			
 		};
 	}
 }

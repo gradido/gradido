@@ -7,10 +7,11 @@
 
 #line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
+#include "../Crypto/Passphrase.h"
 #include "../SingletonManager/ConnectionManager.h"
 
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 
 #include "Poco/Data/Binding.h"
 using namespace Poco::Data::Keywords;
@@ -20,7 +21,7 @@ typedef Poco::Tuple<int, Poco::Nullable<Poco::Data::BLOB>, std::string> UserBack
 struct SListEntry 
 {
 	Poco::AutoPtr<controller::User> user;
-	std::vector<Poco::AutoPtr<controller::UserBackups>> backups;
+	std::vector<Poco::AutoPtr<controller::UserBackup>> backups;
 };
 
 #line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
@@ -42,11 +43,11 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 
 	const char* pageName = "Admin Check User Backups";
 	auto cm = ConnectionManager::getInstance();
-	KeyPair keys;
+	
 	std::list<SListEntry> notMatchingEntrys;
 	
 	auto con = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -65,21 +66,24 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 			if(pubkey.isNull()) {
 				continue;
 			}
-			auto passphrase = KeyPair::filterPassphrase(tuple.get<2>());
+			auto passphrase = Passphrase::filter(tuple.get<2>());
 			auto user_id = tuple.get<0>();
-			Mnemonic* wordSource = nullptr;
-			if(!User::validatePassphrase(passphrase, &wordSource)) {
+			KeyPairEd25519 key_pair(pubkey.value().content().data());
+			
+			auto wordSource = Passphrase::detectMnemonic(passphrase);
+			if(!wordSource) {
 				addError(new Error("admin Check user backup", "invalid passphrase"), false);
 				addError(new ParamError("admin Check user backup", "passphrase", passphrase.data()), false);
 				addError(new ParamError("admin Check user backup", "user id", user_id), false);
 				continue;
-			} else {
-				keys.generateFromPassphrase(passphrase.data(), wordSource);
-			}
+			} 
+			auto passphrase_object = Passphrase::create(passphrase, wordSource);
+			auto key_pair_from_passhrase = KeyPairEd25519::create(passphrase_object);
 			bool matching = false;
-			if(keys.isPubkeysTheSame(pubkey.value().content().data())) {
+			if(key_pair_from_passhrase->isTheSame(key_pair)) {
 				matching = true;
 			}
+			delete key_pair_from_passhrase;
 			if(user_id != last_user_id) {
 				last_user_id = user_id;
 				if(matching) continue;
@@ -94,7 +98,7 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 			SListEntry entry;
 			entry.user = controller::User::create();
 			entry.user->load(user_id);
-			entry.backups = controller::UserBackups::load(user_id);
+			entry.backups = controller::UserBackup::load(user_id);
 			
 			notMatchingEntrys.push_back(entry);
 			
@@ -177,11 +181,11 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Admin Check User Backup</h1>\n";
 	responseStream << "\t";
-#line 91 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<p><b>Unmatching count: ";
-#line 92 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( notMatchingEntrys.size() );
 	responseStream << "</b></p>\n";
 	responseStream << "\t<table>\n";
@@ -190,34 +194,34 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t</thead>\n";
 	responseStream << "\t\t<tbody>\n";
 	responseStream << "\t\t\t";
-#line 98 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  for(auto it = notMatchingEntrys.begin(); it != notMatchingEntrys.end(); it++) { 
 				auto userModel = (*it).user->getModel();
 				responseStream << "\n";
 	responseStream << "\t\t\t\t<tr>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getID() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 103 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 107 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getFirstName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 104 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getLastName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 105 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getEmail() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( (*it).backups.size() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t</tr>\n";
 	responseStream << "\t\t\t";
-#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</tbody>\n";
 	responseStream << "</div>\n";

@@ -9,7 +9,7 @@
 #include "../MySQL/Poco/Connector.h"
 #include "Poco/Exception.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 enum ConnectionType {
 	CONNECTION_MYSQL_LOGIN_SERVER,
@@ -17,7 +17,7 @@ enum ConnectionType {
 	CONNECTION_MAX
 };
 
-class ConnectionManager : public ErrorList
+class ConnectionManager : public NotificationList
 {
 public: 
 	~ConnectionManager();

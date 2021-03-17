@@ -5,3 +5,4 @@ src/cpsp/*.h
 src/cpsp/*.cpp
 src/cpp/proto/
 build*/
+/skeema/gradido_login/insert/crypto_key.sql

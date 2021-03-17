@@ -6,6 +6,7 @@
 #include "Poco/Logger.h"
 #include "../model/Session.h"
 #include "../lib/Profiler.h"
+#include "PageRequestMessagedHandler.h"
 
 #define HTTP_PAGES_COUNT 1
 
@@ -17,6 +18,8 @@ public:
 
 protected:
 	Poco::Net::HTTPRequestHandler* handleCheckEmail(Session* session, const std::string uri, const Poco::Net::HTTPServerRequest& request, Profiler timeUsed);
+
+	Poco::Net::HTTPRequestHandler* basicSetup(PageRequestMessagedHandler* handler, const Poco::Net::HTTPServerRequest& request, Profiler profiler);
 
 	Poco::RegularExpression mRemoveGETParameters;
 	Poco::Logger& mLogging;

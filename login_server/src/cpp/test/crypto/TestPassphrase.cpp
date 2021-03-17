@@ -10,7 +10,6 @@
 #include "../../lib/DataTypeConverter.h"
 
 #include "../../Crypto/KeyPairEd25519.h"
-#include "../../Crypto/KeyPair.h"
 
 
 
@@ -170,10 +169,10 @@ TEST_F(PassphraseTest, createAndTransform) {
 			EXPECT_EQ(word_indices[i], test_data_set.wordIndices[i]);
 		}
 		auto key_pair_ed25519 = KeyPairEd25519::create(tr);
-		KeyPair key_pair; 
-		key_pair.generateFromPassphrase(test_data_set.passphrases[test_data_set.mnemonicType].data(), mnemonic);
-		//EXPECT_EQ(DataTypeConverter::pubkeyToHex(key_pair_ed25519->getPublicKey()), test_data_set.pubkeyHex);
-		EXPECT_EQ(key_pair.getPubkeyHex(), test_data_set.pubkeyHex);
+		//KeyPair key_pair; 
+		//key_pair.generateFromPassphrase(test_data_set.passphrases[test_data_set.mnemonicType].data(), mnemonic);
+		EXPECT_EQ(DataTypeConverter::pubkeyToHex(key_pair_ed25519->getPublicKey()), test_data_set.pubkeyHex);
+		//EXPECT_EQ(key_pair.getPubkeyHex(), test_data_set.pubkeyHex);
 
 		//auto key_pair_old 
 		delete key_pair_ed25519;

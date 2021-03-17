@@ -1,0 +1,12 @@
+#ifndef GRADIDO_LOGIN_SERVER_TASKS_PENDING_TASK
+#define GRADIDO_LOGIN_SERVER_TASKS_PENDING_TASK
+
+/*
+ * @author: Dario Rekowski
+ * 
+ * @date: 13.10.2020
+ * 
+ * @brief: 
+ */
+
+#endif //GRADIDO_LOGIN_SERVER_TASKS_PENDING_TASK

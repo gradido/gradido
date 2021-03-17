@@ -9,6 +9,21 @@
 
 #include "TableControllerBase.h"
 
+enum UserState
+{
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_PASSWORD_ENCRYPTION_IN_PROCESS,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_NO_GROUP,
+	USER_KEYS_DONT_MATCH,
+	USER_COMPLETE,
+	USER_DISABLED
+};
+
 
 namespace controller {
 
@@ -26,7 +41,7 @@ namespace controller {
 		~User();
 
 		static Poco::AutoPtr<User> create();
-		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
+		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 
 		static std::vector<User*> search(const std::string& searchString);
 
@@ -36,6 +51,9 @@ namespace controller {
 		//! By users which has registered long time ago and haven't activated there account and haven't get a second email send verification email with duration at once
 		// TODO: instead scheduling all, scheduling only for next day and run this function every day (own task for that)
 		static int checkIfVerificationEmailsShouldBeResend(const Poco::Util::Timer& timer);
+
+		//! \brief go through whole db and search for user without email hash and set this in db
+		static int addMissingEmailHashes();
 
 		//! \brief try to find correct passphrase for this user from db
 		//! 
@@ -52,7 +70,10 @@ namespace controller {
 		//! \brief try to load user from db via user_id
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
+		void reload();
+		static Poco::AutoPtr<User> sload(int user_id);
 		int load(const unsigned char* pubkey_array);
+		int load(MemoryBin* emailHash);
 		Poco::JSON::Object getJson();
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
@@ -80,7 +101,7 @@ namespace controller {
 		//! \return 1 = password changed, private key re-encrypted and saved into db
 		//! \return 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
 		//! \return -1 = stored pubkey and private key didn't match
-		int setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd);
+		int setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd);
 
 
 		//! \brief set authenticated encryption and save hash in db, also re encrypt private key if exist
@@ -91,8 +112,11 @@ namespace controller {
 		//! \return -1 = stored pubkey and private key didn't match
 		int setNewPassword(const std::string& password);
 
+		//! \brief calculate user state
+		UserState getUserState();
+
 		//! \brief return AuthenticatedEncryption Auto Pointer
-		inline const Poco::AutoPtr<AuthenticatedEncryption> getPassword() {
+		inline const Poco::AutoPtr<SecretKeyCryptography> getPassword() {
 			std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
 			return mPassword;
 		}
@@ -121,6 +145,11 @@ namespace controller {
 
 		inline void setBalance(int gradidoBalance) { std::unique_lock<std::shared_mutex> _lock(mSharedMutex); mGradidoCurrentBalance = gradidoBalance; }
 		inline int getBalance() { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mGradidoCurrentBalance; }
+
+		std::string getGroupBaseUrl();
+
+		// connection to other tables
+
 		
 	protected:
 
@@ -128,7 +157,7 @@ namespace controller {
 				
 		std::string mPublicHex;
 
-	 	Poco::AutoPtr<AuthenticatedEncryption> mPassword;
+	 	Poco::AutoPtr<SecretKeyCryptography> mPassword;
 		KeyPairEd25519*          mGradidoKeyPair;
 
 		bool					 mCanDecryptPrivateKey;
@@ -136,6 +165,8 @@ namespace controller {
 		//! get this from community-server, later maybe from gradido-node
 		//! use it for showing balance in menu in check transaction
 		int					     mGradidoCurrentBalance;
+
+		std::string				 mGroupBaseUrl;
 
 		mutable std::shared_mutex mSharedMutex;
 	};

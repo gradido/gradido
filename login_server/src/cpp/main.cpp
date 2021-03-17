@@ -3,7 +3,7 @@
 
 #include "proto/gradido/TransactionBody.pb.h"
 
-#include "model/User.h"
+
 #include "model/Session.h"
 #include "lib/Profiler.h"
 #include "ServerConfig.h"
@@ -13,6 +13,7 @@
 #include "model/table/EmailOptIn.h"
 
 #include "Poco/DateTimeParser.h"
+#include <grpc/grpc.h>
 
 #ifndef _TEST_BUILD
 
@@ -35,8 +36,8 @@ int main(int argc, char** argv)
 	ServerConfig::g_versionString = Poco::DateTimeFormatter::format(buildDateTime, "0.%y.%m.%d");
 	//ServerConfig::g_versionString = "0.20.KW13.02";
 	printf("Version: %s\n", ServerConfig::g_versionString.data());
-	printf("User size: %d Bytes, Session size: %d Bytes\n", sizeof(User), sizeof(Session));
-	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", sizeof(model::table::User), sizeof(model::table::EmailOptIn));
+	printf("User size: %d Bytes, Session size: %d Bytes\n", (int)sizeof(controller::User), (int)sizeof(Session));
+	printf("model sizes: User: %d Bytes, EmailOptIn: %d Bytes\n", (int)sizeof(model::table::User), (int)sizeof(model::table::EmailOptIn));
 
 	// load word lists
 	if (!ServerConfig::loadMnemonicWordLists()) {
@@ -44,14 +45,25 @@ int main(int argc, char** argv)
 		printf("[Gradido_LoginServer::main] error loading mnemonic Word List");
 		return -2;
 	}
+	printf("[Gradido_LoginServer::main] mnemonic word lists loaded!\n");
 
 	if (!ImportantTests::passphraseGenerationAndTransformation()) {
 		printf("test passphrase generation and transformation failed\n");
 		return -3;
 	}
-	
+	printf("[Gradido_LoginServer::main] passed important tests\n");
+	grpc_init();
+
 	Gradido_LoginServer app;
-	app.setUnixOptions(true);
-	return app.run(argc, argv);
+	try {
+		auto result = app.run(argc, argv);
+		grpc_shutdown();
+		return result;
+	}
+	catch (Poco::Exception& ex) {
+		printf("[Gradido_LoginServer::main] exception by starting server: %s\n", ex.displayText().data());
+	}
+	return -1;
+	
 }
 #endif

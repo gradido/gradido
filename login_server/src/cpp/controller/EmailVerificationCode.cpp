@@ -6,6 +6,7 @@
 namespace controller {
 
 	EmailVerificationCode::EmailVerificationCode(model::table::EmailOptIn* dbModel)
+		: mBaseUrl(ServerConfig::g_serverPath)
 	{
 		mDBModel = dbModel;
 	}
@@ -96,7 +97,7 @@ namespace controller {
 
 	std::string EmailVerificationCode::getLink()
 	{
-		std::string link = ServerConfig::g_serverPath;
+		std::string link = mBaseUrl;
 		link += "/checkEmail/";
 		link += std::to_string(getModel()->getCode());
 		return link;
