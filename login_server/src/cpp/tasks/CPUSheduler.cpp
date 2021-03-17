@@ -58,7 +58,7 @@ namespace UniLib {
 		{
 			// look at pending tasks
 			TaskPtr task;
-			mPendingTasksMutex.lock();
+			mPendingTasksMutex.lock("CPUSheduler::getNextUndoneTask");
 			for (std::list<TaskPtr>::iterator it = mPendingTasks.begin(); it != mPendingTasks.end(); it++) {
 				if ((*it)->isAllParentsReady()) {
 					task = *it;

@@ -1,6 +1,6 @@
 #include "TestAuthenticatedEncryption.h"
 
-#include "../../Crypto/AuthenticatedEncryption.h"
+#include "../../Crypto/SecretKeyCryptography.h"
 
 #include "../../lib/Profiler.h"
 #include "../../lib/DataTypeConverter.h"
@@ -12,12 +12,12 @@ void TestAuthenticatedEncryption::SetUp()
 }
 
 TEST_F(TestAuthenticatedEncryption, encryptDecryptTest) {
-	AuthenticatedEncryption authenticated_encryption;
+	SecretKeyCryptography authenticated_encryption;
 	EXPECT_FALSE(authenticated_encryption.hasKey());
 	EXPECT_EQ(authenticated_encryption.getKeyHashed(), 0);
 
 	Profiler time_used;
-	EXPECT_EQ(authenticated_encryption.createKey("dariofrodo@gmx.de", "r3an7d_spassw"), AuthenticatedEncryption::AUTH_ENCRYPT_OK);
+	EXPECT_EQ(authenticated_encryption.createKey("dariofrodo@gmx.de", "r3an7d_spassw"), SecretKeyCryptography::AUTH_ENCRYPT_OK);
 	printf("create key duration: %s\n", time_used.string().data());
 
 	EXPECT_TRUE(authenticated_encryption.hasKey());
@@ -29,12 +29,12 @@ TEST_F(TestAuthenticatedEncryption, encryptDecryptTest) {
 	memcpy(*test_message_bin, test_message.data(), test_message.size());
 
 	time_used.reset();
-	EXPECT_EQ(authenticated_encryption.encrypt(test_message_bin, &encrypted_message), AuthenticatedEncryption::AUTH_ENCRYPT_OK);
+	EXPECT_EQ(authenticated_encryption.encrypt(test_message_bin, &encrypted_message), SecretKeyCryptography::AUTH_ENCRYPT_OK);
 	printf("encrypt message duration: %s\n", time_used.string().data());
 
 	MemoryBin* decrypted_message = nullptr;
 	time_used.reset();
-	EXPECT_EQ(authenticated_encryption.decrypt(encrypted_message, &decrypted_message), AuthenticatedEncryption::AUTH_DECRYPT_OK);
+	EXPECT_EQ(authenticated_encryption.decrypt(encrypted_message, &decrypted_message), SecretKeyCryptography::AUTH_DECRYPT_OK);
 	printf("decrypt message duration: %s\n", time_used.string().data());
 
 	EXPECT_EQ(std::string((const char*)*decrypted_message, decrypted_message->size()), test_message);

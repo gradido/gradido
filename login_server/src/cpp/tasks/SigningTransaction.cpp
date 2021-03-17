@@ -1,4 +1,7 @@
+#include <inttypes.h>
+
 #include "SigningTransaction.h"
+
 
 #include <google/protobuf/text_format.h>
 
@@ -7,8 +10,6 @@
 #include "../SingletonManager/SingletonTaskObserver.h"
 
 #include "../lib/Profiler.h"
-
-#include "../proto/gradido/Transaction.pb.h"
 
 #include "sodium.h"
 
@@ -20,10 +21,16 @@
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 
+// stuff for hedera transaction
+#include "../controller/HederaAccount.h"
+#include "../controller/HederaRequest.h"
+#include "../model/hedera/TransactionBody.h"
+#include "../model/hedera/Transaction.h"
+
 SigningTransaction::SigningTransaction(
 	Poco::AutoPtr<ProcessingTransaction> processingeTransaction,
-	Poco::AutoPtr<controller::User> newUser
-	, bool sendErrorsToAdmin/* = true*/)
+	Poco::AutoPtr<controller::User> newUser,
+	bool sendErrorsToAdmin/* = true*/)
 	: mProcessingeTransaction(processingeTransaction), mNewUser(newUser), mSendErrorsToAdminEmail(sendErrorsToAdmin)
 {
 	auto ob = SingletonTaskObserver::getInstance();
@@ -90,9 +97,12 @@ int SigningTransaction::run() {
 		}
 	}
 	// get body bytes
-	model::messages::gradido::Transaction transaction;
-	auto bodyBytes = transaction.mutable_bodybytes();
-	*bodyBytes = mProcessingeTransaction->getBodyBytes();
+	proto::gradido::GradidoTransaction transaction;
+	auto bodyBytes = transaction.mutable_body_bytes();
+	auto transaction_body = mProcessingeTransaction->getTransactionBody();
+	if (!transaction_body.isNull()) {
+		*bodyBytes = transaction_body->getBodyBytes();
+	}
 	if (*bodyBytes == "") {
 		getErrors(mProcessingeTransaction);
 		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
@@ -126,7 +136,7 @@ int SigningTransaction::run() {
 	}
 	*/
 	// add to message
-	auto sigMap = transaction.mutable_sigmap();
+	auto sigMap = transaction.mutable_sig_map();
 	auto sigPair = sigMap->add_sigpair();
 
 	auto pubkeyBytes = sigPair->mutable_pubkey();
@@ -141,7 +151,7 @@ int SigningTransaction::run() {
 	/*std::string protoPrettyPrint;
 	google::protobuf::TextFormat::PrintToString(transaction, &protoPrettyPrint);
 	printf("transaction pretty: %s\n", protoPrettyPrint.data());
-	model::messages::gradido::TransactionBody transactionBody;
+	proto::gradido::TransactionBody transactionBody;
 	transactionBody.MergeFromString(transaction.bodybytes());
 	google::protobuf::TextFormat::PrintToString(transactionBody, &protoPrettyPrint);
 	printf("transaction body pretty: \n%s\n", protoPrettyPrint.data());
@@ -154,6 +164,42 @@ int SigningTransaction::run() {
 		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -6;
 	}
+
+	auto network_type = ServerConfig::HEDERA_TESTNET;
+	auto topic_id = controller::HederaId::find(1, network_type);
+	auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
+	
+	/*if (!topic_id.isNull() && !hedera_operator_account.isNull()) {
+		auto crypto_key = hedera_operator_account->getCryptoKey();
+		if (!crypto_key.isNull()) {
+			model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
+			consensus_submit_message.setMessage(finalTransactionBin);
+			auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
+			hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
+			model::hedera::Transaction hedera_transaction;
+			hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
+
+			HederaRequest hedera_request;
+			HederaTask    hedera_task;// placeholder
+			if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, &hedera_task)) {
+				addError(new Error("SigningTransaction", "error send transaction to hedera"));
+				getErrors(&hedera_request);
+				sendErrorsAsEmail();
+			}
+			else {
+				auto hedera_precheck_code_string = hedera_task.getTransactionResponse()->getPrecheckCodeString();
+				auto cost = hedera_task.getTransactionResponse()->getCost();
+				printf("hedera response: %s, cost: %" PRIu64 "\n", hedera_precheck_code_string.data(), cost);
+			}
+			//model::hedera::TransactionBody hedera_transaction_body()
+		}
+		else {
+			printf("[SigningTransaction] crypto key not found\n");
+		}
+	}
+	else {
+		printf("[SigningTransaction] hedera topic id or operator account not found\n");
+	}*/
 
 	// finale to base64
 	auto finalBase64Size = sodium_base64_encoded_len(finalTransactionBin.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
@@ -269,7 +315,7 @@ int SigningTransaction::run() {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));
 		addError(new ParamError("SigningTransaction", "url", ServerConfig::g_php_serverHost.data()));
 		addError(new ParamError("SigningTransaction", "choose_ssl", choose_ssl));
-		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail(););
 		return -8;
 	}
 	

@@ -80,6 +80,11 @@ namespace UniLib {
 							return;
 						}
 					}
+					catch (Poco::NullPointerException& e) {
+						threadUnlock();
+						printf("[Thread::%s] NULL pointer exception\n", __FUNCTION__);
+						return;
+					}
 					catch (Poco::Exception& e) {
 						//unlock mutex and exit
 						threadUnlock();

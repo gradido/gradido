@@ -10,18 +10,18 @@
 <%
 	const char* pageName = "Error";
 	response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-	Poco::AutoPtr<User> user;
+	Poco::AutoPtr<controller::User> user;
 	if(mSession) {
-		auto user = mSession->getUser();
+		auto user = mSession->getNewUser();
 	}
 %><%@ include file="header_old.cpsp" %>
 <div class="grd_container">
 	<h2>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h2>
 	<% if(mSession) { %>
-		<%= mSession->getErrorsHtml() %>
+		<%= mSession->getErrorsHtmlNewFormat() %>
 	<% } %>
 	<% if(!user.isNull()) {%>
-		<%= user->getErrorsHtml() %> 
+		<%= user->getModel()->getErrorsHtmlNewFormat() %> 
 	<% } %>
 </div>
 <%@ include file="footer.cpsp" %>

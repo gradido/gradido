@@ -1,0 +1,351 @@
+<%@ page class="AdminHederaAccountPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+
+#include "../controller/HederaAccount.h"
+#include "../controller/HederaId.h"
+#include "../controller/CryptoKey.h"
+#include "../lib/DataTypeConverter.h"
+#include "../lib/Profiler.h"
+#include "../lib/Success.h"
+#include "../SingletonManager/SessionManager.h"
+
+#include "../ServerConfig.h"
+
+#include "Poco/URI.h"
+
+%>
+<%%
+	const char* pageName = "Hedera Account";
+	auto sm = SessionManager::getInstance();
+	auto mm = MemoryManager::getInstance();
+	auto user = mSession->getNewUser();
+	int auto_renew_period = 604800; // 7 Tage
+	int auto_renew_account = 0;
+	double initial_balance = 0.0;
+	Profiler hedera_time;
+	std::string hedera_time_string;
+	
+	Poco::URI uri(request.getURI());
+	auto uri_query = uri.getQueryParameters();
+	std::string action = "";
+	Poco::AutoPtr<controller::HederaAccount> query_hedera_account;
+	
+	// parsing get query params
+	if(uri_query.size() >= 2) {
+		if(uri_query[0].first == "action") {
+			action = uri_query[0].second;
+		}
+		if(uri_query[1].first == "account_id") {
+			std::string account_id_from_query;
+			int account_id = 0;
+			account_id_from_query = uri_query[1].second;
+			if(DataTypeConverter::strToInt(account_id_from_query, account_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting account_id_from_query to int"));
+			} else {
+				auto hedera_accounts = controller::HederaAccount::load("id", account_id);
+				if(!hedera_accounts.size() || hedera_accounts[0].isNull()) {
+					addError(new Error("Action", "hedera account not found"));
+				} else {
+				  query_hedera_account = hedera_accounts[0];
+				}
+			}
+		}
+	}
+	// actions
+	if(!query_hedera_account.isNull()) 
+	{
+		if(action == "updateBalance") 
+		{
+			hedera_time.reset();
+			if(query_hedera_account->hederaAccountGetBalance(user)) {
+				addNotification(new ParamSuccess("Hedera", "crypto get balance success in ", hedera_time.string()));
+			} else {
+				addError(new ParamError("Hedera", "crypto get balance failed in ", hedera_time.string()));
+			}
+		} 
+		else if(action == "changeEncryption") 
+		{
+			if(query_hedera_account->changeEncryption(user)) {
+				addNotification(new Success("Hedera Account", "success in changing encryption"));
+			}
+		}
+	}
+	else if(!form.empty())  // add or create 
+	{
+		auto creationButton = form.get("create","");
+		if(creationButton != "") {
+		
+			// collect 
+			auto auto_renew_account_string = form.get("account-auto-renew-account", "0");
+			auto auto_renew_period_string = form.get("account-auto-renew-period", "604800");
+			auto account_initial_balance_string = form.get("account-initial-balance", "0");
+			
+			if(!sm->isValid(auto_renew_account_string, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Account", "auto renew account id not an integer"));
+			} else {
+				if(DataTypeConverter::strToInt(auto_renew_account_string, auto_renew_account) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int convert error", "Error converting auto renew account id to int"));
+				}
+			}
+			
+			if(!sm->isValid(auto_renew_period_string, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Account", "auto renew period not an integer"));
+			} else {
+				if(DataTypeConverter::strToInt(auto_renew_period_string, auto_renew_period) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int convert error", "Error converting auto renew period to int"));
+				}
+			}
+			
+			if(!sm->isValid(account_initial_balance_string, VALIDATE_ONLY_DECIMAL)) {
+				addError(new Error("Account", "initial balance not an decimal"));
+			} else {
+				if(DataTypeConverter::strToDouble(account_initial_balance_string, initial_balance) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Double convert error", "Error converting initial balance to double"));
+				}
+			}
+			if(0 == errorCount()) 
+			{
+			}
+			
+		} else {
+		
+			// collect
+			auto shardNumString = form.get("account-shard-num", "0");
+			auto realmNumString = form.get("account-realm-num", "0");
+			auto numString      = form.get("account-num", "0");
+			auto privateKeyString = form.get("account-private-key", "");
+			auto privateKeyEncryptedString = form.get("account-private-key-encrypted", "false");
+			auto publicKeyString = form.get("account-public-key", "");
+			auto networkTypeString = form.get("account-network-type", "0");
+			
+			//printf("private key encrypted: %s\n", privateKeyEncryptedString.data());
+			
+			int shardNum = 0;
+			int realmNum = 0;
+			int num = 0;
+			int networkType = 0;
+			
+			MemoryBin* private_key = nullptr;
+			MemoryBin* public_key = nullptr;
+			
+			// validate
+			if(!sm->isValid(shardNumString, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Account ID", "shard num not integer"));
+			} else {
+				if(DataTypeConverter::strToInt(shardNumString, shardNum) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int Convert Error", "Error converting shardNumString to int"));
+				}
+			}
+			if(!sm->isValid(realmNumString, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Account ID", "realm num not integer"));
+			} else {
+				if(DataTypeConverter::strToInt(realmNumString, realmNum) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int Convert Error", "Error converting realmNumString to int"));
+				}
+			}
+			if(!sm->isValid(numString, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Account ID", "num not integer"));
+			} else {
+				if(DataTypeConverter::strToInt(numString, num) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int Convert Error", "Error converting num to int"));
+				}
+			}
+			if(!sm->isValid(privateKeyString, VALIDATE_ONLY_HEX)) {
+				addError(new Error("Account Keys", "private key not hex"));
+			}
+			if(!sm->isValid(publicKeyString, VALIDATE_ONLY_HEX)) {
+				addError(new Error("Account Keys", "public key not hex"));
+			}
+			if(!sm->isValid(networkTypeString, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Network Type", "not integer"));
+			} else {
+				if(DataTypeConverter::strToInt(networkTypeString, networkType) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int Convert Error", "Error converting network type to int"));
+				}
+				if(networkType < 0 || networkType >= (int)ServerConfig::HEDERA_NET_COUNT) {
+					addError(new Error("Network Type", "invalid value"));
+				}
+			}
+			
+			if(0 == errorCount()) {
+			
+				auto hedera_id = controller::HederaId::create(shardNum, realmNum, num);
+				
+				private_key = DataTypeConverter::hexToBin(privateKeyString);
+				public_key  = DataTypeConverter::hexToBin(publicKeyString);
+				
+				
+				KeyPairHedera key_pair(private_key, public_key);
+				auto crypto_key = controller::CryptoKey::load(key_pair.getPublicKey(), crypto_sign_PUBLICKEYBYTES);
+				
+				if(crypto_key.isNull()) {
+					crypto_key = controller::CryptoKey::create(&key_pair, user, privateKeyEncryptedString == "true");
+					if(!crypto_key->getModel()->insertIntoDB(true)) {
+						addError(new Error("DB Error", "Error saving crypto key in DB"));
+					}
+				} else {
+					printf("crypto key found in db\n");
+				}
+				if(0 == errorCount()) {
+					
+					if(hedera_id->isExistInDB()) {
+						auto hedera_account = controller::HederaAccount::load(hedera_id);
+						if(hedera_account.isNull()) {
+							addError(new Error("DB Error", "Couldn't load hedera account from db, but it should exist"));
+						} else {
+							addError(new Error("Hedera Account", "Account already exist (same account id"));
+						}
+						
+					} else {
+						auto hedera_account = controller::HederaAccount::create(
+							user->getModel()->getID(),
+							hedera_id->getModel()->getID(),
+							crypto_key->getModel()->getID(),
+							0,
+							(ServerConfig::HederaNetworkType)networkType
+						);
+						if(!hedera_account->getModel()->insertIntoDB(false)) {
+							addError(new Error("DB Error", "Error saving hedera account into DB"));
+						}
+					}
+				}
+				
+				mm->releaseMemory(private_key);
+				mm->releaseMemory(public_key);
+			}
+		}
+	}	
+	if(!query_hedera_account.isNull()) {
+		getErrors(query_hedera_account);
+	}
+	// list accounts
+	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
+	
+%><%@ include file="header_large.cpsp" %>
+<style type="text/css">
+	.center-form-form .input-40 {
+		margin-left:0;
+		width:40%;
+		display:inline-block;
+	}
+	
+</style>
+<%= getErrorsHtml() %>
+
+<div class="center-form-container">
+	<div class="content-list">
+		<div class="content-list-title">
+			<h2>Deine Hedera Accounts</h2>
+		</div>	
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c2">Hedera Id</div>			
+				<div class="cell header-cell c3">Balance</div>
+				<div class="cell header-cell c2">Server Type</div>
+				<div class="cell header-cell c3">Verschlüsselt?</div>
+				<div class="cell header-cell c3">Last Updated</div>
+				<div class="cell header-cell c5">Aktionen</div>
+			</div>
+			<% for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) {
+					auto hedera_account_model = (*it)->getModel();  
+					auto updateUrl = ServerConfig::g_serverPath + "/hedera_account?action=updateBalance&account_id=" + std::to_string(hedera_account_model->getID());
+					std::string changeEncryption("");
+					if(hedera_account_model->getUserId() == user->getModel()->getID()) {
+						changeEncryption = ServerConfig::g_serverPath + "/hedera_account?action=changeEncryption&account_id=" + std::to_string(hedera_account_model->getID());
+					}
+					auto isEncrypted = (*it)->getCryptoKey()->getModel()->isEncrypted();
+					//printf("change encryption: %s\n", changeEncryption.data());
+					
+					std::string kabuto_url = "https://explorer.kabuto.sh/";;
+					
+					if(hedera_account_model->getNetworkType() == ServerConfig::HEDERA_TESTNET) {
+						kabuto_url += "testnet/";
+					} else if(hedera_account_model->getNetworkType() == ServerConfig::HEDERA_MAINNET) {
+						kabuto_url += "mainnet/";
+					}
+					kabuto_url += "id/";
+					auto hedera_id_string = (*it)->getHederaId()->getModel()->toString();
+					kabuto_url += hedera_id_string;
+					%>
+				<div class="row">
+					<div class="cell c2"><a href="<%= kabuto_url %>" title="Hedera Block Explorer - Kabuto"  target="_blank"><%= hedera_id_string %></a></div>
+					<div class="cell c3"><%= hedera_account_model->getBalanceString() %></div>
+					<div class="cell c2"><%= model::table::HederaAccount::hederaNetworkTypeToString(hedera_account_model->getNetworkType()) %></div>
+					<div class="cell c3 <%= isEncrypted ? "success-color" : "alert-color"%>"><%= isEncrypted ? "Ja": "Nein" %></div>
+					<div class="cell c3"><%= hedera_account_model->getUpdatedString() %></div>
+					<div class="cell c5">
+						<button class="form-button" title="Anfrage an Hedera, aktuell kostenlos" onclick="window.location.href='<%= updateUrl %>'"  >
+							Update Balance
+						</button>
+						<% if(changeEncryption != "") { %>
+							<button class="form-button" title="Ändere den Verschlüsselungsstatus des Private Keys in der Datenbank" onclick="window.location.href='<%= changeEncryption %>'">
+								Change Encryption
+							</button>
+						<% } %>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	<div class="center-form-title">
+	    <h3>Ein existierenden Account eintragen</h3>
+	</div>
+	<div class="center-form-form">
+		<form method="POST" action="<%= ServerConfig::g_serverPath %>/hedera_account">
+			<label class="form-label">Hedera Account ID</label>
+			<input class="form-control" id="account-shard-num" placeholder="shard" type="number" name="account-shard-num"/>
+			<input class="form-control" id="account-realm-num" placeholder="realm" type="number" name="account-realm-num"/>
+			<input class="form-control" id="account-num" placeholder="num" type="number" name="account-num"/>
+			<label class="form-label" for="account-private-key">Private Key</label>
+			<input class="form-control" id="account-private-key" type="text" name="account-private-key"/>
+			<label class="form-label" for="account-private-key-encrypted" title="Wenn er verschlüsselt ist, kannst nur du Hedera Transaktionen damit bezahlen, wenn er nicht verschlüsselt ist kann er für alle Hedera Transaktionen automatisch verwendet werden. Ich empfehle dafür ein separates Konto mit wenigen Hashbars anzulegen.">Private Key verschlüsseln?</label>
+			<input class="form-control" id="account-private-key-encrypted" type="checkbox" name="account-private-key-encrypted" value="true"/>
+			<label class="form-label" for="account-public-key">Public Key</label>
+			<input class="form-control" id="account-public-key" type="text" name="account-public-key"/>
+			<label class="form-label" for="account-network-type">Network Type</label>
+			<select class="form-control" name="account-network-type" id="account-network-type">
+			<% for(int i = 0; i < ServerConfig::HEDERA_NET_COUNT; i++) { %>
+				<option value="<%= i %>"><%= model::table::HederaAccount::hederaNetworkTypeToString((ServerConfig::HederaNetworkType)i) %></option>
+			<% } %>
+			</select>
+			<input class="center-form-submit form-button" type="submit" name="add" value="<%= gettext("Add Account") %>">
+		</form>
+	</div>
+	<div class="center-form-title">
+		<h3>Ein neuen Account anlegen</h3>
+		<p>Bei Hedera einen neuen Account anlegen und zum Start Hashbars von einem existierenden Account überweisen.</p>
+	</div>
+	<div class="center-form-form">
+		<form method="POST" action="<%= ServerConfig::g_serverPath %>/hedera_account">
+			<label class="form-label" for="account-auto-renew-account">Auto Renew and Founding Hedera Account</label>
+			<select name="account-auto-renew-account" id="account-auto-renew-account">
+				<% for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) { 
+					auto model = (*it)->getModel();
+				%>
+					<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(auto_renew_account == model->getID()) {%>selected="selected"<% } %>><%= (*it)->toShortSelectOptionName() %></option>
+				<% } %>
+			</select>
+			<label class="form-label" for="account-auto-renew-period">Auto Renew Period in seconds</label>
+			<div><input class="form-control input-40" id="account-auto-renew-period" value="<%= auto_renew_period %>" type="number" name="account-auto-renew-period"/><span style="margin-left:8px" id="readable-auto-renew-period"></span><div>
+			<label class="form-label" for="account-initial-balance">Initial Balance for new Account (taken from founding account)</label>
+			<input class="form-control" id="account-initial-balance" name="account-initial-balance" type="number" step="0.00000001" value="<%= std::to_string(initial_balance) %>" />
+			<input class="center-form-submit form-button" type="submit" name="create" value="<%= gettext("Create Account") %>">
+		</form>
+	</div>
+</div>
+<%@ include file="footer.cpsp" %>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/time_calculations.js"></script>
+<script type="text/javascript">
+	var input = document.getElementById("account-auto-renew-period");
+	var span = document.getElementById("readable-auto-renew-period");
+	span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	input.addEventListener('keyup', function(e) {
+		span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	});
+	
+</script>

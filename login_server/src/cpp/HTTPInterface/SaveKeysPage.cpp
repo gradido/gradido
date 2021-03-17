@@ -40,7 +40,8 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	const char* pageName = "Daten auf Server speichern?";
 	bool hasErrors = mSession->errorCount() > 0;
 	// crypto key only in memory, if user has tipped in his passwort in this session
-	bool hasPassword = mSession->getUser()->hasCryptoKey();
+	auto user = mSession->getNewUser();
+	bool hasPassword = user->getModel()->hasPrivateKeyEncrypted();
 	PageState state = PAGE_ASK;
 	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
 	
@@ -161,11 +162,11 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Daten speichern</h1>\n";
 	responseStream << "\t";
-#line 75 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t";
-#line 76 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  if(state == PAGE_ASK) { 	responseStream << "\n";
 	responseStream << "\t<form method=\"POST\">\n";
 	responseStream << "\t\t<fieldset>\n";
@@ -180,7 +181,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t\t<label class=\"grd_radio_label\" for=\"save-privkey-yes\">Ja, bitte speichern!</label>\n";
 	responseStream << "\t\t\t</p>\n";
 	responseStream << "\t\t\t";
-#line 89 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  if(!hasPassword) { 	responseStream << "\n";
 	responseStream << "\t\t\t\t<p>Ich brauche nochmal dein Passwort wenn du dich für ja entscheidest.</p>\n";
 	responseStream << "\t\t\t\t<p class=\"grd_small\">\n";
@@ -188,7 +189,7 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t\t\t<input id=\"save-privkey-password\" type=\"password\" name=\"save-privkey-password\"/>\n";
 	responseStream << "\t\t\t\t</p>\n";
 	responseStream << "\t\t\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t\t<p class=\"grd_small\">\n";
 	responseStream << "\t\t\t\t<input id=\"save-privkey-no\" type=\"radio\" name=\"save-privkey\" value=\"no\"/>\n";
@@ -213,15 +214,15 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t<input class=\"grd-form-bn grd-form-bn-succeed\" type=\"submit\" value=\"Speichern\">\n";
 	responseStream << "\t</form>\n";
 	responseStream << "\t";
-#line 118 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 119 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } else if(state == PAGE_SHOW_PUBKEY) { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\t<p>";
-#line 120 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( gettext("Daten gespeichert!") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t<p>";
-#line 121 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 122 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( gettext("Deine Daten wurden verschlüsselt und gespeichert.") );
 	responseStream << "</p>\n";
 	responseStream << "\t\t\t<!--<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>-->\n";
@@ -229,27 +230,27 @@ void SaveKeysPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Ne
 	responseStream << "\t\t\t<!--<p>Deine Gradido Adresse (Hex): </p>\n";
 	responseStream << "\t\t\t<p class=\"grd_textarea\">\n";
 	responseStream << "\t\t\t\t";
-#line 126 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
-	responseStream << ( mSession->getUser()->getPublicKeyHex() );
+#line 127 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+	responseStream << ( user->getModel()->getPublicKeyHex() );
 	responseStream << "\n";
 	responseStream << "\t\t\t</p>-->\n";
 	responseStream << "\t\t\t<a class=\"grd-form-bn\" href=\"";
-#line 128 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 129 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( uri_start );
 	responseStream << "\">Zur&uuml;ck zur Startseite</a>\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 130 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 131 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } else if(state == PAGE_ERROR) { 	responseStream << "\n";
 	responseStream << "\t\t<div class=\"grd_text\">\n";
 	responseStream << "\t\t\t<p>Ein Fehler trat auf, bitte versuche es erneut oder wende dich an den Server-Admin</p>\n";
 	responseStream << "\t\t\t";
-#line 133 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 134 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
 	responseStream << ( mSession->getSessionStateString() );
 	responseStream << "\n";
 	responseStream << "\t\t</div>\n";
 	responseStream << "\t";
-#line 135 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
+#line 136 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\saveKeys.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</div>\n";
 	// begin include footer.cpsp

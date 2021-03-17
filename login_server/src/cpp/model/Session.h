@@ -10,8 +10,7 @@
 #ifndef DR_LUA_WEB_MODULE_SESSION_SESSION_H
 #define DR_LUA_WEB_MODULE_SESSION_SESSION_H
 
-#include "../lib/ErrorList.h"
-#include "User.h"
+#include "../lib/NotificationList.h"
 #include "../controller/User.h"
 
 #include "../lib/MultithreadContainer.h"
@@ -50,12 +49,11 @@ enum SessionStates {
 };
 
 class SessionManager;
-
 class UpdateUserPasswordPage;
 class PassphrasePage;
 class RepairDefectPassphrase;
 
-class Session : public ErrorList, public UniLib::lib::MultithreadContainer
+class Session : public NotificationList, public UniLib::lib::MultithreadContainer
 {
 	friend WriteEmailVerification;
 	friend SessionManager;
@@ -74,29 +72,20 @@ public:
 	inline Poco::AutoPtr<controller::User> getNewUser() { return mNewUser; }
 
 	// ----------------  User functions ----------------------------
-	// TODO: register state: written into db, mails sended, update state only if new state is higher as old state
-	// create User send e-mail activation link
-	bool createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
 
 	//! \brief new register function, without showing user pubkeys, using controller/user
-	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password);
+	bool createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, const std::string &baseUrl);
 
 
 	// adminRegister without passwort
-	bool adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email);
+	bool adminCreateUser(const std::string& first_name, const std::string& last_name, const std::string& email, int group_id, const std::string &baseUrl);
 
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
-	UserStates loadUser(const std::string& email, const std::string& password);
+	UserState loadUser(const std::string& email, const std::string& password);
 	bool ifUserExist(const std::string& email);
-
-	inline void setUser(Poco::AutoPtr<User> user) { mSessionUser = user; }
-	
 	
 	bool deleteUser();
 
-	Poco::AutoPtr<User> getUser() {
-		return mSessionUser;
-	}
 
 	// ------------------------- Email Verification Code functions -------------------------------
 
@@ -112,13 +101,13 @@ public:
 	//! \return 1 = reset password email already send
 	//! \return 2 = reset password email already shortly before
 	//! \return 0 = ok
-	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized);
+	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized, const std::string &baseUrl);
 	// 
 	//! \return 0 = not the same
 	//! \return 1 = same
 	//! \return -1 = error
 	//!  \return -2 = critical error
-	int comparePassphraseWithSavedKeys(const std::string& inputPassphrase, Mnemonic* wordSource);
+	int comparePassphraseWithSavedKeys(const std::string& inputPassphrase, const Mnemonic* wordSource);
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
@@ -133,14 +122,13 @@ public:
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
 	
 	inline const std::string& getOldPassphrase() { return mPassphrase; }
-	bool generatePassphrase();
+	
 	bool generateKeys(bool savePrivkey, bool savePassphrase);
 
 	inline void setClientIp(Poco::Net::IPAddress ip) { mClientLoginIP = ip; }
 	inline Poco::Net::IPAddress getClientIp() { return mClientLoginIP; }
 	 
 	inline bool isIPValid(Poco::Net::IPAddress ip) { return mClientLoginIP == ip; }
-	bool isPwdValid(const std::string& pwd);
 	void reset();
 
 	void updateState(SessionStates newState);
@@ -193,6 +181,9 @@ public:
 	inline void setLastReferer(const std::string& lastReferer) { mLastExternReferer = lastReferer; }
 	inline const std::string& getLastReferer() const { return mLastExternReferer; }
 
+	inline void setCallerUri(const std::string& callerUri) { mCallerUri = callerUri; }
+	inline const std::string& getCallerUri() { return mCallerUri; }
+
 protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
@@ -205,13 +196,14 @@ protected:
 
 private: 
 	int mHandleId;
-	Poco::AutoPtr<User> mSessionUser;
 	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
 	Poco::AutoPtr<Passphrase> mNewPassphrase;
 	Poco::DateTime mLastActivity;
 	Poco::Net::IPAddress mClientLoginIP;
 	std::string          mLastExternReferer;
+	//! should be used by vue-client and similar clients
+	std::string			 mCallerUri;
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 	std::shared_mutex	 mSharedMutex;
 
@@ -225,44 +217,6 @@ private:
 	Poco::AutoPtr<LanguageCatalog> mLanguageCatalog;
 };
 
-
-class WriteEmailVerification : public UniLib::controller::CPUTask
-{
-public:
-	WriteEmailVerification(Poco::AutoPtr<User> user, Poco::AutoPtr<controller::EmailVerificationCode> emailVerificationCode, UniLib::controller::CPUSheduler* cpuScheduler, size_t taskDependenceCount = 0)
-		: UniLib::controller::CPUTask(cpuScheduler, taskDependenceCount), mUser(user), mEmailVerificationCode(emailVerificationCode) {
-#ifdef _UNI_LIB_DEBUG
-		setName(user->getEmail());
-#endif
-	}
-
-	virtual const char* getResourceType() const { return "WriteEmailVerification"; };
-	virtual int run();
-
-private:
-	Poco::AutoPtr<User> mUser;
-	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCode;
-
-};
-
-class WritePassphraseIntoDB : public UniLib::controller::CPUTask
-{
-public:
-	WritePassphraseIntoDB(int userId, const std::string& passphrase)
-		: mUserId(userId), mPassphrase(passphrase) {
-#ifdef _UNI_LIB_DEBUG
-		setName(std::to_string(userId).data());
-#endif
-	}
-
-
-	virtual int run();
-	virtual const char* getResourceType() const { return "WritePassphraseIntoDB"; };
-
-protected:
-	int mUserId;
-	std::string mPassphrase;
-};
 
 class SessionStateUpdateCommand : public UniLib::controller::Command
 {

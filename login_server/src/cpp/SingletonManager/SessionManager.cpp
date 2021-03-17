@@ -44,10 +44,17 @@ bool SessionManager::init()
 		switch (i) {
 		//case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("/^[a-zA-Z_ -]{3,}$/"); break;
 		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[^<>&;]{3,}$"); break;
-		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
+		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&ï¿½*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
 		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-_])[A-Za-z0-9@$!%*?&+-_]{8,}$"); break;
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
+		case VALIDATE_GROUP_ALIAS: mValidations[i] = new Poco::RegularExpression("^[a-z0-9-]{3,120}"); break;
+		case VALIDATE_HEDERA_ID: mValidations[i] = new Poco::RegularExpression("^[0-9]*\.[0-9]*\.[0-9]\.$"); break;
 		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression(".*[0-9].*"); break;
+		case VALIDATE_ONLY_INTEGER: mValidations[i] = new Poco::RegularExpression("^[0-9]*$"); break;
+		case VALIDATE_ONLY_DECIMAL: mValidations[i] = new Poco::RegularExpression("^[0-9]*(\.|,)[0-9]*$"); break;
+		case VALIDATE_ONLY_HEX: mValidations[i] = new Poco::RegularExpression("^(0x)?[a-fA-F0-9]*$"); break;
+		//case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$"); break;
+		case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/?"); break;
 		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[@$!%*?&+-].*"); break;
 		case VALIDATE_HAS_UPPERCASE_LETTER: 
 			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*"); 
@@ -171,7 +178,7 @@ Session* SessionManager::getNewSession(int* handle)
 				}
 			}
 			else {
-				ErrorList errors;
+				NotificationList errors;
 				errors.addError(new Error(functionName, "found dead locked session, keeping in memory without reference"));
 				errors.addError(new ParamError(functionName, "last succeeded lock:", result->getLastSucceededLock().data()));
 				errors.sendErrorsAsEmail();
@@ -232,11 +239,14 @@ bool SessionManager::releaseSession(int requestHandleSession)
 	}
 	Session* session = it->second;
 
+
 	// delete session, not reuse as workaround for server freeze bug
 	mRequestSessionMap.erase(requestHandleSession);
 	delete session;
 	mWorkingMutex.unlock();
 	return true;
+
+
 
 	// check if dead locked
 	if (session->tryLock()) {
@@ -245,7 +255,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		session->setActive(false);
 	}
 	else {
-		ErrorList errors;
+		NotificationList errors;
 		errors.addError(new Error("SessionManager::releaseSession", "found dead locked session"));
 		errors.sendErrorsAsEmail();
 		mRequestSessionMap.erase(requestHandleSession);
@@ -354,6 +364,7 @@ Session* SessionManager::getSession(int handle)
 	//mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
 	if (it != mRequestSessionMap.end()) {
+		//printf("[SessionManager::getSession] found existing session, try if active...\n");
 		result = it->second;
 		int iResult = result->isActive();
 		if (iResult == -1) {
@@ -489,9 +500,9 @@ Session* SessionManager::findByEmail(const std::string& email)
 			mDeadLockedSessionCount++;
 		}
 		auto user = it->second->getNewUser();
-if (email == user->getModel()->getEmail()) {
-	return it->second;
-}
+		if (email == user->getModel()->getEmail()) {
+			return it->second;
+		}
 	}
 	mWorkingMutex.unlock();
 	return nullptr;
@@ -499,12 +510,11 @@ if (email == user->getModel()->getEmail()) {
 
 void SessionManager::checkTimeoutSession()
 {
-
 	try {
 		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 		mWorkingMutex.tryLock(500);
 	}
-	catch (Poco::TimeoutException& ex) {
+	catch (Poco::TimeoutException &ex) {
 		printf("[SessionManager::checkTimeoutSession] exception timeout mutex: %s\n", ex.displayText().data());
 		return;
 	}
@@ -515,7 +525,6 @@ void SessionManager::checkTimeoutSession()
 	//auto timeout = Poco::Timespan(1, 0);
 	std::stack<int> toRemove;
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-
 		if (it->second->tryLock()) {
 			// skip already disabled sessions
 			if (!it->second->isActive()) {
@@ -587,7 +596,7 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 	//session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 }
 
-bool SessionManager::checkPwdValidation(const std::string& pwd, ErrorList* errorReciver)
+bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList* errorReciver)
 {
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		return true;

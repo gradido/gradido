@@ -1,11 +1,14 @@
 #include "User.h"
-#include "UserBackups.h"
+#include "UserBackup.h"
 
 #include "sodium.h"
 
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
+
+#include "NodeServer.h"
+#include "Group.h"
 
 #include "../lib/DataTypeConverter.h"
 
@@ -21,6 +24,7 @@ namespace controller {
 		: mPassword(nullptr), mGradidoKeyPair(nullptr), mCanDecryptPrivateKey(false), mGradidoCurrentBalance(0)
 	{
 		mDBModel = dbModel;
+		
 	}
 
 	User::~User()
@@ -39,9 +43,9 @@ namespace controller {
 		return Poco::AutoPtr<User>(user);
 	}
 
-	Poco::AutoPtr<User> User::create(const std::string& email, const std::string& first_name, const std::string& last_name, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
+	Poco::AutoPtr<User> User::create(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
 	{
-		auto db = new model::table::User(email, first_name, last_name, passwordHashed, languageKey);
+		auto db = new model::table::User(email, first_name, last_name, group_id, passwordHashed, languageKey);
 		auto user = new User(db);
 		return Poco::AutoPtr<User>(user);
 	}
@@ -82,6 +86,28 @@ namespace controller {
 		Poco::Data::BLOB pubkey(pubkey_array, 32);
 		return getModel()->loadFromDB("pubkey", pubkey);
 	}
+
+	int User::load(MemoryBin* emailHash)
+	{
+		Poco::Data::BLOB email_hash(*emailHash, crypto_generichash_BYTES);
+		return getModel()->loadFromDB("email_hash", email_hash);
+	}
+	Poco::AutoPtr<User> User::sload(int user_id)
+	{
+		auto db = new model::table::User();
+		if (0 == db->loadFromDB("id", user_id)) {
+			delete db;
+			return nullptr;
+		}
+		auto user = new User(db);
+		return Poco::AutoPtr<User>(user);
+	}
+	
+	void User::reload()
+	{
+		getModel()->loadFromDB("id", getModel()->getID());
+	}
+
 
 	const std::string& User::getPublicHex()
 	{
@@ -144,7 +170,7 @@ namespace controller {
 			return -3;
 		}
 		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
-		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
+		Poco::AutoPtr<SecretKeyCryptography> authenticated_encryption(new SecretKeyCryptography);
 		assert(!authenticated_encryption.isNull() && model);
 		authenticated_encryption->createKey(model->getEmail(), password);
 
@@ -163,7 +189,7 @@ namespace controller {
 			}
 			else 
 			{
-				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+				if (SecretKeyCryptography::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair) {
 						if (mGradidoKeyPair->isTheSame(clear_private_key) == 0) {
 							mCanDecryptPrivateKey = true;
@@ -225,7 +251,7 @@ namespace controller {
 		auto email_hash = observer->makeHash(model->getEmail());
 
 		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
-		Poco::AutoPtr<AuthenticatedEncryption> authenticated_encryption(new AuthenticatedEncryption);
+		Poco::AutoPtr<SecretKeyCryptography> authenticated_encryption(new SecretKeyCryptography);
 		assert(!authenticated_encryption.isNull() && model);
 		authenticated_encryption->createKey(model->getEmail(), password);
 
@@ -234,7 +260,7 @@ namespace controller {
 	}
 
 
-	int User::setNewPassword(Poco::AutoPtr<AuthenticatedEncryption> passwd) 
+	int User::setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd) 
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		auto model = getModel();
@@ -249,7 +275,7 @@ namespace controller {
 			if ((!mGradidoKeyPair || !mGradidoKeyPair->hasPrivateKey()) && model->hasPrivateKeyEncrypted()) {
 				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
 				MemoryBin* clear_private_key = nullptr;
-				if (AuthenticatedEncryption::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
+				if (SecretKeyCryptography::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair && mGradidoKeyPair->isTheSame(clear_private_key) != 0) 
 					{
 						delete mGradidoKeyPair; 
@@ -299,7 +325,7 @@ namespace controller {
 		auto user_model = getModel();
 		if (user_model->getID() <= 0) return -2;
 
-		auto backups = UserBackups::load(user_model->getID());
+		auto backups = UserBackup::load(user_model->getID());
 		if (backups.size() == 0) return -1;
 		for (auto it = backups.begin(); it != backups.end(); it++) {
 			auto user_backup = *it;
@@ -320,6 +346,41 @@ namespace controller {
 			delete key_pair;
 		}
 		return -1;
+	}
+
+	/*
+	USER_EMPTY,
+	USER_LOADED_FROM_DB,
+	USER_PASSWORD_INCORRECT,
+	USER_PASSWORD_ENCRYPTION_IN_PROCESS,
+	USER_EMAIL_NOT_ACTIVATED,
+	USER_NO_KEYS,
+	USER_NO_PRIVATE_KEY,
+	USER_NO_GROUP,
+	USER_KEYS_DONT_MATCH,
+	USER_COMPLETE,
+	USER_DISABLED
+	*/
+	UserState User::getUserState()
+	{
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+		auto model = getModel();
+		if (!model->getID() && model->getEmail() == "") {
+			return USER_EMPTY;
+		}
+		if (!model->hasPrivateKeyEncrypted() && !model->hasPublicKey()) {
+			return USER_NO_KEYS;
+		}
+		if (!model->hasPrivateKeyEncrypted()) {
+			return USER_NO_PRIVATE_KEY;
+		}
+		if (!model->getGroupId()) {
+			return USER_NO_GROUP;
+		}
+		if (!model->isEmailChecked()) {
+			return USER_EMAIL_NOT_ACTIVATED;
+		}
+		return USER_COMPLETE;
 	}
 
 
@@ -402,6 +463,107 @@ namespace controller {
 			if (count_scheduled) printf("scheduled %d verification email resend in the next 7 days\n", count_scheduled);
 		}
 		return 0;
+	}
+
+	int User::addMissingEmailHashes()
+	{
+		auto cm = ConnectionManager::getInstance();
+		auto em = ErrorManager::getInstance();
+		static const char* function_name = "User::addMissingEmailHashes";
+
+		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+		Poco::Data::Statement select(session);
+		std::vector<Poco::Tuple<int, std::string>> results;
+		
+		select << "select id, email from users "
+			<< "where email_hash IS NULL "
+			, Poco::Data::Keywords::into(results)
+			;
+		int result_count = 0;
+		try {
+			result_count = select.execute();
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError(function_name, "mysql error by select", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+			//return -1;
+		}
+		if (0 == result_count) return 0;
+		std::vector<Poco::Tuple<Poco::Data::BLOB, int>> updates;
+		// calculate hashes
+		updates.reserve(results.size());
+		unsigned char email_hash[crypto_generichash_BYTES];
+		for (auto it = results.begin(); it != results.end(); it++) {
+			memset(email_hash, 0, crypto_generichash_BYTES);
+			auto id = it->get<0>();
+			auto email = it->get<1>();
+			crypto_generichash(email_hash, crypto_generichash_BYTES,
+				(const unsigned char*)email.data(), email.size(),
+				NULL, 0);
+			updates.push_back(Poco::Tuple<Poco::Data::BLOB, int>(Poco::Data::BLOB(email_hash, crypto_generichash_BYTES), id));
+		}
+
+		// update db
+		// reuse connection, I hope it's working
+		Poco::Data::Statement update(session);
+		update << "UPDATE users set email_hash = ? where id = ?"
+			   , Poco::Data::Keywords::use(updates);
+		int updated_count = 0;
+		try {
+			updated_count = update.execute();
+		}
+		catch (Poco::Exception& ex) {
+			em->addError(new ParamError(function_name, "mysql error by update", ex.displayText().data()));
+			em->sendErrorsAsEmail();
+		}
+		return updated_count;
+	}
+
+
+	std::string User::getGroupBaseUrl()
+	{
+		UNIQUE_LOCK;
+		static const char* function_name = "User::getGroupBaseUrl";
+		if (mGroupBaseUrl != "") {
+			printf("[%s] return saved group base Url: %s\n", function_name, mGroupBaseUrl.data());
+			return mGroupBaseUrl;
+		}
+		
+		auto model = getModel();
+		if (!model->getGroupId()) {
+			printf("[%s] return ServerConfig::g_php_serverPath because no group id\n", function_name);
+			return ServerConfig::g_php_serverPath;
+		}
+		auto servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_COMMUNITY, model->getGroupId());
+		if (!servers.size()) {
+			auto group = controller::Group::load(model->getGroupId());
+			if (!group.isNull()) {
+				auto group_model = group->getModel();
+				if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+					mGroupBaseUrl = "http://" + group_model->getUrl() + group_model->getHome();
+				}
+				else {
+					mGroupBaseUrl = "https://" + group_model->getUrl() + group_model->getHome();
+				}
+				printf("[%s] return group base Url: %s from Group\n", function_name, mGroupBaseUrl.data());
+				return mGroupBaseUrl;
+			}
+			return ServerConfig::g_php_serverPath;
+		}
+		if (servers.size() > 1) {
+			auto em = ErrorManager::getInstance();
+			em->addError(new ParamError(function_name, "error, more than one community server found for group", model->getGroupId()));
+			em->sendErrorsAsEmail();
+			return ServerConfig::g_php_serverPath;
+		}
+		if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+			mGroupBaseUrl = "http://" + servers[0]->getBaseUri();
+		}
+		else {
+			mGroupBaseUrl = "https://" + servers[0]->getBaseUri();
+		}
+		printf("[%s] return group base Url: %s from NodeServer\n", function_name, mGroupBaseUrl.data());
+		return mGroupBaseUrl;
 	}
 
 }

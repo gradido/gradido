@@ -21,6 +21,7 @@ enum PageState
 	auto lm = LanguageManager::getInstance();
 	auto em = EmailManager::getInstance();
 
+	auto user = mSession->getNewUser();
 	auto lang = chooseLanguage(request);
 	auto langCatalog = lm->getFreeCatalog(lang);
 	unsigned long long verificationCode = 0;
@@ -72,10 +73,10 @@ enum PageState
         <h1><%= langCatalog->gettext("E-Mail verifizieren") %></h1>
     </div>
     <div class="center-form-form">
-      <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
+      <form action="<%= getBaseUrl() %>account/checkEmail" method="GET">
 	<% if(EMAIL_ACTIVATED == state) { %>
 		<p><%= langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") %></p>
-		<a class="link-button" href="<%= ServerConfig::g_php_serverPath %>"><%= langCatalog->gettext("Zur Startseite") %></a>
+		<a class="link-button" href="<%= getBaseUrl() %>"><%= langCatalog->gettext("Zur Startseite") %></a>
 	<% } else { %>
         <label class="form-label" for="email-verification-code"><%= langCatalog->gettext("Bitte gib deinen E-Mail Verification Code ein:")%></label>
         <input class="form-control" type="number" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>

@@ -7,11 +7,10 @@
 <%!
 #include "../SingletonManager/MemoryManager.h"
 #include "../SingletonManager/EmailManager.h"
-#include "../Crypto/KeyPair.h"
 #include "../Crypto/Passphrase.h"
 #include "../Crypto/KeyPairEd25519.h"
 #include "../lib/DataTypeConverter.h"
-#include "../controller/UserBackups.h"
+#include "../controller/UserBackup.h"
 #include "../tasks/SigningTransaction.h"
 #include "../ServerConfig.h"
 
@@ -64,7 +63,7 @@ enum PageState
 			else 
 			{	
 				mSession->setPassphrase(passphrase);
-				auto newPassphraseModel = controller::UserBackups::create(
+				auto newPassphraseModel = controller::UserBackup::create(
 					user_model->getID(),
 					passphrase->getString(),
 					ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES
@@ -140,11 +139,11 @@ enum PageState
 				} else if(stateString == "success") {
 					printf("[repairDefectPassphrase] request success, wait on transaction ready\n");
 					auto currentActiveTransaction = mSession->getNextReadyTransaction();
-					while(currentActiveTransaction.isNull()) {
+					while(currentActiveTransaction.isNull() || currentActiveTransaction->getTransactionBody().isNull()) {
 						Poco::Thread::sleep(10);
 						currentActiveTransaction = mSession->getNextReadyTransaction();
 					}
-					if(!currentActiveTransaction->isTransfer()) {
+					if(!currentActiveTransaction->getTransactionBody()->isTransfer()) {
 						addError(new Error("Transaction", "Falsche Transaktion, bitte erst alle anderen Transaktionen abschließen und dann Seite neuladen"));
 					} else {
 						auto signing = new SigningTransaction(currentActiveTransaction, new_user);

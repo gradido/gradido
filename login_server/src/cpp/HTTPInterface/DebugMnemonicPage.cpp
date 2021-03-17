@@ -8,7 +8,7 @@
 #line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\debugMnemonic.cpsp"
 
 #include "../ServerConfig.h"
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/Passphrase.h"
 
 	struct WordChecked {
 		WordChecked() : index(0), bSet(false) {};
@@ -69,7 +69,7 @@ void DebugMnemonicPage::handleRequest(Poco::Net::HTTPServerRequest& request, Poc
 	{
 		if("" != form.get("check_word", "")) 
 		{
-			auto word = KeyPair::filterPassphrase(form.get("word", ""));
+			auto word = Passphrase::filter(form.get("word", ""));
 			if("" != word) {
 				checkedWord.bSet = true;
 				checkedWord.word = word;
