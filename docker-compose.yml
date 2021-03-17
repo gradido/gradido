@@ -121,15 +121,7 @@ services:
   #########################################################  
   ## GRADIDO NODE test ###################################
   #########################################################
-<<<<<<< HEAD
-  # gradido-node-test:
-  #   build:
-  #     context: .
-  #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
-  #   container_name: gn-test
-  #   working_dir: /opt/gn/build
-  #   command: ["./unit_tests"]
-=======
+
  # gradido-node-test:
  #   build:
  #     context: .
@@ -137,7 +129,6 @@ services:
  #   container_name: gn-test
  #   working_dir: /opt/gn/build
  #   command: ["./unit_tests"]
->>>>>>> cc95d22989ca12044bcbbc5e45c1e34c930c9b00
       
 networks:
   external-net:
