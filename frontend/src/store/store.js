@@ -6,6 +6,8 @@ import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
 import axios from 'axios'
 
+// axios.defaults.withCredentials = true. Dies ist erforderlich, da Axios standardmäßig keine Cookies weitergibt.
+axios.defaults.withCredentials = true
 
 export const store = new Vuex.Store({
   state: {
@@ -68,7 +70,7 @@ export const store = new Vuex.Store({
         commit('email', data.email)
         $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
-        router.push('/KontoOverview')
+        router.push('/overview')
       } else {
         // Register failed, we perform a logout
         dispatch('logout')
@@ -88,7 +90,7 @@ export const store = new Vuex.Store({
         commit('email', data.email)
         $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
-        router.push('/KontoOverview')
+        router.push('/overview')
       } else {
         // Register failed, we perform a logout
         dispatch('logout')

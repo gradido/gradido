@@ -70,6 +70,15 @@
                          <base-input label="Beitrag">
                           <textarea class="form-control form-control-lg" rows="3" v-model="form.text" ></textarea>
                         </base-input>
+                         <b-row class="form-group">
+                            <label class="col-md-2 col-form-label form-control-label form-control-lg">Tätigkeit</label>
+                            <b-col md="8">
+                              <base-input placeholder="Tätigkeit" v-model="form.location" class="form-control-lg"></base-input>
+                            </b-col>
+                             <b-col md="2">
+                              <base-input placeholder="Stunden" v-model="form.location" class="form-control-lg"></base-input>
+                            </b-col>
+                          </b-row>
                       
                       <br>                
                        

@@ -34,12 +34,12 @@
                      title-tag="a"
                      title-classes="nav-link pr-0">
         <a href="#" class="nav-link pr-0" @click.prevent slot="title-container">
-          <b-media no-body class="align-items-center">
-            
-                  <span class="avatar avatar-sm rounded-circle">
-                     <vue-qrcode :value="$store.state.email" />
-                  </span>
+          <b-media no-body class="align-items-center">            
+                 
             <b-media-body class="ml-2 d-none d-lg-block">
+               <span class="avatar avatar-sm rounded-circle">
+                     <vue-qrcode :value="$store.state.email" type="image/png"/>
+                  </span>
               <span class="mb-0 text-lg  font-weight-bold">{{this.$store.state.email}}</span>
             </b-media-body>
           </b-media>
@@ -50,7 +50,7 @@
           <b-dropdown-header class="noti-title">
             <h6 class="text-overflow m-0"> {{ $t('welcome')  }}</h6>
           </b-dropdown-header>
-           <b-dropdown-item href="#!" to="/KontoOverview">
+           <b-dropdown-item href="#!" to="/overview">
             <i class="ni ni-single-02"></i>
             <span>{{ $t('site.overview.account_overview')}}</span>
           </b-dropdown-item>

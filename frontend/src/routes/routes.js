@@ -2,7 +2,7 @@ import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
 import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
-import NotFound from '@/views/NotFoundPage.vue'
+// import NotFound from '@/views/NotFoundPage.vue'
 
 
 const routes = [
@@ -31,11 +31,11 @@ const routes = [
   },
   {
     path: '/',
-    redirect: 'KontoOverview',
+    redirect: 'overview',
     component: DashboardLayout,
     children: [
       {
-        path: '/KontoOverview',
+        path: '/overview',
         component: () => import('../views/KontoOverview.vue'),
         meta: {
           requiresAuth: true
@@ -69,15 +69,6 @@ const routes = [
           requiresAuth: true
         }
       }
-    ]
-  },
-  {
-    path: '/',
-    redirect: 'login',
-    component: AuthLayout,
-    children: [
-     
-      { path: '*', component: NotFound }
     ]
   }
 ];

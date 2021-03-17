@@ -1,7 +1,7 @@
 <template>
   <bread-crumb list-classes="breadcrumb-links breadcrumb-dark">
     <BreadCrumbItem>
-        <router-link to="/">
+        <router-link to="/overview">
           <i class="fas fa-home"></i>
         </router-link>
     </BreadCrumbItem>

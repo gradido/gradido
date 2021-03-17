@@ -7,6 +7,9 @@ const EMAIL_TYPE = {
   ADMIN: 5, // if user was registered by an admin
 }
 
+// axios.defaults.withCredentials = true. Dies ist erforderlich, da Axios standardmäßig keine Cookies weitergibt.
+axios.defaults.withCredentials = true
+
 const apiPost = async (url, payload) => {
   try {
     const result = await axios.post(url, payload);

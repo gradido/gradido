@@ -8,7 +8,7 @@
       expand="lg"
     >
       <div slot="brand" class="navbar-wrapper">
-        <b-navbar-brand to="/">
+        <b-navbar-brand to="/overview">
           <img src="img/brand/white.png">
         </b-navbar-brand>
       </div>
@@ -17,7 +17,7 @@
        <div class="navbar-collapse-header">
          <b-row>
            <b-col cols="6" class="collapse-brand">
-             <router-link to="/">
+             <router-link to="/overview">
                <img src="img/brand/green.png">
              </router-link>
            </b-col>

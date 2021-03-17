@@ -6,12 +6,12 @@
             <navbar-toggle-button @click.native="showSidebar">
                 
             </navbar-toggle-button>
-            <router-link class="navbar-brand" to="/">
+            <router-link class="navbar-brand" to="/overview">
                 <img :src="logo" class="navbar-brand-img" alt="...">
             </router-link>
 
             <slot name="mobile-right">
-                <ul class="nav align-items-center d-md-none">
+                <ul class="nav align-items-center d-md-none"> 
                 
                     <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
                         <a slot="title-container" class="nav-link" href="#" role="button">
@@ -22,7 +22,7 @@
                             </div>
                         </a>
  
-                        <router-link to="/KontoOverview" class="dropdown-item text-lg text-muted">
+                        <router-link to="/overview" class="dropdown-item text-lg text-muted">
                             <i class="ni ni-single-02"></i>
                             <span>{{ $t('site.overview.account_overview')}}</span>
                         </router-link>
@@ -40,10 +40,10 @@
                         </router-link>
                        
                         <div class="dropdown-divider"></div>
-                        <router-link @click="logout" class="dropdown-item  text-lg text-muted">
+                        <div @click="logout" class="dropdown-item  text-lg text-muted" >
                             <i class="ni ni-support-16"></i>
-                            <span>{{ $t('logout') }}</span>
-                        </router-link>
+                             {{ $t('logout') }} 
+                        </div>
                     </base-dropdown>
                 </ul>
             </slot>
@@ -53,7 +53,7 @@
                 <div class="navbar-collapse-header d-md-none">
                     <div class="row">
                         <div class="col-6 collapse-brand">
-                            <router-link to="/">
+                            <router-link to="/overview">
                                 <img :src="logo">
                             </router-link>
                         </div>
@@ -62,26 +62,20 @@
                         </div>
                     </div>
                 </div>
-
                 <ul class="navbar-nav">
                     <slot name="links">
                     </slot>
                 </ul>
-              
-                <hr class="my-3">
-     
-                <ul class="navbar-nav mb-md-3">
-                   
+                <hr class="my-3">     
+                <ul class="navbar-nav mb-md-3">                   
                      <li class="nav-item"> 
- 
                         <a class="nav-link text-lg bg-light" href="#!"  @click="logout">
                         {{ $t('logout') }}
                         </a>
                      </li>
-                  </ul>
-                 
+                  </ul>                 
             </div>
-            </div>
+          </div>
     </nav>
 </template>
 <script>
@@ -96,7 +90,7 @@
       logo: {
         type: String,
         default: 'img/brand/green.png',
-        description: 'Sidebar app logo'
+        description: 'Gradido Sidebar app logo'
       },
       autoClose: {
         type: Boolean,
@@ -116,17 +110,9 @@
       showSidebar() {
         this.$sidebar.displaySidebar(true)
       },
-      setLocale(locale) {
-      this.$i18n.locale = locale
-      //this.$router.push({
-      //  params: { lang: locale }
-      //})
-      //this.hideDropdown()
-    },
-    logout(){
-      //console.log("DashboardNavbar.vue user logout() : ")
-      this.$store.dispatch('logout')
-    }  
+      logout(){
+        this.$store.dispatch('logout')
+      }  
     },
     beforeDestroy() {
       if (this.$sidebar.showSidebar) {

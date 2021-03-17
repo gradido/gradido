@@ -4,7 +4,7 @@
     <side-bar>
       <template slot="links" >
        
-         <b-nav-item href="#!" to="/KontoOverview">
+         <b-nav-item href="#!" to="/overview">
                
               <b-nav-text class="p-0 text-lg text-muted">Senden</b-nav-text>
           </b-nav-item>
@@ -58,7 +58,7 @@
 
   import DashboardNavbar from './DashboardNavbar.vue';
   import ContentFooter from './ContentFooter.vue';
-  import DashboardContent from './Content.vue';
+  // import DashboardContent from './Content.vue';
   import { FadeTransition } from 'vue2-transitions';
 
   export default {
@@ -74,11 +74,7 @@
         if (isWindows) {
           initScrollbar('sidenav');
         }
-      },
-       logout(){
-          //console.log("DashboardLayout.vue user logout() : ")
-          this.$store.dispatch('logout')
-        }  
+      }
     },
     mounted() {
       this.initScrollbar()

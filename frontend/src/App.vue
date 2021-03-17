@@ -4,8 +4,7 @@
     </header>
     <div class="">   
       <particles-bg type="custom" :config="config" :bg="true" />  
-      <router-view />
-       
+      <router-view />       
     </div>
   </div> 
 </template>
@@ -19,17 +18,25 @@ export default {
   components: {
       ParticlesBg
     },
-    created () { 
-      //console.log("this.$cookies.get('gdd_session_id') ", this.$cookies.get('gdd_session_id') )
-       console.log(" $cookies.isKey('gdd_session_id') ", this.$cookies.isKey("gdd_session_id")  )
-      if ( this.$cookies.isKey('gdd_session_id') ) {
+    mounted() {
+      console.log("mounted")
+      console.log(" $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
+      console.log(" $cookies.isKey('gdd_session_id') ", $cookies.isKey("gdd_session_id")  )
+      const isSession = $cookies.isKey("gdd_session_id")
+      const getSession = $cookies.get("gdd_session_id")
+      console.log("this.isSession ", this.isSession  )
+
+      if ( $cookies.isKey("gdd_session_id")) {
         //this.$store.state.email = this.$cookies.get('gdd_u') 
-         console.log("login to kontooverview")      
-        this.$router.push('/KontoOverview') 
+        console.log("router to overview")
+        this.$router.push("/overview") 
       }else {
-        console.log("login to LOGIN")
-       this.$router.push("/Login")
+        console.log("router to LOGIN")
+        //this.$router.push("/login")
       } 
+    },
+    created () { 
+      console.log("created")      
     },
      data() {
     return {
@@ -52,7 +59,7 @@ export default {
 }
 </script>
 <style>
-    .btn {
+    .btn-primary pim{
       background-color: #5A7B02;
       border-color: #5e72e4;
     }

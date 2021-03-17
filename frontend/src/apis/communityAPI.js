@@ -1,6 +1,9 @@
 import axios from 'axios';
 import CONFIG from '../config'
 
+// axios.defaults.withCredentials = true. Dies ist erforderlich, da Axios standardmäßig keine Cookies weitergibt.
+axios.defaults.withCredentials = true
+
 const apiGet = async (url) => {
   try {
     const result = await axios.get(url);
