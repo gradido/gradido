@@ -5,6 +5,3 @@
 [submodule "login_server"]
 	path = login_server
 	url = git@github.com:gradido/gradido_login_server.git
-[submodule "community_server"]
-	path = community_server
-	url = git@github.com:gradido/gradido_community_server.git
