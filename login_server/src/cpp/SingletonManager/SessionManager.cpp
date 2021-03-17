@@ -489,9 +489,9 @@ Session* SessionManager::findByEmail(const std::string& email)
 			mDeadLockedSessionCount++;
 		}
 		auto user = it->second->getNewUser();
-		if (email == user->getModel()->getEmail()) {
-			return it->second;
-		}
+if (email == user->getModel()->getEmail()) {
+	return it->second;
+}
 	}
 	mWorkingMutex.unlock();
 	return nullptr;
@@ -499,12 +499,12 @@ Session* SessionManager::findByEmail(const std::string& email)
 
 void SessionManager::checkTimeoutSession()
 {
-	
+
 	try {
 		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 		mWorkingMutex.tryLock(500);
 	}
-	catch (Poco::TimeoutException &ex) {
+	catch (Poco::TimeoutException& ex) {
 		printf("[SessionManager::checkTimeoutSession] exception timeout mutex: %s\n", ex.displayText().data());
 		return;
 	}
@@ -515,7 +515,7 @@ void SessionManager::checkTimeoutSession()
 	//auto timeout = Poco::Timespan(1, 0);
 	std::stack<int> toRemove;
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-		
+
 		if (it->second->tryLock()) {
 			// skip already disabled sessions
 			if (!it->second->isActive()) {
@@ -527,7 +527,7 @@ void SessionManager::checkTimeoutSession()
 			// skip dead locked sessions
 			continue;
 		}
-		
+
 		Poco::Timespan timeElapsed(now - it->second->getLastActivity());
 		it->second->unlock();
 		if (timeElapsed > timeout) {
@@ -541,7 +541,7 @@ void SessionManager::checkTimeoutSession()
 		toRemove.pop();
 		releaseSession(handle);
 	}
-	
+
 }
 
 void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Session* activeSession/* = nullptr*/)
@@ -589,6 +589,10 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 
 bool SessionManager::checkPwdValidation(const std::string& pwd, ErrorList* errorReciver)
 {
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
+		return true;
+	}
+
 	if (!isValid(pwd, VALIDATE_PASSWORD)) {
 		errorReciver->addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen (@$!%*?&+-_) ein!"));
 

@@ -103,6 +103,13 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "user.disabled") {
 				jsonUser.set("disabled", userModel->isDisabled());
 			}
+			else if (parameterString == "user.email_checked") {
+				jsonUser.set("email_checked", userModel->isEmailChecked());
+			}
+			else if (parameterString == "user.identHash") {
+				auto email = userModel->getEmail();
+				jsonUser.set("identHash", DRMakeStringHash(email.data(), email.size()));
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");

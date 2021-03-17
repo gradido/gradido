@@ -114,6 +114,21 @@ void ErrorList::printErrors()
 	}
 }
 
+std::vector<std::string> ErrorList::getErrorsArray()
+{
+	std::vector<std::string> result;
+	result.reserve(mErrorStack.size());
+
+	while (mErrorStack.size() > 0) {
+		auto error = mErrorStack.top();
+		mErrorStack.pop();
+		//result->add(error->getString());
+		result.push_back(error->getString());
+		delete error;
+	}
+	return result;
+}
+
 std::string ErrorList::getErrorsHtml()
 {
 	std::string res;

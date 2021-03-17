@@ -18,6 +18,7 @@
 #include "Poco/Net/SecureSMTPClientSession.h"
 #include "Poco/Net/StringPartSource.h"
 #include "Poco/Logger.h"
+#include "Poco/JSON/Array.h"
 
 class ErrorList : public IErrorCollection
 {
@@ -44,6 +45,8 @@ public:
 	void printErrors();
 	std::string getErrorsHtml();
 	std::string getErrorsHtmlNewFormat();
+	
+	std::vector<std::string> getErrorsArray();
 
 	void sendErrorsAsEmail(std::string rawHtml = "");
 

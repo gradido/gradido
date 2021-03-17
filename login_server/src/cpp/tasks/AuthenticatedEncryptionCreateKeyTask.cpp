@@ -31,10 +31,10 @@ int AuthenticatedEncryptionCreateKeyTask::run()
 		em->sendErrorsAsEmail();
 		return -1;
 	}
-	printf("create password time: %s\n", timeUsed.string().data());
+	//printf("create password time: %s\n", timeUsed.string().data());
 	timeUsed.reset();
 	mUser->setNewPassword(authenticated_encryption);
-	printf("set password time: %s\n", timeUsed.string().data());
+	//printf("set password time: %s\n", timeUsed.string().data());
 
 	return 0;
 }

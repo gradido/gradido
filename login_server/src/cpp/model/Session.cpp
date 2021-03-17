@@ -659,7 +659,7 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 	return 0;
 }
 
-bool Session::startProcessingTransaction(const std::string& proto_message_base64)
+bool Session::startProcessingTransaction(const std::string& proto_message_base64, bool autoSign/* = false*/)
 {
 	static const char* funcName = "Session::startProcessingTransaction";
 	lock(funcName);
@@ -687,8 +687,25 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			DRMakeStringHash(mSessionUser->getEmail()),
 			mSessionUser->getLanguage())
 	);
-	processorTask->scheduleTask(processorTask);
-	mProcessingTransactions.push_back(processorTask);
+	if (autoSign && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
+		if (processorTask->run() != 0) {
+			getErrors(processorTask);
+			unlock();
+			return false;
+		}
+		Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(processorTask, mNewUser));
+		//signingTransaction->scheduleTask(signingTransaction);
+		if (signingTransaction->run() != 0) {
+			getErrors(signingTransaction);
+			unlock();
+			return false;
+		}
+		
+	}
+	else {
+		processorTask->scheduleTask(processorTask);
+		mProcessingTransactions.push_back(processorTask);
+	}
 	unlock();
 	return true;
 	
@@ -726,23 +743,26 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 	return mCurrentActiveProcessingTransaction;
 }
 
-void Session::finalizeTransaction(bool sign, bool reject)
+bool Session::finalizeTransaction(bool sign, bool reject)
 {
+	int result = -1;
 	lock("Session::finalizeTransaction");
 	if (mCurrentActiveProcessingTransaction.isNull()) {
 		unlock();
-		return;
+		return false;
 	}
 	mProcessingTransactions.remove(mCurrentActiveProcessingTransaction);
 	
 	if (!reject) {
 		if (sign) {
 			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mNewUser));
-			signingTransaction->scheduleTask(signingTransaction);
+			//signingTransaction->scheduleTask(signingTransaction);
+			result = signingTransaction->run();
 		}
 	}
 	mCurrentActiveProcessingTransaction.assign(nullptr);
 	unlock();
+	return result == 0;
 }
 
 size_t Session::getProcessingTransactionCount() 
@@ -798,16 +818,16 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 	//printf("after checking if session user is null\n");
 	//if (!mSessionUser) {
 	if (mNewUser.isNull()) {
-		printf("new user is null\n");
+		//printf("new user is null\n");
 		mNewUser = controller::User::create();
-		printf("new user created\n");
+		//printf("new user created\n");
 		// load user for email only once from db
 		mNewUser->load(email);
-		printf("load new user from db with email: %s\n", email.data());
+		//printf("load new user from db with email: %s\n", email.data());
 		mSessionUser = new User(mNewUser);
 		//mSessionUser = new User(email.data());
 
-		printf("user loaded from email\n");
+		//printf("user loaded from email\n");
 	}
 	//printf("before get model\n");
 	auto user_model = mNewUser->getModel();
@@ -1090,7 +1110,8 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 {
 	auto keks = Poco::Net::HTTPCookie("GRADIDO_LOGIN", std::to_string(mHandleId));
 	// prevent reading or changing cookie with js
-	keks.setHttpOnly();
+//	keks.setHttpOnly();
+
 	keks.setPath("/");
 	// send cookie only via https, on linux, except in test builds 
 #ifndef WIN32

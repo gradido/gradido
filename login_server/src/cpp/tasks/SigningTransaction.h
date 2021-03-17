@@ -22,7 +22,7 @@
 class SigningTransaction : public UniLib::controller::CPUTask, public ErrorList
 {
 public:
-	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser);
+	SigningTransaction(Poco::AutoPtr<ProcessingTransaction> processingeTransaction, Poco::AutoPtr<controller::User> newUser, bool sendErrorsToAdmin = true);
 	virtual ~SigningTransaction();
 
 	int run();
@@ -34,6 +34,7 @@ public:
 protected:
 	Poco::AutoPtr<ProcessingTransaction> mProcessingeTransaction;
 	Poco::AutoPtr<controller::User> mNewUser;
+	bool mSendErrorsToAdminEmail;
 
 private:
 

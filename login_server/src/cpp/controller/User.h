@@ -70,7 +70,6 @@ namespace controller {
 		//! \return -3 password key creation already running
 		//! - create authenticated encryption key from password and email
 		//! - compare hash with in db saved hash
-		
 		int login(const std::string& password);
 		
 		// ***********************************************************************************
