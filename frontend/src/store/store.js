@@ -5,9 +5,8 @@ import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
 import axios from 'axios'
+// import CONFIG from '../config'
 
-// axios.defaults.withCredentials = true. Dies ist erforderlich, da Axios standardmäßig keine Cookies weitergibt.
-axios.defaults.withCredentials = true
 
 export const store = new Vuex.Store({
   state: {
@@ -27,7 +26,14 @@ export const store = new Vuex.Store({
       auto_sign: true
     },
     transactions: [],
-    modals: false
+    modals: false,
+    optionAxios: {
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true'
+      }
+    }
   },
   // Retrieve a state variable
   getters: {
@@ -62,19 +68,21 @@ export const store = new Vuex.Store({
   actions: {
     login: async ({ dispatch, commit }, data) => {
       console.log('action: login')
+      console.log('action:  data', data.email)
+      
       const result = await loginAPI.login(data.email,data.password)
       console.log('result',result)
       console.log('result.success',result.success)
-      if( result.success ){
-        commit('session_id', result.result.data.session_id)
-        commit('email', data.email)
-        $cookies.set('gdd_session_id', result.result.data.session_id);
-        $cookies.set('gdd_u',  data.email);
-        router.push('/overview')
-      } else {
-        // Register failed, we perform a logout
-        dispatch('logout')
-      } 
+     // if( result.success ){
+     //   commit('session_id', result.result.data.session_id)
+     //   commit('email', data.email)
+     //   $cookies.set('gdd_session_id', result.result.data.session_id);
+     //   $cookies.set('gdd_u',  data.email);
+     //   router.push('/overview')
+     // } else {
+     //   // Register failed, we perform a logout
+     //   dispatch('logout')
+     // } 
     },
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
