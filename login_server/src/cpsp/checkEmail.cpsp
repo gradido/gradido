@@ -1,0 +1,97 @@
+<%@ page class="CheckEmailPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%!
+#include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
+#include "../SingletonManager/EmailManager.h"
+enum PageState
+{
+	MAIL_NOT_SEND,
+	ASK_VERIFICATION_CODE,
+	EMAIL_ACTIVATED,
+	KONTO_ALREADY_EXIST
+};
+%>
+<%%
+	const char* pageName = "Email Verification";
+	auto lm = LanguageManager::getInstance();
+	auto em = EmailManager::getInstance();
+
+	auto lang = chooseLanguage(request);
+	auto langCatalog = lm->getFreeCatalog(lang);
+	unsigned long long verificationCode = 0;
+
+	PageState state = ASK_VERIFICATION_CODE;
+
+	if(mSession && model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType())
+	{
+		state = EMAIL_ACTIVATED;
+	}
+	else
+	{
+
+		if(!form.empty()) {
+			auto langBtn = form.get("lang-btn", "");
+			auto verficationCodeStr = form.get("email-verification-code", "0");
+			try {
+				verificationCode = stoull(verficationCodeStr);
+			} catch(...) {
+				verificationCode = 0;
+			}
+			auto updatedLang = LANG_NULL;
+			if(langBtn != "") {
+				lang = chooseLanguage(request, langBtn);
+				langCatalog = lm->getFreeCatalog(lang);
+			}
+		}
+
+		// remove old cookies if exist
+		auto sm = SessionManager::getInstance();
+		sm->deleteLoginCookies(request, response, mSession);
+
+		if(mSession) {
+			getErrors(mSession);
+			if(mSession->getSessionState() < SESSION_STATE_EMAIL_VERIFICATION_SEND) {
+				//state = MAIL_NOT_SEND;
+			}
+		}
+		auto hasErrors = errorCount() > 0;
+		if(!verificationCode) {
+			verificationCode = getLastGetAsU64(request.getURI());
+		}
+	}
+%><%@ include file="header.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+    <%@ include file="flags.cpsp" %>
+    <div class="center-form-title">
+        <h1><%= langCatalog->gettext("E-Mail verifizieren") %></h1>
+    </div>
+    <div class="center-form-form">
+      <form action="<%= ServerConfig::g_php_serverPath %>account/checkEmail" method="GET">
+	<% if(EMAIL_ACTIVATED == state) { %>
+		<p><%= langCatalog->gettext("Deine E-Mail wurde erfolgreich bestätigt. Du kannst nun Gradidos versenden.") %></p>
+		<a class="link-button" href="<%= ServerConfig::g_php_serverPath %>"><%= langCatalog->gettext("Zur Startseite") %></a>
+	<% } else { %>
+        <label class="form-label" for="email-verification-code"><%= langCatalog->gettext("Bitte gib deinen E-Mail Verification Code ein:")%></label>
+        <input class="form-control" type="number" name="email-verification-code" id="email-verification-code" placeholder="<%= langCatalog->gettext("Email Verification Code")%>" <% if(verificationCode) { %>value="<%= verificationCode %>" <% } %>>
+        <button type="submit" class="center-form-submit form-button"><%= langCatalog->gettext("&Uuml;berpr&uuml;fe Code")%></button>
+      </form>
+  <!--<p>
+	<%= langCatalog->gettext("Du hast bisher keinen Code erhalten?")%><br>
+	<%= langCatalog->gettext("E-Mail erneut zuschicken (in Arbeit)")%>
+  </p>-->
+      <p>
+		<%= langCatalog->gettext("Funktioniert dein E-Mail Verification Code nicht?")%><br>
+		<%= langCatalog->gettext("Schicke uns eine E-Mail und wir k&uuml;mmern uns darum: ")%><br>
+        <b><a href="mailto:<%= em->getAdminReceiver()%>?subject=Invalid E-Mail Verification Code&amp;body=Hallo Dario,%0D%0A%0D%0Amein E-Mail Verification-Code: <%= verificationCode %> funktioniert nicht,%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%= langCatalog->gettext("E-Mail an Support schicken")%></a></b>
+	  </p>
+    </form>
+  <% } %>
+</div>
+</div>
+<%@ include file="footer.cpsp" %>

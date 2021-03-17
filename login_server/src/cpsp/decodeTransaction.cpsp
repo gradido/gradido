@@ -1,0 +1,133 @@
+<%@ page class="DecodeTransactionPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+#include "sodium.h"
+#include "../proto/gradido/TransactionBody.pb.h"
+#include "../controller/User.h"
+#include "../model/TransactionBase.h"
+#include "../model/TransactionCreation.h"
+%>
+<%%
+	const char* pageName = "Decode Transaction";
+	model::messages::gradido::TransactionBody transactionBody;
+	bool decoded = false;
+	bool adminUser = false;
+	if(mSession && mSession->getNewUser())  {
+		auto user = mSession->getNewUser();
+		auto model = user->getModel();
+		if(model && model->getRole() == model::table::ROLE_ADMIN) {
+			adminUser = true;
+		}
+	}
+	if(!form.empty()) {
+		auto base64 = form.get("transaction", "");
+		if(base64 != "") {
+			unsigned char* binBuffer = (unsigned char*)malloc(base64.size());
+			size_t resultingBinSize = 0;
+			size_t base64_size = base64.size();
+			bool encodingValid = false;
+			if (!sodium_base642bin(
+				binBuffer, base64_size,
+				base64.data(), base64_size, 
+				nullptr, &resultingBinSize, nullptr, 
+				sodium_base64_VARIANT_ORIGINAL)) 
+			{
+				encodingValid = true;
+			} else if(!sodium_base642bin(
+  					  binBuffer, base64_size, 
+					  base64.data(), base64_size,
+					  nullptr, &resultingBinSize, nullptr,
+					  sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
+				  //encodingValid = true;
+				  //free(binBuffer);
+				  addError(new Error("ProcessingTransaction", "it is maybe a Transaction, but I support only TransactionBodys"), false);
+			}
+			if(false == encodingValid) {
+				free(binBuffer);
+				addError(new Error("ProcessingTransaction", "error decoding base64"), false);
+			} else {
+				std::string binString((char*)binBuffer, resultingBinSize);
+				free(binBuffer);
+				
+				if (!transactionBody.ParseFromString(binString)) {
+					addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"), false);			
+				} else {
+					decoded = true;
+				}
+			}
+			
+		}
+	} 
+	/*
+	char *sodium_bin2hex(char * const hex, const size_t hex_maxlen,
+                     const unsigned char * const bin, const size_t bin_len);
+	*/
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Transaktion dekodieren</h1>
+	<%= getErrorsHtml() %>
+	<form method="POST">
+		<fieldset class="grd_container_small">
+			<legend>Transaktion dekodieren</legend>
+			<textarea style="width:100%;height:100px" name="transaction"><%= !form.empty() ? form.get("transaction", "") : "" %></textarea>
+		</fieldset>
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Dekodieren">
+	</form>
+	<% if(decoded) { %>
+		<p><b>Verwendungszweck:</b></p>
+		<p><%= transactionBody.memo() %></p>
+		<% if(transactionBody.has_transfer()) { 
+			auto transfer = transactionBody.transfer();
+		%>
+		<h3>Transfer</h3>
+		<b>Sender</b>
+		<% for(int i = 0; i < transfer.senderamounts_size(); i++) {
+			auto sender = transfer.senderamounts(i); 
+			char hex[65]; memset(hex, 0, 65);
+			sodium_bin2hex(hex, 65, (const unsigned char*)sender.ed25519_sender_pubkey().data(), sender.ed25519_sender_pubkey().size());
+			%>
+			<p>pubkey: <%= hex %></p>
+			<p>amount: <%=  TransactionBase::amountToString(sender.amount()) %> GDD</p>
+		<% } %>
+		<b>Receiver</b>
+		<% for(int i = 0; i < transfer.receiveramounts_size(); i++) {
+			auto receiver = transfer.receiveramounts(i); 
+			char hex[65]; memset(hex, 0, 65);
+			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
+			%>
+			<p>pubkey: <%= hex %></p>
+			<p>amount: <%=  TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<% } %>
+		<% } else if(transactionBody.has_creation()) { 
+			auto creation = transactionBody.creation();
+			TransactionCreation creationObject("", creation);
+			auto receiver = creation.receiveramount();
+			char hex[65]; memset(hex, 0, 65);
+			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.ed25519_receiver_pubkey().data(), receiver.ed25519_receiver_pubkey().size());
+			
+			Poco::AutoPtr<controller::User> user = nullptr;
+			if(adminUser) {
+				user = controller::User::create();
+				if(!user->load((const unsigned char*)receiver.ed25519_receiver_pubkey().data())) {
+					user.assign(nullptr);
+				}
+			}
+			//pubkey
+		%>
+		<h3>Creation</h3>
+		<% if(!adminUser || user.isNull() || !user->getModel()) { %>
+		<p>pubkey: <%= hex %></p>
+		<% } else { %>
+		<p>user: </p>
+		<p><%= user->getModel()->toHTMLString() %></p>
+		<% } %>
+		<p>amount: <%= TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<p>target date: <%= creationObject.getTargetDateString() %></p>
+		<% } %>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

@@ -1,0 +1,22 @@
+</div>
+    </div>
+    <div class="footer">
+        <ul class="nav-horizontal">
+            <li><a href="https://gradido.net/de/datenschutz/" target="_blank">Datenschutzerklärung</a></li>
+            <li><a href="https://gradido.net/de/impressum/" target="_blank">Impressum</a></li>
+        </ul>
+    </div>
+    <div class="nav-bottom">
+        <small class="">Copyright © 2020 Gradido</small>
+    </div>
+    <div class="bottomleft">
+        <%= mTimeProfiler.string() %>
+    </div>
+    <div class="bottomright">
+        <p>Community Server in Entwicklung</p>
+        <p>Alpha <%= ServerConfig::g_versionString %></p>
+    </div>
+    </div>
+</body>
+
+</html>
