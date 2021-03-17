@@ -1,0 +1,215 @@
+<%@ page class="CheckTransactionPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%!
+#include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/SingletonTaskObserver.h"
+#include "../SingletonManager/EmailManager.h"
+#include "../model/TransactionCreation.h"
+#include "../model/TransactionTransfer.h"
+
+#include "Poco/Thread.h"
+
+enum PageState {
+	PAGE_TRANSACTION_CREATION,
+	PAGE_TRANSACTION_TRANSFER,
+	PAGE_NO_TRANSACTIONS,
+	PAGE_USER_DATA_CORRUPTED
+};
+
+%>
+<%% 
+	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
+	auto account_user = mSession->getNewUser();
+	auto user_model = account_user->getModel();
+	auto em = EmailManager::getInstance();
+	auto userBalance = account_user->getBalance();
+	std::string memo = "";
+	bool hasErrors = false;
+	bool enableLogout = true;
+	
+	PageState state = PAGE_NO_TRANSACTIONS;
+	
+	if(!user_model->isEmailChecked()) {
+		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
+		hasErrors = true;
+	}
+	
+	if(!form.empty()) {
+		auto ok = form.get("ok", "");
+		auto abort = form.get("abort", "");
+		if(abort != "") {
+			mSession->finalizeTransaction(false, true);
+		} else if(ok != "") {
+			if(!account_user->hasPassword()) {
+				auto pwd = form.get("sign-password", "");
+				auto loginResult = account_user->login(pwd);
+				switch(loginResult) {
+				case 0: 
+					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
+					hasErrors = true;
+					break;
+				case -1: 
+				case -2:
+					addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
+					hasErrors = true;
+					state = PAGE_USER_DATA_CORRUPTED;
+					break;
+				case -3: 
+					addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
+					hasErrors = true;
+					break;
+				}
+			}
+			if(!hasErrors) {
+				mSession->finalizeTransaction(true, false);
+			}
+		}
+	}
+	
+	
+	size_t notReadyTransactions = 0;
+	size_t sumTransactions = mSession->getProcessingTransactionCount();
+	if(sumTransactions == 0) {
+		/*auto observer = SingletonTaskObserver::getInstance();
+		auto emailHash = DRMakeStringHash(mSession->getUser()->getEmail());
+		int breakCount = 0;
+		while(observer->getTaskCount(emailHash, TASK_OBSERVER_SIGN_TRANSACTION) > 0) {
+			if(breakCount > 100) break;
+			breakCount++;
+			Poco::Thread::sleep(10);
+		}*/
+		auto lastExternReferer = mSession->getLastReferer();
+		//lastExternReferer = "";
+		if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
+			//printf("last extern referer: %s\n", lastExternReferer.data());
+			response.redirect(lastExternReferer);
+		} else {
+			response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
+		}
+		return;
+	}
+	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
+	if(sumTransactions > 0) {
+		enableLogout = false;
+	}
+	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull()) {
+		auto transactionType = processingTransaction->getType();
+		switch(transactionType) {
+			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
+			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+		}
+	}
+	
+	
+
+%><%@ include file="header_navi_chr.cpsp" %>
+<div class="col-md-10 equel-grid mb-3">
+	<small class="text-gray d-block mt-3">
+	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
+		<% if(notReadyTransactions > 0) { %> 
+			<%= sumTransactions - notReadyTransactions %> <%= gettext("von") %> <%= sumTransactions %> <%= gettext("Transaktionen sind bereit zum best&auml;tigen") %>
+		<% } else { %>
+			<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
+		<% } %>
+	<% } %>
+	<% if(state == PAGE_NO_TRANSACTIONS) { %>
+		<% if(sumTransactions == 0) { %>
+			<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
+		<% } else { %>
+			<%= gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") %>
+		<% } %>
+    <% } %>
+	</small>
+</div>
+<div class="content-container main-container">
+	<div class="action-form">
+		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
+		<div class="form-content">
+		<% if(state == PAGE_TRANSACTION_TRANSFER) { 
+			auto transferTransaction = processingTransaction->getTransferTransaction();
+			memo = transferTransaction->getMemo();
+		%>
+			<p><%= gettext("&Uuml;berweisung") %></p>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell"><%= gettext("Konto") %></span>
+				<span class="content-cell"><%= gettext("Gradido") %></span>
+			  </div>
+			  <% for(int i = 0; i < transferTransaction->getKontoTableSize(); i++) { %>					
+					<% if((i+1) % 2 == 0) { %>
+						<div class="content-row content-row">
+					<% } else { %>
+						<div class="content-row content-row-bg">
+					<% } %>
+						<%= transferTransaction->getKontoNameCell(i) %>
+						<%= transferTransaction->getAmountCell(i) %>
+					</div>
+			  <% } %>
+			</div>
+			 <% } else if(PAGE_TRANSACTION_CREATION == state) { 
+					auto creationTransaction = processingTransaction->getCreationTransaction();
+					auto transactionUser = creationTransaction->getUser();
+					memo = creationTransaction->getMemo();
+			 %>
+				<p><%= gettext("Sch&ouml;pfung") %></p>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell"><%= gettext("Konto") %></span>
+					<span class="content-cell"><%= gettext("Zieldatum") %></span>
+					<span class="content-cell"><%= gettext("Gradido") %></span>
+				  </div>
+				  <div class="content-row content-row-bg">
+					<% if(transactionUser) { %>
+						<span class="content-cell"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
+					<% } else { %>
+						<span class="content-cell">0x<%= creationTransaction->getPublicHex() %></span>
+					<% } %>
+					<span class="content-cell"><%= creationTransaction->getTargetDateString() %></span>
+					<span class="content-cell success-color"><%= creationTransaction->getAmountString() %> GDD</span>
+				  </div>
+				</div>
+			 <% } else if(PAGE_USER_DATA_CORRUPTED == state) { %>
+				<p class="alert-color"><%= gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den")%><a href="mailto:<%= em->getAdminReceiver()%>?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%=gettext("Support") %></a></p>
+			 <% } %>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell">Aktives Konto</span>
+			  </div>
+			  <div class="content-row">
+				<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
+			  </div>
+			</div>
+			<div class="content-table">
+			  <div class="content-row content-row-header">
+				<span class="content-cell">Verwendungszweck</span>
+			  </div>
+			  <div class="content-row content-row-bg">
+				<span class="content-cell"><%= memo %></span>
+			  </div>
+			</div>
+			<form>
+				<% if(!account_user->hasPassword()) {%>
+				 <div class="form-group">
+					  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
+					  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
+				 </div>
+				<% } %>
+				<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
+					<button type="submit" class="form-button" name="ok" value="ok">
+						<i class="material-icons-outlined">verified_user</i>
+						<%= gettext("Transaktion unterzeichnen") %>
+					</button>
+				<% } %>
+				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
+					<i class="material-icons-outlined">delete</i>
+					<%= gettext("Transaktion verwerfen") %>
+				</button>
+			</form>
+		</div>
+	</div>
+</div>
+<%@ include file="footer_chr.cpsp" %>

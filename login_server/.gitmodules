@@ -1,0 +1,15 @@
+[submodule "dependencies/tinf"]
+	path = dependencies/tinf
+	url = https://github.com/jibsen/tinf.git
+[submodule "dependencies/mariadb-connector-c"]
+	path = dependencies/mariadb-connector-c
+	url = https://github.com/MariaDB/mariadb-connector-c.git
+[submodule "src/proto"]
+	path = src/proto
+	url = https://github.com/gradido/gradido_protocol.git
+[submodule "dependencies/iroha-ed25519"]
+	path = dependencies/iroha-ed25519
+	url = https://github.com/gradido/iroha-ed25519.git
+[submodule "dependencies/spirit-po"]
+	path = dependencies/spirit-po
+	url = https://github.com/cbeck88/spirit-po.git

@@ -1,0 +1,197 @@
+<%@ page class="LoginPage" %>
+<%@ page form="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@	page compressed="true" %>
+<%!
+#include "../gettext.h"
+
+#include "Poco/Net/HTTPCookie.h"
+#include "Poco/Net/HTTPServerParams.h"
+#include "Poco/Logger.h"
+#include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
+#include "../SingletonManager/ErrorManager.h"
+
+%>
+<%%
+	const char* pageName = "Login";
+	auto sm = SessionManager::getInstance();
+	auto lm = LanguageManager::getInstance();
+	auto em = ErrorManager::getInstance();
+
+	auto lang = chooseLanguage(request);
+	//printf("choose language return: %d\n", lang);
+	auto langCatalog = lm->getFreeCatalog(lang);
+
+	std::string presetEmail("");
+	if(mSession && mSession->getUser()) {
+		presetEmail = mSession->getUser()->getEmail();
+	}
+
+	if(!form.empty()) {
+
+		bool langUpdatedByBtn = false;
+		auto langBtn = form.get("lang", "");
+		if(langBtn != "") {
+			langUpdatedByBtn = true;
+		}
+		/*
+		auto langInput = form.get("lang", "");
+		auto updatedLang = LANG_NULL;
+		if(langBtn != "") {
+			updatedLang = chooseLanguage(request, langBtn);
+			langUpdatedByBtn = true;
+		} else if(langInput != "") {
+			updatedLang = chooseLanguage(request, langInput);
+		}
+
+		if(updatedLang != LANG_NULL && updatedLang != lang) {
+			lang = updatedLang;
+			langCatalog = lm->getFreeCatalog(lang);
+		}
+		 */
+		auto email = form.get("login-email", "");
+		auto password = form.get("login-password", "");
+
+		if(email != "" && password != "") {
+			//auto session = sm->getSession(request);
+			//if(!mSession) mSession = sm->findByEmail(email);
+			if(!mSession) {
+				mSession = sm->getNewSession();
+				mSession->setLanguageCatalog(langCatalog);
+				// get language
+				// first check url, second check language header
+				// for debugging client ip
+				auto client_ip = request.clientAddress();
+				std::string clientIpString = "client ip: ";
+				clientIpString += client_ip.toString();
+				Poco::Logger::get("requestLog").information(clientIpString);
+				// debugging end
+				auto user_host = request.clientAddress().host();
+				mSession->setClientIp(user_host);
+				response.addCookie(mSession->getLoginCookie());
+			} else {
+				langCatalog = mSession->getLanguageCatalog();
+			}
+			UserStates user_state;
+			try {
+				user_state = mSession->loadUser(email, password);
+			} catch (Poco::Exception& ex) {
+				addError(new ParamError("login", "exception by calling loadUser: ", ex.displayText()));
+				sendErrorsAsEmail();
+				addError(new Error("Error", "Intern Server error, please try again later"));
+			}
+			auto user = mSession->getNewUser();
+
+			if(user_state >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
+				if(mSession->generateKeys(true, true)) {
+					user_state = USER_COMPLETE;
+					if(user->getModel()->isDisabled()) {
+						user_state = USER_DISABLED;
+					}
+				}
+			} else {
+				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey());
+			}
+			getErrors(mSession);
+
+			auto uri_start = request.serverParams().getServerName();
+			auto lastExternReferer = mSession->getLastReferer();
+
+			printf("user_state: %d\n", user_state);
+
+			switch(user_state) {
+			case USER_EMPTY:
+			case USER_PASSWORD_INCORRECT:
+				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")), false);
+				break;
+			case USER_PASSWORD_ENCRYPTION_IN_PROCESS:
+				addError(new Error(langCatalog->gettext("Passwort"), langCatalog->gettext("Passwort wird noch berechnet, bitte versuche es in etwa 1 Minute erneut.")), false);
+				break;
+			case USER_KEYS_DONT_MATCH:
+				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Error in saved data, the server admin will look at it.")));
+				break;
+			case USER_DISABLED: 
+				addError(new Error(langCatalog->gettext("User"), langCatalog->gettext("Benutzer ist deaktiviert, kein Login möglich!")));
+				if(mSession) {
+					getErrors(mSession);
+					sm->releaseSession(mSession);
+				}
+				sm->deleteLoginCookies(request, response);
+				break;
+			case USER_NO_PRIVATE_KEY:
+			case USER_COMPLETE:
+			case USER_EMAIL_NOT_ACTIVATED:
+				auto referer = request.find("Referer");
+				std::string refererString;
+				if (referer != request.end()) {
+					refererString = referer->second;
+				}
+				if(lastExternReferer != "") {
+					//printf("redirect to: %s\n", lastExternReferer.data());
+					response.redirect(lastExternReferer);
+				} else if(refererString != "" &&
+				          refererString.find("login") == std::string::npos &&
+						  refererString.find("logout") == std::string::npos &&
+						  refererString.find("user_delete") == std::string::npos &&
+						  refererString != ServerConfig::g_serverPath + request.getURI()) {
+					std::string uri = request.getURI();
+					printf("request uri: %s, redirect to: %s\n", uri.data(), refererString.data());
+					response.redirect(refererString);
+				} else {
+					//printf("redirect to: %s\n", ServerConfig::g_php_serverPath.data());
+					response.redirect(ServerConfig::g_php_serverPath + "/");
+				}
+				return;
+			}
+
+		} else if(!langUpdatedByBtn) {
+			addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("Username and password are needed!")), false);
+		}
+
+	} else {
+
+		// on enter login page with empty form
+		//auto session = sm->getSession(request);
+		// remove old cookies and session if exist
+		if(mSession) {
+			getErrors(mSession);
+			sm->releaseSession(mSession);
+		}
+		sm->deleteLoginCookies(request, response);
+	}
+
+%><%@ include file="header.cpsp" %>
+<%= getErrorsHtml() %>
+<!--<input type="hidden" name="lang" value="<%= LanguageManager::keyForLanguage(lang) %>">-->
+<div class="center-form-container">
+    <%@ include file="flags.cpsp" %>
+    <div class="center-form-form">
+		<form action="<%= ServerConfig::g_serverPath %>/" method="POST">
+			<input class="form-control" type="text" name="login-email" placeholder="<%= langCatalog->gettext("E-Mail") %>" value="<%= presetEmail %>"/>
+			<input class="form-control" type="password" name="login-password" placeholder="<%= langCatalog->gettext("Password") %>" />
+		    <button type="submit" name="submit" class="center-form-submit form-button"><%= langCatalog->gettext(" Login ") %></button>
+		</form>
+    </div>
+    <div class="center-form-bottom">
+        <div class="signup-link">
+	      <p><%= langCatalog->gettext("You haven't any account yet? Please follow the link to create one.") %></p>
+	      <a href="https://elopage.com/s/gradido/registration-de/payment?locale=de">
+			<%= langCatalog->gettext("Create New Account") %>
+		  </a>
+	    </div>
+		<div class="reset-pwd-link">
+			<a href="<%= ServerConfig::g_serverPath %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
+		</div>
+	</div>
+</div>
+<p>&nbsp;</p>
+<div class="container">
+	<a href="https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing" target="_blank">Zum Whitepaper</a>
+	<br>
+	<br>
+	<a href="https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing" target="_blank">To the Whitepaper</a>
+</div>
+<%@ include file="footer.cpsp" %>
