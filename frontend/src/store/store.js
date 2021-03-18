@@ -78,10 +78,10 @@ export const store = new Vuex.Store({
      // console.log('result.data.session_id',result.data.session_id)
      
       
-      if( result.data.state == "success"){
-        commit('session_id', result.data.session_id)
+      if( result.success){
+        commit('session_id', result.result.data.session_id)
         commit('email', data.email)
-        $cookies.set('gdd_session_id', result.data.session_id);
+        $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
         router.push('/overview')
       } else {
