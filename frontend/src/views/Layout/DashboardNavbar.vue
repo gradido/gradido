@@ -74,7 +74,7 @@ import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-   CollapseTransition,
+   //CollapseTransition,
     BaseNav,
     VueQrcode
   },

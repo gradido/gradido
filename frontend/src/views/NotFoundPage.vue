@@ -363,7 +363,7 @@ export default {
   name: 'not-found',
   data() {
     return {
-          anime:{
+anime:{
   targets: '.row svg',
   translateY: 10,
   autoplay: true,
@@ -371,7 +371,7 @@ export default {
   easing: 'easeInOutSine',
   direction: 'alternate'
 },
-anime:{
+anime2:{
   targets: '#zero',
   translateX: 10,
   autoplay: true,
