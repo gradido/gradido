@@ -26,7 +26,7 @@
 
           <template slot="footer">
             <base-button type="white">Ok</base-button>
-            <base-button type="link" class="text-white ml-auto" @click="$store.state.modals = false">abbrechen</base-button>
+            <base-button type="link" class="ml-auto" @click="$store.state.modals = false">abbrechen</base-button>
           </template>
         </modal>
      

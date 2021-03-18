@@ -13,12 +13,10 @@
                 </b-row>                     
                 <b-row>                     
                   <qrcode-stream @decode="onDecode" @detect="onDetect" ></qrcode-stream>
-                    <b-alert show  variant="secondary">
-                        
+                    <b-alert show  variant="secondary">                        
                         <span class="alert-text"><strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners</span>
                     </b-alert>
-                    <b-alert show variant="warning" >
-                      
+                    <b-alert show variant="warning" >                      
                       <span class="alert-text"  @click="scan=false"><strong>abrechen!</strong></span>
                     </b-alert>
                 </b-row>  
@@ -38,10 +36,8 @@
                           size="lg"
                         class="mb-3"
                         >
-                          <b-input-group-prepend>
-                            
-                                <img src="img/icons/gradido/qr-scan-pure.png" width="80" height="auto" @click="scan=true"/>
-                             
+                          <b-input-group-prepend>                            
+                                <img src="img/icons/gradido/qr-scan-pure.png" width="80" height="auto" @click="scan=true"/>                             
                           </b-input-group-prepend>
                       <b-form-input 
                           id="input-1"
@@ -75,17 +71,13 @@
                         </b-form-input>
                         
                         <b-input-group-prepend>                           
-                           
                             <div class="h1">GDD</div>
-                           
                         </b-input-group-prepend>
 
                     </b-input-group>                           
                     <b-input-group>
-                      <b-input-group-prepend>                          
-                        
-                           <b-icon icon="chat-right-text" class="display-1"></b-icon> 
-                        
+                      <b-input-group-prepend>                        
+                           <b-icon icon="chat-right-text" class="display-1"></b-icon>
                       </b-input-group-prepend>
                       <b-form-textarea v-model="form.memo"></b-form-textarea>
                     </b-input-group>
@@ -97,7 +89,6 @@
                   <br>
                 </b-form> 
               </validation-observer>
-               
             </b-card>
           </b-collapse>
         </b-col>
@@ -133,14 +124,13 @@ export default {
      async onDecode (decodedString) {
            console.log('onDecode JSON.parse(decodedString)',JSON.parse(decodedString) )
            const arr = JSON.parse(decodedString) 
-           console.log('arr',arr[0].email )
+           // console.log('arr',arr[0].email )
            this.modal.h4 = 'Scan erfolgreich'
            this.modal.p = arr
            this.form.email = arr[0].email
            this.form.amount1 = arr[0].amount
-           console.log('arr mail',arr.email)
-           console.log('arr mail',arr.amount)
-      
+           // console.log('arr mail',arr.email)
+           // console.log('arr mail',arr.amount)      
           this.modals2 = true
       },
       async onDetect (promise) {

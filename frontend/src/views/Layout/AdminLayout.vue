@@ -6,7 +6,7 @@
         <sidebar-item
           :link="{
             name: 'Kontoübersicht',
-            path: 'KontoOverview',
+            path: '/overview',
             icon: 'ni ni-tv-2 text-primary',
           }"
         >

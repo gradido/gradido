@@ -6,41 +6,43 @@
       <gdd-sent />
       <hr>
       <gdd-table />
-     
       <hr>
       <div>
-        <gdd-add-work />       
+        <gdd-add-work-2 />       
       </div>
       <br>
-    
-      <!-- 
+      <!--
+        <div>
+          <gdd-add-work />       
+        </div>
+        <br>
+      -->      
       <div>
         <gdd-work-table />       
-      </div>
-      -->
+      </div>    
     </base-header>     
      <hr>
   </div>
 </template>
 <script>
-   import GddStatus from './KontoOverview/GddStatus.vue';
-   import GddSent from './KontoOverview/GddSent.vue';
-   import GddTable from './KontoOverview/GddTable.vue';
- import GddAddWork from './KontoOverview/GddAddWork.vue';
-   // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
+  import GddStatus    from './KontoOverview/GddStatus.vue';
+  import GddSent      from './KontoOverview/GddSent.vue';
+  import GddTable     from './KontoOverview/GddTable.vue';
+  import GddAddWork2  from './KontoOverview/GddAddWork2.vue';
+  import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
   export default {  
     name: "Overview",
     components: {
-        GddStatus,
-        GddSent,
-        GddTable,
-        GddAddWork
-        //GddWorkTable
+      GddStatus,
+      GddSent,
+      GddTable,
+      GddAddWork2,
+      GddWorkTable
      },
      created() { 
-       this.$store.dispatch('accountBalance')        
-     },
+       this.$store.dispatch('accountBalance',  $cookies.get("gdd_session_id"))        
+     }
   };
 </script>
 

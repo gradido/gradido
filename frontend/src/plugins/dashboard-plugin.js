@@ -29,6 +29,7 @@ import { messages } from 'vee-validate/dist/locale/en.json';
 import VueQrcodeReader from "vue-qrcode-reader";
 import VueQrcode from "vue-qrcode";
 
+import VueFlatPickr from 'vue-flatpickr-component';
 
 import VueGoodTablePlugin from 'vue-good-table';
 // import the styles
@@ -54,6 +55,7 @@ export default {
     Vue.use(VueMoment);
     Vue.use(VueQrcodeReader);
     Vue.use(VueQrcode);
+    Vue.use(VueFlatPickr);
     configure({
       classes: {
         valid: 'is-valid',

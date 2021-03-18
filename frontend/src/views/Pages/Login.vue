@@ -6,8 +6,8 @@
         <div class="text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-5">
-              <h1 class="text-white">Gradido Wallet</h1>
-              <p class="text-lead text-white">{{ $t('site.login.community')}}</p>
+              <h1>Gradido Wallet</h1>
+              <p class="text-lead">{{ $t('site.login.community')}}</p>
             </b-col>
           </b-row>
         </div>

@@ -10,7 +10,7 @@
             <b-col xl="5" lg="6" md="6" class="px-5">
               <h1 class="text-light">Landing Gradido</h1>               
               <br>
-              <router-link to="/KontoOverview" class="font-weight-bold text-white mt-5"> LoginUser</router-link>
+              <router-link to="/overview" class="font-weight-bold text-white mt-5"> LoginUser</router-link>
               <br><br>
               <router-link  to="/AdminOverview" class="font-weight-bold text-white mt-5"> Login Admin</router-link>
                <br><br>

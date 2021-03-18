@@ -13,17 +13,17 @@
               </div>
             </b-col>
             <b-col xl="6" class="col-xl-6">
-              <b-nav class="nav-footer justify-content-center justify-content-xl-end">
-                <b-nav-item ref="https://www.creative-tim.com" target="_blank">
+              <b-nav class="nav-footer justify-content-center justify-content-lg-end">
+                <b-nav-item ref="https://gradido.net/" target="_blank">
                   Gradido
                 </b-nav-item>
-                <b-nav-item href="https://www.creative-tim.com/presentation" target="_blank">
+                <b-nav-item href="https://gradido.net/" target="_blank">
                 {{$t('imprint')}}
                 </b-nav-item>
-                <b-nav-item href="http://blog.creative-tim.com" target="_blank">
+                <b-nav-item href="https://gradido.net/" target="_blank">
                   {{$t('privacy_policy')}}
                 </b-nav-item>
-                <b-nav-item href="https://www.creative-tim.com/license" target="_blank">
+                <b-nav-item href="https://gradido.net/" target="_blank">
                   {{$t('license')}}
                 </b-nav-item>
               </b-nav>
@@ -41,25 +41,10 @@
   </div>
 </template>
 <script>
-  import { BaseNav } from '@/components';
-  import { ZoomCenterTransition } from 'vue2-transitions';
 
-  export default {
-    components: {
-      //BaseNav,
-      //ZoomCenterTransition
-    },
-    props: {
-      backgroundColor: {
-        type: String,
-        default: 'black'
-      }
-    },
+  export default { 
     data() {
       return {
-        showMenu: false,
-        menuTransitionDuration: 250,
-        pageTransitionDuration: 200,
         year: new Date().getFullYear(),
         pageClass: 'login-page'
       };
@@ -76,80 +61,10 @@
         //  params: { lang: locale }
         //})
         //this.hideDropdown()
-      },
-      toggleNavbar() {
-        document.body.classList.toggle('nav-open');
-        this.showMenu = !this.showMenu;
-      },
-      closeMenu() {
-        document.body.classList.remove('nav-open');
-        this.showMenu = false;
-      },
-      setBackgroundColor() {
-        document.body.classList.add('bg-default');
-      },
-      removeBackgroundColor() {
-        document.body.classList.remove('bg-default');
-      },
-      updateBackground() {
-        if (!this.$route.meta.noBodyBackground) {
-          this.setBackgroundColor();
-        } else {
-          this.removeBackgroundColor()
-        }
-      }
-    },
-    beforeDestroy() {
-      this.removeBackgroundColor();
-    },
-    beforeRouteUpdate(to, from, next) {
-      // Close the mobile menu first then transition to next page
-      if (this.showMenu) {
-        this.closeMenu();
-        setTimeout(() => {
-          next();
-        }, this.menuTransitionDuration);
-      } else {
-        next();
-      }
-    },
-    watch: {
-      $route: {
-        immediate: true,
-        handler: function () {
-          this.updateBackground()
-        }
       }
     }
   };
 </script>
 <style lang="scss">
-  $scaleSize: 0.8;
-  @keyframes zoomIn8 {
-    from {
-      opacity: 0;
-      transform: scale3d($scaleSize, $scaleSize, $scaleSize);
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-
-  .main-content .zoomIn {
-    animation-name: zoomIn8;
-  }
-
-  @keyframes zoomOut8 {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-      transform: scale3d($scaleSize, $scaleSize, $scaleSize);
-    }
-  }
-
-  .main-content .zoomOut {
-    animation-name: zoomOut8;
-  }
+   
 </style>
