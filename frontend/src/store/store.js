@@ -69,11 +69,11 @@ export const store = new Vuex.Store({
     login: async ({ dispatch, commit }, data) => {
       // console.log('action: login')
     
-      axios.post("http://localhost/login_api/unsecureLogin/", 
-                  {"email": data.email, "password":data.password }).then((result) => {
+      //axios.post("http://localhost/login_api/unsecureLogin/", 
+      //            {"email": data.email, "password":data.password }).then((result) => {
            //  console.log("store login result", result)
        
-     // const result = await loginAPI.login(data.email,data.password)
+      const result = await loginAPI.login(data.email,data.password)
      // console.log('result.data.state',result.data.state)
      // console.log('result.data.session_id',result.data.session_id)
      
@@ -89,9 +89,9 @@ export const store = new Vuex.Store({
         // console.log('action login to  logout start')
         dispatch('logout')
       }
-      }, (error) => {
-        console.log(error);
-      });
+      //}, (error) => {
+      //  console.log(error);
+      //});
 
       
     },
