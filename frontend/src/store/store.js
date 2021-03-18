@@ -5,7 +5,7 @@ import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
 import axios from 'axios'
-// import CONFIG from '../config'
+import CONFIG from '../config'
 
 
 export const store = new Vuex.Store({
@@ -69,20 +69,32 @@ export const store = new Vuex.Store({
     login: async ({ dispatch, commit }, data) => {
       console.log('action: login')
       console.log('action:  data', data.email)
+      //console.log('action: CONFIG.LOGIN_API_URL', CONFIG.LOGIN_API_URL)
       
-      const result = await loginAPI.login(data.email,data.password)
-      console.log('result',result)
-      console.log('result.success',result.success)
-     // if( result.success ){
-     //   commit('session_id', result.result.data.session_id)
-     //   commit('email', data.email)
-     //   $cookies.set('gdd_session_id', result.result.data.session_id);
-     //   $cookies.set('gdd_u',  data.email);
-     //   router.push('/overview')
-     // } else {
-     //   // Register failed, we perform a logout
-     //   dispatch('logout')
-     // } 
+      axios.post("http://localhost/login_api/unsecureLogin/", 
+                  {"email": data.email, "password":data.password }).then((result) => {
+            console.log("store login result", result)
+       
+     // const result = await loginAPI.login(data.email,data.password)
+     console.log('result.data.state',result.data.state)
+     console.log('result.data.session_id',result.data.session_id)
+     
+      
+      if( result.data.state ){
+        commit('session_id', result.data.session_id)
+        commit('email', data.email)
+        $cookies.set('gdd_session_id', result.data.session_id);
+        $cookies.set('gdd_u',  data.email);
+        router.push('/overview')
+      } else {
+        // Register failed, we perform a logout
+        dispatch('logout')
+      }
+      }, (error) => {
+        console.log(error);
+      });
+
+      
     },
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)

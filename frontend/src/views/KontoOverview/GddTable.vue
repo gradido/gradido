@@ -40,10 +40,7 @@
 
 <script>
 import axios from 'axios';
-
-// axios.defaults.withCredentials = true. Dies ist erforderlich, da Axios standardmäßig keine Cookies weitergibt.
-axios.defaults.withCredentials = true
-
+ 
 export default {
   name: 'GddTable',  
   data(){

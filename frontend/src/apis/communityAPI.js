@@ -1,14 +1,6 @@
 import axios from 'axios';
 import CONFIG from '../config'
 
-// axios.defaults.withCredentials = true ist eine Anweisung an Axios, alle Anfragen mit Anmeldeinformationen zu senden, 
-// wie z. Autorisierungsheader, TLS-Client-Zertifikate oder Cookies (wie in unserem Fall).
-axios.defaults.withCredentials = true
-
-//Wir setzen unsere axios.defaults.baseURL für unsere Axios-Anfrage auf unsere. 
-// Auf APIdiese Weise wird diese Basis-URL verwendet, wenn wir über Axios senden. Damit können wir nur unsere Endpunkte wie /registerund /loginzu unseren Aktionen hinzufügen, ohne jedes Mal die vollständige URL anzugeben.
-axios.defaults.baseURL = CONFIG.COMMUNITY_API_STATE_BALANCE_URL
-
 const apiGet = async (url) => {
   try {
     const result = await axios.get(url);
