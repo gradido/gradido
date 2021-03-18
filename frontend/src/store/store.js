@@ -154,8 +154,8 @@ export const store = new Vuex.Store({
       console.log('action: dispatch', dispatch)
       console.log('action: state.session_id', state.session_id)
       console.log(" action: $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
-      commit('session_id', $cookies.get("gdd_session_id"))
-        commit('email', $cookies.get("gdd_u"))
+     // commit('session_id', $cookies.get("gdd_session_id"))
+      //  commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get("gdd_session_id"))
        console.log("accountBalance result", result)
       if(result.success) {

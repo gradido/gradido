@@ -6,8 +6,8 @@
         <div class="text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-5">
-              <h1 class="text-white">Gradido Wallet</h1>
-              <p class="text-lead text-white">{{ $t('site.login.community')}}</p>
+              <h1>Gradido Wallet</h1>
+              <p class="text-lead">{{ $t('site.login.community')}}</p>
             </b-col>
           </b-row>
         </div>
@@ -82,18 +82,6 @@
       onSubmit() {
         this.$store.dispatch('login', {"email":  this.model.email, "password":  this.model.password})
       }
-    },
-    created () { 
-      console.log("login.vue created")   
-  
-      if ( $cookies.isKey("gdd_session_id")) {
-        //this.$store.state.email = this.$cookies.get('gdd_u') 
-        console.log("login to overview")
-        this.$router.push("/overview") 
-      }else {
-        console.log("login to LOGIN")
-        //this.$router.push("/login")
-      }    
-    },
+    }
   }
 </script>
