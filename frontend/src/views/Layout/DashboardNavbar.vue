@@ -5,7 +5,7 @@
     :class="{'navbar-dark': type === 'default'}"
   >
     <a href="#" aria-current="page" class="h4 mb-0 text-uppercase d-none d-lg-inline-block active router-link-active"> 
-      {{$route.name}} 
+      {{$route.name}}
     </a>
     <!-- Navbar links -->
     <b-navbar-nav class="align-items-center ml-md-auto">
@@ -23,14 +23,14 @@
                      tag="li"
                      title-tag="a"
                      title-classes="nav-link pr-0">
-        <a href="#" class="nav-link pr-0" @click.prevent slot="title-container">
-          <b-media no-body class="align-items-center">            
+        <a href="#" class="pr-1" @click.prevent slot="title-container">
+          <b-media no-body class="align-items-center">
                  
             <b-media-body class="ml-2 d-none d-lg-block">
                <span class="avatar avatar-sm rounded-circle">
-                    <!-- <vue-qrcode :value="$store.state.email" /> -->
+                     <vue-qrcode :value="$store.state.email" />  
                   </span>
-              <span class="mb-0 text-lg  font-weight-bold">{{this.$store.state.email}}</span>
+              <span class="mb-0 text-lg font-weight-bold">{{ $store.state.email }}</span>
             </b-media-body>
           </b-media>
         </a>
@@ -68,8 +68,8 @@
   </base-nav>
 </template>
 <script>
-import { CollapseTransition } from 'vue2-transitions';
-import { BaseNav } from '@/components';
+import { CollapseTransition } from 'vue2-transitions'
+import { BaseNav } from '@/components'
 import VueQrcode from 'vue-qrcode'
 
 export default {

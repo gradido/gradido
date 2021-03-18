@@ -2,6 +2,4 @@
 	path = gn
 	url = https://github.com/gradido/gn.git
 	branch = master
-[submodule "login_server"]
-	path = login_server
-	url = git@github.com:gradido/gradido_login_server.git
+

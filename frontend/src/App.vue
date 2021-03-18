@@ -18,27 +18,15 @@ export default {
   components: {
       ParticlesBg
     },
-    mounted() {
-      console.log("mounted")
-    },
-    created () { 
-      console.log("created")   
- 
-     // console.log(" $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
-     // console.log("app.vue $cookies.isKey('gdd_session_id') ", $cookies.isKey("gdd_session_id")  )
-      // const isSession = $cookies.isKey("gdd_session_id")
-      // const getSession = $cookies.get("gdd_session_id")
-      // console.log("this.isSession ", this.isSession  )
-      //  console.log("xx", ( isSession == true))
+    created () {  
+      console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
       if ( $cookies.isKey("gdd_session_id") == true) {
-        //this.$store.state.email = this.$cookies.get('gdd_u') 
-         console.log("cookies to store.state")
-        this.$store.commit('session_id', $cookies.get("gdd_session_id"))
-        this.$store.commit('email', $cookies.get("gdd_u"))
-       console.log("app to overview")
-       this.$router.push("overview") 
+         console.log('%cWillkommen zurück %c'+$cookies.get("gdd_u")+'', 'font-weight:bold', 'color: orange')
+         this.$store.commit('session_id', $cookies.get("gdd_session_id"))
+         this.$store.commit('email', $cookies.get("gdd_u"))
+         this.$router.push("overview") 
      }else {
-        console.log("app.vue to LOout")
+        console.log("app.vue to Logout")
         this.$store.dispatch('logout')
       }    
     },
