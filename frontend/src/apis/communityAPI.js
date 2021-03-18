@@ -3,9 +3,7 @@ import CONFIG from '../config'
 
 const apiGet = async (url) => {
   try {
-    console.log("comm api url",url)
     const result = await axios.get(url);
-    console.log("comm api result",result)
     if(result.status !== 200){
       throw new Error('HTTP Status Error '+result.status)
     }

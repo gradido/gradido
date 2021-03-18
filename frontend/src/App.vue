@@ -21,7 +21,7 @@ export default {
     created () {  
       console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
       if ( $cookies.isKey("gdd_session_id") == true) {
-         console.log('%cWillkommen zurück %c'+$cookies.get("gdd_u")+'', 'font-weight:bold', 'color: orange')
+         console.log('%cHey %c'+$cookies.get("gdd_u")+'', 'font-weight:bold', 'color: orange')
          this.$store.commit('session_id', $cookies.get("gdd_session_id"))
          this.$store.commit('email', $cookies.get("gdd_u"))
          this.$router.push("overview") 

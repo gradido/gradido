@@ -57,13 +57,12 @@ export default {
      axios.get("http://localhost/state-balances/ajaxListTransactions/"+ this.$store.state.session_id).then((result) => {
       //console.log("result",result)
       //console.log("result.state",result.data.state)
-     //
       //console.log("result.data.state == 'success'",result.data.state == "success")
    
-    //console.log("result.count",result.data.count)
-    // console.log("result.gdtSum",result.data.gdtSum)
-     console.log("result.transactions",typeof(result.data.transactions))
-     //commit('transactions', result.data.transactions)
+      //console.log("result.count",result.data.count)
+      //console.log("result.gdtSum",result.data.gdtSum)
+      //console.log("result.transactions",typeof(result.data.transactions))
+      //commit('transactions', result.data.transactions)
       this.$store.state.user.balance_gdt =  result.data.gdtSum
       this.items =  result.data.transactions
       this.count = result.data.count
@@ -76,7 +75,7 @@ export default {
    },
   computed: {
   filteredItems(a) {
-    console.log("filteredItems date",a.items)
+    // console.log("filteredItems date",a.items)
     return a.items
     
   }
