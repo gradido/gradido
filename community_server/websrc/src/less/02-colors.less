@@ -1,0 +1,160 @@
+/* ============================================================
+
+  Generic Color Definitions
+
+  Vars and some generic CSS rules.
+
+  Datei     :   colors.less
+  Datum     :   2020-05-26
+  Autor     :   Christine Slotty
+  Copyright :   Gradio
+
+   ============================================================*/
+
+/* MAIN */
+@main-background: #f9fafb;
+@main-text: #212529;
+@main-link-text: #000;
+
+/* MENU */
+@menu-background: #fff;
+@menu-link-text: #4F4F4F;
+@menu-link-selected: #047006;
+@menu-border-color: #f2f4f5;
+
+/* CONTENT */
+@container-background: #fff;
+@container-text: #212529;
+@container-header: #21252969;
+@container-shadow: rgba(183, 192, 206, .2);
+@container-border: rgba(238, 238, 238, .75);
+
+/* CONTENT-NAV */
+@content-nav: #565656;
+
+/* CONTENT-ITEMS */
+@action-button-text: #fff;
+@action-button-border: #047006;
+@action-button-background1: #047006;
+@action-button-background: #f9fafb;
+@info-item-border: grey;
+@form-header-border: #047006;
+@form-header-background: #f9fafb;
+
+/* CONTENT-TABLE */
+@content-table-title: #313131;
+@content-table-header: #101010;
+@content-table-header-bg: #fafafa;
+@content-table-header-border: #f2f4f9;
+@content-row-bg: #f0f2f5;
+
+/* FORMS */
+@form-label: #212529;
+@badge-color-warning: #fff;
+@badge-background-warning: #00e093;
+@badge-color-error: #fff;
+@badge-background-error: #ff5f66;
+
+/* VARIOUS INDIVIDUAL */
+@orange: #ffa600;
+
+/* XXX TODO XXX */
+@dialog-background: #fff;
+
+/*rgba(0, 0, 0, 0.5) ??? */
+@dialog-text: #000;
+@dialog-background-extra: rgba(0, 0, 0, 0.1);
+@dialog-border: grey;
+@form-text-background: rgba(0, 0, 0, 0.05);
+@form-button-border: grey;
+@form-button-text: #444;
+@button-text: #000;
+@button-border-color: #000;
+@button-background-active: lightgray;
+@print-background: #111;
+@print-text: #000;
+@print-link-text: #06c;
+@gdt-text: #a27824;
+
+/* NOTIFICATION */
+@info: grey;
+@info-border: gray;
+@info-background: #80808026;
+@info-background-icon: #80808026;
+@error: red;
+@error-border: rgba(255, 0, 0, 0.5);
+@success: #047006;
+@success-message: #1A1A1A;
+@success-message-background: #06c50a;
+@success-border: #04700675;
+@success-background-icon: rgba(4, 112, 6, 0.2);
+@success-background-hover: lightgreen;
+@alert: #ff5f66;
+@alert-color: #fff;
+@alert-background: #ff5f669e;
+@alert-background-icon: #ff5f662e;
+@alert-blink: #ff5f669e;
+@notify: #525c5d;
+@notify-blink: #525c5d82;
+
+/* https://www.w3schools.com/colors/colors_shades.asp */
+@unobtrusive: grey;
+@light: #F5F5F5;
+@verylight: #fbfbfb;
+
+.info-color {
+    color: @info;
+}
+
+.success-color {
+    color: @success;
+}
+
+.alert-color {
+    color: @alert;
+}
+
+.orange-color {
+    color: @orange
+}
+
+.blue-color {
+    color: blue
+}
+
+.unobtrusive {
+    color: @unobtrusive;
+}
+
+.info-icon {
+    color: @info;
+    background-color: @info-background-icon;
+}
+
+.success-icon {
+    color: @success;
+    background-color: @success-background-icon;
+}
+
+.alert-icon {
+    color: @alert;
+    background-color: @alert-background-icon;
+}
+
+/* =======================
+    Gradido
+   =======================*/
+
+/* Gradido */
+.grd-negative-currency {
+    color: red;
+}
+
+/* Gradido Transform */
+.gdt-text-color {
+    color: @gdt-text;
+}
+
+.grd_clickable {
+    cursor: pointer;
+}

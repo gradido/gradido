@@ -2,4 +2,24 @@
 	path = gn
 	url = https://github.com/gradido/gn.git
 	branch = master
-
+[submodule "mithril_client"]
+        path = community_server/mithril_client
+        url = git@github.com:gradido/gradido_mithrilJS_client.git
+[submodule "src/protobuf"]
+        path = community_server/src/protobuf
+        url =  git@github.com:gradido/gradido_protocol.git
+[submodule "dependencies/tinf"]
+        path = login_server/dependencies/tinf
+        url = https://github.com/jibsen/tinf.git
+[submodule "dependencies/mariadb-connector-c"]
+        path = login_server/dependencies/mariadb-connector-c
+        url = https://github.com/MariaDB/mariadb-connector-c.git
+[submodule "src/proto"]
+        path = login_server/src/proto
+        url = https://github.com/gradido/gradido_protocol.git
+[submodule "dependencies/iroha-ed25519"]
+        path = login_server/dependencies/iroha-ed25519
+        url = https://github.com/gradido/iroha-ed25519.git
+[submodule "dependencies/spirit-po"]
+        path = login_server/dependencies/spirit-po
+        url = https://github.com/cbeck88/spirit-po.git

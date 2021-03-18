@@ -1,0 +1,6 @@
+CREATE TABLE `transaction_types` (
+ `id` INT NOT NULL AUTO_INCREMENT,
+ `name` VARCHAR(24) NOT NULL,
+ `text` VARCHAR(255) NULL,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

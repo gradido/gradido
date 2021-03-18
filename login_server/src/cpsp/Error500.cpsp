@@ -1,0 +1,27 @@
+<%@ page class="Error500Page" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@	page compressed="true" %>
+<%! 
+#include <Poco/Net/HTTPResponse.h>
+	
+%>
+<%
+	const char* pageName = "Error";
+	response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+	Poco::AutoPtr<User> user;
+	if(mSession) {
+		auto user = mSession->getUser();
+	}
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h2>Ein Fehler auf dem Server trat ein, der Admin bekam eine E-Mail.</h2>
+	<% if(mSession) { %>
+		<%= mSession->getErrorsHtml() %>
+	<% } %>
+	<% if(!user.isNull()) {%>
+		<%= user->getErrorsHtml() %> 
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

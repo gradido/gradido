@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gradido Login Server: &Uuml;berpr&uuml;fe Transaktion</title>
+    <link href="/favicon.ico" type="image/x-icon" rel="icon" />
+    <link href="/favicon.ico" type="image/x-icon" rel="shortcut icon" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <script src="/js/basic.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+        <div class="header-notify">
+            <a class="notify-link" title="1 Transaktionen sind noch zu unterzeichnen" href="http://192.168.178.52/./account/checkTransactions">
+                <i class="material-icons-outlined notify">verified_user</i>
+            </a>
+        </div>
+        <div class="sidebar1 nav-menu initial">
+            <a href="/">
+                <picture class="logo big visible">
+                    <source srcset="/img/logo_schrift_half.webp" type="image/webp">
+                    <source srcset="/img/logo_schrift_half.png" type="image/png">
+                    <img src="/img/logo_schrift_half.png" class="logo big visible" alt="Logo">
+                </picture>
+                <picture class="logo small">
+                    <source srcset="/img/logo_half.webp" type="image/webp">
+                    <source srcset="/img/logo_half.png" type="image/png">
+                    <img src="/img/logo_half.png" class="logo small" alt="Logo">
+                </picture>
+            </a>
+            <div>
+                <i class="material-icons-outlined nav-main-button">menu</i>
+            </div>
+            <div class="flash-messages">
+            </div>
+            <div class="nav-vertical">
+                <ul>
+                    <li><a href="/state-balances/overview" class=""><i class="material-icons-outlined nav-icon " title="Kontoübersicht (  950 GDD )">account_balance_wallet</i><span
+                                class="link-title">Kontoübersicht ( 950 GDD )</span></a></li>
+                    <li><a href="/dashboard/index" class=""><i class="material-icons-outlined nav-icon " title="Startseite">home</i><span
+                                class="link-title">Startseite</span></a></li>
+                    <li class=' selected'><a href="/transaction-send-coins/create" class=""><i class="material-icons-outlined nav-icon "
+                                title="Überweisung">account_balance</i><span class="link-title">Überweisung</span></a></li>
+                    <li><a href="https://elopage.com/s/gradido/sign_in" class="" target="_blank"><i class="material-icons-outlined nav-icon "
+                                title="Mitgliederbereich">people_alt</i><span class="link-title">Mitgliederbereich</span></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="content">
+            <div class="nav-content">
+                <ul class='nav-content-list'>
+                    <li><a href="/" class=""><span class="link-title">Startseite</span></a></li>
+                    <li class='nav-content-separator'>-</li>
+                    <li class='selected'><span class="link-title">&Uuml;berpr&uuml;fe Transaktion</span></li>
+                </ul>
+            </div>
+            <div class="content-container main-container">
+                <div class="action-form">
+                    <p class="form-header">Transaktion unterzeichnen</p>
+                    <div class="form-content">
+                        <p>&Uuml;berweisung</p>
+                        <div class="content-table">
+                          <div class="content-row content-row-header">
+                            <span class="content-cell">Konto</span>
+                            <span class="content-cell">Gradido</span>
+                          </div>
+                          <div class="content-row content-row-bg">
+                            <span class="content-cell">Normaler&nbsp;User&nbsp;&lt;info@software-labor.de&gt;</span>
+                            <span class="content-cell alert-color">-10 GDD</span>
+                          </div>
+                          <div class="content-row">
+                            <span class="content-cell">dario&nbsp;frodo&nbsp;&lt;dariofrodo@gmx.de&gt;</span>
+                            <span class="content-cell success-color">10 GDD</span>
+                          </div>
+                        </div>
+                        <div class="content-table">
+                          <div class="content-row content-row-header">
+                            <span class="content-cell">Aktives Konto</span>
+                          </div>
+                          <div class="content-row">
+                            <span class="content-cell">Normaler User &lt;info@software-labor.de&gt;</span>
+                          </div>
+                        </div>
+                        <div class="content-table">
+                          <div class="content-row content-row-header">
+                            <span class="content-cell">Verwendungszweck</span>
+                          </div>
+                          <div class="content-row content-row-bg">
+                            <span class="content-cell">&nbsp;</span>
+                          </div>
+                        </div>
+                        <form>
+                            <button type="submit" class="form-button" name="ok" value="ok">
+                                <i class="material-icons-outlined">verified_user</i>
+                                Transaktion unterzeichnen
+                            </button>
+                            <button type="submit" class="form-button button-cancel" name="abort" value="abort">
+                                <i class="material-icons-outlined">delete</i>
+                                Transaktion verwerfen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <ul class="nav-horizontal">
+            <li><a href="https://gradido.net/de/datenschutz/" target="_blank">Datenschutzerklärung</a></li>
+            <li><a href="https://gradido.net/de/impressum/" target="_blank">Impressum</a></li>
+        </ul>
+    </div>
+    <div class="nav-bottom">
+        <small class="">Copyright © 2020 Gradido</small>
+    </div>
+    <div class="bottomleft">
+        98.597 ms
+    </div>
+    <div class="bottomright">
+        <p>Community Server in Entwicklung</p>
+        <p>Alpha 0.21.KW21.05</p>
+    </div>
+    </div>
+</body>
+
+</html>

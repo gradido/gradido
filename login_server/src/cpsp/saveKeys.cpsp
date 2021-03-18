@@ -1,0 +1,137 @@
+<%@ page class="SaveKeysPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%!
+#include "Poco/Net/HTTPServerParams.h"
+
+enum PageState 
+{
+	PAGE_ASK,
+	PAGE_SHOW_PUBKEY,
+	PAGE_ERROR
+};
+
+%>
+<%%
+	const char* pageName = "Daten auf Server speichern?";
+	bool hasErrors = mSession->errorCount() > 0;
+	// crypto key only in memory, if user has tipped in his passwort in this session
+	bool hasPassword = mSession->getUser()->hasCryptoKey();
+	PageState state = PAGE_ASK;
+	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
+	
+	// skip asking user if he like to save keys and passphrase on server for now!
+	state = PAGE_SHOW_PUBKEY;
+	if(!mSession->generateKeys(true, true)) {
+		getErrors(mSession);
+	}
+	/*
+	if(!form.empty()) {
+		// privkey
+		auto savePrivkeyChoice = form.get("save-privkey");
+		bool savePrivkey = false;
+		if(savePrivkeyChoice == "yes") {
+			if(!hasPassword) {
+				// check pwd
+				auto pwd = form.get("save-privkey-password", "");
+				
+				if(!mSession->isPwdValid(pwd)) {
+					addError(new Error("Passwort", "Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung"), false);
+					hasErrors = true;
+				} else {
+					savePrivkey = true;
+				}
+			} else {
+				savePrivkey = true;
+			}
+		}
+		if(!hasErrors) {
+			auto savePassphraseChoice = form.get("save-passphrase");
+			bool savePassphrase = false;
+			if(savePassphraseChoice == "yes") {
+				savePassphrase = true;
+			}
+			if(!mSession->generateKeys(savePrivkey, savePassphrase)) {
+				hasErrors = true;
+			} else if(mSession->getSessionState() >= SESSION_STATE_KEY_PAIR_GENERATED) {
+				state = PAGE_SHOW_PUBKEY;
+				
+				//printf("uri_start: %s\n", uri_start.data());
+				//response.redirect(uri_start + "/");
+			} else {
+				state = PAGE_ERROR;
+			}
+		}
+		//printf("SaveKeysPage: hasErrors: %d, session state: %d, target state: %d\n",
+			//hasErrors, mSession->getSessionState(), SESSION_STATE_KEY_PAIR_GENERATED);
+	}*/
+	getErrors(mSession);
+%><%@ include file="header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Daten speichern</h1>
+	<%= getErrorsHtml() %>
+	<% if(state == PAGE_ASK) { %>
+	<form method="POST">
+		<fieldset>
+			<legend>Gradido Private Key speichern</legend>
+			<div class="grd_text">
+				<p>M&ouml;chtest du deinen Gradido Private Key auf dem Server mit deinem Passwort verschl&uuml;sselt speichern?</p>
+				<p>Wenn du ihn speicherst brauchst du dich in Zukunft nur mit deiner E-Mail und deinem Passwort einzuloggen.</p>
+				<p>Wenn du ihn nicht speicherst, m&uuml;sstest du jedes mal wenn du eine Transaktion machen willst, deine Passphrase hier reinkopieren.</p>
+			</div>
+			<p class="grd_small">
+				<input id="save-privkey-yes" type="radio" name="save-privkey" value="yes" checked/>
+				<label class="grd_radio_label" for="save-privkey-yes">Ja, bitte speichern!</label>
+			</p>
+			<% if(!hasPassword) { %>
+				<p>Ich brauche nochmal dein Passwort wenn du dich für ja entscheidest.</p>
+				<p class="grd_small">
+					<label for="save-privkey-password">Passwort</label>
+					<input id="save-privkey-password" type="password" name="save-privkey-password"/>
+				</p>
+			<% } %>
+			<p class="grd_small">
+				<input id="save-privkey-no" type="radio" name="save-privkey" value="no"/>
+				<label class="grd_radio_label" for="save-privkey-no">Nein, ich k&uuml;mmere mich selbst darum!</label>
+			</p>
+		</fieldset>
+		<fieldset>
+			<legend>Passphrase speichern</legend>
+			<div class="grd_text">
+				<p>M&ouml;chtest du deine Passphrase mit dem Server-Admin-Key verschl&uuml;sselt auf dem Server gespeichert haben?</p>
+				<p>Dann kann dir der Server-Admin deine Passphrase zuschicken wenn du sie verlegt hast. </p>
+			</div>
+			<p class="grd_small">
+				<input id="save-passphrase-yes" type="radio" name="save-passphrase" value="yes" checked/>
+				<label class="grd_radio_label" for="save-passphrase-yes">Ja, bitte speichern!</label>
+			</p>
+			<p class="grd_small">
+				<input id="save-passphrase-no" type="radio" name="save-passphrase" value="no"/>
+				<label class="grd_radio_label" for="save-passphrase-no">Nein, ich vertraue nur mir selbst!</label>
+			</p>
+		</fieldset>
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" value="Speichern">
+	</form>
+	<% } else if(state == PAGE_SHOW_PUBKEY) { %>
+		<div class="grd_text">
+			<p><%= gettext("Daten gespeichert!") %></p>
+			<p><%= gettext("Deine Daten wurden verschlüsselt und gespeichert.") %></p>
+			<!--<p>Je nach Auswahl werden deine Daten nun verschl&uuml;sselt und gespeichert. </p>-->
+			<!--<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>-->
+			<!--<p>Deine Gradido Adresse (Hex): </p>
+			<p class="grd_textarea">
+				<%= mSession->getUser()->getPublicKeyHex() %>
+			</p>-->
+			<a class="grd-form-bn" href="<%= uri_start %>">Zur&uuml;ck zur Startseite</a>
+		</div>
+	<% } else if(state == PAGE_ERROR) { %>
+		<div class="grd_text">
+			<p>Ein Fehler trat auf, bitte versuche es erneut oder wende dich an den Server-Admin</p>
+			<%= mSession->getSessionStateString() %>
+		</div>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>
