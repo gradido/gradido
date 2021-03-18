@@ -35,6 +35,15 @@ class StateBalance extends Entity
     
     protected $_virtual = ['decay'];
     
+    private function convertToTimestamp($dateOrTime)
+    {
+        if(method_exists($dateOrTime, 'getTimestamp')) {
+            return $dateOrTime->getTimestamp();
+        } else {
+            return $dateOrTime->i18nFormat(Time::UNIX_TIMESTAMP_FORMAT);
+        }
+    }
+    
     protected function _getDecay()
     {
       // decay factor in seconds per year
@@ -44,7 +53,7 @@ class StateBalance extends Entity
       // SELECT TIMESTAMPDIFF(SECOND, modified, CURDATE()) AS age_in_seconds from state_balances
       // decay_for_duration = decay_factor^seconds
       // decay = gradido_cent * decay_for_duration 
-      $decay_duration = intval(Time::now()->getTimestamp() - $this->record_date->getTimestamp());
+      $decay_duration = $this->decayDuration(Time::now());
       if($decay_duration === 0) {
           return $this->amount;
       }
@@ -53,7 +62,8 @@ class StateBalance extends Entity
     }
     public function partDecay($target_date)
     {
-        $decay_duration = intval($target_date->getTimestamp() - $this->record_date->getTimestamp());
+        if($target_date == null) return 0;
+        $decay_duration = $this->decayDuration($target_date);
         if($decay_duration <= 0) {
             return $this->amount;
         }
@@ -61,7 +71,8 @@ class StateBalance extends Entity
     }
     
     public function decayDuration($target_date)
-    {
-        return intval($target_date->getTimestamp() - $this->record_date->getTimestamp());
+    {   
+        if($this->record_date == null) return 0;
+        return intval($this->convertToTimestamp($target_date) - $this->record_date->getTimestamp());
     }
 }
