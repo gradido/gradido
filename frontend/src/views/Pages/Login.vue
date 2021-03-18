@@ -82,6 +82,18 @@
       onSubmit() {
         this.$store.dispatch('login', {"email":  this.model.email, "password":  this.model.password})
       }
-    }
+    },
+    created () { 
+      console.log("login.vue created")   
+  
+      if ( $cookies.isKey("gdd_session_id")) {
+        //this.$store.state.email = this.$cookies.get('gdd_u') 
+        console.log("login to overview")
+        this.$router.push("/overview") 
+      }else {
+        console.log("login to LOGIN")
+        //this.$router.push("/login")
+      }    
+    },
   }
 </script>

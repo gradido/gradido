@@ -4,7 +4,7 @@
       <b-col lg="3" class="order-lg-2">
         <div class="card-profile-image">
           <a href="#">
-            <vue-qrcode :value="$store.state.email"  type="image/png"/>
+            <vue-qrcode :value="$store.state.email" />
           </a>
         </div>
       </b-col>

@@ -25,11 +25,10 @@
   </div>
 </template>
 <script>
-  import GddStatus from './KontoOverview/GddStatus.vue';
-  import GddSent from './KontoOverview/GddSent.vue';
-  import GddTable from './KontoOverview/GddTable.vue';
-  //import GddAddWork from './KontoOverview/GddAddWork.vue';
-  import GddAddWork2 from './KontoOverview/GddAddWork2.vue';
+  import GddStatus    from './KontoOverview/GddStatus.vue';
+  import GddSent      from './KontoOverview/GddSent.vue';
+  import GddTable     from './KontoOverview/GddTable.vue';
+  import GddAddWork2  from './KontoOverview/GddAddWork2.vue';
   import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
   export default {  
@@ -38,13 +37,12 @@
       GddStatus,
       GddSent,
       GddTable,
-      //GddAddWork,
       GddAddWork2,
       GddWorkTable
      },
      created() { 
-       this.$store.dispatch('accountBalance')        
-     },
+       this.$store.dispatch('accountBalance',  $cookies.get("gdd_session_id"))        
+     }
   };
 </script>
 

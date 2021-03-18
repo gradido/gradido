@@ -20,23 +20,24 @@ export default {
     },
     mounted() {
       console.log("mounted")
-      console.log(" $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
-      console.log(" $cookies.isKey('gdd_session_id') ", $cookies.isKey("gdd_session_id")  )
-      const isSession = $cookies.isKey("gdd_session_id")
-      const getSession = $cookies.get("gdd_session_id")
-      console.log("this.isSession ", this.isSession  )
-
-      if ( $cookies.isKey("gdd_session_id")) {
-        //this.$store.state.email = this.$cookies.get('gdd_u') 
-        console.log("router to overview")
-        this.$router.push("/overview") 
-      }else {
-        console.log("router to LOGIN")
-        //this.$router.push("/login")
-      } 
     },
     created () { 
-      console.log("created")      
+      console.log("created")   
+ 
+     // console.log(" $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
+      console.log("app.vue $cookies.isKey('gdd_session_id') ", $cookies.isKey("gdd_session_id")  )
+       const isSession = $cookies.isKey("gdd_session_id")
+     // const getSession = $cookies.get("gdd_session_id")
+     // console.log("this.isSession ", this.isSession  )
+  console.log("xx", ( isSession == true))
+      if ( $cookies.isKey("gdd_session_id") == true) {
+        //this.$store.state.email = this.$cookies.get('gdd_u') 
+       console.log("app to overview")
+       this.$router.push("overview") 
+     }else {
+        console.log("router to LOGIN")
+        //this.$router.push("/login")
+      }    
     },
      data() {
     return {
