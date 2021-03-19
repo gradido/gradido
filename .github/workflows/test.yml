@@ -74,7 +74,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target login_server_debug -t "gradido/loginserver:test" login_server/Dockerfile.debug
+          docker build --target login_server_debug -t "gradido/loginserver:test" -f ./login_server/Dockerfile.debug login_server/
           docker save "gradido/loginserver:test" > /tmp/loginserver.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -100,7 +100,7 @@ jobs:
       ##########################################################################
       - name: community server | Build `test` image
         run: |
-          docker build -t "gradido/communityserver:test" community_server/
+          docker build -t "gradido/communityserver:test" -f ./community_server/Dockerfile ./
           docker save "gradido/communityserver:test" > /tmp/communityserver.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
