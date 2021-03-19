@@ -1,13 +1,13 @@
 {
   "message": "hallo gradido !!",
   "welcome":"Willkommen!",
-  "logout":"Logout",
+  "logout":"Abmelden",
   "login":"Login",
   "signup": "Registrieren",
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
-  "license":"Lizenz",
   "back":"zurück",
+  "sent":"Senden",
   "transactions":"Transaktionen",
   "language":"Sprachen",
   "languages":{
