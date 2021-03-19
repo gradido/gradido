@@ -2,9 +2,9 @@
 	path = gn
 	url = https://github.com/gradido/gn.git
 	branch = master
-[submodule "mithril_client"]
-        path = community_server/mithril_client
-        url = https://github.com/gradido/gradido_mithrilJS_client.git
+#[submodule "mithril_client"]
+#        path = community_server/mithril_client
+#        url = https://github.com/gradido/gradido_mithrilJS_client.git
 [submodule "src/protobuf"]
         path = community_server/src/protobuf
         url =  https://github.com/gradido/gradido_protocol.git
