@@ -6,19 +6,19 @@
        
          <b-nav-item href="#!" to="/overview">
                
-              <b-nav-text class="p-0 text-lg text-muted">Senden</b-nav-text>
+              <b-nav-text class="p-0 text-lg text-muted">{{ $t('sent')}}</b-nav-text>
           </b-nav-item>
          <b-nav-item href="#!" to="/profile">
              
-              <b-nav-text class="p-0 text-lg text-muted">Profil</b-nav-text>
+              <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil')}}</b-nav-text>
           </b-nav-item>
          <b-nav-item href="#!" to="/profileedit">
               
-              <b-nav-text class="p-0 text-lg text-muted">Settings</b-nav-text>
+              <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
           </b-nav-item>
          <b-nav-item href="#!" to="/activity">
              
-              <b-nav-text class="p-0 text-lg text-muted">Activity</b-nav-text>
+              <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
           </b-nav-item>
           
       </template>

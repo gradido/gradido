@@ -27,9 +27,10 @@
                     name="Email"
                     :rules="{required: true, email: true}"
                     v-model="model.email">
-                  </base-input>                  
+                  </base-input>  
+                    {{form}}
                   <div class="text-center">
-                    <b-button type="submit" variant="primary" class="mt-4">{{ $t('site.password.reset_now')}}</b-button>
+                    <b-button type="submit" variant="primary" class="mt-4" :disabled="disable">{{ $t('site.password.reset_now')}}</b-button>
                   </div>
                 </b-form>
               </validation-observer>
@@ -48,6 +49,7 @@
     name: 'password',
     data() {
       return {
+        disable: 'disabled',
         model: {
           email: ''        
         }
