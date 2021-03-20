@@ -92,6 +92,8 @@ int EmailManager::ThreadFunction()
 	if (mPendingEmails.empty()) return 0;
 
 	auto lm = LanguageManager::getInstance();
+	ErrorList errors;
+	static const char* function_name = "PrepareEmailTask";
 
 	Poco::Net::SecureSMTPClientSession mailClientSession(mEmailAccount.url, mEmailAccount.port);
 	mailClientSession.login();
@@ -100,6 +102,7 @@ int EmailManager::ThreadFunction()
 		mailClientSession.login(Poco::Net::SMTPClientSession::AUTH_LOGIN, mEmailAccount.username, mEmailAccount.password);
 	}
 	catch (Poco::Net::SSLException& ex) {
+		errors.addError(new ParamError(function_name, "ssl certificate error", ex.displayText()));
 		printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
 		return -1;
 	}
@@ -151,6 +154,7 @@ int EmailManager::ThreadFunction()
 			else {
 				// error drafting email, shouldn't happend
 				printf("[EmailManager::ThreadFunction] Error drafting email\n");
+				errors.addError(new Error(function_name, "Error drafting email"));
 			}
 			delete email;
 			email = nullptr;
