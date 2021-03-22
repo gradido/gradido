@@ -65,8 +65,7 @@
       GddTable,
      GddWorkTable,
     LineChart,
-    BarChart,
-
+    BarChart
     },
     data(){
       return {
