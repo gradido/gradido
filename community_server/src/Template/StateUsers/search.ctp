@@ -73,7 +73,7 @@ $stateOptions = [
     csfr_token = '<?= $csfr_token ?>';
 
 </script>
-<?= $this->Html->script('userSearch') ?>
+<?= $this->Html->script('userSearch.min') ?>
 <!-- npm run build im mithril client! -->
 <!-- keybase://team/gradido/gradido_mithril_user_search -->
 
