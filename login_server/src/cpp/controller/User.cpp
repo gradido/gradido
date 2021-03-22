@@ -46,24 +46,49 @@ namespace controller {
 		return Poco::AutoPtr<User>(user);
 	}
 	
-	std::vector<User*> User::search(const std::string& searchString)
+	std::vector<User*> User::search(const std::string& searchString, const std::string& accountState /* = "all" */)
 	{
 		
 		auto sm = SessionManager::getInstance();
+		auto cm = ConnectionManager::getInstance();
 		auto db = new model::table::User();
+		static const char* functionName = "User::search";
 		
 		std::string globalSearch = "%" + searchString + "%";
 
 		std::vector<model::table::UserTuple> resultFromDB;
-		// check if search string is email
-		/*if (sm->isValid(searchString, VALIDATE_EMAIL)) {
-			resultFromDB = db->loadFromDB <std::string, model::table::UserTuple>("email", globalSearch);
+		if (accountState == "email not activated") {
+			
+			std::vector<std::string> fieldNames = { "first_name", "last_name", "email", "email_checked" };
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			std::vector<model::table::UserTuple> results;
+
+			using namespace Poco::Data::Keywords;
+			Poco::Data::Statement select(session);
+			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
+			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << db->getTableName();
+			select << " where email_checked = 0 ";
+			select, into(resultFromDB);
+			if (searchString != "") {
+				select << "AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)";
+				select, useRef(globalSearch), useRef(globalSearch), useRef(globalSearch);
+			}
+			try {
+				select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				ErrorList errors;
+				errors.addError(new ParamError(functionName, "mysql error ", ex.displayText()));
+				errors.addError(new ParamError(functionName, "search string", searchString));
+				errors.addError(new ParamError(functionName, "account state", accountState));
+				errors.sendErrorsAsEmail();
+			}
 		}
-		else {*/
+		else {
 			std::vector<std::string> fieldNames =  { "first_name", "last_name", "email" };
 			std::vector<std::string> fieldValues = { globalSearch, globalSearch, globalSearch };
 			resultFromDB = db->loadFromDB<std::string, model::table::UserTuple>(fieldNames, fieldValues, model::table::MYSQL_CONDITION_OR);
-		//}
+		}
 
 		db->release();
 		db = nullptr;
