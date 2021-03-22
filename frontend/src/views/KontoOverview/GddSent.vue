@@ -6,6 +6,9 @@
             <span class="btn-inner--text">{{ $t('site.overview.send_gradido') }} </span>
           </base-button>
           <b-collapse id="collapse-1" class="mt-2">
+               <b-alert variant="warning" show dismissible >
+                  <strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
+              </b-alert>
             <b-card >              
               <div  v-if="scan">
                 <b-row>                                          
@@ -28,6 +31,10 @@
                   <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
                   <br>
                   <div>
+                     <b-col    class="text-left pl-6">
+                            <b-badge variant="primary">Empfänger</b-badge>
+                          </b-col>  
+                                      
                     <b-input-group
                       id="input-group-1"
                         label="Empfänger:"
@@ -36,8 +43,8 @@
                           size="lg"
                         class="mb-3"
                         >
-                          <b-input-group-prepend>                            
-                                <img src="img/icons/gradido/qr-scan-pure.png" width="80" height="auto" @click="scan=true"/>                             
+                          <b-input-group-prepend  class="p-3">                            
+                                 <b-icon icon="envelope" class="display-3"></b-icon>                            
                           </b-input-group-prepend>
                       <b-form-input 
                           id="input-1"
@@ -51,12 +58,17 @@
                   </div>
                   <br>                
                   <div>
+                    <b-col    class="text-left pl-6">
+                            <b-badge variant="primary">Betrag</b-badge>
+                          </b-col> 
+                      <b-col v-if="($store.state.user.balance == form.amount)"  class="text-right">
+                            <b-badge variant="primary">maximale anzahl GDD zum versenden erreicht!</b-badge>
+                          </b-col>   
                     <b-input-group id="input-group-2" label="Betrag:" label-for="input-2"
                       size="lg"
                       class="mb-3"> 
                         <b-input-group-prepend>
-                           
-                             <img src="img/icons/gradido/plus.png" width="80">  
+                           <div class="h3 pt-3 pr-3">GDD</div>
                            
                         </b-input-group-prepend>
                         <b-form-input  
@@ -66,24 +78,31 @@
                           placeholder="0.01" 
                           step="0.01" 
                           min="0.01" 
-                          max="1000"
+                          :max="$store.state.user.balance"
                           style="font-size: xx-large; padding-left:20px">
                         </b-form-input>
-                        
-                        <b-input-group-prepend>                           
-                            <div class="h1">GDD</div>
-                        </b-input-group-prepend>
+                        {{$store.state.user.balance}}
+                       
 
-                    </b-input-group>                           
+                    </b-input-group>  
+                     <b-col    class="text-left pl-6">
+                            <b-badge variant="primary">Nachricht für den Empfänger (optional)</b-badge>
+                          </b-col>         
+                          
                     <b-input-group>
-                      <b-input-group-prepend>                        
-                           <b-icon icon="chat-right-text" class="display-1"></b-icon>
+                      <b-input-group-prepend class="p-3">                        
+                           <b-icon icon="chat-right-text" class="display-3"></b-icon>
                       </b-input-group-prepend>
-                      <b-form-textarea v-model="form.memo"></b-form-textarea>
+                      <b-form-textarea v-model="form.memo"  class="pl-3"></b-form-textarea>
                     </b-input-group>
  
                   </div>
+                  {{$refs.observer}}
                   <br>
+                  <b-row>
+                    <b-col></b-col>
+                    <b-col></b-col>
+                  </b-row>
                   <b-button type="submit" variant="primary">{{$t('form.send_now')}}</b-button>
                   <b-button type="reset" variant="danger">{{$t('form.cancel')}}</b-button>
                   <br>
@@ -110,17 +129,21 @@ export default {
      },
   data(){
     return {
-      scan: false,
+       scan: false,
        show: true,
        form: {
           img: '',
           email: '',
           amount: '',
           memo:''     
-        }
+        },
+        sent: false,
     }
   },
   methods: {
+    sendbutton(){
+      this.sent = true
+    },
      async onDecode (decodedString) {
            console.log('onDecode JSON.parse(decodedString)',JSON.parse(decodedString) )
            const arr = JSON.parse(decodedString) 

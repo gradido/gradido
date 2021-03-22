@@ -3,7 +3,7 @@
     <b-row align-v="center" class="justify-content-lg-between">
       <b-col lg="6">
         <div class="copyright text-center text-lg-left text-muted">
-          © {{year}} <a href="https://gradido.net/" class="font-weight-bold ml-1" target="_blank">Gradido Wallet</a>
+          © {{year}} <a href="#!" to="/login" class="font-weight-bold ml-1" >Gradido Wallet</a>
         </div>
       </b-col>
       <b-col lg="6">
@@ -16,6 +16,9 @@
           </b-nav-item>
           <b-nav-item href="https://gradido.net/" target="_blank">
             {{$t('privacy_policy')}}
+          </b-nav-item>
+          <b-nav-item href="#!" to="/explorer" >
+            GDD-Explorer
           </b-nav-item>
         </b-nav>
       </b-col>
