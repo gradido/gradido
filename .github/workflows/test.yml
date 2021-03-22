@@ -214,41 +214,40 @@ jobs:
   #      run: docker-compose exec -T backend yarn test
 
   ##############################################################################
-  # JOB: UNIT TEST WEBAPP ######################################################
+  # JOB: UNIT TEST FRONTEND  ###################################################
   ##############################################################################
-  #unit_test_webapp:
-  #  name: Unit tests - webapp
-  #  runs-on: ubuntu-latest
-  #  needs: [build_test_webapp]
-  #  steps:
-  #    ##########################################################################
-  #    # CHECKOUT CODE ##########################################################
-  #    ##########################################################################
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-  #    ##########################################################################
-  #    # DOWNLOAD DOCKER IMAGES #################################################
-  #    ##########################################################################
-  #    - name: Download Docker Image (Webapp)
-  #      uses: actions/download-artifact@v2
-  #      with:
-  #        name: docker-webapp-test
-  #        path: /tmp
-  #    - name: Load Docker Image
-  #      run: docker load < /tmp/webapp.tar
-  #    ##########################################################################
-  #    # UNIT TESTS WEBAPP #####################################################
-  #    ##########################################################################
-  #    # TODO: Why do we need those .envs?
+  unit_test_frontend:
+    name: Unit tests - Frontend
+    runs-on: ubuntu-latest
+    needs: [build_test_frontend]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGES #################################################
+      ##########################################################################
+      - name: Download Docker Image (Webapp)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-frontend-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/frontend.tar
+      ##########################################################################
+      # UNIT TESTS WEBAPP #####################################################
+      ##########################################################################
+      # TODO: Why do we need those .envs?
   #    - name: backend | copy env files webapp
   #      run: cp webapp/.env.template webapp/.env
   #    - name: backend | copy env files backend
   #      run: cp backend/.env.template backend/.env
   #    - name: backend | docker-compose
   #      run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps webapp
-  #    - name: webapp | Unit tests
-  #      #run: docker run --rm ocelotsocialnetwork/webapp:build yarn run test
-  #      run: docker-compose exec -T webapp yarn test
+      - name: frontend | Unit tests
+        run: docker-compose exec -T frontend yarn test
 
   #test:
   #  runs-on: ubuntu-latest
