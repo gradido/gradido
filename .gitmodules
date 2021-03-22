@@ -2,12 +2,12 @@
 	path = gn
 	url = https://github.com/gradido/gn.git
 	branch = master
-[submodule "mithril_client"]
-        path = community_server/mithril_client
-        url = git@github.com:gradido/gradido_mithrilJS_client.git
+#[submodule "mithril_client"]
+#        path = community_server/mithril_client
+#        url = https://github.com/gradido/gradido_mithrilJS_client.git
 [submodule "src/protobuf"]
         path = community_server/src/protobuf
-        url =  git@github.com:gradido/gradido_protocol.git
+        url =  https://github.com/gradido/gradido_protocol.git
 [submodule "dependencies/tinf"]
         path = login_server/dependencies/tinf
         url = https://github.com/jibsen/tinf.git
