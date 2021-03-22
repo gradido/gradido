@@ -99,9 +99,14 @@ class StateUsersController extends AppController
         //$this->set('timeUsed', $timeUsed);
         $csfr_token = $this->request->getParam('_csrfToken');
         $this->set(compact('timeUsed', 'searchForm', 'csfr_token'));
-
+        $empty_string = '... empty ...';
         if ($this->request->is('post')) {
+            $finalUserEntrys = [];
             $requestData = $this->request->getData();
+            $account_state = $requestData['account_state'];
+            if($requestData['search'] == '' && $account_state != 'all') {
+                $requestData['search'] = $empty_string;
+            }
 
             if ($searchForm->validate($requestData)) {
               //var_dump($requestData);
@@ -111,7 +116,7 @@ class StateUsersController extends AppController
                     $searchType = 'email';
                 }
               // find users on login server
-                $resultJson = $this->JsonRequestClient->getUsers($session->read('session_id'), $searchString);
+                $resultJson = $this->JsonRequestClient->getUsers($session->read('session_id'), $searchString, $account_state);
                 $loginServerUser = [];
                 if ($resultJson['state'] == 'success') {
                     $dataJson = $resultJson['data'];
@@ -139,28 +144,42 @@ class StateUsersController extends AppController
                     }
                 }
               // find user on community server db
-                $globalSearch = '%' . $searchString . '%';
+                
+                
+                
                 $communityUsers = $this->StateUsers
                     ->find('all')
                     ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]]);
-
-                $communityUsers->where(['OR' => [
-                  'first_name LIKE' => $globalSearch,
-                  'last_name  LIKE' => $globalSearch,
-                  //'username   LIKE' => $globalSearch,
-                  'email      LIKE' => $globalSearch
-                ]]);
-
-              //var_dump($communityUsers->toArray());
-                foreach ($communityUsers as $u) {
-                    $pubkey_hex = bin2hex(stream_get_contents($u->public_key));
-                    $u->public_hex = $pubkey_hex;
-                    if (!isset($pubkeySorted[$pubkey_hex])) {
-                        $pubkeySorted[$pubkey_hex] = ['login' => [], 'community' => []];
+                
+                if($account_state == 'email not activated') {
+                    if(count($pubkeySorted) > 0) {
+                        $communityUsers->where(['hex(public_key) IN' => array_keys($pubkeySorted)]);
+                    } else {
+                        $communityUsers = null;
                     }
-                    array_push($pubkeySorted[$pubkey_hex]['community'], $u);
+                } else {
+                    $globalSearch = '%' . $searchString . '%';
+                    $communityUsers->where(['OR' => [
+                        'first_name LIKE' => $globalSearch,
+                        'last_name  LIKE' => $globalSearch,
+                        //'username   LIKE' => $globalSearch,
+                        'email      LIKE' => $globalSearch
+                    ]]);
                 }
-                $finalUserEntrys = [];
+
+               
+              //var_dump($communityUsers->toArray());
+                if($communityUsers) {
+                    foreach ($communityUsers as $u) {
+                        $pubkey_hex = bin2hex(stream_get_contents($u->public_key));
+                        $u->public_hex = $pubkey_hex;
+                        if (!isset($pubkeySorted[$pubkey_hex])) {
+                            $pubkeySorted[$pubkey_hex] = ['login' => [], 'community' => []];
+                        }
+                        array_push($pubkeySorted[$pubkey_hex]['community'], $u);
+                    }
+                }
+                
               // detect states
                 foreach ($pubkeySorted as $pubhex => $user) {
                     $finalUser = [];
