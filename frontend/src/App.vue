@@ -4,8 +4,7 @@
     </header>
     <div class="">   
       <particles-bg type="custom" :config="config" :bg="true" />  
-      <router-view />
-       
+      <router-view />       
     </div>
   </div> 
 </template>
@@ -19,17 +18,17 @@ export default {
   components: {
       ParticlesBg
     },
-    created () { 
-      //console.log("this.$cookies.get('gdd_session_id') ", this.$cookies.get('gdd_session_id') )
-       console.log(" $cookies.isKey('gdd_session_id') ", this.$cookies.isKey("gdd_session_id")  )
-      if ( this.$cookies.isKey('gdd_session_id') ) {
-        //this.$store.state.email = this.$cookies.get('gdd_u') 
-         console.log("login to kontooverview")      
-        this.$router.push('/KontoOverview') 
-      }else {
-        console.log("login to LOGIN")
-       this.$router.push("/Login")
-      } 
+    created () {  
+      console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
+      if ( $cookies.isKey("gdd_session_id") == true) {
+         console.log('%cHey %c'+$cookies.get("gdd_u")+'', 'font-weight:bold', 'color: orange')
+         this.$store.commit('session_id', $cookies.get("gdd_session_id"))
+         this.$store.commit('email', $cookies.get("gdd_u"))
+         this.$router.push("overview") 
+     }else {
+        console.log("app.vue to Logout")
+        this.$store.dispatch('logout')
+      }    
     },
      data() {
     return {
@@ -52,7 +51,7 @@ export default {
 }
 </script>
 <style>
-    .btn {
+    .btn-primary pim{
       background-color: #5A7B02;
       border-color: #5e72e4;
     }

@@ -68,7 +68,7 @@
             <b-row align-v="center" slot="header">
               <b-col>
                 <h6 class="text-light text-uppercase ls-1 mb-1">Overview</h6>
-                <h5 class="h3 text-white mb-0">Sales value</h5>
+                <h5 class="h3 mb-0">Sales value</h5>
               </b-col>
               <b-col>
                 <b-nav class="nav-pills justify-content-end">

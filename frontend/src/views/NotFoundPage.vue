@@ -348,7 +348,7 @@
             <div class="pr-md-5">
               <h1 class="text-light"> {{ $t('site.landing1.explore') }}</h1>
               <p class="text-light">{{ $t('site.landing1.text') }}</p>
-              <router-link to="/user" class="font-weight-bold text-warning mt-5">{{ $t('site.landing1.link') }}</router-link>
+              <router-link to="/overview" class="font-weight-bold text-warning mt-5">{{ $t('site.landing1.link') }}</router-link>
             </div>
           </b-col>
         </b-row>
@@ -363,7 +363,7 @@ export default {
   name: 'not-found',
   data() {
     return {
-          anime:{
+anime:{
   targets: '.row svg',
   translateY: 10,
   autoplay: true,
@@ -371,7 +371,7 @@ export default {
   easing: 'easeInOutSine',
   direction: 'alternate'
 },
-anime:{
+anime2:{
   targets: '#zero',
   translateX: 10,
   autoplay: true,
