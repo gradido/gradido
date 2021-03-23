@@ -11,7 +11,9 @@ class UserSearchForm extends Form
 
     protected function _buildSchema(Schema $schema)
     {
-        return $schema->addField('search', ['type' => 'string']);
+        return $schema
+                ->addField('search', ['type' => 'string'])
+                ->addField('account_state', ['type' => 'select']);
     }
 
     function validationDefault(Validator $validator)
