@@ -4,10 +4,10 @@
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
-  "imprint":"Imprint",
+  "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
-  "license":"License",
   "back":"back",
+  "sent":"Sent",
   "transactions":"transactions",
   "language":"Language",
   "languages":{
@@ -39,8 +39,8 @@
   },
   "site": {
     "login": {
-      "community":"You are the community",
-      "remember":"Remember me",
+      "community":"A thousand thanks for being with us!",
+      "remember":"Remember password",
       "signin":"Sign in",
       "forgot_pwd":"Forgot password?",
       "new_wallet":"Create new wallet"

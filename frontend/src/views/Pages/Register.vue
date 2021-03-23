@@ -99,6 +99,7 @@
           lastname: '',
           email: '',
           password: '',
+          password2: '',
           agree: false          
         }
       }

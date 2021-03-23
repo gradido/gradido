@@ -26,6 +26,11 @@ const routes = [
       {
         path: '/password',
         component: () => import('../views/Pages/Password.vue')
+      },
+      {
+        path: '/explorer',
+        name: 'Explorer',
+        component: () => import('../views/Pages/Explorer.vue'),
       }
     ]
   },
@@ -68,7 +73,7 @@ const routes = [
         meta: {
           requiresAuth: true
         }
-      }
+      }     
     ]
   }
 ];

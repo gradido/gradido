@@ -61,9 +61,6 @@
               <b-nav-item href="http://blog.creative-tim.com" target="_blank">
                 Datenschutzerklärung
               </b-nav-item>
-              <b-nav-item href="https://www.creative-tim.com/license" target="_blank">
-                License
-              </b-nav-item>
             </b-nav>
           </b-col>
         </b-row>

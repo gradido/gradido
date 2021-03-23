@@ -7,11 +7,13 @@ import communityAPI from '../apis/communityAPI'
 import axios from 'axios'
 //import CONFIG from '../config'
 
-
 export const store = new Vuex.Store({
   state: {
     session_id: null,
     email: null,
+    language: 'en',
+    sizeDE: 'normal',
+    sizeGB: 'big',
     user : {
       name:"",
       balance: 0,
@@ -43,6 +45,19 @@ export const store = new Vuex.Store({
   },
   // Syncronous mutation of the state
   mutations: {
+    language: (state, language) => {
+       console.log('mutation: language', language)
+      state.language = language
+      $cookies.set('gdd_lang',  language);
+      if (state.language == "de") {
+        state.sizeDE = 'big'
+        state.sizeGB = 'normal'       
+      } else {
+        state.sizeDE = 'normal'
+        state.sizeGB = 'big'
+      }
+
+    },
     email: (state, email) => {
       //console.log('mutation: email')
       state.email = email
@@ -77,12 +92,14 @@ export const store = new Vuex.Store({
      // console.log('result.data.state',result.data.state)
      // console.log('result.data.session_id',result.data.session_id)
      
-      
+    
       if( result.success){
         commit('session_id', result.result.data.session_id)
         commit('email', data.email)
         $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
+        
+     
         router.push('/overview')
       } else {
         // Register failed, we perform a logout
@@ -128,6 +145,7 @@ export const store = new Vuex.Store({
       commit('email', null)  
       $cookies.remove('gdd_session_id');
       $cookies.remove('gdd_u');
+      $cookies.remove('gdd_lang');
       router.push('/Login')
     },
     ajaxCreate: async ({ dispatch, state }) => {
