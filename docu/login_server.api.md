@@ -82,3 +82,29 @@ Wenn alles okay ist erhältst du:
 ```json
 {"state":"success"}
 ```
+
+## Update User Data
+Update first name, last name, user language and enable/disable user 
+Language currently supported de and en 
+User will be disabled if he wants a account delete but has transactions. 
+Until transactions are saved in real blockchain, we need this data because the public key
+is in db only saved in state_users so we wenn delete this entry, validating all transactions not longer possible.
+Disabled User cannot login and cannot receive transactions. 
+In update Object only one of the sets needs to be there.
+
+POST http://localhost/login_api/updateUserInfos
+```json 
+{"session_id": -127182, "email": "max.musterman@gmail.de", "update": {
+	"User.first_name": "Dario",
+	"User.last_name" : "Rekowski",
+	"User.disabled": 0,
+	"User.language": "de"
+}}
+```
+also valid 
+```json 
+{"session_id": -127182, "email": "max.musterman@gmail.de", "update": {
+	"User.last_name" : "Rekowski"
+}}
+```
+	
