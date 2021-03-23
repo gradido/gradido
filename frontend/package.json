@@ -11,35 +11,6 @@
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
     "test": "jest"
   },
-  "jest": {
-    "verbose": true,
-    "collectCoverageFrom": [
-      "**/*.{js,vue}",
-      "!**/node_modules/**",
-      "!**/?(*.)+(spec|test).js?(x)"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "vue"
-    ],
-    "coverageReporters": [
-      "lcov"
-    ],
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "transform": {
-      ".*\\.(vue)$": "vue-jest",
-      "^.+\\.js$": "babel-jest"
-    },
-    "setupFiles": [
-      "<rootDir>/test/registerContext.js"
-    ],
-    "testMatch": [
-      "**/?(*.)+(spec|test).js?(x)"
-    ]
-  },
   "dependencies": {
     "@vue/test-utils": "^1.1.3",
     "axios": "^0.21.1",
