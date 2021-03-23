@@ -8,16 +8,16 @@
       </b-col>
       <b-col lg="6">
         <b-nav class="nav-footer justify-content-center justify-content-lg-end">
-          <b-nav-item ref="https://gradido.net/" target="_blank">
+          <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
             Gradido
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/" target="_blank">
-           {{$t('imprint')}}
+          <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
+            {{$t('imprint')}}
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/" target="_blank">
+          <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
             {{$t('privacy_policy')}}
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/" target="_blank">
+          <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
             {{$t('license')}}
           </b-nav-item>
         </b-nav>

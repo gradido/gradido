@@ -14,16 +14,16 @@
             </b-col>
             <b-col xl="6" class="col-xl-6">
               <b-nav class="nav-footer justify-content-center justify-content-lg-end">
-                <b-nav-item ref="https://gradido.net/" target="_blank">
+                <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
                   Gradido
                 </b-nav-item>
-                <b-nav-item href="https://gradido.net/" target="_blank">
-                {{$t('imprint')}}
+                <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
+                  {{$t('imprint')}}
                 </b-nav-item>
-                <b-nav-item href="https://gradido.net/" target="_blank">
+                <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
                   {{$t('privacy_policy')}}
                 </b-nav-item>
-                <b-nav-item href="https://gradido.net/" target="_blank">
+                <b-nav-item :href="'https://gradido.net/' + $i18n.locale" target="_blank">
                   {{$t('license')}}
                 </b-nav-item>
               </b-nav>
@@ -42,29 +42,29 @@
 </template>
 <script>
 
-  export default { 
-    data() {
-      return {
-        year: new Date().getFullYear(),
-        pageClass: 'login-page'
-      };
-    },
-    computed: {
-      title() {
-        return `${this.$route.name} Page`;
-      }
-    },
-    methods: {
-      setLocale(locale) {
-        this.$i18n.locale = locale
-        //this.$router.push({
-        //  params: { lang: locale }
-        //})
-        //this.hideDropdown()
-      }
-    }
-  };
+ export default { 
+   data() {
+     return {
+       year: new Date().getFullYear(),
+       pageClass: 'login-page'
+     };
+   },
+   computed: {
+     title() {
+       return `${this.$route.name} Page`;
+     }
+   },
+   methods: {
+     setLocale(locale) {
+       this.$i18n.locale = locale
+       //this.$router.push({
+       //  params: { lang: locale }
+       //})
+       //this.hideDropdown()
+     }
+   }
+ };
 </script>
 <style lang="scss">
-   
+ 
 </style>
