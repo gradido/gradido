@@ -152,7 +152,6 @@ POST http://localhost/login_api/getUserInfos
 ```json 
 {"session_id": -127182, "email": "max.musterman@gmail.de", "ask": [
 	"EmailVerificationCode.Register",
-	"EmailVerificationCode.PasswordReset",
 	"loginServer.path",
 	"user.pubkeyhex",
 	"user.first_name",
@@ -166,7 +165,6 @@ returns if no error occured:
 ```json 
 {"state": "success", "userData": { 
 	"EmailVerificationCode.Register": "2718271129122",
-	"EmailVerificationCode.PasswordReset": "28382991827737",
 	"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 	"first_name": "Max",
 	"last_name": "Musterman",
@@ -180,8 +178,7 @@ returns if no error occured:
 ```
 
 Return only the fields which are defined in ask 
-- EmailVerificationCode.Register: return the email verification code for check email (create one if none exist)
-- EmailVerificationCode.PasswordReset: return the email verification code for reset password (create one if none exist)
+- EmailVerificationCode.Register: return the email verification code for check email (create one if none exist), work only if logged in user is admin and the email isn't from him 
 - loginServer.path: the redirect path to login-server, for example for login with login-server html frontend 
 - user.pubkeyhex: public key of user in hex-format
 - user.first_name: first name of user 

@@ -74,17 +74,21 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		return customStateError("not found", "session not found");
 	}
 
-	auto user = session->getNewUser();
-	auto user_model = user->getModel();
-	if (user_model->getEmail() != email && user_model->getRole() != model::table::ROLE_ADMIN) {
+	auto session_user = session->getNewUser();
+	auto session_user_model = session_user->getModel();
+	bool isAdmin = false;
+	if (model::table::ROLE_ADMIN == session_user_model->getRole()) {
+		isAdmin = true;
+	}
+	if (session_user_model->getEmail() != email && !isAdmin) {
 		return customStateError("not same", "email don't belong to logged in user");
 	}
-	// reload user to get really the current data, the data in session user are maybe outdated
-	user = controller::User::create();
+	
+	auto user = controller::User::create();
 	if (1 != user->load(email)) {
 		return customStateError("not found", "user not found");
 	}
-	auto userModel = user->getModel();
+	auto user_model = user->getModel();
 
 	
 	Poco::JSON::Object* result = new Poco::JSON::Object;
@@ -98,38 +102,32 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		std::string parameterString;
 		try {
 			parameter.convert(parameterString);
-			if (parameterString == "EmailVerificationCode.Register") {
-				auto code = readOrCreateEmailVerificationCode(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
+			if (parameterString == "EmailVerificationCode.Register" && isAdmin && session_user_model->getEmail() != user_model->getEmail()) {
+				auto code = readOrCreateEmailVerificationCode(user_model->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 				if (code) {
 					jsonUser.set("EmailVerificationCode.Register", std::to_string(code));
-				}
-			}
-			else if (parameterString == "EmailVerificationCode.PasswordReset") {
-				auto code = readOrCreateEmailVerificationCode(userModel->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
-				if (code) {
-					jsonUser.set("EmailVerificationCode.PasswordReset", std::to_string(code));
 				}
 			}
 			else if (parameterString == "loginServer.path") {
 				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
 			}
 			else if (parameterString == "user.pubkeyhex") {
-				jsonUser.set("pubkeyhex", userModel->getPublicKeyHex());
+				jsonUser.set("pubkeyhex", user_model->getPublicKeyHex());
 			}
 			else if (parameterString == "user.first_name") {
-				jsonUser.set("first_name", userModel->getFirstName());
+				jsonUser.set("first_name", user_model->getFirstName());
 			}
 			else if (parameterString == "user.last_name") {
-				jsonUser.set("last_name", userModel->getLastName());
+				jsonUser.set("last_name", user_model->getLastName());
 			}
 			else if (parameterString == "user.disabled") {
-				jsonUser.set("disabled", userModel->isDisabled());
+				jsonUser.set("disabled", user_model->isDisabled());
 			}
 			else if (parameterString == "user.email_checked") {
-				jsonUser.set("email_checked", userModel->isEmailChecked());
+				jsonUser.set("email_checked", user_model->isEmailChecked());
 			}
 			else if (parameterString == "user.identHash") {
-				auto email = userModel->getEmail();
+				auto email = user_model->getEmail();
 				jsonUser.set("identHash", DRMakeStringHash(email.data(), email.size()));
 			}
 		}
