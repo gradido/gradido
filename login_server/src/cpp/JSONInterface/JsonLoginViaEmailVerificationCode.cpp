@@ -22,7 +22,7 @@ Poco::JSON::Object* JsonLoginViaEmailVerificationCode::handle(Poco::Dynamic::Var
 		email verification code
 	*/
 	// incoming
-	Poco::UInt64 code = 0;
+	unsigned long long code = 0;
 	if (params.isVector()) {
 		const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
 		std::string codeString;
