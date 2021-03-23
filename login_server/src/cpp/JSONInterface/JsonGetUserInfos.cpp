@@ -7,6 +7,26 @@
 
 #include "../ServerConfig.h"
 
+Poco::UInt64 JsonGetUserInfos::readOrCreateEmailVerificationCode(int user_id, model::table::EmailOptInType type)
+{
+	try {
+		auto emailVerificationCode = controller::EmailVerificationCode::load(user_id, type);
+		if (!emailVerificationCode) {
+			emailVerificationCode = controller::EmailVerificationCode::create(user_id, type);
+			UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
+			insert->scheduleTask(insert);
+		}
+		return emailVerificationCode->getModel()->getCode();
+	}
+	catch (Poco::Exception& ex) {
+		ErrorList errors;
+		//printf("exception: %s\n", ex.displayText().data());
+		errors.addError(new ParamError("JsonGetUserInfos::readOrCreateEmailVerificationCode", "exception: ", ex.displayText()));
+		errors.sendErrorsAsEmail();
+	}
+	return 0;
+}
+
 Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
@@ -54,7 +74,13 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		return customStateError("not found", "session not found");
 	}
 
-	auto user = controller::User::create();
+	auto user = session->getNewUser();
+	auto user_model = user->getModel();
+	if (user_model->getEmail() != email && user_model->getRole() != model::table::ROLE_ADMIN) {
+		return customStateError("not same", "email don't belong to logged in user");
+	}
+	// reload user to get really the current data, the data in session user are maybe outdated
+	user = controller::User::create();
 	if (1 != user->load(email)) {
 		return customStateError("not found", "user not found");
 	}
@@ -73,19 +99,15 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		try {
 			parameter.convert(parameterString);
 			if (parameterString == "EmailVerificationCode.Register") {
-				try {
-					auto emailVerificationCode = controller::EmailVerificationCode::load(
-						userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
-					);
-					if (!emailVerificationCode) {
-						emailVerificationCode = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-						UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
-						insert->scheduleTask(insert);
-					}
-					jsonUser.set("EmailVerificationCode.Register", std::to_string(emailVerificationCode->getModel()->getCode()));
+				auto code = readOrCreateEmailVerificationCode(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
+				if (code) {
+					jsonUser.set("EmailVerificationCode.Register", std::to_string(code));
 				}
-				catch (Poco::Exception& ex) {
-					printf("exception: %s\n", ex.displayText().data());
+			}
+			else if (parameterString == "EmailVerificationCode.PasswordReset") {
+				auto code = readOrCreateEmailVerificationCode(userModel->getID(), model::table::EMAIL_OPT_IN_RESET_PASSWORD);
+				if (code) {
+					jsonUser.set("EmailVerificationCode.PasswordReset", std::to_string(code));
 				}
 			}
 			else if (parameterString == "loginServer.path") {
