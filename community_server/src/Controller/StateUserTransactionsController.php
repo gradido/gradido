@@ -196,7 +196,7 @@ class StateUserTransactionsController extends AppController
       return $this->returnJson([
           'state' => 'success', 
           'transactions' => $transactions, 
-          'transactionExecutingCount' => $session->read('Transaction.executing'), 
+          'transactionExecutingCount' => $session->read('Transactions.executing'), 
           'count' => $all_user_transactions_count,
           'timeUsed' =>  microtime(true) - $startTime
       ]);
