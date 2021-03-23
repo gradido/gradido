@@ -3,18 +3,14 @@
     <template>
       <div class="main-content">
         <router-view></router-view>   
-         <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-          
-          
+        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
       </div>
-     
-          
-       
     </template>
   </div>
 </template>
 <script>
 import ContentFooter from './ContentFooter.vue';
+import { localeChanged } from 'vee-validate'
   export default { 
      components: {
       ContentFooter
@@ -33,6 +29,7 @@ import ContentFooter from './ContentFooter.vue';
     methods: {
       setLocale(locale) {
         this.$i18n.locale = locale
+        localeChanged()
         //this.$router.push({
         //  params: { lang: locale }
         //})
@@ -40,6 +37,7 @@ import ContentFooter from './ContentFooter.vue';
       }
     }
   };
+  
 </script>
 <style lang="scss">
  

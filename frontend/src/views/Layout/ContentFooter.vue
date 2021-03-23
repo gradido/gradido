@@ -1,13 +1,12 @@
 <template>
   <footer class="footer px-4 bg-transparent">
     <b-row align-v="center" class="justify-content-lg-between">
-    <b-col><div class="copyright text-center text-lg-center text-muted">
-          © {{year}} <a href="#!" to="/login" class="font-weight-bold ml-1" >Gradido-Akademie</a>
-        </div></b-col>
-        
-        </b-row>
-      <b-row align-v="center" class="justify-content-lg-between" >
-        <b-col>
+      <b-col>
+        <div class="copyright text-center text-lg-center text-muted">
+          © {{year}} <a href="https://gradido.net/" class="font-weight-bold ml-1" target="_blank">Gradido-Akademie</a>
+        </div>
+      </b-col>
+      <b-col>
         <b-nav class="nav-footer justify-content-center">
           <b-nav-item ref="https://gradido.net/" target="_blank">
             Gradido
@@ -24,7 +23,14 @@
         </b-nav>
       </b-col>
     </b-row>
-       
+    <!--
+    <br>
+    <br>
+    <b-row >
+      <b-col class="nav-link text-center"  @click.prevent="setLocale('en')">{{ $t('languages.en') }}XXXXX</b-col>
+      <b-col class="nav-link text-center" @click.prevent="setLocale('de')">{{ $t('languages.de') }}</b-col>
+    </b-row>
+    -->
   </footer>
 </template>
 <script>
