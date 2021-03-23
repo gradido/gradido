@@ -10,6 +10,7 @@
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUpdateUserInfos.h"
@@ -66,6 +67,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/unsecureLogin" && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 		return new JsonUnsecureLogin(client_host);
+	}
+	else if (url_first_part == "/loginViaEmailVerificationCode") {
+		return new JsonLoginViaEmailVerificationCode(client_host);
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
