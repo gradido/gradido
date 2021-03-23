@@ -23,7 +23,6 @@ describe('CloseButton', () => {
     })
 
     it('emmits click event', () => {
-      console.log(wrapper.html())
       wrapper.find('.navbar-toggler').trigger('click')
       expect(wrapper.emitted('click')).toBeTruthy()
     })
