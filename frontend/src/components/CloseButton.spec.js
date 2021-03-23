@@ -8,7 +8,7 @@ describe('CloseButton', () => {
 
   let wrapper
   let propsData = {
-    target: ["Target", 0],
+    target: "Target",
     expanded: false,
   }
 
