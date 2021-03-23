@@ -197,7 +197,7 @@ class StateBalancesController extends AppController
         }
         uasort($transactions, array($this, 'sortTransactions'));
         $this->set('transactions', $transactions);
-        $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
+        $this->set('transactionExecutingCount', $session->read('Transactions.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('gdtSum', $gdtSum);
@@ -370,7 +370,7 @@ class StateBalancesController extends AppController
         return $this->returnJson([
                 'state' => 'success',
                 'transactions' => $transactions,
-                'transactionExecutingCount' => $session->read('Transaction.executing'),
+                'transactionExecutingCount' => $session->read('Transactions.executing'),
                 'count' => count($transactions),
                 'gdtSum' => $gdtSum,
                 'timeUsed' => microtime(true) - $startTime

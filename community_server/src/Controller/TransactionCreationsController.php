@@ -323,7 +323,7 @@ class TransactionCreationsController extends AppController
         $this->set('firstDayLastMonth', $firstDayLastMonth);
         $this->set('activeUser', $user);
         $this->set('creationForm', $creationForm);
-        $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
+        $this->set('transactionExecutingCount', $session->read('Transactions.executing'));
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('countUsers', $countUsers);
         $this->set('limit', $limit);
