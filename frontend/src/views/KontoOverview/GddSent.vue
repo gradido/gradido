@@ -81,9 +81,6 @@
                           :max="$store.state.user.balance"
                           style="font-size: xx-large; padding-left:20px">
                         </b-form-input>
-                        {{$store.state.user.balance}}
-                       
-
                     </b-input-group>  
                      <b-col    class="text-left pl-6">
                             <b-badge variant="primary">Nachricht für den Empfänger (optional)</b-badge>
@@ -97,7 +94,7 @@
                     </b-input-group>
  
                   </div>
-                  {{$refs.observer}}
+                  
                   <br>
                   <b-row>
                     <b-col></b-col>

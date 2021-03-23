@@ -12,7 +12,8 @@
         <b-col xl="6" md="6">
           <stats-card type="gradient-orange"
                       sub-title="balance_gdt"
-                      class="mb-4">
+                      class="mb-4"
+                      style="font-size: -webkit-xxx-large">
               {{  $n($store.state.user.balance_gdt) }} GDT 
           </stats-card>
         </b-col>

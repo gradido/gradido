@@ -68,7 +68,7 @@
                     <b-col cols="12">
                       <base-input :rules="{ required: { allowFalse: false } }" name="Privacy Policy">
                         <b-form-checkbox v-model="model.agree">
-                          <span class="text-muted"><a href="#!"> {{ $t('privacy_policy')}}</a> - {{ $t('site.signup.agree')}} </span>
+                          <span class="text-muted"><a href="https://gradido.net/de/datenschutz/" target="_blank"> {{ $t('privacy_policy')}}</a> - {{ $t('site.signup.agree')}} </span>
                         </b-form-checkbox>
                       </base-input>
                     </b-col>

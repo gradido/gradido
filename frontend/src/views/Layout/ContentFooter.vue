@@ -11,15 +11,15 @@
           <b-nav-item ref="https://gradido.net/" target="_blank">
             Gradido
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/" target="_blank">
+          <b-nav-item href="https://gradido.net/de/impressum/" target="_blank">
            {{$t('imprint')}}
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/" target="_blank">
+          <b-nav-item href="https://gradido.net/de/datenschutz/" target="_blank">
             {{$t('privacy_policy')}}
           </b-nav-item>
-          <b-nav-item href="#!" to="/explorer" >
+          <!--<b-nav-item href="#!" to="/explorer" >
             GDD-Explorer
-          </b-nav-item>
+          </b-nav-item> -->
         </b-nav>
       </b-col>
     </b-row>

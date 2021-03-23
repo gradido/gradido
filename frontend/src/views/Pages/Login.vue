@@ -45,7 +45,7 @@
                               v-model="model.password">
                   </base-input>
 
-                  <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox>
+                  <!-- <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox> -->
                   <div class="text-center">
                     <base-button type="primary" native-type="submit" class="my-4">{{ $t('site.login.signin')}}</base-button>
                   </div>
@@ -73,8 +73,8 @@
       return {
         model: {
           email: '',
-          password: '',
-          rememberMe: false
+          password: ''
+         // rememberMe: false
         }
       };
     },

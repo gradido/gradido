@@ -54,6 +54,7 @@ export default {
 }
 </script>
 <style>
+    
     .btn-primary pim{
       background-color: #5A7B02;
       border-color: #5e72e4;
