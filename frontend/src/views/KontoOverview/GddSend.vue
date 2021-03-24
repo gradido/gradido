@@ -42,7 +42,9 @@
               <validation-observer v-slot="{handleSubmit}" ref="formValidator">             
                 <b-form  role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset" v-if="show">                     
                   <br>
-                  <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
+                  <div >
+                  <qrcode-drop-zone id="input-0" v-model="form.img" ></qrcode-drop-zone>
+                  </div>
                   <br>
                   <div>
                      <b-col  class="text-left p-3 p-sm-1">
@@ -105,7 +107,7 @@
                       <b-input-group-prepend class="p-3 d-none d-md-block ">                        
                            <b-icon icon="chat-right-text" class="display-3"></b-icon>
                       </b-input-group-prepend>
-                      <b-form-textarea rows="3"  v-model="form.memo"  class="pl-3"></b-form-textarea>
+                      <b-form-textarea rows="3"  v-model="form.memo"  class="pl-3" style="font-size: x-large;" ></b-form-textarea>
                     </b-input-group>
  
                   </div>
@@ -214,3 +216,9 @@ export default {
     }  
 };
 </script>
+<style>
+video {
+  max-height: 665px;
+  max-width: 665px;
+}
+</style>
