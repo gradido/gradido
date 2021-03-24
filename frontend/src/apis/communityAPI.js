@@ -38,7 +38,7 @@ const communityAPI = {
   transactions: async (session_id) => {
     return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxListTransactions/' + session_id)
   },
-  create: async (session_id, email, amount, memo, target_date = new Date()) => {
+  /*create: async (session_id, email, amount, memo, target_date = new Date() ) => {
     const payload = {
       session_id,
       email,
@@ -48,6 +48,16 @@ const communityAPI = {
       auto_sign: true,
     }
     return apiPost(CONFIG.COMMUNITY_API_TRANSACTION_CREATION_URL + 'ajaxCreate/', payload)
+  },*/
+  send: async (session_id, email, amount, memo) => {
+    const payload = {
+      session_id,
+      email,
+      amount,
+      memo,
+      auto_sign: true,
+    }
+    return apiPost(CONFIG.COMMUNITY_API_TRANSACTION_SEND_COINS + 'ajaxCreate/', payload)
   },
 }
 
