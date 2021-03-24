@@ -1,7 +1,7 @@
 import axios from 'axios'
 import CONFIG from '../config'
 
-const apiGet = async url => {
+const apiGet = async (url) => {
   try {
     const result = await axios.get(url)
     if (result.status !== 200) {
@@ -32,10 +32,10 @@ const apiPost = async (url, payload) => {
 }
 
 const communityAPI = {
-  balance: async session_id => {
+  balance: async (session_id) => {
     return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxGetBalance/' + session_id)
   },
-  transactions: async session_id => {
+  transactions: async (session_id) => {
     return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxListTransactions/' + session_id)
   },
   create: async (session_id, email, amount, memo, target_date = new Date()) => {

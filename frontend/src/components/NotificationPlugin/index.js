@@ -15,7 +15,7 @@ const NotificationStore = {
     this.settings = Object.assign(this.settings, options)
   },
   removeNotification(timestamp) {
-    const indexToDelete = this.state.findIndex(n => n.timestamp === timestamp)
+    const indexToDelete = this.state.findIndex((n) => n.timestamp === timestamp)
     if (indexToDelete !== -1) {
       this.state.splice(indexToDelete, 1)
     }
@@ -33,7 +33,7 @@ const NotificationStore = {
   },
   notify(notification) {
     if (Array.isArray(notification)) {
-      notification.forEach(notificationInstance => {
+      notification.forEach((notificationInstance) => {
         this.addNotification(notificationInstance)
       })
     } else {

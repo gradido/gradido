@@ -2,7 +2,12 @@
   <div>
     <div
       class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-      style="min-height: 600px; background-image: url(img/theme/profile-cover.jpg); background-size: cover; background-position: center top;"
+      style="
+        min-height: 600px;
+        background-image: url(img/theme/profile-cover.jpg);
+        background-size: cover;
+        background-position: center top;
+      "
     >
       <b-container fluid>
         <b-container fluid class="d-flex align-items-center">

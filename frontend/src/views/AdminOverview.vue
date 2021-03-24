@@ -291,77 +291,77 @@ export default {
   methods: {
     TransienceList() {
       axios.get('/json-example/admin_transience_list.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.transiencelist = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     TransactionList() {
       axios.get('/json-example/admin_transaction_list.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.transactionlist = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     UserList() {
       axios.get('/json-example/admin_userlist.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.userlist = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     CommunityStatistic() {
       axios.get('/json-example/admin_community_statistic.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.communitystatistic = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     ChartsStatistic() {
       axios.get('/json-example/admin_charts_statistic.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.chartsstatistic = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     CardStatistic() {
       axios.get('/json-example/admin_card_statistic.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.cardstatistic = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )
     },
     StatisticDatas() {
       axios.get('/json-example/admin_statisticdatas.json').then(
-        d => {
+        (d) => {
           //console.log(d);
           this.userdata = d.data
         },
-        error => {
+        (error) => {
           //console.log(error)
         },
       )

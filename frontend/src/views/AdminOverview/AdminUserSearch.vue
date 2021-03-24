@@ -25,9 +25,7 @@
             mode: 'pages',
           }"
         >
-          <div slot="table-actions">
-            Mitglieder suchen .
-          </div>
+          <div slot="table-actions">Mitglieder suchen .</div>
         </vue-good-table>
       </b-col>
       <b-col xl="4" class="mb-5 mb-xl-0">
@@ -46,9 +44,7 @@
           <b-card-body>
             <form>
               <b-row class="">
-                <label class="col-md-3 col-form-label form-control-label">
-                  Name
-                </label>
+                <label class="col-md-3 col-form-label form-control-label">Name</label>
                 <b-col md="10">
                   <base-input placeholder="Jon Snow"></base-input>
                 </b-col>
@@ -66,9 +62,7 @@
                 </b-col>
               </b-row>
               <b-row class="">
-                <label class="col-md-3 col-form-label form-control-label">
-                  Gruppe
-                </label>
+                <label class="col-md-3 col-form-label form-control-label">Gruppe</label>
                 <b-col md="10">
                   <base-input placeholder="Gruppe"></base-input>
                 </b-col>
@@ -99,9 +93,7 @@
 
             <form>
               <b-row class="">
-                <label class="col-md-3 col-form-label form-control-label">
-                  Name
-                </label>
+                <label class="col-md-3 col-form-label form-control-label">Name</label>
                 <b-col md="10">
                   <base-input placeholder="name"></base-input>
                 </b-col>
@@ -120,9 +112,7 @@
                 </b-col>
               </b-row>
               <b-row class="">
-                <label class="col-md-3 col-form-label form-control-label">
-                  Gruppe
-                </label>
+                <label class="col-md-3 col-form-label form-control-label">Gruppe</label>
                 <b-col md="10">
                   <base-input placeholder="Gruppe"></base-input>
                 </b-col>

@@ -2,7 +2,7 @@
   <div>
     <div
       class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-      style="max-height:200px"
+      style="max-height: 200px"
     ></div>
 
     <b-container fluid class="mt--6">

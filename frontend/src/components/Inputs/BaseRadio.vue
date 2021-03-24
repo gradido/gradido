@@ -58,9 +58,7 @@ export default {
     },
   },
   created() {
-    this.cbId = Math.random()
-      .toString(16)
-      .slice(2)
+    this.cbId = Math.random().toString(16).slice(2)
   },
 }
 </script>

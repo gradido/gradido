@@ -111,7 +111,7 @@ export default {
     linkPrefix() {
       if (this.link.name) {
         let words = this.link.name.split(' ')
-        return words.map(word => word.substring(0, 1)).join('')
+        return words.map((word) => word.substring(0, 1)).join('')
       }
       return ''
     },
@@ -120,7 +120,7 @@ export default {
     },
     isActive() {
       if (this.$route && this.$route.path) {
-        let matchingRoute = this.children.find(c => this.$route.path.startsWith(c.link.path))
+        let matchingRoute = this.children.find((c) => this.$route.path.startsWith(c.link.path))
         if (matchingRoute !== undefined) {
           return true
         }

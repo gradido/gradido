@@ -6,7 +6,7 @@
       :per-page="perPage"
       :size="size"
       :value="value"
-      @change="val => $emit('change', val)"
+      @change="(val) => $emit('change', val)"
       :align="align"
       :total-rows="total"
     >

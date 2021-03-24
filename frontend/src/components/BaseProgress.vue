@@ -59,7 +59,7 @@ export default {
     value: {
       type: Number,
       default: 0,
-      validator: value => {
+      validator: (value) => {
         return value >= 0 && value <= 100
       },
       description: 'Progress value',

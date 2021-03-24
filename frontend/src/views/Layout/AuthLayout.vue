@@ -51,9 +51,7 @@
           </b-col>
           <b-col xl="6" class="col-xl-6">
             <b-nav class="nav-footer justify-content-center justify-content-lg-end">
-              <b-nav-item ref="https://www.creative-tim.com" target="_blank">
-                Gradido
-              </b-nav-item>
+              <b-nav-item ref="https://www.creative-tim.com" target="_blank">Gradido</b-nav-item>
               <b-nav-item href="https://www.creative-tim.com/presentation" target="_blank">
                 Impressum
               </b-nav-item>
@@ -136,7 +134,7 @@ export default {
   watch: {
     $route: {
       immediate: true,
-      handler: function() {
+      handler: function () {
         this.updateBackground()
       },
     },

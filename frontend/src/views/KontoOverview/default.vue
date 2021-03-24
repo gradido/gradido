@@ -1,7 +1,5 @@
 <template>
-  <div>
-    default
-  </div>
+  <div>default</div>
 </template>
 
 <script>

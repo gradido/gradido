@@ -98,10 +98,10 @@ export const store = new Vuex.Store({
         //dispatch('logout')
       }
     },
-    passwordReset: async data => {
+    passwordReset: async (data) => {
       //console.log('<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>', data.email)
     },
-    schoepfen: async data => {
+    schoepfen: async (data) => {
       // http://localhost/transaction-creations/ajaxCreate
     },
     createUser: async ({ commit, dispatch }, data) => {

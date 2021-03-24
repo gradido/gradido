@@ -4,7 +4,7 @@
       <b-list-group-item
         v-for="item in filteredItems"
         :key="item.id"
-        style="background-color:#ebebeba3 !important;"
+        style="background-color: #ebebeba3 !important"
       >
         <div class="d-flex w-100 justify-content-between" @click="toogle(item)">
           <b-icon
@@ -12,14 +12,14 @@
             icon="box-arrow-left"
             class="m-1"
             font-scale="2"
-            style="color:red"
+            style="color: red"
           ></b-icon>
           <b-icon
             v-else
             icon="box-arrow-right"
             class="m-1"
             font-scale="2"
-            style="color:green"
+            style="color: green"
           ></b-icon>
           <h1 class="mb-1">
             {{ $n(item.balance / 10000) }}

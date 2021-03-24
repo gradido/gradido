@@ -66,7 +66,7 @@
       <b-row>
         <b-col>
           <b-card no-body class="border-0">
-            <div id="map-custom" class="map-canvas" style="height: 600px;"></div>
+            <div id="map-custom" class="map-canvas" style="height: 600px"></div>
           </b-card>
         </b-col>
       </b-row>
@@ -155,13 +155,13 @@ export default {
         content: contentString,
       })
 
-      google.maps.event.addListener(marker, 'click', function() {
+      google.maps.event.addListener(marker, 'click', function () {
         infowindow.open(map, marker)
       })
     },
   },
   mounted() {
-    GoogleMapsLoader.load(google => {
+    GoogleMapsLoader.load((google) => {
       this.initMap(google)
     })
   },

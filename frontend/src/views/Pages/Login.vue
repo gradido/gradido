@@ -17,7 +17,7 @@
     <b-container class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
-          <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important;">
+          <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('login') }}</small>

@@ -34,7 +34,7 @@
               {{ $store.state.email }}
             </span>
             <b-media-body class="ml-2 d-none d-lg-block">
-              <span class="avatar ">
+              <span class="avatar">
                 <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
               </span>
             </b-media-body>

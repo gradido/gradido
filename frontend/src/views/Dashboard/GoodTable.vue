@@ -24,9 +24,7 @@
             mode: 'pages',
           }"
         >
-          <div slot="table-actions">
-            Mitglieder suchen .
-          </div>
+          <div slot="table-actions">Mitglieder suchen .</div>
         </vue-good-table>
       </b-col>
       <b-col xl="4" class="mb-5 mb-xl-0">

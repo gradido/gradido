@@ -26,9 +26,7 @@
             mode: 'pages',
           }"
         >
-          <div slot="table-actions">
-            Einträge suchen .
-          </div>
+          <div slot="table-actions">Einträge suchen .</div>
         </vue-good-table>
       </b-col>
       <b-col xl="4" class="mb-5 mb-xl-0">

@@ -13,7 +13,7 @@
               <strong>QR Code Scanner</strong>
               - Scanne den QR Code deines Partners
             </span>
-            <b-col v-show="!scan" lg="12" class="text-right ">
+            <b-col v-show="!scan" lg="12" class="text-right">
               <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true" />
             </b-col>
             <b-alert v-show="scan" show variant="warning">
@@ -56,9 +56,7 @@
               </div>
               <br />
               <div>
-                <b-col class="text-left p-3 p-sm-1">
-                  Empfänger
-                </b-col>
+                <b-col class="text-left p-3 p-sm-1">Empfänger</b-col>
 
                 <b-input-group
                   id="input-group-1"
@@ -68,7 +66,7 @@
                   size="lg"
                   class="mb-3"
                 >
-                  <b-input-group-prepend class="p-3 d-none d-md-block  ">
+                  <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="envelope" class="display-3"></b-icon>
                   </b-input-group-prepend>
                   <b-form-input
@@ -78,19 +76,15 @@
                     placeholder="E-Mail"
                     :rules="{ required: true, email: true }"
                     required
-                    style="font-size: xx-large; padding-left:20px"
+                    style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
               </div>
               <br />
               <div>
-                <b-col class="text-left p-3 p-sm-1">
-                  Betrag
-                </b-col>
+                <b-col class="text-left p-3 p-sm-1">Betrag</b-col>
                 <b-col v-if="$store.state.user.balance == form.amount" class="text-right">
-                  <b-badge variant="primary">
-                    maximale anzahl GDD zum versenden erreicht!
-                  </b-badge>
+                  <b-badge variant="primary">maximale anzahl GDD zum versenden erreicht!</b-badge>
                 </b-col>
                 <b-input-group
                   id="input-group-2"
@@ -99,7 +93,7 @@
                   size="lg"
                   class="mb-3"
                 >
-                  <b-input-group-prepend class="p-2 d-none d-md-block  ">
+                  <b-input-group-prepend class="p-2 d-none d-md-block">
                     <div class="h3 pt-3 pr-3">GDD</div>
                   </b-input-group-prepend>
                   <b-form-input
@@ -110,22 +104,20 @@
                     step="0.01"
                     min="0.01"
                     :max="$store.state.user.balance"
-                    style="font-size: xx-large; padding-left:20px"
+                    style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
-                <b-col class="text-left p-3 p-sm-1">
-                  Nachricht für den Empfänger
-                </b-col>
+                <b-col class="text-left p-3 p-sm-1">Nachricht für den Empfänger</b-col>
 
                 <b-input-group>
-                  <b-input-group-prepend class="p-3 d-none d-md-block ">
+                  <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-3"></b-icon>
                   </b-input-group-prepend>
                   <b-form-textarea
                     rows="3"
                     v-model="form.memo"
                     class="pl-3"
-                    style="font-size: x-large;"
+                    style="font-size: x-large"
                   ></b-form-textarea>
                 </b-input-group>
               </div>

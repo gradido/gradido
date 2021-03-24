@@ -30,7 +30,7 @@ const loginAPI = {
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', payload)
   },
-  logout: async session_id => {
+  logout: async (session_id) => {
     const payload = { session_id }
     return apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
   },

@@ -40,7 +40,7 @@ export default {
   components: {
     contentRender: {
       props: ['component'],
-      render: function(createElement) {
+      render: function (createElement) {
         return createElement(this.component)
       },
     },
@@ -58,7 +58,7 @@ export default {
     verticalAlign: {
       type: String,
       default: 'top',
-      validator: value => {
+      validator: (value) => {
         let acceptedValues = ['top', 'bottom']
         return acceptedValues.indexOf(value) !== -1
       },
@@ -67,7 +67,7 @@ export default {
     horizontalAlign: {
       type: String,
       default: 'right',
-      validator: value => {
+      validator: (value) => {
         let acceptedValues = ['left', 'center', 'right']
         return acceptedValues.indexOf(value) !== -1
       },
@@ -76,7 +76,7 @@ export default {
     type: {
       type: String,
       default: 'info',
-      validator: value => {
+      validator: (value) => {
         let acceptedValues = ['default', 'info', 'primary', 'danger', 'warning', 'success']
         return acceptedValues.indexOf(value) !== -1
       },
@@ -86,7 +86,7 @@ export default {
     timeout: {
       type: Number,
       default: 5000,
-      validator: value => {
+      validator: (value) => {
         return value >= 0
       },
       description: 'Notification timeout (closes after X milliseconds). Default is 5000 (5s)',
@@ -131,7 +131,7 @@ export default {
     customPosition() {
       let initialMargin = 20
       let alertHeight = this.elmHeight + 10
-      let sameAlertsCount = this.$notifications.state.filter(alert => {
+      let sameAlertsCount = this.$notifications.state.filter((alert) => {
         return (
           alert.horizontalAlign === this.horizontalAlign &&
           alert.verticalAlign === this.verticalAlign &&

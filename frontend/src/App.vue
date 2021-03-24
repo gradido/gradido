@@ -10,12 +10,8 @@
           class="m-md-2"
         >
           <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-item @click.prevent="setLocale('de')">
-            Deutsch
-          </b-dropdown-item>
-          <b-dropdown-item @click.prevent="setLocale('en')">
-            English
-          </b-dropdown-item>
+          <b-dropdown-item @click.prevent="setLocale('de')">Deutsch</b-dropdown-item>
+          <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>
         </b-dropdown>
       </b-col>
     </header>

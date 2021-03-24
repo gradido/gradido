@@ -18,9 +18,7 @@
             </b-col>
           </b-row> -->
           <hr />
-          <p class="lead">
-            Anmelden
-          </p>
+          <p class="lead">Anmelden</p>
 
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="6" class="px-5">
@@ -65,25 +63,19 @@
           </b-row>
 
           <hr />
-          <p class="lead">
-            neues Mitglied anlegen
-          </p>
+          <p class="lead">neues Mitglied anlegen</p>
 
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="6" class="px-5">
               <form>
                 <b-row class="form-group">
-                  <label class="col-md-2 col-form-label form-control-label">
-                    Vorname
-                  </label>
+                  <label class="col-md-2 col-form-label form-control-label">Vorname</label>
                   <b-col md="10">
                     <base-input placeholder="Jon " v-model="rfname"></base-input>
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
-                  <label class="col-md-2 col-form-label form-control-label">
-                    Nachname
-                  </label>
+                  <label class="col-md-2 col-form-label form-control-label">Nachname</label>
                   <b-col md="10">
                     <base-input placeholder=" Snow" v-model="rlname"></base-input>
                   </b-col>
@@ -122,9 +114,7 @@
                   </b-col>
                 </b-row>
               </form>
-              <b-button block type="submit" @click="createUser()">
-                Anmelden
-              </b-button>
+              <b-button block type="submit" @click="createUser()">Anmelden</b-button>
             </b-col>
           </b-row>
         </div>

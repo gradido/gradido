@@ -8,9 +8,9 @@
             icon="clock-history"
             class="m-1"
             font-scale="2"
-            style="color:orange"
+            style="color: orange"
           ></b-icon>
-          <b-icon v-else icon="check2-all" class="m-1" font-scale="2" style="color:green"></b-icon>
+          <b-icon v-else icon="check2-all" class="m-1" font-scale="2" style="color: green"></b-icon>
           <h2 class="text-muted">
             <small>{{ item.datel }}</small>
             - {{ item.text }}

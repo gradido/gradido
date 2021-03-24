@@ -10,7 +10,7 @@
       ref="file"
       :name="uploadFieldName"
       @change="onFileChange($event.target.name, $event.target.files)"
-      style="display:none"
+      style="display: none"
     />
     <!-- error dialog displays any potential errors -->
     <v-dialog v-model="errorDialog" max-width="300">

@@ -179,7 +179,7 @@ export default {
     dateDiff() {
       this.form.hours = (this.$moment(this.form.to) - this.$moment(this.form.from)) / 1000 / 3600
     },
-    getNow: function() {
+    getNow: function () {
       //const today = new Date()
       //const date = today.getDate()+'.'+(today.getMonth()+1)+'.'+ today.getFullYear();
       //const time = today.getHours() + ":" + today.getMinutes();

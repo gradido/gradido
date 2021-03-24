@@ -53,7 +53,7 @@ export default {
       }
     },
     deactivateAll() {
-      this.items.forEach(item => {
+      this.items.forEach((item) => {
         item.active = false
       })
     },

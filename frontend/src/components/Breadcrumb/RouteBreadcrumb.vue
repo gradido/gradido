@@ -9,7 +9,7 @@
       v-for="(route, index) in $route.matched.slice()"
       :key="route.name"
       :active="index === $route.matched.length - 1"
-      style="display:inline-block"
+      style="display: inline-block"
     >
       <router-link :to="{ name: route.name }" v-if="index < $route.matched.length - 1">
         {{ route.name }}

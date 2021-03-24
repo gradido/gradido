@@ -37,7 +37,7 @@ import 'vue-good-table/dist/vue-good-table.css'
 
 import VueMoment from 'vue-moment'
 
-Object.keys(rules).forEach(rule => {
+Object.keys(rules).forEach((rule) => {
   extend(rule, {
     ...rules[rule], // copies rule configuration
     message: messages[rule], // assign message

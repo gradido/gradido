@@ -3,7 +3,7 @@
 // Code from: https://codepen.io/jedtrow/full/ygRYgo
 //
 import Chart from 'chart.js'
-Chart.elements.Rectangle.prototype.draw = function() {
+Chart.elements.Rectangle.prototype.draw = function () {
   let ctx = this._chart.ctx
   let vm = this._view
   let left, right, top, bottom, signX, signY, borderSkipped, radius

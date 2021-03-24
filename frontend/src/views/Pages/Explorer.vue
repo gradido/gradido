@@ -25,9 +25,7 @@
 
     <div>
       <b-card>
-        <b-card-body>
-          This is some text within a card body.
-        </b-card-body>
+        <b-card-body>This is some text within a card body.</b-card-body>
       </b-card>
     </div>
   </div>

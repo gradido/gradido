@@ -131,9 +131,7 @@ export default {
       config: {
         altInput: false,
         dateFormat: 'd-m-Y',
-        minDate: this.$moment()
-          .startOf('month')
-          .format('DD.MM.YYYY'),
+        minDate: this.$moment().startOf('month').format('DD.MM.YYYY'),
         maxDate: this.$moment().format('DD.MM.YYYY'),
         mode: 'range',
       },
@@ -169,9 +167,7 @@ export default {
       messages: [],
       submitted: false,
       days: {
-        thisMonth: this.$moment()
-          .month(this.$moment().month())
-          .daysInMonth(),
+        thisMonth: this.$moment().month(this.$moment().month()).daysInMonth(),
         lastMonth: this.$moment()
           .month(this.$moment().month() - 1)
           .daysInMonth(),
@@ -180,9 +176,7 @@ export default {
           .daysInMonth(),
       },
       names: {
-        thisMonth: this.$moment()
-          .month(this.$moment().month())
-          .format('MMMM'),
+        thisMonth: this.$moment().month(this.$moment().month()).format('MMMM'),
         lastMonth: this.$moment()
           .month(this.$moment().month() - 1)
           .format('MMMM'),
@@ -194,7 +188,7 @@ export default {
   },
   created() {},
   watch: {
-    $form: function() {
+    $form: function () {
       stunden(this.form)
     },
   },
@@ -228,20 +222,20 @@ export default {
       this.index++
       //console.log('this.stundenSumme ende=> ', this.stundenSumme)
     },
-    addNewMessage: function() {
+    addNewMessage: function () {
       this.messages.push({
         DaysNumber: '',
         TextDecoded: '',
       })
     },
-    deleteNewMessage: function(event) {
+    deleteNewMessage: function (event) {
       //console.log('deleteNewMessage:event) => ', event)
       //console.log("deleteNewMessage:this.events.splice(this.event) => ", this.events.splice(this.event))
       this.form.splice(event, null)
       this.messages.splice(index, 1)
       this.index--
     },
-    submitForm: function(e) {
+    submitForm: function (e) {
       //console.log(this.messages)
 
       this.messages = [{ DaysNumber: '', TextDecoded: '' }]

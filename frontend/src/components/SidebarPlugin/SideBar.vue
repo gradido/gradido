@@ -27,15 +27,15 @@
               <i class="ni ni-single-02"></i>
               <span>{{ $t('site.overview.account_overview') }}</span>
             </router-link>
-            <router-link to="/profile" class="dropdown-item  text-lg text-muted">
+            <router-link to="/profile" class="dropdown-item text-lg text-muted">
               <i class="ni ni-single-02"></i>
               <span>{{ $t('site.navbar.my-profil') }}</span>
             </router-link>
-            <router-link to="/profileedit" class="dropdown-item  text-lg text-muted">
+            <router-link to="/profileedit" class="dropdown-item text-lg text-muted">
               <i class="ni ni-settings-gear-65"></i>
               <span>{{ $t('site.navbar.settings') }}</span>
             </router-link>
-            <router-link to="/transactions" class="dropdown-item  text-lg text-muted">
+            <router-link to="/transactions" class="dropdown-item text-lg text-muted">
               <i class="ni ni-calendar-grid-58"></i>
               <span>Transactions</span>
             </router-link>
@@ -46,7 +46,7 @@
                         </router-link>
                        -->
             <div class="dropdown-divider"></div>
-            <div @click="logout" class="dropdown-item  text-lg text-muted">
+            <div @click="logout" class="dropdown-item text-lg text-muted">
               <i class="ni ni-support-16"></i>
               {{ $t('logout') }}
             </div>

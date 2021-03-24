@@ -18,7 +18,7 @@
       <!-- Table -->
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
-          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important;">
+          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('signup') }}</small>
@@ -72,7 +72,7 @@
                       </span>
                     </small>
                   </div>
-                  <b-row class=" my-4">
+                  <b-row class="my-4">
                     <b-col cols="12">
                       <base-input
                         :rules="{ required: { allowFalse: false } }"
