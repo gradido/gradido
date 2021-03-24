@@ -1,32 +1,28 @@
-import { mount } from '@vue/test-utils'
+import { mount } from "@vue/test-utils";
 
-import CloseButton from './CloseButton'
+import CloseButton from "./CloseButton";
 
-const localVue = global.localVue
+const localVue = global.localVue;
 
-describe('CloseButton', () => {
-
-  let wrapper
+describe("CloseButton", () => {
+  let wrapper;
   let propsData = {
     target: "Target",
-    expanded: false,
-  }
+    expanded: false
+  };
 
   const Wrapper = () => {
-    return mount(CloseButton, { localVue, propsData })
-  }
+    return mount(CloseButton, { localVue, propsData });
+  };
 
-  describe('mount', () => {
-
+  describe("mount", () => {
     beforeEach(() => {
-      wrapper = Wrapper()
-    })
+      wrapper = Wrapper();
+    });
 
-    it('emmits click event', () => {
-      wrapper.find('.navbar-toggler').trigger('click')
-      expect(wrapper.emitted('click')).toBeTruthy()
-    })
-    
-  })
-  
-})
+    it("emmits click event", () => {
+      wrapper.find(".navbar-toggler").trigger("click");
+      expect(wrapper.emitted("click")).toBeTruthy();
+    });
+  });
+});

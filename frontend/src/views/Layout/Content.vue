@@ -1,13 +1,13 @@
 <template>
   <div class="content">
-    <FadeTransition :duration="200" mode="out-in">
+    <fade-transition :duration="200" mode="out-in">
       <!-- your content here -->
       <router-view></router-view>
-    </FadeTransition>
+    </fade-transition>
   </div>
 </template>
 <script>
-import { FadeTransition } from 'vue2-transitions';
+import { FadeTransition } from "vue2-transitions";
 export default {
   components: {
     FadeTransition

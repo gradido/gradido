@@ -1,5 +1,5 @@
-const path = require('path');
-const dotenv = require('dotenv-webpack');
+const path = require("path");
+const dotenv = require("dotenv-webpack");
 
 function resolveSrc(_path) {
   return path.join(__dirname, _path);
@@ -8,9 +8,9 @@ function resolveSrc(_path) {
 module.exports = {
   pluginOptions: {
     i18n: {
-      locale: 'de',
-      fallbackLocale: 'de',
-      localeDir: 'locales',
+      locale: "de",
+      fallbackLocale: "de",
+      localeDir: "locales",
       enableInSFC: false
     }
   },
@@ -19,16 +19,13 @@ module.exports = {
     // Set up all the aliases we use in our app.
     resolve: {
       alias: {
-        assets: resolveSrc('src/assets')
+        assets: resolveSrc("src/assets")
       }
     },
-    plugins: [
-      new dotenv()
-    ]
-    
+    plugins: [new dotenv()]
   },
   css: {
     // Enable CSS source maps.
-    sourceMap: process.env.NODE_ENV !== 'production'
+    sourceMap: process.env.NODE_ENV !== "production"
   }
 };

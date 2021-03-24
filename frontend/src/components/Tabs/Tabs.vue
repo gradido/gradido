@@ -28,7 +28,7 @@
           @click.prevent="activateTab(tab)"
           :aria-expanded="tab.active"
         >
-          <tab-item-content :tab="tab"> </tab-item-content>
+          <tab-item-content :tab="tab"></tab-item-content>
         </b-nav-item>
       </b-nav>
     </div>
@@ -47,12 +47,12 @@
 
 <script>
 export default {
-  name: 'tabs',
+  name: "tabs",
   components: {
     TabItemContent: {
-      props: ['tab'],
+      props: ["tab"],
       render(h) {
-        return h('div', [this.tab.$slots.title || this.tab.title]);
+        return h("div", [this.tab.$slots.title || this.tab.title]);
       }
     }
   },
@@ -65,37 +65,37 @@ export default {
   props: {
     type: {
       type: String,
-      default: 'primary',
+      default: "primary",
       validator: value => {
         let acceptedValues = [
-          'primary',
-          'info',
-          'success',
-          'warning',
-          'danger'
+          "primary",
+          "info",
+          "success",
+          "warning",
+          "danger"
         ];
         return acceptedValues.indexOf(value) !== -1;
       }
     },
     activeTab: {
       type: String,
-      default: '',
-      description: 'Active tab name'
+      default: "",
+      description: "Active tab name"
     },
     tabNavWrapperClasses: {
       type: [String, Object],
-      default: '',
-      description: 'ul wrapper css classes'
+      default: "",
+      description: "ul wrapper css classes"
     },
     tabNavClasses: {
       type: [String, Object],
-      default: '',
-      description: 'ul css classes'
+      default: "",
+      description: "ul css classes"
     },
     tabContentClasses: {
       type: [String, Object],
-      default: '',
-      description: 'tab content css classes'
+      default: "",
+      description: "tab content css classes"
     },
     vertical: Boolean,
     centered: Boolean,

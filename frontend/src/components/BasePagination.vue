@@ -1,14 +1,27 @@
 <template>
   <div>
-    <b-pagination first-number last-number :per-page="perPage" :size="size" :value="value" @change="(val) => $emit('change', val)" :align="align" :total-rows="total">
+    <b-pagination
+      first-number
+      last-number
+      :per-page="perPage"
+      :size="size"
+      :value="value"
+      @change="val => $emit('change', val)"
+      :align="align"
+      :total-rows="total"
+    >
       <template v-slot:prev-text>
         <a class="page-link" aria-label="Previous">
-          <span aria-hidden="true"><i class="fa fa-angle-left" aria-hidden="true"></i></span>
+          <span aria-hidden="true">
+            <i class="fa fa-angle-left" aria-hidden="true"></i>
+          </span>
         </a>
       </template>
       <template v-slot:next-text>
         <a class="page-link" aria-label="Next">
-          <span aria-hidden="true"><i class="fa fa-angle-right" aria-hidden="true"></i></span>
+          <span aria-hidden="true">
+            <i class="fa fa-angle-right" aria-hidden="true"></i>
+          </span>
         </a>
       </template>
     </b-pagination>
@@ -51,6 +64,6 @@ export default {
       default: "",
       description: "Pagination alignment (e.g center|start|end)"
     }
-  },
+  }
 };
 </script>

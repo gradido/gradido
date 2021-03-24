@@ -2,31 +2,31 @@
   <div class="slider" :disabled="disabled"></div>
 </template>
 <script>
-import noUiSlider from 'nouislider';
+import noUiSlider from "nouislider";
 
 export default {
-  name: 'base-slider',
+  name: "base-slider",
   props: {
     value: {
       type: [String, Array, Number],
-      description: 'slider value'
+      description: "slider value"
     },
     disabled: {
       type: Boolean,
       default: false,
-      description: 'whether the slider is disabled'
+      description: "whether the slider is disabled"
     },
     start: {
       type: [Number, Array],
       default: 0,
       description:
-        '[noUi Slider start](https://refreshless.com/nouislider/slider-options/#section-start)'
+        "[noUi Slider start](https://refreshless.com/nouislider/slider-options/#section-start)"
     },
     connect: {
       type: [Boolean, Array],
       default: () => [true, false],
       description:
-        '[noUi Slider connect](https://refreshless.com/nouislider/slider-options/#section-connect)'
+        "[noUi Slider connect](https://refreshless.com/nouislider/slider-options/#section-connect)"
     },
     range: {
       type: Object,
@@ -37,7 +37,7 @@ export default {
         };
       },
       description:
-        '[noUi Slider range](https://refreshless.com/nouislider/slider-values/#section-range)'
+        "[noUi Slider range](https://refreshless.com/nouislider/slider-values/#section-range)"
     },
     options: {
       type: Object,
@@ -45,7 +45,7 @@ export default {
         return {};
       },
       description:
-        '[noUi Slider options](https://refreshless.com/nouislider/slider-options/)'
+        "[noUi Slider options](https://refreshless.com/nouislider/slider-options/)"
     }
   },
   data() {
@@ -62,10 +62,10 @@ export default {
         ...this.options
       });
       const slider = this.$el.noUiSlider;
-      slider.on('slide', () => {
+      slider.on("slide", () => {
         let value = slider.get();
         if (value !== this.value) {
-          this.$emit('input', value);
+          this.$emit("input", value);
         }
       });
     }

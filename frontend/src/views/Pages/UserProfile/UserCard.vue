@@ -4,7 +4,10 @@
       <b-col lg="3" class="order-lg-2">
         <div class="card-profile-image">
           <a href="#">
-            <vue-qrcode :value="$store.state.email" type="image/png"> </vue-qrcode>
+            <vue-qrcode
+              :value="$store.state.email"
+              type="image/png"
+            ></vue-qrcode>
           </a>
         </div>
       </b-col>
@@ -12,13 +15,13 @@
 
     <b-card-header class="text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
       <div class="d-flex justify-content-between">
-       <br>
+        <br />
       </div>
     </b-card-header>
 
     <b-card-body class="pt-0">
       <b-row>
-        <b-col >
+        <b-col>
           <div class="card-profile-stats d-flex justify-content-center mt-md-5">
             <div>
               <span class="heading">--</span>
@@ -29,7 +32,9 @@
               <span class="description">Community</span>
             </div>
             <div>
-              <span class="heading"> {{ $n(this.$store.state.user.balance) }} </span>
+              <span class="heading">
+                {{ $n(this.$store.state.user.balance) }}
+              </span>
               <span class="description">GDD</span>
             </div>
           </div>
@@ -37,21 +42,20 @@
       </b-row>
       <div class="text-center">
         <h5 class="h3">
-         {{this.$store.state.email}}<span class="font-weight-light"></span>
+          {{ this.$store.state.email }}
+          <span class="font-weight-light"></span>
         </h5>
-    
-       
       </div>
     </b-card-body>
   </b-card>
 </template>
 <script>
-import VueQrcode from 'vue-qrcode'
+import VueQrcode from "vue-qrcode";
 
 export default {
   name: "profilecard",
-   components: {
-    VueQrcode,
+  components: {
+    VueQrcode
   }
 };
 </script>

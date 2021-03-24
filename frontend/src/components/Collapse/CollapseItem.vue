@@ -8,7 +8,7 @@
         @click.prevent="activate"
         :aria-controls="`content-${itemId}`"
       >
-        <slot name="title"> {{ title }} </slot>
+        <slot name="title">{{ title }}</slot>
         <i class="tim-icons icon-minimal-down"></i>
       </a>
     </b-card-header>
@@ -26,18 +26,18 @@
   </b-card>
 </template>
 <script>
-import { CollapseTransition } from 'vue2-transitions';
+import { CollapseTransition } from "vue2-transitions";
 
 export default {
-  name: 'collapse-item',
+  name: "collapse-item",
   components: {
     CollapseTransition
   },
   props: {
     title: {
       type: String,
-      default: '',
-      description: 'Collapse item title'
+      default: "",
+      description: "Collapse item title"
     },
     id: String
   },
@@ -75,7 +75,7 @@ export default {
         this.deactivateAll();
       }
       this.active = !wasActive;
-      console.log(this.active)
+      console.log(this.active);
     }
   },
   mounted() {

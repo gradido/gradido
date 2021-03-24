@@ -15,12 +15,16 @@
     >
       <template v-if="addLink">
         <span class="nav-link-text">
-          {{ link.name }} <b class="caret"></b>
+          {{ link.name }}
+          <b class="caret"></b>
         </span>
       </template>
       <template v-else>
         <i :class="link.icon"></i>
-        <span class="nav-link-text">{{ link.name }} <b class="caret"></b></span>
+        <span class="nav-link-text">
+          {{ link.name }}
+          <b class="caret"></b>
+        </span>
       </template>
     </a>
 
@@ -61,10 +65,10 @@
   </b-nav-item>
 </template>
 <script>
-import { CollapseTransition } from 'vue2-transitions';
+import { CollapseTransition } from "vue2-transitions";
 
 export default {
-  name: 'sidebar-item',
+  name: "sidebar-item",
   components: {
     CollapseTransition
   },
@@ -79,13 +83,13 @@ export default {
       type: Object,
       default: () => {
         return {
-          name: '',
-          path: '',
+          name: "",
+          path: "",
           children: []
         };
       },
       description:
-        'Sidebar link. Can contain name, path, icon and other attributes. See examples for more info'
+        "Sidebar link. Can contain name, path, icon and other attributes. See examples for more info"
     }
   },
   provide() {
@@ -109,14 +113,14 @@ export default {
   },
   computed: {
     baseComponent() {
-      return this.isMenu || this.link.isRoute ? 'li' : 'router-link';
+      return this.isMenu || this.link.isRoute ? "li" : "router-link";
     },
     linkPrefix() {
       if (this.link.name) {
-        let words = this.link.name.split(' ');
-        return words.map(word => word.substring(0, 1)).join('');
+        let words = this.link.name.split(" ");
+        return words.map(word => word.substring(0, 1)).join("");
       }
-      return ''
+      return "";
     },
     isMenu() {
       return this.children.length > 0 || this.menu === true;
@@ -145,14 +149,14 @@ export default {
     },
     elementType(link, isParent = true) {
       if (link.isRoute === false) {
-        return isParent ? 'li' : 'a';
+        return isParent ? "li" : "a";
       } else {
-        return 'router-link';
+        return "router-link";
       }
     },
     linkAbbreviation(name) {
       const matches = name.match(/\b(\w)/g);
-      return matches.join('');
+      return matches.join("");
     },
     linkClick() {
       if (

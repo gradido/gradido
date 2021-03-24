@@ -11,22 +11,23 @@
 
 <script>
 export default {
-  name: 'collapse',
+  name: "collapse",
   props: {
     animationDuration: {
       type: Number,
       default: 250,
-      description: 'Collapse animation duration'
+      description: "Collapse animation duration"
     },
     multipleActive: {
       type: Boolean,
       default: true,
-      description: 'Whether you can have multiple collapse items opened at the same time'
+      description:
+        "Whether you can have multiple collapse items opened at the same time"
     },
     activeIndex: {
       type: Number,
       default: -1,
-      description: 'Active collapse item index'
+      description: "Active collapse item index"
     }
   },
   provide() {

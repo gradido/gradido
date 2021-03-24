@@ -1,11 +1,11 @@
 <template>
   <bread-crumb list-classes="breadcrumb-links breadcrumb-dark">
-    <BreadCrumbItem>
-        <router-link to="/overview">
-          <i class="fas fa-home"></i>
-        </router-link>
-    </BreadCrumbItem>
-    <BreadCrumbItem
+    <bread-crumb-item>
+      <router-link to="/overview">
+        <i class="fas fa-home"></i>
+      </router-link>
+    </bread-crumb-item>
+    <bread-crumb-item
       v-for="(route, index) in $route.matched.slice()"
       :key="route.name"
       :active="index === $route.matched.length - 1"
@@ -18,26 +18,26 @@
         {{ route.name }}
       </router-link>
       <span v-else>{{ route.name }}</span>
-    </BreadCrumbItem>
+    </bread-crumb-item>
   </bread-crumb>
 </template>
 
 <script>
-  import BreadCrumb from './Breadcrumb';
-  import BreadCrumbItem from './BreadcrumbItem';
+import BreadCrumb from "./Breadcrumb";
+import BreadCrumbItem from "./BreadcrumbItem";
 
-  export default {
-    name: 'route-breadcrumb',
-    components: {
-      BreadCrumb,
-      BreadCrumbItem
-    },
-    methods: {
-      getBreadName(route) {
-        return route.name;
-      }
+export default {
+  name: "route-breadcrumb",
+  components: {
+    BreadCrumb,
+    BreadCrumbItem
+  },
+  methods: {
+    getBreadName(route) {
+      return route.name;
     }
-  };
+  }
+};
 </script>
 
 <style scoped></style>

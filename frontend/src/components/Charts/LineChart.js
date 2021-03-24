@@ -1,7 +1,7 @@
-import { Line, mixins } from 'vue-chartjs';
+import { Line, mixins } from "vue-chartjs";
 import globalOptionsMixin from "@/components/Charts/globalOptionsMixin";
 export default {
-  name: 'line-chart',
+  name: "line-chart",
   extends: Line,
   mixins: [mixins.reactiveProp, globalOptionsMixin],
   props: {
@@ -17,7 +17,7 @@ export default {
   },
   mounted() {
     this.$watch(
-      'chartData',
+      "chartData",
       (newVal, oldVal) => {
         if (!oldVal) {
           this.renderChart(this.chartData, this.extraOptions);

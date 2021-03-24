@@ -11,9 +11,9 @@
 </template>
 <script>
 export default {
-  name: 'tab-pane',
-  props: ['title', 'id'],
-  inject: ['addTab', 'removeTab'],
+  name: "tab-pane",
+  props: ["title", "id"],
+  inject: ["addTab", "removeTab"],
   data() {
     return {
       active: false

@@ -5,21 +5,27 @@
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.NODE_ENV !== 'production' || false,
-  PRODUCTION: process.env.NODE_ENV === 'production' || false,
-}
+  DEBUG: process.env.NODE_ENV !== "production" || false,
+  PRODUCTION: process.env.NODE_ENV === "production" || false
+};
 
 const server = {
-  LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://localhost/login_api/',
-  COMMUNITY_API_STATE_BALANCE_URL: process.env.COMMUNITY_API_STATE_BALANCE_URL || 'http://localhost/state-balances/',
-  COMMUNITY_API_TRANSACTION_CREATION_URL: process.env.COMMUNITY_API_TRANSACTION_CREATION_URL || 'http://localhost/transaction-creations/',
+  LOGIN_API_URL: process.env.LOGIN_API_URL || "http://localhost/login_api/",
+  COMMUNITY_API_STATE_BALANCE_URL:
+    process.env.COMMUNITY_API_STATE_BALANCE_URL ||
+    "http://localhost/state-balances/",
+  COMMUNITY_API_TRANSACTION_CREATION_URL:
+    process.env.COMMUNITY_API_TRANSACTION_CREATION_URL ||
+    "http://localhost/transaction-creations/",
   // TODO is this the right API call? what does it do?
-  COMMUNITY_API_TRANSACTION_SEND_COINS: process.env.COMMUNITY_API_TRANSACTION_SEND_COINS || 'http://localhost/transaction-send-coins/',
-}
+  COMMUNITY_API_TRANSACTION_SEND_COINS:
+    process.env.COMMUNITY_API_TRANSACTION_SEND_COINS ||
+    "http://localhost/transaction-send-coins/"
+};
 
 const CONFIG = {
   ...environment,
-  ...server,
-}
+  ...server
+};
 
-export default CONFIG
+export default CONFIG;
