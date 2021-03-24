@@ -7,12 +7,31 @@ const EMAIL_TYPE = {
   ADMIN: 5, // if user was registered by an admin
 }
 
+const apiGet = async (url) => {
+  try {
+    const result = await axios.get(url);
+    if(result.status !== 200){
+      throw new Error('HTTP Status Error '+result.status)
+    }
+	
+    if(result.data.state !== 'success'){
+      throw new Error(result.data.msg)
+    }
+    return { success: true, result }
+  } catch(error){
+    return { success: false, result: error}
+  }
+}
+
 const apiPost = async (url, payload) => {
   try {
     const result = await axios.post(url, payload);
     if(result.status !== 200){
       throw new Error('HTTP Status Error '+result.status)
     }
+	if(result.data.state === 'warning') {
+		return { success: true, result: error }
+	}
     if(result.data.state !== 'success'){
       throw new Error(result.data.msg)
     }
