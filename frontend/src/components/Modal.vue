@@ -15,23 +15,14 @@
           invalid-feedback="Name is required"
           :state="nameState"
         >
-          <b-form-input
-            id="name-input"
-            v-model="name"
-            :state="nameState"
-            required
-          ></b-form-input>
+          <b-form-input id="name-input" v-model="name" :state="nameState" required></b-form-input>
         </b-form-group>
       </form>
     </div>
 
     <template slot="footer">
       <base-button type="white">Ok</base-button>
-      <base-button
-        type="link"
-        class="ml-auto"
-        @click="$store.state.modals = false"
-      >
+      <base-button type="link" class="ml-auto" @click="$store.state.modals = false">
         abbrechen
       </base-button>
     </template>
@@ -40,47 +31,47 @@
 
 <script>
 export default {
-  name: "modal",
+  name: 'modal',
   data() {
     return {
-      name: "",
+      name: '',
       nameState: null,
-      submittedNames: []
-    };
+      submittedNames: [],
+    }
   },
   /*Modal*/
   checkFormValidity() {
-    const valid = this.$refs.form.checkValidity();
-    this.nameState = valid;
-    return valid;
+    const valid = this.$refs.form.checkValidity()
+    this.nameState = valid
+    return valid
   },
   resetModal() {
-    this.name = "";
-    this.nameState = null;
+    this.name = ''
+    this.nameState = null
   },
   handleOk(bvModalEvt) {
     // Prevent modal from closing
-    bvModalEvt.preventDefault();
+    bvModalEvt.preventDefault()
     // Trigger submit handler
-    this.handleSubmit();
+    this.handleSubmit()
   },
   handleSubmit() {
     // Exit when the form isn't valid
     if (!this.checkFormValidity()) {
-      return;
+      return
     }
     // Push the name to submitted names
-    this.submittedNames.push(this.name);
-    this.$store.state.modals = false;
-    this.$store.commit("loginAsAdmin");
-    this.$router.push("/AdminOverview");
+    this.submittedNames.push(this.name)
+    this.$store.state.modals = false
+    this.$store.commit('loginAsAdmin')
+    this.$router.push('/AdminOverview')
 
     // Hide the modal manually
     this.$nextTick(() => {
-      this.$bvModal.hide("modal-prevent-closing");
-    });
-  }
-};
+      this.$bvModal.hide('modal-prevent-closing')
+    })
+  },
+}
 </script>
 <style>
 .modal-backdrop {

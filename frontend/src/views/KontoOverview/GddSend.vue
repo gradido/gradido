@@ -4,9 +4,8 @@
       <b-col xl="12" md="12">
         <b-alert variant="warning" show dismissible>
           <strong>Achtung!</strong>
-          Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine
-          Verantwortlich für deine Entscheidungen. Versendete Gradidos können
-          nicht wieder zurück geholt werden.
+          Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine
+          Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
         </b-alert>
         <b-card class="p-0 p-md-3">
           <b-alert show variant="secondary">
@@ -15,11 +14,7 @@
               - Scanne den QR Code deines Partners
             </span>
             <b-col v-show="!scan" lg="12" class="text-right ">
-              <img
-                src="/img/icons/gradido/qr-scan-pure.png"
-                height="50"
-                @click="scan = true"
-              />
+              <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true" />
             </b-col>
             <b-alert v-show="scan" show variant="warning">
               <span class="alert-text" @click="scan = false">
@@ -31,11 +26,7 @@
                     <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
                 </b-row> -->
 
-              <qrcode-stream
-                class="mt-3"
-                @decode="onDecode"
-                @detect="onDetect"
-              ></qrcode-stream>
+              <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect"></qrcode-stream>
 
               <b-container>
                 <b-row>
@@ -61,10 +52,7 @@
             >
               <br />
               <div>
-                <qrcode-drop-zone
-                  id="input-0"
-                  v-model="form.img"
-                ></qrcode-drop-zone>
+                <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
               </div>
               <br />
               <div>
@@ -99,10 +87,7 @@
                 <b-col class="text-left p-3 p-sm-1">
                   Betrag
                 </b-col>
-                <b-col
-                  v-if="$store.state.user.balance == form.amount"
-                  class="text-right"
-                >
+                <b-col v-if="$store.state.user.balance == form.amount" class="text-right">
                   <b-badge variant="primary">
                     maximale anzahl GDD zum versenden erreicht!
                   </b-badge>
@@ -149,12 +134,12 @@
               <b-row>
                 <b-col>
                   <b-button type="reset" variant="secondary">
-                    {{ $t("form.cancel") }}
+                    {{ $t('form.cancel') }}
                   </b-button>
                 </b-col>
                 <b-col class="text-right">
                   <b-button type="submit" variant="success">
-                    {{ $t("form.send_now") }}
+                    {{ $t('form.send_now') }}
                   </b-button>
                 </b-col>
               </b-row>
@@ -169,59 +154,53 @@
 </template>
 
 <script>
-import {
-  QrcodeStream,
-  QrcodeDropZone /*, QrcodeCapture*/
-} from "vue-qrcode-reader";
-import { BIcon } from "bootstrap-vue";
+import { QrcodeStream, QrcodeDropZone /*, QrcodeCapture*/ } from 'vue-qrcode-reader'
+import { BIcon } from 'bootstrap-vue'
 
 export default {
-  name: "GddSent",
+  name: 'GddSent',
   components: {
     QrcodeStream,
     QrcodeDropZone,
     // QrcodeCapture,
-    BIcon
+    BIcon,
   },
   data() {
     return {
       scan: false,
       show: true,
       form: {
-        img: "",
-        email: "",
-        amount: "",
-        memo: ""
+        img: '',
+        email: '',
+        amount: '',
+        memo: '',
       },
-      sent: false
-    };
+      sent: false,
+    }
   },
   methods: {
     sendbutton() {
-      this.sent = true;
+      this.sent = true
     },
     async onDecode(decodedString) {
-      console.log(
-        "onDecode JSON.parse(decodedString)",
-        JSON.parse(decodedString)
-      );
-      const arr = JSON.parse(decodedString);
-      console.log("qr-email", arr[0].email);
-      console.log("qr-amount", arr[0].amount);
+      console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
+      const arr = JSON.parse(decodedString)
+      console.log('qr-email', arr[0].email)
+      console.log('qr-amount', arr[0].amount)
 
-      this.form.email = arr[0].email;
-      this.form.amount1 = arr[0].amount;
+      this.form.email = arr[0].email
+      this.form.amount1 = arr[0].amount
     },
     async onDetect(promise) {
       try {
         const {
           imageData, // raw image data of image/frame
           content, // decoded String
-          location // QR code coordinates
-        } = await promise;
+          location, // QR code coordinates
+        } = await promise
         // console.log('onDetect promise',promise)
         //console.log('JSON.parse(decodedString)',JSON.parse(promise) )
-        const arr = JSON.parse(decodedString);
+        const arr = JSON.parse(decodedString)
       } catch (error) {
         // ...
       }
@@ -229,38 +208,36 @@ export default {
     async onSubmit() {
       //event.preventDefault()
       //console.log("onSubmit", this.form)
-      this.$store.state.ajaxCreateData.session_id = this.$cookies.get(
-        "gdd_session_id"
-      );
-      this.$store.state.ajaxCreateData.email = this.form.email;
-      this.$store.state.ajaxCreateData.amount = this.form.amount;
-      this.$store.state.ajaxCreateData.memo = this.form.memo;
-      this.$store.state.ajaxCreateData.target_date = Date.now();
+      this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
+      this.$store.state.ajaxCreateData.email = this.form.email
+      this.$store.state.ajaxCreateData.amount = this.form.amount
+      this.$store.state.ajaxCreateData.memo = this.form.memo
+      this.$store.state.ajaxCreateData.target_date = Date.now()
 
-      this.$store.dispatch("ajaxCreate");
+      this.$store.dispatch('ajaxCreate')
     },
     onReset(event) {
-      event.preventDefault();
-      this.form.email = "";
-      this.form.amount = "";
-      this.show = false;
+      event.preventDefault()
+      this.form.email = ''
+      this.form.amount = ''
+      this.show = false
       this.$nextTick(() => {
-        this.show = true;
-      });
-    }
+        this.show = true
+      })
+    },
   },
   computed: {
     state() {
-      return this.name.length >= 4;
+      return this.name.length >= 4
     },
     invalidFeedback() {
       if (this.name.length > 0) {
-        return "Geben Sie mindestens 4 Zeichen ein.";
+        return 'Geben Sie mindestens 4 Zeichen ein.'
       }
-      return "Bitte geben Sie eine GDD Adresse ein.";
-    }
-  }
-};
+      return 'Bitte geben Sie eine GDD Adresse ein.'
+    },
+  },
+}
 </script>
 <style>
 video {

@@ -8,12 +8,10 @@
         <b-container fluid class="d-flex align-items-center">
           <b-row>
             <b-col lg="7" md="10">
-              <h1 class="display-2 text-white">
-                Hello {{ this.$store.state.email }}
-              </h1>
+              <h1 class="display-2 text-white">Hello {{ this.$store.state.email }}</h1>
               <p class="text-white mt-0 mb-5">
-                This is your profile page. You can see the progress you've made
-                with your work and manage your projects or assigned tasks
+                This is your profile page. You can see the progress you've made with your work and
+                manage your projects or assigned tasks
               </p>
               <a href="#!" class="btn btn-info">Edit profile</a>
             </b-col>
@@ -35,14 +33,14 @@
   </div>
 </template>
 <script>
-import EditProfileForm from "./UserProfile/EditProfileForm.vue";
-import UserCard from "./UserProfile/UserCard.vue";
+import EditProfileForm from './UserProfile/EditProfileForm.vue'
+import UserCard from './UserProfile/UserCard.vue'
 
 export default {
   components: {
     EditProfileForm,
-    UserCard
-  }
-};
+    UserCard,
+  },
+}
 </script>
 <style></style>

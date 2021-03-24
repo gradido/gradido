@@ -73,17 +73,11 @@
   </div>
 </template>
 <script>
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  Table,
-  TableColumn
-} from "element-ui";
-import projects from "./Tables/projects";
-import users from "./Tables/users";
-import LightTable from "./Tables/RegularTables/LightTable";
-import DarkTable from "./Tables/RegularTables/DarkTable";
+import { Dropdown, DropdownItem, DropdownMenu, Table, TableColumn } from 'element-ui'
+import projects from './Tables/projects'
+import users from './Tables/users'
+import LightTable from './Tables/RegularTables/LightTable'
+import DarkTable from './Tables/RegularTables/DarkTable'
 
 export default {
   components: {
@@ -93,15 +87,15 @@ export default {
     [DropdownItem.name]: DropdownItem,
     [DropdownMenu.name]: DropdownMenu,
     [Table.name]: Table,
-    [TableColumn.name]: TableColumn
+    [TableColumn.name]: TableColumn,
   },
   data() {
     return {
       projects,
-      users
-    };
-  }
-};
+      users,
+    }
+  },
+}
 </script>
 <style>
 .el-table.table-dark {

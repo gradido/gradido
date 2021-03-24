@@ -26,48 +26,47 @@
 </template>
 <script>
 export default {
-  name: "avatar-uploader",
+  name: 'avatar-uploader',
   data: () => ({
     errorDialog: null,
-    errorText: "",
-    uploadFieldName: "file",
-    maxSize: 1024
+    errorText: '',
+    uploadFieldName: 'file',
+    maxSize: 1024,
   }),
   props: {
     // Use "value" here to enable compatibility with v-model
-    value: Object
+    value: Object,
   },
   methods: {
     launchFilePicker() {
-      this.$refs.file.click();
+      this.$refs.file.click()
     },
     onFileChange(fieldName, file) {
-      const { maxSize } = this;
-      let imageFile = file[0];
+      const { maxSize } = this
+      let imageFile = file[0]
 
       //check if user actually selected a file
       if (file.length > 0) {
-        let size = imageFile.size / maxSize / maxSize;
-        if (!imageFile.type.match("image.*")) {
+        let size = imageFile.size / maxSize / maxSize
+        if (!imageFile.type.match('image.*')) {
           // check whether the upload is an image
-          this.errorDialog = true;
-          this.errorText = "Please choose an image file";
+          this.errorDialog = true
+          this.errorText = 'Please choose an image file'
         } else if (size > 1) {
           // check whether the size is greater than the size limit
-          this.errorDialog = true;
-          this.errorText =
-            "Your file is too big! Please select an image under 1MB";
+          this.errorDialog = true
+          this.errorText = 'Your file is too big! Please select an image under 1MB'
         } else {
           // Append file into FormData & turn file into image URL
-          let formData = new FormData();
-          let imageURL = URL.createObjectURL(imageFile);
-          formData.append(fieldName, imageFile);
+          let formData = new FormData()
+          let imageURL = URL.createObjectURL(imageFile)
+          formData.append(fieldName, imageFile)
           // Emit FormData & image URL to the parent component
-          this.$emit("input", { formData, imageURL });
+          this.$emit('input', { formData, imageURL })
         }
       }
-    }
-  }
-};
+    },
+  },
+}
 </script>
 <style></style>

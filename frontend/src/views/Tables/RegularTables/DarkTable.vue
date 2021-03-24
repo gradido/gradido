@@ -13,12 +13,7 @@
         <template v-slot="{ row }">
           <b-media no-body class="align-items-center">
             <a href="#" class="mr-3">
-              <b-img
-                class="avatar"
-                rounded="circle"
-                alt="Image placeholder"
-                :src="row.img"
-              />
+              <b-img class="avatar" rounded="circle" alt="Image placeholder" :src="row.img" />
             </a>
             <b-media-body>
               <span class="font-weight-600 name mb-0 text-sm">
@@ -28,11 +23,7 @@
           </b-media>
         </template>
       </el-table-column>
-      <el-table-column
-        label="Budget"
-        prop="budget"
-        min-width="140px"
-      ></el-table-column>
+      <el-table-column label="Budget" prop="budget" min-width="140px"></el-table-column>
 
       <el-table-column label="Status" min-width="170px" prop="status">
         <template v-slot="{ row }">
@@ -96,19 +87,19 @@
   </b-card>
 </template>
 <script>
-import projects from "./../projects";
-import { Table, TableColumn } from "element-ui";
+import projects from './../projects'
+import { Table, TableColumn } from 'element-ui'
 export default {
-  name: "light-table",
+  name: 'light-table',
   components: {
     [Table.name]: Table,
-    [TableColumn.name]: TableColumn
+    [TableColumn.name]: TableColumn,
   },
   data() {
     return {
       projects,
-      currentPage: 1
-    };
-  }
-};
+      currentPage: 1,
+    }
+  },
+}
 </script>

@@ -5,7 +5,7 @@
         <base-button icon type="info" size="lg" v-b-toggle.collapse-2>
           <span class="btn-inner--icon"><i class="ni ni-fat-add"></i></span>
           <span class="btn-inner--text">
-            {{ $t("site.overview.add_work") }}
+            {{ $t('site.overview.add_work') }}
           </span>
         </base-button>
         <b-collapse id="collapse-2" class="mt-2">
@@ -62,12 +62,7 @@
                     Stunden
                   </label>
                   <b-col md="10">
-                    <base-input
-                      type="text"
-                      v-model="form.hours"
-                      disabled
-                      class="form-control-lg"
-                    />
+                    <base-input type="text" v-model="form.hours" disabled class="form-control-lg" />
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
@@ -87,9 +82,7 @@
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
-                  <label
-                    class="col-md-2 col-form-label form-control-label form-control-lg"
-                  >
+                  <label class="col-md-2 col-form-label form-control-label form-control-lg">
                     Ort
                   </label>
                   <b-col md="10">
@@ -101,9 +94,7 @@
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
-                  <label
-                    class="col-md-2 col-form-label form-control-label form-control-lg"
-                  >
+                  <label class="col-md-2 col-form-label form-control-label form-control-lg">
                     Kategorie
                   </label>
                   <b-col md="10">
@@ -125,9 +116,7 @@
                   ></textarea>
                 </base-input>
                 <b-row class="form-group">
-                  <label
-                    class="col-md-2 col-form-label form-control-label form-control-lg"
-                  >
+                  <label class="col-md-2 col-form-label form-control-label form-control-lg">
                     Tätigkeit
                   </label>
                   <b-col md="8">
@@ -166,59 +155,56 @@
 
 <script>
 export default {
-  name: "GDDAddWork",
+  name: 'GDDAddWork',
   data() {
     return {
       show: true,
       form: {
-        from: "",
-        to: "",
-        hours: "",
-        text: "",
+        from: '',
+        to: '',
+        hours: '',
+        text: '',
         gdd: 0.0,
-        location: "",
-        text2: "",
-        sendtime: ""
+        location: '',
+        text2: '',
+        sendtime: '',
       },
-      timestamp: ""
-    };
+      timestamp: '',
+    }
   },
   created() {
-    setInterval(this.getNow, 2000);
+    setInterval(this.getNow, 2000)
   },
   methods: {
     dateDiff() {
-      this.form.hours =
-        (this.$moment(this.form.to) - this.$moment(this.form.from)) /
-        1000 /
-        3600;
+      this.form.hours = (this.$moment(this.form.to) - this.$moment(this.form.from)) / 1000 / 3600
     },
     getNow: function() {
       //const today = new Date()
       //const date = today.getDate()+'.'+(today.getMonth()+1)+'.'+ today.getFullYear();
       //const time = today.getHours() + ":" + today.getMinutes();
       //const dateTime = date +', '+ time;
-      this.timestamp = new Date();
+      this.timestamp = new Date()
     },
     onSubmit(event) {
-      event.preventDefault();
-      console.log("onSUBMIT this.form.from >>>>", this.form.from);
-      console.log("onSUBMIT this.form.from >>>>", this.$moment(this.form.from));
-      console.log("onSUBMIT this.form.to >>>>", this.form.to);
+      event.preventDefault()
+      console.log('onSUBMIT this.form.from >>>>', this.form.from)
+      console.log('onSUBMIT this.form.from >>>>', this.$moment(this.form.from))
+      console.log('onSUBMIT this.form.to >>>>', this.form.to)
       // console.log("onSUBMIT >>>>", this.getHours(this.form.from, this.form.to))
-      this.form.sendtime = new Date();
-      alert(JSON.stringify(this.form));
+      this.form.sendtime = new Date()
+      alert(JSON.stringify(this.form))
     },
     onReset(event) {
-      event.preventDefault();
+      event.preventDefault()
       // Reset our form values
 
       // Trick to reset/clear native browser form validation state
-      this.show = false;
+      this.show = false
       this.$nextTick(() => {
-        this.show = true;
-      });
-    }
-  }
-};
+        this.show = true
+      })
+    },
+  },
+}
 </script>

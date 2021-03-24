@@ -58,16 +58,10 @@
                 {{ item.memo }}
               </b-list-group-item>
             </b-list-group>
-            <b-button
-              v-b-toggle="'collapse-1-inner' + item.transaction_id"
-              variant="secondary"
-            >
-              {{ $t("transaction.more") }}
+            <b-button v-b-toggle="'collapse-1-inner' + item.transaction_id" variant="secondary">
+              {{ $t('transaction.more') }}
             </b-button>
-            <b-collapse
-              :id="'collapse-1-inner' + item.transaction_id"
-              class="mt-2"
-            >
+            <b-collapse :id="'collapse-1-inner' + item.transaction_id" class="mt-2">
               <b-card>{{ item }}</b-card>
             </b-collapse>
           </b-card>
@@ -91,60 +85,50 @@
 </template>
 
 <script>
-import axios from "axios";
-import communityAPI from "../../apis/communityAPI";
+import axios from 'axios'
+import communityAPI from '../../apis/communityAPI'
 
 export default {
-  name: "GddTable",
+  name: 'GddTable',
   data() {
     return {
       form: [],
-      fields: [
-        "balance",
-        "date",
-        "memo",
-        "name",
-        "transaction_id",
-        "type",
-        "details"
-      ],
+      fields: ['balance', 'date', 'memo', 'name', 'transaction_id', 'type', 'details'],
       items: [],
-      count: 0
-    };
+      count: 0,
+    }
   },
 
   async created() {
-    const result = await communityAPI.transactions(
-      this.$store.state.session_id
-    );
+    const result = await communityAPI.transactions(this.$store.state.session_id)
 
     if (result.success) {
-      this.$store.state.user.balance_gdt = result.result.data.gdtSum;
-      this.items = result.result.data.transactions;
-      this.count = result.result.data.count;
+      this.$store.state.user.balance_gdt = result.result.data.gdtSum
+      this.items = result.result.data.transactions
+      this.count = result.result.data.count
     } else {
-      console.log("error", result);
+      console.log('error', result)
     }
   },
   computed: {
     filteredItems(a) {
       // console.log("filteredItems date",a.items)
-      return a.items;
-    }
+      return a.items
+    },
   },
   methods: {
     rowClass(item, type) {
-      if (!item || type !== "row") return;
-      if (item.type === "receive") return "table-success";
-      if (item.type === "send") return "table-warning";
-      if (item.type === "creation") return "table-primary";
+      if (!item || type !== 'row') return
+      if (item.type === 'receive') return 'table-success'
+      if (item.type === 'send') return 'table-warning'
+      if (item.type === 'creation') return 'table-primary'
     },
     toogle(item) {
       const temp =
-        '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>';
-    }
-  }
-};
+        '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>'
+    },
+  },
+}
 </script>
 <style>
 .el-table .cell {

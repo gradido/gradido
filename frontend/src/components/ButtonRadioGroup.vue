@@ -20,37 +20,36 @@
 </template>
 <script>
 export default {
-  name: "button-radio-group",
+  name: 'button-radio-group',
   props: {
     options: {
       type: Array,
-      description:
-        'Radio options. Should be an array of objects {value: "", label: ""}',
-      default: () => []
+      description: 'Radio options. Should be an array of objects {value: "", label: ""}',
+      default: () => [],
     },
     value: {
       type: String,
-      description: "Radio value"
+      description: 'Radio value',
     },
     buttonClasses: {
       type: [String, Object],
-      description: "Inner button css classes"
-    }
+      description: 'Inner button css classes',
+    },
   },
   model: {
-    prop: "value",
-    event: "change"
+    prop: 'value',
+    event: 'change',
   },
   computed: {
     model: {
       get() {
-        return this.value;
+        return this.value
       },
       set(val) {
-        this.$emit("change", val);
-      }
-    }
-  }
-};
+        this.$emit('change', val)
+      },
+    },
+  },
+}
 </script>
 <style></style>

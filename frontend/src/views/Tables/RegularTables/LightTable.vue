@@ -4,11 +4,7 @@
       <h3 class="mb-0">Light table</h3>
     </b-card-header>
 
-    <el-table
-      class="table-responsive table"
-      header-row-class-name="thead-light"
-      :data="projects"
-    >
+    <el-table class="table-responsive table" header-row-class-name="thead-light" :data="projects">
       <el-table-column label="Project" min-width="310px" prop="name">
         <template v-slot="{ row }">
           <b-media no-body class="align-items-center">
@@ -23,11 +19,7 @@
           </b-media>
         </template>
       </el-table-column>
-      <el-table-column
-        label="Budget"
-        prop="budget"
-        min-width="140px"
-      ></el-table-column>
+      <el-table-column label="Budget" prop="budget" min-width="140px"></el-table-column>
 
       <el-table-column label="Status" min-width="170px" prop="status">
         <template v-slot="{ row }">
@@ -90,28 +82,24 @@
     </el-table>
 
     <b-card-footer class="py-4 d-flex justify-content-end">
-      <base-pagination
-        v-model="currentPage"
-        :per-page="10"
-        :total="50"
-      ></base-pagination>
+      <base-pagination v-model="currentPage" :per-page="10" :total="50"></base-pagination>
     </b-card-footer>
   </b-card>
 </template>
 <script>
-import projects from "./../projects";
-import { Table, TableColumn } from "element-ui";
+import projects from './../projects'
+import { Table, TableColumn } from 'element-ui'
 export default {
-  name: "light-table",
+  name: 'light-table',
   components: {
     [Table.name]: Table,
-    [TableColumn.name]: TableColumn
+    [TableColumn.name]: TableColumn,
   },
   data() {
     return {
       projects,
-      currentPage: 1
-    };
-  }
-};
+      currentPage: 1,
+    }
+  },
+}
 </script>

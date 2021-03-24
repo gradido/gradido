@@ -9,32 +9,32 @@
   </div>
 </template>
 <script>
-import ContentFooter from "./ContentFooter.vue";
+import ContentFooter from './ContentFooter.vue'
 export default {
   components: {
-    ContentFooter
+    ContentFooter,
   },
   data() {
     return {
       year: new Date().getFullYear(),
-      pageClass: "login-page"
-    };
+      pageClass: 'login-page',
+    }
   },
   computed: {
     title() {
-      return `${this.$route.name} Page`;
-    }
+      return `${this.$route.name} Page`
+    },
   },
   methods: {
     setLocale(locale) {
-      this.$i18n.locale = locale;
+      this.$i18n.locale = locale
       //this.$router.push({
       //  params: { lang: locale }
       //})
       //this.hideDropdown()
-    }
-  }
-};
+    },
+  },
+}
 </script>
 <style lang="scss">
 .card {

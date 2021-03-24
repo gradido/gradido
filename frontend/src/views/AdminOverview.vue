@@ -13,7 +13,7 @@
             <template slot="footer">
               <span class="text-success mr-2">3.48%</span>
               <span class="text-nowrap">
-                {{ $t("site.overview.since_last_month") }}
+                {{ $t('site.overview.since_last_month') }}
               </span>
             </template>
           </stats-card>
@@ -29,7 +29,7 @@
             <template slot="footer">
               <span class="text-success mr-2">12.18%</span>
               <span class="text-nowrap">
-                {{ $t("site.overview.since_last_month") }}
+                {{ $t('site.overview.since_last_month') }}
               </span>
             </template>
           </stats-card>
@@ -45,7 +45,7 @@
             <template slot="footer">
               <span class="text-danger mr-2">5.72%</span>
               <span class="text-nowrap">
-                {{ $t("site.overview.since_last_month") }}
+                {{ $t('site.overview.since_last_month') }}
               </span>
             </template>
           </stats-card>
@@ -61,7 +61,7 @@
             <template slot="footer">
               <span class="text-success mr-2">54.8%</span>
               <span class="text-nowrap">
-                {{ $t("site.overview.since_last_month") }}
+                {{ $t('site.overview.since_last_month') }}
               </span>
             </template>
           </stats-card>
@@ -135,11 +135,7 @@
               </b-col>
             </b-row>
 
-            <bar-chart
-              :height="350"
-              ref="barChart"
-              :chart-data="redBarChart.chartData"
-            ></bar-chart>
+            <bar-chart :height="350" ref="barChart" :chart-data="redBarChart.chartData"></bar-chart>
           </card>
         </b-col>
       </b-row>
@@ -215,21 +211,21 @@
 </template>
 <script>
 // Charts
-import * as chartConfigs from "@/components/Charts/config";
-import LineChart from "@/components/Charts/LineChart";
-import BarChart from "@/components/Charts/BarChart";
+import * as chartConfigs from '@/components/Charts/config'
+import LineChart from '@/components/Charts/LineChart'
+import BarChart from '@/components/Charts/BarChart'
 
 // Components
-import BaseProgress from "@/components/BaseProgress";
-import StatsCard from "@/components/Cards/StatsCard";
-import SearchUser from "@/components/SearchUser";
+import BaseProgress from '@/components/BaseProgress'
+import StatsCard from '@/components/Cards/StatsCard'
+import SearchUser from '@/components/SearchUser'
 
 // Tables
 
-import PageVisitsTable from "./Dashboard/PageVisitsTable";
-import AdminUserSearch from "./AdminOverview/AdminUserSearch";
-import AdminUserCreation from "./AdminOverview/AdminUserCreation";
-import axios from "axios";
+import PageVisitsTable from './Dashboard/PageVisitsTable'
+import AdminUserSearch from './AdminOverview/AdminUserSearch'
+import AdminUserCreation from './AdminOverview/AdminUserCreation'
+import axios from 'axios'
 
 export default {
   components: {
@@ -239,7 +235,7 @@ export default {
     StatsCard,
     //PageVisitsTable,
     AdminUserSearch,
-    AdminUserCreation
+    AdminUserCreation,
     //SearchUser
   },
   data() {
@@ -251,149 +247,149 @@ export default {
       userlist: [],
       transactionlist: [],
       transiencelist: [],
-      filter: "",
+      filter: '',
       items: [
-        { id: 1, first_name: "Mikkel", last_name: "Hansen", age: 54 },
-        { id: 2, first_name: "Kasper", last_name: "Hvidt", age: 42 },
-        { id: 3, first_name: "Lasse", last_name: "Boesen", age: 39 },
-        { id: 4, first_name: "Kasper", last_name: "Hansen", age: 62 },
-        { id: 5, first_name: "Mads", last_name: "Mikkelsen", age: 31 }
+        { id: 1, first_name: 'Mikkel', last_name: 'Hansen', age: 54 },
+        { id: 2, first_name: 'Kasper', last_name: 'Hvidt', age: 42 },
+        { id: 3, first_name: 'Lasse', last_name: 'Boesen', age: 39 },
+        { id: 4, first_name: 'Kasper', last_name: 'Hansen', age: 62 },
+        { id: 5, first_name: 'Mads', last_name: 'Mikkelsen', age: 31 },
       ],
       bigLineChart: {
         allData: [
           [0, 20, 10, 30, 15, 40, 20, 60, 60],
           [0, 20, 5, 25, 10, 30, 35, 60, 40],
           [0, 2, 5, 7, 10, 30, 15, 9, 10],
-          [0, 2, 5, 7, 10, 14, 29, 78, 120]
+          [0, 2, 5, 7, 10, 14, 29, 78, 120],
         ],
         activeIndex: 0,
         chartData: {
           datasets: [
             {
-              label: "Performance",
-              data: [0, 20, 10, 30, 15, 40, 20, 60, 60]
-            }
+              label: 'Performance',
+              data: [0, 20, 10, 30, 15, 40, 20, 60, 60],
+            },
           ],
-          labels: ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+          labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         },
-        extraOptions: chartConfigs.blueChartOptions
+        extraOptions: chartConfigs.blueChartOptions,
       },
       redBarChart: {
         chartData: {
-          labels: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [
             {
-              label: "Sales",
-              data: [25, 20, 30, 22, 17, 29]
-            }
-          ]
+              label: 'Sales',
+              data: [25, 20, 30, 22, 17, 29],
+            },
+          ],
         },
-        extraOptions: chartConfigs.blueChartOptions
-      }
-    };
+        extraOptions: chartConfigs.blueChartOptions,
+      },
+    }
   },
   methods: {
     TransienceList() {
-      axios.get("/json-example/admin_transience_list.json").then(
+      axios.get('/json-example/admin_transience_list.json').then(
         d => {
           //console.log(d);
-          this.transiencelist = d.data;
+          this.transiencelist = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     TransactionList() {
-      axios.get("/json-example/admin_transaction_list.json").then(
+      axios.get('/json-example/admin_transaction_list.json').then(
         d => {
           //console.log(d);
-          this.transactionlist = d.data;
+          this.transactionlist = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     UserList() {
-      axios.get("/json-example/admin_userlist.json").then(
+      axios.get('/json-example/admin_userlist.json').then(
         d => {
           //console.log(d);
-          this.userlist = d.data;
+          this.userlist = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     CommunityStatistic() {
-      axios.get("/json-example/admin_community_statistic.json").then(
+      axios.get('/json-example/admin_community_statistic.json').then(
         d => {
           //console.log(d);
-          this.communitystatistic = d.data;
+          this.communitystatistic = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     ChartsStatistic() {
-      axios.get("/json-example/admin_charts_statistic.json").then(
+      axios.get('/json-example/admin_charts_statistic.json').then(
         d => {
           //console.log(d);
-          this.chartsstatistic = d.data;
+          this.chartsstatistic = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     CardStatistic() {
-      axios.get("/json-example/admin_card_statistic.json").then(
+      axios.get('/json-example/admin_card_statistic.json').then(
         d => {
           //console.log(d);
-          this.cardstatistic = d.data;
+          this.cardstatistic = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     StatisticDatas() {
-      axios.get("/json-example/admin_statisticdatas.json").then(
+      axios.get('/json-example/admin_statisticdatas.json').then(
         d => {
           //console.log(d);
-          this.userdata = d.data;
+          this.userdata = d.data
         },
         error => {
-          console.log(error);
-        }
-      );
+          console.log(error)
+        },
+      )
     },
     initBigChart(index) {
       let chartData = {
         datasets: [
           {
-            label: "Performance",
-            data: this.bigLineChart.allData[index]
-          }
+            label: 'Performance',
+            data: this.bigLineChart.allData[index],
+          },
         ],
-        labels: ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      };
-      this.bigLineChart.chartData = chartData;
-      this.bigLineChart.activeIndex = index;
-    }
+        labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      }
+      this.bigLineChart.chartData = chartData
+      this.bigLineChart.activeIndex = index
+    },
   },
   mounted() {
-    this.initBigChart(0);
-    this.TransienceList();
-    this.TransactionList();
-    this.UserList();
-    this.CommunityStatistic();
-    this.ChartsStatistic();
-    this.CardStatistic();
-  }
-};
+    this.initBigChart(0)
+    this.TransienceList()
+    this.TransactionList()
+    this.UserList()
+    this.CommunityStatistic()
+    this.ChartsStatistic()
+    this.CardStatistic()
+  },
+}
 </script>
 <style>
 .el-table .cell {

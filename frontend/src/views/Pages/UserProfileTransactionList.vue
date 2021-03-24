@@ -14,12 +14,12 @@
   </div>
 </template>
 <script>
-import GddTable from "../../views/KontoOverview/GddTable.vue";
+import GddTable from '../../views/KontoOverview/GddTable.vue'
 
 export default {
   components: {
-    GddTable
-  }
-};
+    GddTable,
+  },
+}
 </script>
 <style></style>

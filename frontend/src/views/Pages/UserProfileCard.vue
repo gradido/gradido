@@ -1,8 +1,6 @@
 <template>
   <div>
-    <div
-      class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-    >
+    <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header">
       <b-container fluid></b-container>
     </div>
 
@@ -16,12 +14,12 @@
   </div>
 </template>
 <script>
-import UserCard from "./UserProfile/UserCard.vue";
+import UserCard from './UserProfile/UserCard.vue'
 
 export default {
   components: {
-    UserCard
-  }
-};
+    UserCard,
+  },
+}
 </script>
 <style></style>

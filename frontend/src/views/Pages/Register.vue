@@ -6,8 +6,8 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t("site.signup.title") }}</h1>
-              <p class="text-lead">{{ $t("site.signup.subtitle") }}</p>
+              <h1>{{ $t('site.signup.title') }}</h1>
+              <p class="text-lead">{{ $t('site.signup.subtitle') }}</p>
             </b-col>
           </b-row>
         </div>
@@ -18,19 +18,12 @@
       <!-- Table -->
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
-          <b-card
-            no-body
-            class="border-0"
-            style="background-color: #ebebeba3 !important;"
-          >
+          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important;">
             <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
               <div class="text-center text-muted mb-4">
-                <small>{{ $t("signup") }}</small>
+                <small>{{ $t('signup') }}</small>
               </div>
-              <validation-observer
-                v-slot="{ handleSubmit }"
-                ref="formValidator"
-              >
+              <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
                   <base-input
                     alternative
@@ -73,9 +66,9 @@
                   ></base-input>
                   <div class="text-muted font-italic">
                     <small>
-                      {{ $t("site.signup.strength") }}
+                      {{ $t('site.signup.strength') }}
                       <span class="text-success font-weight-700">
-                        {{ $t("site.signup.strong") }}
+                        {{ $t('site.signup.strong') }}
                       </span>
                     </small>
                   </div>
@@ -87,13 +80,10 @@
                       >
                         <b-form-checkbox v-model="model.agree">
                           <span class="text-muted">
-                            <a
-                              href="https://gradido.net/de/datenschutz/"
-                              target="_blank"
-                            >
-                              {{ $t("privacy_policy") }}
+                            <a href="https://gradido.net/de/datenschutz/" target="_blank">
+                              {{ $t('privacy_policy') }}
                             </a>
-                            - {{ $t("site.signup.agree") }}
+                            - {{ $t('site.signup.agree') }}
                           </span>
                         </b-form-checkbox>
                       </base-input>
@@ -101,7 +91,7 @@
                   </b-row>
                   <div class="text-center">
                     <b-button type="submit" variant="secondary" class="mt-4">
-                      {{ $t("signup") }}
+                      {{ $t('signup') }}
                     </b-button>
                   </div>
                 </b-form>
@@ -111,43 +101,43 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4">
-        <router-link to="/Login" class="mt-3">{{ $t("back") }}</router-link>
+        <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
   </div>
 </template>
 <script>
 export default {
-  name: "register",
+  name: 'register',
   data() {
     return {
       model: {
-        firstname: "",
-        lastname: "",
-        email: "",
-        password: "",
-        password2: "",
-        agree: false
-      }
-    };
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: '',
+        password2: '',
+        agree: false,
+      },
+    }
   },
   methods: {
     onSubmit() {
       // console.log("this.modals =>", this.modals)
-      this.$store.dispatch("createUser", {
+      this.$store.dispatch('createUser', {
         email: this.model.email,
         first_name: this.model.firstname,
         last_name: this.model.lastname,
         emailType: 2,
-        password: this.model.password
-      });
-      this.model.email = "";
-      this.model.firstname = "";
-      this.model.lastname = "";
-      this.model.password = "";
-      this.$router.push("/thx");
-    }
-  }
-};
+        password: this.model.password,
+      })
+      this.model.email = ''
+      this.model.firstname = ''
+      this.model.lastname = ''
+      this.model.password = ''
+      this.$router.push('/thx')
+    },
+  },
+}
 </script>
 <style></style>

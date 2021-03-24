@@ -14,10 +14,7 @@
       @hide="closeModal"
       :header-class="headerClasses"
       :footer-class="footerClasses"
-      :content-class="[
-        gradient ? `bg-gradient-${gradient}` : '',
-        ...modalContentClasses
-      ]"
+      :content-class="[gradient ? `bg-gradient-${gradient}` : '', ...modalContentClasses]"
       :body-class="bodyClasses"
       :aria-hidden="!show"
     >
@@ -46,82 +43,82 @@
   </slide-y-up-transition>
 </template>
 <script>
-import { SlideYUpTransition } from "vue2-transitions";
+import { SlideYUpTransition } from 'vue2-transitions'
 
 export default {
-  name: "modal",
+  name: 'modal',
   components: {
-    SlideYUpTransition
+    SlideYUpTransition,
   },
   props: {
     show: Boolean,
     showClose: {
       type: Boolean,
-      default: true
+      default: true,
     },
     type: {
       type: String,
-      default: "",
+      default: '',
       validator(value) {
-        let acceptedValues = ["", "notice", "mini"];
-        return acceptedValues.indexOf(value) !== -1;
+        let acceptedValues = ['', 'notice', 'mini']
+        return acceptedValues.indexOf(value) !== -1
       },
-      description: 'Modal type (notice|mini|"") '
+      description: 'Modal type (notice|mini|"") ',
     },
     modalClasses: {
       type: [Object, String],
-      description: "Modal dialog css classes"
+      description: 'Modal dialog css classes',
     },
     size: {
       type: String,
-      description: "Modal size",
+      description: 'Modal size',
       validator(value) {
-        let acceptedValues = ["", "sm", "lg"];
-        return acceptedValues.indexOf(value) !== -1;
-      }
+        let acceptedValues = ['', 'sm', 'lg']
+        return acceptedValues.indexOf(value) !== -1
+      },
     },
     modalContentClasses: {
       type: [Object, String],
-      description: "Modal dialog content css classes"
+      description: 'Modal dialog content css classes',
     },
     gradient: {
       type: String,
-      description: "Modal gradient type (danger, primary etc)"
+      description: 'Modal gradient type (danger, primary etc)',
     },
     headerClasses: {
       type: [Object, String],
-      description: "Modal Header css classes"
+      description: 'Modal Header css classes',
     },
     bodyClasses: {
       type: [Object, String],
-      description: "Modal Body css classes"
+      description: 'Modal Body css classes',
     },
     footerClasses: {
       type: [Object, String],
-      description: "Modal Footer css classes"
+      description: 'Modal Footer css classes',
     },
     animationDuration: {
       type: Number,
       default: 500,
-      description: "Modal transition duration"
-    }
+      description: 'Modal transition duration',
+    },
   },
   methods: {
     closeModal() {
-      this.$emit("update:show", false);
-      this.$emit("close");
-    }
+      this.$emit('update:show', false)
+      this.$emit('close')
+    },
   },
   watch: {
     show(val) {
       if (val) {
-        this.$refs["app-modal"].show();
+        this.$refs['app-modal'].show()
       } else {
-        this.$refs["app-modal"].hide();
+        this.$refs['app-modal'].hide()
       }
-    }
-  }
-};
+    },
+  },
+}
 </script>
 <style>
 .modal-backdrop {

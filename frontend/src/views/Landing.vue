@@ -77,10 +77,7 @@
                     Vorname
                   </label>
                   <b-col md="10">
-                    <base-input
-                      placeholder="Jon "
-                      v-model="rfname"
-                    ></base-input>
+                    <base-input placeholder="Jon " v-model="rfname"></base-input>
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
@@ -88,10 +85,7 @@
                     Nachname
                   </label>
                   <b-col md="10">
-                    <base-input
-                      placeholder=" Snow"
-                      v-model="rlname"
-                    ></base-input>
+                    <base-input placeholder=" Snow" v-model="rlname"></base-input>
                   </b-col>
                 </b-row>
                 <b-row class="form-group">
@@ -144,10 +138,7 @@
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <polygon
-            class="fill-default"
-            points="2560 0 2560 100 0 100"
-          ></polygon>
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
         </svg>
       </div>
     </div>
@@ -158,40 +149,40 @@
 // Components
 
 export default {
-  name: "Landing",
+  name: 'Landing',
   data() {
     return {
-      lemail: "",
-      lpwd: "",
-      rfname: "",
-      rlname: "",
-      remail: "",
-      rpwd: ""
-    };
+      lemail: '',
+      lpwd: '',
+      rfname: '',
+      rlname: '',
+      remail: '',
+      rpwd: '',
+    }
   },
   methods: {
     login() {
       //if (this.lemail !== '' || this.lpwd !== '') { // TODO this should be done via form validation
-      this.$store.dispatch("login", {
+      this.$store.dispatch('login', {
         email: this.lemail,
-        password: this.lpwd
-      });
+        password: this.lpwd,
+      })
       //}
     },
     createUser() {
-      this.$store.dispatch("createUser", {
+      this.$store.dispatch('createUser', {
         email: this.remail,
         first_name: this.rfname,
         last_name: this.rlname,
-        password: this.rpwd
-      });
+        password: this.rpwd,
+      })
     },
     loginAsAdmin() {
-      console.log("app.vue admin login(): " + this.$store.state.is_admin);
-      this.modals = false;
-      this.$store.commit("loginAsAdmin");
-      this.$router.push("/AdminOverview");
-    }
-  }
-};
+      console.log('app.vue admin login(): ' + this.$store.state.is_admin)
+      this.modals = false
+      this.$store.commit('loginAsAdmin')
+      this.$router.push('/AdminOverview')
+    },
+  },
+}
 </script>

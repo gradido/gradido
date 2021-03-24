@@ -4,10 +4,7 @@
       <b-col lg="3" class="order-lg-2">
         <div class="card-profile-image">
           <a href="#">
-            <vue-qrcode
-              :value="$store.state.email"
-              type="image/png"
-            ></vue-qrcode>
+            <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
           </a>
         </div>
       </b-col>
@@ -50,13 +47,13 @@
   </b-card>
 </template>
 <script>
-import VueQrcode from "vue-qrcode";
+import VueQrcode from 'vue-qrcode'
 
 export default {
-  name: "profilecard",
+  name: 'profilecard',
   components: {
-    VueQrcode
-  }
-};
+    VueQrcode,
+  },
+}
 </script>
 <style></style>

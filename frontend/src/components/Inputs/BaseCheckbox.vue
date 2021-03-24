@@ -1,11 +1,7 @@
 <template>
   <div
     class="custom-control custom-checkbox"
-    :class="[
-      { disabled: disabled },
-      { [`custom-checkbox-${type}`]: type },
-      inlineClass
-    ]"
+    :class="[{ disabled: disabled }, { [`custom-checkbox-${type}`]: type }, inlineClass]"
   >
     <input
       :id="cbId"
@@ -24,61 +20,61 @@
 </template>
 <script>
 export default {
-  name: "base-checkbox",
+  name: 'base-checkbox',
   model: {
-    prop: "checked"
+    prop: 'checked',
   },
   props: {
     checked: {
       type: [Array, Boolean],
-      description: "Whether checkbox is checked"
+      description: 'Whether checkbox is checked',
     },
     disabled: {
       type: Boolean,
-      description: "Whether checkbox is disabled"
+      description: 'Whether checkbox is disabled',
     },
     inline: {
       type: Boolean,
-      description: "Whether checkbox is inline"
+      description: 'Whether checkbox is inline',
     },
     inputClasses: {
       type: [String, Object, Array],
-      description: "Checkbox input classes"
+      description: 'Checkbox input classes',
     },
     type: {
       type: String,
-      description: "Checkbox type (e.g info, danger etc)"
-    }
+      description: 'Checkbox type (e.g info, danger etc)',
+    },
   },
   data() {
     return {
-      cbId: "",
-      touched: false
-    };
+      cbId: '',
+      touched: false,
+    }
   },
   computed: {
     model: {
       get() {
-        return this.checked;
+        return this.checked
       },
       set(check) {
         if (!this.touched) {
-          this.touched = true;
+          this.touched = true
         }
-        this.$emit("input", check);
-      }
+        this.$emit('input', check)
+      },
     },
     inlineClass() {
       if (this.inline) {
-        return `form-check-inline`;
+        return `form-check-inline`
       }
-      return "";
-    }
+      return ''
+    },
   },
   created() {
     this.cbId = Math.random()
       .toString(16)
-      .slice(2);
-  }
-};
+      .slice(2)
+  },
+}
 </script>

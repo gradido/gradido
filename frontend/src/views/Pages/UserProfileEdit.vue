@@ -1,8 +1,6 @@
 <template>
   <div>
-    <div
-      class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-    ></div>
+    <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"></div>
 
     <b-container fluid class="mt--6">
       <b-row>
@@ -14,12 +12,12 @@
   </div>
 </template>
 <script>
-import EditProfileForm from "./UserProfile/EditProfileForm.vue";
+import EditProfileForm from './UserProfile/EditProfileForm.vue'
 
 export default {
   components: {
-    EditProfileForm
-  }
-};
+    EditProfileForm,
+  },
+}
 </script>
 <style></style>

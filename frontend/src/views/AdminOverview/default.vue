@@ -6,11 +6,11 @@
 
 <script>
 export default {
-  name: "default",
+  name: 'default',
   data() {
-    return {};
+    return {}
   },
   methods: {},
-  watch: {}
-};
+  watch: {},
+}
 </script>

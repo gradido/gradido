@@ -27,35 +27,24 @@
 </template>
 
 <script>
-import { ParticlesBg } from "particles-bg-vue";
-import icon from "./icon.js";
+import { ParticlesBg } from 'particles-bg-vue'
+import icon from './icon.js'
 
 export default {
-  name: "app",
+  name: 'app',
   components: {
-    ParticlesBg
+    ParticlesBg,
   },
   created() {
-    console.log("xx", $cookies.get("gdd_lang"));
-    console.log(
-      "%cWillkommen bei Gradido %cgreen text",
-      "font-weight:bold",
-      "color: green"
-    );
-    if ($cookies.isKey("gdd_session_id") == true) {
-      console.log(
-        "%cHey %c" + $cookies.get("gdd_u") + "",
-        "font-weight:bold",
-        "color: orange"
-      );
-      this.$store.commit("session_id", $cookies.get("gdd_session_id"));
-      this.$store.commit("email", $cookies.get("gdd_u"));
-      this.$store.commit("language", $cookies.get("gdd_lang"));
-      this.$i18n.locale = $cookies.get("gdd_lang");
-      this.$router.push("overview");
+    if ($cookies.isKey('gdd_session_id') == true) {
+      this.$store.commit('session_id', $cookies.get('gdd_session_id'))
+      this.$store.commit('email', $cookies.get('gdd_u'))
+      this.$store.commit('language', $cookies.get('gdd_lang'))
+      this.$i18n.locale = $cookies.get('gdd_lang')
+      this.$router.push('overview')
     } else {
-      console.log("app.vue to Logout");
-      this.$store.dispatch("logout");
+      console.log('app.vue to Logout')
+      this.$store.dispatch('logout')
     }
   },
   data() {
@@ -70,19 +59,19 @@ export default {
         body: icon,
         alpha: [0.6, 0],
         scale: [0.1, 0.4],
-        position: "all",
-        cross: "dead",
-        random: 2
-      }
-    };
+        position: 'all',
+        cross: 'dead',
+        random: 2,
+      },
+    }
   },
   methods: {
     setLocale(locale) {
-      this.$i18n.locale = locale;
-      this.$store.commit("language", this.$i18n.locale);
-    }
-  }
-};
+      this.$i18n.locale = locale
+      this.$store.commit('language', this.$i18n.locale)
+    },
+  },
+}
 </script>
 <style>
 .btn-primary pim {

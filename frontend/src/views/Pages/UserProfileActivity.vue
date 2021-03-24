@@ -28,18 +28,12 @@
       <b-row>
         <b-col xl="6" S>
           <div class="chart">
-            <line-chart
-              :height="350"
-              :chart-data="bigLineChart.chartData"
-            ></line-chart>
+            <line-chart :height="350" :chart-data="bigLineChart.chartData"></line-chart>
           </div>
         </b-col>
         <b-col xl="6">
           <div class="chart">
-            <line-chart
-              :height="350"
-              :chart-data="bigLineChart.chartData"
-            ></line-chart>
+            <line-chart :height="350" :chart-data="bigLineChart.chartData"></line-chart>
           </div>
         </b-col>
       </b-row>
@@ -47,12 +41,12 @@
   </div>
 </template>
 <script>
-import GddTable from "../../views/KontoOverview/GddTable.vue";
-import GddWorkTable from "../../views/KontoOverview/GddWorkTable.vue";
-import GddAddWork2 from "../../views/KontoOverview/GddAddWork2.vue";
+import GddTable from '../../views/KontoOverview/GddTable.vue'
+import GddWorkTable from '../../views/KontoOverview/GddWorkTable.vue'
+import GddAddWork2 from '../../views/KontoOverview/GddAddWork2.vue'
 
-import * as chartConfigs from "@/components/Charts/config";
-import LineChart from "@/components/Charts/LineChart";
+import * as chartConfigs from '@/components/Charts/config'
+import LineChart from '@/components/Charts/LineChart'
 //import BarChart from '@/components/Charts/BarChart';
 
 export default {
@@ -60,7 +54,7 @@ export default {
     GddTable,
     GddWorkTable,
     LineChart,
-    GddAddWork2
+    GddAddWork2,
     //BarChart
   },
   data() {
@@ -70,22 +64,22 @@ export default {
           [0, 20, 10, 30, 15, 40, 20, 60, 60],
           [0, 20, 5, 25, 10, 30, 35, 60, 40],
           [0, 2, 5, 7, 10, 30, 15, 9, 10],
-          [0, 2, 5, 7, 10, 14, 29, 78, 120]
+          [0, 2, 5, 7, 10, 14, 29, 78, 120],
         ],
         activeIndex: 0,
         chartData: {
           datasets: [
             {
-              label: "Performance",
-              data: [0, 20, 10, 30, 15, 40, 20, 60, 60]
-            }
+              label: 'Performance',
+              data: [0, 20, 10, 30, 15, 40, 20, 60, 60],
+            },
           ],
-          labels: ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+          labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         },
-        extraOptions: chartConfigs.blueChartOptions
-      }
-    };
-  }
-};
+        extraOptions: chartConfigs.blueChartOptions,
+      },
+    }
+  },
+}
 </script>
 <style></style>

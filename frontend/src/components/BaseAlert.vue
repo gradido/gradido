@@ -34,44 +34,44 @@
   </fade-transition>
 </template>
 <script>
-import { FadeTransition } from "vue2-transitions";
+import { FadeTransition } from 'vue2-transitions'
 
 export default {
-  name: "base-alert",
+  name: 'base-alert',
   components: {
-    FadeTransition
+    FadeTransition,
   },
   created() {
-    console.log("base-alert gesetzt in =>", this.$route.path);
+    console.log('base-alert gesetzt in =>', this.$route.path)
   },
   props: {
     type: {
       type: String,
-      default: "default",
-      description: "Alert type"
+      default: 'default',
+      description: 'Alert type',
     },
     dismissible: {
       type: Boolean,
       default: false,
-      description: "Whether alert is dismissible (closeable)"
+      description: 'Whether alert is dismissible (closeable)',
     },
     icon: {
       type: String,
-      default: "",
-      description: "Alert icon to display"
-    }
+      default: '',
+      description: 'Alert icon to display',
+    },
   },
   data() {
     return {
-      visible: true
-    };
+      visible: true,
+    }
   },
   methods: {
     dismissAlert() {
-      console.log("sdddddddddddddddddddddddd");
-      this.visible = false;
-      this.$store.state.loginfail = false;
-    }
-  }
-};
+      console.log('sdddddddddddddddddddddddd')
+      this.visible = false
+      this.$store.state.loginfail = false
+    },
+  },
+}
 </script>

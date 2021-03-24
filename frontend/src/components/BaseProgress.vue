@@ -12,73 +12,68 @@
         </slot>
       </div>
     </div>
-    <b-progress
-      :size="size"
-      :class="[progressClasses]"
-      :style="`height: ${height}px`"
-    >
+    <b-progress :size="size" :class="[progressClasses]" :style="`height: ${height}px`">
       <b-progress-bar :class="computedClasses" :value="value"></b-progress-bar>
     </b-progress>
   </div>
 </template>
 <script>
 export default {
-  name: "base-progress",
+  name: 'base-progress',
   props: {
     striped: {
       type: Boolean,
-      description: "Whether progress is striped"
+      description: 'Whether progress is striped',
     },
     animated: {
       type: Boolean,
-      description:
-        "Whether progress is animated (works only with `striped` prop together)"
+      description: 'Whether progress is animated (works only with `striped` prop together)',
     },
     label: {
       type: String,
-      description: "Progress label (shown on the left above progress)"
+      description: 'Progress label (shown on the left above progress)',
     },
     height: {
       type: Number,
       default: 3,
-      description: "Progress line height"
+      description: 'Progress line height',
     },
     type: {
       type: String,
-      default: "default",
-      description: "Progress type (e.g danger, primary etc)"
+      default: 'default',
+      description: 'Progress type (e.g danger, primary etc)',
     },
     showLabel: {
       type: Boolean,
-      default: false
+      default: false,
     },
     progressClasses: {
       type: [Array, String],
-      default: "",
-      description: "Progress css classes"
+      default: '',
+      description: 'Progress css classes',
     },
     size: {
       type: String,
-      default: ""
+      default: '',
     },
     value: {
       type: Number,
       default: 0,
       validator: value => {
-        return value >= 0 && value <= 100;
+        return value >= 0 && value <= 100
       },
-      description: "Progress value"
-    }
+      description: 'Progress value',
+    },
   },
   computed: {
     computedClasses() {
       return [
-        { "progress-bar-striped": this.striped },
-        { "progress-bar-animated": this.animated },
-        { [`bg-${this.type}`]: this.type }
-      ];
-    }
-  }
-};
+        { 'progress-bar-striped': this.striped },
+        { 'progress-bar-animated': this.animated },
+        { [`bg-${this.type}`]: this.type },
+      ]
+    },
+  },
+}
 </script>
 <style></style>

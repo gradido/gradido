@@ -1592,24 +1592,24 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
-import VueClipboard from "vue-clipboard2";
-import BaseHeader from "@/components/BaseHeader";
+import Vue from 'vue'
+import VueClipboard from 'vue-clipboard2'
+import BaseHeader from '@/components/BaseHeader'
 
-Vue.use(VueClipboard);
+Vue.use(VueClipboard)
 export default {
-  name: "icons",
+  name: 'icons',
   components: {
-    BaseHeader
+    BaseHeader,
   },
   methods: {
     onCopy() {
       this.$notify({
-        type: "info",
-        message: "Copied to clipboard"
-      });
-    }
-  }
-};
+        type: 'info',
+        message: 'Copied to clipboard',
+      })
+    },
+  },
+}
 </script>
 <style></style>

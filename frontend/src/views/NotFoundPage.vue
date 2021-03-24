@@ -6,7 +6,7 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="6" class="px-5">
-              <h1 class="text-light">{{ $t("site.404.text") }}</h1>
+              <h1 class="text-light">{{ $t('site.404.text') }}</h1>
             </b-col>
           </b-row>
           <a href="/login" to="/login">
@@ -1198,10 +1198,7 @@
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <polygon
-            class="fill-default"
-            points="2560 0 2560 100 0 100"
-          ></polygon>
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
         </svg>
       </div>
     </div>
@@ -1214,13 +1211,10 @@
           </b-col>
           <b-col md="6">
             <div class="pr-md-5">
-              <h1 class="text-light">{{ $t("site.landing1.explore") }}</h1>
-              <p class="text-light">{{ $t("site.landing1.text") }}</p>
-              <router-link
-                to="/overview"
-                class="font-weight-bold text-warning mt-5"
-              >
-                {{ $t("site.landing1.link") }}
+              <h1 class="text-light">{{ $t('site.landing1.explore') }}</h1>
+              <p class="text-light">{{ $t('site.landing1.text') }}</p>
+              <router-link to="/overview" class="font-weight-bold text-warning mt-5">
+                {{ $t('site.landing1.link') }}
               </router-link>
             </div>
           </b-col>
@@ -1232,30 +1226,30 @@
 
 <script>
 export default {
-  name: "not-found",
+  name: 'not-found',
   data() {
     return {
       anime: {
-        targets: ".row svg",
+        targets: '.row svg',
         translateY: 10,
         autoplay: true,
         loop: true,
-        easing: "easeInOutSine",
-        direction: "alternate"
+        easing: 'easeInOutSine',
+        direction: 'alternate',
       },
       anime2: {
-        targets: "#zero",
+        targets: '#zero',
         translateX: 10,
         autoplay: true,
         loop: true,
-        easing: "easeInOutSine",
-        direction: "alternate",
+        easing: 'easeInOutSine',
+        direction: 'alternate',
         scale: [{ value: 1 }, { value: 1.4 }, { value: 1, delay: 250 }],
-        rotateY: { value: "+=180", delay: 200 }
-      }
-    };
-  }
-};
+        rotateY: { value: '+=180', delay: 200 },
+      },
+    }
+  },
+}
 </script>
 <style>
 body {

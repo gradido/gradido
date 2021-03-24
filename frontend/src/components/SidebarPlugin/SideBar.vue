@@ -18,39 +18,24 @@
             <a slot="title-container" class="nav-link" href="#" role="button">
               <div class="media align-items-center">
                 <span class="avatar avatar-sm">
-                  <vue-qrcode
-                    :value="$store.state.email"
-                    type="image/png"
-                  ></vue-qrcode>
+                  <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
                 </span>
               </div>
             </a>
             xx
-            <router-link
-              to="/overview"
-              class="dropdown-item text-lg text-muted"
-            >
+            <router-link to="/overview" class="dropdown-item text-lg text-muted">
               <i class="ni ni-single-02"></i>
-              <span>{{ $t("site.overview.account_overview") }}</span>
+              <span>{{ $t('site.overview.account_overview') }}</span>
             </router-link>
-            <router-link
-              to="/profile"
-              class="dropdown-item  text-lg text-muted"
-            >
+            <router-link to="/profile" class="dropdown-item  text-lg text-muted">
               <i class="ni ni-single-02"></i>
-              <span>{{ $t("site.navbar.my-profil") }}</span>
+              <span>{{ $t('site.navbar.my-profil') }}</span>
             </router-link>
-            <router-link
-              to="/profileedit"
-              class="dropdown-item  text-lg text-muted"
-            >
+            <router-link to="/profileedit" class="dropdown-item  text-lg text-muted">
               <i class="ni ni-settings-gear-65"></i>
-              <span>{{ $t("site.navbar.settings") }}</span>
+              <span>{{ $t('site.navbar.settings') }}</span>
             </router-link>
-            <router-link
-              to="/transactions"
-              class="dropdown-item  text-lg text-muted"
-            >
+            <router-link to="/transactions" class="dropdown-item  text-lg text-muted">
               <i class="ni ni-calendar-grid-58"></i>
               <span>Transactions</span>
             </router-link>
@@ -63,7 +48,7 @@
             <div class="dropdown-divider"></div>
             <div @click="logout" class="dropdown-item  text-lg text-muted">
               <i class="ni ni-support-16"></i>
-              {{ $t("logout") }}
+              {{ $t('logout') }}
             </div>
           </base-dropdown>
         </ul>
@@ -82,9 +67,7 @@
               </router-link>
             </div>
             <div class="col-6 collapse-close">
-              <navbar-toggle-button
-                @click.native="closeSidebar"
-              ></navbar-toggle-button>
+              <navbar-toggle-button @click.native="closeSidebar"></navbar-toggle-button>
             </div>
           </div>
         </div>
@@ -95,7 +78,7 @@
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
             <a class="nav-link text-lg" href="#!" @click="logout">
-              {{ $t("logout") }}
+              {{ $t('logout') }}
             </a>
           </li>
         </ul>
@@ -104,48 +87,47 @@
   </nav>
 </template>
 <script>
-import NavbarToggleButton from "@/components/NavbarToggleButton";
-import VueQrcode from "vue-qrcode";
+import NavbarToggleButton from '@/components/NavbarToggleButton'
+import VueQrcode from 'vue-qrcode'
 
 export default {
-  name: "sidebar",
+  name: 'sidebar',
   components: {
     NavbarToggleButton,
-    VueQrcode
+    VueQrcode,
   },
   props: {
     logo: {
       type: String,
-      default: "img/brand/green.png",
-      description: "Gradido Sidebar app logo"
+      default: 'img/brand/green.png',
+      description: 'Gradido Sidebar app logo',
     },
     autoClose: {
       type: Boolean,
       default: true,
-      description:
-        "Whether sidebar should autoclose on mobile when clicking an item"
-    }
+      description: 'Whether sidebar should autoclose on mobile when clicking an item',
+    },
   },
   provide() {
     return {
-      autoClose: this.autoClose
-    };
+      autoClose: this.autoClose,
+    }
   },
   methods: {
     closeSidebar() {
-      this.$sidebar.displaySidebar(false);
+      this.$sidebar.displaySidebar(false)
     },
     showSidebar() {
-      this.$sidebar.displaySidebar(true);
+      this.$sidebar.displaySidebar(true)
     },
     logout() {
-      this.$store.dispatch("logout");
-    }
+      this.$store.dispatch('logout')
+    },
   },
   beforeDestroy() {
     if (this.$sidebar.showSidebar) {
-      this.$sidebar.showSidebar = false;
+      this.$sidebar.showSidebar = false
     }
-  }
-};
+  },
+}
 </script>

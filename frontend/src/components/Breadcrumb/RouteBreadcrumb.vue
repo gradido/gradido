@@ -11,10 +11,7 @@
       :active="index === $route.matched.length - 1"
       style="display:inline-block"
     >
-      <router-link
-        :to="{ name: route.name }"
-        v-if="index < $route.matched.length - 1"
-      >
+      <router-link :to="{ name: route.name }" v-if="index < $route.matched.length - 1">
         {{ route.name }}
       </router-link>
       <span v-else>{{ route.name }}</span>
@@ -23,21 +20,21 @@
 </template>
 
 <script>
-import BreadCrumb from "./Breadcrumb";
-import BreadCrumbItem from "./BreadcrumbItem";
+import BreadCrumb from './Breadcrumb'
+import BreadCrumbItem from './BreadcrumbItem'
 
 export default {
-  name: "route-breadcrumb",
+  name: 'route-breadcrumb',
   components: {
     BreadCrumb,
-    BreadCrumbItem
+    BreadCrumbItem,
   },
   methods: {
     getBreadName(route) {
-      return route.name;
-    }
-  }
-};
+      return route.name
+    },
+  },
+}
 </script>
 
 <style scoped></style>

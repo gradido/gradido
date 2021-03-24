@@ -25,25 +25,25 @@
   </div>
 </template>
 <script>
-import GddStatus from "./KontoOverview/GddStatus.vue";
-import GddSend from "./KontoOverview/GddSend.vue";
-import GddTable from "./KontoOverview/GddTable.vue";
+import GddStatus from './KontoOverview/GddStatus.vue'
+import GddSend from './KontoOverview/GddSend.vue'
+import GddTable from './KontoOverview/GddTable.vue'
 // import GddAddWork2  from './KontoOverview/GddAddWork2.vue';
 // import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
 export default {
-  name: "Overview",
+  name: 'Overview',
   components: {
     GddStatus,
     GddSend,
-    GddTable
+    GddTable,
     //GddAddWork2,
     //GddWorkTable
   },
   created() {
-    this.$store.dispatch("accountBalance", $cookies.get("gdd_session_id"));
-  }
-};
+    this.$store.dispatch('accountBalance', $cookies.get('gdd_session_id'))
+  },
+}
 </script>
 
 <style>

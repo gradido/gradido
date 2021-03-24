@@ -4,7 +4,7 @@
       :class="[
         { 'col-md-4': vertical && !tabNavWrapperClasses },
         { 'col-12': centered && !tabNavWrapperClasses },
-        tabNavWrapperClasses
+        tabNavWrapperClasses,
       ]"
     >
       <b-nav
@@ -14,7 +14,7 @@
           `nav-pills-${type}`,
           { 'flex-column': vertical },
           { 'justify-content-center': centered },
-          tabNavClasses
+          tabNavClasses,
         ]"
       >
         <b-nav-item
@@ -37,7 +37,7 @@
       :class="[
         { 'tab-space': !vertical },
         { 'col-md-8': vertical && !tabContentClasses },
-        tabContentClasses
+        tabContentClasses,
       ]"
     >
       <slot></slot>
@@ -47,115 +47,109 @@
 
 <script>
 export default {
-  name: "tabs",
+  name: 'tabs',
   components: {
     TabItemContent: {
-      props: ["tab"],
+      props: ['tab'],
       render(h) {
-        return h("div", [this.tab.$slots.title || this.tab.title]);
-      }
-    }
+        return h('div', [this.tab.$slots.title || this.tab.title])
+      },
+    },
   },
   provide() {
     return {
       addTab: this.addTab,
-      removeTab: this.removeTab
-    };
+      removeTab: this.removeTab,
+    }
   },
   props: {
     type: {
       type: String,
-      default: "primary",
+      default: 'primary',
       validator: value => {
-        let acceptedValues = [
-          "primary",
-          "info",
-          "success",
-          "warning",
-          "danger"
-        ];
-        return acceptedValues.indexOf(value) !== -1;
-      }
+        let acceptedValues = ['primary', 'info', 'success', 'warning', 'danger']
+        return acceptedValues.indexOf(value) !== -1
+      },
     },
     activeTab: {
       type: String,
-      default: "",
-      description: "Active tab name"
+      default: '',
+      description: 'Active tab name',
     },
     tabNavWrapperClasses: {
       type: [String, Object],
-      default: "",
-      description: "ul wrapper css classes"
+      default: '',
+      description: 'ul wrapper css classes',
     },
     tabNavClasses: {
       type: [String, Object],
-      default: "",
-      description: "ul css classes"
+      default: '',
+      description: 'ul css classes',
     },
     tabContentClasses: {
       type: [String, Object],
-      default: "",
-      description: "tab content css classes"
+      default: '',
+      description: 'tab content css classes',
     },
     vertical: Boolean,
     centered: Boolean,
-    value: String
+    value: String,
   },
   data() {
     return {
-      tabs: []
-    };
+      tabs: [],
+    }
   },
   methods: {
     findAndActivateTab(title) {
-      let tabToActivate = this.tabs.find(t => t.title === title);
+      let tabToActivate = this.tabs.find(t => t.title === title)
       if (tabToActivate) {
-        this.activateTab(tabToActivate);
+        this.activateTab(tabToActivate)
       }
     },
     activateTab(tab) {
       if (this.handleClick) {
-        this.handleClick(tab);
+        this.handleClick(tab)
       }
-      this.deactivateTabs();
-      tab.active = true;
+      this.deactivateTabs()
+      tab.active = true
     },
     deactivateTabs() {
       this.tabs.forEach(tab => {
-        tab.active = false;
-      });
+        tab.active = false
+      })
     },
     addTab(tab) {
-      const index = this.$slots.default.indexOf(tab.$vnode);
+      const index = this.$slots.default.indexOf(tab.$vnode)
       if (!this.activeTab && index === 0) {
-        tab.active = true;
+        tab.active = true
       }
       if (this.activeTab === tab.name) {
-        tab.active = true;
+        tab.active = true
       }
-      this.tabs.splice(index, 0, tab);
+      this.tabs.splice(index, 0, tab)
     },
     removeTab(tab) {
-      const tabs = this.tabs;
-      const index = tabs.indexOf(tab);
+      const tabs = this.tabs
+      const index = tabs.indexOf(tab)
       if (index > -1) {
-        tabs.splice(index, 1);
+        tabs.splice(index, 1)
       }
-    }
+    },
   },
   mounted() {
     this.$nextTick(() => {
       if (this.value) {
-        this.findAndActivateTab(this.value);
+        this.findAndActivateTab(this.value)
       }
-    });
+    })
   },
   watch: {
     value(newVal) {
-      this.findAndActivateTab(newVal);
-    }
-  }
-};
+      this.findAndActivateTab(newVal)
+    },
+  },
+}
 </script>
 
 <style scoped></style>

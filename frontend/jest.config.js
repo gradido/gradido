@@ -1,29 +1,25 @@
 module.exports = {
   verbose: true,
-  collectCoverageFrom: [
-    "**/*.{js,vue}",
-    "!**/node_modules/**",
-    "!**/?(*.)+(spec|test).js?(x)"
-  ],
+  collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
   moduleFileExtensions: [
-    "js",
+    'js',
     //'jsx',
-    "json",
-    "vue"
+    'json',
+    'vue',
   ],
-  coverageReporters: ["lcov"],
+  coverageReporters: ['lcov'],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
-    "^.+\\.vue$": "vue-jest",
+    '^.+\\.vue$': 'vue-jest',
     // '.+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
-    "^.+\\.(js|jsx)?$": "babel-jest"
+    '^.+\\.(js|jsx)?$': 'babel-jest',
   },
   //setupFiles: [
   //  "<rootDir>/test/registerContext.js"
   //],
-  testMatch: ["**/?(*.)+(spec|test).js?(x)"],
+  testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
-  transformIgnorePatterns: ["<rootDir>/node_modules/"]
-};
+  transformIgnorePatterns: ['<rootDir>/node_modules/'],
+}

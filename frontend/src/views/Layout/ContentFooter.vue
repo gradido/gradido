@@ -17,13 +17,10 @@
             Gradido
           </b-nav-item>
           <b-nav-item href="https://gradido.net/de/impressum/" target="_blank">
-            {{ $t("imprint") }}
+            {{ $t('imprint') }}
           </b-nav-item>
-          <b-nav-item
-            href="https://gradido.net/de/datenschutz/"
-            target="_blank"
-          >
-            {{ $t("privacy_policy") }}
+          <b-nav-item href="https://gradido.net/de/datenschutz/" target="_blank">
+            {{ $t('privacy_policy') }}
           </b-nav-item>
           <!--<b-nav-item href="#!" to="/explorer" >
             GDD-Explorer
@@ -37,9 +34,9 @@
 export default {
   data() {
     return {
-      year: new Date().getFullYear()
-    };
-  }
-};
+      year: new Date().getFullYear(),
+    }
+  },
+}
 </script>
 <style></style>

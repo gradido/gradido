@@ -22,11 +22,7 @@
               </router-link>
             </b-col>
             <b-col cols="6" class="collapse-close">
-              <button
-                type="button"
-                class="navbar-toggler"
-                @click="showMenu = false"
-              >
+              <button type="button" class="navbar-toggler" @click="showMenu = false">
                 <span></span>
                 <span></span>
               </button>
@@ -48,26 +44,17 @@
           <b-col xl="6">
             <div class="copyright text-center text-xl-left text-muted">
               © {{ year }}
-              <a
-                href="https://gradido.net/"
-                class="font-weight-bold ml-1"
-                target="_blank"
-              >
+              <a href="https://gradido.net/" class="font-weight-bold ml-1" target="_blank">
                 Gradido-Akademie
               </a>
             </div>
           </b-col>
           <b-col xl="6" class="col-xl-6">
-            <b-nav
-              class="nav-footer justify-content-center justify-content-lg-end"
-            >
+            <b-nav class="nav-footer justify-content-center justify-content-lg-end">
               <b-nav-item ref="https://www.creative-tim.com" target="_blank">
                 Gradido
               </b-nav-item>
-              <b-nav-item
-                href="https://www.creative-tim.com/presentation"
-                target="_blank"
-              >
+              <b-nav-item href="https://www.creative-tim.com/presentation" target="_blank">
                 Impressum
               </b-nav-item>
               <b-nav-item href="http://blog.creative-tim.com" target="_blank">
@@ -81,19 +68,19 @@
   </div>
 </template>
 <script>
-import { BaseNav } from "@/components";
-import { ZoomCenterTransition } from "vue2-transitions";
+import { BaseNav } from '@/components'
+import { ZoomCenterTransition } from 'vue2-transitions'
 
 export default {
   components: {
     BaseNav,
-    ZoomCenterTransition
+    ZoomCenterTransition,
   },
   props: {
     backgroundColor: {
       type: String,
-      default: "black"
-    }
+      default: 'black',
+    },
   },
   data() {
     return {
@@ -101,60 +88,60 @@ export default {
       menuTransitionDuration: 250,
       pageTransitionDuration: 200,
       year: new Date().getFullYear(),
-      pageClass: "login-page"
-    };
+      pageClass: 'login-page',
+    }
   },
   computed: {
     title() {
-      return `${this.$route.name} Page`;
-    }
+      return `${this.$route.name} Page`
+    },
   },
   methods: {
     toggleNavbar() {
-      document.body.classList.toggle("nav-open");
-      this.showMenu = !this.showMenu;
+      document.body.classList.toggle('nav-open')
+      this.showMenu = !this.showMenu
     },
     closeMenu() {
-      document.body.classList.remove("nav-open");
-      this.showMenu = false;
+      document.body.classList.remove('nav-open')
+      this.showMenu = false
     },
     setBackgroundColor() {
-      document.body.classList.add("bg-default");
+      document.body.classList.add('bg-default')
     },
     removeBackgroundColor() {
-      document.body.classList.remove("bg-default");
+      document.body.classList.remove('bg-default')
     },
     updateBackground() {
       if (!this.$route.meta.noBodyBackground) {
-        this.setBackgroundColor();
+        this.setBackgroundColor()
       } else {
-        this.removeBackgroundColor();
+        this.removeBackgroundColor()
       }
-    }
+    },
   },
   beforeDestroy() {
-    this.removeBackgroundColor();
+    this.removeBackgroundColor()
   },
   beforeRouteUpdate(to, from, next) {
     // Close the mobile menu first then transition to next page
     if (this.showMenu) {
-      this.closeMenu();
+      this.closeMenu()
       setTimeout(() => {
-        next();
-      }, this.menuTransitionDuration);
+        next()
+      }, this.menuTransitionDuration)
     } else {
-      next();
+      next()
     }
   },
   watch: {
     $route: {
       immediate: true,
       handler: function() {
-        this.updateBackground();
-      }
-    }
-  }
-};
+        this.updateBackground()
+      },
+    },
+  },
+}
 </script>
 <style lang="scss">
 $scaleSize: 0.8;

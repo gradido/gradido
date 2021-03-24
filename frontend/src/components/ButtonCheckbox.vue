@@ -8,31 +8,31 @@
 </template>
 <script>
 export default {
-  name: "button-checkbox",
+  name: 'button-checkbox',
   props: {
     value: {
       type: Boolean,
-      description: "Checked value"
+      description: 'Checked value',
     },
     buttonClasses: {
       type: [String, Object],
-      description: "Inner button css classes"
-    }
+      description: 'Inner button css classes',
+    },
   },
   model: {
-    prop: "value",
-    event: "change"
+    prop: 'value',
+    event: 'change',
   },
   computed: {
     model: {
       get() {
-        return this.value;
+        return this.value
       },
       set(val) {
-        this.$emit("change", val);
-      }
-    }
-  }
-};
+        this.$emit('change', val)
+      },
+    },
+  },
+}
 </script>
 <style></style>

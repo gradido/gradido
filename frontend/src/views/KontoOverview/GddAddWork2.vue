@@ -8,38 +8,24 @@
               <b-form-input type="number" placeholder="23" />
             </base-input>
             <base-input label="Datum / Zeitraum">
-              <flat-pickr
-                class="form-control"
-                v-model="date"
-                :config="config"
-              ></flat-pickr>
+              <flat-pickr class="form-control" v-model="date" :config="config"></flat-pickr>
             </base-input>
           </b-col>
           <b-col cols="9">
             <base-input label="Arbeitsreport">
-              <textarea
-                class="form-control"
-                rows="5"
-                @focus="textFocus"
-              ></textarea>
+              <textarea class="form-control" rows="5" @focus="textFocus"></textarea>
             </base-input>
           </b-col>
         </b-row>
         <b-row>
           <b-col>
-            <button
-              class="btn btn-info text-right"
-              @click.prevent="newWorkForm"
-            >
+            <button class="btn btn-info text-right" @click.prevent="newWorkForm">
               weiteren Report hinzufügen
             </button>
           </b-col>
           <b-col>
             <div class="text-right">
-              <button
-                class="btn btn-info text-right"
-                @click.prevent="submitForm2"
-              >
+              <button class="btn btn-info text-right" @click.prevent="submitForm2">
                 save new Report
               </button>
             </div>
@@ -54,38 +40,24 @@
               <b-form-input type="number" placeholder="23" />
             </base-input>
             <base-input label="Datum / Zeitraum">
-              <flat-pickr
-                class="form-control"
-                v-model="date"
-                :config="lastConfig"
-              ></flat-pickr>
+              <flat-pickr class="form-control" v-model="date" :config="lastConfig"></flat-pickr>
             </base-input>
           </b-col>
           <b-col cols="9">
             <base-input label="Arbeitsreport">
-              <textarea
-                class="form-control"
-                rows="5"
-                @focus="textFocus"
-              ></textarea>
+              <textarea class="form-control" rows="5" @focus="textFocus"></textarea>
             </base-input>
           </b-col>
         </b-row>
         <b-row>
           <b-col>
-            <button
-              class="btn btn-warning text-right"
-              @click.prevent="newWorkForm"
-            >
+            <button class="btn btn-warning text-right" @click.prevent="newWorkForm">
               + weiteren Report hinzufügen
             </button>
           </b-col>
           <b-col>
             <div class="text-right">
-              <button
-                class="btn btn-info text-right"
-                @click.prevent="submitForm2"
-              >
+              <button class="btn btn-info text-right" @click.prevent="submitForm2">
                 save new Report
               </button>
             </div>
@@ -97,8 +69,8 @@
 
         <p>
           Du hast diesen Monat
-          {{ stundenSumme > 0 ? "schon " : "noch keine" }}
-          {{ stundenSumme > 0 ? "" + stundenSumme : "" }}
+          {{ stundenSumme > 0 ? 'schon ' : 'noch keine' }}
+          {{ stundenSumme > 0 ? '' + stundenSumme : '' }}
           Stunden eingetragen
         </p>
       </b-tab>
@@ -119,29 +91,19 @@
           </b-col>
           <b-col cols="9">
             <base-input label="Arbeitsreport">
-              <textarea
-                class="form-control"
-                rows="5"
-                @focus="textFocus"
-              ></textarea>
+              <textarea class="form-control" rows="5" @focus="textFocus"></textarea>
             </base-input>
           </b-col>
         </b-row>
         <b-row>
           <b-col>
-            <button
-              class="btn btn-warning text-right"
-              @click.prevent="newWorkForm"
-            >
+            <button class="btn btn-warning text-right" @click.prevent="newWorkForm">
               + weiteren Report hinzufügen
             </button>
           </b-col>
           <b-col>
             <div class="text-right">
-              <button
-                class="btn btn-info text-right"
-                @click.prevent="submitForm3"
-              >
+              <button class="btn btn-info text-right" @click.prevent="submitForm3">
                 save new Report
               </button>
             </div>
@@ -157,49 +119,49 @@
 </template>
 
 <script>
-import flatPickr from "vue-flatpickr-component";
-import "flatpickr/dist/flatpickr.css";
+import flatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
 
 export default {
-  name: "GDDAddWork2",
+  name: 'GDDAddWork2',
   components: { flatPickr },
   data() {
     return {
       date: null,
       config: {
         altInput: false,
-        dateFormat: "d-m-Y",
+        dateFormat: 'd-m-Y',
         minDate: this.$moment()
-          .startOf("month")
-          .format("DD.MM.YYYY"),
-        maxDate: this.$moment().format("DD.MM.YYYY"),
-        mode: "range"
+          .startOf('month')
+          .format('DD.MM.YYYY'),
+        maxDate: this.$moment().format('DD.MM.YYYY'),
+        mode: 'range',
       },
       lastConfig: {
         altInput: false,
-        dateFormat: "d-m-Y",
+        dateFormat: 'd-m-Y',
         minDate: this.$moment()
           .month(this.$moment().month() - 1)
-          .startOf("month")
-          .format("DD.MM.YYYY"),
+          .startOf('month')
+          .format('DD.MM.YYYY'),
         maxDate: this.$moment()
           .month(this.$moment().month() - 1)
-          .endOf("month")
-          .format("DD.MM.YYYY"),
-        mode: "range"
+          .endOf('month')
+          .format('DD.MM.YYYY'),
+        mode: 'range',
       },
       beforLastConfig: {
         altInput: false,
-        dateFormat: "d-m-Y",
+        dateFormat: 'd-m-Y',
         minDate: this.$moment()
           .month(this.$moment().month() - 2)
-          .startOf("month")
-          .format("DD.MM.YYYY"),
+          .startOf('month')
+          .format('DD.MM.YYYY'),
         maxDate: this.$moment()
           .month(this.$moment().month() - 2)
-          .endOf("month")
-          .format("DD.MM.YYYY"),
-        mode: "range"
+          .endOf('month')
+          .format('DD.MM.YYYY'),
+        mode: 'range',
       },
       index: 0,
       form: [],
@@ -215,44 +177,44 @@ export default {
           .daysInMonth(),
         beforLastMonth: this.$moment()
           .month(this.$moment().month() - 2)
-          .daysInMonth()
+          .daysInMonth(),
       },
       names: {
         thisMonth: this.$moment()
           .month(this.$moment().month())
-          .format("MMMM"),
+          .format('MMMM'),
         lastMonth: this.$moment()
           .month(this.$moment().month() - 1)
-          .format("MMMM"),
+          .format('MMMM'),
         beforLastMonth: this.$moment()
           .month(this.$moment().month() - 2)
-          .format("MMMM")
-      }
-    };
+          .format('MMMM'),
+      },
+    }
   },
   created() {},
   watch: {
     $form: function() {
-      stunden(this.form);
-    }
+      stunden(this.form)
+    },
   },
   methods: {
     getTR(m, i) {
-      console.log(m + "-" + i);
+      console.log(m + '-' + i)
     },
     stunden(hour, i, mon) {
-      let n = 0;
-      console.log("stunden(form)=>", hour);
-      console.log("stunden(i)=>", i);
-      console.log("stunden(mon)=>", mon);
+      let n = 0
+      console.log('stunden(form)=>', hour)
+      console.log('stunden(i)=>', i)
+      console.log('stunden(mon)=>', mon)
 
-      console.log("this.stundenSumme start=> ", this.stundenSumme);
-      this.stundenSumme = 0;
-      console.log("arr.length => ", this.form.length);
+      console.log('this.stundenSumme start=> ', this.stundenSumme)
+      this.stundenSumme = 0
+      console.log('arr.length => ', this.form.length)
       for (n; n < this.form.length; n++) {
-        console.log(">arr[n]=> ", this.form[n]);
+        console.log('>arr[n]=> ', this.form[n])
         if (this.form[n] > 0) {
-          this.stundenSumme += parseInt(this.form[n]);
+          this.stundenSumme += parseInt(this.form[n])
         }
       }
       this.messages.push({
@@ -260,43 +222,43 @@ export default {
         MonthsNumber: mon,
         DaysNumber: i,
         HoursNumber: hour,
-        DestinationText: "",
-        TextDecoded: ""
-      });
-      this.index++;
-      console.log("this.stundenSumme ende=> ", this.stundenSumme);
+        DestinationText: '',
+        TextDecoded: '',
+      })
+      this.index++
+      console.log('this.stundenSumme ende=> ', this.stundenSumme)
     },
     addNewMessage: function() {
       this.messages.push({
-        DaysNumber: "",
-        TextDecoded: ""
-      });
+        DaysNumber: '',
+        TextDecoded: '',
+      })
     },
     deleteNewMessage: function(event) {
-      console.log("deleteNewMessage:event) => ", event);
+      console.log('deleteNewMessage:event) => ', event)
       //console.log("deleteNewMessage:this.events.splice(this.event) => ", this.events.splice(this.event))
-      this.form.splice(event, null);
-      this.messages.splice(index, 1);
-      this.index--;
+      this.form.splice(event, null)
+      this.messages.splice(index, 1)
+      this.index--
     },
     submitForm: function(e) {
-      console.log(this.messages);
+      console.log(this.messages)
 
-      this.messages = [{ DaysNumber: "", TextDecoded: "" }];
-      this.submitted = true;
+      this.messages = [{ DaysNumber: '', TextDecoded: '' }]
+      this.submitted = true
     },
     submitForm2() {
-      console.log("submitForm2 TODO");
+      console.log('submitForm2 TODO')
     },
     submitForm3() {
-      console.log("submitForm3 TODO");
+      console.log('submitForm3 TODO')
     },
     textFocus() {
-      console.log("textFocus TODO");
+      console.log('textFocus TODO')
     },
     newWorkForm() {
-      console.log("newWorkForm TODO");
-    }
-  }
-};
+      console.log('newWorkForm TODO')
+    },
+  },
+}
 </script>

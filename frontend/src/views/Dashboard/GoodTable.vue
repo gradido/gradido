@@ -17,11 +17,11 @@
             skipDiacritics: true,
             searchFn: mySearchFn,
             placeholder: 'durchsuche die tabelle',
-            externalQuery: searchQuery
+            externalQuery: searchQuery,
           }"
           :pagination-options="{
             enabled: true,
-            mode: 'pages'
+            mode: 'pages',
           }"
         >
           <div slot="table-actions">
@@ -38,101 +38,101 @@
 </template>
 
 <script>
-import SocialTrafficTable from "./SocialTrafficTable";
+import SocialTrafficTable from './SocialTrafficTable'
 
 export default {
-  name: "my-component",
+  name: 'my-component',
   components: {
-    SocialTrafficTable
+    SocialTrafficTable,
   },
   data() {
     return {
       columns: [
         {
-          label: "Name",
-          field: "name"
+          label: 'Name',
+          field: 'name',
         },
         {
-          label: "Alter",
-          field: "age",
-          type: "number"
+          label: 'Alter',
+          field: 'age',
+          type: 'number',
         },
         {
-          label: "Mitglied seid",
-          field: "createdAt",
-          type: "date",
-          dateInputFormat: "yyyy-MM-dd",
-          dateOutputFormat: "dd.MM.yyyy"
+          label: 'Mitglied seid',
+          field: 'createdAt',
+          type: 'date',
+          dateInputFormat: 'yyyy-MM-dd',
+          dateOutputFormat: 'dd.MM.yyyy',
         },
         {
-          label: "Prozent",
-          field: "score",
-          type: "percentage"
-        }
+          label: 'Prozent',
+          field: 'score',
+          type: 'percentage',
+        },
       ],
       rows: [
         {
           id: 1,
-          name: "John",
+          name: 'John',
           age: 20,
-          createdAt: "1976-10-25",
-          score: 0.03343
+          createdAt: '1976-10-25',
+          score: 0.03343,
         },
         {
           id: 2,
-          name: "Jane",
+          name: 'Jane',
           age: 24,
-          createdAt: "2011-10-31",
-          score: 0.03343
+          createdAt: '2011-10-31',
+          score: 0.03343,
         },
         {
           id: 3,
-          name: "Susan",
+          name: 'Susan',
           age: 16,
-          createdAt: "2011-10-30",
-          score: 0.03343
+          createdAt: '2011-10-30',
+          score: 0.03343,
         },
         {
           id: 4,
-          name: "Chris",
+          name: 'Chris',
           age: 55,
-          createdAt: "2011-10-11",
-          score: 0.03343
+          createdAt: '2011-10-11',
+          score: 0.03343,
         },
         {
           id: 5,
-          name: "Dan",
+          name: 'Dan',
           age: 40,
-          createdAt: "2011-10-21",
-          score: 0.03343
+          createdAt: '2011-10-21',
+          score: 0.03343,
         },
         {
           id: 6,
-          name: "Bohn",
+          name: 'Bohn',
           age: 70,
-          createdAt: "2011-10-31",
-          score: 0.03343
+          createdAt: '2011-10-31',
+          score: 0.03343,
         },
         {
           id: 7,
-          name: "Tellohn",
+          name: 'Tellohn',
           age: 56,
-          createdAt: "2009-10-31",
-          score: 0.13343
+          createdAt: '2009-10-31',
+          score: 0.13343,
         },
         {
           id: 7,
-          name: "Tellohn",
+          name: 'Tellohn',
           age: 56,
-          createdAt: "2009-10-31",
-          score: 0.03343
-        }
-      ]
-    };
+          createdAt: '2009-10-31',
+          score: 0.03343,
+        },
+      ],
+    }
   },
   methods: {
     onRowClick(params) {
-      console.log(params);
+      console.log(params)
       // params.row - row object
       // params.pageIndex - index of this row on the current page.
       // params.selected - if selection is enabled this argument
@@ -140,13 +140,13 @@ export default {
       // params.event - click event
     },
     onSearch(params) {
-      console.log(params);
+      console.log(params)
       // params.searchTerm - term being searched for
       // params.rowCount - number of rows that match search
     },
     mySearchFn(params) {
-      console.log(params);
-    }
-  }
-};
+      console.log(params)
+    },
+  },
+}
 </script>

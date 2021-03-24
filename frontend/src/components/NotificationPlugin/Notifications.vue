@@ -12,41 +12,41 @@
   </div>
 </template>
 <script>
-import Notification from "./Notification.vue";
-import { SlideYUpTransition } from "vue2-transitions";
+import Notification from './Notification.vue'
+import { SlideYUpTransition } from 'vue2-transitions'
 
 export default {
   components: {
     SlideYUpTransition,
-    Notification
+    Notification,
   },
   props: {
     transitionDuration: {
       type: Number,
-      default: 200
+      default: 200,
     },
     overlap: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   data() {
     return {
-      notifications: this.$notifications.state
-    };
+      notifications: this.$notifications.state,
+    }
   },
   methods: {
     removeNotification(timestamp) {
-      this.$notifications.removeNotification(timestamp);
-    }
+      this.$notifications.removeNotification(timestamp)
+    },
   },
   created() {
-    this.$notifications.settings.overlap = this.overlap;
+    this.$notifications.settings.overlap = this.overlap
   },
   watch: {
     overlap: function(newVal) {
-      this.$notifications.settings.overlap = newVal;
-    }
-  }
-};
+      this.$notifications.settings.overlap = newVal
+    },
+  },
+}
 </script>
