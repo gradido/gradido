@@ -5,7 +5,7 @@ export default [
     image: 'img/theme/team-1.jpg',
     createdAt: '10/09/2018',
     product: 'Argon Dashboard PRO',
-    active: true
+    active: true,
   },
   {
     id: 2,
@@ -13,7 +13,7 @@ export default [
     image: 'img/theme/team-2.jpg',
     createdAt: '08/09/2018',
     product: 'Argon Design System',
-    active: false
+    active: false,
   },
   {
     id: 3,
@@ -21,7 +21,7 @@ export default [
     image: 'img/theme/team-3.jpg',
     createdAt: '30/08/2018',
     product: 'Black Dashboard',
-    active: false
+    active: false,
   },
   {
     id: 4,
@@ -29,7 +29,7 @@ export default [
     image: 'img/theme/team-1.jpg',
     createdAt: '10/09/2018',
     product: 'Argon Dashboard PRO',
-    active: true
+    active: true,
   },
   {
     id: 5,
@@ -37,6 +37,6 @@ export default [
     image: 'img/theme/team-2.jpg',
     createdAt: '30/09/2018',
     product: 'Vue Argon Dashboard',
-    active: true
+    active: true,
   },
-];
+]

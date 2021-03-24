@@ -2,10 +2,14 @@
   <base-nav
     container-classes="container-fluid"
     class="navbar-top navbar-expand"
-    :class="{'navbar-dark': type === 'default'}"
+    :class="{ 'navbar-dark': type === 'default' }"
   >
-    <a href="#" aria-current="page" class="h4 mb-0 text-uppercase d-none d-lg-inline-block active router-link-active"> 
-      {{$route.name}}
+    <a
+      href="#"
+      aria-current="page"
+      class="h4 mb-0 text-uppercase d-none d-lg-inline-block active router-link-active"
+    >
+      {{ $route.name }}
     </a>
     <!-- Navbar links -->
     <b-navbar-nav class="align-items-center ml-md-auto">
@@ -17,37 +21,37 @@
       </li>
     </b-navbar-nav>
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
-
-      <base-dropdown menu-on-right
-                     class="nav-item"
-                     tag="li"
-                     title-tag="a"
-                     title-classes="nav-link pr-0">
+      <base-dropdown
+        menu-on-right
+        class="nav-item"
+        tag="li"
+        title-tag="a"
+        title-classes="nav-link pr-0"
+      >
         <a href="#" class="pr-1" @click.prevent slot="title-container">
           <b-media no-body class="align-items-center">
-                  <span class="pb-2 text-lg font-weight-bold">{{ $store.state.email }}</span> 
+            <span class="pb-2 text-lg font-weight-bold">
+              {{ $store.state.email }}
+            </span>
             <b-media-body class="ml-2 d-none d-lg-block">
-              
-              
-               <span class="avatar ">
-                     <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>  
-                  </span>
+              <span class="avatar">
+                <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+              </span>
             </b-media-body>
           </b-media>
         </a>
 
         <template>
-
           <b-dropdown-header class="noti-title">
-            <h6 class="text-overflow m-0"> {{ $t('welcome')  }}</h6>
+            <h6 class="text-overflow m-0">{{ $t('welcome') }}</h6>
           </b-dropdown-header>
-           <b-dropdown-item href="#!" to="/overview">
+          <b-dropdown-item href="#!" to="/overview">
             <i class="ni ni-single-02"></i>
-            <span>{{ $t('site.overview.account_overview')}}</span>
+            <span>{{ $t('site.overview.account_overview') }}</span>
           </b-dropdown-item>
           <b-dropdown-item href="#!" to="/profile">
             <i class="ni ni-single-02"></i>
-            <span>{{ $t('site.navbar.my-profil')}}</span>
+            <span>{{ $t('site.navbar.my-profil') }}</span>
           </b-dropdown-item>
           <b-dropdown-item href="#!" to="/profileedit">
             <i class="ni ni-settings-gear-65"></i>
@@ -64,7 +68,6 @@
             <i class="ni ni-user-run"></i>
             <span>{{ $t('logout') }}</span>
           </b-dropdown-item>
-
         </template>
       </base-dropdown>
     </b-navbar-nav>
@@ -77,45 +80,45 @@ import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-   //CollapseTransition,
+    //CollapseTransition,
     BaseNav,
-    VueQrcode
+    VueQrcode,
   },
   props: {
     type: {
       type: String,
       default: 'default', // default|light
-      description: 'Look of the dashboard navbar. Default (Green) or light (gray)'
-    }
+      description: 'Look of the dashboard navbar. Default (Green) or light (gray)',
+    },
   },
   computed: {
     routeName() {
-      const { name } = this.$route;
-      return this.capitalizeFirstLetter(name);
-    }
+      const { name } = this.$route
+      return this.capitalizeFirstLetter(name)
+    },
   },
   data() {
     return {
       activeNotifications: false,
       showMenu: false,
       searchModalVisible: false,
-      searchQuery: ''
-    };
+      searchQuery: '',
+    }
   },
   methods: {
     capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
+      return string.charAt(0).toUpperCase() + string.slice(1)
     },
     toggleNotificationDropDown() {
-      this.activeNotifications = !this.activeNotifications;
+      this.activeNotifications = !this.activeNotifications
     },
     closeDropDown() {
-      this.activeNotifications = false;
+      this.activeNotifications = false
     },
-    logout(){
+    logout() {
       //console.log("DashboardNavbar.vue user logout() : ")
       this.$store.dispatch('logout')
-    }  
-  }
-};
+    },
+  },
+}
 </script>
