@@ -136,9 +136,9 @@ export const store = new Vuex.Store({
       router.push('/Login')
     },
     ajaxCreate: async ({ dispatch, state }) => {
-      //console.log('action: ajaxCreate')
+      console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
-      const result = await communityAPI.create($cookies.get("gdd_session_id", email, amount, memo)) 
+      const result = await communityAPI.send(state.session_id, state.ajaxCreateData.email, state.ajaxCreateData.amount, state.ajaxCreateData.memo) 
       console.log(result)
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
