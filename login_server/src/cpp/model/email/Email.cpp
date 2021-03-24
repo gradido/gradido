@@ -60,7 +60,7 @@ Dario, Gradido Server Admin\n\
 const static char EmailText_adminEmailVerification[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
-Der Admin hat soeben ein Gradido Konto für dich mit dieser E-Mail angelegt.\n\
+Der Admin hat soeben ein Gradido-Konto für dich mit dieser E-Mail angelegt.\n\
 Bitte klicke zur Bestätigung auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\
@@ -72,7 +72,7 @@ const static char EmailText_adminEmailVerificationResend[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
 Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
-Du hast vor einer Weile ein Gradido Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
+Du hast vor einer Weile ein Gradido-Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
 \n\
 Bitte klicke zur Bestätigung auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\

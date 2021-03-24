@@ -4,8 +4,6 @@ Vue.use(Vuex)
 import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
-import axios from 'axios'
-//import CONFIG from '../config'
 
 export const store = new Vuex.Store({
   state: {
@@ -14,6 +12,7 @@ export const store = new Vuex.Store({
     language: 'en',
     sizeDE: 'normal',
     sizeGB: 'big',
+    loginfail: false,
     user : {
       name:"",
       balance: 0,
@@ -37,7 +36,6 @@ export const store = new Vuex.Store({
       }
     }
   },
-  // Retrieve a state variable
   getters: {
     //isLoggedIn: (state /*, getters */) => {
     //  return state.session_id !== null;
@@ -58,6 +56,10 @@ export const store = new Vuex.Store({
       }
 
     },
+    loginfail: (state, loginfail) => {
+      //console.log('mutation: email')
+      state.loginfail = loginfail
+    },
     email: (state, email) => {
       //console.log('mutation: email')
       state.email = email
@@ -67,12 +69,12 @@ export const store = new Vuex.Store({
       state.session_id = session_id
     },
     user_balance: (state,balance) => {
-      //console.log('mutation: user_balance')
-      state.user.balance = (balance)/10000
+      console.log('mutation: user_balance')
+      state.user.balance =  (balance/10000)
     },
     user_balance_gdt: (state,balance) => {
       //console.log('mutation: user_balance_gdt')
-      state.user.balance_gdt = (balance)/10000
+      state.user.balance_gdt = (balance/10000)
     },
     transactions: (state,transactions) => {
       //console.log('mutation: transactions')
@@ -82,35 +84,20 @@ export const store = new Vuex.Store({
   // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
-      // console.log('action: login')
-    
-      //axios.post("http://localhost/login_api/unsecureLogin/", 
-      //            {"email": data.email, "password":data.password }).then((result) => {
-           //  console.log("store login result", result)
-       
       const result = await loginAPI.login(data.email,data.password)
-     // console.log('result.data.state',result.data.state)
-     // console.log('result.data.session_id',result.data.session_id)
-     
-    
       if( result.success){
         commit('session_id', result.result.data.session_id)
         commit('email', data.email)
         $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
-        
-     
         router.push('/overview')
       } else {
         // Register failed, we perform a logout
-        // console.log('action login to  logout start')
-        dispatch('logout')
+         //alert('>>>>> FAIl LOGIN') 
+         commit('loginfail', true)
+         
+        //dispatch('logout')
       }
-      //}, (error) => {
-      //  console.log(error);
-      //});
-
-      
     },
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
@@ -151,31 +138,23 @@ export const store = new Vuex.Store({
     ajaxCreate: async ({ dispatch, state }) => {
       //console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
-      axios.post("http://localhost/transaction-send-coins/ajaxCreate", state.ajaxCreateData).then((result) => {
-        //console.log("store ajaxCreate result", result)
-       
-      if( result.success ){
-        // TODO
-      } else {
-        //dispatch('logout')
-      }
-      }, (error) => {
-        console.log(error);
-      });
+      const result = await communityAPI.create($cookies.get("gdd_session_id", email, amount, memo)) 
+      console.log(result)
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
      // console.log('action: ajaxListTransactions', state.session_id)
      // const result = await communityAPI.transactions(state.session_id)     
     },
     accountBalance: async ({ commit, dispatch, state }) => {
-      // console.log('action: accountBalance')
+        console.log('action: accountBalance')
       // console.log('action: dispatch', dispatch)
       // console.log('action: state.session_id', state.session_id)
       // console.log(" action: $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
       // commit('session_id', $cookies.get("gdd_session_id"))
       // commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get("gdd_session_id"))
-      // console.log("accountBalance result", result)
+        console.log("accountBalance result", result)
+        console.log("aresult.result.data.balance", result.result.data.balance)
       if(result.success) {
         commit('user_balance', result.result.data.balance)
       } else {

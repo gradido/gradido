@@ -7,12 +7,12 @@
   "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
   "back":"back",
-  "sent":"Sent",
+  "sent":"Send",
   "transactions":"transactions",
-  "language":"Language",
+  "language":"Sprache",
   "languages":{
-      "de": "Deutsch",
-      "en": "English"
+    "de": "Deutsch",
+    "en": "English"
   },
   "form": {
     "cancel":"Cancel",
@@ -43,10 +43,10 @@
       "remember":"Remember password",
       "signin":"Sign in",
       "forgot_pwd":"Forgot password?",
-      "new_wallet":"Create new wallet"
+      "new_wallet":"Create new account"
     },
     "signup": {
-      "title": "Create your Gradido Wallet",
+      "title": "Create your Gradido account",
       "subtitle": "Become a part of the community!",
       "strength":"password strength:",
       "strong":"strong",
@@ -54,7 +54,7 @@
     },
     "password": {
       "title": "reset password",
-      "subtitle": "If you have forgotten the password or want to change it.",
+      "subtitle": "If you have forgotten your password, you can reset it here.",
       "reset_now": "reset now"
     },
     "thx": {
@@ -74,36 +74,32 @@
       "support":"Support"
     },
     "sidebar" : {
-       "community":"Community",
-       "members_area":"Members area",
-       "membership":"Membership"
+      "community":"Community",
+      "members_area":"Members area",
+      "membership":"Membership"
     },
     "landing1" : {
-        "explore":"Explore Gradido",
-        "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
-        "link":"Explore pages"
+      "explore":"Explore Gradido",
+      "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
+      "link":"Explore pages"
     },
     "404" : {
-       "ooops" : "Ooops!",
-       "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
-       "back" : "Back to dashboard!"
+      "ooops" : "Ooops!",
+      "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
+      "back" : "Back to dashboard!"
     }    
-},
-"admin": {
-  "site": {
-    "overview": {
-      "creation": "Creation",
-      "transience" : "Transience",
-      "exchanged": "Exchanged",
-      "members" : "Members"
+  },
+  "admin": {
+    "site": {
+      "overview": {
+        "creation": "Creation",
+        "transience" : "Transience",
+        "exchanged": "Exchanged",
+        "members" : "Members"
+      }
     }
-  }
-},
+  },
   "nav": {
     "features": "Features"
-  },
-  "about": {
-    "title": "About",
-    "content": "Lorem ipsum english dolor sit amet consectetur adipisicing elit. Aut dicta incidunt ea ut commodi quidem temporibus illo quia. Et itaque deleniti veniam tempore facere ipsum animi totam culpa minima vel voluptatem adipisci natus blanditiis similique sunt expedita, ex dicta doloremque repellat vitae temporibus. Quisquam quia, accusantium blanditiis architecto facilis saepe! Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad unde laborum ut suscipit iure aliquam sapiente doloribus exercitationem nam sint."
   }
 }

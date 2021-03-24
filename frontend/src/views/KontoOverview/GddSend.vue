@@ -2,37 +2,53 @@
   <div>
     <b-row>
       <b-col xl="12" md="12">
-          <base-button  block icon type="primary" size="lg"  v-b-toggle.collapse-1>
-            <span class="btn-inner--text">{{ $t('site.overview.send_gradido') }} </span>
-          </base-button>
-          <b-collapse id="collapse-1" class="mt-2">
+          
                <b-alert variant="warning" show dismissible >
                   <strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
               </b-alert>
-            <b-card >              
-              <div  v-if="scan">
-                <b-row>                                          
+            <b-card class="p-0 p-md-3">   
+ 
+              <b-alert show  variant="secondary">                        
+                            <span class="alert-text"><strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners</span>
+                         <b-col v-show="!scan" lg="12" class="text-right ">
+                <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true">
+                </b-col>          
+                <b-alert v-show="scan" show variant="warning">                      
+                      <span class="alert-text" @click="scan=false"><strong>schließen!</strong></span>
+                </b-alert>
+                   <div  v-if="scan">
+                <!-- <b-row>                                          
                     <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
-                </b-row>                     
-                <b-row>                     
-                  <qrcode-stream @decode="onDecode" @detect="onDetect" ></qrcode-stream>
-                    <b-alert show  variant="secondary">                        
-                        <span class="alert-text"><strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners</span>
-                    </b-alert>
-                    <b-alert show variant="warning" >                      
-                      <span class="alert-text"  @click="scan=false"><strong>abrechen!</strong></span>
-                    </b-alert>
-                </b-row>  
+                </b-row> -->                     
                  
+                  <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect" ></qrcode-stream>
+
+                  <b-container >
+                    <b-row>
+                      <b-col lg="8">
+                         <b-alert show  variant="secondary">                        
+                            <span class="alert-text"><strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners</span>
+                        </b-alert>
+                      </b-col>
+                       
+                    </b-row>
+                  </b-container>                 
               </div>
+                        </b-alert> 
+            
+
+           
+
               <validation-observer v-slot="{handleSubmit}" ref="formValidator">             
                 <b-form  role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset" v-if="show">                     
                   <br>
-                  <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
+                  <div >
+                  <qrcode-drop-zone id="input-0" v-model="form.img" ></qrcode-drop-zone>
+                  </div>
                   <br>
                   <div>
-                     <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Empfänger</b-badge>
+                     <b-col  class="text-left p-3 p-sm-1">
+                       Empfänger                            
                           </b-col>  
                                       
                     <b-input-group
@@ -43,7 +59,7 @@
                           size="lg"
                         class="mb-3"
                         >
-                          <b-input-group-prepend  class="p-3">                            
+                          <b-input-group-prepend  class="p-3 d-none d-md-block  ">                            
                                  <b-icon icon="envelope" class="display-3"></b-icon>                            
                           </b-input-group-prepend>
                       <b-form-input 
@@ -58,8 +74,9 @@
                   </div>
                   <br>                
                   <div>
-                    <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Betrag</b-badge>
+                    <b-col    class="text-left p-3 p-sm-1">
+                      Betrag
+                            
                           </b-col> 
                       <b-col v-if="($store.state.user.balance == form.amount)"  class="text-right">
                             <b-badge variant="primary">maximale anzahl GDD zum versenden erreicht!</b-badge>
@@ -67,7 +84,7 @@
                     <b-input-group id="input-group-2" label="Betrag:" label-for="input-2"
                       size="lg"
                       class="mb-3"> 
-                        <b-input-group-prepend>
+                        <b-input-group-prepend class="p-2 d-none d-md-block  ">
                            <div class="h3 pt-3 pr-3">GDD</div>
                            
                         </b-input-group-prepend>
@@ -81,42 +98,39 @@
                           :max="$store.state.user.balance"
                           style="font-size: xx-large; padding-left:20px">
                         </b-form-input>
-                        {{$store.state.user.balance}}
-                       
-
                     </b-input-group>  
-                     <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Nachricht für den Empfänger (optional)</b-badge>
+                     <b-col    class="text-left p-3 p-sm-1">
+                       Nachricht für den Empfänger
                           </b-col>         
                           
                     <b-input-group>
-                      <b-input-group-prepend class="p-3">                        
+                      <b-input-group-prepend class="p-3 d-none d-md-block ">                        
                            <b-icon icon="chat-right-text" class="display-3"></b-icon>
                       </b-input-group-prepend>
-                      <b-form-textarea v-model="form.memo"  class="pl-3"></b-form-textarea>
+                      <b-form-textarea rows="3"  v-model="form.memo"  class="pl-3" style="font-size: x-large;" ></b-form-textarea>
                     </b-input-group>
  
                   </div>
-                  {{$refs.observer}}
+                  
                   <br>
                   <b-row>
-                    <b-col></b-col>
-                    <b-col></b-col>
+                    <b-col> <b-button type="reset" variant="secondary">{{$t('form.cancel')}}</b-button></b-col>
+                   <b-col  class="text-right">  <b-button type="submit" variant="success">{{$t('form.send_now')}}</b-button></b-col>
                   </b-row>
-                  <b-button type="submit" variant="primary">{{$t('form.send_now')}}</b-button>
-                  <b-button type="reset" variant="danger">{{$t('form.cancel')}}</b-button>
+                
+                 
                   <br>
                 </b-form> 
               </validation-observer>
             </b-card>
-          </b-collapse>
+          
         </b-col>
     </b-row>
   </div>
 </template>
 
 <script>
-import { QrcodeStream, QrcodeDropZone, QrcodeCapture } from 'vue-qrcode-reader'
+import { QrcodeStream, QrcodeDropZone /*, QrcodeCapture*/ } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
 
 export default {
@@ -124,7 +138,7 @@ export default {
   components: {
         QrcodeStream,
         QrcodeDropZone,
-        QrcodeCapture,
+       // QrcodeCapture,
         BIcon
      },
   data(){
@@ -147,14 +161,12 @@ export default {
      async onDecode (decodedString) {
            console.log('onDecode JSON.parse(decodedString)',JSON.parse(decodedString) )
            const arr = JSON.parse(decodedString) 
-           // console.log('arr',arr[0].email )
-           this.modal.h4 = 'Scan erfolgreich'
-           this.modal.p = arr
+           console.log('qr-email',arr[0].email )
+           console.log('qr-amount',arr[0].amount )
+
            this.form.email = arr[0].email
            this.form.amount1 = arr[0].amount
-           // console.log('arr mail',arr.email)
-           // console.log('arr mail',arr.amount)      
-          this.modals2 = true
+
       },
       async onDetect (promise) {
         try {
@@ -163,11 +175,9 @@ export default {
             content,      // decoded String
             location      // QR code coordinates
           } = await promise
-            console.log('onDetect promise',promise)
+           // console.log('onDetect promise',promise)
             //console.log('JSON.parse(decodedString)',JSON.parse(promise) )
             const arr = JSON.parse(decodedString) 
-            console.log('arr',arr)
-          
         } catch (error) {
           // ...
         }
@@ -206,3 +216,9 @@ export default {
     }  
 };
 </script>
+<style>
+video {
+  max-height: 665px;
+  max-width: 665px;
+}
+</style>

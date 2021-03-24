@@ -11220,7 +11220,7 @@ vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha1-IpnwLG3tMNSllhsLn3RSShj2NPw=
 
-vee-validate@^3.2.1:
+vee-validate@^3.4.5:
   version "3.4.5"
   resolved "https://registry.yarnpkg.com/vee-validate/-/vee-validate-3.4.5.tgz#96a456c309f7bdb2cce62c3b554f96d893e9f6ae"
   integrity sha512-ZEcLqOAZzSkMhDvPcTx0xcwVOijFnMW9J+BA20j+rDmo24T8RCCqVQyRwwrDrcWJZV2dRYl/yYNa2GB6UCoBvg==
@@ -11296,11 +11296,6 @@ vue-cookies@^1.7.4:
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/vue-cookies/-/vue-cookies-1.7.4.tgz#d241d0a0431da0795837651d10b4d73e7c8d3e8d"
   integrity sha512-mOS5Btr8V9zvAtkmQ7/TfqJIropOx7etDAgBywPCmHjvfJl2gFbH2XgoMghleLoyyMTi5eaJss0mPN7arMoslA==
-
-vue-country-flag@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/vue-country-flag/-/vue-country-flag-2.0.3.tgz#f644d8f5150a97f473f0c13e04622c6ede37d1de"
-  integrity sha512-QZM3hNNhnGU+G1qnpq1BiICE4Zh91UA++/UpM0go8XbxkVxTiPy4asWY07vL/3PtW8M69YqWVbhwG13rzvNwkA==
 
 vue-eslint-parser@^2.0.3:
   version "2.0.3"

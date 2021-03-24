@@ -25,12 +25,13 @@
                      title-classes="nav-link pr-0">
         <a href="#" class="pr-1" @click.prevent slot="title-container">
           <b-media no-body class="align-items-center">
-                 
+                  <span class="pb-2 text-lg font-weight-bold">{{ $store.state.email }}</span> 
             <b-media-body class="ml-2 d-none d-lg-block">
-               <span class="avatar avatar-sm rounded-circle">
-                     <vue-qrcode :value="$store.state.email" />  
+              
+              
+               <span class="avatar ">
+                     <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>  
                   </span>
-              <span class="mb-0 text-lg font-weight-bold">{{ $store.state.email }}</span>
             </b-media-body>
           </b-media>
         </a>
@@ -52,10 +53,12 @@
             <i class="ni ni-settings-gear-65"></i>
             <span>{{ $t('site.navbar.settings') }}</span>
           </b-dropdown-item>
+          <!--
           <b-dropdown-item href="#!">
             <i class="ni ni-calendar-grid-58"></i>
             <span>{{ $t('site.navbar.activity') }}</span>
           </b-dropdown-item>
+          -->
           <div class="dropdown-divider"></div>
           <b-dropdown-item href="#!" @click="logout">
             <i class="ni ni-user-run"></i>

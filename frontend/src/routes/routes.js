@@ -57,6 +57,10 @@ const routes = [
       {
         path: '/activity',
         component: () => import('../views/Pages/UserProfileActivity.vue')
+      },         
+      {
+        path: '/transactions',
+        component: () => import('../views/Pages/UserProfileTransactionList.vue')
       }
     ]
   },
