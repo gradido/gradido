@@ -4,7 +4,6 @@ Vue.use(Vuex)
 import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
-//import CONFIG from '../config'
 
 export const store = new Vuex.Store({
   state: {
@@ -36,7 +35,6 @@ export const store = new Vuex.Store({
       }
     }
   },
-  // Retrieve a state variable
   getters: {
     //isLoggedIn: (state /*, getters */) => {
     //  return state.session_id !== null;
@@ -81,24 +79,12 @@ export const store = new Vuex.Store({
   // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
-      // console.log('action: login')
-    
-      //axios.post("http://localhost/login_api/unsecureLogin/", 
-      //            {"email": data.email, "password":data.password }).then((result) => {
-           //  console.log("store login result", result)
-       
       const result = await loginAPI.login(data.email,data.password)
-     // console.log('result.data.state',result.data.state)
-     // console.log('result.data.session_id',result.data.session_id)
-     
-    
       if( result.success){
         commit('session_id', result.result.data.session_id)
         commit('email', data.email)
         $cookies.set('gdd_session_id', result.result.data.session_id);
         $cookies.set('gdd_u',  data.email);
-        
-     
         router.push('/overview')
       } else {
         // Register failed, we perform a logout
@@ -108,8 +94,6 @@ export const store = new Vuex.Store({
       //}, (error) => {
       //  console.log(error);
       //});
-
-      
     },
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
@@ -151,18 +135,7 @@ export const store = new Vuex.Store({
       //console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
       const result = await communityAPI.create($cookies.get("gdd_session_id", email, amount, memo)) 
-      console.log(result)
-      //axios.post("http://localhost/transaction-send-coins/ajaxCreate", state.ajaxCreateData).then((result) => {
-      //  //console.log("store ajaxCreate result", result)
-      // 
-      //if( result.success ){
-      //  // TODO
-      //} else {
-      //  //dispatch('logout')
-      //}
-      //}, (error) => {
-      //  console.log(error);
-      //});
+     // console.log(result)     
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
      // console.log('action: ajaxListTransactions', state.session_id)
