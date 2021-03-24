@@ -11,8 +11,8 @@
   "transactions":"transactions",
   "language":"Sprache",
   "languages":{
-      "de": "Deutsch",
-      "en": "English"
+    "de": "Deutsch",
+    "en": "English"
   },
   "form": {
     "cancel":"Cancel",
@@ -74,31 +74,31 @@
       "support":"Support"
     },
     "sidebar" : {
-       "community":"Community",
-       "members_area":"Members area",
-       "membership":"Membership"
+      "community":"Community",
+      "members_area":"Members area",
+      "membership":"Membership"
     },
     "landing1" : {
-        "explore":"Explore Gradido",
-        "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
-        "link":"Explore pages"
+      "explore":"Explore Gradido",
+      "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
+      "link":"Explore pages"
     },
     "404" : {
-       "ooops" : "Ooops!",
-       "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
-       "back" : "Back to dashboard!"
+      "ooops" : "Ooops!",
+      "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
+      "back" : "Back to dashboard!"
     }    
-},
-"admin": {
-  "site": {
-    "overview": {
-      "creation": "Creation",
-      "transience" : "Transience",
-      "exchanged": "Exchanged",
-      "members" : "Members"
+  },
+  "admin": {
+    "site": {
+      "overview": {
+        "creation": "Creation",
+        "transience" : "Transience",
+        "exchanged": "Exchanged",
+        "members" : "Members"
+      }
     }
-  }
-},
+  },
   "nav": {
     "features": "Features"
   }
