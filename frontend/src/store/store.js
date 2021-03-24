@@ -98,9 +98,6 @@ export const store = new Vuex.Store({
          
         //dispatch('logout')
       }
-      //}, (error) => {
-        //console.log(error);
-      //});
     },
     passwordReset: async (data) => {
       console.log("<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>", data.email)
@@ -142,7 +139,7 @@ export const store = new Vuex.Store({
       //console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
       const result = await communityAPI.create($cookies.get("gdd_session_id", email, amount, memo)) 
-     // console.log(result)     
+      console.log(result)
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
      // console.log('action: ajaxListTransactions', state.session_id)

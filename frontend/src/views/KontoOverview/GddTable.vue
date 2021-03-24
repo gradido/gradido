@@ -40,6 +40,7 @@
 
 <script>
 import axios from 'axios';
+import communityAPI from '../../apis/communityAPI'
  
 export default {
   name: 'GddTable',  
@@ -51,32 +52,18 @@ export default {
         count: 0
     };
   },
-    
-    created() {
+
+    async created() {
      
-     axios.get("http://localhost/state-balances/ajaxListTransactions/"+ this.$store.state.session_id).then((result) => {
-       console.log("result",result)
-       console.log("transactions.length",result.data.count)
-       
-console.log("this.$route.path", this.$route.path);
-   
-      //console.log("result.state",result.data.state)
-      //console.log("result.data.state == 'success'",result.data.state == "success")
-   
-      //console.log("result.count",result.data.count)
-      //console.log("result.gdtSum",result.data.gdtSum)
-      //console.log("result.transactions",typeof(result.data.transactions))
-      //commit('transactions', result.data.transactions)
-      this.$store.state.user.balance_gdt =  result.data.gdtSum
-  
-      this.items =  result.data.transactions
-      this.count = result.data.count
-     
-   }, (error) => {
-     console.log(error);
-   });
- 
-    
+     const result = await communityAPI.transactions(this.$store.state.session_id)
+
+     if( result.success ){
+        this.$store.state.user.balance_gdt =  result.result.data.gdtSum
+        this.items =  result.result.data.transactions
+        this.count = result.result.data.count
+     } else {
+        console.log('error',result)
+     }
    },
   computed: {
   filteredItems(a) {
