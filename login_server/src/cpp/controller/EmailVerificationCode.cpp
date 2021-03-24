@@ -120,8 +120,10 @@ namespace controller {
 
 	std::string EmailVerificationCode::getLink()
 	{
-		std::string link = ServerConfig::g_serverPath;
-		link += "/checkEmail/";
+		std::string link = ServerConfig::g_frontend_checkEmailPath;
+		if (link.data()[link.size() - 1] != '/') {
+			link += '/';
+		}
 		link += std::to_string(getModel()->getCode());
 		return link;
 	}
