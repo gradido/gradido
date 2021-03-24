@@ -12,7 +12,6 @@
           </b-row>
         </div>
       </b-container>
-     
     </div>
     <!-- Page content -->
     <b-container class="mt--8 pb-5">
@@ -20,12 +19,11 @@
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important;">
             <b-card-body class="px-lg-5 py-lg-5">
-              
                 <div class="text-center text-muted mb-4">
                 <small>{{ $t('login')}}</small>
               </div>
                <validation-observer v-slot="{handleSubmit}" ref="formValidator">
-                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
+                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)"  >
                   <base-input alternative
                               class="mb-3"
                               name="Email"
@@ -44,6 +42,27 @@
                               :placeholder="$t('form.password')"
                               v-model="model.password">
                   </base-input>
+
+
+                  <b-alert v-show="$store.state.loginfail" show variant="warning" >
+                     
+                        <span class="alert-text bv-example-row">
+                                <b-row>
+                                    <b-col class="col-9 text-left">
+                                      <strong>Leider konnten wir keinen Account finden mit diesen Daten!</strong>
+                                    </b-col>
+                                    <b-col class="text-right" >
+                                      <a href="#!" @click="closeAlert"> 
+                                       <div>
+    
+                                          <b-icon-exclamation-triangle-fill class="h2 mb-0"></b-icon-exclamation-triangle-fill>
+                                          <b-icon-x class="h1 pl-2"></b-icon-x>
+                                        </div>
+                                      </a>
+                                    </b-col>
+                                </b-row>
+                              </span>
+                  </b-alert>
 
                   <!-- <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox> -->
                   <div class="text-center">
@@ -67,6 +86,7 @@
   </div>
 </template>
 <script>
+
   export default {
     name: "login",
     data() {
@@ -81,6 +101,9 @@
     methods: {    
       onSubmit() {
         this.$store.dispatch('login', {"email":  this.model.email, "password":  this.model.password})
+      },
+      closeAlert(){
+        this.$store.state.loginfail = false
       }
     }
   }

@@ -12,6 +12,7 @@ export const store = new Vuex.Store({
     language: 'en',
     sizeDE: 'normal',
     sizeGB: 'big',
+    loginfail: false,
     user : {
       name:"",
       balance: 0,
@@ -55,6 +56,10 @@ export const store = new Vuex.Store({
       }
 
     },
+    loginfail: (state, loginfail) => {
+      //console.log('mutation: email')
+      state.loginfail = loginfail
+    },
     email: (state, email) => {
       //console.log('mutation: email')
       state.email = email
@@ -88,11 +93,13 @@ export const store = new Vuex.Store({
         router.push('/overview')
       } else {
         // Register failed, we perform a logout
-        // console.log('action login to  logout start')
-        dispatch('logout')
+         //alert('>>>>> FAIl LOGIN') 
+         commit('loginfail', true)
+         
+        //dispatch('logout')
       }
       //}, (error) => {
-      //  console.log(error);
+        //console.log(error);
       //});
     },
     passwordReset: async (data) => {

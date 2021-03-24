@@ -40,6 +40,9 @@
     components: {
       FadeTransition
     },
+    created() {
+      console.log("base-alert gesetzt in =>", this.$route.path )
+    },
     props: {
       type: {
         type: String,
@@ -64,7 +67,9 @@
     },
     methods: {
       dismissAlert() {
+        console.log("sdddddddddddddddddddddddd")
         this.visible = false;
+        this.$store.state.loginfail = false;
       }
     }
   };
