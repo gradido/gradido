@@ -4,7 +4,6 @@ Vue.use(Vuex)
 import router from '../routes/router.js'
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
-import axios from 'axios'
 //import CONFIG from '../config'
 
 export const store = new Vuex.Store({
@@ -68,11 +67,11 @@ export const store = new Vuex.Store({
     },
     user_balance: (state,balance) => {
       //console.log('mutation: user_balance')
-      state.user.balance = (balance)/10000
+      state.user.balance =  (balance/10000)
     },
     user_balance_gdt: (state,balance) => {
       //console.log('mutation: user_balance_gdt')
-      state.user.balance_gdt = (balance)/10000
+      state.user.balance_gdt = (balance/10000)
     },
     transactions: (state,transactions) => {
       //console.log('mutation: transactions')
@@ -151,31 +150,34 @@ export const store = new Vuex.Store({
     ajaxCreate: async ({ dispatch, state }) => {
       //console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = (state.ajaxCreateData.amount)*10000
-      axios.post("http://localhost/transaction-send-coins/ajaxCreate", state.ajaxCreateData).then((result) => {
-        //console.log("store ajaxCreate result", result)
-       
-      if( result.success ){
-        // TODO
-      } else {
-        //dispatch('logout')
-      }
-      }, (error) => {
-        console.log(error);
-      });
+      const result = await communityAPI.create($cookies.get("gdd_session_id", email, amount, memo)) 
+      console.log(result)
+      //axios.post("http://localhost/transaction-send-coins/ajaxCreate", state.ajaxCreateData).then((result) => {
+      //  //console.log("store ajaxCreate result", result)
+      // 
+      //if( result.success ){
+      //  // TODO
+      //} else {
+      //  //dispatch('logout')
+      //}
+      //}, (error) => {
+      //  console.log(error);
+      //});
     },
     ajaxListTransactions: async ({commit, dispatch, state}) => {
      // console.log('action: ajaxListTransactions', state.session_id)
      // const result = await communityAPI.transactions(state.session_id)     
     },
     accountBalance: async ({ commit, dispatch, state }) => {
-      // console.log('action: accountBalance')
+        console.log('action: accountBalance')
       // console.log('action: dispatch', dispatch)
       // console.log('action: state.session_id', state.session_id)
       // console.log(" action: $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
       // commit('session_id', $cookies.get("gdd_session_id"))
       // commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get("gdd_session_id"))
-      // console.log("accountBalance result", result)
+        console.log("accountBalance result", result)
+        console.log("aresult.result.data.balance", result.result.data.balance)
       if(result.success) {
         commit('user_balance', result.result.data.balance)
       } else {

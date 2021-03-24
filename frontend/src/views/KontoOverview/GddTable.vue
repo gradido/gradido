@@ -2,13 +2,13 @@
   <div>
   
         <b-list-group > 
-          <b-list-group-item v-for="item in filteredItems" :key="item.id"> 
+          <b-list-group-item v-for="item in filteredItems" :key="item.id" style="background-color:#ebebeba3 !important;"> 
           <div class="d-flex w-100 justify-content-between"  @click="toogle(item)" >
             <b-icon v-if="item.type === 'send'" icon="box-arrow-left"   class="m-1"  font-scale="2" style="color:red"></b-icon>
             <b-icon v-else icon="box-arrow-right" class="m-1"  font-scale="2" style="color:green" ></b-icon>       
-              <h1 class="mb-1">{{ $n((item.balance)/10000) }} <small>GDD</small></h1>
+              <h1 class="mb-1">{{ $n((item.balance/10000)) }} <small>GDD</small></h1>
               <h2 class="text-muted">{{item.name}}</h2>
-                <b-button v-b-toggle="'a'+item.transaction_id" variant="primary"><b>i</b></b-button>
+                <b-button v-b-toggle="'a'+item.transaction_id" variant="secondary"><b>i</b></b-button>
             </div>
              <b-collapse :id="'a'+item.transaction_id" class="mt-2">
               <b-card>
@@ -20,16 +20,16 @@
                   <b-list-group-item> <b-badge class="mr-4" variant="primary" pill>gdd</b-badge>{{item.balance}}</b-list-group-item>
                   <b-list-group-item> <b-badge class="mr-4" variant="primary" pill>memo</b-badge>{{item.memo}}</b-list-group-item>
                 </b-list-group>
-                <b-button v-b-toggle="'collapse-1-inner'+ item.transaction_id" size="sm">{{$t('transaction.more')}}</b-button>
+                <b-button v-b-toggle="'collapse-1-inner'+ item.transaction_id"  variant="secondary">{{$t('transaction.more')}}</b-button>
                 <b-collapse :id="'collapse-1-inner'+ item.transaction_id" class="mt-2">
                   <b-card>{{item}}</b-card>
                 </b-collapse>
               </b-card>
             </b-collapse>
           </b-list-group-item>
-           <b-list-group-item>
+           <b-list-group-item v-show="this.$route.path == '/overview'">
                 <b-alert v-if="count < 5" show variant="secondary" v-html="$t('transaction.show_part', {'count':count} )"></b-alert>
-              <router-link else to="/activity"  v-html="$t('transaction.show_all', {'count':count})"> </router-link>  
+              <router-link else to="/transactions"  v-html="$t('transaction.show_all', {'count':count})"> </router-link>  
             </b-list-group-item>
           
  
@@ -55,7 +55,11 @@ export default {
     created() {
      
      axios.get("http://localhost/state-balances/ajaxListTransactions/"+ this.$store.state.session_id).then((result) => {
-      //console.log("result",result)
+       console.log("result",result)
+       console.log("transactions.length",result.data.count)
+       
+console.log("this.$route.path", this.$route.path);
+   
       //console.log("result.state",result.data.state)
       //console.log("result.data.state == 'success'",result.data.state == "success")
    
@@ -64,6 +68,7 @@ export default {
       //console.log("result.transactions",typeof(result.data.transactions))
       //commit('transactions', result.data.transactions)
       this.$store.state.user.balance_gdt =  result.data.gdtSum
+  
       this.items =  result.data.transactions
       this.count = result.data.count
      

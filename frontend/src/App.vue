@@ -1,6 +1,6 @@
 <template>
 <div id="app" class="font-sans text-gray-800">
-    <header class="">     
+    <header > <b-col class="text-right"><small>sprache wählen</small></b-col>     
     </header>
     <div class="">   
       <particles-bg type="custom" :config="config" :bg="true" />  
@@ -54,7 +54,7 @@ export default {
 }
 </script>
 <style>
-    
+
     .btn-primary pim{
       background-color: #5A7B02;
       border-color: #5e72e4;

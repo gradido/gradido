@@ -17,13 +17,12 @@
   </div>
 </template>
 <script>
-import BaseButton from '../../components/BaseButton.vue';
+
   import UserCard from './UserProfile/UserCard.vue';
 
   export default {
     components: {
-      UserCard,
-        BaseButton
+      UserCard
     }
   };
 </script>

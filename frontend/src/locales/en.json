@@ -43,10 +43,10 @@
       "remember":"Remember password",
       "signin":"Sign in",
       "forgot_pwd":"Forgot password?",
-      "new_wallet":"Create new wallet"
+      "new_wallet":"Create new account"
     },
     "signup": {
-      "title": "Create your Gradido Wallet",
+      "title": "Create your Gradido account",
       "subtitle": "Become a part of the community!",
       "strength":"password strength:",
       "strong":"strong",
@@ -54,7 +54,7 @@
     },
     "password": {
       "title": "reset password",
-      "subtitle": "If you have forgotten the password or want to change it.",
+      "subtitle": "If you have forgotten your password, you can reset it here.",
       "reset_now": "reset now"
     },
     "thx": {

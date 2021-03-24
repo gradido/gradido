@@ -42,18 +42,18 @@
       "remember":"Passwort merken",
       "signin":"Anmelden",
       "forgot_pwd":"Passwort vergessen?",
-      "new_wallet":"Neues Wallet erstellen"
+      "new_wallet":"Neues Konto erstellen"
     },
     "signup": {
-      "title": "Erstelle deine Gradido Wallet",
-      "subtitle": "Werde ein teil der Gemeinschaft!",
+      "title": "Erstelle dein Gradido-Konto",
+      "subtitle": "Werde Teil der Gemeinschaft!",
       "strength":"Passwortsicherheit:",
       "strong":"stark",
       "agree":"habe ich gelesen und verstanden und stimme diesen zu."
     },
     "password": {
       "title": "Passwort zurücksetzen",
-      "subtitle": "Wenn sie das Passwort vergessen haben oder ändern möchten.",
+      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
       "reset_now": "jetzt zurücksetzen"
     },
     "thx": {

@@ -47,7 +47,7 @@
         <b-row align-v="center" class="justify-content-xl-between">
           <b-col xl="6">
             <div class="copyright text-center text-xl-left text-muted">
-               © {{year}} <a href="https://gradido.net/" class="font-weight-bold ml-1" target="_blank">Gradido Wallet</a>
+               © {{year}} <a href="https://gradido.net/" class="font-weight-bold ml-1" target="_blank">Gradido-Akademie</a>
             </div>
           </b-col>
           <b-col xl="6" class="col-xl-6">

@@ -18,7 +18,7 @@
     <b-container class="mt--8 pb-5">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
-          <b-card no-body class="bg-secondary border-0 mb-0">
+          <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important;">
             <b-card-body class="px-lg-5 py-lg-5">
               
                 <div class="text-center text-muted mb-4">
@@ -47,7 +47,7 @@
 
                   <!-- <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox> -->
                   <div class="text-center">
-                    <base-button type="primary" native-type="submit" class="my-4">{{ $t('site.login.signin')}}</base-button>
+                    <base-button type="secondary" native-type="submit" class="my-4">{{ $t('site.login.signin')}}</base-button>
                   </div>
                 </b-form>
               </validation-observer>  

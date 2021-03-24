@@ -19,7 +19,7 @@
       <!-- Table -->
       <b-row class="justify-content-center">
         <b-col lg="6" md="8" >
-          <b-card no-body class="bg-secondary border-0">
+          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important;">
              
             <b-card-body class="px-lg-5 py-lg-5">
               <div class="text-center text-muted mb-4">
@@ -74,7 +74,7 @@
                     </b-col>
                   </b-row>
                   <div class="text-center">
-                    <b-button type="submit" variant="primary" class="mt-4">{{ $t('signup')}}</b-button>
+                    <b-button type="submit" variant="secondary" class="mt-4">{{ $t('signup')}}</b-button>
                   </div>
                 </b-form>
               </validation-observer>
@@ -83,7 +83,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4" >
-        <b-button type="button" variant="success" class="mt-3" to="/Login">{{ $t('back')}}</b-button>
+        <router-link to="/Login" class="mt-3">{{ $t('back')}}</router-link>
       </div>           
     </b-container>
   </div>
