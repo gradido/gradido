@@ -84,7 +84,7 @@
                     <b-input-group id="input-group-2" label="Betrag:" label-for="input-2"
                       size="lg"
                       class="mb-3"> 
-                        <b-input-group-prepend class="p-3 d-none d-md-block  ">
+                        <b-input-group-prepend class="p-2 d-none d-md-block  ">
                            <div class="h3 pt-3 pr-3">GDD</div>
                            
                         </b-input-group-prepend>
