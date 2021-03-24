@@ -2,11 +2,11 @@
 <div id="app" class="font-sans text-gray-800">
     <header > 
       <b-col class="text-center">
-        <b-dropdown  variant="secondary" :text="$t('language') + ' - '+$i18n.locale" class="m-md-2">
+        <b-dropdown  size="sm" split variant="secondary" :text="$t('language') + ' - '+$i18n.locale" class="m-md-2">
         <b-dropdown-divider></b-dropdown-divider> 
         <b-dropdown-item @click.prevent="setLocale('de')">Deusch</b-dropdown-item>
         <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>
-        </b-dropdown>
+       </b-dropdown>
      </b-col>     
     </header>
     <div class="">   
