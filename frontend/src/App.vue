@@ -1,6 +1,13 @@
 <template>
 <div id="app" class="font-sans text-gray-800">
-    <header > <b-col class="text-right"><small>sprache wählen</small></b-col>     
+    <header > 
+      <b-col class="text-center">
+        <b-dropdown  variant="secondary" :text="$t('language') + ' - '+$i18n.locale" class="m-md-2">
+        <b-dropdown-divider></b-dropdown-divider> 
+        <b-dropdown-item @click.prevent="setLocale('de')">Deusch</b-dropdown-item>
+        <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>
+        </b-dropdown>
+     </b-col>     
     </header>
     <div class="">   
       <particles-bg type="custom" :config="config" :bg="true" />  
@@ -50,6 +57,12 @@ export default {
         random: 2,
       },
     };
+  },
+   methods: {
+      setLocale(locale) {
+      this.$i18n.locale = locale
+      this.$store.commit('language', this.$i18n.locale)
+    }
   },
 }
 </script>
