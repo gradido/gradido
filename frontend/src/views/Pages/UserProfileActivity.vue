@@ -2,11 +2,22 @@
   <div>
     <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header" style="max-height:200px">
        
+           
+              
     </div>
     
     
     
     <b-container fluid class="mt--6">
+      <b-row>
+        <b-col> 
+              <div>
+                  <gdd-add-work-2 />       
+                </div>
+                <br>
+                </b-col>
+      </b-row>
+      <hr>
       <b-row>
         <b-col xl="4" class="order-xl-2 mb-5">
           community
@@ -45,7 +56,7 @@
 <script>
   import GddTable from '../../views/KontoOverview/GddTable.vue';
   import GddWorkTable from '../../views/KontoOverview/GddWorkTable.vue';
-   
+     import GddAddWork2  from '../../views/KontoOverview/GddAddWork2.vue';
 
   import * as chartConfigs from '@/components/Charts/config';
   import LineChart from '@/components/Charts/LineChart';
@@ -56,6 +67,7 @@
       GddTable,
      GddWorkTable,
     LineChart,
+    GddAddWork2
     //BarChart
     },
     data(){

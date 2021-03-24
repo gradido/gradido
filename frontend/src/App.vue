@@ -4,7 +4,7 @@
       <b-col class="text-center">
         <b-dropdown  size="sm" split variant="secondary" :text="$t('language') + ' - '+$i18n.locale" class="m-md-2">
         <b-dropdown-divider></b-dropdown-divider> 
-        <b-dropdown-item @click.prevent="setLocale('de')">Deusch</b-dropdown-item>
+        <b-dropdown-item @click.prevent="setLocale('de')">Deutsch</b-dropdown-item>
         <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>
        </b-dropdown>
      </b-col>     
