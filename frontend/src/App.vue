@@ -29,6 +29,7 @@
 <script>
 import { ParticlesBg } from 'particles-bg-vue'
 import icon from './icon.js'
+import { localeChanged } from 'vee-validate'
 
 export default {
   name: 'app',
@@ -36,13 +37,17 @@ export default {
     ParticlesBg,
   },
   created() {
+    //console.log('xx', $cookies.get('gdd_lang'))
+    //console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
     if ($cookies.isKey('gdd_session_id') == true) {
+      //console.log('%cHey %c' + $cookies.get('gdd_u') + '', 'font-weight:bold', 'color: orange')
       this.$store.commit('session_id', $cookies.get('gdd_session_id'))
       this.$store.commit('email', $cookies.get('gdd_u'))
       this.$store.commit('language', $cookies.get('gdd_lang'))
       this.$i18n.locale = $cookies.get('gdd_lang')
       this.$router.push('overview')
     } else {
+      //console.log('app.vue to Logout')
       this.$store.dispatch('logout')
     }
   },
@@ -68,6 +73,7 @@ export default {
     setLocale(locale) {
       this.$i18n.locale = locale
       this.$store.commit('language', this.$i18n.locale)
+      localeChanged(locale)
     },
   },
 }

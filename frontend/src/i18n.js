@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 
+import en from 'vee-validate/dist/locale/en'
+import de from 'vee-validate/dist/locale/de'
+
 Vue.use(VueI18n)
 
 function loadLocaleMessages() {
@@ -11,6 +14,18 @@ function loadLocaleMessages() {
     if (matched && matched.length > 1) {
       const locale = matched[1]
       messages[locale] = locales(key)
+      if (locale === 'de') {
+        messages[locale] = {
+          validations: de,
+          ...messages[locale],
+        }
+      }
+      if (locale === 'en') {
+        messages[locale] = {
+          validations: en,
+          ...messages[locale],
+        }
+      }
     }
   })
   return messages

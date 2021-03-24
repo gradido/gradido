@@ -13,13 +13,13 @@
     <b-row align-v="center" class="justify-content-lg-between">
       <b-col>
         <b-nav class="nav-footer justify-content-center">
-          <b-nav-item ref="https://gradido.net/" target="_blank">
+          <b-nav-item :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
             Gradido
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/de/impressum/" target="_blank">
+          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
             {{ $t('imprint') }}
           </b-nav-item>
-          <b-nav-item href="https://gradido.net/de/datenschutz/" target="_blank">
+          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
             {{ $t('privacy_policy') }}
           </b-nav-item>
           <!--<b-nav-item href="#!" to="/explorer" >
