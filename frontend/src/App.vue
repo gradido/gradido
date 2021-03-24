@@ -43,7 +43,6 @@ export default {
       this.$i18n.locale = $cookies.get('gdd_lang')
       this.$router.push('overview')
     } else {
-      console.log('app.vue to Logout')
       this.$store.dispatch('logout')
     }
   },

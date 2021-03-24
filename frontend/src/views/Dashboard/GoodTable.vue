@@ -132,7 +132,7 @@ export default {
   },
   methods: {
     onRowClick(params) {
-      console.log(params)
+      //console.log(params)
       // params.row - row object
       // params.pageIndex - index of this row on the current page.
       // params.selected - if selection is enabled this argument
@@ -140,12 +140,12 @@ export default {
       // params.event - click event
     },
     onSearch(params) {
-      console.log(params)
+      //console.log(params)
       // params.searchTerm - term being searched for
       // params.rowCount - number of rows that match search
     },
     mySearchFn(params) {
-      console.log(params)
+      //console.log(params)
     },
   },
 }

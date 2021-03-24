@@ -312,6 +312,7 @@ export default {
   },
   methods: {
     onRowClick(params) {
+      /*
       console.log('onRowClick', params.row.createdAt)
       console.log('onRowClick', params.row.group)
       console.log('onRowClick', params.row.id)
@@ -319,6 +320,7 @@ export default {
       console.log('onRowClick', params.row.originalIndex)
       console.log('onRowClick', params.row.text)
       console.log('onRowClick', params.row.vgt_id)
+      */
 
       this.creation.createdAt = params.row.createdAt
       this.creation.group = params.row.group
@@ -335,7 +337,7 @@ export default {
       // params.event - click event
     },
     onSearch(params) {
-      console.log('onSearch', params)
+      //console.log('onSearch', params)
       // params.searchTerm - term being searched for
       // params.rowCount - number of rows that match search
     },

@@ -107,7 +107,7 @@ export default {
       this.items = result.result.data.transactions
       this.count = result.result.data.count
     } else {
-      console.log('error', result)
+      //console.log('error', result)
     }
   },
   computed: {

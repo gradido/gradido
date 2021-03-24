@@ -42,7 +42,7 @@ export default {
     FadeTransition,
   },
   created() {
-    console.log('base-alert gesetzt in =>', this.$route.path)
+    //console.log('base-alert gesetzt in =>', this.$route.path)
   },
   props: {
     type: {
@@ -68,7 +68,6 @@ export default {
   },
   methods: {
     dismissAlert() {
-      console.log('sdddddddddddddddddddddddd')
       this.visible = false
       this.$store.state.loginfail = false
     },

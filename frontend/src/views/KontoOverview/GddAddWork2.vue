@@ -200,19 +200,19 @@ export default {
   },
   methods: {
     getTR(m, i) {
-      console.log(m + '-' + i)
+      //console.log(m + '-' + i)
     },
     stunden(hour, i, mon) {
       let n = 0
-      console.log('stunden(form)=>', hour)
-      console.log('stunden(i)=>', i)
-      console.log('stunden(mon)=>', mon)
+      //console.log('stunden(form)=>', hour)
+      //console.log('stunden(i)=>', i)
+      //console.log('stunden(mon)=>', mon)
 
-      console.log('this.stundenSumme start=> ', this.stundenSumme)
+      //console.log('this.stundenSumme start=> ', this.stundenSumme)
       this.stundenSumme = 0
-      console.log('arr.length => ', this.form.length)
+      //console.log('arr.length => ', this.form.length)
       for (n; n < this.form.length; n++) {
-        console.log('>arr[n]=> ', this.form[n])
+        //console.log('>arr[n]=> ', this.form[n])
         if (this.form[n] > 0) {
           this.stundenSumme += parseInt(this.form[n])
         }
@@ -226,7 +226,7 @@ export default {
         TextDecoded: '',
       })
       this.index++
-      console.log('this.stundenSumme ende=> ', this.stundenSumme)
+      //console.log('this.stundenSumme ende=> ', this.stundenSumme)
     },
     addNewMessage: function() {
       this.messages.push({
@@ -235,29 +235,29 @@ export default {
       })
     },
     deleteNewMessage: function(event) {
-      console.log('deleteNewMessage:event) => ', event)
+      //console.log('deleteNewMessage:event) => ', event)
       //console.log("deleteNewMessage:this.events.splice(this.event) => ", this.events.splice(this.event))
       this.form.splice(event, null)
       this.messages.splice(index, 1)
       this.index--
     },
     submitForm: function(e) {
-      console.log(this.messages)
+      //console.log(this.messages)
 
       this.messages = [{ DaysNumber: '', TextDecoded: '' }]
       this.submitted = true
     },
     submitForm2() {
-      console.log('submitForm2 TODO')
+      //console.log('submitForm2 TODO')
     },
     submitForm3() {
-      console.log('submitForm3 TODO')
+      //console.log('submitForm3 TODO')
     },
     textFocus() {
-      console.log('textFocus TODO')
+      //console.log('textFocus TODO')
     },
     newWorkForm() {
-      console.log('newWorkForm TODO')
+      //console.log('newWorkForm TODO')
     },
   },
 }

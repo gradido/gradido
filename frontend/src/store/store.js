@@ -44,7 +44,7 @@ export const store = new Vuex.Store({
   // Syncronous mutation of the state
   mutations: {
     language: (state, language) => {
-      console.log('mutation: language', language)
+      //console.log('mutation: language', language)
       state.language = language
       $cookies.set('gdd_lang', language)
       if (state.language == 'de') {
@@ -68,7 +68,7 @@ export const store = new Vuex.Store({
       state.session_id = session_id
     },
     user_balance: (state, balance) => {
-      console.log('mutation: user_balance')
+      //console.log('mutation: user_balance')
       state.user.balance = balance / 10000
     },
     user_balance_gdt: (state, balance) => {
@@ -99,7 +99,7 @@ export const store = new Vuex.Store({
       }
     },
     passwordReset: async data => {
-      console.log('<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>', data.email)
+      //console.log('<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>', data.email)
     },
     schoepfen: async data => {
       // http://localhost/transaction-creations/ajaxCreate
@@ -125,7 +125,7 @@ export const store = new Vuex.Store({
       }
     },
     logout: async ({ commit, state }) => {
-      console.log('action: logout')
+      //console.log('action: logout')
       // Are we actually logged in?
       if (state.session_id) {
         const result = await loginAPI.logout(state.session_id)
@@ -143,26 +143,26 @@ export const store = new Vuex.Store({
       //console.log('action: ajaxCreate')
       state.ajaxCreateData.amount = state.ajaxCreateData.amount * 10000
       const result = await communityAPI.create($cookies.get('gdd_session_id', email, amount, memo))
-      console.log(result)
+      //console.log(result)
     },
     ajaxListTransactions: async ({ commit, dispatch, state }) => {
       // console.log('action: ajaxListTransactions', state.session_id)
       // const result = await communityAPI.transactions(state.session_id)
     },
     accountBalance: async ({ commit, dispatch, state }) => {
-      console.log('action: accountBalance')
+      //console.log('action: accountBalance')
       // console.log('action: dispatch', dispatch)
       // console.log('action: state.session_id', state.session_id)
       // console.log(" action: $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
       // commit('session_id', $cookies.get("gdd_session_id"))
       // commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get('gdd_session_id'))
-      console.log('accountBalance result', result)
-      console.log('aresult.result.data.balance', result.result.data.balance)
+      //console.log('accountBalance result', result)
+      //console.log('aresult.result.data.balance', result.result.data.balance)
       if (result.success) {
         commit('user_balance', result.result.data.balance)
       } else {
-        console.log('action accountBalance to  logout start')
+        //console.log('action accountBalance to  logout start')
         dispatch('logout')
       }
     },

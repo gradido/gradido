@@ -178,7 +178,7 @@ export default {
       })
     },
     loginAsAdmin() {
-      console.log('app.vue admin login(): ' + this.$store.state.is_admin)
+      //console.log('app.vue admin login(): ' + this.$store.state.is_admin)
       this.modals = false
       this.$store.commit('loginAsAdmin')
       this.$router.push('/AdminOverview')

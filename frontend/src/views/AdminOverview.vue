@@ -296,7 +296,7 @@ export default {
           this.transiencelist = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -307,7 +307,7 @@ export default {
           this.transactionlist = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -318,7 +318,7 @@ export default {
           this.userlist = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -329,7 +329,7 @@ export default {
           this.communitystatistic = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -340,7 +340,7 @@ export default {
           this.chartsstatistic = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -351,7 +351,7 @@ export default {
           this.cardstatistic = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },
@@ -362,7 +362,7 @@ export default {
           this.userdata = d.data
         },
         error => {
-          console.log(error)
+          //console.log(error)
         },
       )
     },

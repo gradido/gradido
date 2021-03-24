@@ -188,9 +188,9 @@ export default {
     },
     onSubmit(event) {
       event.preventDefault()
-      console.log('onSUBMIT this.form.from >>>>', this.form.from)
-      console.log('onSUBMIT this.form.from >>>>', this.$moment(this.form.from))
-      console.log('onSUBMIT this.form.to >>>>', this.form.to)
+      //console.log('onSUBMIT this.form.from >>>>', this.form.from)
+      //console.log('onSUBMIT this.form.from >>>>', this.$moment(this.form.from))
+      //console.log('onSUBMIT this.form.to >>>>', this.form.to)
       // console.log("onSUBMIT >>>>", this.getHours(this.form.from, this.form.to))
       this.form.sendtime = new Date()
       alert(JSON.stringify(this.form))
