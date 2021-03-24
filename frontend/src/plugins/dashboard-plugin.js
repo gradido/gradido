@@ -37,7 +37,6 @@ import 'vue-good-table/dist/vue-good-table.css';
 
 import VueMoment from 'vue-moment';
 
-import CountryFlag from 'vue-country-flag'
 
 
 Object.keys(rules).forEach(rule => {
@@ -59,7 +58,6 @@ export default {
     Vue.use(VueQrcodeReader);
     Vue.use(VueQrcode);
     Vue.use(VueFlatPickr);
-    Vue.use(CountryFlag);
     configure({
       classes: {
         valid: 'is-valid',

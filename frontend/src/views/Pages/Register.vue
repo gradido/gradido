@@ -1,11 +1,11 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header py-7 py-lg-5 pt-lg-1">
+    <div class="header p-4">
       <b-container class="container">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
-            <b-col xl="5" lg="6" md="8" class="px-5">
+            <b-col xl="5" lg="6" md="8" class="px-2">
               <h1 >{{ $t('site.signup.title')}}</h1>
               <p class="text-lead">{{ $t('site.signup.subtitle')}}</p>
             </b-col>
@@ -15,13 +15,13 @@
       
     </div>
     <!-- Page content -->
-    <b-container class="mt--8 pb-5">
+    <b-container class="mt--8 p-1">
       <!-- Table -->
       <b-row class="justify-content-center">
         <b-col lg="6" md="8" >
-          <b-card no-body class="bg-secondary border-0">
+          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important;">
              
-            <b-card-body class="px-lg-5 py-lg-5">
+            <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('signup')}} </small>
               </div>
@@ -68,13 +68,13 @@
                     <b-col cols="12">
                       <base-input :rules="{ required: { allowFalse: false } }" name="Privacy Policy">
                         <b-form-checkbox v-model="model.agree">
-                          <span class="text-muted"><a href="#!"> {{ $t('privacy_policy')}}</a> - {{ $t('site.signup.agree')}} </span>
+                          <span class="text-muted"><a href="https://gradido.net/de/datenschutz/" target="_blank"> {{ $t('privacy_policy')}}</a> - {{ $t('site.signup.agree')}} </span>
                         </b-form-checkbox>
                       </base-input>
                     </b-col>
                   </b-row>
                   <div class="text-center">
-                    <b-button type="submit" variant="primary" class="mt-4">{{ $t('signup')}}</b-button>
+                    <b-button type="submit" variant="secondary" class="mt-4">{{ $t('signup')}}</b-button>
                   </div>
                 </b-form>
               </validation-observer>
@@ -83,7 +83,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4" >
-        <b-button type="button" variant="success" class="mt-3" to="/Login">{{ $t('back')}}</b-button>
+        <router-link to="/Login" class="mt-3">{{ $t('back')}}</router-link>
       </div>           
     </b-container>
   </div>

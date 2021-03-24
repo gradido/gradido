@@ -19,12 +19,16 @@ function loadLocaleMessages () {
 const numberFormats = {
   'en-US': {
     currency: {
-      style: 'currency'
+      style: 'currency',
+      currency: "GDD",
+      abbreviate: true
     }
   },
   'de-DE': {
     currency: {
-      style: 'currency'
+      style: 'currency',
+      currency: "GDD",
+      abbreviate: true
     }
   }
 }
@@ -36,3 +40,7 @@ export default new VueI18n({
   messages: loadLocaleMessages(),
   numberFormats
 })
+
+
+
+  

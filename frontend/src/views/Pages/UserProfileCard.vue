@@ -2,11 +2,7 @@
   <div>
     <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header">
       <b-container fluid>
-        <b-container fluid class="d-flex align-items-center">
-          <b-row >            
-          <base-button><router-link to="/profileedit"  > Edit Profil</router-link> </base-button>
-          </b-row>
-        </b-container>
+       
       </b-container>
     </div>
 
@@ -21,13 +17,12 @@
   </div>
 </template>
 <script>
-import BaseButton from '../../components/BaseButton.vue';
+
   import UserCard from './UserProfile/UserCard.vue';
 
   export default {
     components: {
-      UserCard,
-        BaseButton
+      UserCard
     }
   };
 </script>

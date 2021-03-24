@@ -9,7 +9,7 @@
   "back":"zurück",
   "sent":"Senden",
   "transactions":"Transaktionen",
-  "language":"Sprachen",
+  "language":"Language",
   "languages":{
     "de": "Deutsch",
     "en": "English"
@@ -42,18 +42,18 @@
       "remember":"Passwort merken",
       "signin":"Anmelden",
       "forgot_pwd":"Passwort vergessen?",
-      "new_wallet":"Neues Wallet erstellen"
+      "new_wallet":"Neues Konto erstellen"
     },
     "signup": {
-      "title": "Erstelle deine Gradido Wallet",
-      "subtitle": "Werde ein teil der Gemeinschaft!",
+      "title": "Erstelle dein Gradido-Konto",
+      "subtitle": "Werde Teil der Gemeinschaft!",
       "strength":"Passwortsicherheit:",
       "strong":"stark",
       "agree":"habe ich gelesen und verstanden und stimme diesen zu."
     },
     "password": {
       "title": "Passwort zurücksetzen",
-      "subtitle": "Wenn sie das Passwort vergessen haben oder ändern möchten.",
+      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
       "reset_now": "jetzt zurücksetzen"
     },
     "thx": {
@@ -101,9 +101,5 @@
   },
   "nav": {
     "features": "Neuigkeiten"
-  },
-  "about": {
-    "title": "Über uns",
-    "content": "Lorem ipsum deutsch dolor sit amet consectetur adipisicing elit. Aut dicta incidunt ea ut commodi quidem temporibus illo quia. Et itaque deleniti veniam tempore facere ipsum animi totam culpa minima vel voluptatem adipisci natus blanditiis similique sunt expedita, ex dicta doloremque repellat vitae temporibus. Quisquam quia, accusantium blanditiis architecto facilis saepe! Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad unde laborum ut suscipit iure aliquam sapiente doloribus exercitationem nam sint."
   }
 }

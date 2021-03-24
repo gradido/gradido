@@ -42,5 +42,7 @@ import ContentFooter from './ContentFooter.vue';
   };
 </script>
 <style lang="scss">
-   
+ 
+.card { background-color:rgba(136, 130, 131, 0.3); }
+ 
 </style>

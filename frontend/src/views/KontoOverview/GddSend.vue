@@ -2,10 +2,7 @@
   <div>
     <b-row>
       <b-col xl="12" md="12">
-          <base-button  block icon type="primary" size="lg"  v-b-toggle.collapse-1>
-            <span class="btn-inner--text">{{ $t('site.overview.send_gradido') }} </span>
-          </base-button>
-          <b-collapse id="collapse-1" class="mt-2">
+          
                <b-alert variant="warning" show dismissible >
                   <strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
               </b-alert>
@@ -31,8 +28,9 @@
                   <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
                   <br>
                   <div>
-                     <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Empfänger</b-badge>
+                     <b-col  class="text-left pl-6">
+                       Empfänger
+                            
                           </b-col>  
                                       
                     <b-input-group
@@ -59,7 +57,8 @@
                   <br>                
                   <div>
                     <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Betrag</b-badge>
+                      Betrag
+                            
                           </b-col> 
                       <b-col v-if="($store.state.user.balance == form.amount)"  class="text-right">
                             <b-badge variant="primary">maximale anzahl GDD zum versenden erreicht!</b-badge>
@@ -83,7 +82,7 @@
                         </b-form-input>
                     </b-input-group>  
                      <b-col    class="text-left pl-6">
-                            <b-badge variant="primary">Nachricht für den Empfänger (optional)</b-badge>
+                       Nachricht für den Empfänger
                           </b-col>         
                           
                     <b-input-group>
@@ -97,16 +96,16 @@
                   
                   <br>
                   <b-row>
-                    <b-col></b-col>
-                    <b-col></b-col>
+                    <b-col> <b-button type="reset" variant="secondary">{{$t('form.cancel')}}</b-button></b-col>
+                   <b-col  class="text-right">  <b-button type="submit" variant="success">{{$t('form.send_now')}}</b-button></b-col>
                   </b-row>
-                  <b-button type="submit" variant="primary">{{$t('form.send_now')}}</b-button>
-                  <b-button type="reset" variant="danger">{{$t('form.cancel')}}</b-button>
+                
+                 
                   <br>
                 </b-form> 
               </validation-observer>
             </b-card>
-          </b-collapse>
+          
         </b-col>
     </b-row>
   </div>

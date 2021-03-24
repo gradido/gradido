@@ -6,22 +6,22 @@
             <navbar-toggle-button @click.native="showSidebar">
                 
             </navbar-toggle-button>
-            <router-link class="navbar-brand" to="/overview">
-                <img :src="logo" class="navbar-brand-img" alt="...">
-            </router-link>
-
+            <div class="navbar-brand">
+                <img :src="logo" class="navbar-brand-img" alt="...">                
+            </div>
+            <b-row class="text-center"><b-col>{{$n($store.state.user.balance)}} GDD</b-col></b-row>
             <slot name="mobile-right">
                 <ul class="nav align-items-center d-md-none"> 
                 
                     <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
                         <a slot="title-container" class="nav-link" href="#" role="button">
                             <div class="media align-items-center">
-                              <span class="avatar avatar-sm rounded-circle">
-                                <img alt="Image placeholder" src="img/theme/team-1.jpg">
+                              <span class="avatar avatar-sm">
+                                <vue-qrcode :value="$store.state.email" type="image/png" ></vue-qrcode>  
                               </span>
                             </div>
                         </a>
- 
+ xx
                         <router-link to="/overview" class="dropdown-item text-lg text-muted">
                             <i class="ni ni-single-02"></i>
                             <span>{{ $t('site.overview.account_overview')}}</span>
@@ -34,11 +34,16 @@
                             <i class="ni ni-settings-gear-65"></i>
                             <span>{{ $t('site.navbar.settings') }}</span>
                         </router-link>
+                        <router-link to="/transactions" class="dropdown-item  text-lg text-muted">
+                            <i class="ni ni-calendar-grid-58"></i>
+                            <span>Transactions</span>
+                        </router-link>
+                        <!--
                         <router-link to="/activity" class="dropdown-item  text-lg text-muted">
                             <i class="ni ni-calendar-grid-58"></i>
                             <span>{{ $t('site.navbar.activity') }}</span>
                         </router-link>
-                       
+                       -->
                         <div class="dropdown-divider"></div>
                         <div @click="logout" class="dropdown-item  text-lg text-muted" >
                             <i class="ni ni-support-16"></i>
@@ -69,7 +74,7 @@
                 <hr class="my-3">     
                 <ul class="navbar-nav mb-md-3">                   
                      <li class="nav-item"> 
-                        <a class="nav-link text-lg bg-light" href="#!"  @click="logout">
+                        <a class="nav-link text-lg" href="#!"  @click="logout">
                         {{ $t('logout') }}
                         </a>
                      </li>
@@ -80,11 +85,13 @@
 </template>
 <script>
   import NavbarToggleButton from '@/components/NavbarToggleButton'
+  import VueQrcode from 'vue-qrcode'
 
   export default {
     name: 'sidebar',
     components: {
-      NavbarToggleButton
+      NavbarToggleButton,
+      VueQrcode
     },
     props: {
       logo: {
