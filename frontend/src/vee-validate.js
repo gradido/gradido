@@ -5,7 +5,6 @@ import i18n from './i18n'
 
 configure({
   defaultMessage: (field, values) => {
-    console.log('defaultMessage', field, value)
     values._field_ = i18n.t(`fields.${field}`)
     return i18n.t(`validations.messages.${values._rule_}`, values)
   }
