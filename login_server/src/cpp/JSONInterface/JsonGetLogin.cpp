@@ -71,11 +71,13 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 		em->addError(new Error("JsonGetLogin::handle", "generic exception calling userModel->getJson: "));
 		em->sendErrorsAsEmail();
 	}
+
 	result->set("Transactions.pending", session->getProcessingTransactionCount());
 	auto executing = observer->getTaskCount(userModel->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	if (executing < 0) {
 		executing = 0;
 	}
+
 	result->set("Transactions.executing", executing);
 	//printf("pending: %d\n", session->getProcessingTransactionCount());
 	//std::string user_string = userModel->toString();

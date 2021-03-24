@@ -66,7 +66,7 @@ export const store = new Vuex.Store({
       state.session_id = session_id
     },
     user_balance: (state,balance) => {
-      //console.log('mutation: user_balance')
+      console.log('mutation: user_balance')
       state.user.balance =  (balance/10000)
     },
     user_balance_gdt: (state,balance) => {
