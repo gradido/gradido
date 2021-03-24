@@ -1,11 +1,11 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header py-7 py-lg-5 pt-lg-1">
+    <div class="header p-4">
       <b-container class="container">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
-            <b-col xl="5" lg="6" md="8" class="px-5">
+            <b-col xl="5" lg="6" md="8" class="px-2">
               <h1 >{{ $t('site.signup.title')}}</h1>
               <p class="text-lead">{{ $t('site.signup.subtitle')}}</p>
             </b-col>
@@ -15,13 +15,13 @@
       
     </div>
     <!-- Page content -->
-    <b-container class="mt--8 pb-5">
+    <b-container class="mt--8 p-1">
       <!-- Table -->
       <b-row class="justify-content-center">
         <b-col lg="6" md="8" >
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important;">
              
-            <b-card-body class="px-lg-5 py-lg-5">
+            <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('signup')}} </small>
               </div>

@@ -1,13 +1,14 @@
 <template>
   <footer class="footer px-4 bg-transparent">
     <b-row align-v="center" class="justify-content-lg-between">
-      <b-col lg="6">
-        <div class="copyright text-center text-lg-left text-muted">
+    <b-col><div class="copyright text-center text-lg-center text-muted">
           © {{year}} <a href="#!" to="/login" class="font-weight-bold ml-1" >Gradido-Akademie</a>
-        </div>
-      </b-col>
-      <b-col lg="6">
-        <b-nav class="nav-footer justify-content-center justify-content-lg-end">
+        </div></b-col>
+        
+        </b-row>
+      <b-row align-v="center" class="justify-content-lg-between" >
+        <b-col>
+        <b-nav class="nav-footer justify-content-center">
           <b-nav-item ref="https://gradido.net/" target="_blank">
             Gradido
           </b-nav-item>
