@@ -42,8 +42,8 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 			if (paramJsonObject->has("email_custom_text")) {
 				paramJsonObject->get("email_custom_text").convert(emailCustomText);
 			}
-			if (paramJsonObject->has("emailCustomSubject")) {
-				paramJsonObject->get("emailCustomSubject").convert(emailCustomSubject);
+			if (paramJsonObject->has("email_custom_subject")) {
+				paramJsonObject->get("email_custom_subject").convert(emailCustomSubject);
 			}
 			if (paramJsonObject->has("language")) {
 				paramJsonObject->get("language").convert(languageCode);
