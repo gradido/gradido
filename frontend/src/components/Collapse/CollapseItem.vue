@@ -8,7 +8,7 @@
         @click.prevent="activate"
         :aria-controls="`content-${itemId}`"
       >
-        <slot name="title"> {{ title }} </slot>
+        <slot name="title">{{ title }}</slot>
         <i class="tim-icons icon-minimal-down"></i>
       </a>
     </b-card-header>
@@ -26,67 +26,66 @@
   </b-card>
 </template>
 <script>
-import { CollapseTransition } from 'vue2-transitions';
+import { CollapseTransition } from 'vue2-transitions'
 
 export default {
   name: 'collapse-item',
   components: {
-    CollapseTransition
+    CollapseTransition,
   },
   props: {
     title: {
       type: String,
       default: '',
-      description: 'Collapse item title'
+      description: 'Collapse item title',
     },
-    id: String
+    id: String,
   },
   inject: {
     animationDuration: {
-      default: 250
+      default: 250,
     },
     multipleActive: {
-      default: false
+      default: false,
     },
     addItem: {
-      default: () => {}
+      default: () => {},
     },
     removeItem: {
-      default: () => {}
+      default: () => {},
     },
     deactivateAll: {
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   computed: {
     itemId() {
-      return this.id || this.title;
-    }
+      return this.id || this.title
+    },
   },
   data() {
     return {
-      active: false
-    };
+      active: false,
+    }
   },
   methods: {
     activate() {
-      let wasActive = this.active;
+      let wasActive = this.active
       if (!this.multipleActive) {
-        this.deactivateAll();
+        this.deactivateAll()
       }
-      this.active = !wasActive;
-      console.log(this.active)
-    }
+      this.active = !wasActive
+    },
   },
   mounted() {
-    this.addItem(this);
+    this.addItem(this)
   },
   destroyed() {
     if (this.$el && this.$el.parentNode) {
-      this.$el.parentNode.removeChild(this.$el);
+      this.$el.parentNode.removeChild(this.$el)
     }
-    this.removeItem(this);
-  }
-};
+    this.removeItem(this)
+  },
+}
 </script>
 <style></style>

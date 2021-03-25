@@ -2,8 +2,7 @@ import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
 import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
-import NotFound from '@/views/NotFoundPage.vue'
-
+// import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
@@ -13,47 +12,56 @@ const routes = [
     children: [
       {
         path: '/login',
-        component: () => import('../views/Pages/Login.vue')
+        component: () => import('../views/Pages/Login.vue'),
       },
       {
         path: '/thx',
-        component: () => import('../views/Pages/thx.vue')
-      },      
+        component: () => import('../views/Pages/thx.vue'),
+      },
       {
         path: '/register',
-        component: () => import('../views/Pages/Register.vue')
-      },      
+        component: () => import('../views/Pages/Register.vue'),
+      },
       {
         path: '/password',
-        component: () => import('../views/Pages/Password.vue')
-      }
-    ]
+        component: () => import('../views/Pages/Password.vue'),
+      },
+      {
+        path: '/explorer',
+        name: 'Explorer',
+        component: () => import('../views/Pages/Explorer.vue'),
+      },
+    ],
   },
   {
     path: '/',
-    redirect: 'KontoOverview',
+    redirect: 'overview',
     component: DashboardLayout,
     children: [
       {
-        path: '/KontoOverview',
+        path: '/overview',
         component: () => import('../views/KontoOverview.vue'),
         meta: {
-          requiresAuth: true
-        }
-      },     
+          requiresAuth: true,
+        },
+      },
       {
         path: '/profile',
-        component: () => import('../views/Pages/UserProfileCard.vue')
-      },         
+        component: () => import('../views/Pages/UserProfileCard.vue'),
+      },
       {
         path: '/profileedit',
-        component: () => import('../views/Pages/UserProfileEdit.vue')
-      },         
+        component: () => import('../views/Pages/UserProfileEdit.vue'),
+      },
       {
         path: '/activity',
-        component: () => import('../views/Pages/UserProfileActivity.vue')
-      }
-    ]
+        component: () => import('../views/Pages/UserProfileActivity.vue'),
+      },
+      {
+        path: '/transactions',
+        component: () => import('../views/Pages/UserProfileTransactionList.vue'),
+      },
+    ],
   },
   ,
   {
@@ -66,20 +74,11 @@ const routes = [
         name: 'Adminübersicht',
         component: () => import('../views/AdminOverview.vue'),
         meta: {
-          requiresAuth: true
-        }
-      }
-    ]
+          requiresAuth: true,
+        },
+      },
+    ],
   },
-  {
-    path: '/',
-    redirect: 'login',
-    component: AuthLayout,
-    children: [
-     
-      { path: '*', component: NotFound }
-    ]
-  }
-];
+]
 
-export default routes;
+export default routes

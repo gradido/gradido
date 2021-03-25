@@ -185,7 +185,7 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],2:[function(require,module,exports){
-(function (setImmediate,clearImmediate){
+(function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
 var slice = Array.prototype.slice;
@@ -262,9 +262,9 @@ exports.setImmediate = typeof setImmediate === "function" ? setImmediate : funct
 exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
   delete immediateIds[id];
 };
-}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+}).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
 },{"process/browser.js":1,"timers":2}],3:[function(require,module,exports){
-(function (global,setImmediate){
+(function (global,setImmediate){(function (){
 new function() {
 
 function Vnode(tag, key, attrs0, children, text, dom) {
@@ -1425,7 +1425,7 @@ m.vnode = Vnode
 if (typeof module !== "undefined") module["exports"] = m
 else window.m = m
 }
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
 },{"timers":2}],4:[function(require,module,exports){
 /*! @preserve
  * numeral.js
@@ -2442,10 +2442,10 @@ return numeral;
 }));
 
 },{}],5:[function(require,module,exports){
-(function (global){
+(function (global){(function (){
 /**!
  * @fileOverview Kickass library to create and place poppers near their reference elements.
- * @version 1.16.0
+ * @version 1.16.1
  * @license
  * Copyright (c) 2016 Federico Zivolo and contributors
  *
@@ -2797,7 +2797,7 @@ function getBordersSize(styles, axis) {
   var sideA = axis === 'x' ? 'Left' : 'Top';
   var sideB = sideA === 'Left' ? 'Right' : 'Bottom';
 
-  return parseFloat(styles['border' + sideA + 'Width'], 10) + parseFloat(styles['border' + sideB + 'Width'], 10);
+  return parseFloat(styles['border' + sideA + 'Width']) + parseFloat(styles['border' + sideB + 'Width']);
 }
 
 function getSize(axis, body, html, computedStyle) {
@@ -2952,8 +2952,8 @@ function getOffsetRectRelativeToArbitraryNode(children, parent) {
   var scrollParent = getScrollParent(children);
 
   var styles = getStyleComputedProperty(parent);
-  var borderTopWidth = parseFloat(styles.borderTopWidth, 10);
-  var borderLeftWidth = parseFloat(styles.borderLeftWidth, 10);
+  var borderTopWidth = parseFloat(styles.borderTopWidth);
+  var borderLeftWidth = parseFloat(styles.borderLeftWidth);
 
   // In cases where the parent is fixed, we must ignore negative scroll in offset calc
   if (fixedPosition && isHTML) {
@@ -2974,8 +2974,8 @@ function getOffsetRectRelativeToArbitraryNode(children, parent) {
   // differently when margins are applied to it. The margins are included in
   // the box of the documentElement, in the other cases not.
   if (!isIE10 && isHTML) {
-    var marginTop = parseFloat(styles.marginTop, 10);
-    var marginLeft = parseFloat(styles.marginLeft, 10);
+    var marginTop = parseFloat(styles.marginTop);
+    var marginLeft = parseFloat(styles.marginLeft);
 
     offsets.top -= borderTopWidth - marginTop;
     offsets.bottom -= borderTopWidth - marginTop;
@@ -3914,8 +3914,8 @@ function arrow(data, options) {
   // Compute the sideValue using the updated popper offsets
   // take popper margin in account because we don't have this info available
   var css = getStyleComputedProperty(data.instance.popper);
-  var popperMarginSide = parseFloat(css['margin' + sideCapitalized], 10);
-  var popperBorderSide = parseFloat(css['border' + sideCapitalized + 'Width'], 10);
+  var popperMarginSide = parseFloat(css['margin' + sideCapitalized]);
+  var popperBorderSide = parseFloat(css['border' + sideCapitalized + 'Width']);
   var sideValue = center - data.offsets.popper[side] - popperMarginSide - popperBorderSide;
 
   // prevent arrowElement from being placed not contiguously to its popper
@@ -5068,11 +5068,11 @@ return Popper;
 })));
 
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],6:[function(require,module,exports){
-(function (process){
+(function (process){(function (){
 /**!
-* tippy.js v5.1.4
+* tippy.js v5.2.1
 * (c) 2017-2020 atomiks
 * MIT License
 */
@@ -5100,7 +5100,7 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
-var version = "5.1.4";
+var version = "5.2.1";
 
 /**
  * Triggers reflow
@@ -5749,7 +5749,6 @@ function bindGlobalEventListeners() {
 var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 var ua = isBrowser ? navigator.userAgent : '';
 var isIE = /MSIE |Trident\//.test(ua);
-var isUCBrowser = /UCBrowser\//.test(ua);
 var isIOS = isBrowser && /iPhone|iPad|iPod/.test(navigator.platform);
 function updateIOSClass(isAdd) {
   var shouldAdd = isAdd && isIOS && currentInput.isTouch;
@@ -5939,8 +5938,9 @@ function updatePopperElement(popper, prevProps, nextProps) {
  */
 
 function updateTransitionEndListener(tooltip, action, listener) {
-  var eventName = isUCBrowser && document.body.style.webkitTransition !== undefined ? 'webkitTransitionEnd' : 'transitionend';
-  tooltip[action + 'EventListener'](eventName, listener);
+  ['transitionend', 'webkitTransitionEnd'].forEach(function (event) {
+    tooltip[action + 'EventListener'](event, listener);
+  });
 }
 /**
  * Adds/removes theme from tooltip's classList
@@ -6070,6 +6070,7 @@ function createTippy(reference, passedProps) {
   var pluginsHooks = plugins.map(function (plugin) {
     return plugin.fn(instance);
   });
+  var hadAriaExpandedAttributeOnCreate = reference.hasAttribute('aria-expanded');
   addListenersToTriggerTarget();
   handleAriaExpandedAttribute();
 
@@ -6090,8 +6091,9 @@ function createTippy(reference, passedProps) {
       instance.clearDelayTimeouts();
     }
   });
-  popper.addEventListener('mouseleave', function () {
+  popper.addEventListener('mouseleave', function (event) {
     if (instance.props.interactive && includes(instance.props.trigger, 'mouseenter')) {
+      debouncedOnMouseMove(event);
       doc.addEventListener('mousemove', debouncedOnMouseMove);
     }
   });
@@ -6170,6 +6172,13 @@ function createTippy(reference, passedProps) {
   }
 
   function handleAriaExpandedAttribute() {
+    // If the user has specified `aria-expanded` on their reference when the
+    // instance was created, we have to assume they're controlling it externally
+    // themselves
+    if (hadAriaExpandedAttributeOnCreate) {
+      return;
+    }
+
     var nodes = normalizeToArray(instance.props.triggerTarget || reference);
     nodes.forEach(function (node) {
       if (instance.props.interactive) {
@@ -6300,7 +6309,11 @@ function createTippy(reference, passedProps) {
           break;
 
         case 'focus':
-          on(isIE ? 'focusout' : 'blur', onBlur);
+          on(isIE ? 'focusout' : 'blur', onBlurOrFocusOut);
+          break;
+
+        case 'focusin':
+          on('focusout', onBlurOrFocusOut);
           break;
       }
     });
@@ -6371,7 +6384,7 @@ function createTippy(reference, passedProps) {
       return el === reference || el === popper;
     });
 
-    if (isCursorOverReferenceOrPopper) {
+    if (event.type === 'mousemove' && isCursorOverReferenceOrPopper) {
       return;
     }
 
@@ -6405,14 +6418,15 @@ function createTippy(reference, passedProps) {
       doc.body.addEventListener('mouseleave', scheduleHide);
       doc.addEventListener('mousemove', debouncedOnMouseMove);
       pushIfUnique(mouseMoveListeners, debouncedOnMouseMove);
+      debouncedOnMouseMove(event);
       return;
     }
 
     scheduleHide(event);
   }
 
-  function onBlur(event) {
-    if (event.target !== getCurrentTarget()) {
+  function onBlurOrFocusOut(event) {
+    if (!includes(instance.props.trigger, 'focusin') && event.target !== getCurrentTarget()) {
       return;
     } // If focus was moved to within the popper
 
@@ -6993,7 +7007,6 @@ exports.hideAll = hideAll;
 exports.includes = includes;
 exports.isBrowser = isBrowser;
 exports.isMouseEvent = isMouseEvent;
-exports.isUCBrowser = isUCBrowser;
 exports.normalizeToArray = normalizeToArray;
 exports.removeProperties = removeProperties;
 exports.setVisibilityState = setVisibilityState;
@@ -7002,11 +7015,11 @@ exports.useIfDefined = useIfDefined;
 exports.warnWhen = warnWhen;
 
 
-}).call(this,require('_process'))
+}).call(this)}).call(this,require('_process'))
 },{"_process":1,"popper.js":5}],7:[function(require,module,exports){
-(function (process){
+(function (process){(function (){
 /**!
-* tippy.js v5.1.4
+* tippy.js v5.2.1
 * (c) 2017-2020 atomiks
 * MIT License
 */
@@ -7256,7 +7269,7 @@ var animateFill = {
     var _instance$popperChild = instance.popperChildren,
         tooltip = _instance$popperChild.tooltip,
         content = _instance$popperChild.content;
-    var backdrop = instance.props.animateFill && !index.isUCBrowser ? createBackdropElement() : null;
+    var backdrop = instance.props.animateFill ? createBackdropElement() : null;
 
     function addBackdropToPopperChildren() {
       instance.popperChildren.backdrop = backdrop;
@@ -7391,7 +7404,7 @@ var followCursor = {
       // scroll for "vertical"
 
 
-      if (getIsEnabled() && (getIsInitialBehavior() || instance.props.followCursor !== true)) {
+      if (getIsEnabled() && getIsInitialBehavior()) {
         instance.popperInstance.disableEventListeners();
       }
     }
@@ -7432,7 +7445,6 @@ var followCursor = {
       var isCursorOverReference = index.closestCallback(event.target, function (el) {
         return el === reference;
       });
-      var rect = reference.getBoundingClientRect();
       var followCursor = instance.props.followCursor;
       var isHorizontal = followCursor === 'horizontal';
       var isVertical = followCursor === 'vertical';
@@ -7456,6 +7468,7 @@ var followCursor = {
           clientWidth: 0,
           clientHeight: 0,
           getBoundingClientRect: function getBoundingClientRect() {
+            var rect = reference.getBoundingClientRect();
             return {
               width: isVerticalPlacement ? size : 0,
               height: isVerticalPlacement ? 0 : size,
@@ -7721,7 +7734,7 @@ exports.inlinePositioning = inlinePositioning;
 exports.sticky = sticky;
 
 
-}).call(this,require('_process'))
+}).call(this)}).call(this,require('_process'))
 },{"./tippy.chunk.cjs.js":6,"_process":1,"popper.js":5}],8:[function(require,module,exports){
 'use strict';
 
@@ -7749,7 +7762,7 @@ function launch() {
   });
 })(document, window, domIsReady);
 
-},{"./texte/de":14,"./view":15,"mithril":3}],9:[function(require,module,exports){
+},{"./texte/de":13,"./view":14,"mithril":3}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7909,24 +7922,6 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = encode;
-
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-function encode(receiver, subject, body) {
-  //return encodeURIComponent(receiver + '?subject=' + subject + '&body='  + body)
-  return encodeURIComponent(receiver) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-}
-
-},{}],13:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports["default"] = void 0;
 
 var _mithril = _interopRequireDefault(require("mithril"));
@@ -7949,9 +7944,7 @@ __('account multiple times on login-server');
 __('account not on community server');
 __('no keys');
 */
-var AccountState =
-/*#__PURE__*/
-function () {
+var AccountState = /*#__PURE__*/function () {
   function AccountState(stateName) {
     _classCallCheck(this, AccountState);
 
@@ -8050,7 +8043,7 @@ function () {
 
 exports["default"] = AccountState;
 
-},{"mithril":3}],14:[function(require,module,exports){
+},{"mithril":3}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8226,7 +8219,6 @@ var _default = {
   DELETE_FROM_COMMUNITY_SUCCESS: 'Benutzer Konto vom Gemeinschafts-Server erfolgreich gelöscht',
   VERIFICATION_EMAIL_RESEND: 'Verification Email erneut zusenden',
   VERIFICATION_EMAIL_RESEND_SUCCESS: 'Verification Email wird erneut zugestellt',
-  MAILTO_VERIFICATION_EMAIL: 'Verification Email selbst verschicken',
   COPY_FAILED: 'Fehler beim Kopieren',
   DELETE_FAILED: 'Fehler beim löschen',
   RESEND_FAILED: 'Senden fehlgeschlagen',
@@ -8240,7 +8232,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8305,7 +8297,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../model/AccountState":13,"./userTable":23,"mithril":3}],16:[function(require,module,exports){
+},{"../model/AccountState":12,"./userTable":21,"mithril":3}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8405,7 +8397,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"mithril":3}],17:[function(require,module,exports){
+},{"../../../lib/dialog":11,"mithril":3}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8450,7 +8442,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./actionBase":16,"mithril":3}],18:[function(require,module,exports){
+},{"./actionBase":15,"mithril":3}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8575,7 +8567,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],19:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8671,127 +8663,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],20:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-
-var _mithril = _interopRequireDefault(require("mithril"));
-
-var _actionBase = _interopRequireDefault(require("./actionBase"));
-
-var _dialog = _interopRequireDefault(require("../../../lib/dialog"));
-
-var _emailToLink = _interopRequireDefault(require("../../../lib/emailToLink"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-/* 
- * @author: Dario Rekowski
- * 
- * @date: 20.03.20
- *  
- * @brief: getting email verification code in silence
- */
-function oninit(vnode) {
-  vnode.state.loading = true;
-  vnode.state.results = null;
-  vnode.state.additionalUserData = [];
-  vnode.state.serverData = [];
-
-  _mithril["default"].request({
-    method: 'POST',
-    url: window.location.protocol + '//' + document.domain + '/state-users/ajaxGetUserEmailVerificationCode',
-    data: vnode.attrs.user,
-    headers: {
-      'X-CSRF-Token': csfr_token
-    }
-  }).then(function (result) {
-    vnode.state.loading = false;
-
-    if (result.state === 'success') {
-      vnode.state.copyResult = 'success';
-      vnode.state.additionalUserData = result.data.userData;
-      vnode.state.serverData = result.data.server; //console.log("ajax result: %o", result)
-    } else {//console.log("result error")
-      }
-  })["catch"](function (e) {
-    vnode.state.loading = false;
-    console.error("ajax error: %s in file: %s in line: %d", e.message, e.fileName, e.lineNumber);
-  });
-}
-
-function getField(vnode, index) {
-  if (null === vnode.state.results) {
-    return (0, _mithril["default"])('i.spinner-border.spinner-border-sm');
-  } else if (index in vnode.state.results) {
-    return vnode.state.results[index];
-  } else {
-    return '0';
-  }
-}
-
-function view(vnode) {
-  var email = vnode.attrs.user.email;
-  var first_name = vnode.attrs.user.first_name;
-  var last_name = vnode.attrs.user.last_name;
-  var recevier = first_name + ' ' + last_name + ' <' + email + '>';
-  var userData = vnode.state.additionalUserData;
-  var serverData = vnode.state.serverData; //console.log('Server data: %o', serverData)
-  //vnode.state.additionalUserData.verificationCode
-
-  var link = serverData['loginServer.path'] + '/checkEmail/' + userData['EmailVerificationCode.Register'];
-  var body = 'Liebe(r) ' + first_name + ' ' + last_name + ',\n\
-\n\
-Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
-Du hast vor einer Weile ein Gradido Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
-\n\
-Bitte klicke zur Bestätigung auf den Link: ' + link + '\n\
-oder kopiere den obigen Link in Dein Browserfenster.\n\
-\n\
-Mit freundlichen Grüßen\n\
-Dario, Gradido Server Admin\n\
-';
-
-  if (true === vnode.state.loading) {
-    return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('button.btn.btn-secondary.btn-xs', {
-      title: window.texte.MAILTO_VERIFICATION_EMAIL,
-      disabled: true
-    }, (0, _mithril["default"])('i.spinner-border.spinner-border-sm')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
-  } else {
-    return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('a.btn.btn-primary.btn-xs', {
-      title: window.texte.MAILTO_VERIFICATION_EMAIL,
-      href: 'mailto:' + (0, _emailToLink["default"])(recevier, 'Gradido: E-Mail Verification', body)
-    }, (0, _mithril["default"])('i.mdi.mdi-email-outline')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
-  }
-
-  return (0, _mithril["default"])('span', [(0, _mithril["default"])('span', [(0, _mithril["default"])('a.btn.btn-secondary.btn-xs', {
-    title: window.texte.MAILTO_VERIFICATION_EMAIL,
-    href: 'mailto:' + (0, _emailToLink["default"])(recevier, 'Gradido: E-Mail Verification', body),
-    disabled: vnode.state.loading === true
-  }, vnode.state.loading === true ? (0, _mithril["default"])('i.spinner-border.spinner-border-sm') : (0, _mithril["default"])('i.mdi.mdi-email-outline')), window.texte.MAILTO_VERIFICATION_EMAIL])]);
-  /*return m('span', [
-    window.texte.RECEIVE_TRANSACTIONS_COUNT,
-    getField(vnode, 'receive'),
-    ', ',
-    window.texte.SENDED_TRANSACTIONS_COUNT,
-    getField(vnode, 'sended'),
-    ', ',
-    window.texte.CREATION_TRANSACTIONS_COUNT,
-    getField(vnode, 'creation')
-  ])*/
-}
-
-var _default = {
-  view: view,
-  oninit: oninit
-};
-exports["default"] = _default;
-
-},{"../../../lib/dialog":11,"../../../lib/emailToLink":12,"./actionBase":16,"mithril":3}],21:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],19:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8830,12 +8702,12 @@ function oninit(vnode) {
     vnode.state.loading = false;
 
     if (result.state === 'success') {
-      //vnode.state.message = m('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS)
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-success', window.texte.DELETE_FROM_COMMUNITY_SUCCESS);
       vnode.state.copyResult = 'success';
       vnode.state.results = result.counts;
     } else {
       //console.log("result error")
-      //vnode.state.message  = m('div.alert.alert-danger', window.texte.DELETE_FAILED)
+      vnode.state.message = (0, _mithril["default"])('div.alert.alert-danger', window.texte.DELETE_FAILED);
       vnode.state.copyResult = 'error';
     }
   })["catch"](function (e) {
@@ -8866,7 +8738,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../../lib/dialog":11,"./actionBase":16,"mithril":3}],22:[function(require,module,exports){
+},{"../../../lib/dialog":11,"./actionBase":15,"mithril":3}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8896,7 +8768,7 @@ function view(vnode) {
     ajaxData: vnode.attrs.user,
     alertSuccess: window.texte.VERIFICATION_EMAIL_RESEND_SUCCESS,
     alertFailed: window.texte.RESEND_FAILED,
-    btnColor: 'btn-gradido-orange',
+    btnColor: 'btn-primary',
     btnSymbol: 'mdi-email',
     btnTitle: window.texte.VERIFICATION_EMAIL_RESEND,
     progessText: window.texte.RESEND_IN_PROGRESS
@@ -8908,7 +8780,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./actionBase":16,"mithril":3}],23:[function(require,module,exports){
+},{"./actionBase":15,"mithril":3}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8932,6 +8804,10 @@ function oninit(vnode) {
   }
 
   vnode.state.openedUser = -1;
+  vnode.state.order = {
+    field: 'default',
+    dir: 'DESC'
+  };
 }
 
 function openButtonClick(vnode, index) {
@@ -8940,6 +8816,27 @@ function openButtonClick(vnode, index) {
   } else {
     vnode.state.openedUser = index;
   }
+}
+
+function changeOrder(vnode, fieldName) {
+  var field = vnode.state.order.field;
+  var dir = vnode.state.order.dir;
+
+  if (field != fieldName) {
+    vnode.state.order.field = fieldName;
+    vnode.state.order.dir = 'DESC';
+  } else if (field == fieldName) {
+    var new_dir;
+
+    if (dir == 'DESC') {
+      new_dir = 'ASC';
+    } else {
+      new_dir = 'DESC';
+    }
+
+    vnode.state.order.dir = new_dir;
+  } //console.log("change to %s %s", vnode.state.order.field, vnode.state.order.dir)
+
 }
 
 function updateStateForActiveUser(newState, vnode) {
@@ -8957,12 +8854,154 @@ function deleteActiveUser(vnode) {
   }
 }
 
+function sortByCreated(var1, var2, dir) {
+  if (var1.created == var2.created) {
+    return 0;
+  }
+
+  var var1_date = new Date(var1.created);
+  var var2_date = new Date(var2.created); // kleiner als null => niedriger index, a kommt zuerst, b kommt als nächstes
+  // größer als null => höherer index, b kommt zuerst
+
+  if (dir == 'DESC') {
+    // descending
+    if (var1_date < var2_date) {
+      return 1;
+    } else {
+      return -1;
+    }
+  } else {
+    // ascending
+    if (var1_date < var2_date) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+}
+
+function sortyByString(var1, var2, dir, field) {
+  if (var1[field] == var2[field]) {
+    return 0;
+  } // kleiner als null => niedriger index, a kommt zuerst, b kommt als nächstes
+  // größer als null => höherer index, b kommt zuerst
+
+
+  if (dir == 'DESC') {
+    // descending
+    if (var1[field] < var2[field]) {
+      return 1;
+    } else {
+      return -1;
+    }
+  } else {
+    // ascending
+    if (var1[field] < var2[field]) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+}
+
+function sortByBalance(var1, var2, dir) {
+  if (var1.balance == var2.balance) {
+    return 0;
+  }
+
+  var var1_balance = parseFloat(var1.balance);
+  var var2_balance = parseFloat(var2.balance); // kleiner als null => niedriger index, a kommt zuerst, b kommt als nächstes
+  // größer als null => höherer index, b kommt zuerst
+
+  if (dir == 'DESC') {
+    // descending
+    if (var1_balance < var2_balance) {
+      return 1;
+    } else {
+      return -1;
+    }
+  } else {
+    // ascending
+    if (var1_balance < var2_balance) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+} // js sort work in place, so no copy is created
+
+
+function sort(vnode, user) {
+  var field = vnode.state.order.field;
+  var dir = vnode.state.order.dir;
+
+  if (field == 'created') {
+    user.sort(function (var1, var2) {
+      return sortByCreated(var1, var2, dir);
+    });
+  } else if (field == 'name' || field == 'email' || field == 'pubkeyhex') {
+    user.sort(function (var1, var2) {
+      return sortyByString(var1, var2, dir, field);
+    });
+  } else if (field == 'balance') {
+    user.sort(function (var1, var2) {
+      return sortByBalance(var1, var2, dir);
+    });
+  }
+}
+
+function getArrow(vnode, fieldName) {
+  // Arrow-up: &#8593;
+  // Arrow-down: &#8595;
+  if (vnode.state.order.field == fieldName) {
+    if (vnode.state.order.dir == 'DESC') {
+      return _mithril["default"].trust('&#8595&nbsp;');
+    } else {
+      return _mithril["default"].trust('&#8593&nbsp;');
+    }
+  }
+
+  return _mithril["default"].trust('&nbsp;&nbsp;');
+}
+
 function view(vnode) {
+  // js sort work in place, so me made a deep copy first
+  var user_sorted = JSON.parse(JSON.stringify(vnode.state.orderedUsers));
+
+  if (vnode.state.order.field != 'default') {
+    sort(vnode, user_sorted);
+  }
+
   return (0, _mithril["default"])('table.table.table-hover.table-sm', [(0, _mithril["default"])('thead', (0, _mithril["default"])('tr.solid-header', [(0, _mithril["default"])('th', {
     style: {
       'padding-left': '1.5rem'
     }
-  }), (0, _mithril["default"])('th', window.texte.NAME), (0, _mithril["default"])('th', window.texte.EMAIL), (0, _mithril["default"])('th', window.texte.BALANCE), (0, _mithril["default"])('th', _mithril["default"].trust(window.texte.PUBLIC_KEY)), (0, _mithril["default"])('th', window.texte.CREATED)])), (0, _mithril["default"])('tbody', vnode.state.orderedUsers.map(function (value, index) {
+  }), (0, _mithril["default"])('th', (0, _mithril["default"])('a', {
+    onclick: function onclick() {
+      changeOrder(vnode, 'name');
+    },
+    className: 'grd_clickable'
+  }, [getArrow(vnode, 'name'), window.texte.NAME])), (0, _mithril["default"])('th', (0, _mithril["default"])('a', {
+    onclick: function onclick() {
+      changeOrder(vnode, 'email');
+    },
+    className: 'grd_clickable'
+  }, [getArrow(vnode, 'email'), window.texte.EMAIL])), (0, _mithril["default"])('th', (0, _mithril["default"])('a', {
+    onclick: function onclick() {
+      changeOrder(vnode, 'balance');
+    },
+    className: 'grd_clickable'
+  }, [getArrow(vnode, 'balance'), window.texte.BALANCE])), (0, _mithril["default"])('th', (0, _mithril["default"])('a', {
+    onclick: function onclick() {
+      changeOrder(vnode, 'pubkeyhex');
+    },
+    className: 'grd_clickable'
+  }, [getArrow(vnode, 'pubkeyhex'), _mithril["default"].trust(window.texte.PUBLIC_KEY)])), (0, _mithril["default"])('th', (0, _mithril["default"])('a', {
+    onclick: function onclick() {
+      changeOrder(vnode, 'created');
+    },
+    className: 'grd_clickable'
+  }, [getArrow(vnode, 'created'), window.texte.CREATED]))])), (0, _mithril["default"])('tbody', user_sorted.map(function (value, index) {
     var open = vnode.state.openedUser === index;
     return [(0, _mithril["default"])(_rowView["default"], {
       user: value,
@@ -8989,7 +9028,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./rowAction":24,"./rowView":25,"mithril":3}],24:[function(require,module,exports){
+},{"./rowAction":22,"./rowView":23,"mithril":3}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9008,8 +9047,6 @@ var _userTransactionsOverview = _interopRequireDefault(require("./actions/userTr
 var _copyCommunityLogin = _interopRequireDefault(require("./actions/copyCommunityLogin"));
 
 var _verificationResend = _interopRequireDefault(require("./actions/verificationResend"));
-
-var _mailtoVerificationResend = _interopRequireDefault(require("./actions/mailtoVerificationResend"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -9034,9 +9071,6 @@ function getAction(name) {
 
     case 'verification-resend':
       return _verificationResend["default"];
-
-    case 'mailto-verification-resend':
-      return _mailtoVerificationResend["default"];
   }
 
   return null;
@@ -9077,7 +9111,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"./actions/copyCommunityLogin":17,"./actions/copyLoginCommunity":18,"./actions/deleteCommunityServer":19,"./actions/mailtoVerificationResend":20,"./actions/userTransactionsOverview":21,"./actions/verificationResend":22,"mithril":3}],25:[function(require,module,exports){
+},{"./actions/copyCommunityLogin":16,"./actions/copyLoginCommunity":17,"./actions/deleteCommunityServer":18,"./actions/userTransactionsOverview":19,"./actions/verificationResend":20,"mithril":3}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9148,4 +9182,4 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":13,"mithril":3}]},{},[8]);
+},{"../../lib/Gradido":9,"../../lib/Tooltip":10,"../../model/AccountState":12,"mithril":3}]},{},[8]);

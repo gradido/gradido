@@ -1,19 +1,14 @@
 <template>
-  <div>
-    default
-  </div>
+  <div>default</div>
 </template>
 
 <script>
 export default {
   name: 'default',
-  data(){
-    return {      
-    };
+  data() {
+    return {}
   },
-  methods: {
-  },
-  watch: {
-  }
-};
+  methods: {},
+  watch: {},
+}
 </script>

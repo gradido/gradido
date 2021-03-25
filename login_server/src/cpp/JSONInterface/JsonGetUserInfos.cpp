@@ -7,6 +7,26 @@
 
 #include "../ServerConfig.h"
 
+Poco::UInt64 JsonGetUserInfos::readOrCreateEmailVerificationCode(int user_id, model::table::EmailOptInType type)
+{
+	try {
+		auto emailVerificationCode = controller::EmailVerificationCode::load(user_id, type);
+		if (!emailVerificationCode) {
+			emailVerificationCode = controller::EmailVerificationCode::create(user_id, type);
+			UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
+			insert->scheduleTask(insert);
+		}
+		return emailVerificationCode->getModel()->getCode();
+	}
+	catch (Poco::Exception& ex) {
+		ErrorList errors;
+		//printf("exception: %s\n", ex.displayText().data());
+		errors.addError(new ParamError("JsonGetUserInfos::readOrCreateEmailVerificationCode", "exception: ", ex.displayText()));
+		errors.sendErrorsAsEmail();
+	}
+	return 0;
+}
+
 Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
@@ -54,11 +74,22 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		return customStateError("not found", "session not found");
 	}
 
+	auto session_user = session->getNewUser();
+	auto session_user_model = session_user->getModel();
+	bool isAdmin = false;
+	bool emailBelongToUser = false;
+	if (model::table::ROLE_ADMIN == session_user_model->getRole()) {
+		isAdmin = true;
+	}
+	if (session_user_model->getEmail() == email) {
+		emailBelongToUser = true;
+	}
+	
 	auto user = controller::User::create();
 	if (1 != user->load(email)) {
 		return customStateError("not found", "user not found");
 	}
-	auto userModel = user->getModel();
+	auto user_model = user->getModel();
 
 	
 	Poco::JSON::Object* result = new Poco::JSON::Object;
@@ -72,42 +103,32 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		std::string parameterString;
 		try {
 			parameter.convert(parameterString);
-			if (parameterString == "EmailVerificationCode.Register") {
-				try {
-					auto emailVerificationCode = controller::EmailVerificationCode::load(
-						userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER
-					);
-					if (!emailVerificationCode) {
-						emailVerificationCode = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-						UniLib::controller::TaskPtr insert = new model::table::ModelInsertTask(emailVerificationCode->getModel(), false);
-						insert->scheduleTask(insert);
-					}
-					jsonUser.set("EmailVerificationCode.Register", std::to_string(emailVerificationCode->getModel()->getCode()));
-				}
-				catch (Poco::Exception& ex) {
-					printf("exception: %s\n", ex.displayText().data());
+			if (parameterString == "EmailVerificationCode.Register" && isAdmin && !emailBelongToUser) {
+				auto code = readOrCreateEmailVerificationCode(user_model->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
+				if (code) {
+					jsonUser.set("EmailVerificationCode.Register", std::to_string(code));
 				}
 			}
 			else if (parameterString == "loginServer.path") {
 				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
 			}
 			else if (parameterString == "user.pubkeyhex") {
-				jsonUser.set("pubkeyhex", userModel->getPublicKeyHex());
+				jsonUser.set("pubkeyhex", user_model->getPublicKeyHex());
 			}
 			else if (parameterString == "user.first_name") {
-				jsonUser.set("first_name", userModel->getFirstName());
+				jsonUser.set("first_name", user_model->getFirstName());
 			}
 			else if (parameterString == "user.last_name") {
-				jsonUser.set("last_name", userModel->getLastName());
+				jsonUser.set("last_name", user_model->getLastName());
 			}
 			else if (parameterString == "user.disabled") {
-				jsonUser.set("disabled", userModel->isDisabled());
+				jsonUser.set("disabled", user_model->isDisabled());
 			}
-			else if (parameterString == "user.email_checked") {
-				jsonUser.set("email_checked", userModel->isEmailChecked());
+			else if (parameterString == "user.email_checked" && (isAdmin || emailBelongToUser)) {
+				jsonUser.set("email_checked", user_model->isEmailChecked());
 			}
 			else if (parameterString == "user.identHash") {
-				auto email = userModel->getEmail();
+				auto email = user_model->getEmail();
 				jsonUser.set("identHash", DRMakeStringHash(email.data(), email.size()));
 			}
 		}

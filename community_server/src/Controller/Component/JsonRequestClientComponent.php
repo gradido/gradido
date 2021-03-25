@@ -55,7 +55,7 @@ class JsonRequestClientComponent extends Component
       ]), '/getRunningUserTasks');
   }
   
-  public function getUsers($session_id, $searchString)
+  public function getUsers($session_id, $searchString, $accountState)
   {
     if($searchString == "") {
         return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'search string is empty'];
@@ -66,7 +66,8 @@ class JsonRequestClientComponent extends Component
     
     return $this->sendRequest(json_encode([
                 'session_id' => $session_id,
-                'search' => $searchString
+                'search' => $searchString,
+                'account_state' => $accountState,
             ]), '/getUsers');
   }
   

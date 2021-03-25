@@ -12,7 +12,8 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 
 	int session_id = 0;
 	std::string searchString;
-	
+	std::string accountState = "";
+	static std::string emptySearchString = "... empty ...";
 	// if is json object
 	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
 		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
@@ -23,6 +24,9 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 		/// Throws InvalidAccessException if Var is empty.
 		try {
 			paramJsonObject->get("search").convert(searchString);
+			if (paramJsonObject->has("account_state")) {
+				paramJsonObject->get("account_state").convert(accountState);
+			}
 			paramJsonObject->get("session_id").convert(session_id);
 		}
 		catch (Poco::Exception& ex) {
@@ -67,17 +71,20 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 	}
 	
 	auto user = session->getNewUser();
+	if (searchString == emptySearchString) {
+		searchString = "";
+	}
 	if (user.isNull()) {
 		return customStateError("not found", "Session didn't contain user");
 	}
-	else if (searchString == "") {
-		return customStateError("not found", "Search string is empty");
+	else if (searchString == "" && (accountState == "" || accountState == "all")) {
+		return customStateError("not found", "Search string is empty and account_state is all or empty");
 	}
 	else if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
 		return customStateError("wrong role", "User hasn't correct role");
 	}
 
-	auto results = controller::User::search(searchString);
+	auto results = controller::User::search(searchString, accountState);
 	if (!results.size()) {
 		return stateSuccess();
 	}
