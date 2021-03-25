@@ -157,7 +157,7 @@
         <div class="display-4 p-4">Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!</div>
 
         <b-list-group>
-          <b-list-group-item href="javascript:;" active>Meine Zahlung</b-list-group-item>
+          <b-list-group-item active>Meine Zahlung</b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $store.state.ajaxCreateData.email }}
             <b-badge variant="primary" pill>Empfänger</b-badge>
