@@ -15,8 +15,6 @@ using namespace Poco::Data::Keywords;
 
 #include "../ServerConfig.h"
 
-#include "../tasks/PrepareEmailTask.h"
-#include "../tasks/SendEmailTask.h"
 
 #include "../controller/EmailVerificationCode.h"
 #include "../model/table/ElopageBuy.h"
