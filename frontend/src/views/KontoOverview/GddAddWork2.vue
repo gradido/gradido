@@ -1,34 +1,44 @@
 <template>
-  <div>
-    <b-tabs content-class="mt-3" fill>
+  <div class="pt-4 pb-4">
+    <b-tabs content-class="mt-3" class="display-4" fill>
       <b-tab :title="names.thisMonth" active>
         <b-row>
-          <b-col cols="3">
-            <base-input label="Arbeitstunden">
-              <b-form-input type="number" placeholder="23" />
+          <b-col lg="3">
+            <base-input label="Stunden">
+              <b-form-input
+                type="number"
+                size="lg"
+                placeholder="23"
+                style="font-size: xx-large; padding-left: 20px"
+              />
             </base-input>
             <base-input label="Datum / Zeitraum">
-              <flat-pickr class="form-control" v-model="date" :config="config"></flat-pickr>
+              <flat-pickr
+                class="form-control"
+                v-model="date"
+                :config="config"
+                style="font-size: xx-large; padding-left: 20px"
+              ></flat-pickr>
             </base-input>
           </b-col>
-          <b-col cols="9">
+          <b-col lg="9">
             <base-input label="Arbeitsreport">
-              <textarea class="form-control" rows="5" @focus="textFocus"></textarea>
+              <textarea
+                class="form-control"
+                rows="5"
+                @focus="textFocus"
+                style="font-size: x-large; padding-left: 20px"
+              ></textarea>
             </base-input>
           </b-col>
         </b-row>
+
         <b-row>
-          <b-col>
-            <button class="btn btn-info text-right" @click.prevent="newWorkForm">
-              weiteren Report hinzufügen
-            </button>
+          <b-col md="6">
+            <b-button @click.prevent="newWorkForm" variant="warning">+ weitere Stunden</b-button>
           </b-col>
-          <b-col>
-            <div class="text-right">
-              <button class="btn btn-info text-right" @click.prevent="submitForm2">
-                save new Report
-              </button>
-            </div>
+          <b-col md="6" class="text-right">
+            <b-button variant="success" @click.prevent="submitForm2">Einreichen, absenden</b-button>
           </b-col>
         </b-row>
       </b-tab>
@@ -50,17 +60,13 @@
           </b-col>
         </b-row>
         <b-row>
-          <b-col>
-            <button class="btn btn-warning text-right" @click.prevent="newWorkForm">
+          <b-col md="12">
+            <b-button @click.prevent="newWorkForm" variant="warning">
               + weiteren Report hinzufügen
-            </button>
+            </b-button>
           </b-col>
-          <b-col>
-            <div class="text-right">
-              <button class="btn btn-info text-right" @click.prevent="submitForm2">
-                save new Report
-              </button>
-            </div>
+          <b-col md="12" class="text-right">
+            <b-button variant="success">Einreichen, absenden</b-button>
           </b-col>
         </b-row>
         <hr />

@@ -13,6 +13,9 @@ export const store = new Vuex.Store({
     sizeDE: 'normal',
     sizeGB: 'big',
     loginfail: false,
+    row_form: true,
+    row_check: false,
+    row_thx: false,
     user: {
       name: '',
       balance: 0,
@@ -22,7 +25,7 @@ export const store = new Vuex.Store({
       session_id: '',
       email: '',
       amount: 0,
-      target_date: '2021-02-19T13:25:36+00:00',
+      target_date: '',
       memo: '',
       auto_sign: true,
     },
@@ -141,8 +144,17 @@ export const store = new Vuex.Store({
     },
     ajaxCreate: async ({ dispatch, state }) => {
       //console.log('action: ajaxCreate')
+
       state.ajaxCreateData.amount = state.ajaxCreateData.amount * 10000
-      const result = await communityAPI.create($cookies.get('gdd_session_id', email, amount, memo))
+
+      const result = await communityAPI.create(
+        state.session_id,
+        state.ajaxCreateData.email,
+        state.ajaxCreateData.amount,
+        state.ajaxCreateData.memo,
+      )
+
+      return result
       //console.log(result)
     },
     ajaxListTransactions: async ({ commit, dispatch, state }) => {
@@ -157,8 +169,8 @@ export const store = new Vuex.Store({
       // commit('session_id', $cookies.get("gdd_session_id"))
       // commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get('gdd_session_id'))
-      //console.log('accountBalance result', result)
-      //console.log('aresult.result.data.balance', result.result.data.balance)
+      //console.log("accountBalance result", result)
+      //console.log("aresult.result.data.balance", result.result.data.balance)
       if (result.success) {
         commit('user_balance', result.result.data.balance)
       } else {
