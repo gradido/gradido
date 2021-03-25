@@ -76,7 +76,7 @@ class TransactionCreation extends TransactionBase {
       {
         for ($i=0; $i < strlen($str); $i++)
         {
-          $ret = TransactionCreation::DRHashRotateLeft($ret, 7) + ord($str{$i});
+//          $ret = TransactionCreation::DRHashRotateLeft($ret, 7) + ord($str{$i});
         }
       }
       return $ret;
@@ -272,7 +272,7 @@ class TransactionCreation extends TransactionBase {
                 ->setSubject(__('Gradido Schöpfung erhalten'))
                 ->send();
         } catch(Exception $e) {
-          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+//          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
           return false;
         }
       return true;
