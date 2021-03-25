@@ -147,7 +147,7 @@ export const store = new Vuex.Store({
 
       state.ajaxCreateData.amount = state.ajaxCreateData.amount * 10000
 
-      const result = await communityAPI.create(
+      const result = await communityAPI.send(
         state.session_id,
         state.ajaxCreateData.email,
         state.ajaxCreateData.amount,
