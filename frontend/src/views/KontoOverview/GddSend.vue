@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-row>
-      <b-col xl="12" md="12">
+    <b-row v-show="row_form">
+      <b-col xl="12" md="12" >
           
                <b-alert variant="warning" show dismissible >
                   <strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
@@ -126,6 +126,46 @@
           
         </b-col>
     </b-row>
+    <b-row v-show="row_thx">
+      <b-col>
+       <div class="display-1 p-4"> 
+         Danke <hr>
+        Deine Zahlung wurde erfolgreich versendet.</div>
+       
+       <b-button   variant="success" @click="onReset">schließen</b-button>
+        <hr>
+      </b-col>
+    </b-row>
+     <b-row v-show="row_check">
+      <b-col >
+        <div class="display-4 p-4"> 
+         
+         Bestätige dein Zahlung. Prüfe bitte nochmal alle Daten!</div>
+
+         <b-list-group>
+           <b-list-group-item href="javascript:;" active>Meine Zahlung</b-list-group-item>
+              <b-list-group-item class="d-flex justify-content-between align-items-center">
+                {{ $store.state.ajaxCreateData.email}}
+                <b-badge variant="primary" pill>Empfänger</b-badge>
+              </b-list-group-item>
+
+              <b-list-group-item class="d-flex justify-content-between align-items-center">
+                {{ ($store.state.ajaxCreateData.amount)}} GDD
+                <b-badge variant="primary" pill>Betrag</b-badge>
+              </b-list-group-item>
+
+              <b-list-group-item class="d-flex justify-content-between align-items-center">
+                {{ $store.state.ajaxCreateData.memo}}
+                <b-badge variant="primary" pill>Nachricht</b-badge>
+              </b-list-group-item> 
+               <b-list-group-item class="d-flex justify-content-between align-items-center">
+               {{ $moment($store.state.ajaxCreateData.target_date).format("DD.MM.YYYY - HH:mm:ss")}}
+                <b-badge variant="primary" pill>Datum</b-badge>
+              </b-list-group-item>
+            </b-list-group>
+      <b-button   variant="success" @click="sendTransaction">jetzt versenden</b-button>
+       </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -151,12 +191,15 @@ export default {
           amount: '',
           memo:''     
         },
-        sent: false,
+        send: false,
+        row_form: true,
+        row_check: false,
+        row_thx: false,
     }
   },
   methods: {
     sendbutton(){
-      this.sent = true
+      this.send = true
     },
      async onDecode (decodedString) {
            console.log('onDecode JSON.parse(decodedString)',JSON.parse(decodedString) )
@@ -191,7 +234,18 @@ export default {
         this.$store.state.ajaxCreateData.memo = this.form.memo
         this.$store.state.ajaxCreateData.target_date =  Date.now()
 
-        this.$store.dispatch('ajaxCreate')
+       this.row_form = false
+       this.row_check = true
+       this.row_thx = false
+
+
+        console.log(ref)
+      },
+      sendTransaction() {
+            this.$store.dispatch('ajaxCreate')
+            this.row_form = false
+            this.row_check = false
+            this.row_thx = true
       },
       onReset(event) {
         event.preventDefault()
@@ -201,6 +255,9 @@ export default {
         this.$nextTick(() => {
           this.show = true
         })
+            this.row_form = true
+            this.row_check = false
+            this.row_thx = false
       }
   },
    computed: {
