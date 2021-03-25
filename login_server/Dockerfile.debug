@@ -6,10 +6,10 @@ RUN git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.g
 WORKDIR /protobuf
 
 RUN	git checkout v3.9.1
-RUN ./autogen.sh 
+RUN     ./autogen.sh 
 RUN	./configure --enable-static=yes
-RUN	make -j$(grep processor /proc/cpuinfo | wc -l)
-RUN make check
+RUN	make -j$(nproc)
+#RUN make check
 
 CMD ["./protobuf"]
 
@@ -43,7 +43,7 @@ RUN cd dependencies/iroha-ed25519 && \
 	mkdir build && \
 	cd build && \	
 	cmake .. -DCMAKE_BUILD_TYPE=Debug -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC && \
-	make -j$(grep processor /proc/cpuinfo | wc -l)
+	make -j$(nproc)
 	
 RUN cd dependencies/mariadb-connector-c && \
 	mkdir build && \
@@ -98,7 +98,7 @@ RUN ./compile_pot.sh
 RUN ./compile_proto.sh
 RUN cd build && \
 	cmake  -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(grep processor /proc/cpuinfo | wc -l)
+	make -j$(nproc)
 
 
 #########################################################################################################
