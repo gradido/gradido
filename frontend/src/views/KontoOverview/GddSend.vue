@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row>
+    <b-row v-show="row_form">
       <b-col xl="12" md="12">
         <b-alert variant="warning" show dismissible>
           <strong>Achtung!</strong>
@@ -17,9 +17,7 @@
               <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true" />
             </b-col>
             <b-alert v-show="scan" show variant="warning">
-              <span class="alert-text" @click="scan = false">
-                <strong>schließen!</strong>
-              </span>
+              <span class="alert-text" @click="scan = false"><strong>schließen!</strong></span>
             </b-alert>
             <div v-if="scan">
               <!-- <b-row>                                          
@@ -142,11 +140,51 @@
         </b-card>
       </b-col>
     </b-row>
+    <b-row v-show="row_thx">
+      <b-col>
+        <div class="display-1 p-4">
+          Danke
+          <hr />
+          Deine Zahlung wurde erfolgreich versendet.
+        </div>
+
+        <b-button variant="success" @click="onReset">schließen</b-button>
+        <hr />
+      </b-col>
+    </b-row>
+    <b-row v-show="row_check">
+      <b-col>
+        <div class="display-4 p-4">Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!</div>
+
+        <b-list-group>
+          <b-list-group-item href="javascript:;" active>Meine Zahlung</b-list-group-item>
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ $store.state.ajaxCreateData.email }}
+            <b-badge variant="primary" pill>Empfänger</b-badge>
+          </b-list-group-item>
+
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ $store.state.ajaxCreateData.amount }} GDD
+            <b-badge variant="primary" pill>Betrag</b-badge>
+          </b-list-group-item>
+
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ $store.state.ajaxCreateData.memo }}
+            <b-badge variant="primary" pill>Nachricht</b-badge>
+          </b-list-group-item>
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ $moment($store.state.ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
+            <b-badge variant="primary" pill>Datum</b-badge>
+          </b-list-group-item>
+        </b-list-group>
+        <b-button variant="success" @click="sendTransaction">jetzt versenden</b-button>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
 <script>
-import { QrcodeStream, QrcodeDropZone /*, QrcodeCapture*/ } from 'vue-qrcode-reader'
+import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
 
 export default {
@@ -154,7 +192,6 @@ export default {
   components: {
     QrcodeStream,
     QrcodeDropZone,
-    // QrcodeCapture,
     BIcon,
   },
   data() {
@@ -167,56 +204,11 @@ export default {
         amount: '',
         memo: '',
       },
-      sent: false,
+      send: false,
+      row_form: true,
+      row_check: false,
+      row_thx: false,
     }
-  },
-  methods: {
-    sendbutton() {
-      this.sent = true
-    },
-    async onDecode(decodedString) {
-      //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
-      const arr = JSON.parse(decodedString)
-      //console.log('qr-email', arr[0].email)
-      //console.log('qr-amount', arr[0].amount)
-
-      this.form.email = arr[0].email
-      this.form.amount1 = arr[0].amount
-    },
-    async onDetect(promise) {
-      try {
-        const {
-          imageData, // raw image data of image/frame
-          content, // decoded String
-          location, // QR code coordinates
-        } = await promise
-        // console.log('onDetect promise',promise)
-        //console.log('JSON.parse(decodedString)',JSON.parse(promise) )
-        const arr = JSON.parse(decodedString)
-      } catch (error) {
-        // ...
-      }
-    },
-    async onSubmit() {
-      //event.preventDefault()
-      //console.log("onSubmit", this.form)
-      this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
-      this.$store.state.ajaxCreateData.email = this.form.email
-      this.$store.state.ajaxCreateData.amount = this.form.amount
-      this.$store.state.ajaxCreateData.memo = this.form.memo
-      this.$store.state.ajaxCreateData.target_date = Date.now()
-
-      this.$store.dispatch('ajaxCreate')
-    },
-    onReset(event) {
-      event.preventDefault()
-      this.form.email = ''
-      this.form.amount = ''
-      this.show = false
-      this.$nextTick(() => {
-        this.show = true
-      })
-    },
   },
   computed: {
     state() {
@@ -227,6 +219,49 @@ export default {
         return 'Geben Sie mindestens 4 Zeichen ein.'
       }
       return 'Bitte geben Sie eine GDD Adresse ein.'
+    },
+  },
+  methods: {
+    async onDecode(decodedString) {
+      //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
+      const arr = JSON.parse(decodedString)
+      //console.log('qr-email', arr[0].email)
+      //console.log('qr-amount', arr[0].amount)
+
+      this.row_form = false
+      this.row_check = true
+      this.row_thx = false
+    },
+    async onSubmit() {
+      //event.preventDefault()
+      //console.log("onSubmit", this.form)
+      this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
+      this.$store.state.ajaxCreateData.email = this.form.email
+      this.$store.state.ajaxCreateData.amount = this.form.amount
+      this.$store.state.ajaxCreateData.memo = this.form.memo
+      this.$store.state.ajaxCreateData.target_date = Date.now()
+
+      this.row_form = false
+      this.row_check = true
+      this.row_thx = false
+    },
+    sendTransaction() {
+      this.$store.dispatch('ajaxCreate')
+      this.row_form = false
+      this.row_check = false
+      this.row_thx = true
+    },
+    onReset(event) {
+      event.preventDefault()
+      this.form.email = ''
+      this.form.amount = ''
+      this.show = false
+      this.$nextTick(() => {
+        this.show = true
+      })
+      this.row_form = true
+      this.row_check = false
+      this.row_thx = false
     },
   },
 }

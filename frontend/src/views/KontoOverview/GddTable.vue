@@ -111,12 +111,20 @@ export default {
     }
   },
   computed: {
-    filteredItems(a) {
-      // console.log("filteredItems date",a.items)
-      return a.items
+    filteredItems() {
+      return this.ojectToArray(this.items).reverse()
     },
   },
   methods: {
+    ojectToArray(obj) {
+      let result = new Array(Object.keys(obj).length)
+      Object.entries(obj).forEach((entry) => {
+        const [key, value] = entry
+        result[key] = value
+      })
+      return result
+    },
+
     rowClass(item, type) {
       if (!item || type !== 'row') return
       if (item.type === 'receive') return 'table-success'
