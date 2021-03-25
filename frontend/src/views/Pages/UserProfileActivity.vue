@@ -1,42 +1,45 @@
 <template>
   <div>
     <div
-      class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-      style="max-height: 200px"
+      class="header pb-7 pt-5"
     ></div>
 
     <b-container fluid class="mt--6">
-      <b-row>
-        <b-col>
-          <div>
-            <gdd-add-work-2 />
+<div class="display-3 mb-3">Gemeinschaftsstunden Chart</div>
+  <b-row>
+     
+        <b-col >
+          <div class="chart">
+            <line-chart :height="350" :chart-data="bigLineChart.chartData"></line-chart>
           </div>
-          <br />
         </b-col>
       </b-row>
-      <hr />
-      <b-row>
-        <b-col xl="4" class="order-xl-2 mb-5">
+<hr>
+ <div class="display-3 mt-6">Neue Gemeinschaftsstunden eintragen</div>
+        <b-row>
+       
+        <b-col>
+          
+            <gdd-add-work-2 />
+       
+        </b-col>
+      </b-row>
+
+<hr>
+<div class="display-3 mb-3">Meine Gemeinschaftsstunden Liste</div>
+         <b-row>
+        <b-col   class="mb-5">
           community
           <gdd-work-table></gdd-work-table>
         </b-col>
-        <b-col xl="8" class="order-xl-1">
-          transactions
-          <gdd-table></gdd-table>
-        </b-col>
+         
       </b-row>
-      <b-row>
-        <b-col xl="6" S>
-          <div class="chart">
-            <line-chart :height="350" :chart-data="bigLineChart.chartData"></line-chart>
-          </div>
-        </b-col>
-        <b-col xl="6">
-          <div class="chart">
-            <line-chart :height="350" :chart-data="bigLineChart.chartData"></line-chart>
-          </div>
-        </b-col>
-      </b-row>
+    
+
+
+    
+      
+   
     </b-container>
   </div>
 </template>
@@ -47,7 +50,6 @@ import GddAddWork2 from '../../views/KontoOverview/GddAddWork2.vue'
 
 import * as chartConfigs from '@/components/Charts/config'
 import LineChart from '@/components/Charts/LineChart'
-//import BarChart from '@/components/Charts/BarChart';
 
 export default {
   components: {
@@ -55,7 +57,6 @@ export default {
     GddWorkTable,
     LineChart,
     GddAddWork2,
-    //BarChart
   },
   data() {
     return {
@@ -70,11 +71,11 @@ export default {
         chartData: {
           datasets: [
             {
-              label: 'Performance',
-              data: [0, 20, 10, 30, 15, 40, 20, 60, 60],
+              label: 'Gemeinschaftsstunden',
+              data: [30, 20, 10, 30, 65, 40, 20, 60, 70],
             },
           ],
-          labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          labels: ['2020 Aug' ,'Sep' ,'Okt', 'Nov', 'Dez', 'Jan', 'Feb', 'Mär 2021'],
         },
         extraOptions: chartConfigs.blueChartOptions,
       },

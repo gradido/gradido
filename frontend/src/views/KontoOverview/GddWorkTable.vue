@@ -18,6 +18,15 @@
         </div>
       </b-list-group-item>
     </b-list-group>
+    <hr>
+       <b-icon
+         
+            icon="clock-history"
+            class="m-1"
+            font-scale="2"
+            style="color: orange"
+          >  </b-icon>Wartet auf Bestätigung | 
+          <b-icon   icon="check2-all" class="m-1" font-scale="2" style="color: green"> </b-icon> bestätigt
   </div>
 </template>
 
@@ -30,25 +39,25 @@ export default {
       items: [
         {
           id: 1,
-          text: 'Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum ',
+          text: 'Zwei Säcke Plastikmüll im Wald gesammelt',
           datel: '12.12.2020 14:04',
           status: 'submitted',
         },
         {
           id: 2,
-          text: 'Larsen Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum ',
+          text: 'Frau Schmidt bei der Gartenarbeit geholfen.',
           datel: '22.06.2020 22:23',
           status: 'submitted',
         },
         {
           id: 3,
-          text: 'Geneva Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum ',
+          text: 'Ein online Kurs für nachhaltiges Mülltrennen erstellt',
           datel: '15.04.2020 12:55',
           status: 'confirmed',
         },
         {
           id: 4,
-          text: 'Community Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum ',
+          text: 'Gradido bei meinen Freunden vorgestellt',
           datel: '10.03.2020 18:20',
           status: 'confirmed',
         },
