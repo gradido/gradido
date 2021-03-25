@@ -1,39 +1,46 @@
 <template>
   <div class="pt-4 pb-4">
     <b-tabs content-class="mt-3" class="display-4" fill>
-      <b-tab :title="names.thisMonth" active >
-        <b-row >
+      <b-tab :title="names.thisMonth" active>
+        <b-row>
           <b-col lg="3">
             <base-input label="Stunden">
-              <b-form-input type="number" size="lg" placeholder="23" style="font-size: xx-large; padding-left: 20px"/>
+              <b-form-input
+                type="number"
+                size="lg"
+                placeholder="23"
+                style="font-size: xx-large; padding-left: 20px"
+              />
             </base-input>
-            <base-input label="Datum / Zeitraum" >
-              <flat-pickr class="form-control" v-model="date" :config="config" style="font-size: xx-large; padding-left: 20px" ></flat-pickr>
+            <base-input label="Datum / Zeitraum">
+              <flat-pickr
+                class="form-control"
+                v-model="date"
+                :config="config"
+                style="font-size: xx-large; padding-left: 20px"
+              ></flat-pickr>
             </base-input>
           </b-col>
           <b-col lg="9">
             <base-input label="Arbeitsreport">
-              <textarea class="form-control" rows="5" @focus="textFocus" style="font-size: x-large; padding-left: 20px"></textarea>
+              <textarea
+                class="form-control"
+                rows="5"
+                @focus="textFocus"
+                style="font-size: x-large; padding-left: 20px"
+              ></textarea>
             </base-input>
           </b-col>
         </b-row>
 
-          <b-row>
+        <b-row>
           <b-col md="6">
-          
-            <b-button  @click.prevent="newWorkForm" variant="warning">
-                     + weitere Stunden 
-                  </b-button>
+            <b-button @click.prevent="newWorkForm" variant="warning">+ weitere Stunden</b-button>
           </b-col>
-          <b-col md="6" class="text-right" >
-            
-              <b-button   variant="success"  @click.prevent="submitForm2">
-                    Einreichen, absenden
-                  </b-button>
-          
+          <b-col md="6" class="text-right">
+            <b-button variant="success" @click.prevent="submitForm2">Einreichen, absenden</b-button>
           </b-col>
         </b-row>
- 
       </b-tab>
 
       <b-tab :title="names.lastMonth">
@@ -54,17 +61,12 @@
         </b-row>
         <b-row>
           <b-col md="12">
-          
-            <b-button  @click.prevent="newWorkForm" variant="warning">
-                     + weiteren Report hinzufügen
-                  </b-button>
+            <b-button @click.prevent="newWorkForm" variant="warning">
+              + weiteren Report hinzufügen
+            </b-button>
           </b-col>
           <b-col md="12" class="text-right">
-            
-              <b-button   variant="success">
-                    Einreichen, absenden
-                  </b-button>
-          
+            <b-button variant="success">Einreichen, absenden</b-button>
           </b-col>
         </b-row>
         <hr />
@@ -255,7 +257,7 @@ export default {
       //console.log('textFocus TODO')
     },
     newWorkForm() {
-      console.log('newWorkForm TODO')
+      //console.log('newWorkForm TODO')
     },
   },
 }

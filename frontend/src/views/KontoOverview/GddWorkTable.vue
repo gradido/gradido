@@ -18,15 +18,11 @@
         </div>
       </b-list-group-item>
     </b-list-group>
-    <hr>
-       <b-icon
-         
-            icon="clock-history"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          >  </b-icon>Wartet auf Bestätigung | 
-          <b-icon   icon="check2-all" class="m-1" font-scale="2" style="color: green"> </b-icon> bestätigt
+    <hr />
+    <b-icon icon="clock-history" class="m-1" font-scale="2" style="color: orange"></b-icon>
+    Wartet auf Bestätigung |
+    <b-icon icon="check2-all" class="m-1" font-scale="2" style="color: green"></b-icon>
+    bestätigt
   </div>
 </template>
 
