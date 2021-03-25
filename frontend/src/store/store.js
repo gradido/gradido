@@ -13,6 +13,9 @@ export const store = new Vuex.Store({
     sizeDE: 'normal',
     sizeGB: 'big',
     loginfail: false,
+    row_form: true,
+    row_check: false,
+    row_thx: false,
     user: {
       name: '',
       balance: 0,

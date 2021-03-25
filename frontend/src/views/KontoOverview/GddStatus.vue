@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row>
+    <b-row v-show="$store.state.row_form">
       <b-col xl="6" md="6">
         <stats-card type="gradient-red" sub-title="balance_gdd" class="mb-4 h1">
           {{ $n($store.state.user.balance) }} GDD

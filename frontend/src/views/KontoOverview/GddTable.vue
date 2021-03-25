@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-list-group>
+    <b-list-group v-show="$store.state.row_form">
       <b-list-group-item
         v-for="item in filteredItems"
         :key="item.id"

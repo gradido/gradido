@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="row_form">
+    <b-row v-show="$store.state.row_form">
       <b-col xl="12" md="12">
         <b-alert variant="warning" show dismissible>
           <strong>Achtung!</strong>
@@ -140,19 +140,7 @@
         </b-card>
       </b-col>
     </b-row>
-    <b-row v-show="row_thx">
-      <b-col>
-        <div class="display-1 p-4">
-          Danke
-          <hr />
-          Deine Zahlung wurde erfolgreich versendet.
-        </div>
-
-        <b-button variant="success" @click="onReset">schließen</b-button>
-        <hr />
-      </b-col>
-    </b-row>
-    <b-row v-show="row_check">
+    <b-row v-show="$store.state.row_check">
       <b-col>
         <div class="display-4 p-4">Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!</div>
 
@@ -177,7 +165,25 @@
             <b-badge variant="primary" pill>Datum</b-badge>
           </b-list-group-item>
         </b-list-group>
-        <b-button variant="success" @click="sendTransaction">jetzt versenden</b-button>
+        <hr>
+        <b-row>
+          <b-col><b-button  @click="onReset">abbrechen</b-button></b-col>
+          <b-col  class="text-right"><b-button variant="success" @click="sendTransaction">jetzt versenden</b-button></b-col>
+        </b-row>
+        
+         
+      </b-col>
+    </b-row>
+    <b-row v-show="$store.state.row_thx">
+      <b-col>
+        <div class="display-1 p-4">
+          Danke
+          <hr />
+          Deine Zahlung wurde erfolgreich versendet.
+        </div>
+
+        <b-button variant="success" @click="onReset">schließen</b-button>
+        <hr />
       </b-col>
     </b-row>
   </div>
@@ -204,10 +210,7 @@ export default {
         amount: '',
         memo: '',
       },
-      send: false,
-      row_form: true,
-      row_check: false,
-      row_thx: false,
+      send: false
     }
   },
   computed: {
@@ -228,9 +231,9 @@ export default {
       //console.log('qr-email', arr[0].email)
       //console.log('qr-amount', arr[0].amount)
 
-      this.row_form = false
-      this.row_check = true
-      this.row_thx = false
+      this.$store.state.row_form = false
+      this.$store.state.row_check = true
+      this.$store.state.row_thx = false
     },
     async onSubmit() {
       //event.preventDefault()
@@ -241,15 +244,15 @@ export default {
       this.$store.state.ajaxCreateData.memo = this.form.memo
       this.$store.state.ajaxCreateData.target_date = Date.now()
 
-      this.row_form = false
-      this.row_check = true
-      this.row_thx = false
+      this.$store.state.row_form = false
+      this.$store.state.row_check = true
+      this.$store.state.row_thx = false
     },
     sendTransaction() {
       this.$store.dispatch('ajaxCreate')
-      this.row_form = false
-      this.row_check = false
-      this.row_thx = true
+      this.$store.state.row_form = false
+      this.$store.state.row_check = false
+      this.$store.state.row_thx = true
     },
     onReset(event) {
       event.preventDefault()
@@ -259,9 +262,9 @@ export default {
       this.$nextTick(() => {
         this.show = true
       })
-      this.row_form = true
-      this.row_check = false
-      this.row_thx = false
+      this.$store.state.row_form = true
+      this.$store.state.row_check = false
+      this.$store.state.row_thx = false
     },
   },
 }
