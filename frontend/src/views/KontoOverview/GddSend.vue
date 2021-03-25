@@ -165,13 +165,13 @@
             <b-badge variant="primary" pill>Datum</b-badge>
           </b-list-group-item>
         </b-list-group>
-        <hr>
+        <hr />
         <b-row>
-          <b-col><b-button  @click="onReset">abbrechen</b-button></b-col>
-          <b-col  class="text-right"><b-button variant="success" @click="sendTransaction">jetzt versenden</b-button></b-col>
+          <b-col><b-button @click="onReset">abbrechen</b-button></b-col>
+          <b-col class="text-right">
+            <b-button variant="success" @click="sendTransaction">jetzt versenden</b-button>
+          </b-col>
         </b-row>
-        
-         
       </b-col>
     </b-row>
     <b-row v-show="$store.state.row_thx">
@@ -210,7 +210,7 @@ export default {
         amount: '',
         memo: '',
       },
-      send: false
+      send: false,
     }
   },
   computed: {
