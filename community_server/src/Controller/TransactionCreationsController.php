@@ -369,7 +369,20 @@ class TransactionCreationsController extends AppController
                         $pendings[$id] = $localAmountCent;
                     }
                     $pubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
-                    $identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
+                    $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
+                        'session_id' => $session->read('session_id'),
+                        'email' => $receiverUser->email,
+                        'ask' => ['user.identHash']
+                    ]), '/getUserInfos');
+                    
+                    $identHash = 0;
+                    if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+                        $identHash = $requestAnswear['data']['userData']['identHash'];
+                    } else {
+                        $this->Flash->error(__('Error by requesting LoginServer, please try again'));
+                    }
+                    
+                    //$identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
                     $localTargetDateFrozen = FrozenDate::now();
                     $localTargetDateFrozen = $localTargetDateFrozen
                     ->year($localTargetDate['year'])
