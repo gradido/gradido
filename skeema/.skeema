@@ -1,0 +1,5 @@
+[production]
+flavor=mariadb:10.5
+host=mariadb
+port=3306
+user=root
