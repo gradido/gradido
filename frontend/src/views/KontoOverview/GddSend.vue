@@ -7,7 +7,7 @@
           Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine
           Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
         </b-alert>
-        <b-card class="p-0 p-md-3">
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
           <b-alert show variant="secondary">
             <span class="alert-text">
               <strong>QR Code Scanner</strong>
@@ -230,10 +230,9 @@ export default {
       const arr = JSON.parse(decodedString)
       //console.log('qr-email', arr[0].email)
       //console.log('qr-amount', arr[0].amount)
-
-      this.$store.state.row_form = false
-      this.$store.state.row_check = true
-      this.$store.state.row_thx = false
+      this.form.email = arr[0].email
+      this.form.amount = arr[0].amount
+      this.scan = false
     },
     async onSubmit() {
       //event.preventDefault()

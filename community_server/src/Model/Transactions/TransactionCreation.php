@@ -63,24 +63,6 @@ class TransactionCreation extends TransactionBase {
         return ['state' => 'success', 'transactionBody' => $transactionBody];
     }
     
-    static protected function DRHashRotateLeft( $hash, $rotateBy )
-    {
-      return ($hash<<$rotateBy)|($hash>>(32-$rotateBy));
-    }
-
-    static public function DRMakeStringHash($str) 
-    {
-      $ret = 0;
-
-      if( $str )
-      {
-        for ($i=0; $i < strlen($str); $i++)
-        {
-//          $ret = TransactionCreation::DRHashRotateLeft($ret, 7) + ord($str{$i});
-        }
-      }
-      return $ret;
-    }
     
     public function getAmount() {
       return $this->protoTransactionCreation->getReceiverAmount()->getAmount();
@@ -303,7 +285,7 @@ class TransactionCreation extends TransactionBase {
       
       // intval
       //$protoCreation->setIdentHash(intval($identHashBytes));
-      $protoCreation->setIdentHash(self::DRMakeStringHash($stateUser->email));
+      //$protoCreation->setIdentHash(self::DRMakeStringHash($stateUser->email));
       return new TransactionCreation($protoCreation);
     }
 }

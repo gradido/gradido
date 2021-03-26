@@ -75,7 +75,8 @@ class TransactionTransfer extends TransactionBase {
       foreach($sigPairs as $sigPair) {
           //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
           $pubkey = bin2hex($sigPair->getPubKey());
-          $hash = TransactionCreation::DRMakeStringHash($pubkey);
+          //$hash = TransactionCreation::DRMakeStringHash($pubkey);
+          $hash = $pubkey;
           if(!isset($sigPubHexs[$hash])) {
             $sigPubHexs[$hash] = [$pubkey];
           } else {
@@ -100,7 +101,8 @@ class TransactionTransfer extends TransactionBase {
           return false;
         }
         // check if signature exist for sender
-        $hash = TransactionCreation::DRMakeStringHash($senderPublicHex);
+        //$hash = TransactionCreation::DRMakeStringHash($senderPublicHex);
+        $hash = $senderPublicHex;
         if(!isset($sigPubHexs[$hash]) || in_array($senderPublicHex, $sigPubHexs[$hash]) === FALSE) {
           $this->addError($functionName, 'missing signature for sender');
           return false;

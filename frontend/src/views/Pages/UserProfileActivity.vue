@@ -31,7 +31,6 @@
   </div>
 </template>
 <script>
-//import GddTable from '../../views/KontoOverview/GddTable.vue'
 import GddWorkTable from '../../views/KontoOverview/GddWorkTable.vue'
 import GddAddWork2 from '../../views/KontoOverview/GddAddWork2.vue'
 
@@ -40,7 +39,6 @@ import LineChart from '@/components/Charts/LineChart'
 
 export default {
   components: {
-    // GddTable,
     GddWorkTable,
     LineChart,
     GddAddWork2,

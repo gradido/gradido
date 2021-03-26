@@ -39,7 +39,12 @@ export default {
       //console.log('%cHey %c' + $cookies.get('gdd_u') + '', 'font-weight:bold', 'color: orange')
       this.$store.commit('session_id', $cookies.get('gdd_session_id'))
       this.$store.commit('email', $cookies.get('gdd_u'))
-      this.$store.commit('language', $cookies.get('gdd_lang'))
+      if ($cookies.get('gdd_lang') != 'de' || $cookies.get('gdd_lang') != 'de') {
+        this.$store.commit('language', 'de')
+      } else {
+        this.$store.commit('language', $cookies.get('gdd_lang'))
+      }
+
       this.$i18n.locale = $cookies.get('gdd_lang')
       this.$router.push('overview')
     } else {
