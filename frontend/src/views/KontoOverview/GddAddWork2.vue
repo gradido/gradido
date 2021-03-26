@@ -32,7 +32,9 @@
             </base-input>
           </b-col>
         </b-row>
-
+        <b-row>
+          <div ref="mydiv"></div>
+        </b-row>
         <b-row>
           <b-col md="6">
             <b-button @click.prevent="newWorkForm" variant="warning">+ weitere Stunden</b-button>
@@ -90,6 +92,7 @@ export default {
           .month(this.$moment().month() - 2)
           .format('MMMM'),
       },
+      formular: null,
     }
   },
   created() {},
@@ -98,6 +101,7 @@ export default {
       stunden(this.form)
     },
   },
+  mounted() {},
   methods: {
     stunden(hour, i, mon) {
       let n = 0
@@ -137,7 +141,42 @@ export default {
       //console.log('textFocus TODO')
     },
     newWorkForm() {
-      //console.log('newWorkForm TODO')
+      this.formular = `  
+          <b-col lg="3">
+            <base-input label="Stunden">
+              <b-form-input
+                type="number"
+                size="lg"
+                placeholder="0"
+                style="font-size: xx-large; padding-left: 20px"
+              />
+            </base-input>
+            <base-input label="Datum / Zeitraum">
+              <flat-pickr
+                class="form-control"
+                v-model="date"
+                :config="config"
+                style="font-size: xx-large; padding-left: 20px"
+              ></flat-pickr>
+            </base-input>
+          </b-col>
+          <b-col lg="9">
+            <base-input label="Arbeitsreport">
+              <textarea
+                class="form-control"
+                rows="5"
+                @focus="textFocus"
+                style="font-size: x-large; padding-left: 20px"
+              ></textarea>
+            </base-input>
+          </b-col>
+         `
+
+      // console.log('newWorkForm TODO')
+      const myElement = this.$refs.mydiv
+      myElement.append(this.formular)
+      this.$compile(myElement)
+      this.formular = null
     },
   },
 }

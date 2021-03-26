@@ -3,7 +3,7 @@
     <div class="header pb-7 pt-5"></div>
 
     <b-container fluid class="mt--6">
-      <div class="display-3 mb-3">Gemeinschaftsstunden Chart</div>
+      <div class="display-4 mb-3">Gemeinschaftsstunden Chart</div>
       <b-row>
         <b-col>
           <div class="chart">
@@ -12,7 +12,7 @@
         </b-col>
       </b-row>
       <hr />
-      <div class="display-3 mt-6">Neue Gemeinschaftsstunden eintragen</div>
+      <div class="display-4 mt-6">Neue Gemeinschaftsstunden eintragen</div>
       <b-row>
         <b-col>
           <gdd-add-work-2 />
@@ -20,7 +20,7 @@
       </b-row>
 
       <hr />
-      <div class="display-3 mb-3">Meine Gemeinschaftsstunden Liste</div>
+      <div class="display-4 mb-3">Meine Gemeinschaftsstunden Liste</div>
       <b-row>
         <b-col class="mb-5">
           community
