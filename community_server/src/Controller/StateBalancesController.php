@@ -84,7 +84,7 @@ class StateBalancesController extends AppController
             }
         }
         
-        if(!$recalculate_state_user_transactions_balance) {
+        if(!$recalculate_state_user_transactions_balance && $state_user_transactions->count() > 0) {
             $last_state_user_transaction = $state_user_transactions->last();
             if($last_state_user_transaction->balance <= 0) {
                 $recalculate_state_user_transactions_balance = true;
@@ -168,7 +168,7 @@ class StateBalancesController extends AppController
              $state_balance = $this->StateBalances->newEntity();
              $state_balance->state_user_id =  $stateUserId;
         }
-        if($state_balance) {
+        if($state_balance && $state_user_transactions->count() > 0) {
              $state_balance->amount = $state_user_transactions->last()->balance;
              $state_balance->record_date = $state_user_transactions->last()->balance_date;    
              if(!$this->StateBalances->save($state_balance)) {
