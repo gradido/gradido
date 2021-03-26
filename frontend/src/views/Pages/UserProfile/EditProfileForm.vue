@@ -1,10 +1,5 @@
 <template>
-  <card>
-    <b-row align-v="center" slot="header">
-      <b-col cols="8"></b-col>
-      <b-col cols="4" class="text-right"></b-col>
-    </b-row>
-
+  <card style="background-color: #ebebeba3 !important">
     <b-form @submit.prevent="updateProfile">
       <h6 class="heading-small text-muted mb-4">User information</h6>
 
