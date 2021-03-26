@@ -33,7 +33,7 @@
           </b-col>
         </b-row>
         <b-row>
-           <div ref="mydiv"></div>
+          <div ref="mydiv"></div>
         </b-row>
         <b-row>
           <b-col md="6">
@@ -192,7 +192,7 @@ export default {
           .month(this.$moment().month() - 2)
           .format('MMMM'),
       },
-      formular: null
+      formular: null,
     }
   },
   created() {},
@@ -201,9 +201,7 @@ export default {
       stunden(this.form)
     },
   },
-  mounted() {
-     
-  },
+  mounted() {},
   methods: {
     getTR(m, i) {
       //console.log(m + '-' + i)
@@ -263,7 +261,7 @@ export default {
       //console.log('textFocus TODO')
     },
     newWorkForm() {
-      this.formular =  `  
+      this.formular = `  
           <b-col lg="3">
             <base-input label="Stunden">
               <b-form-input
@@ -294,14 +292,12 @@ export default {
           </b-col>
          `
 
-         
-       console.log('newWorkForm TODO')
-       const myElement = this.$refs.mydiv
-       myElement.append(this.formular);
-        this.$compile(myElement);
-           this.formular = null
-    
-    }
-  }
+      // console.log('newWorkForm TODO')
+      const myElement = this.$refs.mydiv
+      myElement.append(this.formular)
+      this.$compile(myElement)
+      this.formular = null
+    },
+  },
 }
 </script>
