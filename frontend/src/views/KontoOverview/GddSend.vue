@@ -226,7 +226,7 @@ export default {
   },
   methods: {
     async onDecode(decodedString) {
-      //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
+      console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
       const arr = JSON.parse(decodedString)
       //console.log('qr-email', arr[0].email)
       //console.log('qr-amount', arr[0].amount)

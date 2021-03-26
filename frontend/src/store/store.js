@@ -8,7 +8,7 @@ import communityAPI from '../apis/communityAPI'
 export const store = new Vuex.Store({
   state: {
     session_id: null,
-    email: null,
+    email: '',
     language: 'en',
     sizeDE: 'normal',
     sizeGB: 'big',
@@ -153,9 +153,15 @@ export const store = new Vuex.Store({
         state.ajaxCreateData.amount,
         state.ajaxCreateData.memo,
       )
+      console.log(result)
 
+      if (result.success) {
+         console.log('send success')
+      } else {
+         console.log('send error')
+      }
       return result
-      //console.log(result)
+     
     },
     ajaxListTransactions: async ({ commit, dispatch, state }) => {
       // console.log('action: ajaxListTransactions', state.session_id)
