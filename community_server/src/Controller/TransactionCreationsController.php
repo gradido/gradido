@@ -54,12 +54,12 @@ class TransactionCreationsController extends AppController
         ];
         $transactionCreations = $this->paginate($this->TransactionCreations);
         $identHashes = [];
-        foreach ($transactionCreations as $creation) {
+        /*foreach ($transactionCreations as $creation) {
             $identHash = TransactionCreation::DRMakeStringHash($creation->state_user->email);
             $identHashes[$creation->state_user->id] = $identHash;
-        }
+        }*/
 
-        $this->set(compact('transactionCreations', 'identHashes'));
+        //$this->set(compact('transactionCreations', 'identHashes'));
     }
 
     /**
@@ -125,7 +125,7 @@ class TransactionCreationsController extends AppController
 
                 if (count($receiverProposal) > $receiverIndex) {
                     $pubKeyHex = $receiverProposal[$receiverIndex]['key'];
-                    $identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
+                    //$identHash = TransactionCreation::DRMakeStringHash($receiverProposal[$receiverIndex]['email']);
                 }
                 $builderResult = TransactionCreation::build(
                     $amountCent,

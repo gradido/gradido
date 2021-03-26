@@ -285,7 +285,7 @@ class TransactionCreation extends TransactionBase {
       
       // intval
       //$protoCreation->setIdentHash(intval($identHashBytes));
-      $protoCreation->setIdentHash(self::DRMakeStringHash($stateUser->email));
+      //$protoCreation->setIdentHash(self::DRMakeStringHash($stateUser->email));
       return new TransactionCreation($protoCreation);
     }
 }
