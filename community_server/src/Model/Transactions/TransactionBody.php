@@ -4,6 +4,7 @@ namespace Model\Transactions;
 
 use Cake\ORM\TableRegistry;
 use Cake\I18n\Date;
+use Cake\I18n\Time;
 
 class TransactionBody extends TransactionBase {
   private $mProtoTransactionBody = null;
@@ -76,7 +77,7 @@ class TransactionBody extends TransactionBase {
       
       $transactionEntity->transaction_type_id = $this->transactionTypeId;
       $transactionEntity->memo = $this->getMemo();
-      $transactionEntity->received = new Date();
+      $transactionEntity->received = new Time();
       
       if ($transactionsTable->save($transactionEntity)) {
         // success
