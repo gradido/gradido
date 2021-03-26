@@ -1,5 +1,11 @@
 <template>
-  <b-card no-body class="card-profile" alt="Image placeholder" img-top>
+  <b-card
+    no-body
+    class="card-profile"
+    alt="Image placeholder"
+    img-top
+    style="background-color: #ebebeba3 !important"
+  >
     <b-row class="justify-content-center">
       <b-col lg="3" class="order-lg-2">
         <div class="card-profile-image">
