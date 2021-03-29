@@ -133,4 +133,4 @@ networks:
     internal: true
 
 volumes:
-  db_vol:      
+  db_vol:
