@@ -62,3 +62,4 @@ services:
 volumes:
   frontend_node_modules:
   login_build:
+
