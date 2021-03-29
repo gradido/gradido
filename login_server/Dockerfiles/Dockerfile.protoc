@@ -25,6 +25,6 @@ COPY --from=protoc3.9.1_build /protobuf/src/google/protobuf/*.proto /usr/include
 COPY --from=protoc3.9.1_build /protobuf/src/google/protobuf/*.h /usr/include/google/protobuf/
 
 ## build with: 
-# docker build . -f Dockefile.protoc -t unicorny/protoc:3.9.1
+# docker build . -f Dockefile.protoc -t gradido/protoc:3.9.1
 ## upload (login to docker hub on shell before): 
-# docker push unicorny/protoc:3.9.1
+# docker push gradido/protoc:3.9.1
