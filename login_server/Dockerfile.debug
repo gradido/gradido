@@ -24,8 +24,8 @@ USER root
 #COPY --from=debug_preparation /code /code
 #COPY --from=debug_preparation /home/conan /home/conan
 #RUN ls -la /home/conan/.conan
-COPY . .
 WORKDIR ${DOCKER_WORKDIR}
+COPY . .
 
 #RUN ls -la 
 #RUN cat build/conanbuildinfo.cmake
@@ -34,18 +34,15 @@ RUN chmod +x compile_pot.sh
 #RUN ls -la
 RUN ./compile_pot.sh
 RUN ./compile_proto.sh
-RUN cd build && \
-	cmake  -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(nproc) Gradido_LoginServer
+
 
 
 #########################################################################################################
 # run debug
 #########################################################################################################
-FROM ubuntu:latest as login_server_debug
+FROM debug as login_server_debug
 
-WORKDIR "/usr/bin"
-
+ENV DOCKER_WORKDIR="/code"
 #RUN apt-get update && \
 #    apt-get install -y --no-install-recommends gdb && \
 #	apt-get autoclean && \
@@ -54,17 +51,17 @@ WORKDIR "/usr/bin"
 #	rm -rf /var/lib/apt/lists/*
 	
 VOLUME /var/log/grd_login
+VOLUME /code/src
 
-COPY --from=debug /code/build/bin/Gradido_LoginServer /usr/bin/
-COPY --from=debug /code/build/lib/libmariadb.so.3 /usr/lib/
-#COPY start_after_mysql.sh . 
-RUN chmod +x /usr/bin/Gradido_LoginServer
 EXPOSE 1200
 EXPOSE 1201
+WORKDIR ${DOCKER_WORKDIR}
+RUN chmod +x ./Dockerfiles/build_and_run.sh 
+
 #ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
 # Wait on mariadb to started
 #CMD ["sleep 5", "/usr/bin/Gradido_LoginServer"]
 #RUN chmod +x ./start_after_mysql.sh
 #ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
 #CMD gdb -ex=r Gradido_LoginServer
-CMD Gradido_LoginServer
+CMD ./Dockerfiles/build_and_run.sh

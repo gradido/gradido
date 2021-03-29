@@ -32,7 +32,8 @@ services:
       - SYS_PTRACE
     volumes:
       - ./logs:/var/log/grd_login 
-      - conan:/root/.conan
+      - ./login_server/src:/code/src 
+      - login_build:/code/build_vol
       
   #########################################################
   ## NGINX ################################################
@@ -60,4 +61,4 @@ services:
    
 volumes:
   frontend_node_modules:
-  conan:
+  login_build:
