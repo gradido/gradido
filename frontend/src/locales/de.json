@@ -6,7 +6,7 @@
   "signup": "Registrieren",
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
-  "back":"zurück",
+  "back":"Zurück",
   "sent":"Senden",
   "transactions":"Transaktionen",
   "language":"Language",
@@ -15,7 +15,7 @@
     "en": "English"
   },
   "form": {
-    "cancel":"abbrechen",
+    "cancel":"Abbrechen",
     "firstname":"Vorname",
     "lastname":"Nachname",
     "email":"eMail",
@@ -29,7 +29,7 @@
     "from":"von",
     "to":"bis",
     "at":"am",
-    "send_now":"jetzt versenden"
+    "send_now":"Jetzt versenden"
   },
   "transaction":{
     "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
@@ -54,7 +54,7 @@
     "password": {
       "title": "Passwort zurücksetzen",
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
-      "reset_now": "jetzt zurücksetzen"
+      "reset_now": "Jetzt zurücksetzen"
     },
     "thx": {
       "title": "Danke!",
@@ -68,7 +68,7 @@
       },
       "navbar" : {
         "my-profil":"Mein Profil",
-        "settings":"Einstellung",
+        "settings":"Einstellungen",
         "activity":"Aktivität",
         "support":"Support"
       },
@@ -80,19 +80,19 @@
       },
       "landing1" : {
         "explore": "Erkunden Sie Gradido",
-        "text": "Gesundes Geld für eine gesunde Welt - Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
+        "text": "Gesundes Geld für eine gesunde Welt — Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
         "link": "Seiten erkunden"
       },
       "404" : {
          "ooops" : "Ooops!",
          "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
-         "back" : "zurück zur Übersicht!"
+         "back" : "Zurück zur Übersicht!"
       }
   },
   "admin": {
     "site": {
       "overview": {
-        "created": "created",
+        "created": "Schöpfen",
         "transience" : "Transience",
         "exchanged": "Exchanged",
         "members" : "Members"

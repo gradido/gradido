@@ -271,3 +271,45 @@ return with "state":"error" and additional "msg" if error occured (no email send
 - "invalid email type": could not parse email type 
 - "invalid verification code type": could not parse email verification code type 
 - "json exception": error parsing input json, more infos can be found in details
+
+
+## Check Running Transactions / password encryption
+Check if transactions on login-server for user are processed 
+
+GET http://localhost/login_api/getRunningUserTasks?email=max.musterman%40gmail.de
+ # OR 
+POST http://localhost/login_api/getRunningUserTasks
+```json 
+{"email":"max.musterman@gmail.de"}
+```
+
+return 
+```json 
+{
+	"state":"success",
+	"runningTasks": {
+		"password creation": 0,
+		"sign transaction": 1,
+		"prepare transaction": 1,
+		"ready for sign transaction":0
+	}
+}
+```
+return only entrys which > 0
+- password creation: after register or password change, login possible after tasks is finish
+- sign transaction: after check transaction in backend, before transaction is in db
+- prepare transaction: after sending transaction to login-server, before they can be checked
+- ready for sign transaction: transactions ready for signing from user
+
+## Check Session State
+GET http://localhost/login_api/checkSessionState?session_id=-127182
+
+return if session is still open
+```json
+{"state":"success"}
+```
+else return
+```json
+{"state":"not found", "msg": "session not found"}
+```
+

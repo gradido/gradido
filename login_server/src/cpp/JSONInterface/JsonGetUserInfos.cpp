@@ -77,11 +77,12 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 	auto session_user = session->getNewUser();
 	auto session_user_model = session_user->getModel();
 	bool isAdmin = false;
+	bool emailBelongToUser = false;
 	if (model::table::ROLE_ADMIN == session_user_model->getRole()) {
 		isAdmin = true;
 	}
-	if (session_user_model->getEmail() != email && !isAdmin) {
-		return customStateError("not same", "email don't belong to logged in user");
+	if (session_user_model->getEmail() == email) {
+		emailBelongToUser = true;
 	}
 	
 	auto user = controller::User::create();
@@ -102,7 +103,7 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 		std::string parameterString;
 		try {
 			parameter.convert(parameterString);
-			if (parameterString == "EmailVerificationCode.Register" && isAdmin && session_user_model->getEmail() != user_model->getEmail()) {
+			if (parameterString == "EmailVerificationCode.Register" && isAdmin && !emailBelongToUser) {
 				auto code = readOrCreateEmailVerificationCode(user_model->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 				if (code) {
 					jsonUser.set("EmailVerificationCode.Register", std::to_string(code));
@@ -123,7 +124,7 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "user.disabled") {
 				jsonUser.set("disabled", user_model->isDisabled());
 			}
-			else if (parameterString == "user.email_checked") {
+			else if (parameterString == "user.email_checked" && (isAdmin || emailBelongToUser)) {
 				jsonUser.set("email_checked", user_model->isEmailChecked());
 			}
 			else if (parameterString == "user.identHash") {

@@ -8,7 +8,6 @@
     >
       <slot v-if="!dismissible"></slot>
       <template v-else>
-
         <template v-if="icon || $slots.icon">
           <slot name="icon">
             <span class="alert-icon" data-notify="icon">
@@ -17,14 +16,16 @@
           </slot>
         </template>
 
-        <span class="alert-text"> <slot></slot> </span>
+        <span class="alert-text"><slot></slot></span>
 
         <slot name="dismiss-icon">
-          <button type="button"
-                  class="close"
-                  data-dismiss="alert"
-                  aria-label="Close"
-                  @click="dismissAlert">
+          <button
+            type="button"
+            class="close"
+            data-dismiss="alert"
+            aria-label="Close"
+            @click="dismissAlert"
+          >
             <span aria-hidden="true">×</span>
           </button>
         </slot>
@@ -33,44 +34,43 @@
   </fade-transition>
 </template>
 <script>
-  import { FadeTransition } from 'vue2-transitions';
+import { FadeTransition } from 'vue2-transitions'
 
-  export default {
-    name: 'base-alert',
-    components: {
-      FadeTransition
+export default {
+  name: 'base-alert',
+  components: {
+    FadeTransition,
+  },
+  created() {
+    //console.log('base-alert gesetzt in =>', this.$route.path)
+  },
+  props: {
+    type: {
+      type: String,
+      default: 'default',
+      description: 'Alert type',
     },
-    created() {
-      console.log("base-alert gesetzt in =>", this.$route.path )
+    dismissible: {
+      type: Boolean,
+      default: false,
+      description: 'Whether alert is dismissible (closeable)',
     },
-    props: {
-      type: {
-        type: String,
-        default: 'default',
-        description: 'Alert type'
-      },
-      dismissible: {
-        type: Boolean,
-        default: false,
-        description: 'Whether alert is dismissible (closeable)'
-      },
-      icon: {
-        type: String,
-        default: '',
-        description: 'Alert icon to display'
-      }
+    icon: {
+      type: String,
+      default: '',
+      description: 'Alert icon to display',
     },
-    data() {
-      return {
-        visible: true
-      };
-    },
-    methods: {
-      dismissAlert() {
-        console.log("sdddddddddddddddddddddddd")
-        this.visible = false;
-        this.$store.state.loginfail = false;
-      }
+  },
+  data() {
+    return {
+      visible: true,
     }
-  };
+  },
+  methods: {
+    dismissAlert() {
+      this.visible = false
+      this.$store.state.loginfail = false
+    },
+  },
+}
 </script>

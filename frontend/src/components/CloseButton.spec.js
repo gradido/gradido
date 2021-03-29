@@ -5,10 +5,9 @@ import CloseButton from './CloseButton'
 const localVue = global.localVue
 
 describe('CloseButton', () => {
-
   let wrapper
   let propsData = {
-    target: "Target",
+    target: 'Target',
     expanded: false,
   }
 
@@ -17,7 +16,6 @@ describe('CloseButton', () => {
   }
 
   describe('mount', () => {
-
     beforeEach(() => {
       wrapper = Wrapper()
     })
@@ -26,7 +24,5 @@ describe('CloseButton', () => {
       wrapper.find('.navbar-toggler').trigger('click')
       expect(wrapper.emitted('click')).toBeTruthy()
     })
-    
   })
-  
 })
