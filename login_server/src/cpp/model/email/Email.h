@@ -70,7 +70,7 @@ namespace model {
 		EmailType mType;
 
 		std::queue<Poco::Net::StringPartSource*> mAdditionalStringPartSrcs;
-		std::string		mCustomText;
+		std::string     mCustomText;
 		std::string     mCustomSubject;
 	};
 }
