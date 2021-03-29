@@ -1,0 +1,30 @@
+#########################################################################################################
+# Build protoc 
+#########################################################################################################
+FROM gcc:7.5 as protoc3.9.1_build
+RUN git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git
+WORKDIR /protobuf
+
+RUN	git checkout v3.9.1
+RUN ./autogen.sh 
+RUN	./configure --enable-static=yes
+RUN	make -j$(nproc)
+#RUN make check
+
+CMD ["./protobuf"]
+
+#########################################################################################################
+# Store protoc 
+#########################################################################################################
+FROM alpine:3.10 as protoc
+
+COPY --from=protoc3.9.1_build /protobuf/src/.libs/protoc /usr/bin/
+COPY --from=protoc3.9.1_build /protobuf/src/.libs/libprotobuf.so.20.0.1 /usr/lib/libprotobuf.so.20
+COPY --from=protoc3.9.1_build /protobuf/src/.libs/libprotoc.so.20.0.1 /usr/lib/libprotoc.so.20
+COPY --from=protoc3.9.1_build /protobuf/src/google/protobuf/*.proto /usr/include/google/protobuf/
+COPY --from=protoc3.9.1_build /protobuf/src/google/protobuf/*.h /usr/include/google/protobuf/
+
+## build with: 
+# docker build . -f Dockefile.protoc -t unicorny/protoc:3.9.1
+## upload (login to docker hub on shell before): 
+# docker push unicorny/protoc:3.9.1

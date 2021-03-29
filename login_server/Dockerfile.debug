@@ -1,17 +1,4 @@
-#########################################################################################################
-# Build protoc 
-#########################################################################################################
-FROM gcc:7.5 as protoc_build
-RUN git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git
-WORKDIR /protobuf
 
-RUN	git checkout v3.9.1
-RUN     ./autogen.sh 
-RUN	./configure --enable-static=yes
-RUN	make -j$(nproc)
-#RUN make check
-
-CMD ["./protobuf"]
 
 #########################################################################################################
 # debug build preparation
