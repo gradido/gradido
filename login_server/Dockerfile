@@ -1,19 +1,4 @@
 #########################################################################################################
-# Build protoc 
-#########################################################################################################
-FROM gcc:7.5 as protoc_build
-RUN git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git
-WORKDIR /protobuf
-
-RUN	git checkout v3.9.1
-RUN ./autogen.sh 
-RUN	./configure --enable-static=yes
-RUN	make -j$(grep processor /proc/cpuinfo | wc -l)
-RUN make check
-
-CMD ["./protobuf"]
-
-#########################################################################################################
 # Build release 
 #########################################################################################################
 From conanio/gcc7 as release
@@ -22,11 +7,10 @@ ENV DOCKER_WORKDIR="/code"
 
 USER root
 
-COPY --from=protoc_build /protobuf/src/.libs/protoc /usr/bin/
-COPY --from=protoc_build /protobuf/src/.libs/libprotobuf.so.20.0.1 /usr/lib/libprotobuf.so.20
-COPY --from=protoc_build /protobuf/src/.libs/libprotoc.so.20.0.1 /usr/lib/libprotoc.so.20
-COPY --from=protoc_build /protobuf/src/google/protobuf/*.proto /usr/include/google/protobuf/
-COPY --from=protoc_build /protobuf/src/google/protobuf/*.h /usr/include/google/protobuf/
+COPY --from=unicorny/protoc:3.9.1 /usr/bin/protoc /usr/bin/
+COPY --from=unicorny/protoc:3.9.1 /usr/lib/libprotobuf.so.20 /usr/lib/libprotobuf.so.20
+COPY --from=unicorny/protoc:3.9.1 /usr/lib/libprotoc.so.20 /usr/lib/libprotoc.so.20
+COPY --from=unicorny/protoc:3.9.1 /usr/include/google/protobuf/* /usr/include/google/protobuf/
 
 	
 RUN mkdir -p ${DOCKER_WORKDIR}
@@ -40,7 +24,7 @@ RUN cd dependencies/iroha-ed25519 && \
 	mkdir build && \
 	cd build && \	
 	cmake .. -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC && \
-	make -j$(grep processor /proc/cpuinfo | wc -l)
+	make -j$(nproc)
 	
 RUN cd dependencies/mariadb-connector-c && \
 	mkdir build && \
@@ -56,7 +40,7 @@ RUN mkdir build && \
 	cd build && \
 	conan install .. --build=missing && \
 	cmake .. && \
-	make -j$(grep processor /proc/cpuinfo | wc -l) Gradido_LoginServer 
+	make -j$(nproc) Gradido_LoginServer 
 	
 
 CMD ["./code"]
