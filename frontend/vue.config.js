@@ -6,7 +6,7 @@ function resolveSrc(_path) {
 }
 
 let vue_path = process.env.VUE_PATH
-if(vue_path == undefined) {
+if( vue_path == undefined ) {
   vue_path = ''
 }
 
