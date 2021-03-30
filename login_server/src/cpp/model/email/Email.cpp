@@ -1,4 +1,4 @@
-﻿#include "Email.h"
+#include "Email.h"
 #include "../../SingletonManager/EmailManager.h"
 
 #include "Poco/Net/MediaType.h"
