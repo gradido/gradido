@@ -13,21 +13,10 @@ export const store = new Vuex.Store({
     sizeDE: 'normal',
     sizeGB: 'big',
     loginfail: false,
-    row_form: true,
-    row_check: false,
-    row_thx: false,
     user: {
       name: '',
       balance: 0,
       balance_gdt: 0,
-    },
-    ajaxCreateData: {
-      session_id: '',
-      email: '',
-      amount: 0,
-      target_date: '',
-      memo: '',
-      auto_sign: true,
     },
     transactions: [],
     modals: false,
@@ -141,27 +130,6 @@ export const store = new Vuex.Store({
       $cookies.remove('gdd_u')
       $cookies.remove('gdd_lang')
       router.push('/Login')
-    },
-    ajaxCreate: async ({ dispatch, state }) => {
-      //console.log('action: ajaxCreate')
-
-      state.ajaxCreateData.amount = state.ajaxCreateData.amount * 10000
-
-      const result = await communityAPI.send(
-        state.session_id,
-        state.ajaxCreateData.email,
-        state.ajaxCreateData.amount,
-        state.ajaxCreateData.memo,
-      )
-      console.log(result)
-
-      if (result.success) {
-         console.log('send success')
-      } else {
-         console.log('send error')
-      }
-      return result
-     
     },
     ajaxListTransactions: async ({ commit, dispatch, state }) => {
       // console.log('action: ajaxListTransactions', state.session_id)

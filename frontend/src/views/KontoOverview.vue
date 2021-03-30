@@ -2,25 +2,16 @@
   <div>
     <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-transparent"></base-header>
     <b-container fluid class="mt--7">
-      <gdd-status />
+      <gdd-status :row_form="row_form" />
       <br />
-      <gdd-send />
+      <gdd-send
+        :row_form="row_form"
+        :row_check="row_check"
+        :row_thx="row_thx"
+        @change-rows="setRows"
+      />
       <hr />
-      <gdd-table />
-      <!-- <hr>
-              <div>
-                <gdd-add-work-2 />       
-              </div>
-              <br> -->
-      <!--
-                <div>
-                  <gdd-add-work />       
-                </div>
-                <br>
-              -->
-      <!-- <div>
-                <gdd-work-table />       
-              </div>     -->
+      <gdd-table :row_form="row_form" :transactions="transactions" @change-transactions="setTransactions"/>
     </b-container>
   </div>
 </template>
@@ -28,20 +19,34 @@
 import GddStatus from './KontoOverview/GddStatus.vue'
 import GddSend from './KontoOverview/GddSend.vue'
 import GddTable from './KontoOverview/GddTable.vue'
-// import GddAddWork2  from './KontoOverview/GddAddWork2.vue';
-// import GddWorkTable from './KontoOverview/GddWorkTable.vue';
 
 export default {
   name: 'Overview',
+  data() {
+    return {
+      row_form: true,
+      row_check: false,
+      row_thx: false,
+      transactions: [],
+    }
+  },
   components: {
     GddStatus,
     GddSend,
     GddTable,
-    //GddAddWork2,
-    //GddWorkTable
   },
   created() {
     this.$store.dispatch('accountBalance', $cookies.get('gdd_session_id'))
+  },
+  methods: {
+    setRows(rows) {
+      this.row_form = rows.row_form
+      this.row_check = rows.row_check
+      this.row_thx = rows.row_thx
+    },
+    setTransactions(transactions) {
+      this.transactions = transactions
+    },
   },
 }
 </script>
