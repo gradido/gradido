@@ -10,16 +10,15 @@ module.exports = {
   coverageReporters: ['lcov'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.vue$': 'vue-jest',
-    // '.+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
-    '^.+\\.(js|jsx)?$': 'babel-jest',
+    '^.+\\.vue$': '<rootDir>/node_modules/vue-jest',
+    '^.+\\.(js|jsx)?$': '<rootDir>/node_modules/babel-jest',
   },
-  //setupFiles: [
-  //  "<rootDir>/test/registerContext.js"
-  //],
+  setupFiles: ['<rootDir>/test/testSetup.js'],
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  preset: '@vue/cli-plugin-unit-jest',
 }
