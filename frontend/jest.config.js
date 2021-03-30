@@ -15,10 +15,14 @@ module.exports = {
   transform: {
     '^.+\\.vue$': '<rootDir>/node_modules/vue-jest',
     '^.+\\.(js|jsx)?$': '<rootDir>/node_modules/babel-jest',
+    'vee-validate/dist/rules': '<rootDir>/node_modules/babel-jest',
   },
   setupFiles: ['<rootDir>/test/testSetup.js'],
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
-  transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/node_modules/(?!vee-validate/dist/rules)',
+  ],
   preset: '@vue/cli-plugin-unit-jest',
 }
