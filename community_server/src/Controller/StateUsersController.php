@@ -69,14 +69,14 @@ class StateUsersController extends AppController
         $this->set(compact('stateUsers'));
     }
 
-    public function listIdentHashes()
+    /*public function listIdentHashes()
     {
         $stateUsers = $this->StateUsers->find('all')->toArray();
         foreach ($stateUsers as $i => $user) {
             $stateUsers[$i]->identHash = TransactionCreation::DRMakeStringHash($user->email);
         }
         $this->set('stateUsers', $stateUsers);
-    }
+    }*/
 
     public function search()
     {

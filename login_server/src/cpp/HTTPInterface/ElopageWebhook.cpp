@@ -11,16 +11,15 @@ using namespace Poco::Data::Keywords;
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/EmailManager.h"
 
 #include "../ServerConfig.h"
 
-#include "../tasks/PrepareEmailTask.h"
-#include "../tasks/SendEmailTask.h"
 
 #include "../controller/EmailVerificationCode.h"
 #include "../model/table/ElopageBuy.h"
 
-
+#include "../lib/DataTypeConverter.h"
 
 
 void ElopageWebhook::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
@@ -277,22 +276,9 @@ int HandleElopageRequestTask::run()
 	saveElopageBuy->scheduleTask(saveElopageBuy);
 
 	// check product id
-	Poco::UInt64 product_id = 0;
-	try {
-		product_id = stoull(mRequestData.get("product[id]", "0"));
-	}
-	catch (const std::invalid_argument& ia) {
-		std::cerr << __FUNCTION__ << "Invalid argument: " << ia.what() << '\n';
-	}
-	catch (const std::out_of_range& oor) {
-		std::cerr << __FUNCTION__ << "Out of Range error: " << oor.what() << '\n';
-	}
-	catch (const std::logic_error & ler) {
-		std::cerr << __FUNCTION__ << "Logical error: " << ler.what() << '\n';
-	}
-	catch (...) {
-		std::cerr << __FUNCTION__ << "Unknown error" << '\n';
-	}
+	unsigned long long product_id = 0;
+	DataTypeConverter::strToInt(mRequestData.get("product[id]", "0"), product_id);
+	
 	std::string order_id = mRequestData.get("order_id", "");
 	auto param_error_order_id = new ParamError("HandleElopageRequestTask", "order_id", order_id.data());
 
@@ -380,56 +366,16 @@ int HandleElopageRequestTask::run()
 			sendErrorsAsEmail();
 			return -4;
 		}
+		auto em = EmailManager::getInstance();
+		if (emailVerification->getModel()->insertIntoDB(false)) {
+			int noEMail = 0;
+			DataTypeConverter::strToInt(mRequestData.get("noEmail", "0"), noEMail);
 
-		// write email verification code into db
-		UniLib::controller::TaskPtr saveEmailVerificationCode(new model::table::ModelInsertTask(emailVerification->getModel(), true));
-		saveEmailVerificationCode->scheduleTask(saveEmailVerificationCode);
-		int noEMail = 0;
-
-		std::string noEmailString = mRequestData.get("noEmail", "0");
-		try {
-			noEMail = stoi(noEmailString);
-		}
-		catch (const std::invalid_argument& ia) {
-			std::cerr << __FUNCTION__ << " Invalid argument: " << ia.what() << ", str: " << noEmailString << '\n';
-		}
-		catch (const std::out_of_range& oor) {
-			std::cerr << __FUNCTION__ << " Out of Range error: " << oor.what() << '\n';
-		}
-		catch (const std::logic_error & ler) {
-			std::cerr << __FUNCTION__ << " Logical error: " << ler.what() << '\n';
-		}
-		catch (...) {
-			std::cerr << __FUNCTION__ << " Unknown error" << '\n';
+			if (noEMail != 1) {
+				em->addEmail(new model::Email(emailVerification, newUser, model::EMAIL_USER_VERIFICATION_CODE));
+			}
 		}
 
-		if (noEMail != 1) {
-
-			// send email to user
-			/*auto message = new Poco::Net::MailMessage;
-
-			message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mEmail));
-			message->setSubject("Gradido: E-Mail Verification");
-			std::stringstream ss;
-			ss << "Hallo " << mFirstName << " " << mLastName << "," << std::endl << std::endl;
-			ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
-			ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << emailVerification->getModel()->getCode() << std::endl;
-			//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
-			ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
-			ss << std::endl;
-
-			ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
-			ss << "Dario, Gradido Server Admin" << std::endl;
-
-			message->addContent(new Poco::Net::StringPartSource(ss.str()));
-			*/
-			//UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-			//Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
-			UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(emailVerification, newUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
-			//sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-			sendEmail->setParentTaskPtrInArray(saveEmailVerificationCode, 0);
-			sendEmail->scheduleTask(sendEmail);
-		}
 	}
 
 		// if errors occured, send via email
