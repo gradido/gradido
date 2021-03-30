@@ -16,8 +16,6 @@ services:
       target: production
     networks:
       - external-net
-    depends_on:
-      - nginx
     ports:
       - 8080:8080
     environment:
@@ -135,4 +133,4 @@ networks:
     internal: true
 
 volumes:
-  db_vol:      
+  db_vol:
