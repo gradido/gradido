@@ -226,8 +226,7 @@ export default {
       send: false,
     }
   },
-  computed: {
-  },
+  computed: {},
   methods: {
     async onDecode(decodedString) {
       const arr = JSON.parse(decodedString)
@@ -244,7 +243,7 @@ export default {
 
       this.$emit('change-rows', { row_form: false, row_check: true, row_thx: false })
     },
-    async sendTransaction() {      
+    async sendTransaction() {
       this.ajaxCreateData.amount = this.ajaxCreateData.amount * 10000
 
       const result = await communityAPI.send(
@@ -261,7 +260,7 @@ export default {
         this.$emit('change-rows', { row_form: false, row_check: false, row_thx: true })
       } else {
         // console.log('send error')
-        alert("error")
+        alert('error')
         this.$emit('change-rows', { row_form: true, row_check: false, row_thx: false })
       }
     },

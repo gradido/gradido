@@ -11,7 +11,11 @@
         @change-rows="setRows"
       />
       <hr />
-      <gdd-table :row_form="row_form" :transactions="transactions" @change-transactions="setTransactions"/>
+      <gdd-table
+        :row_form="row_form"
+        :transactions="transactions"
+        @change-transactions="setTransactions"
+      />
     </b-container>
   </div>
 </template>
