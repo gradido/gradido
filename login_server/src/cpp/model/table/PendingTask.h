@@ -84,8 +84,6 @@ namespace model {
 			int mTaskTypeId;
 			int mChildPendingTaskId;
 			int mParentPendingTaskId;
-
-			std::shared_mutex mSharedMutex;
 		};
 
 	}

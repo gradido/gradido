@@ -46,15 +46,8 @@ enum PageState {
 	}
 	
 	PageState state = PAGE_NO_TRANSACTIONS;
-
-	if(!user_model->isEmailChecked()) {
-		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
-		hasErrors = true;
-	}
-
-	bool transaction_finalize_run = false;
-	bool transaction_finalize_result = false;
-	auto transactions_to_sign = pt->getTransactionsUserMustSign(account_user);
+	
+	
 	
 	Poco::AutoPtr<controller::PendingTask> pending_task;
 	model::gradido::Transaction* transaction = nullptr;
@@ -62,85 +55,6 @@ enum PageState {
 	
 	if(!form.empty()) 
 	{
-		transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[0].get());
-		transaction_body = transaction->getTransactionBody();
-
-	if(!form.empty()) {
-		auto ok = form.get("ok", "");
-		auto abort = form.get("abort", "");
-		auto back = form.get("back", "");
-		if(abort != "") {
-			transaction_finalize_result = mSession->finalizeTransaction(false, true);
-			transaction_finalize_run = true;
-		} else if(ok != "") {
-			if(!account_user->hasPassword()) {
-				auto pwd = form.get("sign-password", "");
-				auto loginResult = account_user->login(pwd);
-				switch(loginResult) {
-				case 0: 
-					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
-					hasErrors = true;
-					break;
-				case -1: 
-				case -2:
-					addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
-					hasErrors = true;
-					state = PAGE_USER_DATA_CORRUPTED;
-					break;
-				case -3: 
-					addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
-					hasErrors = true;
-					break;
-				}
-			}
-			if(!hasErrors) {
-				transaction_finalize_result = mSession->finalizeTransaction(true, false);
-				transaction_finalize_run = true;
-			}
-		} else if(back == "back") {
-			auto lastExternReferer = mSession->getLastReferer();
-			//lastExternReferer = "";
-			if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
-				//printf("last extern referer: %s\n", lastExternReferer.data());
-				response.redirect(lastExternReferer);
-			} else {
-				response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
-			}
-			return;
-		}
-	}
-	
-	
-	size_t notReadyTransactions = 0;
-	size_t sumTransactions = mSession->getProcessingTransactionCount();
-	if(sumTransactions == 0 && !transaction_finalize_run) {
-		/*auto observer = SingletonTaskObserver::getInstance();
-		auto emailHash = DRMakeStringHash(mSession->getUser()->getEmail());
-		int breakCount = 0;
-		while(observer->getTaskCount(emailHash, TASK_OBSERVER_SIGN_TRANSACTION) > 0) {
-			if(breakCount > 100) break;
-			breakCount++;
-			Poco::Thread::sleep(10);
-		}*/
-		auto pending_task_id_string = form.get("pending-task-id", "");
-		int pending_task_id = 0;
-		if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(pending_task_id_string, pending_task_id)) 
-		{
-			// make sure we have the correct transaction
-			transaction = nullptr;
-			printf("transaction_body isNull: %d\n", transaction_body.isNull());
-			transaction_body.assign(nullptr);
-			for(auto it = transactions_to_sign.begin(); it != transactions_to_sign.end(); it++) 
-			{
-				if((*it)->getModel()->getID() == pending_task_id) {
-					transaction = dynamic_cast<model::gradido::Transaction*>(it->get());
-					transaction_body = transaction->getTransactionBody();
-					printf("set new transaction and transaction_body\n");
-					break;
-				}
-			}
-			if(abort != "")
-/*
 		auto ok = form.get("ok", "");
 		auto abort = form.get("abort", "");
 		auto skip = form.get("skip", "");
@@ -153,7 +67,6 @@ enum PageState {
 			// load transaction from pending task manager
 			pending_task = pt->getPendingTask(pending_task_id);
 			if(!pending_task.isNull() && pending_task->getModel()->isGradidoTransaction()) 
-*/
 			{
 				transaction = dynamic_cast<model::gradido::Transaction*>(pending_task.get());
 				if(transaction->hasSigned(account_user)) {
@@ -293,20 +206,7 @@ enum PageState {
 	
 
 %><%@ include file="header_navi_chr.cpsp" %>
-<% if(transaction_finalize_run) { %>
-<div class="col-md-10 equel-grid mb-3">
-	<div class="flash-messages" style="background-color: rgba(240,240,240,0.8);" onclick="this.classList.add('hidden')">
-		<ul class='grd-no-style'>
-			<% if(transaction_finalize_result) { %> 
-				<li class='grd-success'>Transaktion erfolgreich</li>
-			<% } else { %>
-				<li class='grd-error'>Transaktion fehlgeschlagen</li>
-			<% } %>
-		</ul>
-	</div>
-</div>
-<% } %>
-<!-- <%= getErrorsHtml() %> -->
+<%= getErrorsHtml() %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
 	<% if(sumTransactions == 0) { %>
@@ -406,49 +306,6 @@ enum PageState {
 			 <% } else if(PAGE_USER_DATA_CORRUPTED == state) { %>
 				<p class="alert-color"><%= gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den")%><a href="mailto:<%= em->getAdminReceiver()%>?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%=gettext("Support") %></a></p>
 			 <% } %>
-<!--
-			<div class="content-table">
-			  <div class="content-row content-row-header">
-				<span class="content-cell">Aktives Konto</span>
-			  </div>
-			  <div class="content-row">
-				<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
-			  </div>
-			</div>
-			<div class="content-table">
-			  <div class="content-row content-row-header">
-				<span class="content-cell">Verwendungszweck</span>
-			  </div>
-			  <div class="content-row content-row-bg">
-				<span class="content-cell"><%= memo %></span>
-			  </div>
-			</div>
-			<form>
-				<input type="hidden" name="pending-task-id" value="<%= transaction->getModel()->getID() %>">
-				<% if(!account_user->hasPassword()) {%>
-				 <div class="form-group">
-					  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
-					  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
-				 </div>
-				<% } %>
-				<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
-					<button type="submit" class="form-button" name="ok" value="ok">
-						<i class="material-icons-outlined">verified_user</i>
-						<%= gettext("Transaktion unterzeichnen") %>
-					</button>
-				<% } %>
-				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
-					<i class="material-icons-outlined">delete</i>
-					<%= gettext("Transaktion verwerfen") %>
-				</button>
-				<% if(sumTransactions == 0) { %>
-					<button type="submit" class="form-button button-cancel" name="back" value="back">
-						<i class="material-icons-outlined">back</i>
-						Zur&uuml;ck
-					</button>	
-				<% } %>
-			</form>
--->
 			 <% if(PAGE_NO_TRANSACTIONS == state) { %>
 				<a href="<%= ServerConfig::g_php_serverPath %>"><%= gettext("Zur&uuml;ck") %></a>
 			 <% } else { %>

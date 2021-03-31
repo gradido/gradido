@@ -119,8 +119,8 @@
 
 		<% } else if(transactionBody.has_creation()) { 
 			auto creation = transactionBody.creation();
-			//model::gradido::TransactionCreation creationObject("", creation);
-			TransactionCreation creationObject("", creation);
+			model::gradido::TransactionCreation creationObject("", creation);
+			//TransactionCreation creationObject("", creation);
 			auto receiver = creation.receiver();
 			char hex[65]; memset(hex, 0, 65);
 			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());

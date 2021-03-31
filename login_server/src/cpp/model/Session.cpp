@@ -197,126 +197,6 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 
 	return true;
 }
-//
-bool Session::createUser(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password)
-{
-	Profiler usedTime;
-	auto sm = SessionManager::getInstance();
-	if (!sm->isValid(first_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
-		return false;
-	}
-	if (!sm->isValid(last_name, VALIDATE_NAME)) {
-		addError(new Error(gettext("Nachname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
-		return false;
-	}
-	if (!sm->isValid(email, VALIDATE_EMAIL)) {
-		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
-		return false;
-	}
-	if (!sm->checkPwdValidation(password, this)) {
-		return false;
-	}
-	/*if (passphrase.size() > 0 && !sm->isValid(passphrase, VALIDATE_PASSPHRASE)) {
-		addError(new Error("Merkspruch", "Der Merkspruch ist nicht g&uuml;ltig, er besteht aus 24 W&ouml;rtern, mit Komma getrennt."));
-		return false;
-	}
-	if (passphrase.size() == 0) {
-		//mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
-		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER]);
-	}
-	else {
-		//mPassphrase = passphrase;
-	}*/
-
-	// check if user with that email already exist
-
-	auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-	Poco::Data::Statement select(dbConnection);
-	select << "SELECT email from users where email = ?;", useRef(email);
-	try {
-		if (select.execute() > 0) {
-			addError(new Error(gettext("E-Mail"), gettext("F&uuml;r diese E-Mail Adresse gibt es bereits einen Account")), false);
-			return false;
-		}
-	}
-	catch (Poco::Exception& exc) {
-		printf("mysql exception: %s\n", exc.displayText().data());
-	}
-
-	mSessionUser = new User(email.data(), first_name.data(), last_name.data());
-	mNewUser = controller::User::create(email, first_name, last_name);
-	updateTimeout();
-
-	// Prepare E-Mail
-	//UniLib::controller::TaskPtr prepareEmail(new PrepareEmailTask(ServerConfig::g_CPUScheduler));
-	//prepareEmail->scheduleTask(prepareEmail);
-
-	// create user crypto key
-	UniLib::controller::TaskPtr cryptoKeyTask(new UserCreateCryptoKey(mSessionUser, mNewUser, password, ServerConfig::g_CryptoCPUScheduler));
-	cryptoKeyTask->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_CRYPTO_KEY_GENERATED, this));
-	cryptoKeyTask->scheduleTask(cryptoKeyTask);
-
-	// depends on crypto key, write user record into db
-	UniLib::controller::TaskPtr writeUserIntoDB(new UserWriteIntoDB(mSessionUser, ServerConfig::g_CPUScheduler, 1));
-	writeUserIntoDB->setParentTaskPtrInArray(cryptoKeyTask, 0);
-	writeUserIntoDB->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_USER_WRITTEN, this));
-	writeUserIntoDB->scheduleTask(writeUserIntoDB);
-
-	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
-	mEmailVerificationCodeObject = controller::EmailVerificationCode::create(model::table::EMAIL_OPT_IN_REGISTER);
-	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, mEmailVerificationCodeObject, ServerConfig::g_CPUScheduler, 1));
-	
-	writeEmailVerification->setParentTaskPtrInArray(writeUserIntoDB, 0);
-	writeEmailVerification->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN, this));
-	writeEmailVerification->scheduleTask(writeEmailVerification);
-	
-
-	/*printf("LastName: %s\n", last_name.data());
-	for (int i = 0; i < last_name.size(); i++) {
-		char c = last_name.data()[i];
-		//printf("%d ", c);
-	}
-	//printf("\n\n");
-	*/
-
-	// depends on writeUser because need user_id, write email verification into db
-	/*auto message = new Poco::Net::MailMessage;
-	Poco::Net::MediaType mt("text", "plain");
-	mt.setParameter("charset", "utf-8");
-	message->setContentType(mt);
-
-	message->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, email));
-	message->setSubject(gettext("Gradido: E-Mail Verification"));
-	std::stringstream ss;
-	ss << "Hallo " << first_name << " " << last_name << "," << std::endl << std::endl;
-	ss << "Du oder jemand anderes hat sich soeben mit dieser E-Mail Adresse bei Gradido registriert. " << std::endl;
-	ss << "Wenn du es warst, klicke bitte auf den Link: " << ServerConfig::g_serverPath << "/checkEmail/" << mEmailVerificationCode << std::endl;
-	//ss << "oder kopiere den Code: " << mEmailVerificationCode << " selbst dort hinein." << std::endl;
-	ss << "oder kopiere den obigen Link in Dein Browserfenster." << std::endl;
-	ss << std::endl;
-	ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
-	ss << "Dario, Gradido Server Admin" << std::endl;
-	
-
-	message->addContent(new Poco::Net::StringPartSource(ss.str()));
-	*/
-	//UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
-	//Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
-	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
-	//sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
-	sendEmail->setParentTaskPtrInArray(writeEmailVerification, 0);
-	sendEmail->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_SEND, this));
-	sendEmail->scheduleTask(sendEmail);
-
-	// write user into db
-	// generate and write email verification into db
-	// send email
-	
-	//printf("[Session::createUser] time: %s\n", usedTime.string().data());
-
-	return true;
-}
 
 
 bool Session::createUserDirect(const std::string& first_name, const std::string& last_name, const std::string& email, const std::string& password, const std::string &baseUrl)
@@ -622,11 +502,11 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 	if (!mNewUser.isNull()) {
 		lang = LanguageManager::languageFromString(mNewUser->getModel()->getLanguageKey());
 	}
-	
+	auto user_model = mNewUser->getModel();
 	Poco::AutoPtr<ProcessingTransaction> processorTask(
 		new ProcessingTransaction(
 			proto_message_base64, 
-			DRMakeStringHash(mSessionUser->getEmail().data()),
+			DRMakeStringHash(user_model->getEmail().data()),
 			lang
 		)
 	);
@@ -756,7 +636,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 		// load user for email only once from db
 		mNewUser->load(email);
 		//printf("load new user from db with email: %s\n", email.data());
-		mSessionUser = new User(mNewUser);
+		//mSessionUser = new User(mNewUser);
 		//mSessionUser = new User(email.data());
 
 		//printf("user loaded from email\n");

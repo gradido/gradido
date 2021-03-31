@@ -315,7 +315,7 @@ int SigningTransaction::run() {
 		addError(new ParamError("SigningTransaction", "connect error to php server", e.displayText().data()));
 		addError(new ParamError("SigningTransaction", "url", ServerConfig::g_php_serverHost.data()));
 		addError(new ParamError("SigningTransaction", "choose_ssl", choose_ssl));
-		if (mSendErrorsToAdminEmail) sendErrorsAsEmail(););
+		if (mSendErrorsToAdminEmail) sendErrorsAsEmail();
 		return -8;
 	}
 	

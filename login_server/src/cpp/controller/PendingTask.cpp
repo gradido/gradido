@@ -1,6 +1,5 @@
 #include "PendingTask.h"
 
-#include "../tasks/GradidoGroupAddMemberTask.h"
 #include "../model/gradido/Transaction.h"
 #include "../tasks/HederaTask.h"
 

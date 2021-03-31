@@ -181,13 +181,13 @@ if(WIN32)
 	#set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
 	#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-else(WIN32)
+else()
 
 	set(INSTALL_BINDIR "bin")
 	set(INSTALL_PLUGINDIR "bin")
 	target_link_libraries(Gradido_LoginServer ${CONAN_OPENSSL_CUSTOM_LIBS})
 
-endif(WIN32)
+endif()
 
 set(BUILD_TESTING OFF)
 set(gRPC_SSL_PROVIDER "package")

@@ -65,12 +65,6 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		s = sm->getSession(session_id);
 	}
 
-	auto client_host = request.clientAddress().host();
-	//auto client_ip = request.clientAddress();
-	// X-Real-IP forwarded ip from nginx config
-	auto client_host_string = request.get("X-Real-IP", client_host.toString());
-	client_host = Poco::Net::IPAddress(client_host_string);
-
 	if (url_first_part == "/login") {
 		return new JsonGetLogin;
 	}
