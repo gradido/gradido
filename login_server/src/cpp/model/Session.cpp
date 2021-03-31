@@ -410,6 +410,9 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	else {
 		email_already_send = true;
 	}
+	if (baseUrl.size() > 0) {
+		mEmailVerificationCodeObject->setBaseUrl(baseUrl);
+	}
 	auto email_verification_model = mEmailVerificationCodeObject->getModel();
 	if (email_already_send) {
 		auto time_elapsed = Poco::DateTime() - email_verification_model->getUpdated();
@@ -420,7 +423,6 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 
 	if (!frequent_resend) {
 		if (passphraseMemorized) {
-			mEmailVerificationCodeObject->setBaseUrl(baseUrl);
 			em->addEmail(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_RESET_PASSWORD));
 		}
 		else {

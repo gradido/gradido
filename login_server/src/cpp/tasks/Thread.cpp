@@ -1,7 +1,7 @@
 //#include "lib/Thread.h"
 //#include "UniversumLib.h"
 #include "Thread.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 namespace UniLib {
     namespace lib {
@@ -57,7 +57,7 @@ namespace UniLib {
         void Thread::run()
         {
 			static const char* function_name = "Thread::run";
-			ErrorList errors;
+			NotificationList errors;
             //Thread* t = this;
 			while (true) {
 				try {

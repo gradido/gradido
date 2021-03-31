@@ -19,7 +19,7 @@ Poco::UInt64 JsonGetUserInfos::readOrCreateEmailVerificationCode(int user_id, mo
 		return emailVerificationCode->getModel()->getCode();
 	}
 	catch (Poco::Exception& ex) {
-		ErrorList errors;
+		NotificationList errors;
 		//printf("exception: %s\n", ex.displayText().data());
 		errors.addError(new ParamError("JsonGetUserInfos::readOrCreateEmailVerificationCode", "exception: ", ex.displayText()));
 		errors.sendErrorsAsEmail();

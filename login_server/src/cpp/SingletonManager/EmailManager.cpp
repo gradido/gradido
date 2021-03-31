@@ -95,7 +95,7 @@ int EmailManager::ThreadFunction()
 	if (mPendingEmails.empty()) return 0;
 
 	auto lm = LanguageManager::getInstance();
-	ErrorList errors;
+	NotificationList errors;
 	static const char* function_name = "PrepareEmailTask";
 
 	Poco::Net::SecureSMTPClientSession mailClientSession(mEmailAccount.url, mEmailAccount.port);

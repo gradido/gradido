@@ -123,7 +123,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.password isn't string");
 				}
 				else {
-					ErrorList errors; 
+					NotificationList errors; 
 					if (!sm->checkPwdValidation(value.toString(), &errors)) {
 						jsonErrorsArray.add("User.password isn't valid");
 						jsonErrorsArray.add(errors.getErrorsArray());

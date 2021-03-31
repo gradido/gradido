@@ -81,7 +81,7 @@ namespace controller {
 				select.execute();
 			}
 			catch (Poco::Exception& ex) {
-				ErrorList errors;
+				NotificationList errors;
 				errors.addError(new ParamError(functionName, "mysql error ", ex.displayText()));
 				errors.addError(new ParamError(functionName, "search string", searchString));
 				errors.addError(new ParamError(functionName, "account state", accountState));
