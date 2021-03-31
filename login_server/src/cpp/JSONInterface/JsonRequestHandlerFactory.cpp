@@ -1,3 +1,4 @@
+
 #include "JsonRequestHandlerFactory.h"
 
 #include "Poco/Net/HTTPServerRequest.h"
@@ -5,6 +6,7 @@
 #include "../SingletonManager/SessionManager.h"
 
 #include "JsonAdminEmailVerificationResend.h"
+#include "JsonCheckSessionState.h"
 #include "JsonAppLogin.h"
 #include "JsonAquireAccessToken.h"
 #include "JsonCreateTransaction.h"
@@ -14,13 +16,15 @@
 #include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
+#include "JsonSendEmail.h"
+#include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
 #include "JsonUnsecureLogin.h"
 #include "JsonUpdateUserInfos.h"
 #include "JsonUnsecureLogin.h"
-#include "JsonLogout.h"
 #include "JsonSearch.h"
 
 
@@ -68,6 +72,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	if (url_first_part == "/login") {
 		return new JsonGetLogin;
 	}
+	else if (url_first_part == "/checkSessionState") {
+		return new JsonCheckSessionState;
+	}
 	else if (url_first_part == "/checkTransaction") {
 		return new JsonTransaction;
 	}
@@ -101,6 +108,12 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/unsecureLogin" && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 		return new JsonUnsecureLogin(client_host);
 	}
+	else if (url_first_part == "/loginViaEmailVerificationCode") {
+		return new JsonLoginViaEmailVerificationCode(client_host);
+	}
+	else if (url_first_part == "/sendEmail") {
+		return new JsonSendEmail;
+	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
 	}
@@ -126,3 +139,4 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	
 	return new JsonUnknown;
 }
+

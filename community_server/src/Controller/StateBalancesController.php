@@ -197,6 +197,7 @@ class StateBalancesController extends AppController
         if ($result !== true) {
             return $result;
         }
+        
         $user = $session->read('StateUser');
         $update_balance_result = $this->updateBalance($user['id']);
         if($update_balance_result !== true) {
@@ -406,7 +407,7 @@ class StateBalancesController extends AppController
         $this->set('calculated_balance', $calculated_balance);
         
         $this->set('transactions', array_reverse($transactions_reversed));
-        $this->set('transactionExecutingCount', $session->read('Transaction.executing'));
+        $this->set('transactionExecutingCount', $session->read('Transactions.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);
         $this->set('gdtSum', $gdtSum);
@@ -423,6 +424,7 @@ class StateBalancesController extends AppController
         }
         $session = $this->getRequest()->getSession();
         $user = $session->read('StateUser');
+        $this->updateBalances($user['id']);
         
         $public_key_bin = hex2bin($user['public_hex']);
         $stateUserQuery = $this->StateBalances->StateUsers
@@ -580,7 +582,7 @@ class StateBalancesController extends AppController
         return $this->returnJson([
                 'state' => 'success',
                 'transactions' => $transactions,
-                'transactionExecutingCount' => $session->read('Transaction.executing'),
+                'transactionExecutingCount' => $session->read('Transactions.executing'),
                 'count' => count($transactions),
                 'gdtSum' => $gdtSum,
                 'timeUsed' => microtime(true) - $startTime

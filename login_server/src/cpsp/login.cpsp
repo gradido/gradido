@@ -143,7 +143,7 @@
 			}
 			auto user = mSession->getNewUser();
 
-			if(user_state >= USER_LOADED_FROM_DB && !user->getModel()->getPublicKey()) {
+			if(user_state >= USER_LOADED_FROM_DB && !user.isNull() && !user->getModel()->getPublicKey()) {
 				if(mSession->generateKeys(true, true)) {
 					user_state = USER_COMPLETE;
 					if(user->getModel()->isDisabled()) {

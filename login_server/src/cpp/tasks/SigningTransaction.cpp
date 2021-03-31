@@ -273,7 +273,13 @@ int SigningTransaction::run() {
 			//printf("[JsonRequestHandler::handleRequest] Exception: %s\n", ex.displayText().data());
 			addError(new ParamError("SigningTransaction", "error parsing request answer", ex.displayText().data()));
 
-			FILE* f = fopen("response.html", "wt");
+			std::string log_Path = "/var/log/grd_login/";
+			//#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
+			log_Path = "./";
+#endif
+			log_Path += "response.html";
+			FILE* f = fopen(log_Path.data(), "wt");
 			if (f) {
 				std::string responseString = responseStringStream.str();
 				fwrite(responseString.data(), 1, responseString.size(), f);

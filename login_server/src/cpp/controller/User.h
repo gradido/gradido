@@ -43,7 +43,7 @@ namespace controller {
 		static Poco::AutoPtr<User> create();
 		static Poco::AutoPtr<User> create(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
 
-		static std::vector<User*> search(const std::string& searchString);
+		static std::vector<User*> search(const std::string& searchString, const std::string& accountState = "all");
 
 		//! \brief go through whole db and search users with email_checked = false and schedule resend 7 days after email_opt_in created date
 		//! 

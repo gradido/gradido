@@ -2,6 +2,7 @@
 
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
+#include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 
 Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 {
@@ -67,7 +68,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 
 		try {
-			if ( "User.first_name" == name) {
+			if ( "User.first_name" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.first_name isn't a string");
 				}
@@ -76,7 +77,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					extractet_values++;
 				}
 			}
-			else if ("User.last_name" == name) {
+			else if ("User.last_name" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.last_name isn't a string");
 				}
@@ -102,7 +103,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.disabled isn't a boolean or integer");
 				}
 			}
-			else if ("User.language" == name) {
+			else if ("User.language" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.language isn't a string");
 				}
@@ -114,6 +115,34 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					else {
 						user_model->setLanguageKey(value.toString());
 						extractet_values++;
+					}
+				}
+			}
+			else if ("User.password" == name && value.size() > 0 && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("User.password isn't string");
+				}
+				else {
+					ErrorList errors; 
+					if (!sm->checkPwdValidation(value.toString(), &errors)) {
+						jsonErrorsArray.add("User.password isn't valid");
+						jsonErrorsArray.add(errors.getErrorsArray());
+					}
+					else {
+						auto result_new_password = user->setNewPassword(value.toString());
+						
+						switch (result_new_password) {
+							// 0 = new and current passwords are the same
+						case 0: jsonErrorsArray.add("new password is the same as old password"); break;
+							// 1 = password changed, private key re-encrypted and saved into db
+						//case 1: extractet_values++; break;
+							// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+						case 2: jsonErrorsArray.add("password changed, couldn't load private key for re-encryption");  break;
+							// -1 = stored pubkey and private key didn't match
+						case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+						}
+						
+						
 					}
 				}
 			}

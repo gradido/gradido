@@ -90,6 +90,33 @@ namespace model {
 			return select;
 		}
 
+		Poco::Data::Statement EmailOptIn::_loadMultipleFromDB(Poco::Data::Session session, const std::vector<std::string> fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			Poco::Data::Statement select(session);
+			if (fieldNames.size() <= 1) {
+				throw Poco::NullValueException("EmailOptIn::_loadFromDB fieldNames empty or contain only one field");
+			}
+
+			select << "SELECT id, user_id, verification_code, email_opt_in_type_id, created, resend_count, updated FROM " << getTableName()
+				<< " where " << fieldNames[0] << " = ? ";
+			if (conditionType == MYSQL_CONDITION_AND) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " AND " << fieldNames[i] << " = ? ";
+				}
+			}
+			else if (conditionType == MYSQL_CONDITION_OR) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " OR " << fieldNames[i] << " = ? ";
+				}
+			}
+			else {
+				addError(new ParamError("EmailOptIn::_loadFromDB", "condition type not implemented", conditionType));
+			}
+
+			return select;
+		}
+
+
 		Poco::Data::Statement EmailOptIn::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
 		{
 			Poco::Data::Statement select(session);
@@ -144,6 +171,19 @@ namespace model {
 			case EMAIL_OPT_IN_REGISTER_DIRECT: return "registerDirect";
 			default: return "<unknown>";
 			}
+		}
+		EmailOptInType EmailOptIn::stringToType(const std::string& typeString)
+		{
+			if (typeString == "register") {
+				return EMAIL_OPT_IN_REGISTER;
+			}
+			else if (typeString == "resetPassword") {
+				return EMAIL_OPT_IN_RESET_PASSWORD;
+			}
+			else if (typeString == "registerDirect") {
+				return EMAIL_OPT_IN_REGISTER_DIRECT;
+			}
+			return EMAIL_OPT_IN_EMPTY;
 		}
 	}
 }

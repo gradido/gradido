@@ -55,10 +55,34 @@ namespace controller {
 	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::load(int user_id, model::table::EmailOptInType type) {
 		auto db = new model::table::EmailOptIn();
 		std::vector<std::string> fields = { "user_id", "email_opt_in_type_id" };
-		if (db->loadFromDB(fields, user_id, (int)type) == 1) {
-			return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(db));
+		std::vector<int> field_values = { user_id, (int)type };
+		auto results = db->loadFromDB<int, model::table::EmailOptInTuple>(fields, field_values);
+		if (results.size() > 0) {
+			db->release();
+			return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(new model::table::EmailOptIn(results[0])));
 		}
+		/*if (db->loadFromDB(fields, user_id, (int)type) == 1) {
+			return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(db));
+		}*/
 		db->release();
+		return nullptr;
+	}
+
+	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::loadOrCreate(int user_id, model::table::EmailOptInType type)
+	{
+		model::table::EmailOptIn db;
+		std::vector<std::string> fields = { "user_id", "email_opt_in_type_id" };
+		std::vector<int> field_values = { user_id, (int)type };
+		auto results = db.loadFromDB<int, model::table::EmailOptInTuple>(fields, field_values);
+		if (results.size() > 0) {
+			return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(new model::table::EmailOptIn(results[0])));
+		}
+		else {
+			auto result = create(user_id, type);
+			result->getModel()->insertIntoDB(false);
+			return result;
+		}
+
 		return nullptr;
 	}
 
@@ -97,8 +121,10 @@ namespace controller {
 
 	std::string EmailVerificationCode::getLink()
 	{
-		std::string link = mBaseUrl;
-		link += "/checkEmail/";
+		std::string link = ServerConfig::g_frontend_checkEmailPath;
+		if (link.data()[link.size() - 1] != '/') {
+			link += '/';
+		}
 		link += std::to_string(getModel()->getCode());
 		return link;
 	}

@@ -60,7 +60,7 @@ Dario, Gradido Server Admin\n\
 const static char EmailText_adminEmailVerification[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
-Der Admin hat soeben ein Gradido Konto für dich mit dieser E-Mail angelegt.\n\
+Der Admin hat soeben ein Gradido-Konto für dich mit dieser E-Mail angelegt.\n\
 Bitte klicke zur Bestätigung auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\
@@ -72,7 +72,7 @@ const static char EmailText_adminEmailVerificationResend[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
 Der Admin hat ein erneutes zusenden deiner Bestätigungsemail angefordert. \n\
-Du hast vor einer Weile ein Gradido Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
+Du hast vor einer Weile ein Gradido-Konto mit dieser E-Mail angelegt, aber es noch nicht bestätigt. \n\
 \n\
 Bitte klicke zur Bestätigung auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
@@ -131,6 +131,16 @@ Gradido Login-Server\n\
 	{
 
 	}
+	Email::Email(
+		AutoPtr<controller::EmailVerificationCode> emailVerification,
+		AutoPtr<controller::User> user,
+		const std::string& emailCustomText,
+		const std::string& customSubject
+	)
+		: mEmailVerificationCode(emailVerification), mUser(user), mType(EMAIL_CUSTOM_TEXT), mCustomText(emailCustomText), mCustomSubject(customSubject)
+	{
+
+	}
 
 	Email::~Email()
 	{
@@ -177,6 +187,7 @@ Gradido Login-Server\n\
 		case EMAIL_USER_REGISTER_OLD_ELOPAGE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE:
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND:
+		case EMAIL_CUSTOM_TEXT:
 			if (userTableModel.isNull() || mUser->getModel()->getEmail() == "") {
 				addError(new Error(functionName, "no receiver email set for user email verification email"));
 				return false;
@@ -204,14 +215,19 @@ Gradido Login-Server\n\
 			else if (mType == EMAIL_USER_REGISTER_OLD_ELOPAGE) {
 				messageTemplate = EmailText_emailVerificationOldElopageTransaction;
 			}
+			else if (mType == EMAIL_CUSTOM_TEXT) {
+				messageTemplate = mCustomText.data();
+				mailMessage->setSubject(mCustomSubject);
+			}
 
 			content_string = replaceUserNamesAndLink(
 				langCatalog->gettext(messageTemplate),
 				userTableModel->getFirstName(),
 				userTableModel->getLastName(),
-				mEmailVerificationCode->getLink()
+				mEmailVerificationCode->getLink(),
+				mEmailVerificationCode->getModel()->getCode()
 			);
-			if (EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME == mType) {
+			if (EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME == mType || EMAIL_CUSTOM_TEXT == mType) {
 				content_string = replaceDuration(content_string, mEmailVerificationCode->getAge(), langCatalog);
 			}
 			mailMessage->addContent(new Poco::Net::StringPartSource(content_string, mt.toString()));
@@ -234,7 +250,8 @@ Gradido Login-Server\n\
 					langCatalog->gettext(EmailText_emailResetPassword),
 					userTableModel->getFirstName(),
 					userTableModel->getLastName(),
-					mEmailVerificationCode->getLink()
+					mEmailVerificationCode->getLink(),
+					mEmailVerificationCode->getModel()->getCode()
 				), mt.toString())
 			);
 			break;
@@ -264,8 +281,13 @@ Gradido Login-Server\n\
 		return true;
 	}
 
-	std::string Email::replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link)
-	{
+	std::string Email::replaceUserNamesAndLink(
+		const char* src,
+		const std::string& first_name,
+		const std::string& last_name, 
+		const std::string& link,
+		Poco::UInt64 code
+	) {
 		std::string result = src;
 		int findCursor = 0;
 		static const char* functionName = "Email::replaceUserNamesAndLink";
@@ -295,6 +317,12 @@ Gradido Login-Server\n\
 		}
 		else {
 			//addError(new Error(functionName, "no email placeholder found"));
+		}
+		findPos = result.find("[code]", findCursor);
+		if (findPos != result.npos) {
+			auto code_string = std::to_string(code);
+			findCursor = findPos + code_string.size();
+			result.replace(findPos, 6, code_string);
 		}
 		return result;
 	}
@@ -376,12 +404,38 @@ Gradido Login-Server\n\
 		case EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND: return "email admin user verification code resend";
 		case EMAIL_USER_RESET_PASSWORD: return "user reset Password";
 		case EMAIL_ADMIN_RESET_PASSWORD_REQUEST_WITHOUT_MEMORIZED_PASSPHRASE: return "user reset password without memorized passphrase";
-		case EMAIL_NOTIFICATION_TRANSACTION_CREATION: return "email notification transaction creation";
-		case EMAIL_NOTIFICATION_TRANSACTION_TRANSFER: return "email notification transaction transfer";
 		case EMAIL_USER_REGISTER_OLD_ELOPAGE: return "user register automatic throw elopage";
+		case EMAIL_CUSTOM_TEXT: return "email custom text";
 		case EMAIL_MAX: return "<last entry, invalid>";
 
 		}
 		return "<unknown>";
+	}
+	EmailType Email::emailType(const std::string& emailTypeString)
+	{
+		if ("email user verification code" == emailTypeString) {
+			return EMAIL_USER_VERIFICATION_CODE;
+		}
+		else if ("email user verification code resend" == emailTypeString) {
+			return EMAIL_USER_VERIFICATION_CODE_RESEND;
+		}
+		else if ("email user verification code resend after long time" == emailTypeString) {
+			return EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME;
+		}
+		else if ("email admin user verification code") {
+			return EMAIL_ADMIN_USER_VERIFICATION_CODE;
+		}
+		else if ("email admin user verification code resend") {
+			return EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND;
+		}
+		else if ("user reset Password") {
+			return EMAIL_USER_RESET_PASSWORD;
+		}
+		else if ("email custom text") {
+			return EMAIL_CUSTOM_TEXT;
+		}
+		else {
+			return EMAIL_ERROR;
+		}
 	}
 }

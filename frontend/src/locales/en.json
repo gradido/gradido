@@ -4,24 +4,24 @@
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
-  "imprint":"Imprint",
+  "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
-  "license":"License",
-  "back":"back",
-  "transactions":"transactions",
-  "language":"Language",
+  "back":"Back",
+  "sent":"Send",
+  "transactions":"Transactions",
+  "language":"Sprache",
   "languages":{
-      "de": "Deutsch",
-      "en": "English"
+    "de": "Deutsch",
+    "en": "English"
   },
   "form": {
     "cancel":"Cancel",
     "firstname":"Firstname",
     "lastname":"Lastname",
     "email":"Email",
-    "email_repeat":"repeat_email",
+    "email_repeat":"Repeat Email",
     "password":"Password",
-    "password_repeat":"repeat password",
+    "password_repeat":"Repeat password",
     "amount":"Amount",
     "memo":"Memo",
     "message":"Message",
@@ -30,7 +30,7 @@
     "to":"to",
     "at":"at",
     "time":"Time",
-    "send_now":"send now"
+    "send_now":"Send now"
   },
   "transaction":{
     "show_part": "The last <strong>{count}</strong> transactions",
@@ -39,27 +39,27 @@
   },
   "site": {
     "login": {
-      "community":"You are the community",
-      "remember":"Remember me",
+      "community":"A thousand thanks for being with us!",
+      "remember":"Remember password",
       "signin":"Sign in",
       "forgot_pwd":"Forgot password?",
-      "new_wallet":"Create new wallet"
+      "new_wallet":"Create new account"
     },
     "signup": {
-      "title": "Create your Gradido Wallet",
+      "title": "Create your Gradido account",
       "subtitle": "Become a part of the community!",
-      "strength":"password strength:",
+      "strength":"Password strength:",
       "strong":"strong",
-      "agree":"I have read and understood and agree to them the"
+      "agree":"I have read and understood and agree to them"
     },
     "password": {
-      "title": "reset password",
-      "subtitle": "If you have forgotten the password or want to change it.",
-      "reset_now": "reset now"
+      "title": "Reset password",
+      "subtitle": "If you have forgotten your password, you can reset it here.",
+      "reset_now": "Reset now"
     },
     "thx": {
-      "title": "Thank you",
-      "subtitle": "We have sent you an eMail."
+      "title": "Thank you!",
+      "subtitle": "We have sent you an email."
     },
     "overview":{
       "account_overview":"Account overview",
@@ -68,42 +68,29 @@
       "add_work":"New Community Contribution"
     },
     "navbar" : {
-      "my-profil":"My Profil",
+      "my-profil":"My profile",
       "settings":"Settings",
       "activity":"Activity",
       "support":"Support"
     },
     "sidebar" : {
-       "community":"Community",
-       "members_area":"Members area",
-       "membership":"Membership"
+      "community":"Community",
+      "members_area":"Members area",
+      "membership":"Membership",
+      "language":"Languages"
     },
     "landing1" : {
-        "explore":"Explore Gradido",
-        "text":"If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages.",
-        "link":"Explore pages"
+      "explore":"Explore Gradido",
+      "text":"Healthy money for a healthy world — the Gradido model can create global prosperity and peace",
+      "link":"Explore pages"
     },
     "404" : {
-       "ooops" : "Ooops!",
-       "text" : "Page not found. Don't worry though, we have plenty of other pages to explore",
-       "back" : "Back to dashboard!"
+      "ooops" : "Ooops!",
+      "text" : "Page not found. Do not worry though, we have plenty of other pages to explore",
+      "back" : "Back to dashboard!"
     }    
-},
-"admin": {
-  "site": {
-    "overview": {
-      "creation": "Creation",
-      "transience" : "Transience",
-      "exchanged": "Exchanged",
-      "members" : "Members"
-    }
-  }
-},
+  },
   "nav": {
     "features": "Features"
-  },
-  "about": {
-    "title": "About",
-    "content": "Lorem ipsum english dolor sit amet consectetur adipisicing elit. Aut dicta incidunt ea ut commodi quidem temporibus illo quia. Et itaque deleniti veniam tempore facere ipsum animi totam culpa minima vel voluptatem adipisci natus blanditiis similique sunt expedita, ex dicta doloremque repellat vitae temporibus. Quisquam quia, accusantium blanditiis architecto facilis saepe! Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad unde laborum ut suscipit iure aliquam sapiente doloribus exercitationem nam sint."
   }
 }

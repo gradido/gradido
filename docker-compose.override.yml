@@ -38,6 +38,10 @@ services:
   ## NGINX ################################################
   #########################################################
   nginx:
+    depends_on:
+      - frontend 
+      - community-server
+      - login-server
     volumes: 
       - ./logs:/var/log/nginx 
   
@@ -57,7 +61,22 @@ services:
      - external-net
     volumes:
      - /sessions
+     
+  #########################################################
+  ## skeema for updating dbs if changes happend ###########
+  #########################################################
+  skeema: 
+    build:
+      context: .
+      dockerfile: ./skeema/Dockerfile
+      target: skeema_run
+    container_name: skeema
+    depends_on:
+      - mariadb
+    networks: 
+      - internal-net
    
 volumes:
   frontend_node_modules:
   conan:
+

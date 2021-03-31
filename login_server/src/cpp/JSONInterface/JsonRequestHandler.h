@@ -32,6 +32,7 @@ protected:
 	static Poco::JSON::Object* stateError(const char* msg, std::string details = "");
 	static Poco::JSON::Object* customStateError(const char* state, const char* msg, std::string details = "");
 	static Poco::JSON::Object* stateSuccess();
+	static Poco::JSON::Object* stateWarning(const char* msg, std::string details = "");
 
 
 };

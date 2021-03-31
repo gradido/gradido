@@ -179,7 +179,7 @@ std::string NotificationList::getErrorsHtmlNewFormat()
 /*
 <div class="alert alert-error" role="alert">
 <i class="material-icons-outlined">report_problem</i>
-<span>Der Empf�nger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?</span>
+<span>Der Empf?nger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?</span>
 </div>
 */
 

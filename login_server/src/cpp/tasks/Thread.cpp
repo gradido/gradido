@@ -1,6 +1,7 @@
 //#include "lib/Thread.h"
 //#include "UniversumLib.h"
 #include "Thread.h"
+#include "../lib/ErrorList.h"
 
 namespace UniLib {
     namespace lib {
@@ -55,6 +56,8 @@ namespace UniLib {
 
         void Thread::run()
         {
+			static const char* function_name = "Thread::run";
+			ErrorList errors;
             //Thread* t = this;
 			while (true) {
 				try {
@@ -77,6 +80,7 @@ namespace UniLib {
 						{
 							//EngineLog.writeToLog("error-code: %d", ret);
 							printf("[Thread::%s] error running thread functon: %d, exit thread\n", __FUNCTION__, ret);
+							errors.addError(new ParamError(function_name, "error running thread function, exit thread", mPocoThread->getName()));
 							return;
 						}
 					}
@@ -90,13 +94,19 @@ namespace UniLib {
 						threadUnlock();
 						//LOG_ERROR("Fehler in Thread, exit", -1);
 						printf("[Thread::%s] exception: %s\n", __FUNCTION__, e.message().data());
+						errors.addError(new ParamError(function_name, "poco exception", e.message()));
+						errors.addError(new ParamError(function_name, "thread name", mPocoThread->getName()));
 						return;
 					}
 
 				} catch (Poco::TimeoutException& e) {
 					printf("[Thread::%s] timeout exception\n", __FUNCTION__);
+					errors.addError(new ParamError(function_name, "poco timeout exception", e.message()));
+					errors.addError(new ParamError(function_name, "thread name", mPocoThread->getName()));
 				} catch (Poco::Exception& e) {
 					printf("[Thread::%s] exception: %s\n", __FUNCTION__, e.message().data());
+					errors.addError(new ParamError(function_name, "poco exception 2", e.message()));
+					errors.addError(new ParamError(function_name, "thread name", mPocoThread->getName()));
 					return;
 				}
 			}

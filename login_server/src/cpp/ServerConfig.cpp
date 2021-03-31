@@ -51,6 +51,7 @@ namespace ServerConfig {
 	Languages g_default_locale;
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
+	std::string g_frontend_checkEmailPath;
 	int        g_phpServerPort;
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
@@ -232,7 +233,7 @@ namespace ServerConfig {
 
 		DISASM_FALSERET;
 		g_SessionTimeout = cfg.getInt("session.timeout", SESSION_TIMEOUT_DEFAULT);
-		g_serverPath = cfg.getString("loginServer.path", "");
+		g_serverPath = cfg.getString("loginServer.path", "http://localhost/account");
 		replaceZeroIPWithLocalhostIP(g_serverPath);
 		g_default_locale = LanguageManager::languageFromString(cfg.getString("loginServer.default_locale"));
 		g_serverPort = cfg.getInt("loginServer.port", 0);
@@ -262,6 +263,8 @@ namespace ServerConfig {
 		if ("" != app_secret_string) {
 			g_CryptoAppSecret = DataTypeConverter::hexToBin(app_secret_string);
 		}
+		std::string defaultCheckEmailPath = g_serverPath + "/checkEmail";
+		g_frontend_checkEmailPath = cfg.getString("frontend.checkEmailPath", defaultCheckEmailPath);
 		//g_CryptoAppSecret
 
 		// unsecure flags

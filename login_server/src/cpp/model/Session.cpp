@@ -1,4 +1,4 @@
-#include "Session.h"
+﻿#include "Session.h"
 #include "../lib/Profiler.h"
 #include "../ServerConfig.h"
 
@@ -672,7 +672,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 				sendErrorsAsEmail();
 			}
 
-			if (exitCount >= 15)
+		if (exitCount >= 15)
 			{
 				auto running_password_creations = observer->getTasksCount(TASK_OBSERVER_PASSWORD_CREATION);
 
