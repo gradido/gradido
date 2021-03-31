@@ -121,33 +121,6 @@ export const store = new Vuex.Store({
       $cookies.remove('gdd_lang')
       router.push('/Login')
     },
-<<<<<<< HEAD
-    ajaxCreate: async ({ dispatch, state }) => {
-      //console.log('action: ajaxCreate')
-
-      state.ajaxCreateData.amount = state.ajaxCreateData.amount * 10000
-
-      const result = await communityAPI.send(
-        state.session_id,
-        state.ajaxCreateData.email,
-        state.ajaxCreateData.amount,
-        state.ajaxCreateData.memo,
-      )
-      //console.log(result)
-
-      if (result.success) {
-        //console.log('send success')
-      } else {
-        //console.log('send error')
-      }
-      return result
-    },
-    ajaxListTransactions: async ({ commit, dispatch, state }) => {
-      // console.log('action: ajaxListTransactions', state.session_id)
-      // const result = await communityAPI.transactions(state.session_id)
-    },
-=======
->>>>>>> master
     accountBalance: async ({ commit, dispatch, state }) => {
       const result = await communityAPI.balance($cookies.get('gdd_session_id'))
       if (result.success) {

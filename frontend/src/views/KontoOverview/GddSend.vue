@@ -138,7 +138,6 @@
 
         <b-list-group>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-<<<<<<< HEAD
             {{ $store.state.ajaxCreateData.email }}
             <b-badge variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
           </b-list-group-item>
@@ -155,24 +154,6 @@
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $moment($store.state.ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
             <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
-=======
-            {{ ajaxCreateData.email }}
-            <b-badge variant="primary" pill>Empfänger</b-badge>
-          </b-list-group-item>
-
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ ajaxCreateData.amount }} GDD
-            <b-badge variant="primary" pill>Betrag</b-badge>
-          </b-list-group-item>
-
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ ajaxCreateData.memo }}
-            <b-badge variant="primary" pill>Nachricht</b-badge>
-          </b-list-group-item>
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $moment(ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
-            <b-badge variant="primary" pill>Datum</b-badge>
->>>>>>> master
           </b-list-group-item>
         </b-list-group>
         <hr />
@@ -243,10 +224,7 @@ export default {
   computed: {},
   methods: {
     async onDecode(decodedString) {
-<<<<<<< HEAD
       //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
-=======
->>>>>>> master
       const arr = JSON.parse(decodedString)
       this.form.email = arr[0].email
       this.form.amount = arr[0].amount
