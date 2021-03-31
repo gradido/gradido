@@ -8,10 +8,10 @@ ENV DOCKER_WORKDIR="/code"
 
 USER root
 
-COPY --from=unicorny/protoc:3.9.1 /usr/bin/protoc /usr/bin/
-COPY --from=unicorny/protoc:3.9.1 /usr/lib/libprotobuf.so.20 /usr/lib/libprotobuf.so.20
-COPY --from=unicorny/protoc:3.9.1 /usr/lib/libprotoc.so.20 /usr/lib/libprotoc.so.20
-COPY --from=unicorny/protoc:3.9.1 /usr/include/google/protobuf/* /usr/include/google/protobuf/
+COPY --from=gradido/protoc:3.9.1 /usr/bin/protoc /usr/bin/
+COPY --from=gradido/protoc:3.9.1 /usr/lib/libprotobuf.so.20 /usr/lib/libprotobuf.so.20
+COPY --from=gradido/protoc:3.9.1 /usr/lib/libprotoc.so.20 /usr/lib/libprotoc.so.20
+COPY --from=gradido/protoc:3.9.1 /usr/include/google/protobuf/* /usr/include/google/protobuf/
 
 #VOLUME /root/.conan
 	

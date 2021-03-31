@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="$store.state.row_form">
+    <b-row v-show="row_form">
       <b-col xl="12" md="12">
         <b-alert variant="warning" show dismissible v-html="$t('form.attention')"></b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
@@ -132,12 +132,13 @@
         </b-card>
       </b-col>
     </b-row>
-    <b-row v-show="$store.state.row_check">
+    <b-row v-show="row_check">
       <b-col>
         <div class="display-4 p-4">{{ $t('form.send_check') }}</div>
 
         <b-list-group>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
+<<<<<<< HEAD
             {{ $store.state.ajaxCreateData.email }}
             <b-badge variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
           </b-list-group-item>
@@ -154,6 +155,24 @@
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $moment($store.state.ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
             <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
+=======
+            {{ ajaxCreateData.email }}
+            <b-badge variant="primary" pill>Empfänger</b-badge>
+          </b-list-group-item>
+
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ ajaxCreateData.amount }} GDD
+            <b-badge variant="primary" pill>Betrag</b-badge>
+          </b-list-group-item>
+
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ ajaxCreateData.memo }}
+            <b-badge variant="primary" pill>Nachricht</b-badge>
+          </b-list-group-item>
+          <b-list-group-item class="d-flex justify-content-between align-items-center">
+            {{ $moment(ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
+            <b-badge variant="primary" pill>Datum</b-badge>
+>>>>>>> master
           </b-list-group-item>
         </b-list-group>
         <hr />
@@ -169,7 +188,7 @@
         </b-row>
       </b-col>
     </b-row>
-    <b-row v-show="$store.state.row_thx">
+    <b-row v-show="row_thx">
       <b-col>
         <div class="display-1 p-4">
           {{ $t('form.thx') }}
@@ -187,6 +206,7 @@
 <script>
 import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
+import communityAPI from '../../apis/communityAPI.js'
 
 export default {
   name: 'GddSent',
@@ -194,6 +214,11 @@ export default {
     QrcodeStream,
     QrcodeDropZone,
     BIcon,
+  },
+  props: {
+    row_form: { type: Boolean, default: true },
+    row_check: { type: Boolean, default: false },
+    row_thx: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -205,48 +230,57 @@ export default {
         amount: '',
         memo: '',
       },
+      ajaxCreateData: {
+        email: '',
+        amount: 0,
+        target_date: '',
+        memo: '',
+        auto_sign: true,
+      },
       send: false,
     }
   },
-  computed: {
-    state() {
-      return this.name.length >= 4
-    },
-    invalidFeedback() {
-      if (this.name.length > 0) {
-        return 'Geben Sie mindestens 4 Zeichen ein.'
-      }
-      return 'Bitte geben Sie eine GDD Adresse ein.'
-    },
-  },
+  computed: {},
   methods: {
     async onDecode(decodedString) {
+<<<<<<< HEAD
       //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
+=======
+>>>>>>> master
       const arr = JSON.parse(decodedString)
-      //console.log('qr-email', arr[0].email)
-      //console.log('qr-amount', arr[0].amount)
       this.form.email = arr[0].email
       this.form.amount = arr[0].amount
       this.scan = false
     },
     async onSubmit() {
       //event.preventDefault()
-      //console.log("onSubmit", this.form)
-      this.$store.state.ajaxCreateData.session_id = this.$cookies.get('gdd_session_id')
-      this.$store.state.ajaxCreateData.email = this.form.email
-      this.$store.state.ajaxCreateData.amount = this.form.amount
-      this.$store.state.ajaxCreateData.memo = this.form.memo
-      this.$store.state.ajaxCreateData.target_date = Date.now()
+      this.ajaxCreateData.email = this.form.email
+      this.ajaxCreateData.amount = this.form.amount
+      this.ajaxCreateData.target_date = Date.now()
+      this.ajaxCreateData.memo = this.form.memo
 
-      this.$store.state.row_form = false
-      this.$store.state.row_check = true
-      this.$store.state.row_thx = false
+      this.$emit('change-rows', { row_form: false, row_check: true, row_thx: false })
     },
-    sendTransaction() {
-      this.$store.dispatch('ajaxCreate')
-      this.$store.state.row_form = false
-      this.$store.state.row_check = false
-      this.$store.state.row_thx = true
+    async sendTransaction() {
+      this.ajaxCreateData.amount = this.ajaxCreateData.amount * 10000
+
+      const result = await communityAPI.send(
+        this.$store.state.session_id,
+        this.ajaxCreateData.email,
+        this.ajaxCreateData.amount,
+        this.ajaxCreateData.memo,
+      )
+      // console.log(result)
+
+      if (result.success) {
+        // console.log('send success')
+
+        this.$emit('change-rows', { row_form: false, row_check: false, row_thx: true })
+      } else {
+        // console.log('send error')
+        alert('error')
+        this.$emit('change-rows', { row_form: true, row_check: false, row_thx: false })
+      }
     },
     onReset(event) {
       event.preventDefault()
@@ -256,9 +290,7 @@ export default {
       this.$nextTick(() => {
         this.show = true
       })
-      this.$store.state.row_form = true
-      this.$store.state.row_check = false
-      this.$store.state.row_thx = false
+      this.$emit('change-rows', { row_form: true, row_check: false, row_thx: false })
     },
   },
 }

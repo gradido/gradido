@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="$store.state.row_form">
+    <b-row v-show="this.row_form">
       <b-col xl="6" md="6">
         <stats-card
           type="gradient-red"
@@ -28,5 +28,8 @@
 <script>
 export default {
   name: 'GddStatus',
+  props: {
+    row_form: { type: Boolean, default: true },
+  },
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-list-group v-show="$store.state.row_form">
+    <b-list-group v-show="this.row_form">
       <b-list-group-item
         v-for="item in filteredItems"
         :key="item.id"
@@ -95,6 +95,9 @@ import communityAPI from '../../apis/communityAPI'
 
 export default {
   name: 'GddTable',
+  props: {
+    row_form: { type: Boolean, default: true },
+  },
   data() {
     return {
       form: [],

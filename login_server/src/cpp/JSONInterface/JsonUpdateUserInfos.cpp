@@ -68,7 +68,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 
 		try {
-			if ( "User.first_name" == name) {
+			if ( "User.first_name" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.first_name isn't a string");
 				}
@@ -77,7 +77,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					extractet_values++;
 				}
 			}
-			else if ("User.last_name" == name) {
+			else if ("User.last_name" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.last_name isn't a string");
 				}
@@ -103,7 +103,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.disabled isn't a boolean or integer");
 				}
 			}
-			else if ("User.language" == name) {
+			else if ("User.language" == name && value.size() > 0) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.language isn't a string");
 				}
@@ -118,7 +118,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					}
 				}
 			}
-			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+			else if ("User.password" == name && value.size() > 0 && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.password isn't string");
 				}
