@@ -35,7 +35,7 @@
 using namespace Poco::Data::Keywords;
 
 int WriteEmailVerification::run()
-{	
+{
 	auto em = ErrorManager::getInstance();
 
 	mEmailVerificationCode->getModel()->setUserId(mUser->getDBId());
@@ -98,8 +98,8 @@ Session::~Session()
 		unlock();
 		reset();
 	}
-	
-	
+
+
 	//printf("[Session::~Session] finished \n");
 }
 
@@ -116,9 +116,9 @@ void Session::reset()
 	// watch out
 	//updateTimeout();
 	mLastActivity = Poco::DateTime();
-	
+
 	mState = SESSION_STATE_EMPTY;
-	
+
 	mPassphrase = "";
 	mLastExternReferer = "";
 	mClientLoginIP = Poco::Net::IPAddress();
@@ -133,15 +133,15 @@ void Session::reset()
 
 int Session::isActive()
 {
-	int ret = 0; 
+	int ret = 0;
 	try {
 		mWorkMutex.tryLock(100);
 	}
-	catch (Poco::TimeoutException &ex) {
+	catch (Poco::TimeoutException& ex) {
 		return -1;
 	}
 	ret = (int)mActive;
-	unlock(); 
+	unlock();
 	return ret;
 
 }
@@ -154,21 +154,21 @@ bool Session::isDeadLocked()
 		return false;
 	}
 	catch (Poco::Exception& ex) {
-		
+
 	}
 	return true;
 }
 
 bool Session::setActive(bool active)
-{ 
+{
 	try {
 		mWorkMutex.tryLock(100);
 	}
-	catch (Poco::TimeoutException &ex) {
+	catch (Poco::TimeoutException& ex) {
 		return false;
 	}
-	mActive = active; 
-	unlock(); 
+	mActive = active;
+	unlock();
 	return true;
 }
 
@@ -233,12 +233,12 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 		addError(new Error(gettext("Email Verification Code"), gettext("Fehler beim speichern!")));
 		return false;
 	}
-	
+
 	EmailManager::getInstance()->addEmail(new model::Email(email_verification_code, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
 
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mEmailVerificationCodeObject = email_verification_code;
-	
+
 
 	return true;
 }
@@ -311,11 +311,11 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mEmailVerificationCodeObject = controller::EmailVerificationCode::create(model::table::EMAIL_OPT_IN_REGISTER);
 	UniLib::controller::TaskPtr writeEmailVerification(new WriteEmailVerification(mSessionUser, mEmailVerificationCodeObject, ServerConfig::g_CPUScheduler, 1));
-	
+
 	writeEmailVerification->setParentTaskPtrInArray(writeUserIntoDB, 0);
 	writeEmailVerification->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN, this));
 	writeEmailVerification->scheduleTask(writeEmailVerification);
-	
+
 
 	/*printf("LastName: %s\n", last_name.data());
 	for (int i = 0; i < last_name.size(); i++) {
@@ -342,7 +342,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	ss << std::endl;
 	ss << "Mit freundlichen " << u8"Grüßen" << std::endl;
 	ss << "Dario, Gradido Server Admin" << std::endl;
-	
+
 
 	message->addContent(new Poco::Net::StringPartSource(ss.str()));
 	*/
@@ -357,7 +357,7 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	// write user into db
 	// generate and write email verification into db
 	// send email
-	
+
 	//printf("[Session::createUser] time: %s\n", usedTime.string().data());
 
 	return true;
@@ -399,7 +399,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	auto user_model = mNewUser->getModel();
 	user_model->insertIntoDB(true);
 	auto user_id = user_model->getID();
-	
+
 
 	// one retry in case of connection error
 	if (!user_id) {
@@ -444,7 +444,7 @@ bool Session::ifUserExist(const std::string& email)
 		into(emailChecked), into(userId), useRef(email);
 
 	try {
-		if(select.execute() == 1) return true;
+		if (select.execute() == 1) return true;
 	}
 	catch (Poco::Exception& ex) {
 		em->addError(new ParamError(funcName, "select user from email verification code mysql error ", ex.displayText().data()));
@@ -460,33 +460,33 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	// new mutex, will replace the Poco Mutex complete in the future
 	std::unique_lock<std::shared_mutex> _lock_shared(mSharedMutex);
 	Profiler usedTime;
-	
+
 	auto em = ErrorManager::getInstance();
 	if (mEmailVerificationCodeObject.isNull()) {
 		em->addError(new Error(funcName, "email verification object is zero"));
 		em->sendErrorsAsEmail();
-	
+
 		return -2;
 	}
 	auto email_verification_code_model = mEmailVerificationCodeObject->getModel();
 	assert(email_verification_code_model);
-	if(email_verification_code_model->getCode() == emailVerificationCode) {
+	if (email_verification_code_model->getCode() == emailVerificationCode) {
 		if (mSessionUser && mSessionUser->getDBId() == 0) {
 			//addError(new Error("E-Mail Verification", "Benutzer wurde nicht richtig gespeichert, bitte wende dich an den Server-Admin"));
 			em->addError(new Error(funcName, "user exist with 0 as id"));
 			em->sendErrorsAsEmail();
-			
+
 			//return false;
 			return -2;
 		}
-		
+
 		// load correct user from db
 		if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
 			mNewUser = controller::User::create();
 			if (1 != mNewUser->load(email_verification_code_model->getUserId())) {
 				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", email_verification_code_model->getUserId()));
 				em->sendErrorsAsEmail();
-				
+
 				return -2;
 			}
 		}
@@ -495,15 +495,15 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		assert(user_model);
 		bool first_email_activation = false;
 		auto verification_type = email_verification_code_model->getType();
-		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type || 
-			model::table::EMAIL_OPT_IN_EMPTY == verification_type    ||
+		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type ||
+			model::table::EMAIL_OPT_IN_EMPTY == verification_type ||
 			model::table::EMAIL_OPT_IN_REGISTER_DIRECT == verification_type) {
 			first_email_activation = true;
 		}
 		if (first_email_activation && user_model->isEmailChecked()) {
 			mSessionUser = new User(mNewUser);
 			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")), false);
-			
+
 			return 1;
 		}
 		if (first_email_activation) {
@@ -515,13 +515,13 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			}
 
 			// no find all active sessions
-			
+
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			return 0;
 		}
 
 		if (email_verification_code_model->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
-			
+
 			if (mEmailVerificationCodeObject->deleteFromDB()) {
 				mEmailVerificationCodeObject.assign(nullptr);
 			}
@@ -537,9 +537,9 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 
 		em->addError(new Error(funcName, "invalid code path"));
 		em->sendErrorsAsEmail();
-		
+
 		return -2;
-		
+
 		/*if (updated_rows == 1) {
 			Poco::Data::Statement delete_row(dbConnection);
 			delete_row << "DELETE FROM email_opt_in where verification_code = ?", use(emailVerificationCode);
@@ -560,17 +560,17 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			em->addError(new ParamError(funcName, "update user work not like expected, updated row count", updated_rows));
 			em->sendErrorsAsEmail();
 		}*/
-		
-		
+
+
 	}
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
 		//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-		
+
 		return -1;
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-	
+
 	return 0;
 }
 
@@ -683,7 +683,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 
 	Poco::AutoPtr<ProcessingTransaction> processorTask(
 		new ProcessingTransaction(
-			proto_message_base64, 
+			proto_message_base64,
 			DRMakeStringHash(mSessionUser->getEmail()),
 			mSessionUser->getLanguage())
 	);
@@ -700,7 +700,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 			unlock();
 			return false;
 		}
-		
+
 	}
 	else {
 		processorTask->scheduleTask(processorTask);
@@ -708,7 +708,7 @@ bool Session::startProcessingTransaction(const std::string& proto_message_base64
 	}
 	unlock();
 	return true;
-	
+
 }
 
 Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* working/* = nullptr*/)
@@ -717,10 +717,10 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 	if (working) {
 		*working = 0;
 	}
-	else if (!mCurrentActiveProcessingTransaction.isNull()) 
+	else if (!mCurrentActiveProcessingTransaction.isNull())
 	{
 		unlock();
-		return mCurrentActiveProcessingTransaction;	
+		return mCurrentActiveProcessingTransaction;
 	}
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
 		if (working && !(*it)->isTaskFinished()) {
@@ -736,7 +736,7 @@ Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* wo
 			else {
 				mCurrentActiveProcessingTransaction = *it;
 			}
-			
+
 		}
 	}
 	unlock();
@@ -752,7 +752,7 @@ bool Session::finalizeTransaction(bool sign, bool reject)
 		return false;
 	}
 	mProcessingTransactions.remove(mCurrentActiveProcessingTransaction);
-	
+
 	if (!reject) {
 		if (sign) {
 			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mNewUser));
@@ -765,10 +765,10 @@ bool Session::finalizeTransaction(bool sign, bool reject)
 	return result == 0;
 }
 
-size_t Session::getProcessingTransactionCount() 
-{ 
+size_t Session::getProcessingTransactionCount()
+{
 	size_t count = 0;
-	lock("Session::getProcessingTransactionCount"); 
+	lock("Session::getProcessingTransactionCount");
 
 	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
 
@@ -785,8 +785,8 @@ size_t Session::getProcessingTransactionCount()
 
 	}
 	count = mProcessingTransactions.size();
-	unlock(); 
-	return count; 
+	unlock();
+	return count;
 }
 
 bool Session::isPwdValid(const std::string& pwd)
@@ -850,7 +850,7 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			sendErrorsAsEmail();
 		}
 
-		if (exitCount >= 15) 
+		if (exitCount >= 15)
 		{
 			auto running_password_creations = observer->getTasksCount(TASK_OBSERVER_PASSWORD_CREATION);
 
@@ -859,9 +859,9 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			sendErrorsAsEmail();
 			return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
 		}
-		
+
 		//printf("new user login with result: %d\n", loginResult);
-		
+
 		if (-1 == loginResult) {
 			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
 			addError(new ParamError(functionName, "user email", mNewUser->getModel()->getEmail()));
@@ -881,9 +881,9 @@ UserStates Session::loadUser(const std::string& email, const std::string& passwo
 			auto user_backups = controller::UserBackups::load(user_model->getID());
 			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
 				auto key = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
-				if (key->isTheSame(user_model->getPublicKey())) 
+				if (key->isTheSame(user_model->getPublicKey()))
 				{
-					
+
 					// set valid key pair
 					if (1 == mNewUser->setGradidoKeyPair(key.release())) {
 						// save new encrypted private key
@@ -934,7 +934,7 @@ bool Session::deleteUser()
 {
 	lock("Session::deleteUser");
 	bool bResult = false;
-	if(mSessionUser) {
+	if (mSessionUser) {
 		JsonRequest phpServerRequest(ServerConfig::g_php_serverHost, 443);
 		Poco::Net::NameValueCollection payload;
 		payload.add("user", std::string(mSessionUser->getPublicKeyHex()));
@@ -954,7 +954,7 @@ bool Session::deleteUser()
 			return false;
 		}
 	}
-	if(!bResult) {
+	if (!bResult) {
 		addError(new Error(gettext("Benutzer"), gettext("Fehler beim L&ouml;schen des Accounts. Bitte logge dich erneut ein und versuche es nochmal.")));
 	}
 	unlock();
@@ -1024,7 +1024,7 @@ void Session::detectSessionState()
 		else if (checkEmail != -1) {
 			mEmailVerificationCodeObject = emailVerificationCodeObjects[checkEmail];
 		}
-		
+
 	}
 	catch (Poco::Exception& ex) {
 		printf("[Session::detectSessionState] exception: %s\n", ex.displayText().data());
@@ -1037,13 +1037,13 @@ void Session::detectSessionState()
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
 			return;
 		}
-		
+
 		updateState(SESSION_STATE_USER_WRITTEN);
 		return;
 	}
 
 	if (USER_NO_KEYS == userState) {
-		
+
 		auto user_id = mSessionUser->getDBId();
 		auto userBackups = controller::UserBackups::load(user_id);
 
@@ -1071,8 +1071,8 @@ void Session::detectSessionState()
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(dbConnection);
 		Poco::Nullable<Poco::Data::BLOB> passphrase;
-		
-		select << "SELECT passphrase from user_backups where user_id = ?;", 
+
+		select << "SELECT passphrase from user_backups where user_id = ?;",
 			into(passphrase), use(user_id);
 		try {
 			if (select.execute() == 1 && !passphrase.isNull()) {
@@ -1095,7 +1095,7 @@ void Session::detectSessionState()
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 		return;
 	}
-	
+
 	updateState(SESSION_STATE_KEY_PAIR_WRITTEN);
 
 	if (resetPasswd != -1) {
@@ -1120,7 +1120,7 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 		keks.setSecure(true);
 	}
 #endif
-	
+
 	return keks;
 }
 
@@ -1193,7 +1193,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 	case SESSION_STATE_EMAIL_VERIFICATION_SEND: return "Verification E-Mail sended";
 	case SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED: return "Verification Code checked";
 	case SESSION_STATE_PASSPHRASE_GENERATED: return "Passphrase generated";
-	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown"; 
+	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown";
 	case SESSION_STATE_PASSPHRASE_WRITTEN: return "Passphrase written";
 	case SESSION_STATE_KEY_PAIR_GENERATED: return "Gradido Address created";
 	case SESSION_STATE_KEY_PAIR_WRITTEN: return "Gradido Address saved";
@@ -1210,7 +1210,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 bool Session::useOrGeneratePassphrase(const std::string& passphase)
 {
 	if (passphase != "" && User::validatePassphrase(passphase)) {
-		// passphrase is valid 
+		// passphrase is valid
 		setPassphrase(passphase);
 		updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 		return true;
@@ -1225,7 +1225,7 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 bool Session::generatePassphrase()
 {
 	if (mNewUser.isNull()) return false;
-	
+
 	auto lang = getLanguage();
 	if (lang == LANG_EN) {
 		mPassphrase = User::generateNewPassphrase(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);

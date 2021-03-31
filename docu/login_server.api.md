@@ -277,7 +277,7 @@ return with "state":"error" and additional "msg" if error occured (no email send
 Check if transactions on login-server for user are processed 
 
 GET http://localhost/login_api/getRunningUserTasks?email=max.musterman%40gmail.de
- # OR 
+**OR** 
 POST http://localhost/login_api/getRunningUserTasks
 ```json 
 {"email":"max.musterman@gmail.de"}

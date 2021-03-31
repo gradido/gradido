@@ -39,32 +39,143 @@ class StateBalancesController extends AppController
         $this->set(compact('stateBalances'));
     }
   
-    private function updateBalances($state_user_id)
+    private function updateBalances($stateUserId)
     {
-        $state_balances = $this->StateBalances->find('all')->where(['state_user_id' => $state_user_id]);
-        if($state_balances->count() == 1) {
-            $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
-            $state_user_transactions = $stateUserTransactionsTable
+        $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
+        $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        // info: cakephp use lazy loading, query will be executed later only if needed
+        $state_balances = $this->StateBalances->find('all')->where(['state_user_id' => $stateUserId]);
+        $state_user_transactions = $stateUserTransactionsTable
                                             ->find('all')
-                                            ->where(['state_user_id' => $state_user_id])
+                                            ->where(['state_user_id' => $stateUserId])
                                             ->order(['transaction_id ASC'])
-                                            ->contain(['']);
-            if($state_user_transactions->count() == 0){
-                return;
-            }
-            $last_state_user_transaction = $state_user_transactions->last();
-            $last_transaction = $this->StateBalance->newEntity();
-            $last_transaction->amount = $last_state_user_transaction->balance;
-            $last_transaction->record_date = $last_state_user_transaction->balance_date;
-            // if entrys are nearly the same, we don't need doing anything
-            if(abs($last_transaction->decay - $state_balances->decay) < 100) {
-                return;
-            }
-            foreach($state_user_transactions as $state_user_transaction) {
-                
-            }
-            
+                                            ->contain(false);
+      
+        if(!$state_user_transactions) {
+            //debug($state_user_transactions);
+            return true;
         }
+        
+        // first: decide what todo
+        $create_state_balance = false;
+        $recalculate_state_user_transactions_balance = false;
+        $clear_state_balance = false;
+        $update_state_balance = false;
+        if($state_balances->count() == 0) {
+            $create_state_balance = true;
+        }
+        if($state_balances->count() > 1) {
+            $clear_state_balance = true;
+            $create_state_balance = true;
+        }
+        if($state_balances->count() == 1) {            
+            if($state_user_transactions->count() == 0){
+                $clear_state_balance = true;
+            } else {
+                $last_state_user_transaction = $state_user_transactions->last();
+                $last_transaction = $this->StateBalances->newEntity();
+                $last_transaction->amount = $last_state_user_transaction->balance;
+                $last_transaction->record_date = $last_state_user_transaction->balance_date;
+                // if entrys are nearly the same, we don't need doing anything
+                if(abs($last_transaction->decay - $state_balances->first()->decay) > 100) {
+                    $recalculate_state_user_transactions_balance = true;
+                    $update_state_balance = true;
+                }
+            }
+        }
+        
+        if(!$recalculate_state_user_transactions_balance) {
+            $last_state_user_transaction = $state_user_transactions->last();
+            if($last_state_user_transaction->balance <= 0) {
+                $recalculate_state_user_transactions_balance = true;
+                if(!$create_state_balance) {
+                    $update_state_balance = true;
+                }
+            }
+        }
+        // second: do what is needed
+        if($clear_state_balance) {
+            $this->StateBalances->deleteAll(['state_user_id' => $stateUserId]);
+        }
+        
+        $transaction_ids = [];
+        if($recalculate_state_user_transactions_balance) {
+            $state_user_transactions_array = $state_user_transactions->toArray();
+            foreach($state_user_transactions_array as $i => $state_user_transaction) {
+                $transaction_ids[$state_user_transaction->transaction_id] = $i;
+            }
+        
+            $transactions = $transactionsTable
+                    ->find('all')
+                    ->where(['id IN' => array_keys($transaction_ids)])
+                    ->contain(['TransactionCreations', 'TransactionSendCoins']);
+
+            $balance_cursor = $this->StateBalances->newEntity();
+            $i = 0;
+            foreach($transactions as $transaction) {    
+                if($transaction->transaction_type_id > 2) {
+                    continue;
+                }
+                $amount_date = null;
+                $amount = 0;
+                
+                if($transaction->transaction_type_id == 1) {
+                    $temp = $transaction->transaction_creations[0];
+                    
+                    $balance_temp = $this->StateBalances->newEntity();
+                    $balance_temp->amount = $temp->amount;
+                    $balance_temp->record_date = $temp->target_date;
+                    
+                    $amount = $balance_temp->partDecay($transaction->received);
+                    $amount_date = $transaction->received;
+                    //$amount_date = 
+                } else if($transaction->transaction_type_id == 2) {
+                    $temp = $transaction->transaction_send_coins[0];
+                    $amount = intval($temp->amount);
+                    // reverse if sender
+                    if($stateUserId == $temp->state_user_id) {
+                        $amount *= -1.0;
+                    }
+                    $amount_date = $transaction->received;
+                }
+                if($i == 0) {
+                    $balance_cursor->amount = $amount;
+                } else {
+                    $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                }
+                $balance_cursor->record_date = $amount_date;
+                $state_user_transaction_index = $transaction_ids[$transaction->id];
+                $state_user_transactions_array[$state_user_transaction_index]->balance = $balance_cursor->amount;
+                $state_user_transactions_array[$state_user_transaction_index]->balance_date = $balance_cursor->record_date;   
+                $i++;
+            }
+            $results = $stateUserTransactionsTable->saveMany($state_user_transactions_array);
+            $errors = [];
+            foreach($results as $i => $result) {
+                if(!$result) {
+                    $errors[$i] = $state_user_transactions_array[$i]->getErrors();
+                }
+            }
+            if(count($errors)) {
+                return ['success' => false, 'error' => 'error saving one ore more state user transactions', 'details' => $errors];
+            }
+        }
+        $state_balance = null;
+        if($update_state_balance) {
+            $state_balance = $state_balances->first();
+        }
+        else if($create_state_balance) {
+             $state_balance = $this->StateBalances->newEntity();
+             $state_balance->state_user_id =  $stateUserId;
+        }
+        if($state_balance) {
+             $state_balance->amount = $state_user_transactions->last()->balance;
+             $state_balance->record_date = $state_user_transactions->last()->balance_date;    
+             if(!$this->StateBalances->save($state_balance)) {
+                 return ['success' => false, 'error' => 'error saving state balance', 'details' => $state_balance->getErrors()];
+             }
+        }
+        return true;
     }
 
     public function overview()
@@ -82,7 +193,9 @@ class StateBalancesController extends AppController
         if ($result !== true) {
             return $result;
         }
+        
         $user = $session->read('StateUser');
+        $this->updateBalances($user['id']);
         // sendRequestGDT
         // listPerEmailApi
 
@@ -214,6 +327,7 @@ class StateBalancesController extends AppController
         }
         $session = $this->getRequest()->getSession();
         $user = $session->read('StateUser');
+        $this->updateBalances($user['id']);
         
         $public_key_bin = hex2bin($user['public_hex']);
         $stateUserQuery = $this->StateBalances->StateUsers

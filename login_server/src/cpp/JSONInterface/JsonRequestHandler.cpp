@@ -150,3 +150,4 @@ Poco::JSON::Object* JsonRequestHandler::stateWarning(const char* msg, std::strin
 	return result;
 }
 
+

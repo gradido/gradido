@@ -4,7 +4,7 @@
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
-          <a href="#!" to="/login" class="font-weight-bold ml-1">Gradido-Akademie</a>
+          <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a>
         </div>
       </b-col>
     </b-row>

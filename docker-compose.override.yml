@@ -38,6 +38,10 @@ services:
   ## NGINX ################################################
   #########################################################
   nginx:
+    depends_on:
+      - frontend 
+      - community-server
+      - login-server
     volumes: 
       - ./logs:/var/log/nginx 
   
@@ -75,3 +79,4 @@ services:
 volumes:
   frontend_node_modules:
   conan:
+
