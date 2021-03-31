@@ -90,16 +90,6 @@
       "back" : "Back to dashboard!"
     }    
   },
-  "admin": {
-    "site": {
-      "overview": {
-        "creation": "Creation",
-        "transience" : "Transience",
-        "exchanged": "Exchanged",
-        "members" : "Members"
-      }
-    }
-  },
   "nav": {
     "features": "Features"
   }
