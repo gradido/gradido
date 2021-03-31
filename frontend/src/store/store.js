@@ -27,9 +27,7 @@ export const store = new Vuex.Store({
       },
     },
   },
-  getters: {
-
-  },
+  getters: {},
   // Syncronous mutation of the state
   mutations: {
     language: (state, language) => {
