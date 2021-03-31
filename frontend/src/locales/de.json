@@ -60,43 +60,33 @@
       "title": "Danke!",
       "subtitle": "Wir haben dir eine eMail gesendet."
     },
-      "overview":{
+    "overview":{
         "account_overview":"Kontoübersicht",
         "since_last_month": "seid letzten Monat",
         "send_gradido":"Gradido versenden",
         "add_work":"neuer Gemeinschaftsbeitrag"
-      },
-      "navbar" : {
-        "my-profil":"Mein Profil",
-        "settings":"Einstellungen",
-        "activity":"Aktivität",
-        "support":"Support"
-      },
-      "sidebar" : {
-         "community":"Gemeinschaft",
-         "members_area":"Mitgliederbereich",
-         "membership":"Mitgliedschaft",
-         "language":"Sprachen"
-      },
-      "landing1" : {
-        "explore": "Erkunden Sie Gradido",
-        "text": "Gesundes Geld für eine gesunde Welt — Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
-        "link": "Seiten erkunden"
-      },
-      "404" : {
-         "ooops" : "Ooops!",
-         "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
-         "back" : "Zurück zur Übersicht!"
-      }
-  },
-  "admin": {
-    "site": {
-      "overview": {
-        "created": "Schöpfen",
-        "transience" : "Transience",
-        "exchanged": "Exchanged",
-        "members" : "Members"
-      }
+    },
+    "navbar" : {
+      "my-profil":"Mein Profil",
+      "settings":"Einstellungen",
+      "activity":"Aktivität",
+      "support":"Support"
+    },
+    "sidebar" : {
+        "community":"Gemeinschaft",
+        "members_area":"Mitgliederbereich",
+        "membership":"Mitgliedschaft",
+        "language":"Sprachen"
+    },
+    "landing1" : {
+      "explore": "Erkunden Sie Gradido",
+      "text": "Gesundes Geld für eine gesunde Welt — Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
+      "link": "Seiten erkunden"
+    },
+    "404" : {
+        "ooops" : "Ooops!",
+        "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
+        "back" : "Zurück zur Übersicht!"
     }
   },
   "nav": {
