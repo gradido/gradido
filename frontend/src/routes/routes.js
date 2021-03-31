@@ -6,7 +6,7 @@ import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
 const routes = [
   {
-    path: '/',
+    path: '/login',
     redirect: 'login',
     component: AuthLayoutGDD,
     children: [
@@ -34,7 +34,7 @@ const routes = [
     ],
   },
   {
-    path: '/',
+    path: '/overview',
     redirect: 'overview',
     component: DashboardLayout,
     children: [

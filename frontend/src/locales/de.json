@@ -1,13 +1,14 @@
 {
   "message": "hallo gradido !!",
   "welcome":"Willkommen!",
+  "community": "Gemeinschaft",
   "logout":"Abmelden",
   "login":"Login",
   "signup": "Registrieren",
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
   "back":"Zurück",
-  "sent":"Senden",
+  "send":"Senden",
   "transactions":"Transaktionen",
   "language":"Language",
   "languages":{
@@ -15,7 +16,11 @@
     "en": "English"
   },
   "form": {
+    "attention": "<strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Abbrechen",
+    "close":"schließen",
+    "receiver":"Empfänger",
+    "sender":"Absender",
     "firstname":"Vorname",
     "lastname":"Nachname",
     "email":"eMail",
@@ -23,13 +28,19 @@
     "password":"Passwort",
     "password_repeat":"Passwort wiederholen",
     "amount":"Betrag",
-    "memo":"Info",
+    "memo":"Nachricht für den Empfänger",
     "message":"Nachricht",
     "date":"Datum",
     "from":"von",
     "to":"bis",
     "at":"am",
-    "send_now":"Jetzt versenden"
+    "time":"Zeit",
+    "send_now":"Jetzt versenden",
+    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
+    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
+    "thx":"Danke!",
+    "send_success":"Deine Zahlung wurde erfolgreich versendet."
   },
   "transaction":{
     "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
@@ -60,46 +71,39 @@
       "title": "Danke!",
       "subtitle": "Wir haben dir eine eMail gesendet."
     },
-      "overview":{
-        "account_overview":"Kontoübersicht",
-        "since_last_month": "seid letzten Monat",
-        "send_gradido":"Gradido versenden",
-        "add_work":"neuer Gemeinschaftsbeitrag"
-      },
-      "navbar" : {
-        "my-profil":"Mein Profil",
-        "settings":"Einstellungen",
-        "activity":"Aktivität",
-        "support":"Support"
-      },
-      "sidebar" : {
-         "community":"Gemeinschaft",
-         "members_area":"Mitgliederbereich",
-         "membership":"Mitgliedschaft",
-         "language":"Sprachen"
-      },
-      "landing1" : {
-        "explore": "Erkunden Sie Gradido",
-        "text": "Gesundes Geld für eine gesunde Welt — Das Gradido-Modell kann weltweiten Wohlstand und Frieden schaffen",
-        "link": "Seiten erkunden"
-      },
-      "404" : {
-         "ooops" : "Ooops!",
-         "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
-         "back" : "Zurück zur Übersicht!"
-      }
-  },
-  "admin": {
-    "site": {
-      "overview": {
-        "created": "Schöpfen",
-        "transience" : "Transience",
-        "exchanged": "Exchanged",
-        "members" : "Members"
-      }
+    "overview":{
+      "account_overview":"Kontoübersicht",
+      "since_last_month": "seid letzten Monat",
+      "send_gradido":"Gradido versenden",
+      "add_work":"neuer Gemeinschaftsbeitrag"
+    },
+    "profil": {
+      "transactions":"transactions",
+      "activity": {
+        "chart":"Gemeinschaftsstunden Chart",
+        "new":"Neue Gemeinschaftsstunden eintragen",
+        "list":"Meine Gemeinschaftsstunden Liste"
+      }      
+    },
+    "navbar" : {
+      "my-profil":"Mein Profil",
+      "settings":"Einstellungen",
+      "activity":"Aktivität",
+      "support":"Support"
+    },
+    "404" : {
+      "ooops" : "Ooops!",
+      "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
+      "back" : "Zurück zur Übersicht!"
     }
   },
-  "nav": {
-    "features": "Neuigkeiten"
+  "communitys":{
+    "form":{
+      "hours":"Stunden",
+      "date_period":"Datum / Zeitraum",
+      "more_hours":"weitere Stunden",
+      "submit":"Einreichen",
+      "hours_report":"Stundenbericht"
+    }
   }
 }

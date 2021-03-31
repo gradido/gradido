@@ -1,13 +1,14 @@
 {
   "message": "hello gradido !!",
   "welcome":"Welcome!",
+  "community": "Gemeinschaft",
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
   "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
   "back":"Back",
-  "sent":"Send",
+  "send":"Send",
   "transactions":"Transactions",
   "language":"Sprache",
   "languages":{
@@ -15,7 +16,11 @@
     "en": "English"
   },
   "form": {
+    "attention": "Achtung! Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Cancel",
+    "close":"Close",
+    "receiver":"Receiver",
+    "sender":"Sender",
     "firstname":"Firstname",
     "lastname":"Lastname",
     "email":"Email",
@@ -23,14 +28,19 @@
     "password":"Password",
     "password_repeat":"Repeat password",
     "amount":"Amount",
-    "memo":"Memo",
+    "memo":"Message for the recipient",
     "message":"Message",
     "date":"Date",
     "from":"from",
     "to":"to",
     "at":"at",
     "time":"Time",
-    "send_now":"Send now"
+    "send_now":"Send now",
+    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
+    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
+    "thx":"THX",
+    "send_success":"Deine Zahlung wurde erfolgreich versendet."
   },
   "transaction":{
     "show_part": "The last <strong>{count}</strong> transactions",
@@ -67,22 +77,19 @@
       "send_gradido":"Send Gradido",
       "add_work":"New Community Contribution"
     },
+    "profil": {
+      "transactions":"transactions",
+      "activity": {
+        "chart":"Community Hours Chart",
+        "new":"Register new community hours",
+        "list":"My Community Hours List"
+      }      
+    },
     "navbar" : {
       "my-profil":"My profile",
       "settings":"Settings",
       "activity":"Activity",
       "support":"Support"
-    },
-    "sidebar" : {
-      "community":"Community",
-      "members_area":"Members area",
-      "membership":"Membership",
-      "language":"Languages"
-    },
-    "landing1" : {
-      "explore":"Explore Gradido",
-      "text":"Healthy money for a healthy world — the Gradido model can create global prosperity and peace",
-      "link":"Explore pages"
     },
     "404" : {
       "ooops" : "Ooops!",
@@ -90,17 +97,13 @@
       "back" : "Back to dashboard!"
     }    
   },
-  "admin": {
-    "site": {
-      "overview": {
-        "creation": "Creation",
-        "transience" : "Transience",
-        "exchanged": "Exchanged",
-        "members" : "Members"
-      }
+  "communitys":{
+    "form":{
+      "hours":"hours",
+      "date_period":"Date / Period",
+      "more_hours":"more hours",
+      "submit":"submit",
+      "hours_report":"Hourly report"
     }
-  },
-  "nav": {
-    "features": "Features"
   }
 }

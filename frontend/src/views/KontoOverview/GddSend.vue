@@ -2,22 +2,17 @@
   <div>
     <b-row v-show="$store.state.row_form">
       <b-col xl="12" md="12">
-        <b-alert variant="warning" show dismissible>
-          <strong>Achtung!</strong>
-          Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine
-          Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.
-        </b-alert>
+        <b-alert variant="warning" show dismissible v-html="$t('form.attention')"></b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
           <b-alert show variant="secondary">
-            <span class="alert-text">
-              <strong>QR Code Scanner</strong>
-              - Scanne den QR Code deines Partners
-            </span>
+            <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
               <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true" />
             </b-col>
             <b-alert v-show="scan" show variant="warning">
-              <span class="alert-text" @click="scan = false"><strong>schließen!</strong></span>
+              <span class="alert-text" @click="scan = false">
+                <strong>{{ $t('form.cancel') }}</strong>
+              </span>
             </b-alert>
             <div v-if="scan">
               <!-- <b-row>                                          
@@ -30,10 +25,7 @@
                 <b-row>
                   <b-col lg="8">
                     <b-alert show variant="secondary">
-                      <span class="alert-text">
-                        <strong>QR Code Scanner</strong>
-                        - Scanne den QR Code deines Partners
-                      </span>
+                      <span class="alert-text" v-html="$t('form.scann_code')"></span>
                     </b-alert>
                   </b-col>
                 </b-row>
@@ -54,7 +46,7 @@
               </div>
               <br />
               <div>
-                <b-col class="text-left p-3 p-sm-1">Empfänger</b-col>
+                <b-col class="text-left p-3 p-sm-1">{{ $t('form.receiver') }}</b-col>
 
                 <b-input-group
                   id="input-group-1"
@@ -80,9 +72,9 @@
               </div>
               <br />
               <div>
-                <b-col class="text-left p-3 p-sm-1">Betrag</b-col>
+                <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
                 <b-col v-if="$store.state.user.balance == form.amount" class="text-right">
-                  <b-badge variant="primary">maximale anzahl GDD zum versenden erreicht!</b-badge>
+                  <b-badge variant="primary">{{ $t('form.max_gdd_info') }}</b-badge>
                 </b-col>
                 <b-input-group
                   id="input-group-2"
@@ -105,7 +97,7 @@
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
-                <b-col class="text-left p-3 p-sm-1">Nachricht für den Empfänger</b-col>
+                <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
 
                 <b-input-group>
                   <b-input-group-prepend class="p-3 d-none d-md-block">
@@ -142,34 +134,37 @@
     </b-row>
     <b-row v-show="$store.state.row_check">
       <b-col>
-        <div class="display-4 p-4">Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!</div>
+        <div class="display-4 p-4">{{ $t('form.send_check') }}</div>
 
         <b-list-group>
-          <b-list-group-item active>Meine Zahlung</b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $store.state.ajaxCreateData.email }}
-            <b-badge variant="primary" pill>Empfänger</b-badge>
+            <b-badge variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $store.state.ajaxCreateData.amount }} GDD
-            <b-badge variant="primary" pill>Betrag</b-badge>
+            <b-badge variant="primary" pill>{{ $t('form.amount') }}</b-badge>
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $store.state.ajaxCreateData.memo }}
-            <b-badge variant="primary" pill>Nachricht</b-badge>
+            <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $moment($store.state.ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
-            <b-badge variant="primary" pill>Datum</b-badge>
+            <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
           </b-list-group-item>
         </b-list-group>
         <hr />
         <b-row>
-          <b-col><b-button @click="onReset">abbrechen</b-button></b-col>
+          <b-col>
+            <b-button @click="onReset">{{ $t('form.cancel') }}</b-button>
+          </b-col>
           <b-col class="text-right">
-            <b-button variant="success" @click="sendTransaction">jetzt versenden</b-button>
+            <b-button variant="success" @click="sendTransaction">
+              {{ $t('form.send_now') }}
+            </b-button>
           </b-col>
         </b-row>
       </b-col>
@@ -177,12 +172,12 @@
     <b-row v-show="$store.state.row_thx">
       <b-col>
         <div class="display-1 p-4">
-          Danke
+          {{ $t('form.thx') }}
           <hr />
-          Deine Zahlung wurde erfolgreich versendet.
+          {{ $t('form.send_success') }}
         </div>
 
-        <b-button variant="success" @click="onReset">schließen</b-button>
+        <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
         <hr />
       </b-col>
     </b-row>
@@ -226,7 +221,7 @@ export default {
   },
   methods: {
     async onDecode(decodedString) {
-      console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
+      //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
       const arr = JSON.parse(decodedString)
       //console.log('qr-email', arr[0].email)
       //console.log('qr-amount', arr[0].amount)

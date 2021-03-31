@@ -153,15 +153,14 @@ export const store = new Vuex.Store({
         state.ajaxCreateData.amount,
         state.ajaxCreateData.memo,
       )
-      console.log(result)
+      //console.log(result)
 
       if (result.success) {
-         console.log('send success')
+        //console.log('send success')
       } else {
-         console.log('send error')
+        //console.log('send error')
       }
       return result
-     
     },
     ajaxListTransactions: async ({ commit, dispatch, state }) => {
       // console.log('action: ajaxListTransactions', state.session_id)
