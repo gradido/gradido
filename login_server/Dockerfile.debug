@@ -1,72 +1,8 @@
-#########################################################################################################
-# debug build preparation
-#########################################################################################################
-
-From conanio/gcc9 as build_debug_preparation
-USER root
-#RUN apt-get update && \
-#    apt-get install -y --no-install-recommends gcc g++ && \
-#	 apt-get autoclean && \
-#	 apt-get autoremove && \
-#    apt-get clean && \
-#	 rm -rf /var/lib/apt/lists/*
-
-ENV DOCKER_WORKDIR="/code"
-
-
-#VOLUME /root/.conan
-	
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
-COPY ./dependencies ./dependencies
-COPY ./conanfile.txt ./conanfile.txt
-
-RUN cd dependencies/mariadb-connector-c && \
-	mkdir build && \
-	cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSL=OFF ..
-
-
-RUN mkdir build && \
-	cd build && \
-	conan install .. --build=missing -s build_type=Debug
-
-#########################################################################################################
-# debug build proto and grpc
-#########################################################################################################
-From build_debug_preparation as proto_grpc
-
-ENV DOCKER_WORKDIR="/code"
-WORKDIR ${DOCKER_WORKDIR}
-
-COPY ./CMakeLists.txt .
-RUN cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j${CPU_COUNT} protoc grpc_cpp_plugin
-
-#########################################################################################################
-# parse proto and gettext 
-#########################################################################################################
-From proto_grpc as proto_parse
-
-ENV DOCKER_WORKDIR="/code"
-WORKDIR ${DOCKER_WORKDIR}
-
-RUN mkdir src && \
-    cd src && \
-	mkdir cpp 
-COPY ./src/proto ./src/proto
-COPY ./unix_parse_proto.sh .
-
-RUN chmod +x unix_parse_proto.sh && \
-    ./unix_parse_proto.sh
- 
 
 #########################################################################################################
 # Build debug
 #########################################################################################################
-From proto_parse as build_debug
+From gradido/login_dependencies:stage2 as build_debug
 
 ENV DOCKER_WORKDIR="/code"
 
@@ -77,6 +13,11 @@ COPY ./src/cpp ./src/cpp
 COPY ./src/LOCALE ./src/LOCALE
 COPY ./compile_pot.sh .
 COPY ./files_to_translate.txt .
+COPY ./src/proto ./src/proto
+COPY ./unix_parse_proto.sh .
+
+RUN chmod +x unix_parse_proto.sh && \
+    ./unix_parse_proto.sh
 
 RUN chmod +x compile_pot.sh && \
 	./compile_pot.sh

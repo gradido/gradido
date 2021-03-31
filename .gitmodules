@@ -24,4 +24,8 @@
 [submodule "login_server/dependencies/cmake-modules"]
 	path = login_server/dependencies/cmake-modules
 	url = https://github.com/viaduck/cmake-modules.git
+	
+[submodule "community_server/src/protobuf"]
+	path = community_server/src/protobuf
+	url =  git@github.com:gradido/gradido_protocol.git
 
