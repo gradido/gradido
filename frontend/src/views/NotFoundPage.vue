@@ -1,7 +1,8 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header bg-gradient-info py-7 py-lg-8 pt-lg-9">
+    <div class="header py-1 py-lg-1 pt-lg-3">
+      <b-container>xx</b-container>
       <b-container>
         <div class="header-body text-center mb-3">
           <a href="/login" to="/login">
@@ -1216,11 +1217,6 @@ export default {
 }
 </script>
 <style>
-body {
-  background-color: #141019;
-  background: radial-gradient(at 50% -20%, #047006, #f5f9f7) fixed;
-}
-
 #handboy {
   animation: swing ease-in-out 1.3s infinite alternate;
   transform-origin: 98% 98%;
