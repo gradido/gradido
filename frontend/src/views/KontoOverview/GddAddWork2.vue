@@ -8,8 +8,8 @@
               <b-form-input
                 type="number"
                 size="lg"
-                placeholder="0"
-                style="font-size: xx-large; padding-left: 20px"
+                placeholder="23"
+                style="font-size: xx-large; padding-left: 5px"
               />
             </base-input>
             <base-input label="Datum / Zeitraum">
@@ -17,7 +17,7 @@
                 class="form-control"
                 v-model="date"
                 :config="config"
-                style="font-size: x-large; padding-left: 20px"
+                style="font-size: 0.5em; padding-left: 5px"
               ></flat-pickr>
             </base-input>
           </b-col>

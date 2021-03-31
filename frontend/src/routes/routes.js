@@ -2,7 +2,7 @@ import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
 import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
-// import NotFound from '@/views/NotFoundPage.vue'
+import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
@@ -30,6 +30,11 @@ const routes = [
         path: '/explorer',
         name: 'Explorer',
         component: () => import('../views/Pages/Explorer.vue'),
+      },
+      {
+        path: '/icons',
+        name: 'Icons',
+        component: () => import('../views/Icons.vue'),
       },
     ],
   },
@@ -63,10 +68,9 @@ const routes = [
       },
     ],
   },
-  ,
   {
-    path: '/',
-    redirect: 'AdminOverview',
+    path: '/admin',
+    redirect: 'admin',
     component: AuthLayout,
     children: [
       {
@@ -79,6 +83,7 @@ const routes = [
       },
     ],
   },
+  { path: '*', component: NotFound },
 ]
 
 export default routes
