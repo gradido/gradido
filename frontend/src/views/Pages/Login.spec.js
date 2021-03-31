@@ -50,23 +50,23 @@ describe('Login', () => {
 
     describe('links', () => {
       it('has a link "Forgot Password?"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text())
-          .toEqual('site.login.forgot_pwd')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
+          'site.login.forgot_pwd',
+        )
       })
 
       it('links to /password when clicking "Forgot Password?"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to)
-          .toBe('/password')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/password')
       })
 
       it('has a link "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).text())
-          .toEqual('site.login.new_wallet')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).text()).toEqual(
+          'site.login.new_wallet',
+        )
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to)
-          .toBe('/register')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
       })
     })
 
