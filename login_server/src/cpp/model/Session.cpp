@@ -12,8 +12,6 @@
 #include "../SingletonManager/EmailManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 
-#include "../tasks/PrepareEmailTask.h"
-#include "../tasks/SendEmailTask.h"
 #include "../tasks/SigningTransaction.h"
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 #include "../tasks/VerificationEmailResendTask.h"
@@ -348,12 +346,14 @@ bool Session::createUser(const std::string& first_name, const std::string& last_
 	*/
 	//UniLib::controller::TaskPtr sendEmail(new SendEmailTask(message, ServerConfig::g_CPUScheduler, 1));
 	//Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);
-	UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
+	auto em = EmailManager::getInstance();
+	em->addEmail(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_VERIFICATION_CODE));
+	/*UniLib::controller::TaskPtr sendEmail(new SendEmailTask(new model::Email(mEmailVerificationCodeObject, mNewUser, model::EMAIL_USER_VERIFICATION_CODE), ServerConfig::g_CPUScheduler, 1));
 	//sendEmail->setParentTaskPtrInArray(prepareEmail, 0);
 	sendEmail->setParentTaskPtrInArray(writeEmailVerification, 0);
 	sendEmail->setFinishCommand(new SessionStateUpdateCommand(SESSION_STATE_EMAIL_VERIFICATION_SEND, this));
 	sendEmail->scheduleTask(sendEmail);
-
+	*/
 	// write user into db
 	// generate and write email verification into db
 	// send email
