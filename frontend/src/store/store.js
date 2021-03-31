@@ -18,7 +18,6 @@ export const store = new Vuex.Store({
       balance: 0,
       balance_gdt: 0,
     },
-    transactions: [],
     modals: false,
     optionAxios: {
       headers: {
@@ -29,9 +28,7 @@ export const store = new Vuex.Store({
     },
   },
   getters: {
-    //isLoggedIn: (state /*, getters */) => {
-    //  return state.session_id !== null;
-    //}
+
   },
   // Syncronous mutation of the state
   mutations: {
@@ -66,10 +63,6 @@ export const store = new Vuex.Store({
     user_balance_gdt: (state, balance) => {
       //console.log('mutation: user_balance_gdt')
       state.user.balance_gdt = balance / 10000
-    },
-    transactions: (state, transactions) => {
-      //console.log('mutation: transactions')
-      state.transactions = transactions
     },
   },
   // Asyncronous actions - used for api calls
@@ -118,7 +111,6 @@ export const store = new Vuex.Store({
     },
     logout: async ({ commit, state }) => {
       //console.log('action: logout')
-      // Are we actually logged in?
       if (state.session_id) {
         const result = await loginAPI.logout(state.session_id)
         // The result can be error, but thats ok with us
@@ -131,24 +123,11 @@ export const store = new Vuex.Store({
       $cookies.remove('gdd_lang')
       router.push('/Login')
     },
-    ajaxListTransactions: async ({ commit, dispatch, state }) => {
-      // console.log('action: ajaxListTransactions', state.session_id)
-      // const result = await communityAPI.transactions(state.session_id)
-    },
     accountBalance: async ({ commit, dispatch, state }) => {
-      //console.log('action: accountBalance')
-      // console.log('action: dispatch', dispatch)
-      // console.log('action: state.session_id', state.session_id)
-      // console.log(" action: $cookies.get('gdd_session_id') ", $cookies.get("gdd_session_id")  )
-      // commit('session_id', $cookies.get("gdd_session_id"))
-      // commit('email', $cookies.get("gdd_u"))
       const result = await communityAPI.balance($cookies.get('gdd_session_id'))
-      //console.log("accountBalance result", result)
-      //console.log("aresult.result.data.balance", result.result.data.balance)
       if (result.success) {
         commit('user_balance', result.result.data.balance)
       } else {
-        //console.log('action accountBalance to  logout start')
         dispatch('logout')
       }
     },
