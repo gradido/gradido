@@ -44,6 +44,7 @@ namespace model {
 			size_t addResendCountAndUpdate();
 
 			static const char* typeToString(EmailOptInType type);
+			static EmailOptInType stringToType(const std::string& typeString); 
 		protected:
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);

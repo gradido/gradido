@@ -139,3 +139,15 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 	return result;
 }
 
+Poco::JSON::Object* JsonRequestHandler::stateWarning(const char* msg, std::string details/* = ""*/)
+{
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "warning");
+	result->set("msg", msg);
+	if (details != "") {
+		result->set("details", details);
+	}
+	return result;
+}
+
+
