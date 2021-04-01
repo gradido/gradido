@@ -35,7 +35,8 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 	else {
 		return stateError("parameter format unknown");
 	}
-
+	// allow session_id from community server (allowed caller)
+	// else use cookie (if call cames from vue)
 	if (!session_id) {
 		return stateError("session_id invalid");
 	}
