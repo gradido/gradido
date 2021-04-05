@@ -20,7 +20,5 @@ module.exports = {
   setupFiles: ['<rootDir>/test/testSetup.js'],
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
-  transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!vee-validate/dist/rules)',
-  ],
+  transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
 }

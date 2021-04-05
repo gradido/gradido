@@ -19,7 +19,7 @@ describe('Login', () => {
   let state = {
     loginfail: false,
   }
-  
+
   let store = new Vuex.Store({
     state,
   })
@@ -89,15 +89,17 @@ describe('Login', () => {
       it('shows a warning when no valid Email is entered', async () => {
         wrapper.find('input[placeholder="Email"]').setValue('no_valid@Email')
         await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text())
-          .toEqual('The Email field must be a valid email')
+        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
+          'The Email field must be a valid email',
+        )
       })
 
       it('shows a warning when password is too short', async () => {
         wrapper.find('input[placeholder="form.password"]').setValue('1234')
         await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text())
-          .toEqual('The Password field must be at least 6 characters')
+        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
+          'The Password field must be at least 6 characters',
+        )
       })
     })
 
