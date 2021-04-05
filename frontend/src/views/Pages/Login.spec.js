@@ -16,13 +16,12 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
   }
 
+  let state = {
+    loginfail: false,
+  }
+  
   let store = new Vuex.Store({
-    getters: {
-      'auth/isModerator': () => false,
-      'auth/user': () => {
-        return { id: 'some-user' }
-      },
-    },
+    state,
   })
 
   let stubs = {
@@ -87,13 +86,21 @@ describe('Login', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBeTruthy()
       })
 
-      it('shows a warining when no valid Email is entered', async () => {
+      it('shows a warning when no valid Email is entered', async () => {
         wrapper.find('input[placeholder="Email"]').setValue('no_valid@Email')
-        //await wrapper.vm.$nextTick()
         await flushPromises()
-        //console.log(wrapper.find('fieldset').html())
-        await expect(true).toBeTruthy()
+        await expect(wrapper.find('.invalid-feedback').text())
+          .toEqual('The Email field must be a valid email')
+      })
+
+      it('shows a warning when password is too short', async () => {
+        wrapper.find('input[placeholder="form.password"]').setValue('1234')
+        await flushPromises()
+        await expect(wrapper.find('.invalid-feedback').text())
+          .toEqual('The Password field must be at least 6 characters')
       })
     })
+
+    // to do: test submit button
   })
 })
