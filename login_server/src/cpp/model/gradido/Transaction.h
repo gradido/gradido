@@ -18,6 +18,9 @@
 
 namespace model {
 	namespace gradido {
+
+		
+
 		class Transaction : public GradidoTask
 		{
 		public:
@@ -30,10 +33,31 @@ namespace model {
 			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
 			//! \brief transfer
 			//! \return for cross group transaction return two transactions
-			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo, bool inbound = true);
-			Poco::AutoPtr<Transaction> createTransfer(const MemoryBin* senderPubkey, Poco::AutoPtr<controller::User> receiver, std::string senderGroupAlias, Poco::UInt32 amount, const std::string& memo);
+			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(
+				Poco::AutoPtr<controller::User> sender, 
+				const MemoryBin* receiverPubkey, 
+				Poco::AutoPtr<controller::Group> receiverGroup, 
+				Poco::UInt32 amount, 
+				const std::string& memo, 
+				BlockchainType blockchainType,
+				bool inbound = true);
+
+			Poco::AutoPtr<Transaction> createTransfer(
+				const MemoryBin* senderPubkey, 
+				Poco::AutoPtr<controller::User> receiver,
+				std::string senderGroupAlias, 
+				Poco::UInt32 amount, 
+				const std::string& memo,
+				BlockchainType blockchainType);
+
 			//! \brief creation transaction
-			static Poco::AutoPtr<Transaction> createCreation(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo);
+			static Poco::AutoPtr<Transaction> createCreation(
+				Poco::AutoPtr<controller::User> receiver,
+				Poco::UInt32 amount,
+				Poco::DateTime targetDate,
+				const std::string& memo,
+				BlockchainType blockchainType);
+
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
 
 			bool sign(Poco::AutoPtr<controller::User> user);

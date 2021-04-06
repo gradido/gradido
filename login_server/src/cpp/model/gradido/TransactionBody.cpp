@@ -36,7 +36,14 @@ namespace model {
 			return obj;
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId, Poco::AutoPtr<controller::Group> group/* = nullptr*/)
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(
+			const std::string& memo, 
+			Poco::AutoPtr<controller::User> sender, 
+			const MemoryBin* receiverPublicKey, 
+			Poco::UInt32 amount, 
+			BlockchainType blockchainType,
+			Poco::Timestamp pairedTransactionId, 
+			Poco::AutoPtr<controller::Group> group/* = nullptr*/)
 		{
 			if (sender.isNull() || !sender->getModel()) {
 				return nullptr;
@@ -78,6 +85,7 @@ namespace model {
 			*receiver = std::string((const char*)receiverPublicKey->data(), receiverPublicKey->size());
 
 			obj->mType = TRANSACTION_TRANSFER;
+			obj->mBlockchainType = blockchainType;
 			obj->mTransactionSpecific = new TransactionTransfer(memo, obj->mTransactionBody.transfer());
 			obj->mTransactionSpecific->prepare();
 
@@ -173,7 +181,13 @@ namespace model {
 			return obj;
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate)
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(
+			const std::string& memo, 
+			Poco::AutoPtr<controller::User> receiver, 
+			Poco::UInt32 amount, 
+			Poco::DateTime targetDate,
+			BlockchainType blockchainType
+			)
 		{
 			if (receiver.isNull() || !receiver->getModel()) {
 				return nullptr;
@@ -293,6 +307,17 @@ namespace model {
 		TransactionBase*  TransactionBody::getTransactionBase()
 		{
 			return mTransactionSpecific;
+		}
+
+		BlockchainType TransactionBody::blockchainTypeFromString(const std::string& blockainTypeString)
+		{
+			if (blockainTypeString == "db" || blockainTypeString == "mysql" || blockainTypeString == "mariadb") {
+				return BLOCKCHAIN_MYSQL;
+			}
+			else if (blockainTypeString == "hedera") {
+				return BLOCKCHAIN_HEDERA;
+			}
+			return BLOCKCHAIN_UNKNOWN;
 		}
 	}
 }

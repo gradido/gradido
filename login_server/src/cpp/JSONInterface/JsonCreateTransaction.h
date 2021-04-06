@@ -4,6 +4,7 @@
 #include "JsonRequestHandler.h"
 #include "../SingletonManager/SessionManager.h"
 #include "../controller/Group.h"
+#include "../model/gradido/TransactionBody.h"
 
 class JsonCreateTransaction : public JsonRequestHandler
 {
@@ -22,6 +23,8 @@ protected:
 	std::string mMemo;
 	Poco::AutoPtr<controller::Group> mTargetGroup;
 	Poco::AutoPtr<controller::User> mReceiverUser;
+	model::gradido::BlockchainType mBlockchainType;
+
 };
 
 #endif // __JSON_INTERFACE_JSON_CREATE_TRANSACTION_

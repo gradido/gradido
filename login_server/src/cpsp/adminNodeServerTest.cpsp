@@ -294,7 +294,7 @@ enum PageType
 			if(!steps[2]) { %>
 				<p>skipped</p>
 			<% } else {
-			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation");
+			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation",  model::gradido::BLOCKCHAIN_HEDERA);
 			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
 			Poco::Thread::sleep(sleep_ms_between_transactions);
 			transaction3->sign(user_1);
@@ -312,7 +312,7 @@ enum PageType
 				<p>skipped</p>
 			<% } else {
 			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
-			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer");
+			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer", model::gradido::BLOCKCHAIN_HEDERA);
 			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
 			Poco::Thread::sleep(sleep_ms_between_transactions);
 			transaction4[0]->sign(user_2);
@@ -347,7 +347,7 @@ enum PageType
 				<p>skipped</p>
 			<% } else {
 				auto user_3_pubkey = user_3->getModel()->getPublicKeyCopy();
-				auto transaction6 = model::gradido::Transaction::createTransfer(user_2, user_3_pubkey, user_group2, 4000000, "Test Group Transfer", false);
+				auto transaction6 = model::gradido::Transaction::createTransfer(user_2, user_3_pubkey, user_group2, 4000000, "Test Group Transfer", model::gradido::BLOCKCHAIN_HEDERA, false);
 				if(!transaction6.size()) {
 					%>
 				<div class="alert alert-error" role="alert">

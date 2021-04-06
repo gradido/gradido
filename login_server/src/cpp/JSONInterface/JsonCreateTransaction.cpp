@@ -14,6 +14,7 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 
 	int session_id = 0;
 	std::string transaction_type;
+	std::string blockchain_type;
 
 	// if is json object
 	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
@@ -26,6 +27,7 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		try {
 			paramJsonObject->get("session_id").convert(session_id);
 			paramJsonObject->get("transaction_type").convert(transaction_type);
+			paramJsonObject->get("blockchain_type").convert(blockchain_type);
 			paramJsonObject->get("memo").convert(mMemo);
 		}
 		catch (Poco::Exception& ex) {
@@ -34,6 +36,10 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 	}
 	else {
 		return stateError("parameter format unknown");
+	}
+	mBlockchainType = model::gradido::TransactionBody::blockchainTypeFromString(blockchain_type);
+	if (model::gradido::BLOCKCHAIN_UNKNOWN == mBlockchainType) {
+		return stateError("unknown blockchain type");
 	}
 	// allow session_id from community server (allowed caller)
 	// else use cookie (if call cames from vue)
@@ -52,8 +58,13 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		em->sendErrorsAsEmail();
 		return customStateError("code error", "user is zero");
 	}
-
-	getTargetGroup(params);
+	
+	if (mBlockchainType == model::gradido::BLOCKCHAIN_HEDERA) {
+		getTargetGroup(params);
+	}
+	else {
+		mTargetGroup = controller::Group::load(user->getModel()->getGroupId());
+	}
 	if (transaction_type == "transfer") {
 		return transfer(params);
 	}
@@ -107,7 +118,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		}
 	}
 	if (!result) {
-		model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo);
+		model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
@@ -173,7 +184,7 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 	}
 	
 	if(!result) {
-		model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo);
+		model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
@@ -183,6 +194,9 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 }
 Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var params)
 {
+	if (mBlockchainType == model::gradido::BLOCKCHAIN_MYSQL) {
+		return stateError("groupMemberUpdate not allowed with mysql blockchain");
+	}
 	if (mTargetGroup.isNull()) {
 		return stateError("target_group not found");
 	}

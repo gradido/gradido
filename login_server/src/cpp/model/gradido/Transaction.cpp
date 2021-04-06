@@ -80,7 +80,13 @@ namespace model {
 			return result;
 		}
 
-		Poco::AutoPtr<Transaction> Transaction::createCreation(Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::DateTime targetDate, const std::string& memo)
+		Poco::AutoPtr<Transaction> Transaction::createCreation(
+			Poco::AutoPtr<controller::User> receiver,
+			Poco::UInt32 amount, 
+			Poco::DateTime targetDate,
+			const std::string& memo,
+			BlockchainType blockchainType
+			)
 		{
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create creation";
@@ -98,7 +104,7 @@ namespace model {
 				em->sendErrorsAsEmail();
 				return nullptr;
 			}
-			auto body = TransactionBody::create(memo, receiver, amount, targetDate);
+			auto body = TransactionBody::create(memo, receiver, amount, targetDate, blockchainType);
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 			auto model = result->getModel();
 			model->setHederaId(topic_id->getModel()->getID());
@@ -107,7 +113,15 @@ namespace model {
 			return result;
 		}
 
-		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo, bool inbound/* = true*/)
+		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(
+			Poco::AutoPtr<controller::User> sender,
+			const MemoryBin* receiverPubkey,
+			Poco::AutoPtr<controller::Group> receiverGroup,
+			Poco::UInt32 amount,
+			const std::string& memo, 
+			BlockchainType blockhainType,
+			bool inbound/* = true*/
+		)
 		{
 			std::vector<Poco::AutoPtr<Transaction>> results;
 			auto em = ErrorManager::getInstance();
@@ -123,7 +137,7 @@ namespace model {
 			// LOCAL Transfer
 			if (receiverGroup.isNull() ||  sender_model->getGroupId() == receiverGroup->getModel()->getID())
 			{	
-				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount);
+				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockhainType);
 				Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 				auto topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
 				if (topic_id.isNull()) {
@@ -172,7 +186,7 @@ namespace model {
 						return results;
 					}
 
-					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, pairedTransactionId, transaction_group);
+					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockhainType, pairedTransactionId, transaction_group);
 					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
 					auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
@@ -216,7 +230,14 @@ namespace model {
 			return true;
 		}
 
-		Poco::AutoPtr<Transaction> Transaction::createTransfer(const MemoryBin* senderPubkey, Poco::AutoPtr<controller::User> receiver, std::string senderGroupAlias, Poco::UInt32 amount, const std::string& memo)
+		Poco::AutoPtr<Transaction> Transaction::createTransfer(
+			const MemoryBin* senderPubkey, 
+			Poco::AutoPtr<controller::User> receiver, 
+			std::string senderGroupAlias, 
+			Poco::UInt32 amount, 
+			const std::string& memo,
+			BlockchainType blockchainType
+			)
 		{
 			Poco::AutoPtr<Transaction> result;
 			auto em = ErrorManager::getInstance();
