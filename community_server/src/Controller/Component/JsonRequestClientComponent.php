@@ -15,7 +15,7 @@ use Cake\Core\Configure;
 
 class JsonRequestClientComponent extends Component
 {
-  public function sendTransaction($session_id, $base64Message, $user_balance = 0, $auto_sign = false) {
+  public function sendTransaction($session_id, $base64Message, $user_balance = 0, $auto_sign = false, $blockchain_type = 'mysql') {
     if(!is_numeric($session_id)) {
       return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'session_id isn\'t numeric'];
     }
@@ -36,7 +36,8 @@ class JsonRequestClientComponent extends Component
         'session_id' => $session_id,
         'transaction_base64' => $base64Message,
         'balance' => $user_balance,
-        'auto_sign' => $auto_sign
+        'auto_sign' => $auto_sign,
+        'blockchain_type' => $this->blockchainType
     ]), '/checkTransaction');
       
   }

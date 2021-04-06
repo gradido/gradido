@@ -110,7 +110,8 @@ class AppRequestsController extends AppController
                 'amount' => $amount,
                 'target_group' => $group,
                 'target_email'  => $email,
-                'auto_sign' => $auto_sign
+                'auto_sign' => $auto_sign,
+                'blockchain_type' => $this->blockchainType
         ]), '/createTransaction');
 
         if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
