@@ -248,6 +248,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		json_srv.start();
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
+		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
 

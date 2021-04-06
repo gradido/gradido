@@ -64,4 +64,4 @@ RUN chmod +x ./Dockerfiles/build_and_run.sh
 #RUN chmod +x ./start_after_mysql.sh
 #ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
 #CMD gdb -ex=r Gradido_LoginServer
-CMD ./Dockerfiles/build_and_run.sh
+CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer
