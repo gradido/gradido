@@ -391,18 +391,42 @@ return [
     'Session' => [
         'defaults' => 'php',
     ],
+    // ***************************************************
     // Gradido specific configuration
+    // ***************************************************
     // Login Server ip and port
     'LoginServer' => [
         'host' => 'http://login-server',
-        'port' => 1201
+        'port' => 1201,
+        'url'  => 'http://localhost'
     ],
-	'API' => [
+       
+    // login server for look up emails from other groups
+    // workaround for using multiple groups until every code is finished as planned
+    // normally node server are responsible for email look up from users from other groups
+    'NeighborLoginServers' => [
+        ['host' => 'login-server', 'port' => 1201]
+    ],
+    'GradidoBlockchain' => [
+        // type:
+        //   - db: centralized blockchain in mysql db, no cross group transactions
+        //   - hedera: send transaction over hedera
+      'type' => 'db',
+        // gradido nodes with blockchain (if type != db)
+      'nodes' => [
+          ['host' => 'node', 'port' => 13702]
+      ]
+    ],
+
+    'GroupAlias' => 'docker',
+    'GDTServer' => [
+        //'host' => 'gdt'
+    ],
+    'API' => [
         'allowedCaller' => ['login-server']
     ],
-	'ServerAdminEmail' => 'info@gradido.net',
+    'ServerAdminEmail' => 'info@gradido.net',
     'noReplyEmail' => 'no-reply@gradido.net',
-	'disableEmail' => true,
-
-    'GroupNode' => false
+    'disableEmail' => false
+   
 ];

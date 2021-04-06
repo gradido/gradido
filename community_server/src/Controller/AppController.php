@@ -35,6 +35,7 @@ class AppController extends Controller
 {
 
     var $loginServerUrl = '';
+    var $blockchainType = 'mysql';
     /**
      * Initialization hook method.
      *
@@ -135,6 +136,23 @@ class AppController extends Controller
             $this->loginServerUrl = $loginServer['url'] . '/';
         } else {
             $this->loginServerUrl = Router::url('/', true);
+        }
+        /*
+         * 
+         *    'GradidoBlockchain' => [
+         *      // type:
+         *      //   - mysql: centralized blockchain in mysql db, no cross group transactions
+         *      //   - hedera: send transaction over hedera
+         *    'type' => 'hedera',
+         *      // gradido nodes with blockchain (if type != mysql)
+         *    'nodes' => [
+         *        ['host' => 'http://192.168.178.225', 'port' => 13702]
+         *    ]
+         *  ],
+         */
+        $blockchain = Configure::read('GradidoBlockchain');
+        if($blockchain && isset($blockchain['type'])) {
+            $this->blockchainType = $blockchain['type'];
         }
     }
 

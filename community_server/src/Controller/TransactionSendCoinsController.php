@@ -185,7 +185,8 @@ class TransactionSendCoinsController extends AppController
                 'memo' => $requestData['memo'],
                 'amount' => $amountCent,
                 'target_group' => $known_groups['data']['data']['groups'][$requestData['group']],
-                'target_email'  => $receiverEmail
+                'target_email'  => $receiverEmail,
+                'blockchain_type' => $this->blockchainType
             ]), '/createTransaction');
             
             if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {

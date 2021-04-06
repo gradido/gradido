@@ -399,7 +399,8 @@ class TransactionCreationsController extends AppController
                         'memo' => $memo,
                         'amount' => $localAmountCent,
                         'target_pubkey'  => $pubKeyHex,
-                        'target_date' => $localTargetDateFrozen
+                        'target_date' => $localTargetDateFrozen,
+                        'blockchain_type' => $this->blockchainType
                     ]), '/createTransaction');
                     
                     if('success' != $requestAnswear['state']) {
@@ -580,7 +581,8 @@ class TransactionCreationsController extends AppController
                 $session_id,
                 $transaction_base64,
                 $user['balance'],
-                $auto_sign
+                $auto_sign,
+                $this->blockchainType
             );
             if ($requestResult['state'] != 'success') {                
                 $msg = 'error returned from login server';
