@@ -16,8 +16,8 @@ services:
       target: production
     networks:
       - external-net
-    depends_on:
-      - nginx
+    #depends_on:
+      #- nginx
     ports:
       - 8080:8080
     environment:
