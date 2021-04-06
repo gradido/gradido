@@ -43,7 +43,7 @@ services:
       - community-server
       - login-server
     volumes: 
-      - ./logs:/var/log/nginx 
+      - ./logs/nginx:/var/log/nginx 
   
   #########################################################
   ## PHPMYADMIN ###########################################

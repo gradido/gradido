@@ -16,8 +16,6 @@ services:
       target: production
     networks:
       - external-net
-    depends_on:
-      - nginx
     ports:
       - 8080:8080
     environment:
@@ -69,6 +67,7 @@ services:
       - 1201:1201
     volumes:
       - ./configs/login_server:/etc/grd_login
+      - login_build:/code/build_vol
       
   #########################################################
   ## NGINX ################################################
@@ -135,4 +134,5 @@ networks:
     internal: true
 
 volumes:
-  db_vol:      
+  db_vol: 
+  login_build:
