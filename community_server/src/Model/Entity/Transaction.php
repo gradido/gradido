@@ -39,6 +39,7 @@ class Transaction extends Entity
         'tx_hash' => true,
         'memo' => true,
         'received' => true,
+        'blockchain_type_id' => true,
         'state_group' => true,
         'transaction_type' => true,
         'state_created' => true,
