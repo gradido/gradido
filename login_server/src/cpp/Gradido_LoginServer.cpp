@@ -24,6 +24,7 @@
 #include "Poco/Path.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/SplitterChannel.h"
 #include "MySQL/Poco/Connector.h"
@@ -93,8 +94,10 @@ void Gradido_LoginServer::displayHelp()
 void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::string filePath)
 {
 	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
-	Poco::AutoPtr<Poco::SimpleFileChannel> logFileChannel(new Poco::SimpleFileChannel(filePath));
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
 	logFileChannel->setProperty("rotation", "500 K");
+	logFileChannel->setProperty("compress", "true");
+	logFileChannel->setProperty("archive", "timestamp");
 	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
 	logSplitter->addChannel(logConsoleChannel);
 	logSplitter->addChannel(logFileChannel);
@@ -103,6 +106,16 @@ void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::st
 
 	Poco::Logger& log = Poco::Logger::get(name);
 	log.setChannel(logAsyncChannel);
+	log.setLevel("information");
+}
+
+void Gradido_LoginServer::createFileLogger(std::string name, std::string filePath)
+{
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
+	logFileChannel->setProperty("rotation", "500 K");
+	logFileChannel->setProperty("archive", "timestamp");
+	Poco::Logger& log = Poco::Logger::get(name);
+	log.setChannel(logFileChannel);
 	log.setLevel("information");
 }
 
@@ -140,6 +153,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// logging for request handling
 		createConsoleFileAsyncLogger("requestLog", log_Path + "requestLog.txt");
+
+		// logging for hedera request for debugging gradido node
+		createFileLogger("transactions_log", log_Path + "transactions_log.txt");
+		createFileLogger("transactions_log_base64", log_Path + "transactions_log_base64.txt");
 
 		// error logging
 		createConsoleFileAsyncLogger("errorLog", log_Path + "errorLog.txt");

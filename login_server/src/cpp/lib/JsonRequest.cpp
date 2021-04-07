@@ -38,15 +38,21 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 	try {
 		Profiler phpRequestTime;
 		
-		Poco::Net::HTTPSClientSession httpsClientSession(mServerHost, mServerPort);
+		Poco::SharedPtr<Poco::Net::HTTPClientSession> clientSession;
+		if (mServerPort == 443) {
+			clientSession = new Poco::Net::HTTPSClientSession(mServerHost, mServerPort);
+		}
+		else {
+			clientSession = new Poco::Net::HTTPClientSession(mServerHost, mServerPort);
+		}
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
-		std::ostream& request_stream = httpsClientSession.sendRequest(request);
+		std::ostream& request_stream = clientSession->sendRequest(request);
 		requestJson.stringify(request_stream);
 
 		Poco::Net::HTTPResponse response;
-		std::istream& response_stream = httpsClientSession.receiveResponse(response);
+		std::istream& response_stream = clientSession->receiveResponse(response);
 
 		// debugging answer
 
@@ -66,8 +72,13 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 		}
 		catch (Poco::Exception& ex) {
 			addError(new ParamError(functionName, "error parsing request answer", ex.displayText().data()));
-
-			std::string fileName = "response_";
+			std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d%m%yT%H%M%S");
+			std::string log_Path = "/var/log/grd_login/";
+			//#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
+			log_Path = "./";
+#endif
+			std::string fileName = log_Path + dateTimeString + "_response_";
 			fileName += methodName;
 			fileName += ".html";
 
