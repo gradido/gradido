@@ -22,7 +22,7 @@ namespace model {
 
 		};
 		
-		typedef Poco::Tuple<int, int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, int, int, int> PendingTaskTuple;
+		typedef Poco::Tuple<int, int, int, Poco::Data::BLOB, Poco::DateTime, Poco::DateTime, std::string, std::string, int, int, int> PendingTaskTuple;
 
 		class PendingTask : public ModelBase
 		{
@@ -42,12 +42,14 @@ namespace model {
 			bool updateRequest();
 
 			bool updateFinishedAndResult();
+			bool updateParam();
 
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
 			inline int getHederaId() const { SHARED_LOCK; return mHederaId; }
 			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
 			inline std::string getRequestCopy() const { SHARED_LOCK; return std::string((const char*)mRequest.content().data(), mRequest.content().size()); }
 			Poco::JSON::Object::Ptr getResultJson() const;
+			Poco::JSON::Object::Ptr getParamJson() const;
 			inline Poco::DateTime getCreated() const { SHARED_LOCK; return mCreated; }
 			inline TaskType getTaskType() const { SHARED_LOCK; return (TaskType)mTaskTypeId; }
 			inline const char* getTaskTypeString() const { SHARED_LOCK; return typeToString((TaskType)mTaskTypeId); }
@@ -59,6 +61,7 @@ namespace model {
 			void setRequest(const std::string& serializedProto);
 			inline void setFinished(Poco::DateTime date) { UNIQUE_LOCK; mFinished = date; }
 			void setResultJson(Poco::JSON::Object::Ptr result);
+			void setParamJson(Poco::JSON::Object::Ptr param);
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
 			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
 			inline void setParentPendingTaskId(int parentPendingTaskId) { UNIQUE_LOCK; mParentPendingTaskId = parentPendingTaskId; }
@@ -81,6 +84,7 @@ namespace model {
 			Poco::DateTime mCreated;
 			Poco::DateTime mFinished;
 			std::string mResultJsonString;
+			std::string mParamJsonString;
 			int mTaskTypeId;
 			int mChildPendingTaskId;
 			int mParentPendingTaskId;

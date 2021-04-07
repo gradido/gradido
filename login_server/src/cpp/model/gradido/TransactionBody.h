@@ -81,6 +81,7 @@ namespace model {
 			TransactionBase*     getTransactionBase();
 
 			static BlockchainType blockchainTypeFromString(const std::string& blockainTypeString);
+			inline void setBlockchainType(BlockchainType blockchainType) { mBlockchainType = blockchainType;}
 
 		protected:
 			TransactionBody();
