@@ -86,7 +86,7 @@ class StateBalancesController extends AppController
         
         if(!$recalculate_state_user_transactions_balance) {
             $last_state_user_transaction = $state_user_transactions->last();
-            if($last_state_user_transaction->balance <= 0) {
+            if($last_state_user_transaction && $last_state_user_transaction->balance <= 0) {
                 $recalculate_state_user_transactions_balance = true;
                 if(!$create_state_balance) {
                     $update_state_balance = true;
