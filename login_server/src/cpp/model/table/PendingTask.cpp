@@ -23,7 +23,7 @@ namespace model
 		PendingTask::PendingTask(const PendingTaskTuple& tuple)
 			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mHederaId(tuple.get<2>()),
 			mRequest(tuple.get<3>()), mCreated(tuple.get<4>()), mFinished(tuple.get<5>()),
-			mResultJsonString(tuple.get<6>()), mTaskTypeId(tuple.get<7>()), mChildPendingTaskId(tuple.get<8>()), mParentPendingTaskId(tuple.get<9>())
+			mResultJsonString(tuple.get<6>()), mParamJsonString(tuple.get<7>()), mTaskTypeId(tuple.get<8>()), mChildPendingTaskId(tuple.get<9>()), mParentPendingTaskId(tuple.get<10>())
 		{
 
 		}
@@ -43,6 +43,14 @@ namespace model
 			UNIQUE_LOCK;
 			std::stringstream ss;
 			result->stringify(ss);
+			mResultJsonString = ss.str();
+		}
+
+		void PendingTask::setParamJson(Poco::JSON::Object::Ptr param)
+		{
+			UNIQUE_LOCK;
+			std::stringstream ss;
+			param->stringify(ss);
 			mResultJsonString = ss.str();
 		}
 
@@ -67,6 +75,28 @@ namespace model
 			return result.extract<Poco::JSON::Object::Ptr>();
 
 		}
+
+		Poco::JSON::Object::Ptr PendingTask::getParamJson() const
+		{
+			std::string temp;
+			{
+				SHARED_LOCK;
+				temp = mParamJsonString;
+			}
+			Poco::JSON::Parser parser;
+			Poco::Dynamic::Var result;
+			try
+			{
+				result = parser.parse(temp);
+			}
+			catch (Poco::JSON::JSONException& jsone)
+			{
+				return nullptr;
+			}
+
+			return result.extract<Poco::JSON::Object::Ptr>();
+		}
+
 
 		bool PendingTask::updateRequest()
 		{
@@ -118,6 +148,32 @@ namespace model
 			}
 			//printf("data valid: %s\n", toString().data());
 			return 0;
+		}
+
+		bool PendingTask::updateParam()
+		{
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			SHARED_LOCK;
+			if (!mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET param_json = ? where id = ?;",
+				use(mParamJsonString), use(mID);
+
+			try {
+				return 1 == update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateParam] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return false;
 		}
 
 		
@@ -178,9 +234,9 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName()
+			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mHederaId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString),
+				, into(mID), into(mUserId), into(mHederaId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString), into(mParamJsonString),
 				into(mTaskTypeId), into(mChildPendingTaskId), into(mParentPendingTaskId);
 
 			return select;
@@ -190,7 +246,7 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " 
+			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " 
 				   << getTableName() << " order by id";
 
 			return select;
@@ -217,8 +273,8 @@ namespace model
 			Poco::Data::Statement insert(session);
 
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, hedera_id, request, created, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?)"
-				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
+				<< " (user_id, hedera_id, request, created, param_json, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?,?)"
+				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mParamJsonString), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
 			
 			return insert;
 		}

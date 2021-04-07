@@ -5,6 +5,7 @@
 
 #include "Poco/SharedPtr.h"
 #include "Poco/Timer.h"
+#include "Poco/Dynamic/Var.h"
 
 #include "TableControllerBase.h"
 #include "User.h"
@@ -42,6 +43,9 @@ namespace controller {
 		void calledFromTimer(Poco::Timer& timer);
 
 		Poco::AutoPtr<controller::User> getUser();
+
+		bool setParam(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB = false);
+		int getIntParam(const std::string& key);
 		
 	protected:
 		static Poco::AutoPtr<PendingTask> loadCorrectDerivedClass(model::table::PendingTask* dbModel);

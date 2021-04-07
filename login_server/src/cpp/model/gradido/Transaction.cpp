@@ -42,6 +42,10 @@ namespace model {
 				throw new Poco::Exception("error parse from string");
 			}
 			mTransactionBody = TransactionBody::load(mProtoTransaction.body_bytes());
+			auto blockchain_type = getIntParam("blockchain_type");
+			if (blockchain_type >= 0) {
+				mTransactionBody->setBlockchainType((BlockchainType)blockchain_type);
+			}
 			auto body_bytes = mTransactionBody->getBodyBytes();
 			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
 		}
@@ -106,6 +110,7 @@ namespace model {
 			}
 			auto body = TransactionBody::create(memo, receiver, amount, targetDate, blockchainType);
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
+			result->setParam("blockchain_type", blockchainType);
 			auto model = result->getModel();
 			model->setHederaId(topic_id->getModel()->getID());
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
@@ -119,7 +124,7 @@ namespace model {
 			Poco::AutoPtr<controller::Group> receiverGroup,
 			Poco::UInt32 amount,
 			const std::string& memo, 
-			BlockchainType blockhainType,
+			BlockchainType blockchainType,
 			bool inbound/* = true*/
 		)
 		{
@@ -137,7 +142,7 @@ namespace model {
 			// LOCAL Transfer
 			if (receiverGroup.isNull() ||  sender_model->getGroupId() == receiverGroup->getModel()->getID())
 			{	
-				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockhainType);
+				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
 				Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 				auto topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
 				if (topic_id.isNull()) {
@@ -186,9 +191,10 @@ namespace model {
 						return results;
 					}
 
-					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockhainType, pairedTransactionId, transaction_group);
+					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType, pairedTransactionId, transaction_group);
 					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
 					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
+					
 					auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
 					transfer_transaction->setOwnGroupAlias(sender_group->getModel()->getAlias());
 					transfer_transaction->setTargetGroupAlias(receiverGroup->getModel()->getAlias());
@@ -200,6 +206,7 @@ namespace model {
 			
 			for (auto it = results.begin(); it != results.end(); it++) {
 				if (!(*it)->getTransactionBody()->getTransferTransaction()->isInbound()) {
+					(*it)->setParam("blockchain_type", blockchainType);
 					(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
 					PendingTasksManager::getInstance()->addTask(*it);
 				}
@@ -290,9 +297,9 @@ namespace model {
 			result->getModel()->setHederaId(topic_id->getModel()->getID());
 			
 			//	}
-			
-			//result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
-			//PendingTasksManager::getInstance()->addTask(result);
+			result->setParam("blockchain_type", blockchainType);
+			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
+			PendingTasksManager::getInstance()->addTask(result);
 
 			return result;
 		}

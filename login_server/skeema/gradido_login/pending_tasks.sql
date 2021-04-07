@@ -6,6 +6,7 @@ CREATE TABLE `pending_tasks` (
   `created` datetime NOT NULL,
   `finished` datetime DEFAULT '2000-01-01 000000',
   `result_json` varchar(255) DEFAULT NULL,
+  `param_json` text NULL,
   `task_type_id` int UNSIGNED NOT NULL,
   `child_pending_task_id` int UNSIGNED DEFAULT 0,
   `parent_pending_task_id` int UNSIGNED DEFAULT 0,
