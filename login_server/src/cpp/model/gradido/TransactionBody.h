@@ -82,6 +82,9 @@ namespace model {
 
 			static BlockchainType blockchainTypeFromString(const std::string& blockainTypeString);
 			inline void setBlockchainType(BlockchainType blockchainType) { mBlockchainType = blockchainType;}
+			inline bool isHederaBlockchain() { return mBlockchainType == BLOCKCHAIN_HEDERA; }
+			inline bool isMysqlBlockchain() { return mBlockchainType == BLOCKCHAIN_MYSQL; }
+			const char* getBlockchainTypeString() const;
 
 		protected:
 			TransactionBody();

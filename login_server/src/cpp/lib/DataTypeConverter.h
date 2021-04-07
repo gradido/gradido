@@ -40,6 +40,9 @@ namespace DataTypeConverter {
 	
 	std::string binToBase64(const unsigned char* data, size_t size, int variant = sodium_base64_VARIANT_ORIGINAL);
 	inline std::string binToBase64(const MemoryBin* data, int variant = sodium_base64_VARIANT_ORIGINAL) { return binToBase64(data->data(), data->size(), variant); }
+	inline std::string binToBase64(const std::string& proto_bin, int variant = sodium_base64_VARIANT_ORIGINAL) {
+		return binToBase64((const unsigned char*)proto_bin.data(), proto_bin.size(), variant);
+	}
 	
 	std::string binToHex(const unsigned char* data, size_t size);
 	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);

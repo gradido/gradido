@@ -3,6 +3,8 @@
 
 #include "../model/table/Group.h"
 
+#include "../lib/JsonRequest.h"
+
 #include "Poco/SharedPtr.h"
 
 #include "TableControllerBase.h"
@@ -23,7 +25,7 @@ namespace controller {
 		inline bool deleteFromDB() { return mDBModel->deleteFromDB(); }
 
 		inline Poco::AutoPtr<model::table::Group> getModel() { return _getModel<model::table::Group>(); }
-
+		JsonRequest createJsonRequest();
 	
 	protected:
 		Group(model::table::Group* dbModel);

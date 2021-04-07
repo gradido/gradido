@@ -77,6 +77,23 @@ namespace controller {
 		}
 		return resultVector;
 	}
+
+	JsonRequest Group::createJsonRequest()
+	{
+		int port = 0;
+		port = ServerConfig::g_serverPort;
+		if (!port) {
+			if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
+				ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
+				port = 443;
+			}
+			else {
+				port = 80;
+			}
+		}
+		auto model = getModel();
+		return JsonRequest(model->getUrl(), port);
+	}
 	
 }
 

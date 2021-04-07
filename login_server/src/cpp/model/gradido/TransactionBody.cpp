@@ -319,5 +319,15 @@ namespace model {
 			}
 			return BLOCKCHAIN_UNKNOWN;
 		}
+
+		const char* TransactionBody::getBlockchainTypeString() const
+		{
+			switch (mBlockchainType) {
+			case BLOCKCHAIN_HEDERA: return "hedera";
+			case BLOCKCHAIN_MYSQL: return "mysql";
+			case BLOCKCHAIN_UNKNOWN: return "unknown";
+			}
+			return "invalid";
+		}
 	}
 }

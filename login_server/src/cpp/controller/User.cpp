@@ -591,4 +591,13 @@ namespace controller {
 		return mGroupBaseUrl;
 	}
 
+	Poco::AutoPtr<controller::Group> User::getGroup()
+	{
+		auto model = getModel();
+		if (!model->getGroupId()) {
+			return nullptr;
+		}
+		return controller::Group::load(model->getGroupId());
+	}
+
 }

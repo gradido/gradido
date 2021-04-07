@@ -8,6 +8,7 @@
 #include <shared_mutex>
 
 #include "TableControllerBase.h"
+#include "Group.h"
 
 enum UserState
 {
@@ -147,6 +148,7 @@ namespace controller {
 		inline int getBalance() { std::shared_lock<std::shared_mutex> _lock(mSharedMutex); return mGradidoCurrentBalance; }
 
 		std::string getGroupBaseUrl();
+		Poco::AutoPtr<controller::Group> getGroup();
 
 		// connection to other tables
 
