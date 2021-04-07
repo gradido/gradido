@@ -11,6 +11,7 @@
 
 #include "../lib/DataTypeConverter.h"
 #include "../lib/Profiler.h"
+#include "../lib/JsonRequest.h"
 
 #include "../hedera/Transaction.h"
 #include "../hedera/TransactionId.h"
@@ -611,151 +612,201 @@ namespace model {
 				}
 				return -1;
 			}
-			else 
+			else
 			{
-				// send transaction via hedera
-				auto network_type = ServerConfig::g_HederaNetworkType;
-				// TODO: get correct topic id for user group
-				//int user_group_id = 1;
-				//auto topic_id = controller::HederaId::find(user_group_id, network_type);
-				auto topic_id = controller::HederaId::load(getModel()->getHederaId());
-				auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
-
-				if (!topic_id.isNull() && !hedera_operator_account.isNull()) 
-				{
-					auto crypto_key = hedera_operator_account->getCryptoKey();
-					if (!crypto_key.isNull()) 
-					{
-						model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
-						std::string raw_message = mProtoTransaction.SerializeAsString();
-
-						if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BINARY == ServerConfig::g_ConsensusMessageFormat) {
-							consensus_submit_message.setMessage(raw_message);
-
-							// print to txt for debugging gradido node
-							static Poco::FastMutex _file_mutex;
-							Poco::ScopedLock<Poco::FastMutex> _lock_file(_file_mutex);
-							std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S") + "\n";
-
-							std::string json_message = getTransactionAsJson();
-							std::string base64_message = DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-							if (json_message != "") 
-							{
-								FILE* f = fopen("transactions_log.txt", "at");
-								if (f) {
-									fwrite(dateTimeString.data(), sizeof(char), dateTimeString.size(), f);
-									fwrite(json_message.data(), sizeof(char), json_message.size(), f);
-									fclose(f);
-								}
-								else {
-									printf("[%s] cannot open transactions_log.txt\n", function_name);
-								}
-							}
-							if (base64_message != "") 
-							{
-								FILE* f2 = fopen("transaction_log_base64.txt", "at");
-								if (f2) {
-									fwrite(dateTimeString.data(), sizeof(char), dateTimeString.size(), f2);
-									fwrite(base64_message.data(), sizeof(char), base64_message.size(), f2);
-									fclose(f2);
-								}
-								else {
-									printf("[%s] cannot open transaction_log_base64.txt\n", function_name);
-								}
-							}
-						}
-						else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING == ServerConfig::g_ConsensusMessageFormat) {
-							consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-						}
-						else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_JSON == ServerConfig::g_ConsensusMessageFormat) {
-							std::string json_message = getTransactionAsJson();
-							if (json_message != "") {
-								consensus_submit_message.setMessage(json_message);
-							}
-							else {
-								//sendErrorsAsEmail();
-								return -7;
-							}
-							
-						}
-						// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
-						//if (network_type == table::HEDERA_TESTNET) {
-							//consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-						//}
-						//else {
-							
-						//}
-						auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
-						hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
-						model::hedera::Transaction hedera_transaction;
-						
-						hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
-
-						HederaRequest hedera_request;
-						Poco::AutoPtr<HederaTask> hedera_task(new HederaTask(this));
-						
-						if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, hedera_task)) 
-						{
-							addError(new Error(function_name, "error send transaction to hedera"));
-							getErrors(&hedera_request);
-							//sendErrorsAsEmail();
-							return -2;
-						}
-						else {
-							auto hedera_transaction_response = hedera_task->getTransactionResponse();
-							auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
-							auto precheck_code = hedera_transaction_response->getPrecheckCode();
-							auto cost = hedera_transaction_response->getCost();
-							
-							printf("hedera response: %s, cost: %" PRIu64 ", type: %s\n", 
-								hedera_precheck_code_string.data(), cost,
-								TransactionBody::transactionTypeToString(mTransactionBody->getType()));
-							if (precheck_code == proto::INVALID_TRANSACTION_START) {
-								int zahl = 0;
-								return -5;
-							}
-							else if (precheck_code == proto::OK) {
-								// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
-								// TODO: later check, but now I haven't any way to communicate with the gradido node
-								mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
-								auto transaction_model = getModel();
-								transaction_model->setFinished(Poco::DateTime());
-								Poco::JSON::Object::Ptr result = new Poco::JSON::Object; 
-								model::hedera::TransactionId transaction_id(hedera_task->getTransactionId());
-								result->set("state", "success");
-								result->set("transactionId", transaction_id.convertToJSON());
-								
-								transaction_model->setResultJson(result);
-								Profiler timer;
-								transaction_model->updateFinishedAndResult();
-								printf("time for update 2 fields in db: %s\n", timer.string().data());
-
-								// trigger community server update in 5 seconds
-								CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5, 0));
-								return 1;
-							}
-
-						}
-						//model::hedera::TransactionBody hedera_transaction_body()
-					}
-					else 
-					{
-						addError(new ParamError(function_name, "hedera crypto key not found for paying for consensus submit message! NetworkType: ", network_type));
-						//sendErrorsAsEmail();
-						return -3;
-					}
+				if (mTransactionBody->isHederaBlockchain()) {
+					return runSendTransactionHedera();
 				}
-				else 
-				{
-					addError(new Error(function_name, "hedera topic id or operator account not found!"));
-					addError(new ParamError(function_name, "topic id: ", topic_id->getModel()->toString()));
-					addError(new ParamError(function_name, "network type: ", network_type));
-					//sendErrorsAsEmail();
-					return -4;
+				else if (mTransactionBody->isMysqlBlockchain()) {
+					return runSendTransactionMysql();
 				}
-				return 0;
+				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
+				return -10;
 			}
 
+		}
+
+		int Transaction::runSendTransactionHedera()
+		{
+			static const char* function_name = "Transaction::runSendTransactionHedera";
+			// send transaction via hedera
+			auto network_type = ServerConfig::g_HederaNetworkType;
+			// TODO: get correct topic id for user group
+			//int user_group_id = 1;
+			//auto topic_id = controller::HederaId::find(user_group_id, network_type);
+			auto topic_id = controller::HederaId::load(getModel()->getHederaId());
+			auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
+
+			if (!topic_id.isNull() && !hedera_operator_account.isNull())
+			{
+				auto crypto_key = hedera_operator_account->getCryptoKey();
+				if (!crypto_key.isNull())
+				{
+					model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
+					std::string raw_message = mProtoTransaction.SerializeAsString();
+
+					if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BINARY == ServerConfig::g_ConsensusMessageFormat) {
+						consensus_submit_message.setMessage(raw_message);
+
+						// print to txt for debugging gradido node
+						static Poco::FastMutex _file_mutex;
+						Poco::ScopedLock<Poco::FastMutex> _lock_file(_file_mutex);
+						std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S") + "\n";
+
+						std::string json_message = getTransactionAsJson();
+						std::string base64_message = DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+						if (json_message != "")
+						{
+							Poco::Logger& transactions_log = Poco::Logger::get("transactions_log");
+							transactions_log.information(dateTimeString);
+							transactions_log.information(json_message);
+						}
+						if (base64_message != "")
+						{
+							Poco::Logger& transaction_log_base64 = Poco::Logger::get("transactions_log_base64");
+							transaction_log_base64.information(dateTimeString);
+							transaction_log_base64.information(base64_message);
+						}
+					}
+					else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING == ServerConfig::g_ConsensusMessageFormat) {
+						consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+					}
+					else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_JSON == ServerConfig::g_ConsensusMessageFormat) {
+						std::string json_message = getTransactionAsJson();
+						if (json_message != "") {
+							consensus_submit_message.setMessage(json_message);
+						}
+						else {
+							//sendErrorsAsEmail();
+							return -7;
+						}
+
+					}
+					// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
+					//if (network_type == table::HEDERA_TESTNET) {
+						//consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+					//}
+					//else {
+
+					//}
+					auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
+					hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
+					model::hedera::Transaction hedera_transaction;
+
+					hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
+
+					HederaRequest hedera_request;
+					Poco::AutoPtr<HederaTask> hedera_task(new HederaTask(this));
+
+					if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, hedera_task))
+					{
+						addError(new Error(function_name, "error send transaction to hedera"));
+						getErrors(&hedera_request);
+						//sendErrorsAsEmail();
+						return -2;
+					}
+					else {
+						auto hedera_transaction_response = hedera_task->getTransactionResponse();
+						auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
+						auto precheck_code = hedera_transaction_response->getPrecheckCode();
+						auto cost = hedera_transaction_response->getCost();
+						
+						// for showing in docker
+						std::clog << "hedera response: " << hedera_precheck_code_string
+							<< ", cost: " << cost
+							<< ", type: " << TransactionBody::transactionTypeToString(mTransactionBody->getType())
+							<< std::endl;
+						/*printf("hedera response: %s, cost: %" PRIu64 ", type: %s\n",
+							hedera_precheck_code_string.data(), cost,
+							TransactionBody::transactionTypeToString(mTransactionBody->getType()));*/
+						if (precheck_code == proto::INVALID_TRANSACTION_START) {
+							int zahl = 0;
+							return -5;
+						}
+						else if (precheck_code == proto::OK) {
+							// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
+							// TODO: later check, but now I haven't any way to communicate with the gradido node
+							mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
+							auto transaction_model = getModel();
+							transaction_model->setFinished(Poco::DateTime());
+							Poco::JSON::Object::Ptr result = new Poco::JSON::Object;
+							model::hedera::TransactionId transaction_id(hedera_task->getTransactionId());
+							result->set("state", "success");
+							result->set("transactionId", transaction_id.convertToJSON());
+
+							transaction_model->setResultJson(result);
+							Profiler timer;
+							transaction_model->updateFinishedAndResult();
+							printf("time for update 2 fields in db: %s\n", timer.string().data());
+
+							// trigger community server update in 5 seconds
+							CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5, 0));
+							return 1;
+						}
+
+					}
+					//model::hedera::TransactionBody hedera_transaction_body()
+				}
+				else
+				{
+					addError(new ParamError(function_name, "hedera crypto key not found for paying for consensus submit message! NetworkType: ", network_type));
+					//sendErrorsAsEmail();
+					return -3;
+				}
+			}
+			else
+			{
+				addError(new Error(function_name, "hedera topic id or operator account not found!"));
+				addError(new ParamError(function_name, "topic id: ", topic_id->getModel()->toString()));
+				addError(new ParamError(function_name, "network type: ", network_type));
+				//sendErrorsAsEmail();
+				return -4;
+			}
+			return 0;
+		
+		}
+		int Transaction::runSendTransactionMysql()
+		{
+			static const char* function_name = "Transaction::runSendTransactionMysql";
+			auto mm = MemoryManager::getInstance();
+			std::string raw_message = mProtoTransaction.SerializeAsString();
+			if (raw_message == "") {
+				addError(new Error("SigningTransaction", "error serializing final transaction"));
+				return -6;
+			}
+
+			// finale to base64
+			auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+
+			if (base_64_message == "") {
+				addError(new Error(function_name, "error convert final transaction to base64"));	
+				return -7;
+			}
+			
+
+			// create json request
+			auto user = getUser();
+			if (user.isNull()) {
+				addError(new Error(function_name, "user is zero"));
+				return -8;
+			}
+			auto group = user->getGroup();
+			if (group.isNull()) {
+				addError(new Error(function_name, "group is zero"));
+				return -9;
+			}
+			auto json_request = group->createJsonRequest();
+
+			Poco::Net::NameValueCollection param;
+			param.set("transaction", base_64_message);
+			auto result = json_request.request("putTransaction", param);
+			if (JSON_REQUEST_RETURN_OK == result) {
+				return 1;
+			}
+			getErrors(&json_request);
+
+
+			return 0;
 		}
 
 		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
@@ -843,6 +894,9 @@ namespace model {
 				auto model = mTransaction->getModel();
 				model->setResultJson(errors);
 				model->updateFinishedAndResult();
+			}
+			if (result < -1) {
+				mTransaction->sendErrorsAsEmail();
 			}
 			// delete because succeed, maybe change later
 			if (1 == result) {

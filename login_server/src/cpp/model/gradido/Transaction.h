@@ -90,6 +90,10 @@ namespace model {
 
 
 		protected:
+
+			int runSendTransactionHedera();
+			int runSendTransactionMysql();
+
 			Poco::AutoPtr<Transaction> mPairedTransaction;
 
 			Poco::AutoPtr<TransactionBody> mTransactionBody;
