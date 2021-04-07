@@ -133,6 +133,26 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string 
 	}
 	return result;
 }
+Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, const Poco::JSON::Array& details)
+{
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "error");
+	result->set("msg", msg);
+	result->set("details", details);
+
+	return result;
+}
+
+Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, NotificationList* errorReciver)
+{
+	assert(errorReciver);
+	Poco::JSON::Object* result = new Poco::JSON::Object;
+	result->set("state", "error");
+	result->set("msg", msg);
+	result->set("details", errorReciver->getErrorsArray());
+
+	return result;
+}
 
 Poco::JSON::Object* JsonRequestHandler::stateSuccess()
 {

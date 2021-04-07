@@ -9,7 +9,7 @@
 class JsonCreateTransaction : public JsonRequestHandler
 {
 public:
-	JsonCreateTransaction() : mSession(nullptr) {}
+	JsonCreateTransaction() : mSession(nullptr), mAutoSign(false) {}
 	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
 	
 protected:
@@ -24,6 +24,8 @@ protected:
 	Poco::AutoPtr<controller::Group> mTargetGroup;
 	Poco::AutoPtr<controller::User> mReceiverUser;
 	model::gradido::BlockchainType mBlockchainType;
+	//! if set to true, transaction will be direct signed by user which belong to session
+	bool mAutoSign;
 
 };
 

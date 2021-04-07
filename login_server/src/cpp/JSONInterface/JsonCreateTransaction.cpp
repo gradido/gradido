@@ -29,6 +29,10 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("transaction_type").convert(transaction_type);
 			paramJsonObject->get("blockchain_type").convert(blockchain_type);
 			paramJsonObject->get("memo").convert(mMemo);
+			auto auto_sign = paramJsonObject->get("auto_sign");
+			if (!auto_sign.isEmpty()) {
+				auto_sign.convert(mAutoSign);
+			}
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -118,7 +122,22 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		}
 	}
 	if (!result) {
-		model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		auto transactions = model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+
+		if (mAutoSign) {
+			Poco::JSON::Array errors;
+			for (auto it = transactions.begin(); it != transactions.end(); it++) {
+				(*it)->sign(user);
+				if ((*it)->errorCount() > 0) {
+					errors.add((*it)->getErrorsArray());
+				}
+			}
+
+			if (errors.size() > 0) {
+				return stateError("error by signing transaction", errors);
+			}
+		}
+		
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
@@ -184,7 +203,13 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 	}
 	
 	if(!result) {
-		model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
+		auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
+		if (mAutoSign) {
+			if (!transaction->sign(mSession->getNewUser())) {
+				return stateError("error by signing transaction", transaction);
+			}
+		}
+		
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
@@ -200,7 +225,12 @@ Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var 
 	if (mTargetGroup.isNull()) {
 		return stateError("target_group not found");
 	}
-	model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
+	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
+	if (mAutoSign) {
+		if (!transaction->sign(mSession->getNewUser())) {
+			return stateError("error by signing transaction", transaction);
+		}
+	}
 	return stateSuccess();
 
 }
