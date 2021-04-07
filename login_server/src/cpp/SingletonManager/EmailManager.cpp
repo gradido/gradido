@@ -57,7 +57,8 @@ bool EmailManager::init(const Poco::Util::LayeredConfiguration& cfg)
 
 void EmailManager::addEmail(model::Email* email) {
 	if (mDisableEmail) { 
-		std::string log_message = "Email should be sended to: ";
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		std::string log_message = dateTimeString + " Email should be sended to: ";
 		auto email_user = email->getUser();
 		Poco::AutoPtr<model::table::User> email_model;
 		if (email_user) {
@@ -133,14 +134,33 @@ int EmailManager::ThreadFunction()
 			if (catalogs[lang_code].isNull()) {
 				catalogs[lang_code] = lm->getFreeCatalog(lang_code);
 			}
+			bool email_sended = false;
 			if (email->draft(&mailMessage, catalogs[lang_code])) {
 				
+				try {
 				mailClientSession.sendMessage(mailMessage);
+					email_sended = true;
+				}
+				catch (Poco::Exception& ex) {
+					email_sended = false;
+					errors.addError(new ParamError(function_name, "poco exception sending email", ex.displayText()));
+					auto user = email->getUser();
+					if (user && !user->getModel().isNull()) {
+						errors.addError(new ParamError(function_name, "email", user->getModel()->getEmail()));
+					}
+
+					errors.sendErrorsAsEmail();
+
+				}
 				// add for debugging
 				if (email_user) {
 					//printf("send email to %s\n", user_model->getEmail().data());
 					auto user_model = email_user->getModel();
-					std::string log_message = "Email sended to: ";
+					std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+					std::string log_message = dateTimeString + " Email sended to: ";
+					if (!email_sended) {
+						log_message = dateTimeString + " Email not sended to: ";
+					}
 					if (user_model) {
 						log_message += email_user->getModel()->getNameWithEmailHtml();
 					}

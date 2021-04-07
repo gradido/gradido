@@ -1,31 +1,45 @@
-# community server api
+# Community Server API
 
-In this examples I assume that you use gradido with or docker-compose build on your local maschine
+This document describes the community server API. The community server is written in PHP and mixes front with backend. Furthermore cakePHP and its auto-generated controller structure is used to access the API. This whole part of the Software will be subject to refactoring.
 
-## Konto Overview
-return current account balance
+// TODO  In this examples I assume that you use gradido with or docker-compose build on your local maschine
 
-GET http://localhost/state-balances/ajaxGetBalance/-127182
+## Error handling
 
-If session is valid, return:
+// TODO
+
+## Account overview
+Returns the current account balance
+
+### Request
+`GET http://localhost/state-balances/ajaxGetBalance/-127182`
+
+### Response
+Assuming: session is valid
+
 ```json
-{"state":"success","balance":174500}
+{
+	"state":"success",
+	"balance":174500 
+}
 ```
-- balance: Gradido Cent, 4 Nachkommastellen (2 Reserve), 174500 = 17,45 GDD
 
-## List Transactions
-List all transactions from logged in user, currently without paging 
-Ajax:
-GET http://localhost/state-balances/ajaxListTransactions/-127182/
-or 
-GET http://localhost/state-balances/ajaxListTransactions/-127182/DESC 
-to get transaction in descending order 
+- `balance`: balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
 
-Antwort: 
-Wenn alles okay: 
+## List transactions
+List all transactions for logged in user
+
+### Request
+`GET http://localhost/state-balances/ajaxListTransactions/-127182/[DESC]`
+(The `DESC` part is optional symbolized by [])
+
+### Response
+Assuming: session is valid
+
 ```json
-{"state":"success", "transactions": 
-	[
+{
+	"state":"success",
+	"transactions": [
 		{
 			"name": "Max Mustermann",
 			"email": "Maxim Mustermann", 
@@ -44,37 +58,42 @@ Wenn alles okay:
 }
 ```
 
-- name: name of other involved party or empty if unknown (if other party don't belong to group)
+- `transactionExecutingCount`: how many transaction for this user currently pending and waiting for signing
+- `count`: sum of finished transactions user is involved
+- `gdtSum`: sum of gdt of user in cent with 2 places (Nachkommastellen)
+- `timeUsed`: time used for getting data from db in seconds, only for analyse backend performance
+
+Transaction:
+- `name`: name of other involved party or empty if unknown (if other party don't belong to group)
   - if type is send, name is name of receiver 
   - if type is receive, name is name of sender 
   - if type is creation currently I use a static string ("Gradido Akademie)
-- email: optional, only if type is send or receive and other user is known
-- pubkey: optional, only if type is send or receive and other user isn't known 
-- type: type of transaction
-  - creation: user has get gradidos created
-  - send: user has send another user gradidos
-  - receiver: user has received gradidos from another user
-- transaction_id: id of transaction in db, in stage2 also the hedera sequence number of transaction 
-- date: date of ordering transaction (booking date)
-- balance: Gradido Cent, 4 Nachkommastellen (2 Reserve), 1920000 = 192,00 GDD
-- memo: Details about transaction
-- pubkey: optional, if other party isn't known, hexadecimal representation of 32 Byte public key of user [0-9a-f]
+- `email`: optional, only if type is send or receive and other user is known
+- `pubkey`: optional, only if type is send or receive and other user isn't known, hexadecimal representation of 32 Byte public key of user [0-9a-f]
+- `type`: type of transaction
+  - `creation`: user has get gradidos created
+  - `send`: user has send another user gradidos
+  - `receiver`: user has received gradidos from another user
+- `transaction_id`: id of transaction in db, in stage2 also the hedera sequence number of transaction 
+- `date`: date of ordering transaction (booking date)
+- `balance`: Gradido Cent, 4 Nachkommastellen (2 Reserve), 1920000 = 192,00 GDD
+- `memo`: Details about transaction
 
-- transactionExecutingCount: how many transaction for this user currently pending and waiting for signing
-- count: sum of finished transactions user is involved
-- gdtSum: sum of gdt of user in cent with 2 places (Nachkommastellen)
-- timeUsed: time used for getting data from db in seconds, only for analyse backend performance
+## Creation transaction
+Makes a creation transaction to create new Gradido
 
-## Creation Transaction
-Make a creation transaction
-With new Option set in Login-Server: 
+This assumes you have set 
 ```ini
 unsecure.allow_auto_sign_transactions = 1
 ```
-transactions can be auto-signed directly with handing in transaction.
-Normally a forwarding to login-server check transactions side is neccessary to minimize security risks.
+in the Login-Server, so transactions can be auto-signed directly with handing in the transaction.
+Normally a forwarding to login-server check transactions side is necessary to minimize security risks. // TODO this is not documented
 
-POST http://localhost/transaction-creations/ajaxCreate
+### Request
+`POST http://localhost/transaction-creations/ajaxCreate`
+
+with 
+
 ```json
 {
 	"session_id" : -127182,
@@ -85,22 +104,36 @@ POST http://localhost/transaction-creations/ajaxCreate
 	"auto_sign": true
 }
 ```
-return if everything is ok:
-```json
-{"state":"success", "timeUsed": 0.0122}
-```
-- timeUsed: time used for getting data from db in seconds, only for analyse backend performance
 
-## Send Coins Transaction
-Make a simple GDD Transaction, send Coins from one user to other. 
-With new Option set in Login-Server: 
+// TODO description of fields
+
+### Response
+In case of success returns:
+
+```json
+{
+	"state":"success",
+	"timeUsed": 0.0122
+}
+```
+
+- `timeUsed`: time used for getting data from db in seconds, only for analyse backend performance
+
+## Send transaction
+Make a simple GDD Transaction, send Coins from logged in user to another.
+
+This assumes you have set 
 ```ini
 unsecure.allow_auto_sign_transactions = 1
 ```
-transactions can be auto-signed directly with handing in transaction.
-Normally a forwarding to login-server check transactions side is neccessary to minimize security risks.
+in the Login-Server, so transactions can be auto-signed directly with handing in the transaction.
+Normally a forwarding to login-server check transactions side is necessary to minimize security risks. // TODO this is not documented
 
-POST http://localhost/transaction-send-coins/ajaxCreate
+### Request
+`POST http://localhost/transaction-send-coins/ajaxCreate`
+
+with
+
 ```json
 {
 	"session_id" : -127182,
@@ -110,22 +143,37 @@ POST http://localhost/transaction-send-coins/ajaxCreate
 	"auto_sign": true
 }
 ```
-- amout: amount to transfer, 2000000 = 200,00 GDD
-- email: receiver email address, must be differ from user email
-- memo: Details about transaction 
-- auto_sign: set to true to directly sign transaction if unsecure.allow_auto_sign_transactions = 1 is set
 
-return if everything is ok:
+- `amount`: amount to transfer, 2000000 = 200,00 GDD
+- `email`: receiver email address, must be differ from user email
+- `memo`: Details about transaction 
+- `auto_sign`: set to true to directly sign transaction if unsecure.allow_auto_sign_transactions = 1 is set
+
+
+### Response
+In case of success returns:
+
 ```json
-{"state":"success", "timeUsed": 0.0122}
+{
+	"state":"success",
+	"timeUsed": 0.0122
+}
 ```
-- timeUsed: time used for getting data from db in seconds, only for analyse backend performance
 
-Than the transaction was created on community server, send to login-server, signed (if unsecure.allow_auto_sign_transactions = 1 and auto_sign = true)
-and send back to community server and put into db. 
-After you get this answear you see the new transaction if you list transactions or call for the balance.
+- `timeUsed`: time used for getting data from db in seconds, only for analyse backend performance
 
-Without auto-sign the transaction is pending on login-server and waits for the user to review it at 
-http://localhost/account/checkTransactions
+### Process
+
+Once the transaction was created on community server, send to login-server, signed (if unsecure.allow_auto_sign_transactions = 1 and auto_sign = true) and then send back to community server to be finally put into the database.
+
+After you get this answer you see the new transaction if you request the transaction list or call for the balance.
+
+// TODO balance and at least last transaction must be returned with the call itself
+
+Without auto-sign the transaction is pending on the login-server and waits for the user to review it at `http://localhost/account/checkTransactions`
+
+// TODO how is this more secure?
+// TODO Is this in line with our usability goals?
+// TODO Should this not be handled client side?
 
 

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="login-form">
     <!-- Header -->
     <div class="header p-4">
       <b-container>

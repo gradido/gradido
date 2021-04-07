@@ -52,4 +52,4 @@ EXPOSE 1200
 EXPOSE 1201
 
 #CMD gdb -ex=r Gradido_LoginServer
-CMD Gradido_LoginServer
+CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer

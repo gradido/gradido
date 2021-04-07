@@ -277,6 +277,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		CronManager::getInstance()->init(php_server_ping);
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
+		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
 
