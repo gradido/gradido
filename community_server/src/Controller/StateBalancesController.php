@@ -89,10 +89,32 @@ class StateBalancesController extends AppController
         
         if(!$recalculate_state_user_transactions_balance) {
             $last_state_user_transaction = $state_user_transactions->last();
-            if($last_state_user_transaction->balance <= 0) {
+            if($last_state_user_transaction && $last_state_user_transaction->balance <= 0) {
                 $recalculate_state_user_transactions_balance = true;
                 if(!$create_state_balance) {
                     $update_state_balance = true;
+                }
+            } else if(!$last_state_user_transaction) {
+                
+                $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
+                $creationTransactions = $creationsTable
+                    ->find('all')
+                    ->where(['state_user_id' => $stateUserId])
+                    ->contain(false);
+
+                $transferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+                $transferTransactions = $transferTable
+                    ->find('all')
+                    ->where(['OR' => ['state_user_id' => $stateUserId, 'receiver_user_id' => $stateUserId]])
+                    ->contain(false);
+                if($creationTransactions->count() > 0 || $transferTransactions->count() > 0) {
+                    $this->addAdminError(
+                            'StateBalances', 
+                            'updateBalance', [
+                                'state' => 'error',
+                                'msg' => 'state_user_transactions is empty but it exist transactions for user'
+                                ], 
+                            $stateUserId);
                 }
             }
         }
