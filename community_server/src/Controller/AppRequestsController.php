@@ -72,6 +72,9 @@ class AppRequestsController extends AppController
         "group": "gdd1",
 	"auto_sign": true
          */
+        if(!$this->request->is('post')) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'no post']);
+        }
         $data = $this->request->input('json_decode');
         $login_request_result = $this->requestLogin(0, false);
         if($login_request_result !== true) {

@@ -110,6 +110,7 @@ Router::scope('/', function (RouteBuilder $routes) {
      */
     //$routes->connect('/', ['controller' => 'Pages', 'action' => 'display', 'home']);
     $routes->connect('/', ['controller' => 'Dashboard', 'action' => 'index']);
+    $routes->connect('/api/:action/*', ['controller' => 'AppRequests'], ['routeClass' => 'DashedRoute']);
     //$routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'js']);
     $routes->connect('/server', ['controller' => 'Dashboard', 'action' => 'serverIndex']);
     $routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'vue']);
