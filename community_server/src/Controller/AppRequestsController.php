@@ -104,6 +104,8 @@ class AppRequestsController extends AppController
         $group = '';
         if(isset($data['group'])) {
             $group = $data['group'];
+        } else {
+            $group = Configure::read('GroupAlias');
         }
         
         $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([

@@ -13,6 +13,7 @@ COPY ./mariadb/setup_dbs.sql a_setup_dbs.sql
 # login server db
 COPY ./login_server/skeema/ .
 RUN cd ./gradido_login/ && for f in *.sql; do cp -- "$f" "../b_$f"; sed  -i '1i use gradido_login;' "../b_$f"; done
+RUN cd ./gradido_login/insert && for f in *.sql; do cp -- "$f" "../../c_$f";  sed  -i '1i use gradido_login;' "../../c_$f"; done
 # community server db
 COPY ./community_server/skeema/ . 
 RUN cd ./gradido_community/ && for f in *.sql; do cp -- "$f" "../d_$f"; sed  -i '1i use gradido_community;' "../d_$f"; done
