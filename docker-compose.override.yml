@@ -50,7 +50,6 @@ services:
   #########################################################
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin
     environment:
      - PMA_ARBITRARY=1
     #restart: always
@@ -70,7 +69,6 @@ services:
       context: .
       dockerfile: ./skeema/Dockerfile
       target: skeema_run
-    container_name: skeema
     depends_on:
       - mariadb
     networks: 

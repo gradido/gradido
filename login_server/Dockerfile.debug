@@ -2,39 +2,28 @@
 #########################################################################################################
 # Build debug
 #########################################################################################################
-From gradido/login_dependencies:stage2 as build_debug
+From gradido/login_dependencies:stage2 as debug
 
 ENV DOCKER_WORKDIR="/code"
 
 USER root
+
 WORKDIR ${DOCKER_WORKDIR}
+COPY . .
 
-COPY ./src/cpp ./src/cpp
-COPY ./src/LOCALE ./src/LOCALE
-COPY ./compile_pot.sh .
-COPY ./files_to_translate.txt .
-COPY ./src/proto ./src/proto
-COPY ./unix_parse_proto.sh .
+RUN chmod +x unix_parse_proto.sh
+RUN chmod +x compile_pot.sh
 
-RUN chmod +x unix_parse_proto.sh && \
-    ./unix_parse_proto.sh
+RUN ./compile_pot.sh
+RUN ./unix_parse_proto.sh
 
-RUN chmod +x compile_pot.sh && \
-	./compile_pot.sh
-
-RUN cd build && \
-	cmake  -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(nproc)
-
-CMD bash
 
 #########################################################################################################
 # run debug
 #########################################################################################################
-FROM ubuntu:latest as login_server_debug
+FROM debug as login_server_debug
 
-WORKDIR "/usr/bin"
-
+ENV DOCKER_WORKDIR="/code"
 #RUN apt-get update && \
 #    apt-get install -y --no-install-recommends gdb && \
 #	apt-get autoclean && \
@@ -43,13 +32,11 @@ WORKDIR "/usr/bin"
 #	rm -rf /var/lib/apt/lists/*
 	
 VOLUME /var/log/grd_login
+VOLUME /code/src
 
-COPY --from=build_debug /code/build/bin/Gradido_LoginServer /usr/bin/
-COPY --from=build_debug /code/build/lib/libmariadb.so.3 /usr/lib/
-#COPY --from=build_debug /code/build/lib/libPocoNetSSLd.so.64 /usr/lib/libPocoNetSSLd.so.64
-RUN chmod +x /usr/bin/Gradido_LoginServer
 EXPOSE 1200
 EXPOSE 1201
+WORKDIR ${DOCKER_WORKDIR}
+RUN chmod +x ./Dockerfiles/build_and_run.sh 
 
-#CMD gdb -ex=r Gradido_LoginServer
 CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer
