@@ -40,11 +40,11 @@
               <span>Transactions</span>
             </router-link>
             <!--
-                        <router-link to="/activity" class="dropdown-item  text-lg text-muted">
-                            <i class="ni ni-calendar-grid-58"></i>
-                            <span>{{ $t('site.navbar.activity') }}</span>
-                        </router-link>
-                       -->
+                <router-link to="/activity" class="dropdown-item  text-lg text-muted">
+                    <i class="ni ni-calendar-grid-58"></i>
+                    <span>{{ $t('site.navbar.activity') }}</span>
+                </router-link>
+            -->
             <div class="dropdown-divider"></div>
             <div @click="logout" class="dropdown-item text-lg text-muted">
               <i class="ni ni-support-16"></i>
@@ -73,6 +73,17 @@
         </div>
         <ul class="navbar-nav">
           <slot name="links"></slot>
+        </ul>
+        <hr class="my-3" />
+        <ul class="navbar-nav mb-md-3">
+          <li class="nav-item">
+            <a
+              :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
+              class="nav-link text-lg"
+            >
+              {{ $t('site.sidebar.members_area') }}
+            </a>
+          </li>
         </ul>
         <hr class="my-3" />
         <ul class="navbar-nav mb-md-3">
