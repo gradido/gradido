@@ -229,7 +229,7 @@ jobs:
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
-      - name: Download Docker Image (Webapp)
+      - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v2
         with:
           name: docker-frontend-test
@@ -244,6 +244,8 @@ jobs:
       ##########################################################################
       # EXTRACT coverage folder ################################################
       ##########################################################################
+      - name: test presence of coverage folder
+        run: ls -la /coverage
       # - name: frontend | Extract coverage folder
       #   run: docker cp $(docker create gradido/frontend:test):/app coverage 
       ##########################################################################
@@ -255,6 +257,7 @@ jobs:
           type: lcov
           result_path: /coverage/lcov.info
           min_coverage: 10
+          token: ${{ github.token }}
 
   #test:
   #  runs-on: ubuntu-latest
