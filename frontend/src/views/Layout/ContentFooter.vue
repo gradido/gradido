@@ -4,7 +4,7 @@
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
-          <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a>
+          <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a> | App Verion {{ $store.getters.appVersion }}
         </div>
       </b-col>
     </b-row>
@@ -24,9 +24,9 @@
             GDD-Explorer
           </b-nav-item> -->
         </b-nav>
-      </b-col>
-      My Awesome App version {{ $store.getters.appVersion }}
+      </b-col>      
     </b-row>
+  
   </footer>
 </template>
 <script>
