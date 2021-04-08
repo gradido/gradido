@@ -255,12 +255,12 @@ jobs:
       # COVERAGE REPORT FRONTEND ################################################
       ##########################################################################
       - name: show content of /coverage/lcov.info
-        run: cat /coverage/lcov.info
+        run: cat coverage/lcov.info
       - name: frontend | coverage report
         uses: romeovs/lcov-reporter-action@v0.2.16
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          lcov-file: /coverage/lcov.info
+          lcov-file: coverage/lcov.info
   
   #test:
   #  runs-on: ubuntu-latest
