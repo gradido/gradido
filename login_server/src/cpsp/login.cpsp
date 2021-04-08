@@ -166,6 +166,7 @@
 				if(mSession) {
 					getErrors(mSession);
 					sm->releaseSession(mSession);
+					mSession = nullptr;
 				}
 				sm->deleteLoginCookies(request, response);
 				break;
@@ -251,6 +252,7 @@
 		if(mSession) {
 			getErrors(mSession);
 			sm->releaseSession(mSession);
+			mSession = nullptr;
 		}
 		sm->deleteLoginCookies(request, response);
 	}
