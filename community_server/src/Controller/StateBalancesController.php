@@ -54,7 +54,7 @@ class StateBalancesController extends AppController
                                             ->order(['transaction_id ASC'])
                                             ->contain(false);
       
-        if(!$state_user_transactions) {
+        if(!$state_user_transactions || !$state_user_transactions->count()) {
             //debug($state_user_transactions);
             return true;
         }

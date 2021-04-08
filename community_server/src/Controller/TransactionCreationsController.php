@@ -130,8 +130,7 @@ class TransactionCreationsController extends AppController
                 $builderResult = TransactionCreation::build(
                     $amountCent,
                     $requestData['memo'],
-                    $pubKeyHex,
-                    $identHash
+                    $pubKeyHex
                 );
                 if ($builderResult['state'] == 'success') {
                     $user_balance = 0;
@@ -568,7 +567,6 @@ class TransactionCreationsController extends AppController
                         $amount,
                         $memo,
                         $receiverPubKeyHex,
-                        $requestAnswear['data']['userData']['identHash'],
                         new FrozenDate($jsonData['target_date'])
             );
             $transaction_base64 = '';
