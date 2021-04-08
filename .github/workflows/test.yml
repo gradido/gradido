@@ -244,16 +244,21 @@ jobs:
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
-      - name: hallo, bist du da?
-        run: ls -la /coverage
-      - name: frontend | Coverage check
-        uses: devmasx/coverage-check-action@v1.2.0
+      #- name: frontend | Coverage check
+      #  uses: devmasx/coverage-check-action@v1.2.0
+      #  with:
+      #    type: simplecov
+      #    result_path: /coverage/coverage-final.json
+      #    min_coverage: 10
+      #    token: ${{ github.token }}
+      ##########################################################################
+      # COVERAGE REPORT FRONTEND ################################################
+      ##########################################################################
+      - uses: romeovs/lcov-reporter-action@v0.2.16
         with:
-          type: simplecov
-          result_path: /coverage/coverage-final.json
-          min_coverage: 10
-          token: ${{ github.token }}
-
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: /coverage/lcov.info
+  
   #test:
   #  runs-on: ubuntu-latest
   #  steps:
