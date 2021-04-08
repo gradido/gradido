@@ -254,8 +254,9 @@ jobs:
       ##########################################################################
       # COVERAGE REPORT FRONTEND ################################################
       ##########################################################################
-      - name: frontend | coverage report
+      - name: show content of /coverage/lcov.info
         run: cat /coverage/lcov.info
+      - name: frontend | coverage report
         uses: romeovs/lcov-reporter-action@v0.2.16
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
