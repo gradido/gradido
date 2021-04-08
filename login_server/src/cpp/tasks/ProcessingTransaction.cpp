@@ -1,4 +1,4 @@
-﻿#include "ProcessingTransaction.h"
+#include "ProcessingTransaction.h"
 #include <sodium.h>
 
 #include "../model/TransactionCreation.h"

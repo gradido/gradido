@@ -66,6 +66,7 @@ namespace ServerConfig {
 	extern Languages g_default_locale;
 	extern std::string g_php_serverPath;
 	extern std::string g_php_serverHost;
+	extern std::string g_frontend_checkEmailPath;
 	extern int         g_phpServerPort;
 	extern Poco::Mutex g_TimeMutex;
 	extern int         g_FakeLoginSleepTime;
@@ -86,5 +87,6 @@ namespace ServerConfig {
 
 	void unload();
 };
+
 
 #endif //__GRADIDO_LOGIN_SERVER_SERVER_CONFIG__

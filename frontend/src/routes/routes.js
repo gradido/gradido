@@ -1,8 +1,7 @@
-import DashboardLayout from '@/views/Layout/DashboardLayout.vue'
+import DashboardLayout from '@/views/Layout/DashboardLayout_gdd.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
-import AuthLayout from '@/views/Layout/AuthLayout.vue'
 
-// import NotFound from '@/views/NotFoundPage.vue'
+import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
@@ -63,22 +62,7 @@ const routes = [
       },
     ],
   },
-  ,
-  {
-    path: '/',
-    redirect: 'AdminOverview',
-    component: AuthLayout,
-    children: [
-      {
-        path: '/AdminOverview',
-        name: 'Adminübersicht',
-        component: () => import('../views/AdminOverview.vue'),
-        meta: {
-          requiresAuth: true,
-        },
-      },
-    ],
-  },
+  { path: '*', component: NotFound },
 ]
 
 export default routes

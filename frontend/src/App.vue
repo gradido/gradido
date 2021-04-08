@@ -32,6 +32,13 @@ export default {
   components: {
     ParticlesBg,
   },
+  data() {
+    return {
+      session_id: null,
+      email: '',
+      language: 'en',
+    }
+  },
   created() {
     //console.log('xx', $cookies.get('gdd_lang'))
     //console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')

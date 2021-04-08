@@ -172,6 +172,19 @@ namespace model {
 			default: return "<unknown>";
 			}
 		}
+		EmailOptInType EmailOptIn::stringToType(const std::string& typeString)
+		{
+			if (typeString == "register") {
+				return EMAIL_OPT_IN_REGISTER;
+			}
+			else if (typeString == "resetPassword") {
+				return EMAIL_OPT_IN_RESET_PASSWORD;
+			}
+			else if (typeString == "registerDirect") {
+				return EMAIL_OPT_IN_REGISTER_DIRECT;
+			}
+			return EMAIL_OPT_IN_EMPTY;
+		}
 	}
 }
 

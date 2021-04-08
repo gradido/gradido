@@ -255,7 +255,7 @@ class TransactionTransfer extends TransactionBase {
               ->setSubject(__('Gradidos erhalten'))
               ->send();
       } catch(Exception $e) {
-        $this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+        //$this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
         return false;
       }
       return true;

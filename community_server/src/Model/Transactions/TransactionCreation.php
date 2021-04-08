@@ -254,7 +254,7 @@ class TransactionCreation extends TransactionBase {
                 ->setSubject(__('Gradido Schöpfung erhalten'))
                 ->send();
         } catch(Exception $e) {
-          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+//          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
           return false;
         }
       return true;
