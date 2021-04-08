@@ -1,13 +1,13 @@
 module.exports = {
   verbose: true,
-  //collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
+  collectCoverageFrom: ['src/**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
   moduleFileExtensions: [
     'js',
     //'jsx',
     'json',
     'vue',
   ],
-  coverageReporters: ['lcov'],
+  // coverageReporters: ['lcov', 'text'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less)$': 'identity-obj-proxy',
