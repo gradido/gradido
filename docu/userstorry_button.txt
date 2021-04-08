@@ -1,0 +1,25 @@
+## Gradido Button
+
+Erklärung:
+Es soll eine einfache möglichkeit geben das ein user einen anderen user gradidos überweisen kann.
+es gibt drei varianten wie dies möglich sein soll. 
+
+- per Link - der link verweist auf das überweisungsformular in der gradido app. 
+
+- Buttun - der Button hat den selben Link
+
+- QR Code - der QR code ist der selbe link
+
+## Aufbau des Links
+
+- der link muss 
+      - den hinweiß auf den community server  ( community.com )
+      - und den usernamen binhalten.   (u/username)
+  !!! wichtig ist das der link eine menschlesebare form hat
+
+z.b. https://community.com/u/username
+
+
+## wichtig
+
+Dies sollte im Profil an einer zentralen stellle schnell für den user ersichtlich sein und nutzbar. kopierhilfe, button per html code gernerien lassen. 
