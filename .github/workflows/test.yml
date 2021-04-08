@@ -242,15 +242,19 @@ jobs:
       - name: frontend | Unit tests
         run: docker run --rm gradido/frontend:test yarn run test
       ##########################################################################
+      # EXTRACT coverage folder ################################################
+      ##########################################################################
+      - name: Frontend | extract coverage folder
+        run: docker cp $(docker ps -aqf "ancestor=gradido/frontend:test"):/app/coverage coverage 
+      ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
       - name: frontend | Coverage check
         uses: devmasx/coverage-check-action@v1.2.0
         with:
           type: lcov
-          result_path: coverage/example.lcov
+          result_path: coverage/lcov.info
           min_coverage: 10
-          ## token: ${{ github.token }}
 
   #test:
   #  runs-on: ubuntu-latest
