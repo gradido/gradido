@@ -245,7 +245,7 @@ jobs:
       # EXTRACT coverage folder ################################################
       ##########################################################################
       - name: frontend | Extract coverage folder
-        run: docker cp $(docker image ls -q gradido/frontend:test):/app/coverage coverage 
+        run: docker cp $(docker create gradido/frontend:test):/app/coverage coverage 
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
