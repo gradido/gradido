@@ -240,12 +240,12 @@ jobs:
       # UNIT TESTS FRONTEND ####################################################
       ##########################################################################
       - name: frontend | Unit tests
-        run: docker run -d --rm gradido/frontend:test yarn run test
+        run: docker run --rm gradido/frontend:test yarn run test
       ##########################################################################
       # EXTRACT coverage folder ################################################
       ##########################################################################
       - name: frontend | Extract coverage folder
-        run: docker cp $(docker create gradido/frontend:test):/app/coverage coverage 
+        run: docker cp $(docker image ls -q gradido/frontend:test):/app/coverage coverage 
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
