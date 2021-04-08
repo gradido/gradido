@@ -25,6 +25,7 @@
           </b-nav-item> -->
         </b-nav>
       </b-col>
+      My Awesome App version {{ $store.getters.appVersion }}
     </b-row>
   </footer>
 </template>

@@ -26,8 +26,13 @@ export const store = new Vuex.Store({
         'Access-Control-Allow-Credentials': 'true',
       },
     },
+    packageVersion: process.env.VUE_APP_VERSION|| '0',
   },
-  getters: {},
+  getters: {
+    appVersion: (state) => {
+      return state.packageVersion
+    }
+  },
   // Syncronous mutation of the state
   mutations: {
     language: (state, language) => {
