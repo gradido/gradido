@@ -11,11 +11,10 @@ const localVue = global.localVue
 
 const router = new VueRouter({ routes })
 
-
 const transitionStub = () => ({
-  render (h) {
+  render(h) {
     return this.$options._renderChildren
-  }
+  },
 })
 
 describe('DashboardLayoutGdd', () => {
@@ -73,17 +72,16 @@ describe('DashboardLayoutGdd', () => {
     })
 
     describe('navigation bar', () => {
-
       let navbar
 
       beforeEach(() => {
         navbar = wrapper.findAll('ul.navbar-nav').at(0)
       })
-      
+
       it('has five items in the navbar', () => {
         expect(navbar.findAll('ul > li')).toHaveLength(5)
       })
-      
+
       it('has first item "send" in navbar', () => {
         expect(navbar.findAll('ul > li').at(0).text()).toEqual('sent')
       })

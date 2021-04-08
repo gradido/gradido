@@ -17,7 +17,6 @@ import VueQrcode from 'vue-qrcode'
 
 import clickOutside from '@/directives/click-ouside.js'
 
-
 global.localVue = createLocalVue()
 
 Object.keys(rules).forEach((rule) => {
