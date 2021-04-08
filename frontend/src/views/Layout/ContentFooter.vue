@@ -20,8 +20,11 @@
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
             {{ $t('privacy_policy') }}
           </b-nav-item>
-           <b-nav-item :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`" target="_blank">
-            {{ $t('site.sidebar.community') }}
+          <b-nav-item
+            :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
+            target="_blank"
+          >
+            {{ $t('site.sidebar.members_area') }}
           </b-nav-item>
         </b-nav>
       </b-col>

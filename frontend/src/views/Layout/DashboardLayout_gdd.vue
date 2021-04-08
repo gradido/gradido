@@ -15,7 +15,6 @@
         <b-nav-item href="#!" to="/profileedit">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
         </b-nav-item>
-
         <b-nav-item href="#!" to="/activity">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
         </b-nav-item>
