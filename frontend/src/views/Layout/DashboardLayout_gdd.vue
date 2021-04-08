@@ -4,7 +4,7 @@
     <side-bar>
       <template slot="links">
         <b-nav-item href="#!" to="/overview">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('sent') }}</b-nav-text>
+          <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
         </b-nav-item>
         <b-nav-item href="#!" to="/transactions">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>

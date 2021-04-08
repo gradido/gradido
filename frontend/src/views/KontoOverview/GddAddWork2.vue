@@ -4,7 +4,7 @@
       <b-tab :title="names.thisMonth" active>
         <b-row>
           <b-col lg="3">
-            <base-input label="Stunden">
+            <base-input :label="$t('communitys.form.hours')">
               <b-form-input
                 type="number"
                 size="lg"
@@ -12,7 +12,7 @@
                 style="font-size: xx-large; padding-left: 5px"
               />
             </base-input>
-            <base-input label="Datum / Zeitraum">
+            <base-input :label="$t('communitys.form.date_period')">
               <flat-pickr
                 class="form-control"
                 v-model="date"
@@ -22,7 +22,7 @@
             </base-input>
           </b-col>
           <b-col lg="9">
-            <base-input label="Arbeitsreport">
+            <base-input :label="$t('communitys.form.hours_report')">
               <textarea
                 class="form-control"
                 rows="5"
@@ -37,10 +37,14 @@
         </b-row>
         <b-row>
           <b-col md="6">
-            <b-button @click.prevent="newWorkForm" variant="warning">+ weitere Stunden</b-button>
+            <b-button @click.prevent="newWorkForm" variant="warning">
+              + {{ $t('communitys.form.more_hours') }}
+            </b-button>
           </b-col>
           <b-col md="6" class="text-right">
-            <b-button variant="success" @click.prevent="submitForm2">Einreichen, absenden</b-button>
+            <b-button variant="success" @click.prevent="submitForm2">
+              {{ $t('communitys.form.submit') }}
+            </b-button>
           </b-col>
         </b-row>
       </b-tab>
