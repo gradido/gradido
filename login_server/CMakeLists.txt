@@ -82,7 +82,7 @@ if(MSVC)
 	source_group("Test\\model" FILES ${TEST_MODEL})
 	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
 	source_group("Test" FILES ${TEST})
-endif(MSVC)
+endif()
 
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -140,7 +140,7 @@ if(WIN32)
 	list(REMOVE_ITEM CONAN_LIBS "ssleay32.lib")
 
 
-else (WIN32)
+else()
 	#find_package(MariaDBClient PATHS "dependencies/cmake-modules")
 	#find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
 	find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
@@ -160,7 +160,7 @@ else (WIN32)
 	list(REMOVE_ITEM CONAN_LIBS "crypto")
 	list(REMOVE_ITEM CONAN_LIBS "dl")
 
-endif(WIN32)
+endif()
 
 # load same ssl version like used from poco
 #find_package(OpenSSL PATHS "../" NO_DEFAULT_PATH)
@@ -202,9 +202,9 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
-else(WIN32) # unix
+else() # unix
 	target_link_libraries(Gradido_LoginServer libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
-endif(WIN32)
+endif()
 
 # install 
 if(UNIX)
@@ -235,8 +235,8 @@ if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
-else(WIN32)
+else()
 	target_link_libraries(Gradido_LoginServer_Test libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
-endif(WIN32)
+endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
