@@ -21,4 +21,9 @@ z.b. https://community.com/u/username
 
 ## Wichtig
 
-Dies sollte im Profil an einer zentralen Stelle schnell für den User ersichtlich sein und nutzbar. Kopierhilfe, Button per HTML code generieren lassen.
+Dies sollte im Profil an einer zentralen Stelle schnell für den User ersichtlich sein und nutzbar.
+Kopierhilfe, Button per HTML code generieren lassen.
+Der Link soll z.b. auch auf einer Visitenkarte lesbar und so kurz wie möglich sein. 
+
+
+
