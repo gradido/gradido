@@ -255,7 +255,7 @@ jobs:
         uses: devmasx/coverage-check-action@v1.2.0
         with:
           type: lcov
-          result_path: /coverage/lcov.info
+          result_path: /coverage/coverage-final.json
           min_coverage: 10
           token: ${{ github.token }}
 
