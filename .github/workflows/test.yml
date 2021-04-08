@@ -244,6 +244,8 @@ jobs:
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
+      - name: hallo, bist du da?
+          run: ls -la /coverage
       - name: frontend | Coverage check
         uses: devmasx/coverage-check-action@v1.2.0
         with:
