@@ -88,6 +88,7 @@ namespace ServerConfig {
 	extern std::string g_versionString;
 	extern bool		   g_disableEmail;
 	extern ServerSetupType g_ServerSetupType;
+	extern std::string g_devDefaultGroup;
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;

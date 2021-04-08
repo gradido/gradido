@@ -5,14 +5,14 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 6 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 
 #include "../SingletonManager/SessionManager.h"
 #include "../controller/Group.h"
 #include "../lib/DataTypeConverter.h"
 #include "Poco/Net/HTTPCookie.h"
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 1 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 
 #include "../ServerConfig.h"
 
@@ -25,7 +25,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 13 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 
 	const char* pageName = "Registrieren";
 	auto sm = SessionManager::getInstance();
@@ -77,7 +77,12 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 					response.redirect(redirect_url);
 					return;
 				}
-				response.redirect(getBaseUrl() + "/userUpdateGroup");
+				auto user = session->getNewUser();
+				if(user->getModel()->getGroupId() == 0) {
+					response.redirect(getBaseUrl() + "/userUpdateGroup");
+				} else {
+					response.redirect(user->getGroupBaseUrl());
+				}
 				return;
 			}
 		}
@@ -89,7 +94,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 	
 	
-#line 3 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 3 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 
 	bool withMaterialIcons = false;
 	std::ostream& _responseStream = response.send();
@@ -104,20 +109,20 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 11 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 12 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 12 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/main.css\">\n";
-#line 13 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 13 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
  if(withMaterialIcons) { 	responseStream << "\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 14 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 14 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "css/materialdesignicons.min.css\">\n";
-#line 15 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 15 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
  } 	responseStream << "\n";
 	responseStream << "</head>\n";
 	responseStream << "<body>\n";
@@ -125,20 +130,20 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "        <div class=\"center-form-single\">\n";
 	responseStream << "            <div class=\"center-form-header\">\n";
 	responseStream << "                <a href=\"";
-#line 21 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 21 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "\" class=\"center-logo\">\n";
 	responseStream << "                    <picture>\n";
 	responseStream << "                        <source srcset=\"";
-#line 23 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 23 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.webp\" type=\"image/webp\">\n";
 	responseStream << "                        <source srcset=\"";
-#line 24 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 24 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" type=\"image/png\">\n";
 	responseStream << "                        <img src=\"";
-#line 25 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header.cpsp"
+#line 25 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "img/logo_schrift.png\" alt=\"logo\" />\n";
 	responseStream << "                    </picture>\n";
@@ -146,7 +151,7 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "            </div>";
 	// end include header.cpsp
 	responseStream << "\n";
-#line 77 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 82 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "<div class=\"center-form-container\">\n";
@@ -158,17 +163,17 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "\t\t\t<p>Bitte gib deine Daten um einen Account anzulegen:</p>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-first-name\">Vorname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-first-name\" type=\"text\" name=\"register-first-name\" value=\"";
-#line 86 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 91 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-first-name", "") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-last-name\">Nachname</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-last-name\" type=\"text\" name=\"register-last-name\" value=\"";
-#line 88 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 93 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-last-name", "") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-email\">E-Mail</label>\n";
 	responseStream << "\t\t\t<input class=\"form-control\" id=\"register-email\" type=\"email\" name=\"register-email\" value=\"";
-#line 90 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\registerDirect.cpsp"
+#line 95 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\registerDirect.cpsp"
 	responseStream << ( !form.empty() ? form.get("register-email", "") : "" );
 	responseStream << "\"/>\n";
 	responseStream << "\t\t\t<label class=\"form-label\" for=\"register-password\">Passwort</label>\n";
@@ -185,14 +190,14 @@ void RegisterDirectPage::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomleft\">\n";
 	responseStream << "            ";
-#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 6 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\footer.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomright\">\n";
 	responseStream << "            <p>Login Server in Entwicklung</p>\n";
 	responseStream << "            <p>Alpha ";
-#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 10 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\footer.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "        </div>\n";

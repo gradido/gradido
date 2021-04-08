@@ -231,7 +231,14 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	}
 
 	// user
-	mNewUser = controller::User::create(email, first_name, last_name, 0);
+	int group_id = 0;
+	if (ServerConfig::g_devDefaultGroup != "") {
+		auto groups = controller::Group::load(ServerConfig::g_devDefaultGroup);
+		if (groups.size() == 1) {
+			group_id = groups[0]->getModel()->getID();
+		}
+	}
+	mNewUser = controller::User::create(email, first_name, last_name, group_id);
 	auto user_model = mNewUser->getModel();
 	user_model->insertIntoDB(true);
 	auto user_id = user_model->getID();

@@ -58,6 +58,7 @@ namespace ServerConfig {
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
+	std::string g_devDefaultGroup = "";
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
 	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
@@ -247,6 +248,8 @@ namespace ServerConfig {
 		//g_ServerSetupType 
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
+
+		g_devDefaultGroup = cfg.getString("dev.default_group", "");
 
 		auto hedera_consensus_message_format_string = cfg.getString("hedera.consensus.message_format", "bin");
 		g_ConsensusMessageFormat = getHederaConsensusMessageFormatFromString(hedera_consensus_message_format_string);

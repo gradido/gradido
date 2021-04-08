@@ -307,7 +307,15 @@ int HandleElopageRequestTask::run()
 		mEmail = mRequestData.get("payer[email]", "");
 		mFirstName = mRequestData.get("payer[first_name]", "");
 		mLastName = mRequestData.get("payer[last_name]", "");
-		auto newUser = controller::User::create(mEmail, mFirstName, mLastName, 0);
+
+		int group_id = 0;
+		if (ServerConfig::g_devDefaultGroup != "") {
+			auto groups = controller::Group::load(ServerConfig::g_devDefaultGroup);
+			if (groups.size() == 1) {
+				group_id = groups[0]->getModel()->getID();
+			}
+		}
+		auto newUser = controller::User::create(mEmail, mFirstName, mLastName, group_id);
 
 		/* printf("LastName: %s\n", mLastName.data());
 		for (int i = 0; i < mLastName.size(); i++) {
@@ -341,10 +349,12 @@ int HandleElopageRequestTask::run()
 //		prepareEmail->scheduleTask(prepareEmail);
 
 		// write user entry into db
-		writeUserIntoDB();
+		//writeUserIntoDB();
+		newUser->getModel()->insertIntoDB(true);
 
 		// get user id from db
-		int user_id = getUserIdFromDB(true);
+		//int user_id = getUserIdFromDB(true);
+		int user_id = newUser->getModel()->getID();
 		// we didn't get a user_id, something went wrong
 		// maybe user already exist
 		if (!user_id) {

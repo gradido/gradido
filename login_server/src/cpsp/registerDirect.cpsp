@@ -61,7 +61,12 @@
 					response.redirect(redirect_url);
 					return;
 				}
-				response.redirect(getBaseUrl() + "/userUpdateGroup");
+				auto user = session->getNewUser();
+				if(user->getModel()->getGroupId() == 0) {
+					response.redirect(getBaseUrl() + "/userUpdateGroup");
+				} else {
+					response.redirect(user->getGroupBaseUrl());
+				}
 				return;
 			}
 		}
