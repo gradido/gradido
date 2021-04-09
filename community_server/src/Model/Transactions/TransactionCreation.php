@@ -28,7 +28,7 @@ class TransactionCreation extends TransactionBase {
     
     static public function build($amount, $memo, $receiver_public_hex, $targetDate = null) 
     {    
-        $receiver = new \Model\Messages\Proto\Gradido\TransferAmount();
+        $receiver = new \Proto\Gradido\TransferAmount();
         $receiver->setAmount($amount);
         //$this->receiver_pubkey_hex = $receiver_public_hex;
         if(strlen($receiver_public_hex) != 64) {
@@ -38,10 +38,10 @@ class TransactionCreation extends TransactionBase {
         $receiver->setPubkey($pubKeyBin);
         //var_dump($requestData);
 
-        $creationDate = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+        $creationDate = new \Proto\Gradido\TimestampSeconds();
         $creationDate->setSeconds(time());
 
-        $transactionBody = new \Model\Messages\Proto\Gradido\TransactionBody();
+        $transactionBody = new \Proto\Gradido\TransactionBody();
         $transactionBody->setMemo($memo);
         $transactionBody->setCreated($creationDate);
         
@@ -52,7 +52,7 @@ class TransactionCreation extends TransactionBase {
         //var_dump($targetDate);
         //die('die');
         if($targetDate) {
-          $targetDateTimestamp = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+          $targetDateTimestamp = new \Proto\Gradido\TimestampSeconds();
           $targetDateTimestamp->setSeconds($targetDate->getTimestamp());
           //var_dump($targetDateTimestamp); die('target');
           $transaction->setTargetDate($targetDateTimestamp);
@@ -209,7 +209,7 @@ class TransactionCreation extends TransactionBase {
  
     static public function fromEntity($transactionCreationEntity)
     {
-      $protoCreation = new \Model\Messages\Proto\Gradido\GradidoCreation();
+      $protoCreation = new \Proto\Gradido\GradidoCreation();
       
       //var_dump($transactionCreationEntity);
       $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
@@ -220,7 +220,7 @@ class TransactionCreation extends TransactionBase {
       $stateUser = $stateUsersTable->get($userId);
       
       
-      $receiverAmount = new \Model\Messages\Proto\Gradido\TransferAmount();
+      $receiverAmount = new \Proto\Gradido\TransferAmount();
       $receiverAmount->setPubkey(stream_get_contents($stateUser->public_key));
       $receiverAmount->setAmount($transactionCreationEntity->amount);
       

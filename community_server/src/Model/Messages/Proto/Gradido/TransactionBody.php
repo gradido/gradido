@@ -20,7 +20,11 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      */
     private $memo = '';
     /**
-     * Generated from protobuf field <code>uint64 version_number = 6;</code>
+     * Generated from protobuf field <code>.proto.gradido.TimestampSeconds created = 2;</code>
+     */
+    private $created = null;
+    /**
+     * Generated from protobuf field <code>uint64 version_number = 3;</code>
      */
     private $version_number = 0;
     protected $data;
@@ -33,11 +37,12 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      *
      *     @type string $memo
      *           max 150 chars
+     *     @type \Proto\Gradido\TimestampSeconds $created
+     *     @type int|string $version_number
      *     @type \Proto\Gradido\GradidoTransfer $transfer
      *     @type \Proto\Gradido\GradidoCreation $creation
      *     @type \Proto\Gradido\GroupFriendsUpdate $group_friends_update
      *     @type \Proto\Gradido\GroupMemberUpdate $group_member_update
-     *     @type int|string $version_number
      * }
      */
     public function __construct($data = NULL) {
@@ -72,95 +77,29 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.proto.gradido.GradidoTransfer transfer = 2;</code>
-     * @return \Proto\Gradido\GradidoTransfer
+     * Generated from protobuf field <code>.proto.gradido.TimestampSeconds created = 2;</code>
+     * @return \Proto\Gradido\TimestampSeconds
      */
-    public function getTransfer()
+    public function getCreated()
     {
-        return $this->readOneof(2);
+        return $this->created;
     }
 
     /**
-     * Generated from protobuf field <code>.proto.gradido.GradidoTransfer transfer = 2;</code>
-     * @param \Proto\Gradido\GradidoTransfer $var
+     * Generated from protobuf field <code>.proto.gradido.TimestampSeconds created = 2;</code>
+     * @param \Proto\Gradido\TimestampSeconds $var
      * @return $this
      */
-    public function setTransfer($var)
+    public function setCreated($var)
     {
-        GPBUtil::checkMessage($var, \Proto\Gradido\GradidoTransfer::class);
-        $this->writeOneof(2, $var);
+        GPBUtil::checkMessage($var, \Proto\Gradido\TimestampSeconds::class);
+        $this->created = $var;
 
         return $this;
     }
 
     /**
-     * Generated from protobuf field <code>.proto.gradido.GradidoCreation creation = 3;</code>
-     * @return \Proto\Gradido\GradidoCreation
-     */
-    public function getCreation()
-    {
-        return $this->readOneof(3);
-    }
-
-    /**
-     * Generated from protobuf field <code>.proto.gradido.GradidoCreation creation = 3;</code>
-     * @param \Proto\Gradido\GradidoCreation $var
-     * @return $this
-     */
-    public function setCreation($var)
-    {
-        GPBUtil::checkMessage($var, \Proto\Gradido\GradidoCreation::class);
-        $this->writeOneof(3, $var);
-
-        return $this;
-    }
-
-    /**
-     * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate group_friends_update = 4;</code>
-     * @return \Proto\Gradido\GroupFriendsUpdate
-     */
-    public function getGroupFriendsUpdate()
-    {
-        return $this->readOneof(4);
-    }
-
-    /**
-     * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate group_friends_update = 4;</code>
-     * @param \Proto\Gradido\GroupFriendsUpdate $var
-     * @return $this
-     */
-    public function setGroupFriendsUpdate($var)
-    {
-        GPBUtil::checkMessage($var, \Proto\Gradido\GroupFriendsUpdate::class);
-        $this->writeOneof(4, $var);
-
-        return $this;
-    }
-
-    /**
-     * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate group_member_update = 5;</code>
-     * @return \Proto\Gradido\GroupMemberUpdate
-     */
-    public function getGroupMemberUpdate()
-    {
-        return $this->readOneof(5);
-    }
-
-    /**
-     * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate group_member_update = 5;</code>
-     * @param \Proto\Gradido\GroupMemberUpdate $var
-     * @return $this
-     */
-    public function setGroupMemberUpdate($var)
-    {
-        GPBUtil::checkMessage($var, \Proto\Gradido\GroupMemberUpdate::class);
-        $this->writeOneof(5, $var);
-
-        return $this;
-    }
-
-    /**
-     * Generated from protobuf field <code>uint64 version_number = 6;</code>
+     * Generated from protobuf field <code>uint64 version_number = 3;</code>
      * @return int|string
      */
     public function getVersionNumber()
@@ -169,7 +108,7 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>uint64 version_number = 6;</code>
+     * Generated from protobuf field <code>uint64 version_number = 3;</code>
      * @param int|string $var
      * @return $this
      */
@@ -177,6 +116,94 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkUint64($var);
         $this->version_number = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GradidoTransfer transfer = 6;</code>
+     * @return \Proto\Gradido\GradidoTransfer
+     */
+    public function getTransfer()
+    {
+        return $this->readOneof(6);
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GradidoTransfer transfer = 6;</code>
+     * @param \Proto\Gradido\GradidoTransfer $var
+     * @return $this
+     */
+    public function setTransfer($var)
+    {
+        GPBUtil::checkMessage($var, \Proto\Gradido\GradidoTransfer::class);
+        $this->writeOneof(6, $var);
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GradidoCreation creation = 7;</code>
+     * @return \Proto\Gradido\GradidoCreation
+     */
+    public function getCreation()
+    {
+        return $this->readOneof(7);
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GradidoCreation creation = 7;</code>
+     * @param \Proto\Gradido\GradidoCreation $var
+     * @return $this
+     */
+    public function setCreation($var)
+    {
+        GPBUtil::checkMessage($var, \Proto\Gradido\GradidoCreation::class);
+        $this->writeOneof(7, $var);
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate group_friends_update = 8;</code>
+     * @return \Proto\Gradido\GroupFriendsUpdate
+     */
+    public function getGroupFriendsUpdate()
+    {
+        return $this->readOneof(8);
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate group_friends_update = 8;</code>
+     * @param \Proto\Gradido\GroupFriendsUpdate $var
+     * @return $this
+     */
+    public function setGroupFriendsUpdate($var)
+    {
+        GPBUtil::checkMessage($var, \Proto\Gradido\GroupFriendsUpdate::class);
+        $this->writeOneof(8, $var);
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate group_member_update = 9;</code>
+     * @return \Proto\Gradido\GroupMemberUpdate
+     */
+    public function getGroupMemberUpdate()
+    {
+        return $this->readOneof(9);
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate group_member_update = 9;</code>
+     * @param \Proto\Gradido\GroupMemberUpdate $var
+     * @return $this
+     */
+    public function setGroupMemberUpdate($var)
+    {
+        GPBUtil::checkMessage($var, \Proto\Gradido\GroupMemberUpdate::class);
+        $this->writeOneof(9, $var);
 
         return $this;
     }

@@ -25,7 +25,7 @@ class Transaction extends TransactionBase {
         //$transactionBin = base64_decode($base64Data, true);
         //if($transactionBin == false) {
       //sodium_base64_VARIANT_URLSAFE_NO_PADDING
-      if(is_a($base64Data, '\Model\Messages\Proto\Gradido\Transaction')) {
+      if(is_a($base64Data, '\Proto\Gradido\Transaction')) {
         $this->mProtoTransaction = $base64Data;
         $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
         return;
@@ -50,7 +50,7 @@ class Transaction extends TransactionBase {
           $this->addError('Transaction', 'base64 decode error: ' . $base64Data);
         } else {
           //var_dump($transactionBin);
-          $this->mProtoTransaction = new \Model\Messages\Proto\Gradido\Transaction();
+          $this->mProtoTransaction = new \Proto\Gradido\GradidoTransaction();
           try {
             $this->mProtoTransaction->mergeFromString($transactionBin);
             //var_dump($this->mProtoTransaction);
@@ -70,11 +70,11 @@ class Transaction extends TransactionBase {
         }
     }
     
-    static public function build(\Model\Messages\Proto\Gradido\TransactionBody $transactionBody, $senderKeyPair) 
+    static public function build(\Proto\Gradido\TransactionBody $transactionBody, $senderKeyPair) 
     {
-        $protoTransaction = new \Model\Messages\Proto\Gradido\Transaction();
+        $protoTransaction = new \Proto\Gradido\GradidoTransaction();
         
-        $recevied = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+        $recevied = new \Proto\Gradido\TimestampSeconds();
         $recevied->setSeconds(time());
         $protoTransaction->setReceived($recevied);
         
@@ -198,14 +198,14 @@ class Transaction extends TransactionBase {
                     'TransactionSignatures'])
                 ->first();
         //var_dump($transactionEntry->toArray());
-        $protoTransaction = new \Model\Messages\Proto\Gradido\Transaction();
+        $protoTransaction = new \Proto\Gradido\Transaction();
         
         
         
         $protoTransaction->setId($transactionEntry->id);
 
         
-        $recevied = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+        $recevied = new \Proto\Gradido\TimestampSeconds();
         $recevied->setSeconds($transactionEntry->received->getTimestamp());
         $protoTransaction->setReceived($recevied);
         
@@ -229,7 +229,7 @@ class Transaction extends TransactionBase {
         }
         
         //echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
-        $created = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+        $created = new \Proto\Gradido\TimestampSeconds();
         $created->setSeconds($recevied->getSeconds());
         $body->setCreated($created);
         $bodyBytes = $body->serializeToString();

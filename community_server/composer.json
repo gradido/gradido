@@ -30,9 +30,9 @@
     "autoload": {
         "psr-4": {
             "App\\": "src/",
-			"" : "src/",
-			"GPBMetadata\\": "src/GPBMetadata",
-            "Model\\Messages\\Gradido\\" : "src/Model/Messages/Gradido"
+            "" : "src/",
+            "GPBMetadata\\Gradido\\": "src/Model/Messages/GPBMetadata/Gradido/",
+            "Proto\\Gradido\\" : "src/Model/Messages/Proto/Gradido/"
         }
     },
     "autoload-dev": {

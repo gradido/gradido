@@ -23,7 +23,7 @@ class TransactionTransfer extends TransactionBase {
       // repeated SenderAmount senderAmounts = 1;
       // repeated ReceiverAmount receiverAmounts = 2;
         
-        $sender = new \Model\Messages\Proto\Gradido\TransferAmount();
+        $sender = new \Proto\Gradido\TransferAmount();
         $sender->setAmount($amount);
         
         if(strlen($receiver_public_hex) != 64) {
@@ -38,15 +38,15 @@ class TransactionTransfer extends TransactionBase {
         $sender->setPubkey($senderPubKeyBin);
         //var_dump($requestData);
 
-        $creationDate = new \Model\Messages\Proto\Gradido\TimestampSeconds();
+        $creationDate = new \Proto\Gradido\TimestampSeconds();
         $creationDate->setSeconds(time());
 
-        $transactionBody = new \Model\Messages\Proto\Gradido\TransactionBody();
+        $transactionBody = new \Proto\Gradido\TransactionBody();
         $transactionBody->setMemo($memo);
         $transactionBody->setCreated($creationDate);
 
-        $transfer = new \Model\Messages\Proto\Gradido\GradidoTransfer();
-        $local_transfer = new \Model\Messages\Proto\Gradido\LocalTransfer();
+        $transfer = new \Proto\Gradido\GradidoTransfer();
+        $local_transfer = new \Proto\Gradido\LocalTransfer();
         $local_transfer->setReceiver($receiverPubKeyBin);
         $local_transfer->setSender($sender);
         $transfer->setLocal($local_transfer);
