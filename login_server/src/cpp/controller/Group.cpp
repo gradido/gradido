@@ -1,6 +1,8 @@
 
 #include "Group.h"
 
+#include "Poco/URI.h"
+
 namespace controller {
 
 	Group::Group(model::table::Group* dbModel)
@@ -95,5 +97,15 @@ namespace controller {
 		return JsonRequest(model->getUrl(), port);
 	}
 	
+	std::string Group::getHost()
+	{
+		auto model = getModel();
+		auto url = model->getUrl();
+		if (url.find("http") != url.npos) {
+			auto uri = Poco::URI(url);
+			return uri.getHost();
+		}
+		return url;
+	}
 }
 

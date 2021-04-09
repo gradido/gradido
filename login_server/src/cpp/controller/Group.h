@@ -26,6 +26,8 @@ namespace controller {
 
 		inline Poco::AutoPtr<model::table::Group> getModel() { return _getModel<model::table::Group>(); }
 		JsonRequest createJsonRequest();
+
+		std::string getHost();
 	
 	protected:
 		Group(model::table::Group* dbModel);

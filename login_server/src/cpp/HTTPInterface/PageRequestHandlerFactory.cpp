@@ -77,10 +77,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	if (uri != "/favicon.ico") {
 		//printf("[PageRequestHandlerFactory] uri: %s, first part: %s\n", uri.data(), url_first_part.data());
 		auto referer = request.find("Referer");
-		if (referer != request.end()) {
+		auto host = request.find("Host");
+		if (referer != request.end() && host != request.end()) {
 			//printf("referer: %s\n", referer->second.data());
 			auto refererString = referer->second;
-			if (refererString.find(ServerConfig::g_serverPath) == refererString.npos) {
+			auto hostString = host->second;
+			if (refererString.find(hostString) == refererString.npos) {
 				externReferer = refererString;
 			}
 		}//*/
@@ -154,6 +156,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 	}
 	if (s) {
 		if (externReferer != "") {
+
 			s->setLastReferer(externReferer);
 		}
 		model::table::User* userModel = nullptr;

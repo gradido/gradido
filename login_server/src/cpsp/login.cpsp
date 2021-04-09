@@ -134,6 +134,12 @@
 		if(email != "" && password != "") {
 			
 			UserState user_state;
+			auto host = request.find("Host");
+			std::string host_string = "";
+			if (host != request.end()) {
+				host_string = host->second;
+			}
+
 			try {
 				user_state = mSession->loadUser(email, password);
 			} catch (Poco::Exception& ex) {
@@ -150,9 +156,18 @@
 						user_state = USER_DISABLED;
 					}
 				}
-			} else {
-				//printf("pubkey exist: %p\n",user->getModel()->getPublicKey());
 			}
+
+			// check if user group belong to host
+			if(!user.isNull() && host_string != "") {
+				auto group = user->getGroup();
+				if(!group.isNull()) {
+					if(group->getHost() != host_string) {
+						printf("group host: %s, host string: %s\n", group->getHost().data(), host_string.data());
+						user_state = USER_WRONG_HOST;
+					}
+				}
+			} 
 			getErrors(mSession);
 
 			auto lastExternReferer = mSession->getLastReferer();
@@ -162,6 +177,7 @@
 			switch(user_state) {
 			case USER_EMPTY:
 			case USER_PASSWORD_INCORRECT:
+			case USER_WRONG_HOST:
 				addError(new Error(langCatalog->gettext("Login"), langCatalog->gettext("E-Mail or password isn't right, please try again!")), false);
 				if(mSession) {
 					getErrors(mSession);
