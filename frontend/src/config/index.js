@@ -7,7 +7,7 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
-  APP_VERSION: process.env.VUE_APP_VERSION || require('./package.json').version,
+  APP_VERSION: process.env.APP_VERSION || require('./package.json').version,
 }
 
 const server = {
