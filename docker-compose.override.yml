@@ -33,6 +33,14 @@ services:
     volumes:
       - ./logs:/var/log/grd_login 
       - conan:/root/.conan
+
+  #########################################################
+  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
+  #########################################################
+  community-server:
+    volumes:
+      - ./community_server
+
       
   #########################################################
   ## NGINX ################################################
@@ -43,7 +51,7 @@ services:
       - community-server
       - login-server
     volumes: 
-      - ./logs:/var/log/nginx 
+      - ./logs/nginx:/var/log/nginx 
   
   #########################################################
   ## PHPMYADMIN ###########################################

@@ -20,7 +20,7 @@ EmailManager::EmailManager()
 EmailManager::~EmailManager()
 {
 	exit();
-	
+
 }
 
 EmailManager* EmailManager::getInstance()
@@ -56,8 +56,9 @@ bool EmailManager::init(const Poco::Util::LayeredConfiguration& cfg)
 }
 
 void EmailManager::addEmail(model::Email* email) {
-	if (mDisableEmail) { 
-		std::string log_message = "Email should be sended to: ";
+	if (mDisableEmail) {
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		std::string log_message = dateTimeString + " Email should be sended to: ";
 		auto email_user = email->getUser();
 		if (email_user && email_user->getModel()) {
 			log_message += email_user->getModel()->getNameWithEmail();
@@ -68,10 +69,10 @@ void EmailManager::addEmail(model::Email* email) {
 		log_message += ", type: ";
 		log_message += model::Email::emailTypeString(email->getType());
 		mEmailLog.log(log_message);
-		delete email; 
-		return; 
+		delete email;
+		return;
 	}
-	mPendingEmails.push(email); 
+	mPendingEmails.push(email);
 	condSignal();
 }
 
@@ -88,7 +89,7 @@ int EmailManager::ThreadFunction()
 {
 	// prepare connection to email server
 	if (ServerConfig::g_disableEmail) return 0;
-	
+
 	if (mPendingEmails.empty()) return 0;
 
 	auto lm = LanguageManager::getInstance();
@@ -131,14 +132,33 @@ int EmailManager::ThreadFunction()
 			if (catalogs[lang_code].isNull()) {
 				catalogs[lang_code] = lm->getFreeCatalog(lang_code);
 			}
+			bool email_sended = false;
 			if (email->draft(&mailMessage, catalogs[lang_code])) {
-				
-				mailClientSession.sendMessage(mailMessage);
+
+				try {
+					mailClientSession.sendMessage(mailMessage);
+					email_sended = true;
+				}
+				catch (Poco::Exception& ex) {
+					email_sended = false;
+					errors.addError(new ParamError(function_name, "poco exception sending email", ex.displayText()));
+					auto user = email->getUser();
+					if (user && !user->getModel().isNull()) {
+						errors.addError(new ParamError(function_name, "email", user->getModel()->getEmail()));
+					}
+
+					errors.sendErrorsAsEmail();
+
+				}
 				// add for debugging
 				if (email->getUser()) {
 					//printf("send email to %s\n", user_model->getEmail().data());
 					auto user_model = email->getUser()->getModel();
-					std::string log_message = "Email sended to: ";
+					std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+					std::string log_message = dateTimeString + " Email sended to: ";
+					if (!email_sended) {
+						log_message = dateTimeString + " Email not sended to: ";
+					}
 					auto email_user = email->getUser();
 					if (user_model) {
 						log_message += email_user->getModel()->getNameWithEmail();
@@ -165,9 +185,9 @@ int EmailManager::ThreadFunction()
 		}
 	}
 
-	
 
-	
+
+
 
 
 	mailClientSession.close();
