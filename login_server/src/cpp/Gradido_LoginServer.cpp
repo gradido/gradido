@@ -20,6 +20,7 @@
 #include "Poco/Path.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/FileChannel.h"
+#include "Poco/SimpleFileChannel.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/SplitterChannel.h"
 #include "MySQL/Poco/Connector.h"
