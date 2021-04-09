@@ -317,6 +317,20 @@ namespace model {
 
 			Poco::AutoPtr<Transaction> transaction = new Transaction(dbModel->getRequestCopy(), dbModel);
 			PendingTasksManager::getInstance()->addTask(transaction);
+
+			// check if transaction was already finished
+			auto json = transaction->getModel()->getResultJson();
+			bool finished = false;
+			if (!json.isNull()) {
+				if (!json->get("state").isEmpty()) {
+					finished = true;
+				}
+			}
+			// try not finished but sign transactions again
+			if (!finished) {
+				transaction->ifEnoughSignsProceed(nullptr);
+			}
+			
 			return transaction;
 		}
 		
@@ -438,10 +452,16 @@ namespace model {
 			mm->releaseMemory(sign);
 
 			updateRequestInDB();
+			
+			return ifEnoughSignsProceed(user);
+		}
+
+		bool Transaction::ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user)
+		{
 			// check if enough signatures exist for next step
 			if (getSignCount() >= mTransactionBody->getTransactionBase()->getMinSignatureCount())
 			{
-				if (getTransactionBody()->isTransfer()) {
+				if (getTransactionBody()->isTransfer() && !user.isNull()) {
 					auto transfer = getTransactionBody()->getTransferTransaction();
 					if (transfer->isOutbound()) {
 						auto transaction = transfer->createInbound(getTransactionBody()->getMemo());
@@ -453,19 +473,17 @@ namespace model {
 							//Poco::Thread::sleep(1000);
 						}
 						else {
-							addError(new Error(function_name, "Error creating outbound transaction"));
+							addError(new Error("Transaction::ifEnoughSignsProceed", "Error creating outbound transaction"));
 							return false;
 						}
-						
+
 					}
 				}
 				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
 				transaction_send_task->scheduleTask(transaction_send_task);
+				return true;
 			}
-
-			//getModel()->updateIntoDB("request", )
-			//printf("[Transaction::sign] reference-count: %d\n", mReferenceCount);
-			return true;
+			return false;
 		}
 
 		bool Transaction::updateRequestInDB()
@@ -814,7 +832,7 @@ namespace model {
 			
 			getErrors(&json_request);
 
-			return 0;
+			return -1;
 		}
 
 		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
@@ -910,6 +928,7 @@ namespace model {
 			if (1 == result) {
 				//mTransaction->deleteFromDB();
 			}
+
 			return 0;
 		}
 

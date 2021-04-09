@@ -184,7 +184,7 @@ std::string NotificationList::getErrorsHtmlNewFormat()
 */
 
 
-void NotificationList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
+void NotificationList::sendErrorsAsEmail(std::string rawHtml/* = ""*/, bool copy/* = false*/)
 {
 	auto em = EmailManager::getInstance();
 	/*auto message = new Poco::Net::MailMessage();
@@ -193,12 +193,22 @@ void NotificationList::sendErrorsAsEmail(std::string rawHtml/* = ""*/)
 	message->setSubject("Error from Gradido Login Server");
 	*/
 	std::string content;
+	std::stack<Notification*> stack_copy;
+	if (copy) {
+		stack_copy = mErrorStack;
+	}
 	while (mErrorStack.size() > 0) {
 		auto error = mErrorStack.top();
 		mErrorStack.pop();
 		content += error->getString();
-		delete error;
+		if (!copy) {
+			delete error;
+		}
 	}
+	if (copy) {
+		mErrorStack = std::move(stack_copy);
+	}
+	
 	auto email = new model::Email(content, model::EMAIL_ERROR);
 	
 	//message->addContent(new Poco::Net::StringPartSource(content));

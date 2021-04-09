@@ -91,6 +91,8 @@ namespace model {
 
 		protected:
 
+			bool ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user);
+
 			int runSendTransactionHedera();
 			int runSendTransactionMysql();
 

@@ -47,7 +47,7 @@ public:
 	std::string getErrorsHtmlNewFormat();
 	std::vector<std::string> getErrorsArray();
 
-	void sendErrorsAsEmail(std::string rawHtml = "");
+	void sendErrorsAsEmail(std::string rawHtml = "", bool copy = false);
 
 protected:
 	std::stack<Notification*> mErrorStack;

@@ -7,6 +7,8 @@ namespace model {
 		TransactionBody::TransactionBody()
 			: mTransactionSpecific(nullptr), mType(TRANSACTION_NONE), mBlockchainType(BLOCKCHAIN_NULL)
 		{
+			auto created = mTransactionBody.mutable_created();
+			DataTypeConverter::convertToProtoTimestampSeconds(Poco::Timestamp(), created);
 		}
 
 		TransactionBody::~TransactionBody()

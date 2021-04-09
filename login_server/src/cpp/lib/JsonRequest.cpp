@@ -236,7 +236,8 @@ JsonRequestReturn JsonRequest::requestGRPCRelay(const Poco::Net::NameValueCollec
 			if (!object.isNull("details")) {
 				addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
 			}
-			sendErrorsAsEmail();
+			// send copy of errors as email, to have result also in db
+			sendErrorsAsEmail("", true);
 			return JSON_REQUEST_RETURN_ERROR;
 		}
 		ss.clear();

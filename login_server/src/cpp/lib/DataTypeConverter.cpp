@@ -332,6 +332,7 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
+
 	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
 	{
 		return Poco::Timespan(duration.seconds(), 0);

@@ -63,6 +63,9 @@ namespace DataTypeConverter {
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp);
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp);
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
+	inline void convertToProtoTimestampSeconds(const Poco::Timestamp pocoTimestamp, proto::gradido::TimestampSeconds* protoTimestampSeconds) {
+		protoTimestampSeconds->set_seconds(pocoTimestamp.epochTime());
+	}
 	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 
 	//! \brief go through json object and replace every string entry in base64 format into hex format
