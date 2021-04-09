@@ -5,6 +5,10 @@
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
           <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a>
+          |
+          <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
+            App Verion {{ version }}
+          </a>
         </div>
       </b-col>
     </b-row>
@@ -32,10 +36,13 @@
   </footer>
 </template>
 <script>
+import CONFIG from '../../config'
+
 export default {
   data() {
     return {
       year: new Date().getFullYear(),
+      version: CONFIG.APP_VERSION,
     }
   },
 }
