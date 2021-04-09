@@ -5,7 +5,7 @@ namespace model {
 	namespace gradido {
 	
 		TransactionBody::TransactionBody()
-			: mTransactionSpecific(nullptr), mType(TRANSACTION_NONE)
+			: mTransactionSpecific(nullptr), mType(TRANSACTION_NONE), mBlockchainType(BLOCKCHAIN_NULL)
 		{
 		}
 
@@ -207,6 +207,7 @@ namespace model {
 			*pubkey_str = std::string((const char*)receiver_model->getPublicKey(), receiver_model->getPublicKeySize());
 
 			obj->mType = TRANSACTION_CREATION;
+			obj->mBlockchainType = blockchainType;
 			obj->mTransactionSpecific = new TransactionCreation(memo, obj->mTransactionBody.creation());
 			obj->mTransactionSpecific->prepare();
 

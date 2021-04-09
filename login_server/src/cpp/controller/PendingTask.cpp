@@ -169,13 +169,39 @@ namespace controller {
 		return true;
 	}
 
+	void PendingTask::finishSuccess()
+	{
+		getModel()->setFinished(Poco::DateTime());
+		setResult("state", "success", true);
+	}
+
+	bool PendingTask::setResult(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB /*= false*/)
+	{
+		auto model = getModel();
+		auto param = model->getResultJson();
+		param->set(key, value);
+		model->setResultJson(param);
+		if (saveIntoDB) {
+			return model->updateFinishedAndResult();
+		}
+		return true;
+	}
+
+
 	int PendingTask::getIntParam(const std::string& key)
 	{
 		auto model = getModel();
 		auto param = model->getParamJson();
 		auto paramVar = param->get(key);
 		if (!paramVar.isEmpty() && paramVar.isInteger()) {
-			return paramVar.extract<int>();
+			try {
+				return paramVar.extract<Poco::Int64>();
+			}
+			catch (Poco::Exception& ex) {
+				NotificationList error;
+				error.addError(new ParamError("PendingTask::getIntParam", "poco exception: ", ex.displayText()));
+				return -2;
+			}
 		}
 		return -1;
 	}

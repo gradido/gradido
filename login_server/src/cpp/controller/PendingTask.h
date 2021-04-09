@@ -44,6 +44,9 @@ namespace controller {
 
 		Poco::AutoPtr<controller::User> getUser();
 
+		void finishSuccess();
+
+		bool setResult(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB = false);
 		bool setParam(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB = false);
 		int getIntParam(const std::string& key);
 		

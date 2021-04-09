@@ -209,14 +209,12 @@ namespace DataTypeConverter
 		auto base64 = mm->getFreeMemory(encodedSize);
 		memset(*base64, 0, encodedSize);
 
-		size_t resultBinSize = 0;
-
 		if (nullptr == sodium_bin2base64(*base64, encodedSize, data, size, variant)) {
 			mm->releaseMemory(base64);
 			return "";
 		}
 
-		std::string base64String((const char*)*base64, encodedSize);
+		std::string base64String((const char*)*base64);
 		mm->releaseMemory(base64);
 		return base64String;
 	}

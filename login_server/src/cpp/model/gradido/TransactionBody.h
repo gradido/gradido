@@ -23,6 +23,7 @@ namespace model {
 
 		enum BlockchainType
 		{
+			BLOCKCHAIN_NULL,
 			BLOCKCHAIN_MYSQL,
 			BLOCKCHAIN_HEDERA,
 			BLOCKCHAIN_UNKNOWN

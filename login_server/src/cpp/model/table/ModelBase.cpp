@@ -54,12 +54,9 @@ namespace model {
 					if (loadId) {
 						Poco::Data::Statement select = _loadIdFromDB(session);
 						try {
-							select.executeAsync();
-							auto result_count = select.wait();
-							if (result_count != 1) {
-								int zahl = 0;
-							}
-							return result_count;
+							auto res = select.execute();
+							if (1 == res) { return true; }
+							
 						}
 						catch (Poco::Exception& ex) {							
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
@@ -68,7 +65,7 @@ namespace model {
 						session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 						select = _loadIdFromDB(session);
 						//Poco::Data::Statement select = _loadIdFromDB(session);
-						select.execute();
+						return 1 == select.execute();
 					}
 					else {
 						return true;

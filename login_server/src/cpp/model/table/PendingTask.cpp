@@ -10,12 +10,12 @@ namespace model
 	namespace table
 	{
 		PendingTask::PendingTask()
-			: mUserId(0), mTaskTypeId(TASK_TYPE_NONE)
+			: mUserId(0), mHederaId(0), mTaskTypeId(TASK_TYPE_NONE)
 		{
 
 		}
 		PendingTask::PendingTask(int userId, std::string serializedProtoRequest, TaskType type)
-			: mUserId(userId), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
+			: mUserId(userId), mHederaId(0), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
 			  mTaskTypeId(TASK_TYPE_NONE)
 		{
 			
@@ -50,8 +50,13 @@ namespace model
 		{
 			UNIQUE_LOCK;
 			std::stringstream ss;
-			param->stringify(ss);
-			mResultJsonString = ss.str();
+			try {
+				param->stringify(ss);
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError("PendingTask::setParamJson", "exception by json -> string", ex.displayText()));
+			}
+			mParamJsonString = ss.str();
 		}
 
 		Poco::JSON::Object::Ptr PendingTask::getResultJson() const
@@ -91,7 +96,7 @@ namespace model
 			}
 			catch (Poco::JSON::JSONException& jsone)
 			{
-				return nullptr;
+				return new Poco::JSON::Object;
 			}
 
 			return result.extract<Poco::JSON::Object::Ptr>();
@@ -273,8 +278,8 @@ namespace model
 			Poco::Data::Statement insert(session);
 
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, hedera_id, request, created, param_json, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?,?)"
-				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mParamJsonString), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
+				<< " (user_id, hedera_id, request, created, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?,?,?)"
+				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mResultJsonString), use(mParamJsonString), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
 			
 			return insert;
 		}

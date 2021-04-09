@@ -44,7 +44,7 @@ namespace model {
 			}
 			mTransactionBody = TransactionBody::load(mProtoTransaction.body_bytes());
 			auto blockchain_type = getIntParam("blockchain_type");
-			if (blockchain_type >= 0) {
+			if (blockchain_type > 0) {
 				mTransactionBody->setBlockchainType((BlockchainType)blockchain_type);
 			}
 			auto body_bytes = mTransactionBody->getBodyBytes();
@@ -101,19 +101,24 @@ namespace model {
 			}
 			auto network_type = ServerConfig::g_HederaNetworkType;
 			auto receiver_model = receiver->getModel();
-			auto topic_id = controller::HederaId::find(receiver_model->getGroupId(), network_type);
-
-			if (topic_id.isNull()) {
-				em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
-				em->addError(new ParamError(function_name, "network type: ", network_type));
-				em->sendErrorsAsEmail();
-				return nullptr;
-			}
+			
 			auto body = TransactionBody::create(memo, receiver, amount, targetDate, blockchainType);
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
-			result->setParam("blockchain_type", blockchainType);
+
+			result->setParam("blockchain_type", (int)blockchainType);
 			auto model = result->getModel();
-			model->setHederaId(topic_id->getModel()->getID());
+			if (blockchainType == BLOCKCHAIN_HEDERA) {
+				auto topic_id = controller::HederaId::find(receiver_model->getGroupId(), network_type);
+
+				if (topic_id.isNull()) {
+					em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
+					em->addError(new ParamError(function_name, "network type: ", network_type));
+					em->sendErrorsAsEmail();
+					return nullptr;
+				}
+				model->setHederaId(topic_id->getModel()->getID());
+			}
+			
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
 			PendingTasksManager::getInstance()->addTask(result);
 			return result;
@@ -207,7 +212,7 @@ namespace model {
 			
 			for (auto it = results.begin(); it != results.end(); it++) {
 				if (!(*it)->getTransactionBody()->getTransferTransaction()->isInbound()) {
-					(*it)->setParam("blockchain_type", blockchainType);
+					(*it)->setParam("blockchain_type", (int)blockchainType);
 					(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
 					PendingTasksManager::getInstance()->addTask(*it);
 				}
@@ -280,13 +285,6 @@ namespace model {
 			//transaction_group = receiverGroup;
 			//topic_group = sender_group;
 			
-			auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
-			if (topic_id.isNull()) {
-				em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
-				em->addError(new ParamError(function_name, "network type: ", network_type));
-				em->sendErrorsAsEmail();
-				return result;
-			}
 			if (transaction_group.isNull()) {
 				em->addError(new Error(function_name, "transaction group is zero, inbound"));
 				em->sendErrorsAsEmail();
@@ -295,10 +293,17 @@ namespace model {
 
 			auto body = TransactionBody::create(memo, senderPubkey, receiver, amount, pairedTransactionId, transaction_group);
 			result = new Transaction(body);
-			result->getModel()->setHederaId(topic_id->getModel()->getID());
-			
-			//	}
-			result->setParam("blockchain_type", blockchainType);
+			if (blockchainType == BLOCKCHAIN_HEDERA) {
+				auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
+				if (topic_id.isNull()) {
+					em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
+					em->addError(new ParamError(function_name, "network type: ", network_type));
+					em->sendErrorsAsEmail();
+					return result;
+				}
+				result->getModel()->setHederaId(topic_id->getModel()->getID());
+			}
+			result->setParam("blockchain_type", (int)blockchainType);
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
 			PendingTasksManager::getInstance()->addTask(result);
 
@@ -801,10 +806,13 @@ namespace model {
 			param.set("transaction", base_64_message);
 			auto result = json_request.request("putTransaction", param);
 			if (JSON_REQUEST_RETURN_OK == result) {
+				if (!json_request.errorCount()) {
+					finishSuccess();
+				}
 				return 1;
 			}
+			
 			getErrors(&json_request);
-
 
 			return 0;
 		}
