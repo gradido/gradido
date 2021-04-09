@@ -69,7 +69,7 @@ class JsonRpcRequestClientComponent extends Component
    
   static public function pickGradidoNodeUrl()
   {
-    $gradidoNodes = Configure::read('GradidoNode');
+    $gradidoNodes = Configure::read('GradidoBlockchain.nodes');
     if(count($gradidoNodes) == 0) {
       return ['state' => 'error', 'msg' => 'no gradido nodes in config'];
     }    

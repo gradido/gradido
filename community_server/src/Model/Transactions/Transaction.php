@@ -39,6 +39,7 @@ class Transaction extends TransactionBase {
          $transactionBin = base64_decode($base64Data, true);
          if($transactionBin == false) {
            $this->addError('Transaction', $e->getMessage());// . ' ' . $base64Data);
+           $this->addError('base64', $base64Data);
            return;
          }
       }
