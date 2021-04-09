@@ -94,7 +94,7 @@ int EmailManager::ThreadFunction()
 
 	auto lm = LanguageManager::getInstance();
 	ErrorList errors;
-	static const char* function_name = "PrepareEmailTask";
+	static const char* function_name = "EmailManager::ThreadFunction";
 
 	Poco::Net::SecureSMTPClientSession mailClientSession(mEmailAccount.url, mEmailAccount.port);
 	mailClientSession.login();
@@ -138,6 +138,27 @@ int EmailManager::ThreadFunction()
 				try {
 					mailClientSession.sendMessage(mailMessage);
 					email_sended = true;
+				}
+				catch (Poco::TimeoutException& timeout_ex) {
+					try {
+						mailClientSession.close();
+					}
+					catch (Poco::Exception& ex) {
+						errors.addError(new ParamError(function_name, "poco exception after timeout exception and try to close client session", ex.displayText()));
+					}
+					return 0;
+				}
+				catch (Poco::Net::SSLException& ssl_ex) {
+					errors.addError(new ParamError(function_name, "poco ssl exception", ssl_ex.displayText()));
+					try {
+						mailClientSession.close();
+					}
+					catch (Poco::Exception& ex) {
+						errors.addError(new ParamError(function_name, "poco exception while closing mail client session", ex.displayText()));
+					}
+					// wait 0,5 seconds after ssl exception before retry
+					Poco::Thread::sleep(500);
+					return 0;
 				}
 				catch (Poco::Exception& ex) {
 					email_sended = false;

@@ -19,7 +19,7 @@
 #include "Poco/Logger.h"
 #include "Poco/Path.h"
 #include "Poco/AsyncChannel.h"
-#include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/SplitterChannel.h"
 #include "MySQL/Poco/Connector.h"
@@ -90,8 +90,10 @@ void Gradido_LoginServer::displayHelp()
 void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::string filePath)
 {
 	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
-	Poco::AutoPtr<Poco::SimpleFileChannel> logFileChannel(new Poco::SimpleFileChannel(filePath));
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
 	logFileChannel->setProperty("rotation", "500 K");
+	logFileChannel->setProperty("archive", "timestamp");
+	logFileChannel->setProperty("compress", "true");
 	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
 	logSplitter->addChannel(logConsoleChannel);
 	logSplitter->addChannel(logFileChannel);
