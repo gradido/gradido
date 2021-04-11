@@ -16,14 +16,16 @@
     "en": "English"
   },
   "form": {
-    "attention": "Achtung! Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
+    "attention": "<strong>Caution!</strong> Please check all your entries very carefully. You are solely responsible for your decisions. Sent Gradidos cannot be retrieved.",
     "cancel":"Cancel",
     "close":"Close",
+    "save":"Save",
     "receiver":"Receiver",
     "sender":"Sender",
-    "firstname":"Firstname",
-    "lastname":"Lastname",
-    "email":"Email",
+    "firstname":"First Name",
+    "lastname":"Last Name",
+    "username":"Username",
+    "email":"Email address",
     "email_repeat":"Repeat Email",
     "password":"Password",
     "password_repeat":"Repeat password",
@@ -36,11 +38,20 @@
     "at":"at",
     "time":"Time",
     "send_now":"Send now",
-    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
-    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
+    "scann_code":"<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
+    "max_gdd_info":"Maximum number of GDDs to be sent has been reached!",
+    "send_check":"Confirm your payment. Please check all data again!",
     "thx":"THX",
-    "send_success":"Deine Zahlung wurde erfolgreich versendet."
+    "send_success":"Your payment was successfully sent.",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "postalCode": "Postal Code",
+    "aboutMe": "About Me",
+    "aboutMePlaceholder": "Introduce yourself to other members.",
+    "userInfo":"User Information",
+    "contactInfo":"Contact Information",
+    "userPageSettings":"Your Page Settings"
   },
   "transaction":{
     "show_part": "The last <strong>{count}</strong> transactions",
@@ -89,7 +100,8 @@
       "my-profil":"My profile",
       "settings":"Settings",
       "activity":"Activity",
-      "support":"Support"
+      "support":"Support",
+      "members_area": "Members Area"
     },
     "404" : {
       "ooops" : "Ooops!",

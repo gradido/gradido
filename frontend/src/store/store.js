@@ -14,7 +14,9 @@ export const store = new Vuex.Store({
     sizeGB: 'big',
     loginfail: false,
     user: {
-      name: '',
+      userName: '',
+      firstName: '',
+      lastName: '',
       balance: 0,
       balance_gdt: 0,
     },

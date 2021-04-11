@@ -81,7 +81,7 @@
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
               class="nav-link text-lg"
             >
-              {{ $t('site.sidebar.members_area') }}
+              {{ $t('site.navbar.members_area') }}
             </a>
           </li>
         </ul>

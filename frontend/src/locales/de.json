@@ -19,11 +19,13 @@
     "attention": "<strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Abbrechen",
     "close":"schließen",
+    "save":"Speichern",
     "receiver":"Empfänger",
     "sender":"Absender",
     "firstname":"Vorname",
     "lastname":"Nachname",
-    "email":"eMail",
+    "username":"Username",
+    "email":"E-Mail",
     "email_repeat":"eMail wiederholen",
     "password":"Passwort",
     "password_repeat":"Passwort wiederholen",
@@ -40,7 +42,16 @@
     "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
     "thx":"Danke!",
-    "send_success":"Deine Zahlung wurde erfolgreich versendet."
+    "send_success":"Deine Zahlung wurde erfolgreich versendet.",
+    "address": "Adresse",
+    "city": "Stadt",
+    "country": "Land",
+    "postalCode": "PLZ",
+    "aboutMe": "Über mich",
+    "aboutMePlaceholder": "Stelle dich anderen Mitgliedern vor.",
+    "userInfo":"User Information",
+    "contactInfo":"Kontakt Information",
+    "userPageSettings":"Deine App Einstellung"
   },
   "transaction":{
     "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
@@ -89,7 +100,8 @@
       "my-profil":"Mein Profil",
       "settings":"Einstellungen",
       "activity":"Aktivität",
-      "support":"Support"
+      "support":"Support",
+      "members_area": "Mitgliederbereich"
     },
     "404" : {
       "ooops" : "Ooops!",
