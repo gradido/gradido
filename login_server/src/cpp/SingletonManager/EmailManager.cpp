@@ -160,6 +160,18 @@ int EmailManager::ThreadFunction()
 					Poco::Thread::sleep(500);
 					return 0;
 				}
+				catch (Poco::Net::SMTPException& smtp_ex) {
+					errors.addError(new ParamError(function_name, "poco smtp exception", smtp_ex.displayText()));
+					try {
+						mailClientSession.close();
+					}
+					catch (Poco::Exception& ex) {
+						errors.addError(new ParamError(function_name, "poco exception while closing mail client session", ex.displayText()));
+					}
+					// wait 0,5 seconds after smtp exception before retry
+					Poco::Thread::sleep(500);
+					return 0;
+				}
 				catch (Poco::Exception& ex) {
 					email_sended = false;
 					errors.addError(new ParamError(function_name, "poco exception sending email", ex.displayText()));
