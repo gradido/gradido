@@ -138,21 +138,21 @@
 
         <b-list-group>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $store.state.ajaxCreateData.email }}
+            {{ ajaxCreateData.email }}
             <b-badge variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $store.state.ajaxCreateData.amount }} GDD
+            {{ ajaxCreateData.amount }} GDD
             <b-badge variant="primary" pill>{{ $t('form.amount') }}</b-badge>
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $store.state.ajaxCreateData.memo }}
+            {{ ajaxCreateData.memo }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $moment($store.state.ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
+            {{ $moment(ajaxCreateData.target_date).format('DD.MM.YYYY - HH:mm:ss') }}
             <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
           </b-list-group-item>
         </b-list-group>
