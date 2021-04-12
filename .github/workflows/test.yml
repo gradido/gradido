@@ -1,7 +1,7 @@
 name: gradido test CI
 
 
-on: [push, pull_request]
+on: [push] # , pull_request
 
 jobs:
   ##############################################################################
@@ -269,6 +269,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: /coverage/lcov.info
+      - name: frontend | print Coveralls result
+        run: ls -la /coverage
   
   #test:
   #  runs-on: ubuntu-latest
