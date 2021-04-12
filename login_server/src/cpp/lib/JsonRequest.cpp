@@ -108,7 +108,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 				std::string field_name = field + ": ";
 				addError(new ParamError(functionName, field_name.data(), object.get(field).toString()));
 			}
-			sendErrorsAsEmail();
+			sendErrorsAsEmail("", true);
 			return JSON_REQUEST_RETURN_ERROR;
 		}
 		else {
