@@ -124,7 +124,7 @@ namespace model {
 			return result;
 		}
 
-		std::vector<Poco::AutoPtr<Transaction>> Transaction::createTransfer(
+		Poco::AutoPtr<Transaction> Transaction::createTransfer(
 			Poco::AutoPtr<controller::User> sender,
 			const MemoryBin* receiverPubkey,
 			Poco::AutoPtr<controller::Group> receiverGroup,
@@ -134,53 +134,64 @@ namespace model {
 			bool inbound/* = true*/
 		)
 		{
-			std::vector<Poco::AutoPtr<Transaction>> results;
+			Poco::AutoPtr<Transaction> transaction;
+			Poco::AutoPtr<TransactionBody> transaction_body;
+			Poco::AutoPtr<controller::HederaId> topic_id;
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create transfer";
 
 			if (sender.isNull() || !sender->getModel() || !receiverPubkey || !amount) {
-				return results;
+				return transaction;
 			}
 			
-			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
 			auto sender_model = sender->getModel();
-			auto network_type = ServerConfig::g_HederaNetworkType;
-			// LOCAL Transfer
-			if (receiverGroup.isNull() ||  sender_model->getGroupId() == receiverGroup->getModel()->getID())
-			{	
-				auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
-				Poco::AutoPtr<Transaction> transaction = new Transaction(body);
-				auto topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
-				if (topic_id.isNull()) {
-					em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
-					em->addError(new ParamError(function_name, "network type: ", network_type));
-					em->sendErrorsAsEmail();
-					return results;
-				}
-				transaction->getModel()->setHederaId(topic_id->getModel()->getID());
-				results.push_back(transaction);
+		
+			
+			if (blockchainType == BLOCKCHAIN_MYSQL) {
+				transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
+				transaction = new Transaction(transaction_body);
 			}
-			else 
+			else if (blockchainType == BLOCKCHAIN_HEDERA) 
 			{
-				auto sender_group = controller::Group::load(sender_model->getGroupId());
-				if (sender_group.isNull()) 
+				auto network_type = ServerConfig::g_HederaNetworkType;
+				
+				
+				// LOCAL Transfer
+				if (receiverGroup.isNull() || sender_model->getGroupId() == receiverGroup->getModel()->getID())
 				{
-					em->addError(new ParamError(function_name, "couldn't find group with id: ", sender_model->getGroupId()));
-					em->sendErrorsAsEmail();
-					return results;
+					topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
+
+					if (topic_id.isNull()) 
+					{
+						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
+						em->addError(new ParamError(function_name, "network type: ", network_type));
+						em->sendErrorsAsEmail();
+						return transaction;
+					}
+					transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
+					transaction = new Transaction(transaction_body);
 				}
-				Poco::AutoPtr<controller::Group> transaction_group;
-				Poco::AutoPtr<controller::Group> topic_group;
-				// default constructor set it to now
-				Poco::Timestamp pairedTransactionId;
-				// create only inbound transaction, and outbound before sending to hedera
-				//for (int i = 0; i < 1; i++) {
+				else
+				{
+					auto sender_group = controller::Group::load(sender_model->getGroupId());
+					if (sender_group.isNull())
+					{
+						em->addError(new ParamError(function_name, "couldn't find group with id: ", sender_model->getGroupId()));
+						em->sendErrorsAsEmail();
+						return transaction;
+					}
+					Poco::AutoPtr<controller::Group> transaction_group;
+					Poco::AutoPtr<controller::Group> topic_group;
+					// default constructor set it to now
+					Poco::Timestamp pairedTransactionId;
+					// create only inbound transaction, and outbound before sending to hedera
+					//for (int i = 0; i < 1; i++) {
 					if (!inbound) {
 						transaction_group = receiverGroup;
 						topic_group = sender_group;
 					}
 					// transaction send to receiver blockchain
-					else if(inbound) {
+					else if (inbound) {
 						transaction_group = sender_group;
 						topic_group = receiverGroup;
 					}
@@ -189,38 +200,32 @@ namespace model {
 						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
 						em->addError(new ParamError(function_name, "network type: ", network_type));
 						em->sendErrorsAsEmail();
-						return results;
+						return transaction;
 					}
 					if (transaction_group.isNull()) {
 						em->addError(new ParamError(function_name, "transaction group is zero, inbound", inbound));
 						em->sendErrorsAsEmail();
-						return results;
+						return transaction;
 					}
 
 					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType, pairedTransactionId, transaction_group);
 					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
-					transaction->getModel()->setHederaId(topic_id->getModel()->getID());
-					
+
 					auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
 					transfer_transaction->setOwnGroupAlias(sender_group->getModel()->getAlias());
 					transfer_transaction->setTargetGroupAlias(receiverGroup->getModel()->getAlias());
-					
-					results.push_back(transaction);
-			//	}
-			}
-			
-			
-			for (auto it = results.begin(); it != results.end(); it++) {
-				if (!(*it)->getTransactionBody()->getTransferTransaction()->isInbound()) {
-					(*it)->setParam("blockchain_type", (int)blockchainType);
-					(*it)->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
-					PendingTasksManager::getInstance()->addTask(*it);
-				}
-			}
-			
-			
-			return results;
 
+				}
+				auto transaction_model = transaction->getModel();
+				transaction_model->setHederaId(topic_id->getModel()->getID());
+
+			}
+			
+			transaction->setParam("blockchain_type", (int)blockchainType);
+			transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
+			PendingTasksManager::getInstance()->addTask(transaction);
+
+			return transaction;
 		}
 
 		bool Transaction::setTopicIdByGroup(const std::string& alias)
@@ -326,7 +331,7 @@ namespace model {
 					finished = true;
 				}
 			}
-			// try not finished but sign transactions again
+			// try not finished but signed transactions again
 			if (!finished) {
 				transaction->ifEnoughSignsProceed(nullptr);
 			}

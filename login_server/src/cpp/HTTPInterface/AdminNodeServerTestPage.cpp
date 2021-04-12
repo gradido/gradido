@@ -657,8 +657,8 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer", model::gradido::BLOCKCHAIN_HEDERA);
 			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
 			Poco::Thread::sleep(sleep_ms_between_transactions);
-			transaction4[0]->sign(user_2);
-			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
+			transaction4->sign(user_2);
+			auto transaction4_json = transaction4->getTransactionAsJson(true);
 				responseStream << "\n";
 	responseStream << "\t\t\t<p>";
 #line 321 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminNodeServerTest.cpsp"
@@ -714,7 +714,7 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
  } else {
 				auto user_3_pubkey = user_3->getModel()->getPublicKeyCopy();
 				auto transaction6 = model::gradido::Transaction::createTransfer(user_2, user_3_pubkey, user_group2, 4000000, "Test Group Transfer", model::gradido::BLOCKCHAIN_HEDERA, false);
-				if(!transaction6.size()) {
+				if(transaction6.isNull()) {
 						responseStream << "\n";
 	responseStream << "\t\t\t\t<div class=\"alert alert-error\" role=\"alert\">\n";
 	responseStream << "\t\t\t\t\t<i class=\"material-icons-outlined\">report_problem</i>\n";
@@ -725,9 +725,9 @@ void AdminNodeServerTestPage::handleRequest(Poco::Net::HTTPServerRequest& reques
  
 				} else {
 					Poco::Thread::sleep(sleep_ms_between_transactions);
-					transaction6[0]->sign(user_2);
-					auto transaction6_json = transaction6[0]->getTransactionAsJson(true);
-					auto paired_transaction = transaction6[0]->getPairedTransaction();
+					transaction6->sign(user_2);
+					auto transaction6_json = transaction6->getTransactionAsJson(true);
+					auto paired_transaction = transaction6->getPairedTransaction();
 						responseStream << "\n";
 	responseStream << "\t\t\t\t\t<p>";
 #line 364 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminNodeServerTest.cpsp"

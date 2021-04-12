@@ -315,8 +315,8 @@ enum PageType
 			auto transaction4 = model::gradido::Transaction::createTransfer(user_2, user_1_pubkey, user_group, 5000000, "Test Transfer", model::gradido::BLOCKCHAIN_HEDERA);
 			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
 			Poco::Thread::sleep(sleep_ms_between_transactions);
-			transaction4[0]->sign(user_2);
-			auto transaction4_json = transaction4[0]->getTransactionAsJson(true);
+			transaction4->sign(user_2);
+			auto transaction4_json = transaction4->getTransactionAsJson(true);
 			%>
 			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4_json) %></p>
 			<% } %>
@@ -348,7 +348,7 @@ enum PageType
 			<% } else {
 				auto user_3_pubkey = user_3->getModel()->getPublicKeyCopy();
 				auto transaction6 = model::gradido::Transaction::createTransfer(user_2, user_3_pubkey, user_group2, 4000000, "Test Group Transfer", model::gradido::BLOCKCHAIN_HEDERA, false);
-				if(!transaction6.size()) {
+				if(transaction6.isNull()) {
 					%>
 				<div class="alert alert-error" role="alert">
 					<i class="material-icons-outlined">report_problem</i>
@@ -357,9 +357,9 @@ enum PageType
 				<% 
 				} else {
 					Poco::Thread::sleep(sleep_ms_between_transactions);
-					transaction6[0]->sign(user_2);
-					auto transaction6_json = transaction6[0]->getTransactionAsJson(true);
-					auto paired_transaction = transaction6[0]->getPairedTransaction();
+					transaction6->sign(user_2);
+					auto transaction6_json = transaction6->getTransactionAsJson(true);
+					auto paired_transaction = transaction6->getPairedTransaction();
 					%>
 					<p><%= DataTypeConverter::replaceNewLineWithBr(transaction6_json) %></p>		
 					<% if(!paired_transaction.isNull()) { 

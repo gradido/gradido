@@ -122,15 +122,13 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		}
 	}
 	if (!result) {
-		auto transactions = model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		auto transaction = model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 
 		if (mAutoSign) {
-			Poco::JSON::Array errors;
-			for (auto it = transactions.begin(); it != transactions.end(); it++) {
-				(*it)->sign(user);
-				if ((*it)->errorCount() > 0) {
-					errors.add((*it)->getErrorsArray());
-				}
+			Poco::JSON::Array errors;			
+			transaction->sign(user);
+			if (transaction->errorCount() > 0) {
+				errors.add(transaction->getErrorsArray());
 			}
 
 			if (errors.size() > 0) {

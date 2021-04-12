@@ -32,8 +32,8 @@ namespace model {
 			// groupMemberUpdate
 			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
 			//! \brief transfer
-			//! \return for cross group transaction return two transactions
-			static std::vector<Poco::AutoPtr<Transaction>> createTransfer(
+			//! \return 
+			static Poco::AutoPtr<Transaction> createTransfer(
 				Poco::AutoPtr<controller::User> sender, 
 				const MemoryBin* receiverPubkey, 
 				Poco::AutoPtr<controller::Group> receiverGroup, 
