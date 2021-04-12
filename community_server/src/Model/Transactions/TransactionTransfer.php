@@ -78,7 +78,7 @@ class TransactionTransfer extends TransactionBase {
         $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
         $local_transfer = $this->protoTransactionTransfer->getLocal();
         $sender = $local_transfer->getSender();
-        $senderPublic = $sender->getPublic();
+        $senderPublic = $sender->getPubkey();
         $senderPublicHex = bin2hex($senderPublic);
         if(strlen($senderPublicHex) != 64) {
             $this->addError($functionName, 'invalid sender public key');
@@ -182,10 +182,11 @@ class TransactionTransfer extends TransactionBase {
        $disable_email = Configure::read('disableEmail', false);  
        if($disable_email) return true;
         
-      $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
-      $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
-      $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());
-      $receiverUserId = $this->getStateUserId($receiverAmount->getEd25519ReceiverPubkey());
+      $local_transfer = $this->protoTransactionTransfer->getLocal();
+      $sender = $local_transfer->getSender();
+      $senderAmount = $sender->getAmount();
+      $senderUserId = $this->getStateUserId($sender->getPubkey());
+      $receiverUserId = $this->getStateUserId($local_transfer->getReceiver());
       
       $receiverUser = $this->getStateUser($receiverUserId);
       $senderUser   = $this->getStateUser($senderUserId);
@@ -197,7 +198,7 @@ class TransactionTransfer extends TransactionBase {
         $emailViewBuilder->setTemplate('notificationTransfer')
                          ->setVars(['receiverUser' => $receiverUser,
                                     'senderUser' => $senderUser,
-                                    'gdd_cent' => $receiverAmount->getAmount(), 
+                                    'gdd_cent' => $senderAmount, 
                                     'memo' => $memo]);
         $receiverNames = $receiverUser->getNames();
         if($receiverNames == '' || $receiverUser->email == '') {

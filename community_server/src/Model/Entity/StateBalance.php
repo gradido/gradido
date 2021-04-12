@@ -40,8 +40,12 @@ class StateBalance extends Entity
     {
         if(method_exists($dateOrTime, 'getTimestamp')) {
             return $dateOrTime->getTimestamp();
-        } else {
+        } else if(method_exists($dateOrTime, 'i18nFormat')) {
             return $dateOrTime->i18nFormat(Time::UNIX_TIMESTAMP_FORMAT);
+        } else {
+            var_dump($dateOrTime);
+            debug_print_backtrace(0, 4);
+            die("date or time unexpected object");
         }
     }
     

@@ -67,7 +67,7 @@ class TransactionBase {
         $stateBalancesTable = self::getTable('stateBalances');
         $stateBalanceQuery = $stateBalancesTable
                 ->find('all')
-                ->select(['amount', 'id'])
+                ->select(['amount', 'id', 'record_date'])
                 ->contain(false)
                 ->where(['state_user_id' => $stateUserId]);//->first();
         //debug($stateBalanceQuery);
@@ -101,9 +101,14 @@ class TransactionBase {
         
         if($stateUserTransactions->count() > 0) {
             $stateBalanceTable = self::getTable('state_balances');
+            $state_user_transaction = $stateUserTransactions->first();
+            if(!$state_user_transaction) {
+                $this->addError('TransactionBase::addStateUserTransaction', 'state_user_transaction is zero, no first entry exist?');
+                return false;
+            }
             $balance_entity = $stateBalanceTable->newEntity();
-            $balance_entity->amount = $stateUserTransactions->first()->balance;
-            $balance_entity->record_date = $stateUserTransactions->first()->balance_date;
+            $balance_entity->amount = $state_user_transaction->balance;
+            $balance_entity->record_date = $state_user_transaction->balance_date;
             $balance = $balance_entity->decay + $balance;
         }
         $entity = $stateUserTransactionTable->newEntity();
