@@ -83,7 +83,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has first item "send" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(0).text()).toEqual('sent')
+        expect(navbar.findAll('ul > li').at(0).text()).toEqual('send')
       })
 
       it('has first item "send" linked to overview in navbar', () => {
