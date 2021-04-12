@@ -221,7 +221,7 @@ Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var 
 		return stateError("groupMemberUpdate not allowed with mysql blockchain");
 	}
 	if (mTargetGroup.isNull()) {
-		return stateError("target_group not found");
+		return stateError("group not found");
 	}
 	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
 	if (mAutoSign) {
@@ -293,7 +293,7 @@ bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
 	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 	try 
 	{
-		auto target_group = paramJsonObject->get("target_group");
+		auto target_group = paramJsonObject->get("group");
 		if (!target_group.isEmpty()) {
 			target_group.convert(target_group_alias);
 			auto groups = controller::Group::load(target_group_alias);
