@@ -52,7 +52,12 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream);
 	
 		if (parsedResult.size() != 0) {
-			json_result = handle(parsedResult);
+			try {
+				json_result = handle(parsedResult);
+			}
+			catch (Poco::Exception& ex) {
+				json_result = stateError("poco Exception in handle POST Request", ex.displayText());
+			}
 		}
 		else {
 			json_result = stateError("empty body");
@@ -61,7 +66,12 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	else if(method == "GET") {		
 		Poco::URI uri(request.getURI());
 		auto queryParameters = uri.getQueryParameters();
-		json_result = handle(queryParameters);
+		try {
+			json_result = handle(queryParameters);
+		}
+		catch (Poco::Exception& ex) {
+			json_result = stateError("poco Exception in handle GET Request", ex.displayText());
+		}
 	}
 
 	if (json_result) {

@@ -121,7 +121,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 				if (!object.isNull("details")) {
 					addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
 				}
-				sendErrorsAsEmail();
+				sendErrorsAsEmail("", true);
 				return JSON_REQUEST_RETURN_ERROR;
 			}
 			else if (stateString == "success") {

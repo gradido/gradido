@@ -42,7 +42,12 @@ namespace model
 		{
 			UNIQUE_LOCK;
 			std::stringstream ss;
-			result->stringify(ss);
+			try {
+				result->stringify(ss);
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError("PendingTask::setResultJson", "exception by json -> string", ex.displayText()));
+			}
 			mResultJsonString = ss.str();
 		}
 
