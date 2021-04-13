@@ -16,5 +16,5 @@
 #PHP_PLUGIN="$(which grpc_php_plugin)"
 #protoc --proto_path=./src/protobuf/gradido  --php_out=./src/  --grpc_out=./src/ --plugin=protoc-gen-grpc=$PHP_PLUGIN ./src/protobuf/gradido/*.proto
 
-protoc --proto_path=./src/protobuf/gradido  --php_out=./src/  ./src/protobuf/gradido/*.proto
+protoc --proto_path=./src/protobuf  --php_out=./src/Model/Messages  ./src/protobuf/gradido/*.proto
 

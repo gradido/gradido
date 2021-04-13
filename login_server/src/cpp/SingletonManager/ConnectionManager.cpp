@@ -73,9 +73,9 @@ Poco::Data::Session ConnectionManager::getConnection(ConnectionType type)
 		throw Poco::NotFoundException("Connection Type unknown", std::to_string(type));
 	}
 	auto session = mSessionPools.getPool(mSessionPoolNames[type]).get();
-	
+
 	//return mSessionPoolNames[type];
-	/*if (!session.isConnected()) {
+	if (!session.isConnected()) {
 		printf("reconnect called\n");
 		try {
 			session.reconnect();
@@ -85,7 +85,8 @@ Poco::Data::Session ConnectionManager::getConnection(ConnectionType type)
 			sendErrorsAsEmail();
 			return mSessionPools.getPool(mSessionPoolNames[type]).get();
 		}
-	}*/
+
+	}//*/
 	//std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
 	//printf("[getConnection] %s impl: %p\n", dateTimeString.data(), session.impl());
 	return session;

@@ -139,7 +139,7 @@ with:
 		"User.first_name": "Max",
 		"User.last_name" : "Musterman",
 		"User.disabled": 0,
-		"User.language": "de"
+		"User.language": "de",
 		"User.password": "1234"
   	}
 }
@@ -289,8 +289,9 @@ with:
 
 ```json
 {
-	"email": "max.musterman@gmail.de",
-	"email_text":7, "email_verification_code_type":"resetPassword"
+	"email": "max.musterman@gmail.de", 
+	"email_text":7,
+	"email_verification_code_type":"resetPassword"
 }
 ```
 
@@ -299,7 +300,8 @@ also valid:
 ```json
 {
 	"email": "max.musterman@gmail.de",
-	"email_text":"user reset Password", "email_verification_code_type":"resetPassword" }
+	"email_text":"user reset Password",
+	"email_verification_code_type":"resetPassword" }
 ```
 // TODO this makes no sense, why two fields email_text & code_type?
 
@@ -365,6 +367,17 @@ A result with `"state":"error"` and an additional `"msg"` if an error occurred (
 - "invalid email type": could not parse email type 
 - "invalid verification code type": could not parse email verification code type 
 - "json exception": error parsing input json, more infos can be found in details
+
+### Side effects
+
+#### For `resetPassword`:
+
+User gets an email with a link to `http://localhost/account/checkEmail/<emailVerificationCode>`.
+The link can be modified in the Login-Server config:
+
+`frontend.checkEmailPath = http://localhost/account/checkEmail`
+
+For the docker build, you can find the config here: `configs/login_server/grd_login.properties`
 
 ## Check Running Transactions / password encryption
 Check if transactions on login-server for user are processed 

@@ -19,7 +19,8 @@ enum PageState
 	const char* pageName = "Daten auf Server speichern?";
 	bool hasErrors = mSession->errorCount() > 0;
 	// crypto key only in memory, if user has tipped in his passwort in this session
-	bool hasPassword = mSession->getUser()->hasCryptoKey();
+	auto user = mSession->getNewUser();
+	bool hasPassword = user->getModel()->hasPrivateKeyEncrypted();
 	PageState state = PAGE_ASK;
 	auto uri_start = ServerConfig::g_php_serverPath;//request.serverParams().getServerName();
 	
@@ -123,7 +124,7 @@ enum PageState
 			<!--<p>Deine Daten werden nun verschlüsselt und gespeichert.</p>-->
 			<!--<p>Deine Gradido Adresse (Hex): </p>
 			<p class="grd_textarea">
-				<%= mSession->getUser()->getPublicKeyHex() %>
+				<%= user->getModel()->getPublicKeyHex() %>
 			</p>-->
 			<a class="grd-form-bn" href="<%= uri_start %>">Zur&uuml;ck zur Startseite</a>
 		</div>

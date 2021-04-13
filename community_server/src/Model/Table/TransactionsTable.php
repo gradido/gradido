@@ -52,6 +52,10 @@ class TransactionsTable extends Table
             'foreignKey' => 'transaction_type_id',
             'joinType' => 'INNER'
         ]);
+        $this->belongsTo('BlockchainTypes', [
+           'foreignKey' => 'blockchain_type_id',
+           'joinType' => 'INNER'
+        ]);
         $this->hasMany('StateCreated', [
             'foreignKey' => 'transaction_id'
         ]);
@@ -114,6 +118,7 @@ class TransactionsTable extends Table
     {
         $rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
         $rules->add($rules->existsIn(['transaction_type_id'], 'TransactionTypes'));
+        $rules->add($rules->existsIn(['blockchain_type_id'], 'BlockchainTypes'));
 
         return $rules;
     }

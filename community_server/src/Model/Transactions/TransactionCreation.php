@@ -26,34 +26,33 @@ class TransactionCreation extends TransactionBase {
       return $this->protoTransactionCreation;
     }
     
-    static public function build($amount, $memo, $receiver_public_hex, $ident_hash, $targetDate = null) 
+    static public function build($amount, $memo, $receiver_public_hex, $targetDate = null) 
     {    
-        $receiver = new \Model\Messages\Gradido\ReceiverAmount();
+        $receiver = new \Proto\Gradido\TransferAmount();
         $receiver->setAmount($amount);
         //$this->receiver_pubkey_hex = $receiver_public_hex;
         if(strlen($receiver_public_hex) != 64) {
           return ['state' => 'error', 'msg' => 'invalid pubkey'];
         }
         $pubKeyBin = hex2bin($receiver_public_hex);
-        $receiver->setEd25519ReceiverPubkey($pubKeyBin);
+        $receiver->setPubkey($pubKeyBin);
         //var_dump($requestData);
 
-        $creationDate = new \Model\Messages\Gradido\TimestampSeconds();
+        $creationDate = new \Proto\Gradido\TimestampSeconds();
         $creationDate->setSeconds(time());
 
-        $transactionBody = new \Model\Messages\Gradido\TransactionBody();
+        $transactionBody = new \Proto\Gradido\TransactionBody();
         $transactionBody->setMemo($memo);
         $transactionBody->setCreated($creationDate);
         
 
-        $transaction = new \Model\Messages\Gradido\TransactionCreation();
-        $transaction->setReceiverAmount($receiver);
-        $transaction->setIdentHash($ident_hash);
+        $transaction = new \Proto\Gradido\GradidoTransaction();
+        $transaction->setReceiver($receiver);
         //echo "target date: ";
         //var_dump($targetDate);
         //die('die');
         if($targetDate) {
-          $targetDateTimestamp = new \Model\Messages\Gradido\TimestampSeconds();
+          $targetDateTimestamp = new \Proto\Gradido\TimestampSeconds();
           $targetDateTimestamp->setSeconds($targetDate->getTimestamp());
           //var_dump($targetDateTimestamp); die('target');
           $transaction->setTargetDate($targetDateTimestamp);
@@ -65,16 +64,13 @@ class TransactionCreation extends TransactionBase {
     
     
     public function getAmount() {
-      return $this->protoTransactionCreation->getReceiverAmount()->getAmount();
+      return $this->protoTransactionCreation->getReceiver()->getAmount();
     }
     
     public function getReceiverPublic() {
-      return $this->protoTransactionCreation->getReceiverAmount()->getEd25519ReceiverPubkey();
+      return $this->protoTransactionCreation->getReceiver()->getPubkey();
     }
     
-    public function getIdentHash() {
-      return $this->protoTransactionCreation->getIdentHash();
-    }
     
     
     public function validate($sigPairs) {
@@ -88,54 +84,6 @@ class TransactionCreation extends TransactionBase {
         }
       }
       
-      // check if creation threshold for this month isn't reached
-      
-      //$identHashBin = sprintf("%0d", $this->getIdentHash());
-      // padding with zero in case hash is smaller than 32 bytes, static length binary field in db
-      // ident hash isn't collision ressistent, it is for speed up search
-      $identHashBin = pack('a32', $this->getIdentHash());
-      
-      //////////  old validation not more than 3k GDD for 3 Month  ///////////////
-      /*$existingCreations = $this->transactionCreationsTable
-              ->find('all')
-              ->select(['amount', 'state_user_id', 'target_date'])
-              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]])
-              ->where(['target_date' => NULL]);
-      //$targetDate = $this->protoTransactionCreation->getTargetDate();
-      //echo "choose existing transactions<br>";
-      //$existingCreations->where([$q->func()->extract('YEAR_MONTH', 'target_date') . ' LIKE ' . $q->func()->extract('YEAR_MONTH', $targetDate)]);
-      //        ->where(['EXTRACT(YEAR_MONTH FROM target_date) LIKE EXTRACT(YEAR_MONTH FROM']);
-      // uncomment because ident hash didn't work at the moment
-              //->where(['ident_hash' => $identHashBin]);
-      //$existingCreations->select(['amount_sum' => $existingCreations->func()->sum('amount')]);
-      
-      $existingCreations->matching('Transactions', function ($q) {
-        
-          return $q->where(
-                  ['OR' => 
-                      ['EXTRACT(YEAR_MONTH FROM Transactions.received) LIKE EXTRACT(YEAR_MONTH FROM NOW())',
-                       'EXTRACT(YEAR_MONTH FROM DATE_ADD(Transactions.received, INTERVAL 2 MONTH)) LIKE EXTRACT(YEAR_MONTH FROM NOW())']
-                  ])->select('received');
-         
-      
-      });
-      //debug($existingCreations);
-      //echo "after choose existing transactions<br>";
-      $newSum = $this->getAmount();
-      //var_dump($existingCreations->toArray());
-      foreach($existingCreations as $creation) {
-        $keyHex = bin2hex(stream_get_contents($creation->state_user->public_key));
-        //echo "\ncompare \n$keyHex\nwith: \n". $this->receiver_pubkey_hex."\n";
-        if($keyHex == $this->receiver_pubkey_hex) {
-          $newSum += $creation->amount;
-        }
-      }
-      
-      
-      if($newSum > 30000000) {
-        $this->addError('TransactionCreation::validate', 'Creation more than 1.000 GDD per Month (3 Month) not allowed');
-        return false;
-      }//*/
       
       /////////////// new validation, not more than 1K GDD per month via target_date ///////////////////////////
       $existingCreations2 = $this->transactionCreationsTable
@@ -204,7 +152,6 @@ class TransactionCreation extends TransactionBase {
       }
       $transactionCreationEntity->state_user_id = $receiverUserId;
       $transactionCreationEntity->amount = $this->getAmount();
-      $transactionCreationEntity->ident_hash = $this->getIdentHash();
       $transactionCreationEntity->target_date = $this->protoTransactionCreation->getTargetDate()->getSeconds();
       
       if(!$this->transactionCreationsTable->save($transactionCreationEntity)) {
@@ -262,7 +209,7 @@ class TransactionCreation extends TransactionBase {
  
     static public function fromEntity($transactionCreationEntity)
     {
-      $protoCreation = new \Model\Messages\Gradido\TransactionCreation();
+      $protoCreation = new \Proto\Gradido\GradidoCreation();
       
       //var_dump($transactionCreationEntity);
       $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
@@ -273,12 +220,14 @@ class TransactionCreation extends TransactionBase {
       $stateUser = $stateUsersTable->get($userId);
       
       
-      $receiverAmount = new \Model\Messages\Gradido\ReceiverAmount();
-      $receiverAmount->setEd25519ReceiverPubkey(stream_get_contents($stateUser->public_key));
-      
+      $receiverAmount = new \Proto\Gradido\TransferAmount();
+      $receiverAmount->setPubkey(stream_get_contents($stateUser->public_key));
       $receiverAmount->setAmount($transactionCreationEntity->amount);
       
-      $protoCreation->setReceiverAmount($receiverAmount);
+      $protoCreation->setReceiver($receiverAmount);
+      
+      // TODO: add target_date
+      // function currently not used, maybe can even be deleted
       
       //echo "receiver amount: check<br>";
       //$identHashBytes = stream_get_contents($transactionCreationEntity->ident_hash);

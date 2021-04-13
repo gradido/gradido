@@ -42,23 +42,30 @@ namespace model {
 		{
 			//printf("ModelBase::insertIntoDB with table: %s\n", getTableName());
 			auto cm = ConnectionManager::getInstance();
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement insert = _insertIntoDB(session);
 
 			size_t resultCount = 0;
 			try {
-				if (insert.execute() == 1) {
+				if (insert.execute(true) == 1) {
 					// load id from db
 					if (loadId) {
-						Poco::Data::Statement select = _loadIdFromDB(cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER));
+						Poco::Data::Statement select = _loadIdFromDB(session);
 						try {
-							return select.execute() == 1;
+							auto res = select.execute();
+							if (1 == res) { return true; }
+							
 						}
 						catch (Poco::Exception& ex) {							
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
 							addError(new ParamError(getTableName(), "data set: ", toString().data()));
 						}
+						session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+						select = _loadIdFromDB(session);
+						//Poco::Data::Statement select = _loadIdFromDB(session);
+						return 1 == select.execute();
 					}
 					else {
 						return true;
@@ -73,9 +80,29 @@ namespace model {
 			return false;
 		}
 
+		bool ModelBase::isExistInDB()
+		{
+			auto cm = ConnectionManager::getInstance();
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement select = _loadIdFromDB(session);
+			try {
+				select.executeAsync();
+				return select.wait() == 1;
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "mysql error by select id, check if exist in db", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: ", toString().data()));
+			}
+			return false;
+		}
+
 		bool ModelBase::deleteFromDB()
 		{
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			UNIQUE_LOCK;
 			if (mID == 0) {
 				addError(new Error(getTableName(), "id is zero, couldn't delete from db"));
 				return false;
@@ -89,10 +116,8 @@ namespace model {
 				return deleteStmt.execute() == 1;
 			}
 			catch (Poco::Exception& ex) {
-				lock();
 				addError(new ParamError(getTableName(), "mysql error by delete", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "id: ", mID));
-				unlock();
 			}
 			return false;
 		}
@@ -138,6 +163,13 @@ namespace model {
 			throw Poco::Exception(message);
 		}
 
+		Poco::Data::Statement ModelBase::_loadAllFromDB(Poco::Data::Session session)
+		{
+			std::string message = getTableName();
+			message += "::_loadAllFromDB not implemented";
+			throw Poco::Exception(message);
+		}
+
 		Poco::DateTime ModelBase::parseElopageDate(std::string dateString)
 		{
 			std::string decodedDateString = "";
@@ -173,6 +205,30 @@ namespace model {
 			}
 
 			return Poco::DateTime(Poco::Timestamp());
+		}
+
+		std::string ModelBase::secondsToReadableDuration(Poco::UInt64 seconds)
+		{
+			Poco::UInt64 value = 0;
+			std::string result;
+			std::string unit_name;
+
+			if (seconds <= 60) {
+				return std::to_string(seconds) + " seconds";
+			}
+			else if (seconds <= 60 * 60) {
+				Poco::UInt64 minutes = round(seconds / 60);
+				return "~" + std::to_string(minutes) + " minutes";
+			}
+			else if (seconds <= 60 * 60 * 24) {
+				Poco::UInt64 hours = round(seconds / 60 / 60);
+				return "~" + std::to_string(hours) + " hours";
+			}
+			else {
+				Poco::UInt64 days = round(seconds / 60 / 60 / 24);
+				return "~" + std::to_string(days) + " days";
+			}
+			return "<unknown error>";
 		}
 	}
 }

@@ -46,6 +46,7 @@ class PagesController extends AppController
      */
     public function display(...$path)
     {
+      
         $count = count($path);
         if (!$count) {
             return $this->redirect('/');
@@ -60,6 +61,16 @@ class PagesController extends AppController
         }
         if (!empty($path[1])) {
             $subpage = $path[1];
+        }
+        /*$session = $this->getRequest()->getSession();
+        $result = $this->requestLogin();
+        if($result !== true) {
+          return $result;
+        }
+        $user = $session->read('StateUser');
+        $login_server_session = $this->request->getCookie('GRADIDO_LOGIN', '');*/
+        if($page == "vue" || $page == "vue-dev") {
+            $this->viewBuilder()->setLayout(false);
         }
         $this->set(compact('page', 'subpage'));
 

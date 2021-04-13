@@ -8,8 +8,12 @@
 #include "SingletonManager/ConnectionManager.h"
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
+#include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/CronManager.h"
 
 #include "controller/User.h"
+
+#include "Crypto/SecretKeyCryptography.h"
 
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Net/ServerSocket.h"
@@ -20,6 +24,7 @@
 #include "Poco/Path.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/SplitterChannel.h"
 #include "MySQL/Poco/Connector.h"
@@ -29,7 +34,7 @@
 
 
 
-Gradido_LoginServer::Gradido_LoginServer() 
+Gradido_LoginServer::Gradido_LoginServer()
 	: _helpRequested(false)
 {
 }
@@ -75,7 +80,6 @@ void Gradido_LoginServer::handleOption(const std::string& name, const std::strin
 	}
 	ServerApplication::handleOption(name, value);
 	if (name == "help") _helpRequested = true;
-	
 }
 
 void Gradido_LoginServer::displayHelp()
@@ -90,8 +94,10 @@ void Gradido_LoginServer::displayHelp()
 void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::string filePath)
 {
 	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
-	Poco::AutoPtr<Poco::SimpleFileChannel> logFileChannel(new Poco::SimpleFileChannel(filePath));
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
 	logFileChannel->setProperty("rotation", "500 K");
+	logFileChannel->setProperty("compress", "true");
+	logFileChannel->setProperty("archive", "timestamp");
 	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
 	logSplitter->addChannel(logConsoleChannel);
 	logSplitter->addChannel(logFileChannel);
@@ -103,9 +109,18 @@ void Gradido_LoginServer::createConsoleFileAsyncLogger(std::string name, std::st
 	log.setLevel("information");
 }
 
+void Gradido_LoginServer::createFileLogger(std::string name, std::string filePath)
+{
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
+	logFileChannel->setProperty("rotation", "500 K");
+	logFileChannel->setProperty("archive", "timestamp");
+	Poco::Logger& log = Poco::Logger::get(name);
+	log.setChannel(logFileChannel);
+	log.setLevel("information");
+}
+
 int Gradido_LoginServer::main(const std::vector<std::string>& args)
 {
-	
 	Profiler usedTime;
 	if (_helpRequested)
 	{
@@ -139,6 +154,10 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// logging for request handling
 		createConsoleFileAsyncLogger("requestLog", log_Path + "requestLog.txt");
 
+		// logging for hedera request for debugging gradido node
+		createFileLogger("transactions_log", log_Path + "transactions_log.txt");
+		createFileLogger("transactions_log_base64", log_Path + "transactions_log_base64.txt");
+
 		// error logging
 		createConsoleFileAsyncLogger("errorLog", log_Path + "errorLog.txt");
 		Poco::Logger& errorLog = Poco::Logger::get("errorLog");
@@ -147,22 +166,18 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		// *************** load from config ********************************************
 
-		std::string cfg_Path = Poco::Path::config() + "grd_login/grd_login.properties";
-		if (mConfigPath != "") {
-			cfg_Path = mConfigPath;
-		}
-
+		std::string cfg_Path = Poco::Path::config() + "grd_login/";
 		try {
-			loadConfiguration(cfg_Path);
+			loadConfiguration(cfg_Path + "grd_login.properties");
 		}
 		catch (Poco::Exception& ex) {
-			errorLog.error("error loading config: %s from path: %s", ex.displayText(), cfg_Path);
+			errorLog.error("error loading config: %s", ex.displayText());
 		}
 
 		unsigned short port = (unsigned short)config().getInt("HTTPServer.port", 9980);
 		unsigned short json_port = (unsigned short)config().getInt("JSONServer.port", 1201);
 
-	
+
 		//printf("show mnemonic list: \n");
 		//printf(ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER].getCompleteWordList().data());
 		if (!ServerConfig::initServerCrypto(config())) {
@@ -171,12 +186,14 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			return Application::EXIT_CONFIG;
 		}
 
-		// first check time for crypto 
-		auto testUser = new User("email@google.de", "Max", "Mustermann");
+		// first check time for crypto
+		SecretKeyCryptography test_crypto;
 		Profiler timeUsed;
-		testUser->validatePwd("haz27Newpassword", nullptr);
+		if (test_crypto.createKey("email@google.de", "haz27Newpassword") != SecretKeyCryptography::AUTH_CREATE_ENCRYPTION_KEY_SUCCEED) {
+			errorLog.error("[Gradido_LoginServer::main] error create secure pwd hash");
+			return Application::EXIT_SOFTWARE;
+		}
 		ServerConfig::g_FakeLoginSleepTime = (int)std::round(timeUsed.millis());
-		delete testUser;
 
 		Poco::Int64 i1 = randombytes_random();
 		Poco::Int64 i2 = randombytes_random();
@@ -186,15 +203,21 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		EmailManager::getInstance()->init(config());
 
 		// start cpu scheduler
-		uint8_t worker_count = Poco::Environment::processorCount() * 2;
+		uint8_t worker_count = (uint8_t)config().getInt("cpu_worker", Poco::Environment::processorCount() * 2);
 
 		ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 		ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
 
+
 		// load up connection configs
 		// register MySQL connector
-		Poco::Data::MySQL::Connector::registerConnector();
-		//Poco::Data::MySQL::Connector::KEY;
+		try {
+                    Poco::Data::MySQL::Connector::registerConnector();
+		} catch(Poco::Exception& ex) {
+                    errorLog.error("[Gradido_LoginServer::main] Poco Exception by register MySQL Connector: %s", ex.displayText());
+                    return Application::EXIT_CONFIG;
+		}
+		
 		auto conn = ConnectionManager::getInstance();
 		//conn->setConnection()
 		//printf("try connect login server mysql db\n");
@@ -222,12 +245,13 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		Poco::Net::initializeSSL();
 		if(!ServerConfig::initSSLClientContext()) {
 			//printf("[Gradido_LoginServer::%s] error init server SSL Client\n", __FUNCTION__);
-			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client\n");
+			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client");
 			return Application::EXIT_CONFIG;
 		}
-
+                
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
+		controller::User::addMissingEmailHashes();
 
 		// HTTP Interface Server
 		// set-up a server socket
@@ -236,7 +260,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		Poco::ThreadPool& pool = Poco::ThreadPool::defaultPool();
 		Poco::Net::HTTPServer srv(new PageRequestHandlerFactory, svs, new Poco::Net::HTTPServerParams);
 		ServerConfig::g_ServerKeySeed->put(7, 918276611);
-		
+
 		// start the HTTPServer
 		srv.start();
 
@@ -247,10 +271,17 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// start the json server
 		json_srv.start();
 
+		// load pending tasks not finished in last session
+		PendingTasksManager::getInstance()->load();
+		int php_server_ping = config().getInt("phpServer.ping", 600000);
+		CronManager::getInstance()->init(php_server_ping);
+
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
+
+		CronManager::getInstance()->stop();
 
 		// Stop the HTTPServer
 		srv.stop();
@@ -265,4 +296,3 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 	}
 	return Application::EXIT_OK;
 }
-

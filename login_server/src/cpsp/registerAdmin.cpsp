@@ -6,23 +6,43 @@
 <%@ header include="SessionHTTPRequestHandler.h" %>
 <%!
 #include "../SingletonManager/SessionManager.h"
+#include "../controller/Group.h"
+#include "../lib/DataTypeConverter.h"
+
 #include "Poco/Net/HTTPCookie.h"
 #include "../ServerConfig.h"
+
 %>
 <%%
 	const char* pageName = "Admin Registrieren";
-	//auto sm = SessionManager::getInstance();
+	auto sm = SessionManager::getInstance();
 	
 	bool userReturned = false;
 	
 	if(!form.empty()) {			
-		userReturned = mSession->adminCreateUser(
-			form.get("register-first-name", ""),
-			form.get("register-last-name", ""),
-			form.get("register-email", "")
-		);
-		getErrors(mSession);
+		auto group_id_string = form.get("register-group", "0");
+		int group_id = 0;
+		if(!sm->isValid(group_id_string, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Group id", "group_id not integer"));
+		} else {
+			if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting group_id to int"));
+			}
+		}
+		if(!errorCount()) {
+			userReturned = mSession->adminCreateUser(
+				form.get("register-first-name", ""),
+				form.get("register-last-name", ""),
+				form.get("register-email", ""),
+				group_id,
+				getBaseUrl()
+			);
+			getErrors(mSession);
+		}
+		
 	}
+	
+	auto groups = controller::Group::listAll();
 		
 	
 %><%@ include file="header_old.cpsp" %>
@@ -54,6 +74,12 @@
 				<label for="register-email">E-Mail</label>
 				<input id="register-email" type="email" name="register-email" value="<%= !form.empty() ? form.get("register-email") : "" %>"/>
 			</p>
+			<select class="form-control" name="register-group">
+				<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+					auto group_model = (*it)->getModel(); %>
+					<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>"><%= group_model->getName() %></option>
+				<% } %>
+			</select>
 		</fieldset>
 		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Anmelden">
 		

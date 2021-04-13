@@ -8,14 +8,18 @@
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 #include "../SingletonManager/EmailManager.h"
-#include "../model/TransactionCreation.h"
-#include "../model/TransactionTransfer.h"
+#include "../SingletonManager/PendingTasksManager.h"
+#include "../model/gradido/TransactionCreation.h"
+#include "../model/gradido/TransactionTransfer.h"
+
+#include "../lib/DataTypeConverter.h"
 
 #include "Poco/Thread.h"
 
 enum PageState {
 	PAGE_TRANSACTION_CREATION,
 	PAGE_TRANSACTION_TRANSFER,
+	PAGE_TRANSACTION_GROUP_ADD_MEMBER,
 	PAGE_NO_TRANSACTIONS,
 	PAGE_USER_DATA_CORRUPTED
 };
@@ -24,134 +28,195 @@ enum PageState {
 <%% 
 	const char* pageName = gettext("&Uuml;berpr&uuml;fe Transaktion");
 	auto account_user = mSession->getNewUser();
+	auto user = account_user;
 	auto user_model = account_user->getModel();
 	auto em = EmailManager::getInstance();
+	auto pt = PendingTasksManager::getInstance();
 	auto userBalance = account_user->getBalance();
 	std::string memo = "";
 	bool hasErrors = false;
 	bool enableLogout = true;
+	bool enableSign = true;
+	int skip_count = 0;
+	int pending_task_id = 0;
+	
+	std::string community_server_base_path = ServerConfig::g_php_serverPath;
+	if(user_model->getGroupId() != 0) {
+		community_server_base_path = user->getGroupBaseUrl();
+	}
 	
 	PageState state = PAGE_NO_TRANSACTIONS;
 	
-	if(!user_model->isEmailChecked()) {
-		addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
-		hasErrors = true;
-	}
 	
-	bool transaction_finalize_run = false;
-	bool transaction_finalize_result = false;
 	
-	if(!form.empty()) {
+	Poco::AutoPtr<controller::PendingTask> pending_task;
+	model::gradido::Transaction* transaction = nullptr;
+	Poco::AutoPtr<model::gradido::TransactionBody> transaction_body;
+	
+	if(!form.empty()) 
+	{
 		auto ok = form.get("ok", "");
 		auto abort = form.get("abort", "");
-		auto back = form.get("back", "");
-		if(abort != "") {
-			transaction_finalize_result = mSession->finalizeTransaction(false, true);
-			transaction_finalize_run = true;
-		} else if(ok != "") {
-			if(!account_user->hasPassword()) {
-				auto pwd = form.get("sign-password", "");
-				auto loginResult = account_user->login(pwd);
-				switch(loginResult) {
-				case 0: 
-					addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
-					hasErrors = true;
-					break;
-				case -1: 
-				case -2:
-					addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
-					hasErrors = true;
-					state = PAGE_USER_DATA_CORRUPTED;
-					break;
-				case -3: 
-					addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
-					hasErrors = true;
-					break;
+		auto skip = form.get("skip", "");
+		auto skip_count_str = form.get("skip-count", "0");
+		auto pending_task_id_string = form.get("pending-task-id", "");
+		DataTypeConverter::strToInt(skip_count_str, skip_count);
+		
+		if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(pending_task_id_string, pending_task_id)) 
+		{
+			// load transaction from pending task manager
+			pending_task = pt->getPendingTask(pending_task_id);
+			if(!pending_task.isNull() && pending_task->getModel()->isGradidoTransaction()) 
+			{
+				transaction = dynamic_cast<model::gradido::Transaction*>(pending_task.get());
+				if(transaction->hasSigned(account_user)) {
+					transaction = nullptr;
+				} else {				
+					transaction_body = transaction->getTransactionBody();
 				}
-			}
-			if(!hasErrors) {
-				transaction_finalize_result = mSession->finalizeTransaction(true, false);
-				transaction_finalize_run = true;
-			}
-		} else if(back == "back") {
-			auto lastExternReferer = mSession->getLastReferer();
-			//lastExternReferer = "";
-			if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
-				//printf("last extern referer: %s\n", lastExternReferer.data());
-				response.redirect(lastExternReferer);
+			
+				if(abort != "") 
+				{
+					//mSession->finalizeTransaction(false, true);
+					// 
+					if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
+					{
+						transaction->deleteFromDB();
+						transaction = nullptr;
+					}
+				} 
+				else if(ok != "") 
+				{
+					if(!account_user->hasPassword()) {
+						auto pwd = form.get("sign-password", "");
+						auto loginResult = account_user->login(pwd);
+						switch(loginResult) {
+						case 0: 
+							addError(new Error(gettext("Passwort"), gettext("Das Passwort stimmt nicht. Bitte verwende dein Passwort von der Registrierung")));
+							hasErrors = true;
+							break;
+						case -1: 
+						case -2:
+							addError(new Error(gettext("Passwort"), gettext("Gespeicherte Daten sind korrupt!")));
+							hasErrors = true;
+							state = PAGE_USER_DATA_CORRUPTED;
+							enableSign = false;
+							break;
+						case -3: 
+							addError(new Error(gettext("Passwort"), gettext("Passwortprüfung läuft schon, bitte versuche es in 1-2 Minuten erneut.")));
+							hasErrors = true;
+							break;
+						}
+					}
+					if(!hasErrors) {
+						//mSession->finalizeTransaction(true, false);
+						if(transaction && transaction->sign(account_user)) {
+							transaction = nullptr;
+						}
+					}
+				}
+				else if(skip != "")
+				{
+					skip_count++;
+					transaction = nullptr;
+				}
 			} else {
-				response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
+				addError(new Error(gettext("Input Error"), gettext("Task no found")));
 			}
-			return;
+		} else {
+			addError(new Error(gettext("Form Error"), gettext("error with field")));
 		}
 	}
 	
-	
-	size_t notReadyTransactions = 0;
-	size_t sumTransactions = mSession->getProcessingTransactionCount();
-	if(sumTransactions == 0 && !transaction_finalize_run) {
-		/*auto observer = SingletonTaskObserver::getInstance();
-		auto emailHash = DRMakeStringHash(mSession->getUser()->getEmail());
-		int breakCount = 0;
-		while(observer->getTaskCount(emailHash, TASK_OBSERVER_SIGN_TRANSACTION) > 0) {
-			if(breakCount > 100) break;
-			breakCount++;
-			Poco::Thread::sleep(10);
-		}*/
+	auto transactions_user_must_sign = pt->getTransactionsUserMustSign(account_user);
+	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_someone_must_sign;
+	// TODO: work with community server roles
+	if(user_model->getRole() == model::table::ROLE_ADMIN) {
+	  transactions_someone_must_sign = pt->getTransactionSomeoneMustSign(account_user);	
+	}
+	std::vector<Poco::AutoPtr<controller::PendingTask>>  transactions_to_sign;
+	bool transaction_removeable = false;
+	int transaction_to_sign_index = 0;
+	if(!transaction) 
+	{
+		if(transactions_user_must_sign.size() > skip_count) {
+			transactions_to_sign = transactions_user_must_sign;
+			transaction_to_sign_index = skip_count;
+		} else if(transactions_someone_must_sign.size() > (skip_count - transactions_user_must_sign.size())) {
+			transactions_to_sign = transactions_someone_must_sign;
+			transaction_to_sign_index = skip_count - transactions_user_must_sign.size();
+		}
+		
+		if(transactions_to_sign.size() > transaction_to_sign_index) 
+		{
+			transaction = dynamic_cast<model::gradido::Transaction*>(transactions_to_sign[transaction_to_sign_index].get());
+			transaction_body = transaction->getTransactionBody();
+			// user can only delete there own transactions
+			// TODO: Auto timeout for community transactions
+			if(transaction->getModel()->getUserId() == user_model->getID()) {
+				transaction_removeable = true;
+			}
+		}
+	}
+	size_t sumTransactions = transactions_user_must_sign.size() + transactions_someone_must_sign.size();
+	if(sumTransactions == 0) 
+	{
 		auto lastExternReferer = mSession->getLastReferer();
+		auto callerUri = mSession->getCallerUri();
 		//lastExternReferer = "";
-		if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {
-			//printf("last extern referer: %s\n", lastExternReferer.data());
+		account_user->reload();
+		if(callerUri != "") {
+			response.redirect(callerUri);
+		} else if(lastExternReferer != "" && lastExternReferer.find("transaction-send-coins") == std::string::npos) {		
 			response.redirect(lastExternReferer);
+		} else if(!account_user->getModel()->getGroupId()) {
+			response.redirect(getBaseUrl() + "/userUpdateGroup");
 		} else {
-			response.redirect(ServerConfig::g_php_serverPath + "state-balances/overview");
+			response.redirect(account_user->getGroupBaseUrl() + "/state-balances/overview");
 		}
 		return;
 	}
-	auto processingTransaction = mSession->getNextReadyTransaction(&notReadyTransactions);
-	if(sumTransactions > 0) {
+	
+	if(transactions_user_must_sign.size() > 0) 
+	{
 		enableLogout = false;
 	}
-	if(PAGE_NO_TRANSACTIONS == state && !processingTransaction.isNull()) {
-		auto transactionType = processingTransaction->getType();
+	if(PAGE_NO_TRANSACTIONS == state && transaction && !transaction_body.isNull()) 
+	{
+		auto transactionType = transaction_body->getType();
+		memo = transaction_body->getMemo();
 		switch(transactionType) {
-			case TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
-			case TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+			case model::gradido::TRANSACTION_CREATION: state = PAGE_TRANSACTION_CREATION; break;
+			case model::gradido::TRANSACTION_TRANSFER: state = PAGE_TRANSACTION_TRANSFER; break;
+			case model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE: 
+			state = PAGE_TRANSACTION_GROUP_ADD_MEMBER;
+			//community_server_base_path
+			break;
+		}
+		if(model::gradido::TRANSACTION_GROUP_MEMBER_UPDATE != transactionType) 
+		{
+			if(!user_model->isEmailChecked()) {
+				addError(new Error(gettext("E-Mail Aktivierung"), gettext("E-Mail wurde noch nicht aktiviert, du kannst leider noch keine Transaktionen ausführen!")));
+				hasErrors = true;
+				enableSign = false;
+			}
 		}
 	}
 	
 	
 
 %><%@ include file="header_navi_chr.cpsp" %>
-<% if(transaction_finalize_run) { %>
-<div class="col-md-10 equel-grid mb-3">
-	<div class="flash-messages" style="background-color: rgba(240,240,240,0.8);" onclick="this.classList.add('hidden')">
-		<ul class='grd-no-style'>
-			<% if(transaction_finalize_result) { %> 
-				<li class='grd-success'>Transaktion erfolgreich</li>
-			<% } else { %>
-				<li class='grd-error'>Transaktion fehlgeschlagen</li>
-			<% } %>
-		</ul>
-	</div>
-</div>
-<% } %>
+<%= getErrorsHtml() %>
 <div class="col-md-10 equel-grid mb-3">
 	<small class="text-gray d-block mt-3">
-	<% if(sumTransactions > 0 && sumTransactions - notReadyTransactions != 1) { %>
-		<% if(notReadyTransactions > 0) { %> 
-			<%= sumTransactions - notReadyTransactions %> <%= gettext("von") %> <%= sumTransactions %> <%= gettext("Transaktionen sind bereit zum best&auml;tigen") %>
-		<% } else { %>
-			<%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %>
+	<% if(sumTransactions == 0) { %>
+		<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
+    <% } else { %>	
+		<p><%= sumTransactions %> <%= gettext("Transaktionen warten darauf best&auml;tigt zu werden.") %></p>
+		<% if(skip_count > 0) { %>
+			<p><%= skip_count %> <%= gettext("Transaktionen &uuml;bersprungen.") %></p>
 		<% } %>
 	<% } %>
-	<% if(state == PAGE_NO_TRANSACTIONS) { %>
-		<% if(sumTransactions == 0) { %>
-			<%= gettext("Es gibt zurzeit keine Transaktionen zum best&auml;tigen") %>
-		<% } else { %>
-			<%= gettext("Transaktion(en) werden noch vorbereitet, bitte lade die Seite in wenigen Augenblicken erneut.") %>
-		<% } %>
-    <% } %>
 	</small>
 </div>
 <div class="content-container main-container">
@@ -159,8 +224,7 @@ enum PageState {
 		<p class="form-header"><%= gettext("Transaktion Unterzeichnen") %></p>
 		<div class="form-content">
 		<% if(state == PAGE_TRANSACTION_TRANSFER) { 
-			auto transferTransaction = processingTransaction->getTransferTransaction();
-			memo = transferTransaction->getMemo();
+			auto transferTransaction = transaction_body->getTransferTransaction();
 		%>
 			<p><%= gettext("&Uuml;berweisung") %></p>
 			<div class="content-table">
@@ -175,14 +239,16 @@ enum PageState {
 						<div class="content-row content-row-bg">
 					<% } %>
 						<%= transferTransaction->getKontoNameCell(i) %>
+						<% if(((i+1) % 2) == 0 && transferTransaction->getTargetGroupAlias() != "") { %>
+						 (<%= transferTransaction->getTargetGroupAlias() %>)
+						<% } %>
 						<%= transferTransaction->getAmountCell(i) %>
 					</div>
 			  <% } %>
 			</div>
 			 <% } else if(PAGE_TRANSACTION_CREATION == state) { 
-					auto creationTransaction = processingTransaction->getCreationTransaction();
+					auto creationTransaction = transaction_body->getCreationTransaction();
 					auto transactionUser = creationTransaction->getUser();
-					memo = creationTransaction->getMemo();
 			 %>
 				<p><%= gettext("Sch&ouml;pfung") %></p>
 				<div class="content-table">
@@ -192,8 +258,10 @@ enum PageState {
 					<span class="content-cell"><%= gettext("Gradido") %></span>
 				  </div>
 				  <div class="content-row content-row-bg">
-					<% if(transactionUser) { %>
-						<span class="content-cell"><%= transactionUser->getFirstName() %> <%= transactionUser->getLastName() %> &lt;<%= transactionUser->getEmail() %>&gt;</span>
+					<% if(!transactionUser.isNull()) { 
+						auto user_model = transactionUser->getModel();
+						%>
+						<span class="content-cell"><%= user_model->getFirstName() %> <%= user_model->getLastName() %> &lt;<%= user_model->getEmail() %>&gt;</span>
 					<% } else { %>
 						<span class="content-cell">0x<%= creationTransaction->getPublicHex() %></span>
 					<% } %>
@@ -201,49 +269,92 @@ enum PageState {
 					<span class="content-cell success-color"><%= creationTransaction->getAmountString() %> GDD</span>
 				  </div>
 				</div>
+		     <% } else if(PAGE_TRANSACTION_GROUP_ADD_MEMBER == state) { 
+				auto groupMemberUpdateTransaction = transaction_body->getGroupMemberUpdate();
+				auto groups = controller::Group::load(groupMemberUpdateTransaction->getTargetGroupAlias());
+				Poco::AutoPtr<model::table::Group> group_model;
+				Poco::AutoPtr<controller::User> user;
+				if(groups.size() == 1 && !groups[0].isNull()) group_model = groups[0]->getModel();
+				auto user_id = transaction->getModel()->getUserId();
+				if(user_id == user_model->getID()) {
+					user = account_user;
+				} else {
+					user = controller::User::sload(user_id);
+				}
+			 %>
+			 <p><%= gettext("Benutzer zu einer Gruppe hinzufügen") %></p>
+			 <div class="content-table">
+				<p><% if(!user.isNull()) { %>
+					<b>Benutzer:</b>&nbsp;<%= user->getEmailWithNames() %>
+				<% } else { %>
+					<b>Account public key:</b>&nbsp;<%= groupMemberUpdateTransaction->getPublicKeyHex() %>
+				<% } %></p>
+				<% if(!group_model.isNull()) { %>
+					<p><b><%= gettext("Gruppe") %>:</b></p>
+					<ul>
+						<li><%= gettext("Name") %>: <%= group_model->getName() %></li>
+						<li><%= gettext("Alias") %>: <%= group_model->getAlias() %></li>
+						<li><%= gettext("Url") %>: <a href="<%= group_model->getUrl() %>/pages/visitor" target="_blank"><%= group_model->getUrl() %></a></li>
+						<li><%= group_model->getDescription() %></li>
+					</ul>
+				<% } else { %>
+					<%= gettext("Unbekannte Gruppe") %>
+				<% } %>
+				<%= gettext("Es haben bereits ") %><%= std::to_string(transaction->getSignCount()) %><%= gettext(" unterzeichnet") %>
+			 </div>
+			 
 			 <% } else if(PAGE_USER_DATA_CORRUPTED == state) { %>
 				<p class="alert-color"><%= gettext("Es gibt ein Problem mit deinen gespeicherten Daten, bitte wende dich an den")%><a href="mailto:<%= em->getAdminReceiver()%>?subject=Corrupt User Data&amp;body=Hallo Dario,%0D%0A%0D%0Ameine Benutzer Daten sind korrupt.%0D%0Akannst du das prüfen?%0D%0A%0D%0AMit freundlichen Grüßen%0D%0A"><%=gettext("Support") %></a></p>
 			 <% } %>
-			<div class="content-table">
-			  <div class="content-row content-row-header">
-				<span class="content-cell">Aktives Konto</span>
-			  </div>
-			  <div class="content-row">
-				<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
-			  </div>
-			</div>
-			<div class="content-table">
-			  <div class="content-row content-row-header">
-				<span class="content-cell">Verwendungszweck</span>
-			  </div>
-			  <div class="content-row content-row-bg">
-				<span class="content-cell"><%= memo %></span>
-			  </div>
-			</div>
-			<form>
-				<% if(!account_user->hasPassword()) {%>
-				 <div class="form-group">
-					  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
-					  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
-				 </div>
-				<% } %>
-				<% if(PAGE_USER_DATA_CORRUPTED != state && user_model->isEmailChecked()) { %>
-					<button type="submit" class="form-button" name="ok" value="ok">
-						<i class="material-icons-outlined">verified_user</i>
-						<%= gettext("Transaktion unterzeichnen") %>
-					</button>
-				<% } %>
-				<button type="submit" class="form-button button-cancel" name="abort" value="abort">
-					<i class="material-icons-outlined">delete</i>
-					<%= gettext("Transaktion verwerfen") %>
-				</button>
-				<% if(sumTransactions == 0) { %>
-					<button type="submit" class="form-button button-cancel" name="back" value="back">
-						<i class="material-icons-outlined">back</i>
-						Zur&uuml;ck
-					</button>	
-				<% } %>
-			</form>
+			 <% if(PAGE_NO_TRANSACTIONS == state) { %>
+				<a href="<%= ServerConfig::g_php_serverPath %>"><%= gettext("Zur&uuml;ck") %></a>
+			 <% } else { %>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell">Aktives Konto</span>
+				  </div>
+				  <div class="content-row">
+					<span class="content-cell"><%= user_model->getNameWithEmailHtml() %></span>
+				  </div>
+				</div>
+				<div class="content-table">
+				  <div class="content-row content-row-header">
+					<span class="content-cell">Verwendungszweck</span>
+				  </div>
+				  <div class="content-row content-row-bg">
+					<span class="content-cell"><%= memo %></span>
+				  </div>
+				</div>
+				<form>
+					<% if(transaction) { %>
+						<input type="hidden" name="pending-task-id" value="<%= transaction->getModel()->getID() %>">
+					<% } %>
+					<input type="hidden" name="skip-count" value="<%= skip_count %>">
+					<% if(!account_user->hasPassword()) {%>
+					 <div class="form-group">
+						  <label for="sign-password"><%= gettext("Ich brauche nochmal dein Passwort") %></label>
+						  <input type="password" class="form-control" id="sign-password" name="sign-password" placeholder="<%= gettext("Passwort") %>">
+					 </div>
+					<% } %>
+					<% if(enableSign && !hasErrors) { %>
+						<button type="submit" class="form-button" name="ok" value="ok">
+							<i class="material-icons-outlined">verified_user</i>
+							<%= gettext("Transaktion unterzeichnen") %>
+						</button>
+					<% } %>
+					<% if(transaction_removeable) { %>
+						<button type="submit" class="form-button button-cancel" name="abort" value="abort">
+							<i class="material-icons-outlined">delete</i>
+							<%= gettext("Transaktion verwerfen") %>
+						</button>
+					<% } else { %>
+						<button type="submit" class="form-button button-cancel" name="skip" value="skip">
+							<i class="material-icons-outlined">debug-step-over</i>
+							<%= gettext("Transaktion &uuml;berspringen") %>
+						</button>
+					<% } %>
+				</form>
+			<% } %>
 		</div>
 	</div>
 </div>

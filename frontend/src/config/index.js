@@ -17,7 +17,7 @@ const server = {
   // Schöpfung
   // COMMUNITY_API_TRANSACTION_CREATION_URL: process.env.COMMUNITY_API_TRANSACTION_CREATION_URL || 'http://localhost/transaction-creations/',
   COMMUNITY_API_TRANSACTION_SEND_COINS:
-    process.env.COMMUNITY_API_TRANSACTION_SEND_COINS || 'http://localhost/transaction-send-coins/',
+    process.env.COMMUNITY_API_TRANSACTION_SEND_COINS || 'http://localhost/api/',
 }
 
 const CONFIG = {

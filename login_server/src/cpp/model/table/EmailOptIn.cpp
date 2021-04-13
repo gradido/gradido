@@ -42,7 +42,7 @@ namespace model {
 		{
 			Poco::Data::Statement insert(session);
 
-			lock();
+			lock("EmailOptIn::_insertIntoDB");
 			assert(mUserId > 0);
 			assert(mEmailVerificationCode > 0);
 

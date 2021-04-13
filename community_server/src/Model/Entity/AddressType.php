@@ -8,7 +8,7 @@ use Cake\ORM\Entity;
  *
  * @property int $id
  * @property string $name
- * @property string|null $text
+ * @property string $text
  *
  * @property \App\Model\Entity\StateGroupAddress[] $state_group_addresses
  * @property \App\Model\Entity\TransactionGroupAddaddres[] $transaction_group_addaddress
@@ -28,6 +28,6 @@ class AddressType extends Entity
         'name' => true,
         'text' => true,
         'state_group_addresses' => true,
-        'transaction_group_addaddress' => true
+        'transaction_group_addaddress' => true,
     ];
 }

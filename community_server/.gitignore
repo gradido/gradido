@@ -3,7 +3,6 @@ logs/
 src/GPBMetadata/
 tmp/
 vendor/
-composer.lock
 websrc/node_modules/
 websrc/package-lock.json
 mithril_client/

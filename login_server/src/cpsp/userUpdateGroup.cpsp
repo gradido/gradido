@@ -1,0 +1,141 @@
+<%@ page class="UserUpdateGroupPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%@	page compressed="true" %>
+<%!
+
+#include "../controller/Group.h"
+#include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/PendingTasksManager.h"
+#include "../lib/DataTypeConverter.h"
+#include "../model/gradido/Transaction.h"
+
+enum PageState {
+	PAGE_STATE_OVERVIEW,
+	PAGE_STATE_REQUEST_IS_RUNNING,
+	PAGE_STATE_NO_GROUPS
+};
+
+%>
+<%%
+	const char* pageName = gettext("Gruppe wählen");
+	auto user = mSession->getNewUser();
+	auto sm = SessionManager::getInstance();
+	auto pt = PendingTasksManager::getInstance();
+	PageState state = PAGE_STATE_OVERVIEW;
+	
+	auto groups = controller::Group::listAll();
+	Poco::AutoPtr<controller::Group> choosen_group;
+
+	if(!form.empty()) {
+		auto group_id_string = form.get("group_id", "");
+		if(group_id_string == "") {
+			addError(new Error(gettext("Fehler"), gettext("HTML Form Fehler")));
+		} else {
+			int group_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(group_id_string, group_id)) {
+				std::string group_alias = "";
+				
+				for(auto it = groups.begin(); it != groups.end(); it++) {
+					auto group_model = (*it)->getModel();
+					if(group_model->getID() == group_id) {
+						choosen_group = *it;
+					}
+				}
+				if(choosen_group.isNull()) {
+					addError(new Error(gettext("Fehler"), gettext("Interner Fehler")));
+				} else {
+					auto addGroupMemberTransaction = 
+						model::gradido::Transaction::createGroupMemberUpdate(user, choosen_group);
+					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
+					return;
+					state = PAGE_STATE_REQUEST_IS_RUNNING;
+				}
+			} else {
+				addError(new Error(gettext("Fehler"), gettext("HTML Value Type Fehler")));
+			}
+		}
+	} else {
+	    if(groups.size() == 0) {
+			if(user->getModel()->getRole() == model::table::ROLE_ADMIN) {
+				response.redirect(getBaseUrl() + "/groups");
+				return;
+			}
+			state = PAGE_STATE_NO_GROUPS;
+		
+		} else {
+			auto referer = request.find("Referer");
+			std::string refererString;
+			if (referer != request.end()) {
+				refererString = referer->second;
+			}
+			
+			
+			
+			pt->lock("userUpdateGroup Page");
+			auto has_pending_group_add_member_task = pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+			auto referer_was_checkTransaction = refererString.find("checkTransactions") != std::string::npos;
+			if(has_pending_group_add_member_task) {
+				state = PAGE_STATE_REQUEST_IS_RUNNING;
+				std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+				// should be only one
+				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
+				if(transaction->getSignCount() == 0) {
+					
+					pt->unlock();
+					response.redirect(getBaseUrl() + "/checkTransactions");
+					return;
+				}
+			} else if(referer_was_checkTransaction && user->getModel()->getGroupId()) {
+				pt->unlock();
+				response.redirect(user->getGroupBaseUrl());
+				return;
+			}
+			
+			pt->unlock();
+		}
+	}
+		
+	
+	
+	
+%><%@ include file="header.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="content-list">
+	<% if(PAGE_STATE_OVERVIEW == state ) { %>
+    <div class="content-list-title">
+        <h1><%= gettext("Gruppe wählen") %></h1>
+    </div>
+	<p><%= gettext("Bitte wähle die Gruppe/Gemeinschaft aus, zu der du gehörst.") %></p>
+	<p><%= gettext("Du bekommst eine Bestätigungsmail, nachdem dein Beitritt bestätigt wurde.") %></p>
+	<form method="POST">
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c1"><%= gettext("Auswahl") %></div>
+				<div class="cell header-cell c2">Name</div>
+				<div class="cell header-cell c2">Alias</div>
+				<div class="cell header-cell c4">Url</div>
+				<div class="cell header-cell c5"><%= gettext("Description") %></div>
+			</div>
+			<% for(auto it = groups.begin(); it != groups.end(); it++) {
+					auto group_model = (*it)->getModel(); %>
+				<div class="row">
+					<div class="cell c1"><input type="radio" class="form-control" name="group_id" value="<%= group_model->getID()%>" /></div>
+					<div class="cell c2"><%= group_model->getName() %></div>
+					<div class="cell c2"><%= group_model->getAlias() %></div>
+					<div class="cell c4"><%= group_model->getUrl() %></div>
+					<div class="cell c5"><%= group_model->getDescription()%></div>
+				</div>
+			<% } %>
+			<input class="grd-form-bn grd-form-bn-succeed grd_clickable" type="submit" name="submit" value="<%= gettext("Beitrittsanfrage senden") %>"/>
+		</div>
+	</form>
+	<% } else if(PAGE_STATE_REQUEST_IS_RUNNING == state) { %>
+		<p><%= gettext("Deine Beitrittsanfrage wird bearbeitet, du bekommst eine E-Mail wenn sie bestätigt oder abgelehnt wurde.") %></p>
+		<p><a href="<%= ServerConfig::g_serverPath %>/logout"><%= gettext("Abmelden") %></a></p>
+	<% } else if(PAGE_STATE_NO_GROUPS == state) { %>
+		<p><%= gettext("Noch keine Gruppen vorhanden, bitte warte bis der Admin welche hinzugef&uuml;gt hat.") %>
+	<% } %>
+</div>
+<%@ include file="footer.cpsp" %>

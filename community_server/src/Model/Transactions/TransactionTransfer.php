@@ -22,9 +22,8 @@ class TransactionTransfer extends TransactionBase {
     {    
       // repeated SenderAmount senderAmounts = 1;
       // repeated ReceiverAmount receiverAmounts = 2;
-        $receiver = new \Model\Messages\Gradido\ReceiverAmount();
-        $sender   = new \Model\Messages\Gradido\SenderAmount();
-        $receiver->setAmount($amount);
+        
+        $sender = new \Proto\Gradido\TransferAmount();
         $sender->setAmount($amount);
         
         if(strlen($receiver_public_hex) != 64) {
@@ -34,71 +33,56 @@ class TransactionTransfer extends TransactionBase {
           return ['state' => 'error', 'msg' => 'invalid sender pubkey'];
         }
         $receiverPubKeyBin = hex2bin($receiver_public_hex);
-        $receiver->setEd25519ReceiverPubkey($receiverPubKeyBin);
         
         $senderPubKeyBin = hex2bin($sender_public_hex);
-        $sender->setEd25519SenderPubkey($senderPubKeyBin);
+        $sender->setPubkey($senderPubKeyBin);
         //var_dump($requestData);
 
-        $creationDate = new \Model\Messages\Gradido\TimestampSeconds();
+        $creationDate = new \Proto\Gradido\TimestampSeconds();
         $creationDate->setSeconds(time());
 
-        $transactionBody = new \Model\Messages\Gradido\TransactionBody();
+        $transactionBody = new \Proto\Gradido\TransactionBody();
         $transactionBody->setMemo($memo);
         $transactionBody->setCreated($creationDate);
 
-        $transaction = new \Model\Messages\Gradido\Transfer();
-        $transaction->setReceiverAmounts([$receiver]);
-        $transaction->setSenderAmounts([$sender]);
-        $transactionBody->setTransfer($transaction);
+        $transfer = new \Proto\Gradido\GradidoTransfer();
+        $local_transfer = new \Proto\Gradido\LocalTransfer();
+        $local_transfer->setReceiver($receiverPubKeyBin);
+        $local_transfer->setSender($sender);
+        $transfer->setLocal($local_transfer);
+        $transactionBody->setTransfer($transfer);
         return ['state' => 'success', 'transactionBody' => $transactionBody];
     }
     
     public function validate($sigPairs) {
-      //$this->addError('TransactionTransfer::validate', 'not implemented yet');
-      //return false;
-      //$time = microtime(true);
-      static $functionName = 'TransactionCreation::validate';
-      /*
-       * // check signature(s)
-        foreach($sigPairs as $sigPair) {
-          //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
-          $pubkey = $sigPair->getPubKey();
-          $signature = $sigPair->getEd25519();
-          if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
-              $this->addError('Transaction::validate', 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid ' );
-              return false;
-          } 
-        }
-       */
-      $sigPubHexs = [];
-      foreach($sigPairs as $sigPair) {
-          //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
-          $pubkey = bin2hex($sigPair->getPubKey());
-          //$hash = TransactionCreation::DRMakeStringHash($pubkey);
-          $hash = $pubkey;
-          if(!isset($sigPubHexs[$hash])) {
-            $sigPubHexs[$hash] = [$pubkey];
-          } else {
-            array_push($sigPubHexs[$hash], $pubkey);
-          }
-          //array_push($sigPubHexs, $pubkey);    
-      }
-      
-      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
-      $senderAmounts = $this->protoTransactionTransfer->getSenderAmounts();
-      $senderSum = 0;
-      $receiverSum = 0;
-      
-      $senderPublics = [];
-      foreach($senderAmounts as $i => $senderAmount) {
-        $senderPublic = $senderAmount->getEd25519SenderPubkey();
-        $senderPublicHex = bin2hex($senderPublic);
-        array_push($senderPublics, $senderPublic);
+        //$this->addError('TransactionTransfer::validate', 'not implemented yet');
+        //return false;
+        //$time = microtime(true);
+        static $functionName = 'TransactionCreation::validate';
         
+        $sigPubHexs = [];
+        foreach($sigPairs as $sigPair) 
+        {
+            $pubkey = $sigPair->getPubKey();
+            $pubkey_hex = bin2hex($pubkey);
+            //$hash = TransactionCreation::DRMakeStringHash($pubkey);
+            $hash = $pubkey_hex;
+            if(!isset($sigPubHexs[$hash])) {
+              $sigPubHexs[$hash] = [$pubkey_hex];
+            } else {
+              array_push($sigPubHexs[$hash], $pubkey_hex);
+            }
+            //array_push($sigPubHexs, $pubkey);    
+        }
+      
+        $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $sender = $local_transfer->getSender();
+        $senderPublic = $sender->getPubkey();
+        $senderPublicHex = bin2hex($senderPublic);
         if(strlen($senderPublicHex) != 64) {
-          $this->addError($functionName, 'invalid sender public key');
-          return false;
+            $this->addError($functionName, 'invalid sender public key');
+            return false;
         }
         // check if signature exist for sender
         //$hash = TransactionCreation::DRMakeStringHash($senderPublicHex);
@@ -108,7 +92,7 @@ class TransactionTransfer extends TransactionBase {
           return false;
         }
         // check if sender has enough Gradido
-        $amount = $senderAmount->getAmount();
+        $amount = $sender->getAmount();
         $user = $stateUsersTable
                   ->find('all')
                   ->select(['id'])
@@ -123,66 +107,37 @@ class TransactionTransfer extends TransactionBase {
           $this->addError($functionName, 'sender ' . $i . ' hasn\t enough GDD');
           return false;
         }
-        $senderSum += $amount;
-      }
-      $uniqueSenderPublics = array_unique($senderPublics);
-      if(count($senderPublics) !== count($uniqueSenderPublics)) {
-        $this->addError($functionName, 'duplicate sender public key');
-        return false;
-      }
       
-      $receiverAmounts = $this->protoTransactionTransfer->getReceiverAmounts();
-      $receiverPublics = [];
-      foreach($receiverAmounts as $reveiverAmount) {
-        if(strlen($reveiverAmount->getEd25519ReceiverPubkey()) != 32) {
+        $receiver_public_key = $local_transfer->getReceiver();
+        if(strlen($receiver_public_key) != 32) {
           $this->addError($functionName, 'invalid receiver public key');
           return false;
         }
-        array_push($receiverPublics, $reveiverAmount->getEd25519ReceiverPubkey());
-        $receiverSum += $reveiverAmount->getAmount();
-      }
-      $uniqueReceiverPublic = array_unique($receiverPublics);
-      if(count($uniqueReceiverPublic) !== count($receiverPublics)) {
-        $this->addError($functionName, 'duplicate receiver public key');
-        return false;
-      }
-      $uniquePublics = array_unique(array_merge($receiverPublics, $senderPublics));
-      if(count($uniquePublics) !== count($senderPublics) + count($receiverPublics)) {
-        // means at least one sender is the same as one receiver
-        $this->addError($functionName, 'duplicate public in sender and receiver');
-        return false;
-      }
-      if($senderSum !== $receiverSum) {
-        $this->addError($functionName, 'sender amount doesn\'t match receiver amount');
-        return false;
-      }
-      if($senderSum < 0) {
-          $this->addError($functionName, 'negative amount not supported');
-          return false;
-      }
-      //die("\n");
-      return true;
+        // check if receiver exist
+        $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
+        if(!$receiver_user) {
+            $this->addError($functionName, 'couldn\'t find receiver ' . $i .' in db' );
+            return false;
+        }
+        if($amount < 0) {
+            $this->addError($functionName, 'negative amount not supported');
+            return false;
+        }
+        return true;
     }
     
     public function save($transaction_id, $firstPublic, $received) {
       
       static $functionName = 'TransactionCreation::save';
+      $local_transfer = $this->protoTransactionTransfer->getLocal();
       
-      if(count($this->protoTransactionTransfer->getSenderAmounts()) !== 1) {
-        $this->addError($functionName, 'not more than one sender currently supported');
-        return false;
-      }
-      $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
+      $senderAmount = $local_transfer->getSender();
+      $receiver = $local_transfer->getReceiver();
       
-      if(count($this->protoTransactionTransfer->getReceiverAmounts()) !== 1) {
-        $this->addError($functionName, 'not more than one receiver currently supported');
-        return false;
-      }
-      $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
       $transactionTransferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
       
-      $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());
-      $receiverUserId = $this->getStateUserId($receiverAmount->getEd25519ReceiverPubkey());
+      $senderUserId = $this->getStateUserId($senderAmount->getPubkey());
+      $receiverUserId = $this->getStateUserId($receiver);
       
       if($senderUserId === NULL || $receiverUserId === NULL) {
         return false;
@@ -192,14 +147,14 @@ class TransactionTransfer extends TransactionBase {
       if(false === $finalSenderBalance) {
         return false;
       }
-      if(false === $this->updateStateBalance($receiverUserId, $receiverAmount->getAmount(), $received)) {
+      if(false === $this->updateStateBalance($receiverUserId, $senderAmount->getAmount(), $received)) {
         return false;
       }
       
       $transactionTransferEntity = $transactionTransferTable->newEntity();
       $transactionTransferEntity->transaction_id = $transaction_id;
       $transactionTransferEntity->state_user_id  = $senderUserId;
-      $transactionTransferEntity->receiver_public_key = $receiverAmount->getEd25519ReceiverPubkey();
+      $transactionTransferEntity->receiver_public_key = $receiver;
       $transactionTransferEntity->receiver_user_id = $receiverUserId;
       $transactionTransferEntity->amount = $senderAmount->getAmount();
       $transactionTransferEntity->sender_final_balance = $finalSenderBalance;
@@ -227,10 +182,11 @@ class TransactionTransfer extends TransactionBase {
        $disable_email = Configure::read('disableEmail', false);  
        if($disable_email) return true;
         
-      $senderAmount = $this->protoTransactionTransfer->getSenderAmounts()[0];
-      $receiverAmount = $this->protoTransactionTransfer->getReceiverAmounts()[0];
-      $senderUserId = $this->getStateUserId($senderAmount->getEd25519SenderPubkey());
-      $receiverUserId = $this->getStateUserId($receiverAmount->getEd25519ReceiverPubkey());
+      $local_transfer = $this->protoTransactionTransfer->getLocal();
+      $sender = $local_transfer->getSender();
+      $senderAmount = $sender->getAmount();
+      $senderUserId = $this->getStateUserId($sender->getPubkey());
+      $receiverUserId = $this->getStateUserId($local_transfer->getReceiver());
       
       $receiverUser = $this->getStateUser($receiverUserId);
       $senderUser   = $this->getStateUser($senderUserId);
@@ -242,7 +198,7 @@ class TransactionTransfer extends TransactionBase {
         $emailViewBuilder->setTemplate('notificationTransfer')
                          ->setVars(['receiverUser' => $receiverUser,
                                     'senderUser' => $senderUser,
-                                    'gdd_cent' => $receiverAmount->getAmount(), 
+                                    'gdd_cent' => $senderAmount, 
                                     'memo' => $memo]);
         $receiverNames = $receiverUser->getNames();
         if($receiverNames == '' || $receiverUser->email == '') {
@@ -263,7 +219,7 @@ class TransactionTransfer extends TransactionBase {
     
     static public function fromEntity($transactionTransferEntity)
     {
-      $protoTransfer = new \Model\Messages\Gradido\Transfer();
+      $protoTransfer = new \Proto\Gradido\GradidoTransfer();
       
       $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
       

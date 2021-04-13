@@ -15,7 +15,7 @@ use Cake\Core\Configure;
 
 class JsonRequestClientComponent extends Component
 {
-  public function sendTransaction($session_id, $base64Message, $user_balance = 0, $auto_sign = false) {
+  public function sendTransaction($session_id, $base64Message, $user_balance = 0, $auto_sign = false, $blockchain_type = 'mysql') {
     if(!is_numeric($session_id)) {
       return ['state' => 'error', 'type' => 'parameter error', 'msg' => 'session_id isn\'t numeric'];
     }
@@ -36,9 +36,15 @@ class JsonRequestClientComponent extends Component
         'session_id' => $session_id,
         'transaction_base64' => $base64Message,
         'balance' => $user_balance,
-        'auto_sign' => $auto_sign
+        'auto_sign' => $auto_sign,
+        'blockchain_type' => $this->blockchainType
     ]), '/checkTransaction');
       
+  }
+  
+  public function findePublicKeyForEmailHash($emailHash) {
+    //'ask' = ['account_publickey' => '<email_blake2b_base64>']
+    $results = $this->sendRequestLoginServerNeighbors(json_encode(['ask' => ['account_publickey' => $emailHash]]), 'search');
   }
   
   public function getRunningUserTasks($email)
@@ -120,6 +126,39 @@ class JsonRequestClientComponent extends Component
         return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
     }
     return ['state' => 'success', 'data' => $json];
+  }
+  
+  public function sendRequestLoginServerNeighbors($transactionBody, $url) {
+    
+    $http = new Client();
+    if(!Configure::check('NeighborLoginServers')) {
+      return ['state' => 'warning', 'msg' => 'no neighbor server configured'];
+    }
+    $nServers = Configure::read('NeighborLoginServers');
+    $results = ['errors' => [], 'data' => []];
+    foreach($nServers as $nServer) {
+      $full_url = $nServer['host'] . ':' . $nServer['port'] . '/' . $url;
+      $response = $http->post($full_url, $transactionBody, ['type' => 'json']);
+      $responseStatus = $response->getStatusCode();
+      if($responseStatus != 200) {
+        $results['errors'][] = [
+            'state' => 'error', 
+            'type' => 'request error', 
+            'msg' => 'server response status code isn\'t 200', 
+            'details' => $responseStatus,
+            'fullUrl' => $full_url
+        ];
+        continue;
+      }
+      $json = $response->getJson();
+      if($json == null) {
+        //$responseType = $response->getType();
+        $results['errors'][] = ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
+        continue;
+      }
+      $results['data'][] = $json;
+    }
+    return $results;
   }
   
   static public function getLoginServerUrl()

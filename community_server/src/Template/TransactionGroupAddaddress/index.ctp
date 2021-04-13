@@ -22,6 +22,7 @@
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('transaction_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('address_type_id') ?></th>
+                <th scope="col"><?= __('user public key') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
             </tr>
         </thead>
@@ -31,6 +32,7 @@
                 <td><?= $this->Number->format($transactionGroupAddaddres->id) ?></td>
                 <td><?= $transactionGroupAddaddres->has('transaction') ? $this->Html->link($transactionGroupAddaddres->transaction->id, ['controller' => 'Transactions', 'action' => 'view', $transactionGroupAddaddres->transaction->id]) : '' ?></td>
                 <td><?= $transactionGroupAddaddres->has('address_type') ? $this->Html->link($transactionGroupAddaddres->address_type->name, ['controller' => 'AddressTypes', 'action' => 'view', $transactionGroupAddaddres->address_type->id]) : '' ?></td>
+                <td><?= bin2hex(stream_get_contents($transactionGroupAddaddres->public_key)) ?>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $transactionGroupAddaddres->id]) ?>
                     <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transactionGroupAddaddres->id]) ?>

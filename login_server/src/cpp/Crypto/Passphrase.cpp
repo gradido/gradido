@@ -133,6 +133,11 @@ Poco::AutoPtr<Passphrase> Passphrase::transform(const Mnemonic* targetWordSource
 	return nullptr;
 }
 
+Poco::AutoPtr<Passphrase> Passphrase::create(const std::string& passphrase, const Mnemonic* wordSource)
+{
+	return new Passphrase(passphrase, wordSource);
+}
+
 Poco::AutoPtr<Passphrase> Passphrase::create(const MemoryBin* wordIndices, const Mnemonic* wordSource)
 {
 	if (PHRASE_WORD_COUNT * sizeof(Poco::UInt16) >= wordIndices->size()) {

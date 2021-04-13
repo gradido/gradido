@@ -13,7 +13,7 @@ class TransactionBody extends TransactionBase {
   private $transactionTypeId = 0;
   
   public function __construct($bodyBytes) {
-    $this->mProtoTransactionBody = new \Model\Messages\Gradido\TransactionBody();
+    $this->mProtoTransactionBody = new \Proto\Gradido\TransactionBody();
     try {
       $this->mProtoTransactionBody->mergeFromString($bodyBytes);
       // cannot catch Exception with cakePHP, I don't know why
@@ -156,7 +156,7 @@ class TransactionBody extends TransactionBase {
   
   static public function fromEntity($memo, $transaction) 
   {
-    $protoBody = new \Model\Messages\Gradido\TransactionBody();
+    $protoBody = new \Proto\Gradido\TransactionBody();
     $protoBody->setMemo($memo);
     
     //$created->setSeconds($var);
@@ -177,7 +177,7 @@ class TransactionBody extends TransactionBase {
   
   static public function build($memo, $specificTransaction) 
   {
-    $protoBody = new \Model\Messages\Gradido\TransactionBody();
+    $protoBody = new \Proto\Gradido\TransactionBody();
     $protoBody->setMemo($memo);
     
     if(is_a($specificTransaction, 'TransactionCreation')) {

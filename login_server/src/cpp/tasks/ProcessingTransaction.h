@@ -3,11 +3,9 @@
 
 #include "CPUTask.h"
 
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../lib/DRHash.h"
-#include "../model/TransactionBase.h"
-
-#include "../proto/gradido/TransactionBody.pb.h"
+#include "../model/gradido/TransactionBody.h"
 
 #include "../SingletonManager/LanguageManager.h"
 
@@ -18,58 +16,53 @@
 * @desc: Task for processing Transactions
 */
 
-enum TransactionType {
-	TRANSACTION_NONE,
-	TRANSACTION_CREATION,
-	TRANSACTION_TRANSFER
-};
 
-class TransactionCreation;
-class TransactionTransfer;
+namespace model {
+	namespace gradido {
+		class TransactionCreation;
+		class TransactionTransfer;
+		class GroupMemberUpdate;
+	}
+}
 class SigningTransaction;
 
-class ProcessingTransaction : public UniLib::controller::CPUTask, public ErrorList
+
+class ProcessingTransaction : public UniLib::controller::CPUTask, public NotificationList
 {
 	friend SigningTransaction;
 public:
 	//! \param lang for error messages in user language
-	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang);
+	ProcessingTransaction(const std::string& proto_message_base64, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated = Poco::DateTime());
+	ProcessingTransaction(Poco::AutoPtr<model::gradido::TransactionBody> transactionBody, DHASH userEmailHash, Languages lang, Poco::DateTime transactionCreated = Poco::DateTime());
+	//ProcessingTransaction(const model::gradido::TransactionBody)
 	virtual ~ProcessingTransaction();
 
 	int run();
 
 	const char* getResourceType() const { return "ProcessingTransaction"; };
 
-	inline TransactionType getType() { lock(); auto t = mType; unlock(); return t; }
-	std::string getMemo();
 	
-	// not secured zone, no locking
-	bool isCreation() { return mType == TRANSACTION_CREATION; }
-	bool isTransfer() { return mType == TRANSACTION_TRANSFER; }
-
-	TransactionCreation* getCreationTransaction();
-	TransactionTransfer* getTransferTransaction();
-
 	static HASH calculateHash(const std::string& proto_message_base64);
 	static std::string calculateGenericHash(const std::string& protoMessageBase64);
 	inline HASH getHash() { mHashMutex.lock(); HASH hs = mHash; mHashMutex.unlock(); return hs; }
 
-	std::string getBodyBytes();
+	inline Poco::AutoPtr<model::gradido::TransactionBody> getTransactionBody() { return mTransactionBody; }
+	
 
 protected:
 
 	void reportErrorToCommunityServer(std::string error, std::string errorDetails, std::string created);
 
-	TransactionType mType;
+	
 	std::string mProtoMessageBase64;
-
-	model::messages::gradido::TransactionBody mTransactionBody;
-	TransactionBase* mTransactionSpecific;
+	Poco::AutoPtr<model::gradido::TransactionBody> mTransactionBody;
+	
 
 	HASH mHash;
 	DHASH mUserEmailHash;
 	Languages mLang;
 	Poco::Mutex mHashMutex;
+	Poco::DateTime mTransactionCreated;
 private:
 
 };

@@ -7,6 +7,12 @@ The API Documentation is separated by which server answers them. Either the comm
 - [login-server API](./login_server.api.md)
 - [community-server API](./community-server.api.md)
 
+### Process - Reset password
+
+1. Send user email with email verification code: [Send E-Mails](https://github.com/gradido/gradido/blob/master/docu/login_server.api.md#send-e-mails)
+2. Login via emailVerificationCode: [Login by Email Verification Code](https://github.com/gradido/gradido/blob/master/docu/login_server.api.md#login-by-email-verification-code)
+3. change password: [Update user data](https://github.com/gradido/gradido/blob/master/docu/login_server.api.md#update-user-data)
+
 ## Graphics
 
 The following Graphics try to show certain mechanics, principles and structures of the gradido project

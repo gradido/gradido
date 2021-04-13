@@ -1,40 +1,21 @@
 
-
 #########################################################################################################
 # Build debug
 #########################################################################################################
-From gradido/login_dependencies:stage1 as debug
+From gradido/login_dependencies:stage2 as debug
 
 ENV DOCKER_WORKDIR="/code"
 
 USER root
-#VOLUME /root/.conan
 
-#RUN apt-get update && \
- #   apt-get install -y --no-install-recommends gdb && \
-#	apt-get autoclean && \
-#	apt-get autoremove && \
- #   apt-get clean && \
-  #  rm -rf /var/lib/apt/lists/*
-
-#COPY --from=protoc_build /protobuf/src/.libs/libprotobuf.so.20.0.1 /usr/lib/libprotobuf.so.20
-#COPY --from=protoc_build /protobuf/src/google/protobuf/*.h /usr/include/google/protobuf/
-
-	
-#COPY --from=debug_preparation /code /code
-#COPY --from=debug_preparation /home/conan /home/conan
-#RUN ls -la /home/conan/.conan
 WORKDIR ${DOCKER_WORKDIR}
 COPY . .
 
-#RUN ls -la 
-#RUN cat build/conanbuildinfo.cmake
-RUN chmod +x compile_proto.sh
+RUN chmod +x unix_parse_proto.sh
 RUN chmod +x compile_pot.sh
-#RUN ls -la
-RUN ./compile_pot.sh
-RUN ./compile_proto.sh
 
+RUN ./compile_pot.sh
+RUN ./unix_parse_proto.sh
 
 
 #########################################################################################################
@@ -58,10 +39,4 @@ EXPOSE 1201
 WORKDIR ${DOCKER_WORKDIR}
 RUN chmod +x ./Dockerfiles/build_and_run.sh 
 
-#ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
-# Wait on mariadb to started
-#CMD ["sleep 5", "/usr/bin/Gradido_LoginServer"]
-#RUN chmod +x ./start_after_mysql.sh
-#ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
-#CMD gdb -ex=r Gradido_LoginServer
 CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer

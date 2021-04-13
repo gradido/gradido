@@ -1,7 +1,7 @@
 //#include "lib/Thread.h"
 //#include "UniversumLib.h"
 #include "Thread.h"
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 
 namespace UniLib {
     namespace lib {
@@ -57,7 +57,7 @@ namespace UniLib {
         void Thread::run()
         {
 			static const char* function_name = "Thread::run";
-			ErrorList errors;
+			NotificationList errors;
             //Thread* t = this;
 			while (true) {
 				try {
@@ -83,6 +83,11 @@ namespace UniLib {
 							errors.addError(new ParamError(function_name, "error running thread function, exit thread", mPocoThread->getName()));
 							return;
 						}
+					}
+					catch (Poco::NullPointerException& e) {
+						threadUnlock();
+						printf("[Thread::%s] NULL pointer exception\n", __FUNCTION__);
+						return;
 					}
 					catch (Poco::Exception& e) {
 						//unlock mutex and exit

@@ -57,7 +57,7 @@ const communityAPI = {
       memo,
       auto_sign: true,
     }
-    return apiPost(CONFIG.COMMUNITY_API_TRANSACTION_SEND_COINS + 'ajaxCreate/', payload)
+    return apiPost(CONFIG.COMMUNITY_API_TRANSACTION_SEND_COINS + 'sendCoins/', payload)
   },
 }
 

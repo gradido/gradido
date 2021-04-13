@@ -28,7 +28,7 @@
             :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
             target="_blank"
           >
-            {{ $t('site.sidebar.members_area') }}
+            {{ $t('members_area') }}
           </b-nav-item>
         </b-nav>
       </b-col>

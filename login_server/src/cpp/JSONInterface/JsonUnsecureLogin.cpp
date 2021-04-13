@@ -52,7 +52,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		return stateError("user with email not found", email);
 	}
 
-	ErrorList pwd_errors;
+	NotificationList pwd_errors;
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 
 	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors)) {
@@ -110,5 +110,4 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	sm->releaseSession(session);
 	
 	return result;
-
 }

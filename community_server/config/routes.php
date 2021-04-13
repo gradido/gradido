@@ -57,12 +57,12 @@ Router::scope('/', function (RouteBuilder $routes) {
     $csrf->whitelistCallback(function ($request) {
         // Skip token check for API URLs.
       //die($request->getParam('controller'));
-        $whitelist = ['JsonRequestHandler', 'ElopageWebhook'];
+        $whitelist = ['JsonRequestHandler', 'ElopageWebhook', 'AppRequests'];
         $ajaxWhitelist = ['TransactionSendCoins', 'TransactionCreations'];
-        
+
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {
-            if($entry == 'ElopageWebhook') {
+            if($entry == 'ElopageWebhook' || $entry == 'AppRequests') {
               return true;
             }
             if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost') {
@@ -110,7 +110,11 @@ Router::scope('/', function (RouteBuilder $routes) {
      */
     //$routes->connect('/', ['controller' => 'Pages', 'action' => 'display', 'home']);
     $routes->connect('/', ['controller' => 'Dashboard', 'action' => 'index']);
+    $routes->connect('/api/:action/*', ['controller' => 'AppRequests'], ['routeClass' => 'DashedRoute']);
+    //$routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'js']);
     $routes->connect('/server', ['controller' => 'Dashboard', 'action' => 'serverIndex']);
+    $routes->connect('/client', ['controller' => 'Pages', 'action' => 'display', 'vue']);
+    $routes->connect('/vue-dev', ['controller' => 'Pages', 'action' => 'display', 'vue-dev']);
     //$routes->connect('/', 'https://gradido2.dario-rekowski.de/account', array('status' => 303));
 
     /**
