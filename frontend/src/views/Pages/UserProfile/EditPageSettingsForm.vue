@@ -122,7 +122,6 @@ export default {
         change: false,
       },
       user: {
-        company: 'Gradido Akademie',
         username: this.$store.state.user.userName,
         email: this.$store.state.email,
         firstName: this.$store.state.user.firstName,
