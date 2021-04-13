@@ -257,7 +257,6 @@ jobs:
       - name: show content of /coverage/lcov.info
         run: |
           ls ~/coverage
-          ls ./coverage
           pwd
           cd ~
           pwd
