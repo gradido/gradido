@@ -52,8 +52,10 @@ class AppRequestsController extends AppController
         return $this->returnJson(['state' => 'error', 'msg' => 'no post or get']);
     }
     
-    private function checkAndCopyRequiredFields($fields, &$param) {
-        $data = $this->request->input('json_decode');
+    private function checkAndCopyRequiredFields($fields, &$param, $data = null) {
+        if($data == null) {
+            $data = $this->request->input('json_decode');
+        }
         foreach($fields as $field) {
             if(is_array($field)) {
                 $one_exist = false;
@@ -89,9 +91,16 @@ class AppRequestsController extends AppController
         }
     }
     
-    private function parseParameterForCreateTransaction(&$param)
+    private function parseParameterForCreateTransaction(&$param, $data = null)
     {
-        $login_request_result = $this->requestLogin(0, false);
+        if($data == null) {
+            $data = $this->request->input('json_decode');
+        }
+        $session_id = 0;
+        if(isset($data['session_id'])) {
+            $session_id = $data['session_id'];
+        }
+        $login_request_result = $this->requestLogin($session_id, false);
         if($login_request_result !== true) {
             return $login_request_result;
         }
@@ -100,7 +109,7 @@ class AppRequestsController extends AppController
         $param['blockchain_type'] = $this->blockchainType;
         
         $this->rewriteKeys($data, ['email' => 'target_email', 'username' => 'target_username', 'pubkey' => 'target_pubkey']);
-        $required_fields = $this->checkAndCopyRequiredFields(['amount', ['target_email', 'target_username', 'target_pubkey']], $param);
+        $required_fields = $this->checkAndCopyRequiredFields(['amount', ['target_email', 'target_username', 'target_pubkey']], $param, $data);
         if($required_fields !== true) {
             return $required_fields;
         }
@@ -134,13 +143,13 @@ class AppRequestsController extends AppController
         if(!$this->request->is('post')) {
             return $this->returnJson(['state' => 'error', 'msg' => 'no post']);
         }
-        
+        $data = $this->request->input('json_decode');
         $params = [];
-        $result = $this->parseParameterForCreateTransaction($params);
+        $result = $this->parseParameterForCreateTransaction($params, $data);
         if($result !== true) {
             return $this->returnJson($result);
         }
-        $required_fields = $this->checkAndCopyRequiredFields(['target_date'], $params);
+        $required_fields = $this->checkAndCopyRequiredFields(['target_date'], $params, $data);
         if($required_fields !== true) {
             return $this->returnJson($required_fields);
         }
@@ -202,13 +211,13 @@ class AppRequestsController extends AppController
         if(!$this->request->is('post')) {
             return $this->returnJson(['state' => 'error', 'msg' => 'no post']);
         }
-        
+        $data = $this->request->input('json_decode');
         $params = [];
-        $result = $this->parseParameterForCreateTransaction($params);
+        $result = $this->parseParameterForCreateTransaction($params, $data);
         if($result !== true) {
             return $this->returnJson($result);
         }
-        $required_fields = $this->checkAndCopyRequiredFields(['target_date'], $params);
+        $required_fields = $this->checkAndCopyRequiredFields(['target_date'], $params, $data);
         if($required_fields !== true) {
             return $this->returnJson($required_fields);
         }
