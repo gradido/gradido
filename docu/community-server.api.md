@@ -90,7 +90,7 @@ in the Login-Server, so transactions can be auto-signed directly with handing in
 Normally a forwarding to login-server check transactions side is necessary to minimize security risks. // TODO this is not documented
 
 ### Request
-`POST http://localhost/transaction-creations/ajaxCreate`
+`POST http://localhost/api/createCoins`
 
 with 
 
@@ -104,8 +104,36 @@ with
 	"auto_sign": true
 }
 ```
+#### OR
+```json
+{
+	"session_id" : -127182,
+	"username": "Maxi_786",
+	"amount": 10000000,
+	"target_date":"2021-02-19T13:25:36+00:00", 
+	"memo":"AGE",
+	"auto_sign": true
+}
+```
+#### OR
+```json
+{
+	"session_id" : -127182,
+	"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7",
+	"amount": 10000000,
+	"target_date":"2021-02-19T13:25:36+00:00", 
+	"memo":"AGE",
+	"auto_sign": true
+}
+```
 
-// TODO description of fields
+
+- `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
+- `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
+- `amount`: gdd amount to transfer in gradido cent (10000000 = 1000,00 GDD)
+- `memo`: text for receiver, currently saved as clear text in blockchain
+- `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there
+             if set to false, transaction must be signed after on `http://localhost/account/checkTransactions`
 
 ### Response
 In case of success returns:
@@ -130,24 +158,45 @@ in the Login-Server, so transactions can be auto-signed directly with handing in
 Normally a forwarding to login-server check transactions side is necessary to minimize security risks. // TODO this is not documented
 
 ### Request
-`POST http://localhost/transaction-send-coins/ajaxCreate`
+`POST http://localhost/api/sendCoins`
 
 with
 
 ```json
 {
 	"session_id" : -127182,
-	"amount": 2000000,
 	"email": "max.musterman@gmail.de",
-	"memo":"Thank you :)",
+	"amount": 1000000,
+	"memo":"a gift",
 	"auto_sign": true
 }
 ```
-
+#### OR
+```json
+{
+	"session_id" : -127182,
+	"username": "Maxi_786",
+	"amount": 1000000,
+	"memo":"a gift",
+	"auto_sign": true
+}
+```
+#### OR
+```json
+{
+	"session_id" : -127182,
+	"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7",
+	"amount": 1000000,
+	"memo":"a gift",
+	"auto_sign": true
+}
+```
+- `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
 - `amount`: amount to transfer, 2000000 = 200,00 GDD
-- `email`: receiver email address, must be differ from user email
-- `memo`: Details about transaction 
-- `auto_sign`: set to true to directly sign transaction if unsecure.allow_auto_sign_transactions = 1 is set
+- `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
+- `memo`: text for receiver, currently saved as clear text in blockchain
+- `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there
+               if set to false, transaction must be signed after on `http://localhost/account/checkTransactions`
 
 
 ### Response
