@@ -19,4 +19,8 @@ package-lock.json
 *.njsproj
 *.sln
 
+# coverage folder
+
+coverage/
+
 *~

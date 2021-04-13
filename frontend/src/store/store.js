@@ -126,7 +126,7 @@ export const store = new Vuex.Store({
       if (result.success) {
         commit('user_balance', result.result.data.balance)
       } else {
-        dispatch('logout')
+        //dispatch('logout')
       }
     },
   },

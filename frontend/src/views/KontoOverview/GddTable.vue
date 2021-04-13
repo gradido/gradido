@@ -6,7 +6,7 @@
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex w-100 justify-content-between" @click="toogle(item)">
+        <div class="d-flex w-100 justify-content-between">
           <b-icon
             v-if="item.type === 'send'"
             icon="box-arrow-left"
@@ -33,10 +33,15 @@
         <b-collapse :id="'a' + item.transaction_id" class="mt-2">
           <b-card>
             <b-list-group>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>name</b-badge>
+              <b-list-group-item v-if="item.type === 'send'">
+                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
                 {{ item.name }}
               </b-list-group-item>
+              <b-list-group-item v-else>
+                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.sender') }}</b-badge>
+                {{ item.name }}
+              </b-list-group-item>
+
               <b-list-group-item>
                 <b-badge class="mr-4" variant="primary" pill>type</b-badge>
                 {{ item.type }}
@@ -46,7 +51,7 @@
                 {{ item.transaction_id }}
               </b-list-group-item>
               <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>date</b-badge>
+                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.date') }}</b-badge>
                 {{ item.date }}
               </b-list-group-item>
               <b-list-group-item>
@@ -54,7 +59,7 @@
                 {{ item.balance }}
               </b-list-group-item>
               <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>memo</b-badge>
+                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.memo') }}</b-badge>
                 {{ item.memo }}
               </b-list-group-item>
             </b-list-group>
@@ -133,10 +138,6 @@ export default {
       if (item.type === 'receive') return 'table-success'
       if (item.type === 'send') return 'table-warning'
       if (item.type === 'creation') return 'table-primary'
-    },
-    toogle(item) {
-      const temp =
-        '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>'
     },
   },
 }
