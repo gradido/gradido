@@ -242,7 +242,7 @@ jobs:
       - name: frontend | Unit tests
         run: |
           docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
-          cp ~/coverage ./coverage
+          cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE REPORT FRONTEND ################################################
       ##########################################################################
