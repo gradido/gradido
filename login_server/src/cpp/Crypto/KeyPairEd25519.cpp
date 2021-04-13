@@ -151,13 +151,22 @@ MemoryBin* KeyPairEd25519::sign(const unsigned char* message, size_t messageSize
 
 }
 
-MemoryBin* KeyPairEd25519::getCryptedPrivKey(const Poco::AutoPtr<AuthenticatedEncryption> password) const
+bool KeyPairEd25519::verify(const std::string& message, const std::string& signature) const
+{
+	if (message == "" || signature == "") return false;
+	if (crypto_sign_verify_detached((const unsigned char*)signature.data(), (const unsigned char*)message.data(), message.size(), mSodiumPublic) != 0) {
+		return false;
+	}
+	return true;
+}
+
+MemoryBin* KeyPairEd25519::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const
 {
 	if (password.isNull()) return nullptr;
 	if (!mSodiumSecret) return nullptr;
 
 	MemoryBin* encryptedKey = nullptr;
-	if (AuthenticatedEncryption::AUTH_ENCRYPT_OK == password->encrypt(mSodiumSecret, &encryptedKey)) {
+	if (SecretKeyCryptography::AUTH_ENCRYPT_OK == password->encrypt(mSodiumSecret, &encryptedKey)) {
 		return encryptedKey;
 	}
 	else {

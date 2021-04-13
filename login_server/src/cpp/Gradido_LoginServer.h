@@ -33,6 +33,7 @@ protected:
 	int main(const std::vector<std::string>& args);
 
 	void createConsoleFileAsyncLogger(std::string name, std::string filePath);
+	void createFileLogger(std::string name, std::string filePath);
 
 private:
 	bool _helpRequested;

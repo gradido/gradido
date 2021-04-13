@@ -19,7 +19,7 @@ Poco::UInt64 JsonGetUserInfos::readOrCreateEmailVerificationCode(int user_id, mo
 		return emailVerificationCode->getModel()->getCode();
 	}
 	catch (Poco::Exception& ex) {
-		ErrorList errors;
+		NotificationList errors;
 		//printf("exception: %s\n", ex.displayText().data());
 		errors.addError(new ParamError("JsonGetUserInfos::readOrCreateEmailVerificationCode", "exception: ", ex.displayText()));
 		errors.sendErrorsAsEmail();
@@ -107,8 +107,8 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 				auto code = readOrCreateEmailVerificationCode(user_model->getID(), model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
 				if (code) {
 					jsonUser.set("EmailVerificationCode.Register", std::to_string(code));
+					}
 				}
-			}
 			else if (parameterString == "loginServer.path") {
 				jsonServer.set("loginServer.path", ServerConfig::g_serverPath);
 			}

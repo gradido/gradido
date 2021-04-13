@@ -4,8 +4,8 @@
  * @var \App\Model\Entity\StateGroupAddress $stateGroupAddress
  */
 ?>
-<nav id="actions-sidebar">
-    <ul class="nav-horizontal nav-smaller">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
+    <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('List State Group Addresses'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List State Groups'), ['controller' => 'StateGroups', 'action' => 'index']) ?></li>
@@ -19,7 +19,7 @@
     <fieldset>
         <legend><?= __('Add State Group Address') ?></legend>
         <?php
-            echo $this->Form->control('state_group_id', ['options' => $stateGroups]);
+            echo $this->Form->control('group_id');
             echo $this->Form->control('address_type_id', ['options' => $addressTypes]);
         ?>
     </fieldset>

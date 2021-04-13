@@ -9,7 +9,7 @@ use Cake\Validation\Validator;
 /**
  * StateGroupAddresses Model
  *
- * @property \App\Model\Table\StateGroupsTable&\Cake\ORM\Association\BelongsTo $StateGroups
+ * @property &\Cake\ORM\Association\BelongsTo $Groups
  * @property \App\Model\Table\AddressTypesTable&\Cake\ORM\Association\BelongsTo $AddressTypes
  *
  * @method \App\Model\Entity\StateGroupAddress get($primaryKey, $options = [])
@@ -37,13 +37,13 @@ class StateGroupAddressesTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
-        $this->belongsTo('StateGroups', [
-            'foreignKey' => 'state_group_id',
-            'joinType' => 'INNER'
-        ]);
+        /*$this->belongsTo('Groups', [
+            'foreignKey' => 'group_id',
+            'joinType' => 'INNER',
+        ]);*/
         $this->belongsTo('AddressTypes', [
             'foreignKey' => 'address_type_id',
-            'joinType' => 'INNER'
+            'joinType' => 'INNER',
         ]);
     }
 
@@ -56,12 +56,13 @@ class StateGroupAddressesTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->integer('id')
+            ->nonNegativeInteger('id')
             ->allowEmptyString('id', null, 'create');
 
         $validator
             ->requirePresence('public_key', 'create')
-            ->notEmptyString('public_key');
+            ->notEmptyString('public_key')
+            ->add('public_key', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         return $validator;
     }
@@ -75,7 +76,8 @@ class StateGroupAddressesTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
+        $rules->add($rules->isUnique(['public_key']));
+        //$rules->add($rules->existsIn(['group_id'], 'Groups'));
         $rules->add($rules->existsIn(['address_type_id'], 'AddressTypes'));
 
         return $rules;

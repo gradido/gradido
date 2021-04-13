@@ -20,7 +20,7 @@ class StateGroupAddressesController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['StateGroups', 'AddressTypes']
+            'contain' => ['AddressTypes'],
         ];
         $stateGroupAddresses = $this->paginate($this->StateGroupAddresses);
 
@@ -37,7 +37,7 @@ class StateGroupAddressesController extends AppController
     public function view($id = null)
     {
         $stateGroupAddress = $this->StateGroupAddresses->get($id, [
-            'contain' => ['StateGroups', 'AddressTypes']
+            'contain' => ['StateGroups', 'AddressTypes'],
         ]);
 
         $this->set('stateGroupAddress', $stateGroupAddress);
@@ -75,7 +75,7 @@ class StateGroupAddressesController extends AppController
     public function edit($id = null)
     {
         $stateGroupAddress = $this->StateGroupAddresses->get($id, [
-            'contain' => []
+            'contain' => [],
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $stateGroupAddress = $this->StateGroupAddresses->patchEntity($stateGroupAddress, $this->request->getData());

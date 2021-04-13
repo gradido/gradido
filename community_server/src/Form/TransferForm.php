@@ -1,5 +1,5 @@
-<?php
-// in src/Form/TransferForm.php
+<?php 
+// in src/Form/ContactForm.php
 namespace App\Form;
 
 use Cake\Form\Form;
@@ -13,13 +13,14 @@ class TransferForm extends Form
     {
         return $schema
             ->addField('email', ['type' => 'string'])
+            ->addField('group', ['type' => 'string'])
             ->addField('amount', ['type' => 'decimal', 'precision' => 2])
             ->addField('memo', ['type' =>'text', 'default' => '', 'rows' => 3, 'maxlength' => 150]);
     }
 
     function validationDefault(Validator $validator)
     {
-        $validator->setProvider('custom', 'App\Model\Validation\TransactionValidation');
+      $validator->setProvider('custom', 'App\Model\Validation\TransactionValidation');
       /*
         $validator->add('receiver_pubkey_hex', 'length', [
                 'rule' => ['length', 64],
@@ -33,6 +34,12 @@ class TransferForm extends Form
         $validator->add('email', 'format', [
             'rule' => 'email',
             'message' => __('A valid email address is required')
+        ])
+        ->add('group', 'custom', [
+            'rule' => 'alphaNumeric',
+            'provider' => 'custom',
+            //'message' => __('Only Alpha Numeric Character allowed')
+            'message' => __('No HTML Tags like &gt; or &lt; please.')
         ])
         ->add('memo', 'length', [
             'rule' => ['maxLength', 150],
@@ -54,7 +61,7 @@ class TransferForm extends Form
         ->allowEmptyString('receiver_pubkey_hex', null, 'create')*/
         ->add('amount', 'custom', [
             'rule' => 'amount',
-            'provider' => 'custom',
+            'provider' => 'custom', 
             'message' => __('Please give a valid positive number with maximal 2 decimal places')
         ]);
         return $validator;

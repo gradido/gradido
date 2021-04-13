@@ -2,7 +2,6 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
-use Cake\I18n\Number;
 
 /**
  * AddressTypes Controller
@@ -35,7 +34,7 @@ class AddressTypesController extends AppController
     public function view($id = null)
     {
         $addressType = $this->AddressTypes->get($id, [
-            'contain' => ['StateGroupAddresses', 'TransactionGroupAddaddress']
+            'contain' => ['StateGroupAddresses', 'TransactionGroupAddaddress'],
         ]);
 
         $this->set('addressType', $addressType);
@@ -71,7 +70,7 @@ class AddressTypesController extends AppController
     public function edit($id = null)
     {
         $addressType = $this->AddressTypes->get($id, [
-            'contain' => []
+            'contain' => [],
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $addressType = $this->AddressTypes->patchEntity($addressType, $this->request->getData());

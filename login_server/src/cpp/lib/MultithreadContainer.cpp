@@ -1,5 +1,5 @@
 #include "MultithreadContainer.h"
-#include "ErrorList.h"
+#include "NotificationList.h"
 
 namespace UniLib {
 	namespace lib {
@@ -14,7 +14,7 @@ namespace UniLib {
 				}
 			}
 			catch (Poco::TimeoutException& ex) {
-				ErrorList errors;
+				NotificationList errors;
 				errors.addError(new ParamError(functionName, "lock timeout", ex.displayText()));
 				if (mLastSucceededLock != "") {
 					errors.addError(new ParamError(functionName, "last succeed lock by ", mLastSucceededLock.data()));

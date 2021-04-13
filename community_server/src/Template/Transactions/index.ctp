@@ -30,15 +30,19 @@
 </nav>
 <div class="content-list transactions">
     <div class="content-list-table transactions">
-        <div class="cell header-cell"><?= $this->Paginator->sort('id') ?></div>
-        <div class="cell header-cell"><?= $this->Paginator->sort('memo') ?></div>
-        <div class="cell header-cell"><?= $this->Paginator->sort('transaction_type_id') ?></div>
-        <div class="cell header-cell"><?= $this->Paginator->sort('received') ?></div>
+        <div class="row">
+            <div class="cell header-cell"><?= $this->Paginator->sort('id') ?></div>
+            <div class="cell header-cell"><?= $this->Paginator->sort('memo') ?></div>
+            <div class="cell header-cell"><?= $this->Paginator->sort('transaction_type_id') ?></div>
+            <div class="cell header-cell"><?= $this->Paginator->sort('received') ?></div>
+        </div>
         <?php foreach ($transactions as $transaction): ?>
-            <div class="cell"><?= $this->Number->format($transaction->id) ?></div>
-            <div class="cell"><?= h($transaction->memo) ?></div>
-            <div class="cell"><?= $transaction->has('transaction_type') ? $this->Html->link(__($transaction->transaction_type->name), ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></div>
-            <div class="cell"><?= h($transaction->received) ?></div>
+            <div class="row">
+                <div class="cell"><?= $this->Number->format($transaction->id) ?></div>
+                <div class="cell"><?= h($transaction->memo) ?></div>
+                <div class="cell"><?= $transaction->has('transaction_type') ? $this->Html->link(__($transaction->transaction_type->name), ['controller' => 'TransactionTypes', 'action' => 'view', $transaction->transaction_type->id]) : '' ?></div>
+                <div class="cell"><?= h($transaction->received) ?></div>
+            </div>
         <?php endforeach; ?>
     </div>
     <div>

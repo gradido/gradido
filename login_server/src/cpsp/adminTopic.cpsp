@@ -1,0 +1,322 @@
+<%@ page class="AdminTopicPage" %>
+<%@ page form="true" %>
+<%@	page compressed="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="SessionHTTPRequestHandler.h" %>
+<%!
+	#include "../controller/HederaAccount.h"
+	#include "../controller/HederaTopic.h"
+	#include "../controller/Group.h"
+	#include "../SingletonManager/SessionManager.h"
+	#include "../ServerConfig.h"
+	
+	#include "../lib/DataTypeConverter.h"
+	#include "../lib/Profiler.h"
+	#include "../lib/Success.h"
+	
+	#include "Poco/Timespan.h"
+	#include "Poco/URI.h"
+%>
+<%%
+	const char* pageName = "Topic";
+	auto user = mSession->getNewUser();
+	auto sm = SessionManager::getInstance();
+	Profiler hedera_time;
+	
+	std::string name = "";
+	std::string topic_id_string = "";
+	int auto_renew_account = 0;
+	int auto_renew_period = 7890000; // 3 Monate
+	
+	int group_id = 0;
+	
+	Poco::URI uri(request.getURI());
+	auto uri_query = uri.getQueryParameters();
+	std::string action = "";
+	Poco::AutoPtr<controller::HederaTopic> query_hedera_topic;
+	
+	// parsing get query params
+	if(uri_query.size() >= 2) {
+		if(uri_query[0].first == "action") {
+			action = uri_query[0].second;
+		}
+		if(uri_query[1].first == "topic_id") {
+			std::string topic_id_from_query;
+			int topic_id = 0;
+			topic_id_from_query = uri_query[1].second;
+			if(DataTypeConverter::strToInt(topic_id_from_query, topic_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting topic_id_from_query to int"));
+			} else {
+				auto hedera_topic = controller::HederaTopic::load(topic_id);
+				if(hedera_topic.isNull()) {
+					addError(new Error("Action", "hedera topic not found"));
+				} else {
+				  query_hedera_topic = hedera_topic;
+				}
+			}
+		}
+	}
+	// actions
+	if(!query_hedera_topic.isNull()) 
+	{
+		if(action == "getTopicInfos") 
+		{
+			hedera_time.reset();
+			if(query_hedera_topic->updateWithGetTopicInfos(user)) {
+				addNotification(new ParamSuccess("Hedera", "hedera get topic infos success in ", hedera_time.string()));
+			} else {
+				addError(new ParamError("Hedera", "hedera get topic infos failed in ", hedera_time.string()));
+			}
+			getErrors(query_hedera_topic);
+		} 
+	}
+	else if(!form.empty()) 
+	{
+		name = form.get("topic-name", "");
+		topic_id_string = form.get("topic-id", "");
+		auto auto_renew_account_string = form.get("topic-auto-renew-account", "0");
+		auto auto_renew_period_string = form.get("topic-auto-renew-period", "7890000");
+		auto group_id_string = form.get("topic-group", "-1");
+		Poco::AutoPtr<controller::HederaId> topic_id;
+		
+		if(topic_id_string != "" && sm->isValid(topic_id_string, VALIDATE_HEDERA_ID)) {
+			topic_id = controller::HederaId::create(topic_id_string);
+			if(topic_id.isNull()) {
+				addError(new Error("Hedera Id", "cannot parse hedera id"));
+			}
+			
+		} else {
+		
+			if(name != "" && !sm->isValid(name, VALIDATE_NAME)) {
+				addError(new Error("Topic", "Name not valid, at least 3 Character"));
+			}
+			
+			if(!sm->isValid(auto_renew_account_string, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Topic", "auto renew account id not an integer"));
+			} else {
+				if(DataTypeConverter::strToInt(auto_renew_account_string, auto_renew_account) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int convert error", "Error converting auto renew account id to int"));
+				}
+			}
+			
+			if(!sm->isValid(auto_renew_period_string, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Topic", "auto renew period not an integer"));
+			} else {
+				if(DataTypeConverter::strToInt(auto_renew_period_string, auto_renew_period) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int convert error", "Error converting auto renew period to int"));
+				}
+			}
+		}
+		
+		if(!sm->isValid(group_id_string, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Topic", "group_id not an integer"));
+		} else {
+			if(DataTypeConverter::strToInt(group_id_string, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int convert error", "Error converting group_id to int"));
+			}
+		}
+		//const std::string& name, int autoRenewAccountId, int autoRenewPeriod, int groupId
+		
+		// add or create topic?
+		// add topic
+		if(!topic_id.isNull()) {
+			if(topic_id->getModel()->insertIntoDB(true)) {
+				auto hedera_topic = controller::HederaTopic::loadFromHedera(topic_id, group_id, user);
+				if(!hedera_topic.isNull()) {
+					hedera_topic->getModel()->insertIntoDB(false);
+				} else {
+					addError(new Error("Hedera Topic", "error load topic from hedera"));
+				}
+			} else {
+				addError(new Error("Hedera Id", "Error saving hedera id"));
+			}
+		// create topic
+		} else {
+			auto hedera_topic = controller::HederaTopic::create(name, auto_renew_account, auto_renew_period, group_id); 
+			if(!hedera_topic->getModel()->insertIntoDB(true)) {
+				addError(new Error("Topic", "error saving into db"));
+			} else {
+				auto payer = controller::HederaAccount::load(auto_renew_account);
+				if(payer.isNull()) {
+					addError(new Error("Payer", "payer account not found"));
+				} else {
+					auto hedera_task = hedera_topic->createTopic(payer, user);
+					if(hedera_task.isNull()) {
+						addError(new Error("Create Topic", "Failed"));
+						getErrors(hedera_topic);
+					}
+				}
+			}
+		}
+		
+	}
+	
+	
+	auto hedera_accounts = controller::HederaAccount::load("user_id", user->getModel()->getID());
+	//std::vector<Poco::AutoPtr<controller::HederaAccount>> hedera_accounts;
+	
+	auto groups = controller::Group::listAll();
+	std::map<int, int> group_indices;
+	int count = 0;
+	for(auto it = groups.begin(); it != groups.end(); it++) {
+		group_indices.insert(std::pair<int, int>((*it)->getModel()->getID(), count));
+		count++;
+	}
+	
+	auto hedera_topics = controller::HederaTopic::listAll();
+	//std::vector<Poco::AutoPtr<controller::HederaTopic>> hedera_topics;
+	
+%><%@ include file="header_large.cpsp" %>
+
+<style type="text/css">
+	.center-form-form .input-40 {
+		margin-left:0;
+		width:40%;
+		display:inline-block;
+	}
+	
+</style>
+<%= getErrorsHtml() %>
+<div class="content-container info-container">
+	<h1>Topic Admin Page</h1>
+</div>
+<div class="center-form-container">
+	<div class="content-list">
+		<div class="content-list-title">
+			<h2>Hedera Topics</h2>
+		</div>	
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c3">Topic ID</div>			
+				<div class="cell header-cell c3">Name</div>
+				<div class="cell header-cell c3">Network Type</div>
+				<div class="cell header-cell c4">Auto Renew Account Balance</div>
+				<div class="cell header-cell c4">Auto Renew Period</div>
+				<div class="cell header-cell c3">Group ID</div>
+				<div class="cell header-cell c3">Current Timeout</div>
+				<div class="cell header-cell c2">Sequence Number</div>
+				<div class="cell header-cell c3" title="Last Time Get update from Hedera">Last Updated</div>
+				<div class="cell header-cell c5">Aktionen</div>
+			</div>
+			<% for(auto it = hedera_topics.begin(); it != hedera_topics.end(); it++) {
+					auto hedera_topic_model = (*it)->getModel();  
+					auto updateUrl = ServerConfig::g_serverPath + "/topic?action=getTopicInfos&topic_id=" + std::to_string(hedera_topic_model->getID());
+					std::string kabuto_url = "https://explorer.kabuto.sh/";//testnet/id/0.0.132132;
+					
+					
+					auto auto_renew_account = (*it)->getAutoRenewAccount();
+					auto renew_account_model = auto_renew_account->getModel();
+					
+					if(renew_account_model->getNetworkType() == ServerConfig::HEDERA_TESTNET) {
+						kabuto_url += "testnet/";
+					} else if(renew_account_model->getNetworkType() == ServerConfig::HEDERA_MAINNET) {
+						kabuto_url += "mainnet/";
+					}
+					kabuto_url += "id/";
+					
+					std::string timeout_color = "success-color";
+					if(hedera_topic_model->getCurrentTimeout() < Poco::DateTime()) {
+						timeout_color = "alert-color";
+					} else if((hedera_topic_model->getCurrentTimeout() - Poco::DateTime()) < Poco::Timespan(2,0,0,0,0)) {
+						timeout_color = "orange-color";
+					}
+					std::string topic_hedera_id_string = "";
+					auto topic_hedera_id = (*it)->getTopicHederaId();
+					if(!topic_hedera_id.isNull()) {
+						topic_hedera_id_string = topic_hedera_id->getModel()->toString();
+						kabuto_url += topic_hedera_id_string;
+					}
+					
+					
+					%>
+				<div class="row">
+					<div class="cell c3"><a title="Hedera Block Explorer - Kabuto" target="_blank" href="<%= kabuto_url %>"><%= topic_hedera_id_string %></a></div>
+					<div class="cell c3"><%= hedera_topic_model->getName() %></div>
+					<div class="cell c3"><%= model::table::HederaAccount::hederaNetworkTypeToString(renew_account_model->getNetworkType()) %></div>
+					<div class="cell c4"><%= renew_account_model->getBalanceString() %></div>
+					<div class="cell c4"><%= hedera_topic_model->getAutoRenewPeriodString() %></div>
+					<div class="cell c3"><%= hedera_topic_model->getGroupId() %></div>
+					<div class="cell c3 <%= timeout_color %>"><%= hedera_topic_model->getCurrentTimeoutString() %></div>
+					<div class="cell c2"><%= hedera_topic_model->getSequenceNumber() %></div>
+					<div class="cell c3"><%= hedera_topic_model->getUpdatedString() %></div>
+					<div class="cell c5"><% if(!topic_hedera_id.isNull()) { %>
+						<button class="form-button" title="Query on Hedera, cost some fees" onclick="window.location.href='<%= updateUrl %>'"  >
+							get topic infos
+						</button>
+						<% } %>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	<!-- Tab links -->
+	<div class="tab">
+	  <button class="tablinks" onclick="openTab(event, 'topic-create')">New Topic</button>
+	  <button class="tablinks" onclick="openTab(event, 'topic-add')">Add Topic</button>
+	</div>
+	<div id="topic-create" class="tabcontent">
+		<div class="center-form-title">
+			<h3>Ein neues Topic anlegen</h3>
+		</div>
+		<div class="center-form-form">
+			<form method="POST" action="<%= ServerConfig::g_serverPath %>/topic">
+				<label class="form-label" for="topic-name">Name</label>
+				<input type="text" class="form-control" id="topic-name" name="topic-name" value="<%= name %>">
+				<label class="form-label" for="topic-auto-renew-account">Auto Renew Hedera Account</label>
+				<select name="topic-auto-renew-account" id="topic-auto-renew-account">
+					<% for(auto it = hedera_accounts.begin(); it != hedera_accounts.end(); it++) { 
+						auto model = (*it)->getModel();
+					%>
+						<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(auto_renew_account == model->getID()) {%>selected="selected"<% } %>><%= (*it)->toShortSelectOptionName() %></option>
+					<% } %>
+				</select>
+				<label class="form-label" for="topic-auto-renew-period">Auto Renew Period in seconds</label>
+				<div><input class="form-control input-40" id="topic-auto-renew-period" value="<%= auto_renew_period %>" type="number" name="topic-auto-renew-period"/><span style="margin-left:8px" id="readable-auto-renew-period"></span></div>
+				<label class="form-label" for="topic-group">Group</label>
+				<select class="form-control" name="topic-group" id="topic-group">			
+					<option value="-1">Keine Gruppe</option>
+					<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+						auto group_model = (*it)->getModel(); %>
+						<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>" <% if(group_id == group_model->getID()) {%>selected="selected"<% } %>><%= group_model->getName() %></option>
+					<% } %>
+				</select>
+				
+				<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Create Topic") %>">
+			</form>
+		</div>
+	</div>
+	<div id="topic-add" class="tabcontent">
+		<div class="center-form-title">
+			<h3>Ein bestehendes Topic eintragen</h3>
+		</div>
+		<div class="center-form-form">
+			<form method="POST" action="<%= ServerConfig::g_serverPath %>/topic">
+				<label class="form-label" for="topic-id">TopicId</label>
+				<input type="text" class="form-control" id="topic-id" name="topic-id" value="<%= topic_id_string %>" placeholder="0.0.XXXX">
+				<label class="form-label" for="topic-group">Group</label>
+				<select class="form-control" name="topic-group" id="topic-group">			
+					<option value="-1">Keine Gruppe</option>
+					<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+						auto group_model = (*it)->getModel(); %>
+						<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>" <% if(group_id == group_model->getID()) {%>selected="selected"<% } %>><%= group_model->getName() %></option>
+					<% } %>
+				</select>
+				
+				<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Topic") %>">
+			</form>
+		</div>
+	</div>
+</div>
+<%@ include file="footer.cpsp" %>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/time_calculations.js"></script>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/tabs.js"></script>
+<script type="text/javascript">
+	var input = document.getElementById("topic-auto-renew-period");
+	var span = document.getElementById("readable-auto-renew-period");
+	span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	input.addEventListener('keyup', function(e) {
+		span.innerHTML = '~ ' + getExactTimeDuration(input.value);
+	});
+	
+</script>

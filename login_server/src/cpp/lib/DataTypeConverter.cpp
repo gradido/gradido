@@ -1,5 +1,7 @@
 #include "DataTypeConverter.h"
 
+#include "Poco/RegularExpression.h"
+
 #include <stdexcept>
 #include "sodium.h"
 #include <assert.h>
@@ -9,6 +11,8 @@
 
 namespace DataTypeConverter
 {
+	Poco::RegularExpression g_rexExpBase64("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
+
 	NumberParseState strToInt(const std::string& input, int& result)
 	{
 		try {
@@ -31,7 +35,7 @@ namespace DataTypeConverter
 			return NUMBER_PARSE_LOGIC_ERROR;
 		}
 	}
-
+#ifdef __linux__
 	NumberParseState strToInt(const std::string& input, unsigned long long& result)
 	{
 		try {
@@ -51,6 +55,57 @@ namespace DataTypeConverter
 		catch (const std::logic_error & ler)
 		{
 			printf("[strToInt] exception: logical error: %s\n", ler.what());
+			return NUMBER_PARSE_LOGIC_ERROR;
+		}
+	}
+#endif
+	NumberParseState strToInt(const std::string& input, Poco::UInt64& result)
+	{
+		try {
+			result = stoull(input);
+			return NUMBER_PARSE_OKAY;
+		}
+		catch (const std::invalid_argument& ia)
+		{
+			printf("[strToInt] exception: invalid argument: %s\n", ia.what());
+			return NUMBER_PARSE_INVALID_ARGUMENT;
+		}
+		catch (const std::out_of_range& oor)
+		{
+			printf("[strToInt] exception: out or range: %s\n", oor.what());
+			return NUMBER_PARSE_OUT_OF_RANGE;
+		}
+		catch (const std::logic_error & ler)
+		{
+			printf("[strToInt] exception: logical error: %s\n", ler.what());
+			return NUMBER_PARSE_LOGIC_ERROR;
+		}
+	}
+
+	NumberParseState strToDouble(const std::string& input, double& result)
+	{
+		auto comma_position = input.find(',');
+		std::string input_filtered = input;
+		if (comma_position > 0 && comma_position != input.npos) {
+			input_filtered = input_filtered.replace(comma_position, 0, 1, '.');
+		}
+		try {
+			result = stod(input_filtered);
+			return NUMBER_PARSE_OKAY;
+		}
+		catch (const std::invalid_argument& ia)
+		{
+			printf("[strToDouble] exception: invalid argument: %s\n", ia.what());
+			return NUMBER_PARSE_INVALID_ARGUMENT;
+		}
+		catch (const std::out_of_range& oor)
+		{
+			printf("[strToDouble] exception: out or range: %s\n", oor.what());
+			return NUMBER_PARSE_OUT_OF_RANGE;
+		}
+		catch (const std::logic_error & ler)
+		{
+			printf("[strToDouble] exception: logical error: %s\n", ler.what());
 			return NUMBER_PARSE_LOGIC_ERROR;
 		}
 	}
@@ -111,7 +166,7 @@ namespace DataTypeConverter
 
 	}
 
-	MemoryBin* base64ToBin(const std::string& base64String)
+	MemoryBin* base64ToBin(const std::string& base64String, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)
 	{
 		/*
 		int sodium_base642bin(unsigned char * const bin, const size_t bin_maxlen,
@@ -133,28 +188,33 @@ namespace DataTypeConverter
 			mm->releaseMemory(bin);
 			return nullptr;
 		}
+		if (resultBinSize < binSize) {
+			auto bin_real = mm->getFreeMemory(resultBinSize);
+			memcpy(*bin_real, *bin, resultBinSize);
+			mm->releaseMemory(bin);
+			return bin_real;
+		}
 
 		return bin;
 	}
 
+	
 
-	std::string binToBase64(const MemoryBin* data)
+
+	std::string binToBase64(const unsigned char* data, size_t size, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)
 	{
 		auto mm = MemoryManager::getInstance();
-		size_t binSize = data->size();
-		size_t encodedSize = sodium_base64_encoded_len(binSize, sodium_base64_VARIANT_ORIGINAL);
-
+		
+		size_t encodedSize = sodium_base64_encoded_len(size, variant);
 		auto base64 = mm->getFreeMemory(encodedSize);
 		memset(*base64, 0, encodedSize);
 
-		size_t resultBinSize = 0;
-
-		if (0 != sodium_bin2base64(*base64, encodedSize, *data, binSize, sodium_base64_VARIANT_ORIGINAL)) {
+		if (nullptr == sodium_bin2base64(*base64, encodedSize, data, size, variant)) {
 			mm->releaseMemory(base64);
 			return "";
 		}
 
-		std::string base64String((const char*)*base64, encodedSize);
+		std::string base64String((const char*)*base64);
 		mm->releaseMemory(base64);
 		return base64String;
 	}
@@ -174,6 +234,16 @@ namespace DataTypeConverter
 		std::string hexString((const char*)*hex, hexSize);
 		mm->releaseMemory(hex);
 		return hexString;
+	}
+
+	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin)
+	{
+		if (nullableBin.isNull()) {
+			return "0x0";
+		}
+		else {
+			return binToHex(nullableBin.value().content().data(), nullableBin.value().content().size());
+		}
 	}
 
 	std::string pubkeyToHex(const unsigned char* pubkey)
@@ -223,5 +293,140 @@ namespace DataTypeConverter
 		result += lang->ngettext(unit_name.data(), unit_plural.data(), value);
 
 		return result;
+	}
+
+	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp)
+	{
+		// microseconds
+		google::protobuf::int64 microseconds = timestamp.seconds() * (google::protobuf::int64)10e5 + (google::protobuf::int64)(timestamp.nanos()) / (google::protobuf::int64)10e2;
+		return microseconds;
+	}
+
+	Poco::Timestamp convertFromProtoTimestamp(const proto::gradido::Timestamp& timestamp)
+	{
+		// microseconds
+		google::protobuf::int64 microseconds = timestamp.seconds() * (google::protobuf::int64)10e5 + (google::protobuf::int64)(timestamp.nanos()) / (google::protobuf::int64)10e2;
+		return microseconds;
+	}
+
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp)
+	{
+		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();
+		auto secondsTotal = pocoTimestamp.epochTime();
+		protoTimestamp->set_seconds(secondsTotal);
+		protoTimestamp->set_nanos((microsecondsTotal - secondsTotal * pocoTimestamp.resolution()) * 1000);
+	}
+
+	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp)
+	{
+		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();
+		auto secondsTotal = pocoTimestamp.epochTime();
+		protoTimestamp->set_seconds(secondsTotal);
+		protoTimestamp->set_nanos((microsecondsTotal - secondsTotal * pocoTimestamp.resolution()) * 1000);
+	}
+
+	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds)
+	{
+		google::protobuf::int64 microseconds = timestampSeconds.seconds() * (google::protobuf::int64)10e5;
+
+		return microseconds;
+	}
+
+
+	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
+	{
+		return Poco::Timespan(duration.seconds(), 0);
+	}
+
+	int replaceBase64WithHex(Poco::JSON::Object::Ptr json)
+	{
+		//g_rexExpBase64
+		auto mm = MemoryManager::getInstance();
+		int count_replacements = 0;
+
+		for (Poco::JSON::Object::ConstIterator it = json->begin(); it != json->end(); it++)
+		{
+			if (json->isObject(it)) {
+				auto local_json = it->second.extract<Poco::JSON::Object::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(it->first, local_json);
+			}
+			else if (json->isArray(it)) {
+				auto local_json = it->second.extract<Poco::JSON::Array::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(it->first, local_json);
+			}
+			else if (it->second.isString()) 
+			{
+				if (it->first == "amount") continue;
+				auto field_value = it->second.extract<std::string>();
+				if(!g_rexExpBase64.match(field_value)) continue;
+
+				auto bin = base64ToBin(field_value);
+				if(!bin) continue;
+
+				auto hex = binToHex(bin);
+				mm->releaseMemory(bin);
+				json->set(it->first, hex.substr(0, hex.size()-1));
+				count_replacements++;
+			}
+		}
+
+		return count_replacements;
+	}
+
+	int replaceBase64WithHex(Poco::JSON::Array::Ptr json)
+	{
+		auto mm = MemoryManager::getInstance();
+		int count_replacements = 0;
+		int count = 0;
+		for (Poco::JSON::Array::ValueVec::const_iterator it = json->begin(); it != json->end(); it++)
+		{
+			if (json->isObject(it)) {
+				
+				auto local_json = it->extract<Poco::JSON::Object::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(count, local_json);
+			}
+			else if (json->isArray(it)) {
+				auto local_json = it->extract<Poco::JSON::Array::Ptr>();
+				count_replacements += replaceBase64WithHex(local_json);
+				json->set(count, local_json);
+			}
+			else if (it->isString())
+			{
+				auto field_value = it->extract<std::string>();
+				if (!g_rexExpBase64.match(field_value)) continue;
+
+				auto bin = base64ToBin(field_value);
+				if (!bin) continue;
+
+				auto hex = binToHex(bin);
+				mm->releaseMemory(bin);
+				json->set(count, hex.substr(0, hex.size()-1));
+				count_replacements++;
+			}
+			count++;
+		}
+
+		return count_replacements;
+	}
+
+	std::string replaceNewLineWithBr(std::string& in)
+	{
+		
+		std::string::size_type pos = 0; // Must initialize
+		while ((pos = in.find("\r\n", pos)) != std::string::npos) {
+			in.replace(pos, 2, "<br>");
+		}
+		pos = 0;
+		while ((pos = in.find("\n", pos)) != std::string::npos) {
+			in.replace(pos, 1, "<br>"); 
+		}
+		pos = 0;
+		while ((pos = in.find(" ", pos)) != std::string::npos) {
+			in.replace(pos, 1, "&nbsp;");
+		}
+		return in;
 	}
 }

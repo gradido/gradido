@@ -27,7 +27,13 @@ enum SessionValidationTypes {
 	VALIDATE_EMAIL,
 	VALIDATE_PASSWORD,
 	VALIDATE_PASSPHRASE,
+	VALIDATE_GROUP_ALIAS,
+	VALIDATE_HEDERA_ID,
 	VALIDATE_HAS_NUMBER,
+	VALIDATE_ONLY_INTEGER,
+	VALIDATE_ONLY_DECIMAL,
+	VALIDATE_ONLY_HEX,
+	VALIDATE_ONLY_URL,
 	VALIDATE_HAS_SPECIAL_CHARACTER,
 	VALIDATE_HAS_UPPERCASE_LETTER,
 	VALIDATE_HAS_LOWERCASE_LETTER,
@@ -66,7 +72,7 @@ public:
 
 	bool isValid(const std::string& subject, SessionValidationTypes validationType);
 	//! \return true if password is valid
-	bool checkPwdValidation(const std::string& pwd, ErrorList* errorReciver);
+	bool checkPwdValidation(const std::string& pwd, NotificationList* errorReciver);
 
 	void checkTimeoutSession();
 

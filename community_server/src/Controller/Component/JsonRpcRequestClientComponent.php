@@ -41,7 +41,15 @@ class JsonRpcRequestClientComponent extends Component
    public function sendRequest($message) {
     $http = new Client();
     
-    $response = $http->post($this->getGradidoNodeUrl(), $message, ['type' => 'json']);
+    try {
+      $url = $this->pickGradidoNodeUrl();
+      if(is_array($url)) {
+        return $url;
+      }
+      $response = $http->post($url, $message, ['type' => 'json']);
+    } catch(Exception $e) {
+      return ['state' => 'error', 'type' => 'http exception', 'details' => $e->getMessage()];
+    }
     $responseStatus = $response->getStatusCode();
     if($responseStatus != 200) {
       return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response status code isn\'t 200', 'details' => $responseStatus];
@@ -55,14 +63,18 @@ class JsonRpcRequestClientComponent extends Component
         //$responseType = $response->getType();
         return ['state' => 'error', 'type' => 'request error', 'msg' => 'server response isn\'t valid json'];
     }
-    return $json;
+    return $json['result'];
     //return ['state' => 'success', 'data' => $json];
   }
    
-  static public function getGradidoNodeUrl()
+  static public function pickGradidoNodeUrl()
   {
-    $gradidoNode = Configure::read('GradidoNode');    
-    return $gradidoNode['host'] . ':' . $gradidoNode['port'];
+    $gradidoNodes = Configure::read('GradidoBlockchain.nodes');
+    if(count($gradidoNodes) == 0) {
+      return ['state' => 'error', 'msg' => 'no gradido nodes in config'];
+    }    
+    $i = rand(0, count($gradidoNodes)-1);
+    return $gradidoNodes[$i]['host'] . ':' . $gradidoNodes[$i]['port'];
   }
   
             

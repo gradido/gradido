@@ -130,8 +130,7 @@ class TransactionCreationsController extends AppController
                 $builderResult = TransactionCreation::build(
                     $amountCent,
                     $requestData['memo'],
-                    $pubKeyHex,
-                    $identHash
+                    $pubKeyHex
                 );
                 if ($builderResult['state'] == 'success') {
                     $user_balance = 0;
@@ -335,6 +334,7 @@ class TransactionCreationsController extends AppController
             if (isset($requestData['add'])) {
                 $mode = 'add';
             }
+            //echo "mode: $mode<br>";
             $memo = $requestData['memo'];
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
           //$targetDate = $requestData['target_date'];
@@ -342,17 +342,20 @@ class TransactionCreationsController extends AppController
                 $this->Flash->error(__('No user selected'));
             } else {
                 $users = $requestData['user'];
+                $pendingTransactionCount = $session->read('Transactions.pending');
+                if ($pendingTransactionCount == null) {
+                  $pendingTransactionCount = 0;
+                }
                 if (isset($requestData['user_pending'])) {
                     $pendings = $requestData['user_pending'];
                 } else {
                     $pendings = [];
                 }
-                $receiverUsers = $stateUserTable
-                ->find('all')
-                ->where(['id IN' => array_keys($users)])
-                ->select(['public_key', 'email', 'id'])
-                ->contain(false);
-                $transactions  = [];
+                $receiverUsers = $stateUserTable->find('all')
+                                                ->where(['id IN' => array_keys($users)])
+                                                ->select(['public_key', 'email', 'id'])
+                                                ->contain(false);
+                
                 foreach ($receiverUsers as $receiverUser) {
                     $localAmountCent = $amountCent;
                     //$localTargetDate = $targetDate;
@@ -385,22 +388,85 @@ class TransactionCreationsController extends AppController
                     //$identHash = TransactionCreation::DRMakeStringHash($receiverUser->email);
                     $localTargetDateFrozen = FrozenDate::now();
                     $localTargetDateFrozen = $localTargetDateFrozen
-                    ->year($localTargetDate['year'])
-                    ->month($localTargetDate['month'])
-                    ->day($localTargetDate['day']);
-                    //echo "input: "; var_dump($localTargetDate);echo "<br>";
-                    //echo "output: "; var_dump($localTargetDateFrozen);
-                    //die('a');
-                    $builderResult = TransactionCreation::build(
-                        $localAmountCent,
-                        $memo,
-                        $pubKeyHex,
-                        $identHash,
-                        $localTargetDateFrozen
-                    );
-                    if ($builderResult['state'] == 'success') {
-                          array_push($transactions, base64_encode($builderResult['transactionBody']->serializeToString()));
+                                             ->year($localTargetDate['year'])
+                                             ->month($localTargetDate['month'])
+                                             ->day($localTargetDate['day']);
+                    
+                    $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
+                        'session_id' => $session->read('session_id'),
+                        'transaction_type' => 'creation',
+                        'memo' => $memo,
+                        'amount' => $localAmountCent,
+                        'target_pubkey'  => $pubKeyHex,
+                        'target_date' => $localTargetDateFrozen,
+                        'blockchain_type' => $this->blockchainType
+                    ]), '/createTransaction');
+                    
+                    if('success' != $requestAnswear['state']) {
+                      $this->addAdminError('TransactionCreations', 'createMulti', $requestAnswear, $user['id']);
+                        if ($requestResult['type'] == 'request error') {
+                            $this->Flash->error(__('Error by requesting LoginServer, please try again'));
+                        } else {
+                            $this->Flash->error(__('Error, please wait for the admin to fix it'));
+                        }
                     }
+                    if('success' == $requestAnswear['state'] && 'success' == $requestAnswear['data']['state']) {
+                      $pendingTransactionCount++;
+                      //echo "pending transaction count: $pendingTransactionCount<br>";
+                    } else {
+                     /*
+                      * if request contain unknown parameter format, shouldn't happen't at all
+                      * {"state": "error", "msg": "parameter format unknown"}
+                      * if json parsing failed
+                      * {"state": "error", "msg": "json exception", "details":"exception text"}
+                      * if session_id is zero or not set
+                      * {"state": "error", "msg": "session_id invalid"}
+                      * if session id wasn't found on login server, if server was restartet or user logged out (also per timeout, default: 15 minutes)
+                      * {"state": "error", "msg": "session not found"}
+                      * if session hasn't active user, shouldn't happen't at all, login-server should be checked if happen
+                      * {"state": "code error", "msg":"user is zero"}
+                      * if transaction type not known
+                      * {"state": "error", "msg":"transaction_type unknown"}
+                      * if receiver wasn't known to Login-Server
+                      * {"state": "not found", "msg":"receiver not found"}
+                      * if receiver account disabled, and therefor cannto receive any coins
+                      * {"state": "disabled", "msg":"receiver is disabled"}
+                      * if amount is invalid in creation
+                      * {"state": "invalid parameter", "msg":"invalid amount", "details":"GDD amount in GDD cent ]0,10000000]"}
+                      * if transaction was okay and will be further proccessed
+                      * {"state":"success"}
+                      */
+                      $answear_data = $requestAnswear['data'];
+                      if($answear_data['state'] === 'error') {
+                        if($answear_data['msg'] === 'session_id invalid' || $answear_data['msg'] === 'session not found') {
+                          $this->Flash->error(__('Fehler mit der Session, bitte logge dich erneut ein!'));
+                          $this->set('timeUsed', microtime(true) - $startTime);
+                          return;
+                        }
+                        if($answear_data['msg'] === 'user not in group') {
+                          $this->Flash->error(__('Fehler, Benutzer gehört zu einer anderen Gruppe!'));
+                          $this->set('timeUsed', microtime(true) - $startTime);
+                          return;
+                        }
+                      } else if($answear_data['state'] === 'not found' && $answear_data['msg'] === 'receiver not found') {
+                         $this->Flash->error(__('Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?'));
+                         $this->set('timeUsed', microtime(true) - $startTime);
+                         return;
+                      } else if($answear_data['state'] === 'disabled') {
+                         $this->Flash->error(__('Der Empfänger ist deaktiviert, daher können ihm zurzeit keine Gradidos gesendet werden.'));
+                         $this->set('timeUsed', microtime(true) - $startTime);
+                         return;
+                      } else if($answear_data['msg'] === 'invalid amount') {
+                        $this->Flash->error(__('Der Betrag ist ungültig, er muss größer als 0 und <= 1000 sein.'));
+                        $this->set('timeUsed', microtime(true) - $startTime);
+                         return;
+                      } else {
+                         $this->Flash->error(__('Unbehandelter Fehler: ') . json_encode($answear_data));
+                         $this->set('timeUsed', microtime(true) - $startTime);
+                         return;
+                      }
+                    }
+                    
                 }
                 /*echo "pendings: ";
                 var_dump($pendings);
@@ -412,49 +478,17 @@ class TransactionCreationsController extends AppController
                     }
                 }
                 $this->set('possibleReceivers', $possibleReceivers);
-                $creationTransactionCount = count($transactions);
-                if ($creationTransactionCount > 0) {
+                if ($pendingTransactionCount > 0) {
                     $user_balance = 0;
                     if (isset($user['balance'])) {
                         $user_balance = $user['balance'];
                     }
-                    // $session_id, $base64Message, $user_balance = 0
-                    $requestResult = $this->JsonRequestClient->sendTransaction(
-                        $session->read('session_id'),
-                        $transactions,
-                        $user_balance
-                    );
-                    if ($requestResult['state'] != 'success') {
-                        $this->addAdminError('TransactionCreations', 'createMulti', $requestResult, $user['id']);
-                        if ($requestResult['type'] == 'request error') {
-                            $this->Flash->error(__('Error by requesting LoginServer, please try again'));
-                        } else {
-                            $this->Flash->error(__('Error, please wait for the admin to fix it'));
-                        }
+                    $session->write('Transactions.pending', $pendingTransactionCount);
+                    
+                    if ($mode === 'next') {
+                        return $this->redirect($this->loginServerUrl . 'account/checkTransactions', 303);
                     } else {
-                        $json = $requestResult['data'];
-                        if ($json['state'] != 'success') {
-                            if ($json['msg'] == 'session not found') {
-                                $session->destroy();
-                                return $this->redirect($this->loginServerUrl . 'account', 303);
-                            } else {
-                                $this->addAdminError('TransactionCreations', 'createMulti', $json, $user['id']);
-                                $this->Flash->error(__('Login Server Error, please wait for the admin to fix it'));
-                            }
-                        } else {
-                            $pendingTransactionCount = $session->read('Transactions.pending');
-                            if ($pendingTransactionCount == null) {
-                                $pendingTransactionCount = $creationTransactionCount;
-                            } else {
-                                $pendingTransactionCount += $creationTransactionCount;
-                            }
-                            $session->write('Transactions.pending', $pendingTransactionCount);
-                            if ($mode === 'next') {
-                                return $this->redirect($this->loginServerUrl . 'account/checkTransactions', 303);
-                            } else {
-                                $this->Flash->success(__('Transaction submitted for review.'));
-                            }
-                        }
+                        $this->Flash->success(__('Transaction submitted for review.'));
                     }
                 }
             }
@@ -533,7 +567,6 @@ class TransactionCreationsController extends AppController
                         $amount,
                         $memo,
                         $receiverPubKeyHex,
-                        $requestAnswear['data']['userData']['identHash'],
                         new FrozenDate($jsonData['target_date'])
             );
             $transaction_base64 = '';
@@ -546,7 +579,8 @@ class TransactionCreationsController extends AppController
                 $session_id,
                 $transaction_base64,
                 $user['balance'],
-                $auto_sign
+                $auto_sign,
+                $this->blockchainType
             );
             if ($requestResult['state'] != 'success') {                
                 $msg = 'error returned from login server';

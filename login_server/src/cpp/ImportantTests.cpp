@@ -2,7 +2,7 @@
 
 #include <string>
 #include "ServerConfig.h"
-#include "Crypto/KeyPair.h"
+//#include "Crypto/KeyPair.h"
 #include "Crypto/KeyPairEd25519.h"
 #include "lib/DataTypeConverter.h"
 
@@ -38,27 +38,36 @@ namespace ImportantTests {
 
 		// test old key pair implementation
 
-		KeyPair keys;
+		//KeyPair keys;
 		bool errorsOccured = false;
-		std::string filtered_1_de = KeyPair::filterPassphrase(passphrase_1_de);
-		keys.generateFromPassphrase(filtered_1_de.data(), de_words);
-		if (keys.getPubkeyHex() != passphrase_1_pubkey_hex) {
+		std::string filtered_1_de = Passphrase::filter(passphrase_1_de);
+		KeyPairEd25519* keys = nullptr;
+		keys = KeyPairEd25519::create(Passphrase::create(filtered_1_de, de_words));
+		std::string public_key_hex = keys->getPublicKeyHex();
+			
+		if (std::string(public_key_hex.data(), public_key_hex.size() - 1) != passphrase_1_pubkey_hex) {
 			printf("1 de incorrect\n");
 			errorsOccured = true;
 		}
-		keys.generateFromPassphrase(passphrase_1_en.data(), en_words);
-		if (keys.getPubkeyHex() != passphrase_1_pubkey_hex) {
+		delete keys;
+		keys = KeyPairEd25519::create(Passphrase::create(passphrase_1_en, en_words));
+		public_key_hex = keys->getPublicKeyHex();
+		if (std::string(public_key_hex.data(), public_key_hex.size() - 1) != passphrase_1_pubkey_hex) {
 			printf("1 en incorrect\n");
 			errorsOccured = true;
 		}
-		std::string filtered_2_de = KeyPair::filterPassphrase(passphrase_2_de);
-		keys.generateFromPassphrase(filtered_2_de.data(), de_words);
-		if (keys.getPubkeyHex() != passphrase_2_pubkey_hex) {
+		std::string filtered_2_de = Passphrase::filter(passphrase_2_de);
+		delete keys;
+		keys = KeyPairEd25519::create(Passphrase::create(filtered_2_de, de_words));
+		public_key_hex = keys->getPublicKeyHex();
+		if (std::string(public_key_hex.data(), public_key_hex.size() - 1) != passphrase_2_pubkey_hex) {
 			printf("2 de incorrect\n");
 			errorsOccured = true;
 		}
-		keys.generateFromPassphrase(passphrase_2_en.data(), en_words);
-		if (keys.getPubkeyHex() != passphrase_2_pubkey_hex) {
+		delete keys;
+		keys = KeyPairEd25519::create(Passphrase::create(passphrase_2_en, en_words));
+		public_key_hex = keys->getPublicKeyHex();
+		if (std::string(public_key_hex.data(), public_key_hex.size() - 1) != passphrase_2_pubkey_hex) {
 			printf("2 en incorrect\n");
 			errorsOccured = true;
 		}

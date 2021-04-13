@@ -7,7 +7,7 @@
 <%!
 #include "../SingletonManager/SessionManager.h"
 #include "../SingletonManager/LanguageManager.h"
-#include "../Crypto/KeyPair.h"
+#include "../Crypto/KeyPairEd25519.h"
 #include "../ServerConfig.h"
 //#include "Poco/Net/HTTPServerParams.h"
 
@@ -68,13 +68,15 @@ enum PageState
 			auto registerKeyChoice = form.get("passphrase", "no");
 			std::string oldPassphrase = "";
 			if (registerKeyChoice == "no") {
-				auto oldPassphrase = KeyPair::filterPassphrase(form.get("passphrase-existing", ""));
+				auto oldPassphrase = Passphrase::filter(form.get("passphrase-existing", ""));
 				
 				if(oldPassphrase != "") {
-					if (User::validatePassphrase(oldPassphrase, &wordSource)) {
+					auto word_source = Passphrase::detectMnemonic(oldPassphrase);
+					if (word_source) {
 						// passphrase is valid 
 						if(PAGE_FORCE_ASK_PASSPHRASE == state) {
-							auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, wordSource);
+							
+							auto compareResult = mSession->comparePassphraseWithSavedKeys(oldPassphrase, word_source);
 							if(-2 == compareResult) {
 								response.redirect(ServerConfig::g_serverPath + "/error500");
 								return;
@@ -96,7 +98,8 @@ enum PageState
 				}
 			}
 			else if (registerKeyChoice == "yes") {
-				mSession->generatePassphrase();
+				auto passphrase = Passphrase::generate(wordSource);
+				mSession->setPassphrase(passphrase);
 			}
 		}
 	}
@@ -104,7 +107,7 @@ enum PageState
 	// double check passphrase
 	auto passphrase = mSession->getOldPassphrase();
 	auto langWordSource = wordSource;
-	if("" != passphrase && !User::validatePassphrase(passphrase, &wordSource)) {
+	if("" != passphrase && !Passphrase::detectMnemonic(passphrase)) {
 		addError(new Error("PassphrasePage", "Invalid Passphrase after double check"));
 		addError(new ParamError("PassphrasePage", "passphrase", passphrase.data()));
 		if(!mSession->getNewUser().isNull()) {
@@ -117,8 +120,8 @@ enum PageState
 	}
 	//printf("wordSource: %d, langWordSource: %d\n", (int)wordSource, (int)langWordSource);
 	if(wordSource != langWordSource) {
-		mSession->generatePassphrase();
-		User::validatePassphrase(passphrase, &wordSource);
+		//mSession->generatePassphrase();
+		mSession->setPassphrase(Passphrase::generate(wordSource));
 	}
 
 	if(mSession->getSessionState() == SESSION_STATE_PASSPHRASE_GENERATED && state != PAGE_ASK_ENSURE_PASSPHRASE) {
@@ -160,7 +163,7 @@ enum PageState
 				</div>
 				<h5 class="alert-heading"><%= gettext("Deine Passphrase (Groß/Kleinschreibung beachten)") %>:</h5>
 				<div class="col-lg-12 col-md-12 mx-auto alert alert-primary" style="text-align:center">
-				  <p><%= mSession->getPassphrase() %></p>
+				  <p><%= mSession->getPassphrase()->getString() %></p>
 				</div>
 				<div class="alert">
 				  <h5 class="alert-heading"><%= gettext("Was zu tun ist:") %></h5>
@@ -212,7 +215,7 @@ enum PageState
 		</div>
 		<script type="text/javascript">
 			var mnemonicWords = <% wordSource->getSortedWordList().stringify(responseStream); %>;
-			var passphrase = "<%= mSession->getPassphrase() %>";
+			var passphrase = "<%= mSession->getPassphrase()->getString() %>";
 			language = "<%= lm->keyForLanguage(lang) %>";
 		</script>
 		<script src="<%= ServerConfig::g_php_serverPath %>js/ensurePassphrase.min.js" type="text/javascript"></script>

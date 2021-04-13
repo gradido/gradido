@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 #include <cstring>
-#include "../lib/ErrorList.h"
+#include "../lib/NotificationList.h"
 #include "../lib/DRHash.h"
 #include "../tasks/CPUTask.h"
 
@@ -24,7 +24,7 @@
 #include "Poco/Net/MailMessage.h"
 
 
-class ErrorManager : public IErrorCollection
+class ErrorManager : public INotificationCollection
 {
 public:
 	~ErrorManager();
@@ -32,9 +32,9 @@ public:
 	static ErrorManager* getInstance();
 	
 	// will called delete on error 
-	virtual void addError(Error* error, bool log = true);
+	virtual void addError(Notification* error, bool log = true);
 
-	int getErrors(ErrorList* send);
+	int getErrors(NotificationList* send);
 
 	virtual void sendErrorsAsEmail();
 
@@ -43,7 +43,7 @@ protected:
 
 	// access mutex
 	Poco::Mutex mWorkingMutex;
-	std::map<DHASH, std::list<Error*>*> mErrorsMap;
+	std::map<DHASH, std::list<Notification*>*> mErrorsMap;
 	// how many errors should be stored
 
 	// poco logging

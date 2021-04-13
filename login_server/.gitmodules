@@ -13,3 +13,12 @@
 [submodule "dependencies/spirit-po"]
 	path = dependencies/spirit-po
 	url = https://github.com/cbeck88/spirit-po.git
+[submodule "dependencies/grpc"]
+	path = dependencies/grpc
+	url = https://github.com/grpc/grpc.git
+[submodule "dependencies/poco"]
+	path = dependencies/poco
+	url = https://github.com/pocoproject/poco.git
+[submodule "dependencies/cmake-modules"]
+	path = dependencies/cmake-modules
+	url = https://github.com/viaduck/cmake-modules.git

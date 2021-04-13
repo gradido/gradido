@@ -29,12 +29,12 @@ class SignatureMap {
     static public function fromEntity($transactionSignatures) 
     {
       
-      $protoSigMap = new \Model\Messages\Gradido\SignatureMap();
+      $protoSigMap = new \Proto\Gradido\SignatureMap();
       $sigPairs = $protoSigMap->getSigPair();
       //echo "sigPairs: "; var_dump($sigPairs); echo "<br>";
       //return null;
       foreach($transactionSignatures as $signature) {  
-        $sigPair = new \Model\Messages\Gradido\SignaturePair();
+        $sigPair = new \Proto\Gradido\SignaturePair();
         $sigPair->setPubKey(stream_get_contents($signature->pubkey));
         $sigPair->setEd25519(stream_get_contents($signature->signature));
         
@@ -46,14 +46,14 @@ class SignatureMap {
     
     static public function build($bodyBytes, array $keys) 
     {
-      $protoSigMap = new \Model\Messages\Gradido\SignatureMap();
+      $protoSigMap = new \Proto\Gradido\SignatureMap();
       $sigPairs = $protoSigMap->getSigPair();
       //echo "sigPairs: "; var_dump($sigPairs); echo "<br>";
       //return null;
       
       // sign with keys
       foreach($keys as $key) {
-        $sigPair = new \Model\Messages\Gradido\SignaturePair();
+        $sigPair = new \Proto\Gradido\SignaturePair();
         $sigPair->setPubKey(hex2bin($key['pub']));
         $sigPair->setEd25519(sodium_crypto_sign_detached($bodyBytes, hex2bin($key['priv'])));
 

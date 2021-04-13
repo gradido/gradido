@@ -17,7 +17,7 @@
 
 #include "../../SingletonManager/LanguageManager.h"
 
-#include "../../lib/ErrorList.h"
+#include "../../lib/NotificationList.h"
 
 namespace model {
 	using namespace Poco;
@@ -38,7 +38,7 @@ namespace model {
 		EMAIL_MAX = 11
 	};
 
-	class Email: public ErrorList
+	class Email: public NotificationList
 	{
 	public:
 		Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type);

@@ -35,10 +35,6 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 				if (!paramJsonObject->isNull("balance")) {
 					paramJsonObject->get("balance").convert(balance);
 					if (balance) {
-						auto u = session->getUser();
-						if (u) {
-							u->setBalance(balance);
-						}
 						auto nu = session->getNewUser();
 						if (!nu.isNull()) {
 							nu->setBalance(balance);
@@ -48,6 +44,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 				std::string transactionBase64String;
 				Poco::Dynamic::Var transaction_base64 = paramJsonObject->get("transaction_base64");
+				int alreadyEnlisted = 0;
 				bool auto_sign = false;
 				auto auto_sign_json = paramJsonObject->get("auto_sign");
 				if (!auto_sign_json.isEmpty()) {
@@ -161,7 +158,7 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 	}
 	else if (params.isDeque()) {
 		result->set("state", "error");
-		result->set("msg", "deque not implemented yet");
+		result->set("meg", "deque not implemented yet");
 	}
 	else {
 
@@ -172,4 +169,3 @@ Poco::JSON::Object* JsonTransaction::handle(Poco::Dynamic::Var params)
 
 	return result;
 }
-
