@@ -240,33 +240,27 @@ jobs:
       # UNIT TESTS FRONTEND ####################################################
       ##########################################################################
       - name: frontend | Unit tests
-        run: docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
-      ##########################################################################
-      # COVERAGE CHECK FRONTEND ################################################
-      ##########################################################################
-      #- name: frontend | Coverage check
-      #  uses: devmasx/coverage-check-action@v1.2.0
-      #  with:
-      #    type: simplecov
-      #    result_path: /coverage/coverage-final.json
-      #    min_coverage: 10
-      #    token: ${{ github.token }}
+        run: |
+          docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          mv ~/coverage ./coverage
       ##########################################################################
       # COVERAGE REPORT FRONTEND ################################################
       ##########################################################################
-      - name: show content of /coverage/lcov.info
-        run: |
-          ls ~/coverage
-          pwd
-          cd ~
-          pwd
-       #   mv /coverage/* ./coverage/
-       #   cat ./coverage/lcov.info
       - name: frontend | coverage report
         uses: romeovs/lcov-reporter-action@v0.2.21
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          lcov-file: /home/runner/coverage/lcov.info
+          lcov-file: ./coverage/lcov.info
+      ##########################################################################
+      # COVERAGE CHECK FRONTEND ################################################
+      ##########################################################################
+      - name: frontend | Coverage check
+        uses: devmasx/coverage-check-action@v1.2.0
+        with:
+          type: lcov
+          result_path: ./coverage/lcov.info
+          min_coverage: 10
+          token: ${{ github.token }}
       ##########################################################################
       # COVERALLS REPORT FRONTEND ##############################################
       ##########################################################################
