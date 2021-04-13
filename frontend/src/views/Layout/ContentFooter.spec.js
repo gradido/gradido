@@ -41,7 +41,7 @@ describe('ContentFooter', () => {
       })
 
       it('links to the login page when clicked on copyright', () => {
-        expect(wrapper.find('div.copyright').find('a').attributes('href')).toEqual('#/Login')
+        expect(wrapper.find('div.copyright').find('a').attributes('href')).toEqual('/login')
       })
     })
 

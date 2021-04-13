@@ -4,7 +4,7 @@
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
-          <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a>
+          <a href="/login" class="font-weight-bold ml-1">Gradido-Akademie</a>
           |
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
             App Verion {{ version }}
