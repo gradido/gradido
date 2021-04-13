@@ -156,18 +156,23 @@ class AppController extends Controller
         }
     }
 
-    protected function requestLogin($session_id = 0, $redirect = true)
+    protected function requestLogin($sessionId = 0, $redirect = true)
     {
         $session = $this->getRequest()->getSession();
         // check login
         // disable encryption for cookies
-        //$this->Cookie->configKey('User', 'encryption', false);
-        if(!$session_id) {
-            $session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
-            // TODO: This is unclear if correct
-            if($session_id == 0 && $session->check('session_id')) {
-          	  $session_id = intval($session->read('session_id'));
-          	}
+        $session_id = 0;
+        $php_session_id = 0;
+        if($session->check('session_id')) {
+            $php_session_id = intval($session->read('session_id'));
+        }
+        $cookie_session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
+        if($php_session_id != 0) {
+            $session_id = $php_session_id;
+        } else if($cookie_session_id != 0) {
+            $session_id = $cookie_session_id;
+        } else {
+            $session_id = $sessionId;
         }
         $ip = $this->request->clientIp();
         if (!$session->check('client_ip')) {
