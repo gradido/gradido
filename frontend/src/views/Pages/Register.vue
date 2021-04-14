@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="register-form">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -46,7 +46,7 @@
                     :label="$t('form.email')"
                     alternative
                     class="mb-3"
-                    name="email"
+                    name="Email"
                     :rules="{ required: true, email: true }"
                     v-model="model.email"
                   ></base-input>
@@ -57,6 +57,7 @@
                       <b-form-input
                         class="mb-0"
                         v-model="password"
+                        name="password"
                         :class="{ valid: passwordValidation.valid }"
                         :type="passwordVisible ? 'text' : 'password'"
                         prepend-icon="ni ni-lock-circle-open"
@@ -77,6 +78,7 @@
                   <base-input
                     :label="$t('form.password_repeat')"
                     type="password"
+                    name="password-repeat"
                     :placeholder="$t('form.password_repeat')"
                     prepend-icon="ni ni-lock-circle-open"
                     v-model.lazy="checkPassword"
@@ -91,7 +93,7 @@
                         </li>
                       </ul>
                     </div>
-                    <div class="matches" v-else-if="notSamePasswords">
+                    <div class="matches" v-else-if="!samePasswords">
                       <p>
                         {{ $t('site.signup.dont_match') }}
                         <i class="ni ni-active-40" color="danger"></i>
@@ -115,7 +117,7 @@
                     class="text-center"
                     v-if="
                       passwordsFilled &&
-                      !notSamePasswords &&
+                      samePasswords &&
                       passwordValidation.valid &&
                       namesFilled &&
                       emailFilled &&
@@ -133,7 +135,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4">
-        <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
   </div>
@@ -162,19 +164,10 @@ export default {
     }
   },
   methods: {
-    resetPasswords() {
-      this.password = ''
-      this.checkPassword = ''
-      this.submitted = true
-      setTimeout(() => {
-        this.submitted = false
-      }, 2000)
-    },
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
     onSubmit() {
-      // console.log("this.modals =>", this.modals)
       this.$store.dispatch('createUser', {
         email: this.model.email,
         first_name: this.model.firstname,
@@ -190,12 +183,8 @@ export default {
     },
   },
   computed: {
-    notSamePasswords() {
-      if (this.passwordsFilled) {
-        return this.password !== this.checkPassword
-      } else {
-        return false
-      }
+    samePasswords() {
+      return this.password === this.checkPassword
     },
     passwordsFilled() {
       return this.password !== '' && this.checkPassword !== ''
