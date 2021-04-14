@@ -230,7 +230,7 @@ class StateBalancesController extends AppController
         }
         
         $user = $session->read('StateUser');
-        $update_balance_result = $this->updateBalance($user['id']);
+        $update_balance_result = $this->updateBalances($user['id']);
         if($update_balance_result !== true) {
             $this->addAdminError('StateBalances', 'overview', $update_balance_result, $user['id']);
         }
