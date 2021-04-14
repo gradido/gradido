@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * TransactionSignaturesFixture
  */
-class TransactionSignaturesFixture extends TestFixture
+class TransactionSignaturesFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -45,6 +45,7 @@ class TransactionSignaturesFixture extends TestFixture
             [7, 7, '83ab780535883ec53ee76d0f68db0e1596418c9e100c806a4d4655d4dedf589d54a6319a2795dabab301e212b52f0dafb2725b7583447f19e47cb417d188a107', 'e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2'],
             [8, 8, '83ab780535883ec53ee76d0f68db0e1596418c9e100c806a4d4655d4dedf589d54a6319a2795dabab301e212b52f0dafb2725b7583447f19e47cb417d188a107', 'e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2']
         ];
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }
