@@ -13,11 +13,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 class BaseTestFixture extends TestFixture
 {
     // after copy from sql export, replace all hex values to hex strings with regExp (z.B. within Netbeans)
-<<<<<<< HEAD
-    // ''([0-9a-f]*) => '$1'
-=======
     // 0x([0-9a-f]*) => '$1'
->>>>>>> 33d751edaa339bca5a33ee873d2f00453dd0545a
     protected function sqlEntrysToRecords($sql_entries, $fields) {
         $field_array_keys = array_keys($fields);
         $records = [];
