@@ -24,5 +24,6 @@ class BaseTestFixture extends TestFixture
             }
             $records[] = $record;
         }
+        return $records;
     }
 }
