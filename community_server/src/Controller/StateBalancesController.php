@@ -44,7 +44,6 @@ class StateBalancesController extends AppController
     
     private function updateBalances($stateUserId)
     {
-        echo "stateUserId: $stateUserId\n";
         $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
         $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
         // info: cakephp use lazy loading, query will be executed later only if needed
@@ -128,7 +127,7 @@ class StateBalancesController extends AppController
         
         $transaction_ids = [];
         if($recalculate_state_user_transactions_balance) {
-            echo "recalculate state user transaction balances \n";
+           
             $state_user_transactions_array = $state_user_transactions->toArray();
             foreach($state_user_transactions_array as $i => $state_user_transaction) {
                 $transaction_ids[$state_user_transaction->transaction_id] = $i;
@@ -148,23 +147,19 @@ class StateBalancesController extends AppController
                 $amount_date = null;
                 $amount = 0;
                 
-                if($transaction->transaction_type_id == 1) { // creation
-                    echo "creation\n";
+                if($transaction->transaction_type_id == 1) { // creation                    
                     $temp = $transaction->transaction_creations[0];
-                    echo "creation amount: " . $temp->amount . "\n";
-                    echo "target date: " . $temp->target_date . "\n";
+
                     $balance_temp = $this->StateBalances->newEntity();
                     $balance_temp->amount = $temp->amount;
                     $balance_temp->record_date = $temp->target_date;
                     
                     $amount = $balance_temp->partDecay($transaction->received);
                     $amount_date = $transaction->received;
-                    echo "amount in state_user_transactions: $amount\n";
-                    echo "date in state_user_transactions: $amount_date\n";
-                    echo "diff: " . ($temp->amount - $amount) . "\n";
+
                     //$amount_date = 
                 } else if($transaction->transaction_type_id == 2) { // transfer
-                    echo "send coins\n";
+
                     $temp = $transaction->transaction_send_coins[0];
                     $amount = intval($temp->amount);
                     // reverse if sender
@@ -172,21 +167,20 @@ class StateBalancesController extends AppController
                         $amount *= -1.0;
                     }
                     $amount_date = $transaction->received;
-                    echo "amount: " . $amount . "\n";
-                    echo "date: " . $amount_date . "\n";
+
                 }
                 if($i == 0) {
                     $balance_cursor->amount = $amount;
                 } else {
                     $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
                 }
-                echo "balance cursor amount: " . $balance_cursor->amount . "\n";
+                
                 $balance_cursor->record_date = $amount_date;
                 $state_user_transaction_index = $transaction_ids[$transaction->id];
                 $state_user_transactions_array[$state_user_transaction_index]->balance = $balance_cursor->amount;
                 $state_user_transactions_array[$state_user_transaction_index]->balance_date = $balance_cursor->record_date;   
                 $i++;
-                echo "##########################\n";
+                
             }
             
             $results = $stateUserTransactionsTable->saveMany($state_user_transactions_array);
@@ -464,45 +458,17 @@ class StateBalancesController extends AppController
         
         $this->updateBalances($user['id']);
         
-        
-        echo "try to unhex: ". $user['public_hex'] . "\n";
-        $public_key_bin = hex2bin($user['public_hex']);
-        //var_dump($public_key_bin);
-        $stateUserQuery = $this->StateBalances->StateUsers
-            ->find('all')
-            //->where(['public_key' => $public_key_bin])
-            ->where(['id' => $user['id']])
-            //->contain(['StateBalances'])
-            ;
-        $hex_from_db = bin2hex(stream_get_contents($stateUserQuery->first()->public_key));
-        echo "hex from db:  $hex_from_db\n";
-        echo "state user query array: \n";
-        var_dump($stateUserQuery->toArray());
-        echo "\n";
-        
-        $state_balance = $this->StateBalances->find()->where(['state_user_id' => $user['id']]);
-        echo "state balance:\n";
-        var_dump($state_balance->toArray());
-        echo "\n";
-                
-        $result_user_count =  $stateUserQuery->count();
-        if($result_user_count < 1) {
-          return $this->returnJson(['state' => 'success', 'balance' => 0]);
-        }
-        else if($result_user_count > 1) {
-          return $this->returnJson([
-              'state' => 'error', 
-              'msg' => 'multiple entrys found',
-              'details' => ['public_key' => $user['public_hex'], 'entry_count' => $result_count]
-          ]);
-        }
-        //$state_balance = $stateUserQuery->first()->state_balances;
+        $state_balance = $this->StateBalances->find()->where(['state_user_id' => $user['id']])->first();
 
         if(!$state_balance) {
             return $this->returnJson(['state' => 'success', 'balance' => 0]);
         }
         
-        return $this->returnJson(['state' => 'success', 'balance' => $state_balance->amount]);
+        return $this->returnJson([
+            'state' => 'success',
+            'balance' => $state_balance->amount,
+            'decay' => $state_balance->decay
+        ]);
     }
 
 

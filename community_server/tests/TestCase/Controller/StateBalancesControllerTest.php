@@ -3,6 +3,9 @@ namespace App\Test\TestCase\Controller;
 
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use Cake\ORM\TableRegistry;
+use Cake\I18n\Time;
+
 
 /**
  * App\Controller\StateBalancesController Test Case
@@ -29,6 +32,12 @@ class StateBalancesControllerTest extends TestCase
         'app.StateBalances',
         'app.TransactionTypes'
     ];
+    
+    public function setUp()
+    {
+        parent::setUp();
+        $this->StateBalances = TableRegistry::getTableLocator()->get('StateBalances');
+    }
 
     /**
      * Test initialize method
@@ -65,7 +74,7 @@ class StateBalancesControllerTest extends TestCase
      *
      * @return void
      */
-    public function testAjaxGetBalance()
+    public function testAjaxGetBalance1()
     {
         $session_id = rand();
         $this->session([
@@ -77,10 +86,49 @@ class StateBalancesControllerTest extends TestCase
                 'public_hex' => 'f7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f'
             ]
         ]);
-        //echo "balance: $balance";
-        $this->getAndParse('/state-balances/ajaxGetBalance/' . $session_id, 
-                ['state' => 'success', 'balance' => 1200000]
-        );
+        
+        $response = $this->getAndParseWithoutCompare('/state-balances/ajaxGetBalance/' . $session_id);
+
+        $this->assertEquals('success', $response->state);
+        $this->assertEquals(7321828, $response->balance);
+        $this->assertLessThan(7321828, $response->decay);
+        
+    }
+    
+    public function testAjaxGetBalance2()
+    {
+        $session_id = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'id' => 3,
+                'email_checked' => 1,
+                'public_hex' => '131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6'
+            ]
+        ]);
+
+        $response = $this->getAndParseWithoutCompare('/state-balances/ajaxGetBalance/' . $session_id);
+        $this->assertEquals('success', $response->state);
+        $this->assertEquals(0, $response->balance);
+    }
+    public function testAjaxGetBalance3()
+    {
+        $session_id = rand();
+        $this->session([
+            'session_id' => $session_id,
+            'Transaction' => ['pending' => 0, 'executing' => 0],
+            'StateUser' => [
+                'id' => 4,
+                'email_checked' => 1,
+                'public_hex' => 'e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2'
+            ]
+        ]);
+
+        $response = $this->getAndParseWithoutCompare('/state-balances/ajaxGetBalance/' . $session_id);
+        $this->assertEquals('success', $response->state);
+        $this->assertEquals(9112595, $response->balance);
+        $this->assertLessThan(9112595, $response->decay);
     }
     
     public function testAjaxGetBalanceInvalidSession()
@@ -243,7 +291,24 @@ class StateBalancesControllerTest extends TestCase
           $expected = json_encode($expected);
         }
         
-        
         $this->assertEquals($expected, $responseBodyString);
+    }
+    private function getAndParseWithoutCompare($path) 
+    {
+        $this->configRequest([
+            'headers' => ['Accept' => 'application/json']
+        ]);
+        
+        $this->disableErrorHandlerMiddleware();
+        $this->get($path);        
+        
+        // Check that the response was a 200
+        $this->assertResponseOk();     
+        
+        $responseBodyString = (string)$this->_response->getBody();
+        $json = json_decode($responseBodyString);
+        $this->assertNotFalse($json);
+
+        return $json;
     }
 }
