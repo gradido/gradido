@@ -44,11 +44,12 @@ class StateUsersFixture extends BaseTestFixture
     public function init()
     {
         $sql_entrys = [
-            [1, 0, 0, 0xf7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f, 'test1.gmail.de', 'Max', 'Mustermann', NULL, 0],
-            [3, 0, 0, 0x131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6, 'test2.gmail.com', 'Ines', 'Mustermann', NULL, 0],
-            [4, 0, 0, 0xe3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2, 'test3.yahoo.com', 'Samuel', 'Schmied', NULL, 0]
+            [1, 0, 0, 'f7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f', 'test1.gmail.de', 'Max', 'Mustermann', NULL, 0],
+            [3, 0, 0, '131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6', 'test2.gmail.com', 'Ines', 'Mustermann', NULL, 0],
+            [4, 0, 0, 'e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2', 'test3.yahoo.com', 'Samuel', 'Schmied', NULL, 0]
         ];
         $this->records = $this->sqlEntrysToRecords($sql_entrys, $this->fields);
+        echo bin2hex($this->records[0]['public_key']) . "\n";
         parent::init();
     }
 }
