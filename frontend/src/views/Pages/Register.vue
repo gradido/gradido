@@ -220,9 +220,8 @@ export default {
       }
       if (errors.length === 0) {
         return { valid: true, errors }
-      } else {
-        return { valid: false, errors }
       }
+      return { valid: false, errors }
     },
   },
 }
