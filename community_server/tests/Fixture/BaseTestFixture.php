@@ -12,7 +12,8 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class BaseTestFixture extends TestFixture
 {
- 
+    // after copy from sql export, replace all hex values to hex strings with regExp (z.B. within Netbeans)
+    // ''([0-9a-f]*) => '$1'
     protected function sqlEntrysToRecords($sql_entries, $fields) {
         $field_array_keys = array_keys($fields);
         $records = [];
@@ -20,7 +21,13 @@ class BaseTestFixture extends TestFixture
             $record = [];
             foreach($sql_entry as $i => $value) {
                 $field = $field_array_keys[$i];
-                $record[$field] = $value;
+                if($fields[$field]['type'] == 'binary') {
+                    if(is_string($value)) {
+                        $record[$field] = hex2bin($value);
+                    }   
+                } else {
+                    $record[$field] = $value;
+                }
             }
             $records[] = $record;
         }
