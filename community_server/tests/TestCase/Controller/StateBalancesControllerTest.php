@@ -22,6 +22,7 @@ class StateBalancesControllerTest extends TestCase
         'app.TransactionCreations',
         'app.Transactions',
         'app.StateUsers',
+        'app.StateUserTransactions',
         'app.StateErrors',
         'app.TransactionSignatures',
         'app.TransactionSendCoins',
@@ -73,7 +74,7 @@ class StateBalancesControllerTest extends TestCase
             'StateUser' => [
                 'id' => 1,
                 'email_checked' => 1,
-                'public_hex' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'
+                'public_hex' => 'f7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f'
             ]
         ]);
         //echo "balance: $balance";

@@ -120,14 +120,5 @@ class StateBalancesTableTest extends TestCase
     {
         $this->markTestIncomplete('Not implemented yet.');
     }
-    /*
-     * calculate balance at end of month 
-     * work only if state balance at begin of month exist
-     * use transaction_send_coins and transaction_creations
-     */
-    //public function updateLastStateBalanceOfMonth($month, $year, $state_user_id)
-    public function testUpdateLastStateBalanceOfMonth()
-    {
-        
-    }
+    
 }
