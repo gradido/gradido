@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * TransactionSendCoinsFixture
  */
-class TransactionSendCoinsFixture extends TestFixture
+class TransactionSendCoinsFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -15,11 +15,12 @@ class TransactionSendCoinsFixture extends TestFixture
      */
     // @codingStandardsIgnoreStart
     public $fields = [
-        'id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'transaction_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'state_user_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
+        'transaction_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'sender_public_key' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
+        'state_user_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => true, 'default' => '0', 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'receiver_public_key' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
-        'receiver_user_id' => ['type' => 'binary', 'length' => 64, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
+        'receiver_user_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => true, 'default' => '0', 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'amount' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'sender_final_balance' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         '_constraints' => [
@@ -27,7 +28,7 @@ class TransactionSendCoinsFixture extends TestFixture
         ],
         '_options' => [
             'engine' => 'InnoDB',
-            'collation' => 'utf8_bin'
+            'collation' => 'utf8mb4_unicode_ci'
         ],
     ];
     // @codingStandardsIgnoreEnd
@@ -38,18 +39,16 @@ class TransactionSendCoinsFixture extends TestFixture
      */
     public function init()
     {
-        // (1, 4, 2, 0x80183e03535d17a54ff1fd7dbaed86939d423a19a258c26b8e338ce601338355, 1, 15000000, 15000000);
-        $this->records = [
-            [
-                'id' => 1,
-                'transaction_id' => 4,
-                'state_user_id' => 1,
-                'receiver_public_key' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d',
-                'receiver_user_id' => 4,
-                'amount' => 15000000,
-                'sender_final_balance' => 15000000
-            ],
+        $sql = [
+            [2, 3, 0x0000000000000000000000000000000000000000000000000000000000000000, 1, 0xe3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2, 4, 1000000, 6254699],
+            [3, 4, 0x0000000000000000000000000000000000000000000000000000000000000000, 1, 0xe3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2, 4, 100000, 7027197],
+            [11, 5, 0x0000000000000000000000000000000000000000000000000000000000000000, 1, 0xe3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2, 4, 100000, 6922113],
+            [12, 6, 0x0000000000000000000000000000000000000000000000000000000000000000, 4, 0xf7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f, 1, 100000, 9212951],
+            [13, 7, 0x0000000000000000000000000000000000000000000000000000000000000000, 4, 0xf7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f, 1, 100000, 9112627],
+            [14, 8, 0x0000000000000000000000000000000000000000000000000000000000000000, 4, 0xf7f4a49a4ac10379f8b9ddcb731c4d9ec495e6edd16075f52672cd25e3179f0f, 1, 100000, 8912594]
         ];
+        
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }
