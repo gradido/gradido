@@ -65,7 +65,7 @@ Router::scope('/', function (RouteBuilder $routes) {
             if($entry == 'ElopageWebhook' || $entry == 'AppRequests') {
               return true;
             }
-            if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost') {
+            if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost' || $request->clientIp() == '') {
               return true;
             }
             $allowedCaller = Configure::read('API.allowedCaller');
