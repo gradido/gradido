@@ -76,10 +76,9 @@ class TransactionBody extends TransactionBase {
       
       $transactionEntity->transaction_type_id = $this->transactionTypeId;
       $transactionEntity->memo = $this->getMemo();
+      $transactionEntity->received = new Date();
       
       if ($transactionsTable->save($transactionEntity)) {
-          // reload entity to get received date filled from mysql
-        $transactionEntity = $transactionsTable->get($transactionEntity->id);
         // success
         $this->mTransactionID = $transactionEntity->id;
         if(!$this->mSpecificTransaction->save($transactionEntity->id, $firstPublic, $transactionEntity->received)) {
