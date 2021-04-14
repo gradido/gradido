@@ -49,7 +49,6 @@ class StateUsersFixture extends BaseTestFixture
             [4, 0, 0, 'e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2', 'test3.yahoo.com', 'Samuel', 'Schmied', NULL, 0]
         ];
         $this->records = $this->sqlEntrysToRecords($sql_entrys, $this->fields);
-        echo bin2hex($this->records[0]['public_key']) . "\n";
         parent::init();
     }
 }
