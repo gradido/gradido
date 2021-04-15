@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="gdd-send">
     <b-row v-show="row_form">
       <b-col xl="12" md="12">
         <b-alert variant="warning" show dismissible v-html="$t('form.attention')"></b-alert>

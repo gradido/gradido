@@ -16,6 +16,7 @@ import BaseDropdown from '@/components/BaseDropdown.vue'
 import VueQrcode from 'vue-qrcode'
 import BaseHeader from '@/components/BaseHeader'
 import StatsCard from '@/components/Cards/StatsCard.vue'
+import BaseAlert from '@/components/BaseAlert'
 
 import clickOutside from '@/directives/click-ouside.js'
 
@@ -37,6 +38,7 @@ global.localVue.use(Notifications)
 global.localVue.use(SideBar)
 global.localVue.use(VueRouter)
 global.localVue.use(VueQrcode)
+
 global.localVue.component(BaseInput.name, BaseInput)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
@@ -44,5 +46,6 @@ global.localVue.component(BaseButton.name, BaseButton)
 global.localVue.component(BaseDropdown.name, BaseDropdown)
 global.localVue.component(BaseHeader.name, BaseHeader)
 global.localVue.component(StatsCard.name, StatsCard)
+global.localVue.component(BaseAlert.name, BaseAlert)
 
 global.localVue.directive('click-outside', clickOutside)
