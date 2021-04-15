@@ -164,10 +164,10 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount())) {
+      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
           return false;
       }
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount())) {
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
           return false;
       }
       
