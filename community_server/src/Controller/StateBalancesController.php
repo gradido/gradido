@@ -191,9 +191,12 @@ class StateBalancesController extends AppController
         $current_state_balance = null;
         $cursor = 0;
         $transactions_reversed = array_reverse($transactions);
+        $decay_transactions = [];
         $maxI = count($transactions_reversed);
+
         foreach($transactions_reversed as $i => $transaction) {
             if(!isset($transaction['transaction_id'])) {
+                //echo "missing transaction<br>";
                 continue;
             }
             $transaction_id = $transaction['transaction_id'];
@@ -219,17 +222,11 @@ class StateBalancesController extends AppController
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
-               /*     echo "prev date: $prev->balance_date, current date: $current->balance_date, interval: ";
-                    var_dump($interval);
-                    echo "<br>";
-                    echo "prev balance: $prev->balance<br>diff: $diff_amount<br>";
-                    echo "current balance: $current->balance<br>";
-                * 
-                */
+     
                     //echo $interval->format('%R%a days');
                     $decay_transaction = [
                         'type' => 'decay',
-                        'balance' => -($prev->balance - $diff_amount),
+                        'balance' => -intval($prev->balance - $diff_amount),
                         'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
                         'memo' => ''
                     ];
@@ -237,8 +234,9 @@ class StateBalancesController extends AppController
             } 
             
             if($decay_transaction) {
-                array_splice($transactions_reversed, $i + $cursor, 0, [$decay_transaction]);
-                $cursor++;
+                $decay_transactions[] = $decay_transaction;
+                //array_splice($transactions_reversed, $i + $cursor, 0, [$decay_transaction]);
+                //$cursor++;
             } 
             if($i == $maxI-1) {
                 $stateUserTransaction = $stateUserTransactionsTable
@@ -248,18 +246,24 @@ class StateBalancesController extends AppController
                 //var_dump($stateUserTransaction);
                 $state_balance->amount = $stateUserTransaction->balance;
                 $state_balance->record_date = $stateUserTransaction->balance_date;
-                $transactions_reversed[] = [
+                $decay_transactions[] = [
+                //$transactions_reversed[] = [
                     'type' => 'decay',
-                    'balance' => -($stateUserTransaction->balance - $state_balance->decay),
+                    'balance' => -intval($stateUserTransaction->balance - $state_balance->decay),
                     'decay_duration' => $stateUserTransaction->balance_date->timeAgoInWords(),
                     'memo' => ''
                 ];
                 
             }
         }
+        $final_transactions = [];
+        foreach($transactions_reversed as $i => $transaction) {
+            $final_transactions[] = $transaction;
+            $final_transactions[] = $decay_transactions[$i];
+        }
         // for debugging
         $calculated_balance = 0;
-        foreach($transactions_reversed as $tr) {
+        foreach($final_transactions as $tr) {
             if($tr['type'] == 'send') {
                 $calculated_balance -= intval($tr['balance']);
             } else {
@@ -268,7 +272,7 @@ class StateBalancesController extends AppController
         }
         $this->set('calculated_balance', $calculated_balance);
         
-        $this->set('transactions', array_reverse($transactions_reversed));
+        $this->set('transactions', array_reverse($final_transactions));
         $this->set('transactionExecutingCount', $session->read('Transactions.executing'));
         $this->set('balance', $session->read('StateUser.balance'));
         $this->set('timeUsed', microtime(true) - $startTime);

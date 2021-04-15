@@ -195,12 +195,12 @@ class StateBalancesTable extends Table
                 if($transaction->transaction_type_id == 1) { // creation                    
                     $temp = $transaction->transaction_creations[0];
 
-                    $balance_temp = $this->newEntity();
+                    /*$balance_temp = $this->newEntity();
                     $balance_temp->amount = $temp->amount;
                     $balance_temp->record_date = $temp->target_date;
-                    
-                    $amount = $balance_temp->partDecay($transaction->received);
-                    $amount_date = $transaction->received;
+                    */
+                    $amount = intval($temp->amount);//$balance_temp->partDecay($transaction->received);
+                    $amount_date = $temp->target_date;
 
                     //$amount_date = 
                 } else if($transaction->transaction_type_id == 2) { // transfer
