@@ -102,7 +102,7 @@ class StateBalancesTable extends Table
         $state_user_transactions = $stateUserTransactionsTable
                                             ->find()
                                             ->where(['state_user_id' => $stateUserId])
-                                            ->order(['transaction_id ASC'])
+                                            ->order(['balance_date ASC'])
                                             //->contain(false);
                                             ;
         
@@ -183,12 +183,18 @@ class StateBalancesTable extends Table
                     ->where(['id IN' => array_keys($transaction_ids)])
                     ->contain(['TransactionCreations', 'TransactionSendCoins']);
 
+            $transactions_indiced = [];
+            foreach($transactions as $transaction) {
+                $transactions_indiced[$transaction->id] = $transaction;
+            }
             $balance_cursor = $this->newEntity();
             $i = 0;
-            foreach($transactions as $transaction) {    
+            foreach($state_user_transactions_array as $state_user_transaction) {
+                $transaction = $transactions_indiced[$state_user_transaction->transaction_id];
                 if($transaction->transaction_type_id > 2) {
                     continue;
                 }
+                //echo "transaction id: ".$transaction->id . "<br>";
                 $amount_date = null;
                 $amount = 0;
                 
@@ -219,7 +225,8 @@ class StateBalancesTable extends Table
                 } else {
                     $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
                 }
-                
+                //echo "new balance: " . $balance_cursor->amount . "<br>";
+               
                 $balance_cursor->record_date = $amount_date;
                 $state_user_transaction_index = $transaction_ids[$transaction->id];
                 $state_user_transactions_array[$state_user_transaction_index]->balance = $balance_cursor->amount;

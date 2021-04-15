@@ -200,6 +200,7 @@ class StateBalancesController extends AppController
                 continue;
             }
             $transaction_id = $transaction['transaction_id'];
+            //echo "transaction id: $transaction_id <br>";
             $decay_transaction = NULL;
             $state_balance = $this->StateBalances->newEntity();
             
@@ -211,20 +212,22 @@ class StateBalancesController extends AppController
                             'transaction_id IN' => [$transaction_id, $prev_transaction['transaction_id']],
                             'state_user_id' => $user['id']
                         ])
-                        ->order(['transaction_id ASC'])
+                        ->order(['balance_date ASC'])
                         ->toArray();
                
                 $prev = $stateUserTransactions[0];
                 if($prev->balance > 0) {
                 //    var_dump($stateUserTransactions);
                     $current = $stateUserTransactions[1];
+                    //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
                     $interval = $current->balance_date->diff($prev->balance_date);
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
      
                     //echo $interval->format('%R%a days');
-                    $decay_transaction = [
+                    //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
+                    $decay_transaction = [ 
                         'type' => 'decay',
                         'balance' => -intval($prev->balance - $diff_amount),
                         'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
