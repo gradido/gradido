@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * TransactionCreationsFixture
  */
-class TransactionCreationsFixture extends TestFixture
+class TransactionCreationsFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -15,17 +15,18 @@ class TransactionCreationsFixture extends TestFixture
      */
     // @codingStandardsIgnoreStart
     public $fields = [
-        'id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'transaction_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'state_user_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
+        'transaction_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'state_user_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'amount' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'ident_hash' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
+        'target_date' => ['type' => 'timestamp', 'length' => null, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
         '_constraints' => [
             'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
         ],
         '_options' => [
             'engine' => 'InnoDB',
-            'collation' => 'utf8_bin'
+            'collation' => 'utf8mb4_unicode_ci'
         ],
     ];
     // @codingStandardsIgnoreEnd
@@ -36,34 +37,11 @@ class TransactionCreationsFixture extends TestFixture
      */
     public function init()
     {
-
-      // (1, 1, 2, 10000000, 0x3235303332373635330000000000000000000000000000000000000000000000, '2020-12-01 00:00:00'),
-      // (2, 2, 2, 10000000, 0x3235303332373635330000000000000000000000000000000000000000000000, '2021-01-01 00:00:00'),
-      // (3, 3, 2, 10000000, 0x3235303332373635330000000000000000000000000000000000000000000000, '2021-02-01 00:00:00');
-
-        $this->records = [
-            [
-                'id' => 1,
-                'transaction_id' => 1,
-                'state_user_id' => 1,
-                'amount' => 10000000,
-                'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
-            ],
-            [
-                'id' => 2,
-                'transaction_id' => 2,
-                'state_user_id' => 1,
-                'amount' => 10000000,
-                'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
-            ],
-            [
-                'id' => 3,
-                'transaction_id' => 3,
-                'state_user_id' => 1,
-                'amount' => 10000000,
-                'ident_hash' => hex2bin('3235303332373635330000000000000000000000000000000000000000000000')
-            ],
+        $sql = [
+            [2, 1, 4, 10000000, '0000000000000000000000000000000000000000000000000000000000000000', '2021-01-01 00:00:00'],
+            [3, 2, 1, 10000000, '0000000000000000000000000000000000000000000000000000000000000000', '2021-01-01 00:00:00']
         ];
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }

@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * TransactionsFixture
  */
-class TransactionsFixture extends TestFixture
+class TransactionsFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -15,17 +15,19 @@ class TransactionsFixture extends TestFixture
      */
     // @codingStandardsIgnoreStart
     public $fields = [
-        'id' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'state_group_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'transaction_type_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'tx_hash' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
+        'id' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
+        'state_group_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'transaction_type_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
+        'tx_hash' => ['type' => 'binary', 'length' => 48, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
+        'memo' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'collate' => 'utf8mb4_unicode_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
         'received' => ['type' => 'timestamp', 'length' => null, 'null' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => '', 'precision' => null],
+        'blockchain_type_id' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => true, 'null' => false, 'default' => '1', 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         '_constraints' => [
             'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
         ],
         '_options' => [
             'engine' => 'InnoDB',
-            'collation' => 'utf8_bin'
+            'collation' => 'utf8mb4_unicode_ci'
         ],
     ];
     // @codingStandardsIgnoreEnd
@@ -36,44 +38,17 @@ class TransactionsFixture extends TestFixture
      */
     public function init()
     {
-      // (1, NULL, 1, 0x7dc55cf3a1a39b441d87d5452c40cad8e7fd8aab573ed1da0bf118129fc77987, 'AGE Dezember 2020', '2021-02-19 13:18:52'),
-      // (2, NULL, 1, 0xdea38d4dd72af1e0d90621ae8139efbbdb3b44b60be04b0d40cfc157afd2c19c, 'AGE Januar 2021', '2021-02-19 13:25:36'),
-      // (3, NULL, 1, 0x4e7734ed84dcd8ddc5286b87ff85eb12704092d51f485e7c4dbcb4a68ba296ce, 'AGE Februar 2021', '2021-02-19 13:25:37'),
-      // (4, NULL, 2, 0x065b5b75b7f4b156fe2b07b54b1a3df0c4eadc40c0f6940c666fed4d75751f8f, 'Ich teile mit dir\r\n \r\nmiau _=', '2021-02-19 13:27:14');
-        $this->records = [
-            [
-                'id' => 1,
-                'group_id' => NULL,
-                'transaction_type_id' => 1,
-                'tx_hash' => '0x7dc55cf3a1a39b441d87d5452c40cad8e7fd8aab573ed1da0bf118129fc77987',
-                'memo' => 'AGE Dezember 2020',
-                'received' => '2021-02-19 13:18:52'
-            ],
-            [
-                'id' => 2,
-                'group_id' => NULL,
-                'transaction_type_id' => 1,
-                'tx_hash' => '0xdea38d4dd72af1e0d90621ae8139efbbdb3b44b60be04b0d40cfc157afd2c19c',
-                'memo' => 'AGE Januar 2021',
-                'received' => '2021-02-19 13:25:36'
-            ],
-            [
-                'id' => 3,
-                'group_id' => NULL,
-                'transaction_type_id' => 1,
-                'tx_hash' => '0x4e7734ed84dcd8ddc5286b87ff85eb12704092d51f485e7c4dbcb4a68ba296ce',
-                'memo' => 'AGE Februar 2021',
-                'received' => '2021-02-19 13:25:37'
-            ],
-            [
-                'id' => 4,
-                'group_id' => NULL,
-                'transaction_type_id' => 2,
-                'tx_hash' => '0x065b5b75b7f4b156fe2b07b54b1a3df0c4eadc40c0f6940c666fed4d75751f8f',
-                'memo' => 'Ich teile mit dir\r\n \r\nmiau _=',
-                'received' => '2021-02-19 13:27:14'
-            ],
+        $sql = [
+            [1, NULL, 1, '15f242a7bb92a7db82678e0baf5ec1734c038ac0dc7b19e6d1ebbcf92a6cf3ad00000000000000000000000000000000', 'AGE Januar 2021', '2021-04-09 00:00:00', 1],
+            [2, NULL, 1, 'f932eca7686802d1697773fea713a3c6a3e3dace8b5aa552dd8503d50ce349f500000000000000000000000000000000', 'AGE Januar 2021', '2021-04-12 00:00:00', 1],
+            [3, NULL, 2, '4e2235f208edaf5cbb285955732022a625cf1e100eb629c56896d2fbfb8b34e800000000000000000000000000000000', 'test', '2021-04-12 00:00:00', 1],
+            [4, NULL, 2, 'fc6e69696beb7c56ad7c511fc3999f954411427bec810184b70c092911deae1900000000000000000000000000000000', 'test time', '2021-04-14 00:00:00', 1],
+            [5, NULL, 2, 'a7149ebc0d6cd8c061906dafe05e13689b51642a41100d0ec7bb6cd2dcafdc1800000000000000000000000000000000', 'test time', '2021-04-14 09:01:07', 1],
+            [6, NULL, 2, '2e3c3ab3e42c06f2ecb12f61c970712467d8ad9ddfa16fa58dd76492e5924b7d00000000000000000000000000000000', 'test time 3', '2021-04-14 09:02:28', 1],
+            [7, NULL, 2, 'c2c6354d77ff371daeee25fce9c947748b53d3d6b8398a92bd681923cfd2057100000000000000000000000000000000', 'test login crash', '2021-04-14 09:28:46', 1],
+            [8, NULL, 2, '5a8cbf1aaac06b00b2951ff39983cb2ca9a1e6710d72c8e5067278dc679a823100000000000000000000000000000000', 'test login crash', '2021-04-14 09:31:28', 1]
         ];
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }

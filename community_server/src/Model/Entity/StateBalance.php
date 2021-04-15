@@ -44,7 +44,7 @@ class StateBalance extends Entity
             return $dateOrTime->i18nFormat(Time::UNIX_TIMESTAMP_FORMAT);
         } else {
             var_dump($dateOrTime);
-            debug_print_backtrace(0, 4);
+            debug_print_backtrace(0, 6);
             die("date or time unexpected object");
         }
     }
