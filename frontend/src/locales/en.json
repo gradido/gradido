@@ -59,9 +59,12 @@
     "signup": {
       "title": "Create your Gradido account",
       "subtitle": "Become a part of the community!",
-      "strength":"Password strength:",
-      "strong":"strong",
-      "agree":"I have read and understood and agree to them"
+      "agree":"I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
+      "lowercase":"One lowercase letter required.",
+      "uppercase":"One uppercase letter required.",
+      "minimum":"8 characters minimum.",
+      "one_number":"One number required.",
+      "dont_match":"Passwords don't match."
     },
     "password": {
       "title": "Reset password",

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="register-form">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -26,52 +26,81 @@
               <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
                   <base-input
+                    :label="$t('form.firstname')"
                     alternative
                     class="mb-3"
-                    prepend-icon="ni ni-hat-3"
-                    :placeholder="$t('form.firstname')"
-                    name="Vorname"
-                    :rules="{ required: true }"
+                    name="firstname"
+                    :rules="{ required: true, min: 3 }"
                     v-model="model.firstname"
                   ></base-input>
                   <base-input
+                    :label="$t('form.lastname')"
                     alternative
                     class="mb-3"
-                    prepend-icon="ni ni-hat-3"
-                    :placeholder="$t('form.lastname')"
-                    name="Nachname"
-                    :rules="{ required: true }"
+                    name="lastname"
+                    :rules="{ required: true, min: 2 }"
                     v-model="model.lastname"
                   ></base-input>
 
                   <base-input
+                    :label="$t('form.email')"
                     alternative
                     class="mb-3"
-                    prepend-icon="ni ni-email-83"
-                    :placeholder="$t('form.email')"
                     name="Email"
                     :rules="{ required: true, email: true }"
                     v-model="model.email"
                   ></base-input>
 
+                  <hr />
+                  <b-form-group :label="$t('form.password')">
+                    <b-input-group>
+                      <b-form-input
+                        class="mb-0"
+                        v-model="password"
+                        name="password"
+                        :class="{ valid: passwordValidation.valid }"
+                        :type="passwordVisible ? 'text' : 'password'"
+                        prepend-icon="ni ni-lock-circle-open"
+                        :placeholder="$t('form.password')"
+                      ></b-form-input>
+
+                      <b-input-group-append>
+                        <b-button variant="outline-primary">
+                          <b-icon
+                            :icon="passwordVisible ? 'eye' : 'eye-slash'"
+                            @click="togglePasswordVisibility"
+                          />
+                        </b-button>
+                      </b-input-group-append>
+                    </b-input-group>
+                  </b-form-group>
+
                   <base-input
-                    alternative
-                    class="mb-3"
-                    prepend-icon="ni ni-lock-circle-open"
-                    :placeholder="$t('form.password')"
+                    :label="$t('form.password_repeat')"
                     type="password"
-                    name="Password"
-                    :rules="{ required: true, min: 6 }"
-                    v-model="model.password"
-                  ></base-input>
-                  <div class="text-muted font-italic">
-                    <small>
-                      {{ $t('site.signup.strength') }}
-                      <span class="text-success font-weight-700">
-                        {{ $t('site.signup.strong') }}
-                      </span>
-                    </small>
-                  </div>
+                    name="password-repeat"
+                    :placeholder="$t('form.password_repeat')"
+                    prepend-icon="ni ni-lock-circle-open"
+                    v-model.lazy="checkPassword"
+                    :class="{ valid: passwordValidation.valid }"
+                  />
+
+                  <transition name="hint" appear>
+                    <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
+                      <ul>
+                        <li v-for="error in passwordValidation.errors" :key="error">
+                          <small>{{ error }}</small>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="matches" v-else-if="!samePasswords">
+                      <p>
+                        {{ $t('site.signup.dont_match') }}
+                        <i class="ni ni-active-40" color="danger"></i>
+                      </p>
+                    </div>
+                  </transition>
+
                   <b-row class="my-4">
                     <b-col cols="12">
                       <base-input
@@ -79,17 +108,22 @@
                         name="Privacy Policy"
                       >
                         <b-form-checkbox v-model="model.agree">
-                          <span class="text-muted">
-                            <a href="https://gradido.net/de/datenschutz/" target="_blank">
-                              {{ $t('privacy_policy') }}
-                            </a>
-                            - {{ $t('site.signup.agree') }}
-                          </span>
+                          <span class="text-muted" v-html="$t('site.signup.agree')"></span>
                         </b-form-checkbox>
                       </base-input>
                     </b-col>
                   </b-row>
-                  <div class="text-center">
+                  <div
+                    class="text-center"
+                    v-if="
+                      passwordsFilled &&
+                      samePasswords &&
+                      passwordValidation.valid &&
+                      namesFilled &&
+                      emailFilled &&
+                      model.agree
+                    "
+                  >
                     <b-button type="submit" variant="secondary" class="mt-4">
                       {{ $t('signup') }}
                     </b-button>
@@ -101,7 +135,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4">
-        <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
   </div>
@@ -115,15 +149,25 @@ export default {
         firstname: '',
         lastname: '',
         email: '',
-        password: '',
-        password2: '',
         agree: false,
       },
+      rules: [
+        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+      ],
+      password: '',
+      checkPassword: '',
+      passwordVisible: false,
+      submitted: false,
     }
   },
   methods: {
+    togglePasswordVisibility() {
+      this.passwordVisible = !this.passwordVisible
+    },
     onSubmit() {
-      // console.log("this.modals =>", this.modals)
       this.$store.dispatch('createUser', {
         email: this.model.email,
         first_name: this.model.firstname,
@@ -136,6 +180,37 @@ export default {
       this.model.lastname = ''
       this.model.password = ''
       this.$router.push('/thx')
+    },
+  },
+  computed: {
+    samePasswords() {
+      return this.password === this.checkPassword
+    },
+    passwordsFilled() {
+      return this.password !== '' && this.checkPassword !== ''
+    },
+    namesFilled() {
+      return (
+        this.model.firstname !== '' &&
+        this.model.firstname.length > 2 &&
+        this.model.lastname !== '' &&
+        this.model.lastname.length > 1
+      )
+    },
+    emailFilled() {
+      return this.model.email !== ''
+    },
+    passwordValidation() {
+      let errors = []
+      for (let condition of this.rules) {
+        if (!condition.regex.test(this.password)) {
+          errors.push(condition.message)
+        }
+      }
+      if (errors.length === 0) {
+        return { valid: true, errors }
+      }
+      return { valid: false, errors }
     },
   },
 }
