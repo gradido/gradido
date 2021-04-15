@@ -148,6 +148,13 @@ class Transaction extends TransactionBase {
        if (!$this->mTransactionBody->save($this->getFirstPublic(), $this->mProtoTransaction->getSigMap())) {
           $this->addErrors($this->mTransactionBody->getErrors());
           $connection->rollback();
+          // correct auto-increment value to prevent gaps
+          $transactionsTable = $this->getTable('transactions');
+          $transactions = $transactionsTable->find()->select(['id'])->contain(false);
+          $count = $transactions->count();
+          $connection = ConnectionManager::get('default');
+          $connection->execute("ALTER TABLE `transactions` auto_increment = $count;");
+          
           return false;
       }
       

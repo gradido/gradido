@@ -77,9 +77,9 @@ namespace model
 			{
 				result = parser.parse(temp);
 			}
-			catch (Poco::JSON::JSONException& jsone)
+			catch (Poco::JSON::JSONException& json)
 			{
-				return nullptr;
+				return new Poco::JSON::Object;
 			}
 
 			return result.extract<Poco::JSON::Object::Ptr>();

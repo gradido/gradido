@@ -24,7 +24,7 @@
     "sender":"Absender",
     "firstname":"Vorname",
     "lastname":"Nachname",
-    "email":"eMail",
+    "email":"E-Mail",
     "email_repeat":"eMail wiederholen",
     "password":"Passwort",
     "password_repeat":"Passwort wiederholen",
@@ -59,9 +59,12 @@
     "signup": {
       "title": "Erstelle dein Gradido-Konto",
       "subtitle": "Werde Teil der Gemeinschaft!",
-      "strength":"Passwortsicherheit:",
-      "strong":"stark",
-      "agree":"habe ich gelesen und verstanden und stimme diesen zu."
+      "agree":"Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
+      "lowercase":"Ein Kleinbuchstabe erforderlich.",
+      "uppercase":"Ein Großbuchstabe erforderlich.",
+      "minimum":"Mindestens 8 Zeichen.",
+      "one_number":"Eine Zahl erforderlich.",
+      "dont_match":"Die Passwörter stimmen nicht überein."
     },
     "password": {
       "title": "Passwort zurücksetzen",
