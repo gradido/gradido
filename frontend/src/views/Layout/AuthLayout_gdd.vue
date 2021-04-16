@@ -3,7 +3,7 @@
     <template>
       <div class="main-content">
         <router-view></router-view>
-        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        <content-footer></content-footer>
       </div>
     </template>
   </div>

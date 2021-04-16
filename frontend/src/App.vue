@@ -44,10 +44,8 @@ export default {
     }
   },
   created() {
-    //console.log('xx', $cookies.get('gdd_lang'))
-    //console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
     if ($cookies.isKey('gdd_session_id') == true) {
-      //console.log('%cHey %c' + $cookies.get('gdd_u') + '', 'font-weight:bold', 'color: orange')
+      //console.log('APP is COOKIE')
       this.$store.commit('session_id', $cookies.get('gdd_session_id'))
       this.$store.commit('email', $cookies.get('gdd_u'))
       if ($cookies.get('gdd_lang') != 'de' || $cookies.get('gdd_lang') != 'de') {
@@ -59,8 +57,12 @@ export default {
       this.$i18n.locale = $cookies.get('gdd_lang')
       this.$router.push('overview')
     } else {
-      //console.log('app.vue to Logout')
-      this.$store.dispatch('logout')
+      //console.log('APP is NOOOOO COOKIE')
+      if (window.location.pathname == '/reset') {
+        this.$router.push('reset')
+      } else {
+        this.$store.dispatch('logout')
+      }
     }
   },
   data() {

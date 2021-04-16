@@ -45,6 +45,12 @@ const routes = [
     name: 'Explorer',
     component: () => import('../views/Pages/Explorer.vue'),
   },
+  {
+    path: '/reset',
+    name: 'reset',
+    component: () => import('../views/Pages/Reset.vue'),
+  },
+
   { path: '*', component: NotFound },
 ]
 
