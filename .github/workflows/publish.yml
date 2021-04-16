@@ -56,6 +56,8 @@ jobs:
       ##########################################################################
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       ##########################################################################
       # SET ENVS ###############################################################
       ##########################################################################
@@ -109,7 +111,7 @@ jobs:
       ##########################################################################
       - name: Community Server | Build `production` image
         run: |
-          docker build -t "gradido/community_server:latest" -t "gradido/community_server:production" -t "gradido/community_server:${VERSION}" -t "gradido/community_server:${BUILD_VERSION}" community_server/
+          docker build -t "gradido/community_server:latest" -t "gradido/community_server:production" -t "gradido/community_server:${VERSION}" -t "gradido/community_server:${BUILD_VERSION}" -f ./community_server/Dockerfile ./
           docker save "gradido/community_server" > /tmp/community_server.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
