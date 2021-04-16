@@ -29,6 +29,16 @@
           >
             {{ $t('members_area') }}
           </b-nav-item>
+          <b-nav-item
+            :href="
+              $i18n.locale === 'de'
+                ? 'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing'
+                : 'https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing'
+            "
+            target="_blank"
+          >
+            {{ $t('whitepaper') }}
+          </b-nav-item>
         </b-nav>
       </b-col>
     </b-row>

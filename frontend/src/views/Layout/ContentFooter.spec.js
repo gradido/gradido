@@ -92,6 +92,12 @@ describe('ContentFooter', () => {
         )
       })
 
+      it('links to the whitepaper', () => {
+        expect(wrapper.findAll('a.nav-link').at(3).attributes('href')).toEqual(
+          'https://docs.google.com/document/d/1kcX1guOi6tDgnFHD9tf7fB_MneKTx-0nHJxzdN8ygNs/edit?usp=sharing',
+        )
+      })
+
       describe('links are localized', () => {
         beforeEach(() => {
           mocks.$i18n.locale = 'de'
@@ -118,6 +124,12 @@ describe('ContentFooter', () => {
         it('links to the German elopage when locale is de', () => {
           expect(wrapper.findAll('a.nav-link').at(2).attributes('href')).toEqual(
             'https://elopage.com/s/gradido/sign_in?locale=de',
+          )
+        })
+
+        it('links to the German whitepaper when locale is de', () => {
+          expect(wrapper.findAll('a.nav-link').at(3).attributes('href')).toEqual(
+            'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing',
           )
         })
       })
