@@ -12,15 +12,20 @@ This document describes the community server API. The community server is writte
 Returns the current account balance
 
 ### Request
-`GET http://localhost/state-balances/ajaxGetBalance/-127182`
+`GET http://localhost/api/getBalance/`
 
 ### Response
 Assuming: session is valid
+Session will be searched in php session and GRADIDO_LOGIN cookie.
+Additional session can be provided as GET-Parameter 
+`GET http://localhost/api/getBalance/-127182`
 
 ```json
 {
 	"state":"success",
-	"balance":174500 
+        "balance":15906078,
+        "decay":15873851,
+        "decay_date":"2021-04-16T11:47:21+00:00"
 }
 ```
 
