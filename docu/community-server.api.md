@@ -35,8 +35,20 @@ Additional session can be provided as GET-Parameter
 List all transactions for logged in user
 
 ### Request
-`GET http://localhost/state-balances/ajaxListTransactions/-127182/[DESC]`
-(The `DESC` part is optional symbolized by [])
+`GET http://localhost/api/ajaxListTransactions/[1]/[25]/[DESC]/[session_id]`
+Parts symbolized by [] are optional
+  - first parameter (1) is page for paging
+  - second parameter (25) is count for paging
+  - third parameter is ordering of resulting array, default is ASC
+  - fourth parameter is session_id (session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this )
+
+#### Paging
+With count you say how many entrys you like to have in the result.
+With page you say on which page you are. 
+For example 50 transactions are in db. 
+With 1/25 you get the first 25 transactions (1-25)
+With 2/20 you get the second 20 transactions (21-40)
+
 
 ### Response
 Assuming: session is valid
