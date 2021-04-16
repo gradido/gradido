@@ -33,10 +33,10 @@ const apiPost = async (url, payload) => {
 
 const communityAPI = {
   balance: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxGetBalance/' + session_id)
+    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'getBalance/' + session_id)
   },
   transactions: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'ajaxListTransactions/' + session_id)
+    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'listTransactions/1/25/ASC/' + session_id)
   },
   /*create: async (session_id, email, amount, memo, target_date = new Date() ) => {
     const payload = {

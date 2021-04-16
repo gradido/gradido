@@ -35,7 +35,7 @@ Additional session can be provided as GET-Parameter
 List all transactions for logged in user
 
 ### Request
-`GET http://localhost/api/ajaxListTransactions/[1]/[25]/[DESC]/[session_id]`
+`GET http://localhost/api/listTransactions/[1]/[25]/[DESC]/[session_id]`
 Parts symbolized by [] are optional
   - first parameter (1) is page for paging
   - second parameter (25) is count for paging
