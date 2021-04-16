@@ -2,8 +2,8 @@ name: gradido publish CI
 
 on:
   push:
-  #  branches:
-  #    - master
+    branches:
+      - master
 
 jobs:
   ##############################################################################
@@ -263,71 +263,71 @@ jobs:
       - name: Push Nginx
         run: docker push --all-tags gradido/nginx
 
-#  # JOB: GITHUB TAG LATEST VERSION #############################################
-#  ##############################################################################
-#  ##############################################################################
-#  github_tag:
-#    name: Tag latest version on Github
-#    runs-on: ubuntu-latest
-#    needs: [upload_to_dockerhub]
-#    steps:
-#      ##########################################################################
-#      # CHECKOUT CODE ##########################################################
-#      ##########################################################################
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0 # Fetch full History for changelog
-#      ##########################################################################
-#      # SET ENVS ###############################################################
-#      ##########################################################################
-#      - name: ENV - VERSION
-#        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-#      - name: ENV - BUILD_DATE
-#        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-#      - name: ENV - BUILD_VERSION
-#        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-#      - name: ENV - BUILD_COMMIT
-#        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-#      ##########################################################################
-#      # Push version tag to GitHub #############################################
-#      ##########################################################################
-#      # TODO: this will error on duplicate
-#      #- name: package-version-to-git-tag
-#      #  uses: pkgdeps/git-tag-action@v2
-#      #  with:
-#      #    github_token: ${{ secrets.GITHUB_TOKEN }}
-#      #    github_repo: ${{ github.repository }}
-#      #    version: ${{ env.VERSION }}
-#      #    git_commit_sha: ${{ github.sha }}
-#      #    git_tag_prefix: "v"
-#      ##########################################################################
-#      # Push build tag to GitHub ###############################################
-#      ##########################################################################
-#      - name: package-version-to-git-tag + build number
-#        uses: pkgdeps/git-tag-action@v2
-#        with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          github_repo: ${{ github.repository }}
-#          version: ${{ env.BUILD_VERSION }}
-#          git_commit_sha: ${{ github.sha }}
-#          git_tag_prefix: "b"
-#      ##########################################################################
-#      # Push release tag to GitHub #############################################
-#      ##########################################################################
-#      - name: yarn install
-#        run: yarn install
-#      - name: generate changelog
-#        run: yarn auto-changelog --latest-version ${{ env.VERSION }} --unreleased-only
-#      - name: package-version-to-git-release
-#        continue-on-error: true # Will fail if tag exists
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-#        with:
-#          tag_name: ${{ env.VERSION }}
-#          release_name: ${{ env.VERSION }}
-#          body_path: ./CHANGELOG.md
-#          draft: false
-#          prerelease: false
+  # JOB: GITHUB TAG LATEST VERSION #############################################
+  ##############################################################################
+  ##############################################################################
+  github_tag:
+    name: Tag latest version on Github
+    runs-on: ubuntu-latest
+    needs: [upload_to_dockerhub]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch full History for changelog
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # Push version tag to GitHub #############################################
+      ##########################################################################
+      # TODO: this will error on duplicate
+      #- name: package-version-to-git-tag
+      #  uses: pkgdeps/git-tag-action@v2
+      #  with:
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    github_repo: ${{ github.repository }}
+      #    version: ${{ env.VERSION }}
+      #    git_commit_sha: ${{ github.sha }}
+      #    git_tag_prefix: "v"
+      ##########################################################################
+      # Push build tag to GitHub ###############################################
+      ##########################################################################
+      - name: package-version-to-git-tag + build number
+        uses: pkgdeps/git-tag-action@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_repo: ${{ github.repository }}
+          version: ${{ env.BUILD_VERSION }}
+          git_commit_sha: ${{ github.sha }}
+          git_tag_prefix: "b"
+      ##########################################################################
+      # Push release tag to GitHub #############################################
+      ##########################################################################
+      - name: yarn install
+        run: yarn install
+      - name: generate changelog
+        run: yarn auto-changelog --latest-version ${{ env.VERSION }} --unreleased-only
+      - name: package-version-to-git-release
+        continue-on-error: true # Will fail if tag exists
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}
+          body_path: ./CHANGELOG.md
+          draft: false
+          prerelease: false
