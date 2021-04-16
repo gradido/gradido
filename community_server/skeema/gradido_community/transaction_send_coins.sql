@@ -1,7 +1,6 @@
 CREATE TABLE `transaction_send_coins` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `transaction_id` int(10) unsigned NOT NULL,
-  `public_key` binary(32) NOT NULL,
   `sender_public_key` binary(32) NOT NULL,
   `state_user_id` int(10) unsigned DEFAULT 0,
   `receiver_public_key` binary(32) NOT NULL,
