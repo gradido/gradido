@@ -98,7 +98,6 @@ describe('DashboardLayoutGdd', () => {
       // to do: get this working!
       it.skip('has second item "transactions" linked to transactions in navbar', async () => {
         navbar.findAll('ul > li > a').at(1).trigger('click')
-        //console.log(wrapper.html())
         await flushPromises()
         await jest.runAllTimers()
         await flushPromises()
