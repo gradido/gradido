@@ -19,12 +19,12 @@ WORKDIR ${DOCKER_WORKDIR}
 COPY . .
 #RUN git submodule update --init --recursive
 RUN ls -la 
-RUN cd dependencies/iroha-ed25519 && \
-	ls -la && \
-	mkdir build && \
-	cd build && \	
-	cmake .. -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC && \
-	make -j$(nproc)
+# RUN cd dependencies/iroha-ed25519 && \
+# 	ls -la && \
+# 	mkdir build && \
+# 	cd build && \	
+# 	cmake .. -DEDIMPL=ref10 -DHASH=sha2_sphlib -DRANDOM=bcryptgen -DBUILD=STATIC && \
+# 	make -j$(nproc)
 	
 RUN cd dependencies/mariadb-connector-c && \
 	mkdir build && \
