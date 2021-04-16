@@ -36,7 +36,9 @@ const communityAPI = {
     return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'getBalance/' + session_id)
   },
   transactions: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'listTransactions/1/25/ASC/' + session_id)
+    return apiGet(
+      CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'listTransactions/1/25/ASC/' + session_id,
+    )
   },
   /*create: async (session_id, email, amount, memo, target_date = new Date() ) => {
     const payload = {
