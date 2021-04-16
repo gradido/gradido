@@ -1,0 +1,8 @@
+HTTP:
+
+JSONP or command line:
+getShortLivingAPIKey
+  with username and password (define in config)
+
+createGroup
+  with APIKey and TopicID

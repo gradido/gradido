@@ -1,0 +1,73 @@
+Note to Hedera and Gradido Transactions:
+	- A Transaction contain TransactionBody serialized 
+	- TransactionBody contains the actual transaction
+	- Hedera has namespace proto, gradido has namespace model.messages.gradido 
+
+
+LoginServer
+	register NodeServer with (username and password) or API key
+	
+
+LoginServer get called with data from http form: 
+	- 1 group name
+	- 1 group alias
+	- x registered node server(s), evt. with API key if not saved
+	
+	Hedera::ConsensusService::createTopic
+		get TransactionReceipt with TopicID (if succeed)
+		// TopicID consists of three int64: shardNum, realmNum, topicNum
+    
+    Hedera::ConsensusService::ConsensusSubmitMessage
+	    proto.ConsensusSubmitMessageTransactionBody.topicID = gradido_discover_topicid // global, must obtained before first node server can go online, maybe hardcoded?
+		proto.ConsensusSubmitMessageTransactionBody.message = model.messages.gradido.DiscoverIfExist serialized 
+				
+		
+Gradido Node receive from Hedera Mirror Node: DiscoverIfExist
+	Check if group alias known to gradido node 
+		If not, doing nothing, not saving message	
+		If found, call answearUrl with HTTP POST Request, not saving message in json format
+			{ 
+			  "TransactionID":<found in hedera transaction>,
+			  "thingToFind":model.messages.gradido.DiscoverIfExist.thingToFind,
+			  "value":model.messages.gradido.DiscoverIfExist.value
+			}
+		  
+LoginServer wait at least 2 minutes to answears (async) and if no answear was received, proceed
+	json-rpc http request createGroup with APIKey and TopicID to choosen noder server 
+	{"jsonrpc": "2.0", "method": "createGroup", "params": {"APIKey": <saved or from form>, "TopicID": <from hedera answear>}, "id": rand()}
+		//send TopicID to Node Server(s) (choose from http-interface) 
+		
+	
+Gradido Node 	
+  create group folder, register for listening on topic from hedera 
+  
+LoginServer
+	Hedera::ConsensusService::ConsensusSubmitMessage
+		proto.ConsensusSubmitMessageTransactionBody.topicID = <from hedera answera>
+		proto.ConsensusSubmitMessageTransactionBody.message = 
+			model.messages.gradido.Transaction
+				id = <left empty>;
+				received = <left empty>;
+				sigMap = model.messages.gradido.SignatureMap
+					sigPair = model.messages.gradido.SignaturePair
+						pubKey = <public root key of group founder>
+						signature = ed25519 = <bodyBytes signed with group founder private key>
+				txHash = <left empty>;
+				
+				bodyBytes = model.messages.gradido.TransactionBody  serialized
+					memo = <empty>
+					created = model.messages.gradido.TimestampSeconds
+						seconds = <current timestamp>
+					data = model.messages.gradido.StateCreateGroup
+						name = <group name>
+						alias = <group alias>
+						parentGroupAlias = <parent group alias or empty>
+						hederaTopicId = <from hedera answear>
+			
+		signed from user, he is the group founder now and can sign group related messages, as long as no other was voted
+	
+Gradio Node receive message from hedera mirror node, 
+	save it to blockchain
+	validate: sequenze nr must be 1, 
+		call again discoveryIfExist for group alias to make sure, no one has get the alias in between
+

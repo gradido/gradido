@@ -1,0 +1,31 @@
+[
+    {
+        "transaction": {
+            "version_number": 1,
+            "signature": {
+                "pubkey": "00000000000000000000000000000000",
+                "signature": "00000000000000000000000000000000"
+            },
+            "signature_count": 1,
+            "hedera_transaction": {
+                "consensusTimestamp": {
+                    "seconds": 7,
+                    "nanos": 11,
+                },
+                "runningHash": "00000000000000000000000000000000",
+                "sequenceNumber": 13,
+                "runningHashVersion": 3
+            },
+            "transaction_type": "GRADIDO_CREATION",
+            "gradido_creation": {
+                "user": "00000000000000000000000000000000",
+                "new_balance": 100,
+                "prev_transfer_rec_num": 0,
+                "amount": 100
+            },
+            "result": result,
+            "parts": 1,
+            "memo": ""
+        }
+    }
+]

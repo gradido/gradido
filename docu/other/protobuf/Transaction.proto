@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package gradido;
+
+import "BasicTypes.proto";
+
+/*
+	id will be set by Node server
+	txHash will be also set by Node server,
+	  calculated from previous transaction txHash and this id, sigMap and received;
+*/
+// at least 232 Byte for a transfer without memo
+message Transaction {
+	uint64 	id = 1; // 8
+	TimestampSeconds received = 2; // 8
+	SignatureMap sigMap = 3; // 96 Byte
+	bytes txHash = 4; // 32 Byte
+	bytes bodyBytes = 5;
+}

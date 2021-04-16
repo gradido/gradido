@@ -1,0 +1,17 @@
+Basic: 
+simply find last transaction of konto and check if matching
+
+Single-Strain: 
+go through all transaction of konto and revalidate from lower to higher transaction id
+
+Multi-Strain: 
+validate also last of cash inflow from another kontos
+
+Multi-Strain-Complete:
+revalidate all transaction of konto and linked kontos
+
+Full-Group: 
+revalidate all transactions of group
+
+Full: 
+revalidate all transactions of group and all linked groups

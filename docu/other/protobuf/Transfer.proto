@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package gradido;
+
+import "BasicTypes.proto";
+// at least 88 Byte
+message Transfer {
+	repeated SenderAmount senderAmounts = 1; // je 48 Byte
+	repeated ReceiverAmount receiverAmounts = 2; // je 40 Byte
+	
+}
