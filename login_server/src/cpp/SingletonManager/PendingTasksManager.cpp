@@ -193,7 +193,7 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 				bool removeIt = false;
 				if (!json.isNull()) {
 					auto state = json->get("state");
-					if (!state.isEmpty() && json->get("state").toString() == "success") {
+					if (!state.isEmpty() && state.toString() == "success") {
 						removeIt = true;
 					}
 				}
