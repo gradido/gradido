@@ -44,8 +44,9 @@ export default {
     }
   },
   created() {
+     
     if ($cookies.isKey('gdd_session_id') == true) {
-      //console.log('APP is COOKIE')
+      //console.log('APP is COOKIE', )
       this.$store.commit('session_id', $cookies.get('gdd_session_id'))
       this.$store.commit('email', $cookies.get('gdd_u'))
       if ($cookies.get('gdd_lang') != 'de' || $cookies.get('gdd_lang') != 'de') {
@@ -57,12 +58,14 @@ export default {
       this.$i18n.locale = $cookies.get('gdd_lang')
       this.$router.push('overview')
     } else {
-      //console.log('APP is NOOOOO COOKIE')
-      if (window.location.pathname == '/reset') {
-        this.$router.push('reset')
+       
+       console.log('APP is NOOOOO COOKIE', this.$route.path )
+      if(this.$route.path == '/reset') {
+          
       } else {
-        this.$store.dispatch('logout')
+         this.$store.dispatch('logout')
       }
+      
     }
   },
   data() {

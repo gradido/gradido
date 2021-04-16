@@ -21,18 +21,12 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  //console.log('to', to)
-  //console.log('from', from)
-  let language = to.params.lang
-  if (!language) {
-    language = 'de'
-  }
-  if (to.name == 'reset') {
-    //console.log('to query', to.query)
+  console.log('to', to)
+  console.log('from', from)
+   
     next()
-  } else {
-    next()
-  }
+   
+  
 })
 
 export default router

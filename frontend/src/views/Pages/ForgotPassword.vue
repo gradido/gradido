@@ -19,23 +19,21 @@
             <b-card-body class="px-lg-5 py-lg-5">
               <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <base-input
+                  <base-input 
                     alternative
                     class="mb-3"
                     prepend-icon="ni ni-email-83"
                     :placeholder="$t('form.email')"
                     name="Email"
                     :rules="{ required: true, email: true }"
-                    v-model="model.email"
+                    v-model="form.email"
                   ></base-input>
-                  {{ form }}
                   <div class="text-center">
                     <b-button
                       type="submit"
                       outline
                       variant="secondary"
                       class="mt-4"
-                      :disabled="disable"
                     >
                       {{ $t('site.password.reset_now') }}
                     </b-button>
@@ -53,21 +51,26 @@
   </div>
 </template>
 <script>
+import loginAPI from '../../apis/loginAPI.js'
 export default {
   name: 'password',
   data() {
     return {
-      disable: 'disabled',
-      model: {
+      form: {
         email: '',
       },
     }
   },
   methods: {
-    onSubmit() {
-      this.$store.dispatch('passwordReset', { email: this.model.email })
-      this.model.email = ''
-      this.$router.push('/thx')
+    async onSubmit() {  
+     const result = await loginAPI.sendEmail(
+        this.form.email
+      )
+      if (result.success) {
+        this.$router.push({path: '/thx', params: { id: 'resetmail'}})
+      } else {
+        alert(result.result)
+      }
     },
   },
 }

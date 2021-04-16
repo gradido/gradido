@@ -63,6 +63,15 @@ const loginAPI = {
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
   },
+  sendEmail: async (email, email_text = 7, email_verification_code_type = 'resetPassword') => {
+    console.log("api email",email)
+    const payload = {
+      email,
+      email_text,
+      email_verification_code_type,
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
+  },
 }
 
 export default loginAPI
