@@ -2,38 +2,17 @@ name: gradido publish CI
 
 on:
   push:
-    branches:
-      - master
+  #  branches:
+  #    - master
 
 jobs:
-  ##############################################################################
-  # JOB: PREPARE ###############################################################
-  ##############################################################################
-  #prepare:
-  #  name: Prepare
-  #  runs-on: ubuntu-latest
-  #  # needs: [nothing]
-  #  steps:
-  #    ##########################################################################
-  #    # CHECKOUT CODE ##########################################################
-  #    ##########################################################################
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-  #    ##########################################################################
-  #    # TODO: DO STUFF ??? #####################################################
-  #    ##########################################################################
-  #    - name: Check translation files
-  #      run: |
-  #        scripts/translations/sort.sh
-  #        scripts/translations/missing-keys.sh
-
   ##############################################################################
   # JOB: DOCKER BUILD COMMUNITY NEO4J ##########################################
   ##############################################################################
   build_production_frontend:
     name: Docker Build Production - Frontend
     runs-on: ubuntu-latest
-    #needs: [prepare] [nothing]
+    #needs: [nothing]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -65,116 +44,152 @@ jobs:
           path: /tmp/frontend.tar
 
   ##############################################################################
-  # JOB: DOCKER BUILD PRODUCTION BACKEND #######################################
+  # JOB: DOCKER BUILD PRODUCTION LOGIN SERVER ##################################
   ##############################################################################
-  #build_production_backend:
-  #  name: Docker Build Production - Backend
-  #  runs-on: ubuntu-latest
-  #  needs: [prepare]
-  #  steps:
-  #    ##########################################################################
-  #    # CHECKOUT CODE ##########################################################
-  #    ##########################################################################
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-  #    ##########################################################################
-  #    # SET ENVS ###############################################################
-  #    ##########################################################################
-  #    - name: ENV - VERSION
-  #      run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_DATE
-  #      run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_VERSION
-  #      run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_COMMIT
-  #      run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-  #    ##########################################################################
-  #    # BUILD BACKEND DOCKER IMAGE (production) ################################
-  #    ##########################################################################
-  #    - name: backend | Build `production` image
-  #      run: |
-  #        docker build --target production -t "ocelotsocialnetwork/backend:latest" -t "ocelotsocialnetwork/backend:${VERSION}" -t "ocelotsocialnetwork/backend:${BUILD_VERSION}" backend/
-  #        docker save "ocelotsocialnetwork/backend" > /tmp/backend.tar
-  #    - name: Upload Artifact
-  #      uses: actions/upload-artifact@v2
-  #      with:
-  #        name: docker-backend-production
-  #        path: /tmp/backend.tar
+  build_production_login_server:
+    name: Docker Build Production - Login Server
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # LOGIN SERVER ###########################################################
+      ##########################################################################
+      - name: Login Server | Build `production` image
+        run: |
+          docker build -t "gradido/login_server:latest" -t "gradido/login_server:production" -t "gradido/login_server:${VERSION}" -t "gradido/login_server:${BUILD_VERSION}" login_server/
+          docker save "gradido/login_server" > /tmp/login_server.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-login-server-production
+          path: /tmp/login_server.tar
 
   ##############################################################################
-  # JOB: DOCKER BUILD PRODUCTION WEBAPP ########################################
+  # JOB: DOCKER BUILD PRODUCTION COMMUNITY SERVER ##############################
   ##############################################################################
-  #build_production_webapp:
-  #  name: Docker Build Production - WebApp
-  #  runs-on: ubuntu-latest
-  #  needs: [prepare]
-  #  steps:
-  #    ##########################################################################
-  #    # CHECKOUT CODE ##########################################################
-  #    ##########################################################################
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-  #    ##########################################################################
-  #    # SET ENVS ###############################################################
-  #    ##########################################################################
-  #    - name: ENV - VERSION
-  #      run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_DATE
-  #      run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_VERSION
-  #      run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_COMMIT
-  #      run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-  #    ##########################################################################
-  #    # BUILD WEBAPP DOCKER IMAGE (build) ######################################
-  #    ##########################################################################
-  #    - name: webapp | Build `production` image
-  #      run: |
-  #        docker build --target production -t "ocelotsocialnetwork/webapp:latest" -t "ocelotsocialnetwork/webapp:${VERSION}" -t "ocelotsocialnetwork/webapp:${BUILD_VERSION}" webapp/
-  #        docker save "ocelotsocialnetwork/webapp" > /tmp/webapp.tar
-  #    - name: Upload Artifact
-  #      uses: actions/upload-artifact@v2
-  #      with:
-  #        name: docker-webapp-production
-  #        path: /tmp/webapp.tar
+  build_production_community_server:
+    name: Docker Build Production - Community Server
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # COMMUNITY SERVER #######################################################
+      ##########################################################################
+      - name: Community Server | Build `production` image
+        run: |
+          docker build -t "gradido/community_server:latest" -t "gradido/community_server:production" -t "gradido/community_server:${VERSION}" -t "gradido/community_server:${BUILD_VERSION}" community_server/
+          docker save "gradido/community_server" > /tmp/community_server.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-community-server-production
+          path: /tmp/community_server.tar
 
   ##############################################################################
-  # JOB: DOCKER BUILD PRODUCTION MAINTENANCE ###################################
+  # JOB: DOCKER BUILD PRODUCTION MARIADB #######################################
   ##############################################################################
-  #build_production_maintenance:
-  #  name: Docker Build Production - Maintenance
-  #  runs-on: ubuntu-latest
-  #  needs: [prepare]
-  #  steps:
-  #    ##########################################################################
-  #    # CHECKOUT CODE ##########################################################
-  #    ##########################################################################
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-  #    ##########################################################################
-  #    # SET ENVS ###############################################################
-  #    ##########################################################################
-  #    - name: ENV - VERSION
-  #      run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_DATE
-  #      run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_VERSION
-  #      run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-  #    - name: ENV - BUILD_COMMIT
-  #      run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-  #    ##########################################################################
-  #    # BUILD MAINTENANCE DOCKER IMAGE (build) #################################
-  #    ##########################################################################
-  #    - name: maintenance | Build `production` image
-  #      # TODO: --target production
-  #      run: |
-  #        docker build -t "ocelotsocialnetwork/maintenance:latest" -t "ocelotsocialnetwork/maintenance:${VERSION}" -t "ocelotsocialnetwork/maintenance:${BUILD_VERSION}" webapp/ -f webapp/Dockerfile.maintenance
-  #        docker save "ocelotsocialnetwork/maintenance" > /tmp/maintenance.tar
-  #    - name: Upload Artifact
-  #      uses: actions/upload-artifact@v2
-  #      with:
-  #        name: docker-maintenance-production
-  #        path: /tmp/maintenance.tar
+  build_production_mariadb:
+    name: Docker Build Production - MariaDB
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # MARIADB ################################################################
+      ##########################################################################
+      - name: MariaDB | Build `production` image
+        run: |
+          docker build -t "gradido/mariadb:latest" -t "gradido/mariadb:production" -t "gradido/mariadb:${VERSION}" -t "gradido/mariadb:${BUILD_VERSION}" -f ./mariadb/Dockerfile ./
+          docker save "gradido/mariadb" > /tmp/mariadb.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-mariadb-production
+          path: /tmp/mariadb.tar
+
+  ##############################################################################
+  # JOB: DOCKER BUILD PRODUCTION NGINX #########################################
+  ##############################################################################
+  build_production_nginx:
+    name: Docker Build Production - Nginx
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # NGINX ##################################################################
+      ##########################################################################
+      - name: Nginx | Build `production` image
+        run: |
+          docker build -t "gradido/nginx:latest" -t "gradido/nginx:production" -t "gradido/nginx:${VERSION}" -t "gradido/nginx:${BUILD_VERSION}" -f ./nginx/Dockerfile ./
+          docker save "gradido/nginx" > /tmp/nginx.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-nginx-production
+          path: /tmp/nginx.tar
 
   ##############################################################################
   # JOB: UPLOAD TO DOCKERHUB ###################################################
@@ -202,27 +217,34 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
-      #- name: Download Docker Image (Backend)
-      #  uses: actions/download-artifact@v2
-      #  with:
-      #    name: docker-backend-production
-      #    path: /tmp
-      #- name: Load Docker Image
-      #  run: docker load < /tmp/backend.tar
-      #- name: Download Docker Image (WebApp)
-      #  uses: actions/download-artifact@v2
-      #  with:
-      #    name: docker-webapp-production
-      #    path: /tmp
-      #- name: Load Docker Image
-      #  run: docker load < /tmp/webapp.tar
-      #- name: Download Docker Image (Maintenance)
-      #  uses: actions/download-artifact@v2
-      #  with:
-      #    name: docker-maintenance-production
-      #    path: /tmp
-      #- name: Load Docker Image
-      #  run: docker load < /tmp/maintenance.tar
+      - name: Download Docker Image (Login Server)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-login-server-production
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/login_server.tar
+      - name: Download Docker Image (Community Server)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-community-server-production
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/community_server.tar
+      - name: Download Docker Image (MariaDB)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-mariadb-production
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/mariadb.tar
+      - name: Download Docker Image (Nginx)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-nginx-production
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/nginx.tar
       ##########################################################################
       # Upload #################################################################
       ##########################################################################
@@ -230,78 +252,80 @@ jobs:
         run: echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
       - name: Push frontend
         run: docker push --all-tags gradido/frontend
-      #- name: Push backend
-      #  run: docker push --all-tags ocelotsocialnetwork/backend
-      #- name: Push webapp
-      #  run: docker push --all-tags ocelotsocialnetwork/webapp
-      #- name: Push maintenance
-      #  run: docker push --all-tags ocelotsocialnetwork/maintenance
+      - name: Push login_server
+        run: docker push --all-tags gradido/login_server
+      - name: Push community_server
+        run: docker push --all-tags gradido/community_server
+      - name: Push MariaDB
+        run: docker push --all-tags gradido/mariadb
+      - name: Push Nginx
+        run: docker push --all-tags gradido/nginx
 
-  ##############################################################################
-  # JOB: GITHUB TAG LATEST VERSION #############################################
-  ##############################################################################
-  github_tag:
-    name: Tag latest version on Github
-    runs-on: ubuntu-latest
-    needs: [upload_to_dockerhub]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Fetch full History for changelog
-      ##########################################################################
-      # SET ENVS ###############################################################
-      ##########################################################################
-      - name: ENV - VERSION
-        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-      - name: ENV - BUILD_DATE
-        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-      - name: ENV - BUILD_VERSION
-        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-      - name: ENV - BUILD_COMMIT
-        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-      ##########################################################################
-      # Push version tag to GitHub #############################################
-      ##########################################################################
-      # TODO: this will error on duplicate
-      #- name: package-version-to-git-tag
-      #  uses: pkgdeps/git-tag-action@v2
-      #  with:
-      #    github_token: ${{ secrets.GITHUB_TOKEN }}
-      #    github_repo: ${{ github.repository }}
-      #    version: ${{ env.VERSION }}
-      #    git_commit_sha: ${{ github.sha }}
-      #    git_tag_prefix: "v"
-      ##########################################################################
-      # Push build tag to GitHub ###############################################
-      ##########################################################################
-      - name: package-version-to-git-tag + build number
-        uses: pkgdeps/git-tag-action@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_repo: ${{ github.repository }}
-          version: ${{ env.BUILD_VERSION }}
-          git_commit_sha: ${{ github.sha }}
-          git_tag_prefix: "b"
-      ##########################################################################
-      # Push release tag to GitHub #############################################
-      ##########################################################################
-      - name: yarn install
-        run: yarn install
-      - name: generate changelog
-        run: yarn auto-changelog --latest-version ${{ env.VERSION }} --unreleased-only
-      - name: package-version-to-git-release
-        continue-on-error: true # Will fail if tag exists
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
-          body_path: ./CHANGELOG.md
-          draft: false
-          prerelease: false
+#  # JOB: GITHUB TAG LATEST VERSION #############################################
+#  ##############################################################################
+#  ##############################################################################
+#  github_tag:
+#    name: Tag latest version on Github
+#    runs-on: ubuntu-latest
+#    needs: [upload_to_dockerhub]
+#    steps:
+#      ##########################################################################
+#      # CHECKOUT CODE ##########################################################
+#      ##########################################################################
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0 # Fetch full History for changelog
+#      ##########################################################################
+#      # SET ENVS ###############################################################
+#      ##########################################################################
+#      - name: ENV - VERSION
+#        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+#      - name: ENV - BUILD_DATE
+#        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+#      - name: ENV - BUILD_VERSION
+#        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+#      - name: ENV - BUILD_COMMIT
+#        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+#      ##########################################################################
+#      # Push version tag to GitHub #############################################
+#      ##########################################################################
+#      # TODO: this will error on duplicate
+#      #- name: package-version-to-git-tag
+#      #  uses: pkgdeps/git-tag-action@v2
+#      #  with:
+#      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+#      #    github_repo: ${{ github.repository }}
+#      #    version: ${{ env.VERSION }}
+#      #    git_commit_sha: ${{ github.sha }}
+#      #    git_tag_prefix: "v"
+#      ##########################################################################
+#      # Push build tag to GitHub ###############################################
+#      ##########################################################################
+#      - name: package-version-to-git-tag + build number
+#        uses: pkgdeps/git-tag-action@v2
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          github_repo: ${{ github.repository }}
+#          version: ${{ env.BUILD_VERSION }}
+#          git_commit_sha: ${{ github.sha }}
+#          git_tag_prefix: "b"
+#      ##########################################################################
+#      # Push release tag to GitHub #############################################
+#      ##########################################################################
+#      - name: yarn install
+#        run: yarn install
+#      - name: generate changelog
+#        run: yarn auto-changelog --latest-version ${{ env.VERSION }} --unreleased-only
+#      - name: package-version-to-git-release
+#        continue-on-error: true # Will fail if tag exists
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+#        with:
+#          tag_name: ${{ env.VERSION }}
+#          release_name: ${{ env.VERSION }}
+#          body_path: ./CHANGELOG.md
+#          draft: false
+#          prerelease: false
