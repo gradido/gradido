@@ -4,10 +4,12 @@
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
-          <a href="#/Login" class="font-weight-bold ml-1">Gradido-Akademie</a>
+          <a :href="`https://gradido.net/${$i18n.locale}`" class="font-weight-bold ml-1">
+            Gradido-Akademie
+          </a>
           |
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
-            App Verion {{ version }}
+            App version {{ version }}
           </a>
         </div>
       </b-col>
@@ -15,9 +17,6 @@
     <b-row align-v="center" class="justify-content-lg-between">
       <b-col>
         <b-nav class="nav-footer justify-content-center">
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
-            Gradido
-          </b-nav-item>
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
             {{ $t('imprint') }}
           </b-nav-item>
