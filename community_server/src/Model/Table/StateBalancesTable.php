@@ -264,4 +264,5 @@ class StateBalancesTable extends Table
         return true;
 
     }
+    
 }

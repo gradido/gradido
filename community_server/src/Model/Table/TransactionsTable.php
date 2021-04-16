@@ -5,6 +5,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\ORM\TableRegistry;
 
 /**
  * Transactions Model
@@ -59,19 +60,19 @@ class TransactionsTable extends Table
         $this->hasMany('StateCreated', [
             'foreignKey' => 'transaction_id'
         ]);
-        $this->hasMany('TransactionCreations', [
+        $this->hasOne('TransactionCreations', [
             'foreignKey' => 'transaction_id'
         ]);
-        $this->hasMany('TransactionGroupAddaddress', [
+        $this->hasOne('TransactionGroupAddaddress', [
             'foreignKey' => 'transaction_id'
         ]);
-        $this->hasMany('TransactionGroupAllowtrades', [
+        $this->hasOne('TransactionGroupAllowtrades', [
             'foreignKey' => 'transaction_id'
         ]);
-        $this->hasMany('TransactionGroupCreates', [
+        $this->hasOne('TransactionGroupCreates', [
             'foreignKey' => 'transaction_id'
         ]);
-        $this->hasMany('TransactionSendCoins', [
+        $this->hasOne('TransactionSendCoins', [
             'foreignKey' => 'transaction_id'
         ]);
         $this->hasMany('TransactionSignatures', [
@@ -121,5 +122,148 @@ class TransactionsTable extends Table
         $rules->add($rules->existsIn(['blockchain_type_id'], 'BlockchainTypes'));
 
         return $rules;
+    }
+    
+    public function sortTransactions($a, $b)
+    {
+        if ($a['date'] == $b['date']) {
+            return 0;
+        }
+        return ($a['date'] > $b['date']) ? -1 : 1;
+    }
+
+    
+    public function listTransactionsHumanReadable($stateUserTransactions, array $user, $decay = true) 
+    {
+        
+        $stateUsersTable    = TableRegistry::getTableLocator()->get('StateUsers');
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+        
+        $transaction_ids = [];
+        $involved_user_ids = [];
+        $stateUserTransactionsCount = 0;
+        foreach($stateUserTransactions as $su_transaction) {
+            $transaction_ids[] = $su_transaction->transaction_id;
+            $involved_user_ids[] = $su_transaction->state_user_id;
+            $stateUserTransactionsCount++;
+        }
+        
+        $involved_users = $stateUsersTable->getUsersIndiced($involved_user_ids);
+        
+        $transactions = $this
+                        ->find()
+                        ->where(['Transactions.id IN' => $transaction_ids])
+                        ->contain(['TransactionSendCoins', 'TransactionCreations'])
+                        ;
+        $transaction_indiced = [];
+        foreach($transactions as $tr) {
+            $transaction_indiced[$tr->id] = $tr;
+        }
+        
+        $state_balance = $stateBalancesTable->newEntity();
+        $final_transactions = [];
+        
+        foreach($stateUserTransactions as $i => $su_transaction)
+        {
+            /*echo "i: $i<br>";
+            echo "state user transaction: <br>";
+            var_dump($su_transaction);
+            echo "<br>";*/
+            //var_dump($su_transaction);
+            //die("step");
+            // add decay transactions 
+            if($i > 0 && $decay == true) 
+            {
+                $prev = $stateUserTransactions[$i-1];
+                if($prev->balance > 0) {
+                //    var_dump($stateUserTransactions);
+                    $current = $su_transaction;
+                    //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
+                    $interval = $current->balance_date->diff($prev->balance_date);
+                    $state_balance->amount = $prev->balance;
+                    $state_balance->record_date = $prev->balance_date;
+                    $diff_amount = $state_balance->partDecay($current->balance_date);
+     
+                    //echo $interval->format('%R%a days');
+                    //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
+                    $final_transactions[] = [ 
+                        'type' => 'decay',
+                        'balance' => -intval($prev->balance - $diff_amount),
+                        'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
+                        'memo' => ''
+                    ];
+                }
+            }
+            
+            // sender or receiver when user has sended money
+            // group name if creation
+            // type: gesendet / empfangen / geschöpft
+            // transaktion nr / id
+            // date
+            // balance
+            $transaction = $transaction_indiced[$su_transaction->transaction_id];
+            /*echo "transaction: <br>";
+            var_dump($transaction);
+            echo "<br>";*/
+            if($su_transaction->transaction_type_id == 1) { // creation
+                $creation = $transaction->transaction_creation;
+                $final_transactions[] = [
+                  'name' => 'Gradido Akademie',
+                  'type' => 'creation',
+                  'transaction_id' => $transaction->id,
+                  'date' => $creation->target_date,
+                  'balance' => $creation->amount,
+                  'memo' => $transaction->memo
+                ];
+            } else if($su_transaction->transaction_type_id == 2) { // transfer or send coins
+                $sendCoins = $transaction->transaction_send_coin;
+                $type = '';
+                $otherUser = null;
+                $other_user_public = '';
+                if ($sendCoins->state_user_id == $user['id']) {
+                    $type = 'send';
+
+                    if(isset($involved_users[$sendCoins->receiver_user_id])) {
+                      $otherUser = $involved_users[$sendCoins->receiver_user_id];
+                    }
+                    $other_user_public = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
+                } else if ($sendCoins->receiver_user_id == $user['id']) {
+                    $type = 'receive';
+                    if(isset($involved_users[$sendCoins->state_user_id])) {
+                      $otherUser = $involved_users[$sendCoins->state_user_id];
+                    }
+                    if($sendCoins->sender_public_key) {
+                      $other_user_public = bin2hex(stream_get_contents($sendCoins->sender_public_key));
+                    }
+                }
+                if(null == $otherUser) {
+                  $otherUser = $stateUsersTable->newEntity();
+                }
+                $final_transactions[] = [
+                 'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
+                 'email' => $otherUser->email,
+                 'type' => $type,
+                 'transaction_id' => $sendCoins->transaction_id,
+                 'date' => $transaction->received,
+                 'balance' => $sendCoins->amount,
+                 'memo' => $transaction->memo,
+                 'pubkey' => $other_user_public
+                ];
+            }
+
+            if($i == $stateUserTransactionsCount-1 && $decay == true) {
+                $state_balance->amount = $su_transaction->balance;
+                $state_balance->record_date = $su_transaction->balance_date;
+                $final_transactions[] = [
+                    'type' => 'decay',
+                    'balance' => -intval($su_transaction->balance - $state_balance->decay),
+                    'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
+                    'memo' => ''
+                ];
+            }
+        }
+        
+        return $final_transactions;
+      
     }
 }
