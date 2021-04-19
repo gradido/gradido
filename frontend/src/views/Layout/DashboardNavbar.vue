@@ -116,8 +116,8 @@ export default {
       this.activeNotifications = false
     },
     logout() {
-      //console.log("DashboardNavbar.vue user logout() : ")
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
 }

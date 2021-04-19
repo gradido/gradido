@@ -95,6 +95,8 @@
   </div>
 </template>
 <script>
+import loginAPI from '../../apis/loginAPI'
+
 export default {
   name: 'login',
   data() {
@@ -104,17 +106,24 @@ export default {
         password: '',
         // rememberMe: false
       },
+      loginfail: false,
     }
   },
   methods: {
-    onSubmit() {
-      this.$store.dispatch('login', {
-        email: this.model.email,
-        password: this.model.password,
-      })
+    async onSubmit() {
+      const result = await loginAPI.login(this.model.email, this.model.password)
+      if (result.success) {
+        this.$store.dispatch('login', {
+          session_id: result.result.data.session_id,
+          email: this.model.email,
+        })
+        this.$router.push('/overview')
+      } else {
+        this.loginfail = true
+      }
     },
     closeAlert() {
-      this.$store.state.loginfail = false
+      this.loginfail = false
     },
   },
 }

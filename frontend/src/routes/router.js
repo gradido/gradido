@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './routes'
+import { store } from '../store/store'
 
 Vue.use(VueRouter)
 
@@ -21,11 +22,11 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  let language = to.params.lang
-  if (!language) {
-    language = 'de'
+  if (to.meta.requiresAuth && !store.state.session_id) {
+    next({ path: '/login' })
+  } else {
+    next()
   }
-  next()
 })
 
 export default router

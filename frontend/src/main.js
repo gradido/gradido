@@ -16,6 +16,14 @@ Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
 Vue.use(VueCookies)
 
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !store.state.session_id) {
+    next({ path: '/login' })
+  } else {
+    next()
+  }
+})
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
