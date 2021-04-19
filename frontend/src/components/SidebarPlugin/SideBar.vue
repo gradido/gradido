@@ -40,10 +40,10 @@
               <span>Transactions</span>
             </router-link>
             <!--
-                <router-link to="/activity" class="dropdown-item  text-lg text-muted">
-                    <i class="ni ni-calendar-grid-58"></i>
-                    <span>{{ $t('site.navbar.activity') }}</span>
-                </router-link>
+                 <router-link to="/activity" class="dropdown-item  text-lg text-muted">
+                 <i class="ni ni-calendar-grid-58"></i>
+                 <span>{{ $t('site.navbar.activity') }}</span>
+                 </router-link>
             -->
             <div class="dropdown-divider"></div>
             <div @click="logout" class="dropdown-item text-lg text-muted">
@@ -132,6 +132,7 @@ export default {
       this.$sidebar.displaySidebar(true)
     },
     logout() {
+      this.$router.push('/login')
       this.$store.dispatch('logout')
     },
   },

@@ -141,6 +141,8 @@
   </div>
 </template>
 <script>
+import loginAPI from '../../apis/loginAPI'
+
 export default {
   name: 'register',
   data() {
@@ -167,19 +169,28 @@ export default {
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
-    onSubmit() {
-      this.$store.dispatch('createUser', {
-        email: this.model.email,
-        first_name: this.model.firstname,
-        last_name: this.model.lastname,
-        emailType: 2,
-        password: this.model.password,
-      })
-      this.model.email = ''
-      this.model.firstname = ''
-      this.model.lastname = ''
-      this.model.password = ''
-      this.$router.push('/thx')
+    async onSubmit() {
+      const result = await loginAPI.create(
+        this.model.email,
+        this.model.firstname,
+        this.model.lastname,
+        this.password,
+      )
+      if (result.success) {
+        this.$store.dispatch('createUser', {
+          session_id: result.result.data.session_id,
+          email: this.model.email,
+        })
+        this.model.email = ''
+        this.model.firstname = ''
+        this.model.lastname = ''
+        this.password = ''
+        this.$router.push('/thx')
+      } else {
+        // todo: Display a proper error message!
+        this.$router.push('/login')
+        this.$store.dispatch('logout')
+      }
     },
   },
   computed: {

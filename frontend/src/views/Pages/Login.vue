@@ -45,7 +45,7 @@
                     v-model="model.password"
                   ></base-input>
 
-                  <b-alert v-show="$store.state.loginfail" show variant="warning">
+                  <b-alert v-show="loginfail" show variant="warning">
                     <span class="alert-text bv-example-row">
                       <b-row>
                         <b-col class="col-9 text-left">

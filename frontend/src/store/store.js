@@ -18,7 +18,6 @@ export const store = new Vuex.Store({
     language: 'en',
     sizeDE: 'normal',
     sizeGB: 'big',
-    loginfail: false,
     user: {
       name: '',
       balance: 0,
@@ -38,7 +37,6 @@ export const store = new Vuex.Store({
   mutations: {
     language: (state, language) => {
       state.language = language
-      $cookies.set('gdd_lang', language)
       if (state.language == 'de') {
         state.sizeDE = 'big'
         state.sizeGB = 'normal'
@@ -46,9 +44,6 @@ export const store = new Vuex.Store({
         state.sizeDE = 'normal'
         state.sizeGB = 'big'
       }
-    },
-    loginfail: (state, loginfail) => {
-      state.loginfail = loginfail
     },
     email: (state, email) => {
       state.email = email
@@ -68,42 +63,26 @@ export const store = new Vuex.Store({
     login: async ({ dispatch, commit }, data) => {
       commit('session_id', data.session_id)
       commit('email', data.email)
-      //      $cookies.set('gdd_session_id', result.result.data.session_id)
-      //      $cookies.set('gdd_u', data.email)
     },
     passwordReset: async (data) => {},
     schoepfen: async (data) => {
       // http://localhost/transaction-creations/ajaxCreate
     },
     createUser: async ({ commit, dispatch }, data) => {
-      const result = await loginAPI.create(
-        data.email,
-        data.first_name,
-        data.last_name,
-        data.password,
-      )
-      if (result.success) {
-        commit('session_id', result.result.data.session_id)
-        commit('email', data.email)
-        $cookies.set('gdd_session_id', result.result.data.session_id)
-        $cookies.set('gdd_u', data.email)
-        //router.push('/overview')
-      } else {
-        // Register failed, we perform a logout
-        dispatch('logout')
-      }
+      commit('session_id', data.session_id)
+      commit('email', data.email)
     },
     logout: async ({ commit, state }) => {
       if (state.session_id) {
         const result = await loginAPI.logout(state.session_id)
         // The result can be error, but thats ok with us
       }
-      sessionStorage.clear()
       commit('session_id', null)
       commit('email', null)
+      sessionStorage.clear()
     },
     accountBalance: async ({ commit, dispatch, state }) => {
-      const result = await communityAPI.balance($cookies.get('gdd_session_id'))
+      const result = await communityAPI.balance(state.session_id)
       if (result.success) {
         commit('user_balance', result.result.data.balance)
       } else {
