@@ -220,6 +220,15 @@ endif(UNIX)
 
 enable_testing()
 
+if(UNIX)
+include(cmake/CodeCoverage.cmake)
+append_coverage_compiler_flags()
+setup_target_for_coverage_gcovr_html(
+    NAME coverage
+    EXECUTABLE Gradido_LoginServer_Test
+    DEPENDENCIES lib/libmariadb.so.3
+)
+
 #  ----------------------    Test -----------------------------------------
 #project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
