@@ -37,9 +37,9 @@ services:
   #########################################################
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
   #########################################################
-  community-server:
-    volumes:
-      - ./community_server
+  #community-server:
+  #  volumes:
+  #    - ./community_server
 
       
   #########################################################
