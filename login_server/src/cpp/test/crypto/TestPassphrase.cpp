@@ -83,7 +83,7 @@ void PassphraseTest::SetUp()
 		wordIndices3
 	));
 
-	
+
 }
 
 TEST_F(PassphraseTest, detectMnemonic) {
@@ -95,7 +95,7 @@ TEST_F(PassphraseTest, detectMnemonic) {
 			if (ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES == type) continue;
 			EXPECT_EQ(Passphrase::detectMnemonic(testDataSet.passphrases[type]), &ServerConfig::g_Mnemonic_WordLists[type]);
 		}
-		
+
 	}
 	EXPECT_FALSE(Passphrase::detectMnemonic("Dies ist eine ungültige Passphrase"));
 }
@@ -110,6 +110,11 @@ TEST_F(PassphraseTest, detectMnemonicWithPubkey) {
 		auto key_pair = new KeyPairEd25519(*pubkeyBin);
 		for (int i = 0; i < ServerConfig::MNEMONIC_MAX; i++) {
 			ServerConfig::Mnemonic_Types type = (ServerConfig::Mnemonic_Types)i;
+			auto mnemonic_type = Passphrase::detectMnemonic(testDataSet.passphrases[type], key_pair);
+			if(nullptr == mnemonic_type) {
+			  printf("no match for passphrase: %s\n", testDataSet.passphrases[type].data());
+			  printf("type: %s\n", ServerConfig::mnemonicTypeToString(type));
+			}
 			EXPECT_EQ(Passphrase::detectMnemonic(testDataSet.passphrases[type], key_pair), &ServerConfig::g_Mnemonic_WordLists[type]);
 		}
 	}
@@ -162,19 +167,19 @@ TEST_F(PassphraseTest, createAndTransform) {
 		auto test_data_set = *it;
 		auto mnemonic = &ServerConfig::g_Mnemonic_WordLists[test_data_set.mnemonicType];
 		auto tr = Passphrase::create(test_data_set.wordIndices, mnemonic);
-		
+
 		auto word_indices = tr->getWordIndices();
-		
+
 		for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 			EXPECT_EQ(word_indices[i], test_data_set.wordIndices[i]);
 		}
 		auto key_pair_ed25519 = KeyPairEd25519::create(tr);
-		//KeyPair key_pair; 
+		//KeyPair key_pair;
 		//key_pair.generateFromPassphrase(test_data_set.passphrases[test_data_set.mnemonicType].data(), mnemonic);
 		EXPECT_EQ(DataTypeConverter::pubkeyToHex(key_pair_ed25519->getPublicKey()), test_data_set.pubkeyHex);
 		//EXPECT_EQ(key_pair.getPubkeyHex(), test_data_set.pubkeyHex);
 
-		//auto key_pair_old 
+		//auto key_pair_old
 		delete key_pair_ed25519;
 		ASSERT_FALSE(tr.isNull());
 		EXPECT_TRUE(tr->checkIfValid());

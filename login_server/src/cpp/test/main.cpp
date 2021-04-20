@@ -16,7 +16,6 @@ std::list<Test*> gTests;
 void fillTests()
 {
 	gTests.push_back(new TestTasks());
-	gTests.push_back(new TestHash());
 	gTests.push_back(new TestRegExp());
 	gTests.push_back(new TestPassphrase());
 	//	gTests.push_back(new LoginTest());
@@ -73,14 +72,18 @@ int load() {
 	auto conn = ConnectionManager::getInstance();
 	//conn->setConnection()
 	//printf("try connect login server mysql db\n");
-	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+	try {
+        conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+    } catch(Poco::Exception& ex) {
+        printf("Poco Exception by connecting to db: %s\n", ex.displayText().data());
+    }
 	//printf("try connect php server mysql \n");
-	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
+	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
 
 	Profiler timeUsed;
 
 	// clean up and fill db
-	std::string tables[] = { 
+	std::string tables[] = {
 		"hedera_accounts",
 		"hedera_ids",
 		"crypto_keys",
@@ -95,8 +98,8 @@ int load() {
 	}
 
 	std::stringstream ss;
-	
-	
+
+
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
@@ -125,13 +128,13 @@ void ende()
 		if (*it) {
 			delete *it;
 		}
-		
+
 	}
 	gTests.clear();
 }
 
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
 	if (load() < 0) {
 		printf("early exit\n");

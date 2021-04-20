@@ -66,18 +66,18 @@ namespace ServerConfig {
 	HederaNetworkType g_HederaNetworkType = HEDERA_TESTNET;
 	Poco::Timespan  g_HederaDefaultTimeout;
 
-#ifdef __linux__ 
-#include <stdio.h>      
+#ifdef __linux__
+#include <stdio.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
-#include <netinet/in.h> 
-#include <string.h> 
+#include <netinet/in.h>
+#include <string.h>
 #include <arpa/inet.h>
-#endif //#ifdef __linux__ 
+#endif //#ifdef __linux__
 
 	std::string getHostIpString()
 	{
-#ifdef __linux__ 
+#ifdef __linux__
 		struct ifaddrs * ifAddrStruct = NULL;
 		struct ifaddrs * ifa = NULL;
 		void * tmpAddrPtr = NULL;
@@ -107,7 +107,7 @@ namespace ServerConfig {
 		}
 		if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
 		return ipAddressString;
-#else //__linux__ 
+#else //__linux__
 		std::string ipAddressString = "";
 		auto host = Poco::Net::DNS::thisHost();
 		for (auto it = host.addresses().begin(); it != host.addresses().end(); it++) {
@@ -126,10 +126,10 @@ namespace ServerConfig {
 			//break;
 		}
 		return ipAddressString;
-#endif // __linux__ 
+#endif // __linux__
 	}
 
-	bool replaceZeroIPWithLocalhostIP(std::string& url) 
+	bool replaceZeroIPWithLocalhostIP(std::string& url)
 	{
 		auto pos = url.find("0.0.0.0", 0);
 		if (pos != std::string::npos) {
@@ -138,7 +138,7 @@ namespace ServerConfig {
 				url.replace(pos, 7, ipAddressString);
 			}
 		}
-		
+
 		//printf("ipaddress: %s\n", ipAddress.data());
 
 		return true;
@@ -171,7 +171,21 @@ namespace ServerConfig {
 		return HEDERA_CONSENSUS_FORMAT_BINARY;
 	}
 
-	
+    const char* mnemonicTypeToString(Mnemonic_Types type)
+    {
+        /*
+        MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER,
+		MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES,
+		MNEMONIC_BIP0039_SORTED_ORDER
+        */
+        switch(type) {
+        case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER: return "german random order";
+        case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES: return "german random order fixed cases";
+        case MNEMONIC_BIP0039_SORTED_ORDER: return "BIP 0039 sorted";
+        }
+        return "<unknown>";
+    }
+
 
 
 	bool loadMnemonicWordLists()
@@ -227,7 +241,7 @@ namespace ServerConfig {
 		g_ServerCryptoKey = new ObfusArray(realBinSize, key);
 		g_ServerKeySeed = new ObfusArray(9*8);
 		Poco::Int64 i1 = randombytes_random();
-		Poco::Int64 i2 = randombytes_random(); 
+		Poco::Int64 i2 = randombytes_random();
 		g_ServerKeySeed->put(0, i1 | (i2 << 8));
 
 		//g_ServerAdminPublic = cfg.getString("crypto.server_admin_public");
@@ -245,7 +259,7 @@ namespace ServerConfig {
 		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
 		replaceZeroIPWithLocalhostIP(g_php_serverHost);
-		//g_ServerSetupType 
+		//g_ServerSetupType
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
 
@@ -284,7 +298,7 @@ namespace ServerConfig {
 		if (cfg.getInt("unsecure.allow_all_passwords", 0) == 1) {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
 		}
-		
+
 		g_HederaDefaultTimeout = cfg.getInt("hedera.default_timeout", 5);
 
 		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
@@ -338,8 +352,8 @@ namespace ServerConfig {
 		try {
 #ifdef POCO_NETSSL_WIN
 		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "cacert.pem", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
-#else 
-			
+#else
+
 		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", Poco::Path::config() + "grd_login/cacert.pem", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 #endif
 		} catch(Poco::Exception& ex) {
@@ -391,7 +405,7 @@ namespace ServerConfig {
 		Poco::LocalDateTime now;
 
 		std::string dateTimeStr = Poco::DateTimeFormatter::format(now, Poco::DateTimeFormat::ISO8601_FORMAT);
-		file << dateTimeStr << std::endl; 
+		file << dateTimeStr << std::endl;
 
 		for (std::string line; std::getline(datas, line); ) {
 			file << line << std::endl;
