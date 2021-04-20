@@ -20,9 +20,9 @@
   </div>
 </template>
 <script>
-import GddStatus from './KontoOverview/GddStatus.vue'
-import GddSend from './KontoOverview/GddSend.vue'
-import GddTable from './KontoOverview/GddTable.vue'
+import GddStatus from '../KontoOverview/GddStatus.vue'
+import GddSend from '../KontoOverview/GddSend.vue'
+import GddTable from '../KontoOverview/GddTable.vue'
 
 export default {
   name: 'Overview',

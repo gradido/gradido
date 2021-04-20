@@ -9,7 +9,7 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('../views/KontoOverview.vue'),
+    component: () => import('../views/Pages/KontoOverview.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -56,7 +56,11 @@ const routes = [
   },
   {
     path: '/password',
-    component: () => import('../views/Pages/Password.vue'),
+    component: () => import('../views/Pages/ForgotPassword.vue'),
+  },
+  {
+    path: '/reset',
+    component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]

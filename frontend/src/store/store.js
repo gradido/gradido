@@ -48,7 +48,6 @@ export const store = new Vuex.Store({
       state.user.balance_gdt = balance / 10000
     },
   },
-  // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
       commit('session_id', data.session_id)
