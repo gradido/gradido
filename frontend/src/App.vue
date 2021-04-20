@@ -17,7 +17,7 @@
     </header>
     <div class="">
       <particles-bg type="custom" :config="config" :bg="true" />
-      <component :is="$store.state.session_id ? 'DashboardLayout' : 'AuthLayoutGDD'" />
+      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
     </div>
   </div>
 </template>
@@ -38,32 +38,7 @@ export default {
   },
   data() {
     return {
-      session_id: null,
-      email: '',
       language: 'en',
-    }
-  },
-  created() {
-    //console.log('xx', $cookies.get('gdd_lang'))
-    //console.log('%cWillkommen bei Gradido %cgreen text', 'font-weight:bold', 'color: green')
-    if ($cookies.isKey('gdd_session_id') == true) {
-      //console.log('%cHey %c' + $cookies.get('gdd_u') + '', 'font-weight:bold', 'color: orange')
-      this.$store.commit('session_id', $cookies.get('gdd_session_id'))
-      this.$store.commit('email', $cookies.get('gdd_u'))
-      if ($cookies.get('gdd_lang') != 'de' || $cookies.get('gdd_lang') != 'de') {
-        this.$store.commit('language', 'de')
-      } else {
-        this.$store.commit('language', $cookies.get('gdd_lang'))
-      }
-
-      this.$i18n.locale = $cookies.get('gdd_lang')
-      this.$router.push('overview')
-    } else {
-      //console.log('app.vue to Logout')
-      if (this.$route.path == '/reset') {
-      } else {
-        this.$store.dispatch('logout')
-      }
     }
   },
   data() {

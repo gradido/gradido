@@ -1,7 +1,6 @@
 import { shallowMount } from '@vue/test-utils'
 import KontoOverview from './KontoOverview'
 import Vuex from 'vuex'
-import VueCookies from 'vue-cookies'
 
 const localVue = global.localVue
 

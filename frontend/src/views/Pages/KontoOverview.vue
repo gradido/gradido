@@ -40,7 +40,7 @@ export default {
     GddTable,
   },
   created() {
-    this.$store.dispatch('accountBalance', $cookies.get('gdd_session_id'))
+    this.$store.dispatch('accountBalance', this.$store.state.session_id)
   },
   methods: {
     setRows(rows) {

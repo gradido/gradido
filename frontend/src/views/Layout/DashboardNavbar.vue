@@ -45,15 +45,15 @@
           <b-dropdown-header class="noti-title">
             <h6 class="text-overflow m-0">{{ $t('welcome') }}</h6>
           </b-dropdown-header>
-          <b-dropdown-item href="#!" to="/overview">
+          <b-dropdown-item to="/overview">
             <i class="ni ni-single-02"></i>
             <span>{{ $t('site.overview.account_overview') }}</span>
           </b-dropdown-item>
-          <b-dropdown-item href="#!" to="/profile">
+          <b-dropdown-item to="/profile">
             <i class="ni ni-single-02"></i>
             <span>{{ $t('site.navbar.my-profil') }}</span>
           </b-dropdown-item>
-          <b-dropdown-item href="#!" to="/profileedit">
+          <b-dropdown-item to="/profileedit">
             <i class="ni ni-settings-gear-65"></i>
             <span>{{ $t('site.navbar.settings') }}</span>
           </b-dropdown-item>
@@ -64,7 +64,7 @@
           </b-dropdown-item>
           -->
           <div class="dropdown-divider"></div>
-          <b-dropdown-item href="#!" @click="logout">
+          <b-dropdown-item @click="logout">
             <i class="ni ni-user-run"></i>
             <span>{{ $t('logout') }}</span>
           </b-dropdown-item>
@@ -116,8 +116,8 @@ export default {
       this.activeNotifications = false
     },
     logout() {
-      //console.log("DashboardNavbar.vue user logout() : ")
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
 }

@@ -2,6 +2,12 @@ import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
+    path: '/',
+    redirect: (to) => {
+      return { path: '/login' }
+    },
+  },
+  {
     path: '/overview',
     component: () => import('../views/Pages/KontoOverview.vue'),
     meta: {
@@ -11,18 +17,30 @@ const routes = [
   {
     path: '/profile',
     component: () => import('../views/Pages/UserProfileCard.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/profileedit',
     component: () => import('../views/Pages/UserProfileEdit.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/activity',
     component: () => import('../views/Pages/UserProfileActivity.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/transactions',
     component: () => import('../views/Pages/UserProfileTransactionList.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/login',

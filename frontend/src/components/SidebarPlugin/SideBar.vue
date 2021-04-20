@@ -15,7 +15,7 @@
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
           <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
-            <a slot="title-container" class="nav-link" href="#" role="button">
+            <a slot="title-container" class="nav-link" role="button">
               <div class="media align-items-center">
                 <span class="avatar avatar-sm">
                   <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
@@ -40,10 +40,10 @@
               <span>Transactions</span>
             </router-link>
             <!--
-                <router-link to="/activity" class="dropdown-item  text-lg text-muted">
-                    <i class="ni ni-calendar-grid-58"></i>
-                    <span>{{ $t('site.navbar.activity') }}</span>
-                </router-link>
+                 <router-link to="/activity" class="dropdown-item  text-lg text-muted">
+                 <i class="ni ni-calendar-grid-58"></i>
+                 <span>{{ $t('site.navbar.activity') }}</span>
+                 </router-link>
             -->
             <div class="dropdown-divider"></div>
             <div @click="logout" class="dropdown-item text-lg text-muted">
@@ -88,7 +88,7 @@
         <hr class="my-3" />
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
-            <a class="nav-link text-lg" href="#!" @click="logout">
+            <a class="nav-link text-lg" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
@@ -133,6 +133,7 @@ export default {
     },
     logout() {
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
   beforeDestroy() {
