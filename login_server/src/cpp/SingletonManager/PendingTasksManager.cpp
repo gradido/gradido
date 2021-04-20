@@ -192,7 +192,8 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 				auto json = transaction->getModel()->getResultJson();
 				bool removeIt = false;
 				if (!json.isNull()) {
-					if (json->get("state").toString() == "success") {
+					auto state = json->get("state");
+					if (!state.isEmpty() && state.toString() == "success") {
 						removeIt = true;
 					}
 				}

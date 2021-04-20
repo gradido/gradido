@@ -17,7 +17,7 @@
     </header>
     <div class="">
       <particles-bg type="custom" :config="config" :bg="true" />
-      <router-view />
+      <component :is="$store.state.session_id ? 'DashboardLayout' : 'AuthLayoutGDD'" />
     </div>
   </div>
 </template>
@@ -26,11 +26,15 @@
 import { ParticlesBg } from 'particles-bg-vue'
 import icon from './icon.js'
 import { localeChanged } from 'vee-validate'
+import DashboardLayout from '@/views/Layout/DashboardLayout_gdd.vue'
+import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
 
 export default {
   name: 'app',
   components: {
     ParticlesBg,
+    DashboardLayout,
+    AuthLayoutGDD,
   },
   data() {
     return {
@@ -56,7 +60,10 @@ export default {
       this.$router.push('overview')
     } else {
       //console.log('app.vue to Logout')
-      this.$store.dispatch('logout')
+      if (this.$route.path == '/reset') {
+      } else {
+        this.$store.dispatch('logout')
+      }
     }
   },
   data() {
