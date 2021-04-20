@@ -60,7 +60,10 @@ export default {
       this.$router.push('overview')
     } else {
       //console.log('app.vue to Logout')
-      this.$store.dispatch('logout')
+      if (this.$route.path == '/reset') {
+      } else {
+        this.$store.dispatch('logout')
+      }
     }
   },
   data() {

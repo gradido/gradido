@@ -21,10 +21,6 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  let language = to.params.lang
-  if (!language) {
-    language = 'de'
-  }
   next()
 })
 

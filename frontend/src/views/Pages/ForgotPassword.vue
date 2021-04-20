@@ -26,17 +26,10 @@
                     :placeholder="$t('form.email')"
                     name="Email"
                     :rules="{ required: true, email: true }"
-                    v-model="model.email"
+                    v-model="form.email"
                   ></base-input>
-                  {{ form }}
                   <div class="text-center">
-                    <b-button
-                      type="submit"
-                      outline
-                      variant="secondary"
-                      class="mt-4"
-                      :disabled="disable"
-                    >
+                    <b-button type="submit" outline variant="secondary" class="mt-4">
                       {{ $t('site.password.reset_now') }}
                     </b-button>
                   </div>
@@ -53,21 +46,26 @@
   </div>
 </template>
 <script>
+import loginAPI from '../../apis/loginAPI.js'
+
 export default {
   name: 'password',
   data() {
     return {
       disable: 'disabled',
-      model: {
+      form: {
         email: '',
       },
     }
   },
   methods: {
-    onSubmit() {
-      this.$store.dispatch('passwordReset', { email: this.model.email })
-      this.model.email = ''
-      this.$router.push('/thx')
+    async onSubmit() {
+      const result = await loginAPI.sendEmail(this.form.email)
+      if (result.success) {
+        this.$router.push({ path: '/thx', params: { id: 'resetmail' } })
+      } else {
+        alert(result.result)
+      }
     },
   },
 }
