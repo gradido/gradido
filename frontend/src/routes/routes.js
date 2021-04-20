@@ -59,7 +59,7 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
-    path: '/reset',
+    path: '/reset/:optin',
     component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },

@@ -1,5 +1,5 @@
 <template>
-  <div class="resetpwd-form">
+  <div class="resetpwd-form" v-if="authenticated">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -91,57 +91,68 @@
   </div>
 </template>
 <script>
-export default {
-  name: 'reset',
-  data() {
-    return {
-      rules: [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ],
-      password: '',
-      checkPassword: '',
-      passwordVisible: false,
-      submitted: false,
-    }
-  },
-  methods: {
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
-    onSubmit() {
-      this.$store.dispatch('createUser', {
-        password: this.model.password,
-      })
-      this.model.password = ''
-      this.$router.push('/thx')
-    },
-  },
-  computed: {
-    samePasswords() {
-      return this.password === this.checkPassword
-    },
-    passwordsFilled() {
-      return this.password !== '' && this.checkPassword !== ''
-    },
-    passwordValidation() {
-      let errors = []
-      for (let condition of this.rules) {
-        if (!condition.regex.test(this.password)) {
-          errors.push(condition.message)
-        }
-      }
-      if (errors.length === 0) {
-        return { valid: true, errors }
-      }
-      return { valid: false, errors }
-    },
-  },
-  created() {
-    //console.log('resetpage', this.$route)
-  },
-}
+ import loginAPI from '../../apis/loginAPI'
+ export default {
+   name: 'reset',
+   data() {
+     return {
+       rules: [
+         { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+         { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+         { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+         { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+       ],
+       password: '',
+       checkPassword: '',
+       passwordVisible: false,
+       submitted: false,
+       authenticated: false,
+       session_id: null,
+     }
+   },
+   methods: {
+     togglePasswordVisibility() {
+       this.passwordVisible = !this.passwordVisible
+     },
+     onSubmit() {
+       this.$store.dispatch('createUser', {
+         password: this.model.password,
+       })
+       this.model.password = ''
+       this.$router.push('/thx')
+     },
+   },
+   computed: {
+     samePasswords() {
+       return this.password === this.checkPassword
+     },
+     passwordsFilled() {
+       return this.password !== '' && this.checkPassword !== ''
+     },
+     passwordValidation() {
+       let errors = []
+       for (let condition of this.rules) {
+         if (!condition.regex.test(this.password)) {
+           errors.push(condition.message)
+         }
+       }
+       if (errors.length === 0) {
+         return { valid: true, errors }
+       }
+       return { valid: false, errors }
+     },
+   },
+   async created() {
+     const optin = this.$route.params.optin
+     const result = await loginAPI.loginViaEmailVerificationCode(optin)
+     console.log('result', result)
+     if (result.success) {
+       this.authenticated = true
+       this.session_id = result.result.data.session_id
+     } else {
+       alert(result.result.message)
+     }
+   },
+ }
 </script>
 <style></style>
