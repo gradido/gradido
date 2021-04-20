@@ -73,21 +73,19 @@ const loginAPI = {
   },
   loginViaEmailVerificationCode: async (optin) => {
     return apiGet(
-      CONFIG.LOGIN_API_URL
-        + 'loginViaEmailVerificationCode?emailVerificationCode='
-        + optin
+      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
     )
   },
   changePassword: async (session_id, email, password) => {
     const payload = {
       session_id,
       email,
-      'update': {
+      update: {
         'User.password': password,
       },
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)    
-  }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
 }
 
 export default loginAPI
