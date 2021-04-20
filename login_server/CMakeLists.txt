@@ -228,7 +228,7 @@ setup_target_for_coverage_gcovr_html(
     EXECUTABLE Gradido_LoginServer_Test
     DEPENDENCIES lib/libmariadb.so.3
 )
-
+endif()
 #  ----------------------    Test -----------------------------------------
 #project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
