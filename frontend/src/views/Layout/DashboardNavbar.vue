@@ -116,8 +116,8 @@ export default {
       this.activeNotifications = false
     },
     logout() {
-      this.$router.push('/login')
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
 }

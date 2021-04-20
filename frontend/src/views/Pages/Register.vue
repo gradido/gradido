@@ -188,8 +188,8 @@ export default {
         this.$router.push('/thx')
       } else {
         // todo: Display a proper error message!
-        this.$router.push('/login')
         this.$store.dispatch('logout')
+        this.$router.push('/login')
       }
     },
   },

@@ -16,8 +16,6 @@ export const store = new Vuex.Store({
     session_id: null,
     email: '',
     language: 'en',
-    sizeDE: 'normal',
-    sizeGB: 'big',
     user: {
       name: '',
       balance: 0,
@@ -37,13 +35,6 @@ export const store = new Vuex.Store({
   mutations: {
     language: (state, language) => {
       state.language = language
-      if (state.language == 'de') {
-        state.sizeDE = 'big'
-        state.sizeGB = 'normal'
-      } else {
-        state.sizeDE = 'normal'
-        state.sizeGB = 'big'
-      }
     },
     email: (state, email) => {
       state.email = email
