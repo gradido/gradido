@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './routes'
-import { store } from '../store/store'
 
 Vue.use(VueRouter)
 
@@ -19,14 +18,6 @@ const router = new VueRouter({
     }
     return { x: 0, y: 0 }
   },
-})
-
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !store.state.session_id) {
-    next({ path: '/login' })
-  } else {
-    next()
-  }
 })
 
 export default router
