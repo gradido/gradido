@@ -1,5 +1,5 @@
 <template>
-  <div class="register-form">
+  <div class="resetpwd-form">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
