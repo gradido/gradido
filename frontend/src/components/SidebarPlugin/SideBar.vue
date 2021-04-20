@@ -15,7 +15,7 @@
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
           <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
-            <a slot="title-container" class="nav-link" href="#" role="button">
+            <a slot="title-container" class="nav-link" role="button">
               <div class="media align-items-center">
                 <span class="avatar avatar-sm">
                   <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
@@ -88,7 +88,7 @@
         <hr class="my-3" />
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
-            <a class="nav-link text-lg" href="#!" @click="logout">
+            <a class="nav-link text-lg" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
