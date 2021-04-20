@@ -132,8 +132,8 @@ export default {
       this.$sidebar.displaySidebar(true)
     },
     logout() {
-      this.$router.push('/login')
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
   beforeDestroy() {
