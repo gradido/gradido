@@ -4,83 +4,33 @@
     class="navbar-top navbar-expand"
     :class="{ 'navbar-dark': type === 'default' }"
   >
-    <a
-      href="#"
-      aria-current="page"
-      class="h4 mb-0 text-uppercase d-none d-lg-inline-block active router-link-active"
-    >
-      {{ $route.name }}
-    </a>
     <!-- Navbar links -->
     <b-navbar-nav class="align-items-center ml-md-auto">
       <!-- This item dont have <b-nav-item> because item have data-action/data-target on tag <a>, wich we cant add -->
-      <li class="nav-item d-sm-none">
-        <a class="nav-link" href="#" data-action="search-show" data-target="#navbar-search-main">
-          <i class="ni ni-zoom-split-in"></i>
-        </a>
-      </li>
+      <li class="nav-item d-sm-none"></li>
     </b-navbar-nav>
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
-      <base-dropdown
-        menu-on-right
-        class="nav-item"
-        tag="li"
-        title-tag="a"
-        title-classes="nav-link pr-0"
-      >
-        <a href="#" class="pr-1" @click.prevent slot="title-container">
-          <b-media no-body class="align-items-center">
-            <span class="pb-2 text-lg font-weight-bold">
-              {{ $store.state.email }}
+      <a href="profile" class="pr-1" slot="title-container">
+        <b-media no-body class="align-items-center">
+          <span class="pb-2 text-lg font-weight-bold">
+            {{ $store.state.email }}
+          </span>
+          <b-media-body class="ml-2 d-none d-lg-block">
+            <span class="avatar">
+              <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
             </span>
-            <b-media-body class="ml-2 d-none d-lg-block">
-              <span class="avatar">
-                <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
-              </span>
-            </b-media-body>
-          </b-media>
-        </a>
-
-        <template>
-          <b-dropdown-header class="noti-title">
-            <h6 class="text-overflow m-0">{{ $t('welcome') }}</h6>
-          </b-dropdown-header>
-          <b-dropdown-item href="#!" to="/overview">
-            <i class="ni ni-single-02"></i>
-            <span>{{ $t('site.overview.account_overview') }}</span>
-          </b-dropdown-item>
-          <b-dropdown-item href="#!" to="/profile">
-            <i class="ni ni-single-02"></i>
-            <span>{{ $t('site.navbar.my-profil') }}</span>
-          </b-dropdown-item>
-          <b-dropdown-item href="#!" to="/profileedit">
-            <i class="ni ni-settings-gear-65"></i>
-            <span>{{ $t('site.navbar.settings') }}</span>
-          </b-dropdown-item>
-          <!--
-          <b-dropdown-item href="#!">
-            <i class="ni ni-calendar-grid-58"></i>
-            <span>{{ $t('site.navbar.activity') }}</span>
-          </b-dropdown-item>
-          -->
-          <div class="dropdown-divider"></div>
-          <b-dropdown-item href="#!" @click="logout">
-            <i class="ni ni-user-run"></i>
-            <span>{{ $t('logout') }}</span>
-          </b-dropdown-item>
-        </template>
-      </base-dropdown>
+          </b-media-body>
+        </b-media>
+      </a>
     </b-navbar-nav>
   </base-nav>
 </template>
 <script>
-import { CollapseTransition } from 'vue2-transitions'
 import { BaseNav } from '@/components'
 import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-    //CollapseTransition,
     BaseNav,
     VueQrcode,
   },
@@ -119,6 +69,11 @@ export default {
       //console.log("DashboardNavbar.vue user logout() : ")
       this.$store.dispatch('logout')
     },
+  },
+  beforeDestroy() {
+    if (this.$sidebar.showSidebar) {
+      this.$sidebar.showSidebar = false
+    }
   },
 }
 </script>
