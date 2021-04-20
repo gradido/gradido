@@ -24,12 +24,6 @@ RUN ./unix_parse_proto.sh
 FROM debug as login_server_debug
 
 ENV DOCKER_WORKDIR="/code"
-#RUN apt-get update && \
-#    apt-get install -y --no-install-recommends gdb && \
-#	apt-get autoclean && \
-#	apt-get autoremove && \
-#    apt-get clean && \
-#	rm -rf /var/lib/apt/lists/*
 	
 VOLUME /var/log/grd_login
 VOLUME /code/src
