@@ -41,9 +41,8 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
-    path: '/explorer',
-    name: 'Explorer',
-    component: () => import('../views/Pages/Explorer.vue'),
+    path: '/reset',
+    component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]
