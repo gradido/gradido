@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-//import router from '../routes/router.js'
 Vue.use(Vuex)
 import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
