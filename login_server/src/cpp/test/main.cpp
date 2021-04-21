@@ -98,7 +98,29 @@ int load() {
 	}
 
 	std::stringstream ss;
+	ss << "INSERT INTO `hedera_ids` (`id`, `shardNum`, `realmNum`, `num`) VALUES "
+		<< "(1, 0, 0, 37281), "
+		<< "(2, 0, 0, 21212), "
+		<< "(3, 0, 0, 212);";
+	runMysql(ss.str());
+	ss.str(std::string());
 
+	ss << "INSERT INTO `crypto_keys` (`id`, `private_key`, `public_key`, `crypto_key_type_id`) VALUES "
+		<< "(1, 0x263f1da712c3b47286b463c2de3784f364f2534d2c34722a3b483c3f3e36476857564f564d476c32d3e342f5ef2763cd23e23a2b429bab62e352f46ba273e2f2, 0xfe5237c2d1ab1361b33163f15634e261c1d217ae32b327cbd88db8ebffedb271, 3), "
+		<< "(2, 0x721f3e73e3263f1da712c3b47286b463c2de3784f364f2534d2c34722a3b483c3f3e36476857564f564d476c32d3e342f5ef2763cd23e23a2b429bab62e352f46ba273e2f2ef3264fe2452da62bc2739, 0xe3f253d1a2deb25362d2e374baf37bc1d3ef3781cfe1e127f3cd0abcdf372ea6, 1); ";
+	runMysql(ss.str());
+	ss.str(std::string());
+
+	ss << "INSERT INTO `hedera_accounts` (`id`, `user_id`, `account_hedera_id`, `account_key_id`, `balance`, `network_type`, `updated`) VALUES "
+		<< "(1, 1, 1, 1, 1000000000000, 1, '2019-09-03 11:13:52'), "
+		<< "(2, 1, 2, 2, 4312881211, 0, '2019-09-03 11:13:56'); ";
+	runMysql(ss.str());
+	ss.str(std::string());
+
+	ss << "INSERT INTO `hedera_topics` (`id`, `topic_hedera_id`, `name`, `auto_renew_account_hedera_id`, `auto_renew_period`, `group_id`, `admin_key_id`, `submit_key_id`, `current_timeout`, `sequence_number`, `updated`) VALUES "
+		<< "(1, 3, 'gdd_test_topic', 1, 0, 1, NULL, NULL, '1999-12-31 23:00:00', 0, '2020-09-14 18:29:04'); ";
+	runMysql(ss.str());
+	ss.str(std::string());
 
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)

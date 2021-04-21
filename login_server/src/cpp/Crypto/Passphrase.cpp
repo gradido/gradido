@@ -354,7 +354,7 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 		user_public_key_hex = DataTypeConverter::pubkeyToHex(keyPair->getPublicKey());
 		//printf("user public key hex: %s\n", user_public_key_hex.data());
 	}
-    std::string last_word_not_found = "";
+    std::string last_words_not_found[ServerConfig::Mnemonic_Types::MNEMONIC_MAX];
 	for (int i = 0; i < ServerConfig::Mnemonic_Types::MNEMONIC_MAX; i++) {
 		Mnemonic& m = ServerConfig::g_Mnemonic_WordLists[i];
 		bool existAll = true;
@@ -363,7 +363,7 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 			if (!m.isWordExist(*it)) {
 				existAll = false;
 				//printf("couldn't find word: %s\n", (*it).data());
-				last_word_not_found = (*it);
+				last_words_not_found[i] = (*it);
 				// leave inner for-loop
 				break;
 			}
@@ -374,10 +374,14 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 				test_passphrase->createWordIndices();
 				auto key_pair = KeyPairEd25519::create(test_passphrase);
 				if (key_pair) {
-					std::string current_key_pair = DataTypeConverter::pubkeyToHex(key_pair->getPublicKey());
-					//printf("public key hex to compare: %s\n", current_key_pair.data());
 
 					if (*key_pair != *keyPair) {
+#ifdef _TEST_BUILD // additional infos for debugging if error occure in test
+						printf("public key mismatch\n");
+						std::string generated_key_pair_hex = DataTypeConverter::pubkeyToHex(key_pair->getPublicKey());
+						std::string parameter_key_pair_hex = DataTypeConverter::pubkeyToHex(keyPair->getPublicKey());
+						printf("parameter: %s, generated: %s\n", parameter_key_pair_hex.data(), generated_key_pair_hex.data());
+#endif
 						delete key_pair;
 						continue;
 					}
@@ -388,7 +392,8 @@ const Mnemonic* Passphrase::detectMnemonic(const std::string& passphrase, const 
 			}
 			return &ServerConfig::g_Mnemonic_WordLists[i];
 		}
+		//printf("last word not found: %s in %s\n", last_words_not_found[i].data(), ServerConfig::mnemonicTypeToString((ServerConfig::Mnemonic_Types)i));
 	}
-	printf("last word not found: %s\n", last_word_not_found.data());
+	
 	return nullptr;
 }
