@@ -5,7 +5,7 @@
 #include "Poco/DeflatingStream.h"
 
 
-#line 7 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 7 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 
 #include "../Crypto/KeyPairEd25519.h"
 #include "../Crypto/Passphrase.h"
@@ -24,7 +24,7 @@ struct SListEntry
 	std::vector<Poco::AutoPtr<controller::UserBackup>> backups;
 };
 
-#line 1 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 1 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header_old.cpsp"
  
 #include "../ServerConfig.h"	
 
@@ -43,7 +43,7 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	if (_compressResponse) response.set("Content-Encoding", "gzip");
 
 	Poco::Net::HTMLForm form(request, request.stream());
-#line 26 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 26 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 
 	const char* pageName = "Admin Check User Backups";
 	auto cm = ConnectionManager::getInstance();
@@ -80,18 +80,21 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 			auto passphrase_object = Passphrase::create(passphrase, wordSource);
 			auto key_pair_from_passhrase = KeyPairEd25519::create(passphrase_object);
 			bool matching = false;
-			if(key_pair_from_passhrase->isTheSame(key_pair)) {
-				matching = true;
-			}
-			delete key_pair_from_passhrase;
-			if(user_id != last_user_id) {
-				last_user_id = user_id;
-				if(matching) continue;
-			} else {
-				auto lastEntry = notMatchingEntrys.back();
-				if(lastEntry.user->getModel()->getID() == user_id && matching == true) {
-					notMatchingEntrys.pop_back();
-					continue;
+			if(key_pair_from_passhrase) 
+			{
+				if(key_pair_from_passhrase->isTheSame(key_pair)) {
+					matching = true;
+				}
+				delete key_pair_from_passhrase;
+				if(user_id != last_user_id) {
+					last_user_id = user_id;
+					if(matching) continue;
+				} else {
+					auto lastEntry = notMatchingEntrys.back();
+					if(lastEntry.user->getModel()->getID() == user_id && matching == true) {
+						notMatchingEntrys.pop_back();
+						continue;
+					}
 				}
 			}
 			
@@ -122,12 +125,12 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "<meta charset=\"UTF-8\">\n";
 	responseStream << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
 	responseStream << "<title>Gradido Login Server: ";
-#line 9 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 9 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( pageName );
 	responseStream << "</title>\n";
 	responseStream << "<!--<link rel=\"stylesheet\" type=\"text/css\" href=\"css/styles.min.css\">-->\n";
 	responseStream << "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
-#line 11 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 11 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_php_serverPath );
 	responseStream << "/css/styles.css\">\n";
 	responseStream << "<style type=\"text/css\" >\n";
@@ -172,7 +175,7 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "<div class=\"versionstring dev-info\">\n";
 	responseStream << "\t<p class=\"grd_small\">Login Server in Entwicklung</p>\n";
 	responseStream << "\t<p class=\"grd_small\">Alpha ";
-#line 53 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\header_old.cpsp"
+#line 53 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\header_old.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "</div>\n";
@@ -181,11 +184,11 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "<div class=\"grd_container\">\n";
 	responseStream << "\t<h1>Admin Check User Backup</h1>\n";
 	responseStream << "\t";
-#line 95 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 98 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( getErrorsHtml() );
 	responseStream << "\n";
 	responseStream << "\t<p><b>Unmatching count: ";
-#line 96 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 99 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( notMatchingEntrys.size() );
 	responseStream << "</b></p>\n";
 	responseStream << "\t<table>\n";
@@ -194,34 +197,34 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "\t\t</thead>\n";
 	responseStream << "\t\t<tbody>\n";
 	responseStream << "\t\t\t";
-#line 102 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 105 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  for(auto it = notMatchingEntrys.begin(); it != notMatchingEntrys.end(); it++) { 
 				auto userModel = (*it).user->getModel();
 				responseStream << "\n";
 	responseStream << "\t\t\t\t<tr>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 106 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 109 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getID() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 107 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 110 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getFirstName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 108 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 111 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getLastName() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 109 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 112 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( userModel->getEmail() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t<td>";
-#line 110 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 113 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
 	responseStream << ( (*it).backups.size() );
 	responseStream << "</td>\n";
 	responseStream << "\t\t\t\t</tr>\n";
 	responseStream << "\t\t\t";
-#line 112 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
+#line 115 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\adminCheckUserBackup.cpsp"
  } 	responseStream << "\n";
 	responseStream << "\t\t</tbody>\n";
 	responseStream << "</div>\n";
@@ -232,14 +235,14 @@ void AdminCheckUserBackup::handleRequest(Poco::Net::HTTPServerRequest& request, 
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomleft\">\n";
 	responseStream << "            ";
-#line 6 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 6 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\footer.cpsp"
 	responseStream << ( mTimeProfiler.string() );
 	responseStream << "\n";
 	responseStream << "        </div>\n";
 	responseStream << "        <div class=\"bottomright\">\n";
 	responseStream << "            <p>Login Server in Entwicklung</p>\n";
 	responseStream << "            <p>Alpha ";
-#line 10 "F:\\Gradido\\gradido_login_server\\src\\cpsp\\footer.cpsp"
+#line 10 "F:\\Gradido\\gradido_stage2_local\\login_server\\src\\cpsp\\footer.cpsp"
 	responseStream << ( ServerConfig::g_versionString );
 	responseStream << "</p>\n";
 	responseStream << "        </div>\n";

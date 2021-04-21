@@ -59,18 +59,21 @@ struct SListEntry
 			auto passphrase_object = Passphrase::create(passphrase, wordSource);
 			auto key_pair_from_passhrase = KeyPairEd25519::create(passphrase_object);
 			bool matching = false;
-			if(key_pair_from_passhrase->isTheSame(key_pair)) {
-				matching = true;
-			}
-			delete key_pair_from_passhrase;
-			if(user_id != last_user_id) {
-				last_user_id = user_id;
-				if(matching) continue;
-			} else {
-				auto lastEntry = notMatchingEntrys.back();
-				if(lastEntry.user->getModel()->getID() == user_id && matching == true) {
-					notMatchingEntrys.pop_back();
-					continue;
+			if(key_pair_from_passhrase) 
+			{
+				if(key_pair_from_passhrase->isTheSame(key_pair)) {
+					matching = true;
+				}
+				delete key_pair_from_passhrase;
+				if(user_id != last_user_id) {
+					last_user_id = user_id;
+					if(matching) continue;
+				} else {
+					auto lastEntry = notMatchingEntrys.back();
+					if(lastEntry.user->getModel()->getID() == user_id && matching == true) {
+						notMatchingEntrys.pop_back();
+						continue;
+					}
 				}
 			}
 			
