@@ -90,8 +90,8 @@ class StateBalancesControllerTest extends TestCase
         $response = $this->getAndParseWithoutCompare('/state-balances/ajaxGetBalance/' . $session_id);
 
         $this->assertEquals('success', $response->state);
-        $this->assertEquals(7321828, $response->balance);
-        $this->assertLessThan(7321828, $response->decay);
+        $this->assertEquals(7321825, $response->balance);
+        $this->assertLessThan(7321825, $response->decay);
         
     }
     
@@ -127,8 +127,8 @@ class StateBalancesControllerTest extends TestCase
 
         $response = $this->getAndParseWithoutCompare('/state-balances/ajaxGetBalance/' . $session_id);
         $this->assertEquals('success', $response->state);
-        $this->assertEquals(9112595, $response->balance);
-        $this->assertLessThan(9112595, $response->decay);
+        $this->assertEquals(9112592, $response->balance);
+        $this->assertLessThan(9112592, $response->decay);
     }
     
     public function testAjaxGetBalanceInvalidSession()

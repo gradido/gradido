@@ -115,4 +115,22 @@ class StateUsersTable extends Table
       }
       return $receiverProposal;
     }
+    
+    public function getUsersIndiced($user_ids)
+    {
+        $involvedUser_temp = array_flip($user_ids);
+        // exchange back
+        $involvedUserIds = array_flip($involvedUser_temp);
+        $involvedUser = $this->find('all', [
+            'contain' => false,
+            'where' => ['id IN' => $involvedUserIds],
+            'fields' => ['id', 'first_name', 'last_name', 'email']
+          ]);
+        //var_dump($involvedUser->toArray());
+        $involvedUserIndices = [];
+        foreach ($involvedUser as $involvedUser) {
+            $involvedUserIndices[$involvedUser->id] = $involvedUser;
+        }
+        return $involvedUserIndices;
+    }
 }

@@ -12,26 +12,45 @@ This document describes the community server API. The community server is writte
 Returns the current account balance
 
 ### Request
-`GET http://localhost/state-balances/ajaxGetBalance/-127182`
+`GET http://localhost/api/getBalance/`
 
 ### Response
 Assuming: session is valid
+Session will be searched in php session and GRADIDO_LOGIN cookie.
+Additional session can be provided as GET-Parameter 
+`GET http://localhost/api/getBalance/-127182`
 
 ```json
 {
 	"state":"success",
-	"balance":174500 
+        "balance":15906078,
+        "decay":15873851,
+        "decay_date":"2021-04-16T11:47:21+00:00"
 }
 ```
 
-- `balance`: balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `balance`   : balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `decay`     : balance with decay on it at the time in decay_date, so it is the precise balance of user at time of calling this function
+- `decay_date`: date and time for decay amount, should be the time and date of function call 
 
 ## List transactions
 List all transactions for logged in user
 
 ### Request
-`GET http://localhost/state-balances/ajaxListTransactions/-127182/[DESC]`
-(The `DESC` part is optional symbolized by [])
+`GET http://localhost/api/listTransactions/[1]/[25]/[DESC]/[session_id]`
+Parts symbolized by [] are optional
+  - first parameter (1) is page for paging
+  - second parameter (25) is count for paging
+  - third parameter is ordering of resulting array, default is ASC
+  - fourth parameter is session_id (session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this )
+
+#### Paging
+With count you say how many entrys you like to have in the result.
+With page you say on which page you are. 
+For example 50 transactions are in db. 
+With 1/25 you get the first 25 transactions (1-25)
+With 2/20 you get the second 20 transactions (21-40)
+
 
 ### Response
 Assuming: session is valid

@@ -14,6 +14,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Http\Client;
 use Cake\Core\Configure;
 
+use Cake\I18n\FrozenTime;
 
 class AppRequestsController extends AppController 
 {  
@@ -23,7 +24,7 @@ class AppRequestsController extends AppController
         $this->loadComponent('JsonRequestClient');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins']);
+        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
     }
     
   
@@ -263,6 +264,86 @@ class AppRequestsController extends AppController
 
         }
         
+    }
+    
+    public function getBalance($session_id = 0)
+    {
+
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        $state_balances_table = TableRegistry::getTableLocator()->get('StateBalances');
+        $state_balances_table->updateBalances($user['id']);
+        
+        $state_balance = $state_balances_table->find()->where(['state_user_id' => $user['id']])->first();
+
+        if(!$state_balance) {
+            return $this->returnJson(['state' => 'success', 'balance' => 0]);
+        }
+        $now = new FrozenTime();
+        return $this->returnJson([
+            'state' => 'success',
+            'balance' => $state_balance->amount,
+            'decay' => $state_balance->partDecay($now),
+            'decay_date' => $now
+        ]);
+    }
+    
+    public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
+    {
+        $startTime = microtime(true);
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        
+        
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+        $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
+        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
+        
+        
+        $stateBalancesTable->updateBalances($user['id']);
+
+        $gdtSum = 0;        
+        $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
+
+        if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
+          $gdtSum = intval($gdtEntries['data']['sum']);
+        } else {
+          $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
+          }
+        }
+
+        
+        $stateUserTransactionsQuery = $stateUserTransactionsTable
+                                        ->find()
+                                        ->where(['state_user_id' => $user['id']])
+                                        ->order(['balance_date' => 'ASC'])
+                                        ->contain([])
+                                        ->limit($count)
+                                        ->page($page)
+                                        ;
+        $decay = true;
+        $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
+        
+        
+        if($orderDirection == 'DESC') {
+            $transactions = array_reverse($transactions);
+        }
+        return $this->returnJson([
+                'state' => 'success',
+                'transactions' => $transactions,
+                'transactionExecutingCount' => $session->read('Transactions.executing'),
+                'count' => count($transactions),
+                'gdtSum' => $gdtSum,
+                'timeUsed' => microtime(true) - $startTime
+            ]);
     }
     
     private function acquireAccessToken($session_id)

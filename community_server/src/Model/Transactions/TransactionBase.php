@@ -63,7 +63,6 @@ class TransactionBase {
 
 
     protected function updateStateBalance($stateUserId, $addAmountCent, $recordDate) {
-        $finalBalance = 0;
         $stateBalancesTable = self::getTable('stateBalances');
         $stateBalanceQuery = $stateBalancesTable
                 ->find('all')
@@ -92,7 +91,7 @@ class TransactionBase {
         return $finalBalance;
     }
     
-    protected function addStateUserTransaction($stateUserId, $transactionId, $transactionTypeId, $balance) {
+    protected function addStateUserTransaction($stateUserId, $transactionId, $transactionTypeId, $balance, $balance_date) {
         $stateUserTransactionTable = self::getTable('state_user_transactions');
         $stateUserTransactions = $stateUserTransactionTable
                                     ->find('all')
@@ -116,12 +115,24 @@ class TransactionBase {
         $entity->transaction_id = $transactionId;
         $entity->transaction_type_id =  $transactionTypeId;
         $entity->balance = $balance;
+        $entity->balance_date = $balance_date;
         
         if(!$stateUserTransactionTable->save($entity)) {
             $errors = $entity->getErrors();
             $this->addError('TransactionBase::addStateUserTransaction', 'error saving state user balance with: ' . json_encode($errors));
             return false;
         }
+        // set balance from all state_user_transactions which came after (sorted by balance_date) to 0 
+        // because creation transaction can be added before other transaction which already happend
+        $state_user_transactions = $stateUserTransactionTable
+                                    ->find()
+                                    ->select(['id', 'balance'])
+                                    ->where(['state_user_id' => $stateUserId, 'balance_date >' => $balance_date])
+                                    ;
+        foreach($state_user_transactions as $t) {
+            $t->balance = 0;
+        }
+        $stateUserTransactionTable->saveMany($state_user_transactions);
         return true;
     }
 }
