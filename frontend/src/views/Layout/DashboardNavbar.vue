@@ -28,7 +28,6 @@
 <script>
 import { BaseNav } from '@/components'
 import VueQrcode from 'vue-qrcode'
-import loginAPI from '../../apis/loginAPI'
 
 export default {
   components: {
