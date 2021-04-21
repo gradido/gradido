@@ -29,7 +29,9 @@ Additional session can be provided as GET-Parameter
 }
 ```
 
-- `balance`: balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `balance`   : balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `decay`     : balance with decay on it at the time in decay_date, so it is the precise balance of user at time of calling this function
+- `decay_date`: date and time for decay amount, should be the time and date of function call 
 
 ## List transactions
 List all transactions for logged in user
