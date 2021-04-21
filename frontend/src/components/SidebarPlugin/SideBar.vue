@@ -14,43 +14,13 @@
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
-          <base-dropdown class="nav-item" menu-on-right tag="li" title-tag="a">
-            <a slot="title-container" class="nav-link" role="button">
-              <div class="media align-items-center">
-                <span class="avatar avatar-sm">
-                  <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
-                </span>
-              </div>
-            </a>
-            xx
-            <router-link to="/overview" class="dropdown-item text-lg text-muted">
-              <i class="ni ni-single-02"></i>
-              <span>{{ $t('site.overview.account_overview') }}</span>
-            </router-link>
-            <router-link to="/profile" class="dropdown-item text-lg text-muted">
-              <i class="ni ni-single-02"></i>
-              <span>{{ $t('site.navbar.my-profil') }}</span>
-            </router-link>
-            <router-link to="/profileedit" class="dropdown-item text-lg text-muted">
-              <i class="ni ni-settings-gear-65"></i>
-              <span>{{ $t('site.navbar.settings') }}</span>
-            </router-link>
-            <router-link to="/transactions" class="dropdown-item text-lg text-muted">
-              <i class="ni ni-calendar-grid-58"></i>
-              <span>Transactions</span>
-            </router-link>
-            <!--
-                 <router-link to="/activity" class="dropdown-item  text-lg text-muted">
-                 <i class="ni ni-calendar-grid-58"></i>
-                 <span>{{ $t('site.navbar.activity') }}</span>
-                 </router-link>
-            -->
-            <div class="dropdown-divider"></div>
-            <div @click="logout" class="dropdown-item text-lg text-muted">
-              <i class="ni ni-support-16"></i>
-              {{ $t('logout') }}
+          <a slot="title-container" class="nav-link" role="button">
+            <div class="media align-items-center">
+              <span class="avatar avatar-sm">
+                <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+              </span>
             </div>
-          </base-dropdown>
+          </a>
         </ul>
       </slot>
       <slot></slot>
@@ -135,11 +105,6 @@ export default {
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
-  },
-  beforeDestroy() {
-    if (this.$sidebar.showSidebar) {
-      this.$sidebar.showSidebar = false
-    }
   },
 }
 </script>
