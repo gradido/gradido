@@ -69,7 +69,6 @@ export default {
   methods: {
     dismissAlert() {
       this.visible = false
-      this.$store.state.loginfail = false
     },
   },
 }

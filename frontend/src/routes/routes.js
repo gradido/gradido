@@ -2,28 +2,45 @@ import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
+    path: '/',
+    redirect: (to) => {
+      return { path: '/login' }
+    },
+  },
+  {
     path: '/overview',
-    component: () => import('../views/KontoOverview.vue'),
+    component: () => import('../views/Pages/KontoOverview.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/profile',
-    name: 'Profile',
     component: () => import('../views/Pages/UserProfileCard.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/profileedit',
     component: () => import('../views/Pages/UserProfileEdit.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/activity',
     component: () => import('../views/Pages/UserProfileActivity.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/transactions',
     component: () => import('../views/Pages/UserProfileTransactionList.vue'),
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/login',
@@ -39,12 +56,11 @@ const routes = [
   },
   {
     path: '/password',
-    component: () => import('../views/Pages/Password.vue'),
+    component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
-    path: '/explorer',
-    name: 'Explorer',
-    component: () => import('../views/Pages/Explorer.vue'),
+    path: '/reset',
+    component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]

@@ -1,13 +1,16 @@
 <template>
-  <div class="register-form">
+  <div class="resetpwd-form">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('site.signup.title') }}</h1>
-              <p class="text-lead">{{ $t('site.signup.subtitle') }}</p>
+              <h1>Reset Password</h1>
+              <div class="pb-4">
+                Jetzt kannst du ein neues Passwort speichern, mit welchem du dich zukünfitg in der
+                GRADIDO App anmelden kannst.
+              </div>
             </b-col>
           </b-row>
         </div>
@@ -20,38 +23,8 @@
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
-              <div class="text-center text-muted mb-4">
-                <small>{{ $t('signup') }}</small>
-              </div>
               <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <base-input
-                    :label="$t('form.firstname')"
-                    alternative
-                    class="mb-3"
-                    name="firstname"
-                    :rules="{ required: true, min: 3 }"
-                    v-model="model.firstname"
-                  ></base-input>
-                  <base-input
-                    :label="$t('form.lastname')"
-                    alternative
-                    class="mb-3"
-                    name="lastname"
-                    :rules="{ required: true, min: 2 }"
-                    v-model="model.lastname"
-                  ></base-input>
-
-                  <base-input
-                    :label="$t('form.email')"
-                    alternative
-                    class="mb-3"
-                    name="Email"
-                    :rules="{ required: true, email: true }"
-                    v-model="model.email"
-                  ></base-input>
-
-                  <hr />
                   <b-form-group :label="$t('form.password')">
                     <b-input-group>
                       <b-form-input
@@ -100,29 +73,9 @@
                       </p>
                     </div>
                   </transition>
-
-                  <b-row class="my-4">
-                    <b-col cols="12">
-                      <base-input
-                        :rules="{ required: { allowFalse: false } }"
-                        name="Privacy Policy"
-                      >
-                        <b-form-checkbox v-model="model.agree">
-                          <span class="text-muted" v-html="$t('site.signup.agree')"></span>
-                        </b-form-checkbox>
-                      </base-input>
-                    </b-col>
-                  </b-row>
                   <div
                     class="text-center"
-                    v-if="
-                      passwordsFilled &&
-                      samePasswords &&
-                      passwordValidation.valid &&
-                      namesFilled &&
-                      emailFilled &&
-                      model.agree
-                    "
+                    v-if="passwordsFilled && samePasswords && passwordValidation.valid"
                   >
                     <b-button type="submit" variant="secondary" class="mt-4">
                       {{ $t('signup') }}
@@ -134,25 +87,14 @@
           </b-card>
         </b-col>
       </b-row>
-      <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
     </b-container>
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
-
 export default {
-  name: 'register',
+  name: 'reset',
   data() {
     return {
-      model: {
-        firstname: '',
-        lastname: '',
-        email: '',
-        agree: false,
-      },
       rules: [
         { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
         { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
@@ -169,28 +111,12 @@ export default {
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
-    async onSubmit() {
-      const result = await loginAPI.create(
-        this.model.email,
-        this.model.firstname,
-        this.model.lastname,
-        this.password,
-      )
-      if (result.success) {
-        this.$store.dispatch('createUser', {
-          session_id: result.result.data.session_id,
-          email: this.model.email,
-        })
-        this.model.email = ''
-        this.model.firstname = ''
-        this.model.lastname = ''
-        this.password = ''
-        this.$router.push('/thx')
-      } else {
-        // todo: Display a proper error message!
-        this.$store.dispatch('logout')
-        this.$router.push('/login')
-      }
+    onSubmit() {
+      this.$store.dispatch('createUser', {
+        password: this.model.password,
+      })
+      this.model.password = ''
+      this.$router.push('/thx')
     },
   },
   computed: {
@@ -199,17 +125,6 @@ export default {
     },
     passwordsFilled() {
       return this.password !== '' && this.checkPassword !== ''
-    },
-    namesFilled() {
-      return (
-        this.model.firstname !== '' &&
-        this.model.firstname.length > 2 &&
-        this.model.lastname !== '' &&
-        this.model.lastname.length > 1
-      )
-    },
-    emailFilled() {
-      return this.model.email !== ''
     },
     passwordValidation() {
       let errors = []
@@ -223,6 +138,9 @@ export default {
       }
       return { valid: false, errors }
     },
+  },
+  created() {
+    //console.log('resetpage', this.$route)
   },
 }
 </script>

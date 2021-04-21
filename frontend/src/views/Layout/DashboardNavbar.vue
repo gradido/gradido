@@ -10,7 +10,7 @@
       <li class="nav-item d-sm-none"></li>
     </b-navbar-nav>
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
-      <a href="profile" class="pr-1" slot="title-container">
+      <a class="pr-1" slot="title-container">
         <b-media no-body class="align-items-center">
           <span class="pb-2 text-lg font-weight-bold">
             {{ $store.state.email }}
@@ -66,8 +66,8 @@ export default {
       this.activeNotifications = false
     },
     logout() {
-      //console.log("DashboardNavbar.vue user logout() : ")
       this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
   beforeDestroy() {
