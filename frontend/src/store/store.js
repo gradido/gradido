@@ -63,7 +63,6 @@ export const store = new Vuex.Store({
       state.user.balance_gdt = balance / 10000
     },
   },
-  // Asyncronous actions - used for api calls
   actions: {
     login: async ({ dispatch, commit }, data) => {
       const result = await loginAPI.login(data.email, data.password)
@@ -74,18 +73,10 @@ export const store = new Vuex.Store({
         $cookies.set('gdd_u', data.email)
         router.push('/overview')
       } else {
-        // Register failed, we perform a logout
-        //alert('>>>>> FAIl LOGIN')
         commit('loginfail', true)
 
         //dispatch('logout')
       }
-    },
-    passwordReset: async (data) => {
-      //console.log('<<<<<<<<<<< PASSWORT RESET TODO >>>>>>>>>>>', data.email)
-    },
-    schoepfen: async (data) => {
-      // http://localhost/transaction-creations/ajaxCreate
     },
     createUser: async ({ commit, dispatch }, data) => {
       // console.log('action: createUser')

@@ -46,17 +46,17 @@ jobs:
         with:
           submodules: recursive
       ##########################################################################
-      # BUILD LOGIN SERVER DOCKER IMAGE (build) ################################
+      # BUILD LOGIN SERVER DOCKER IMAGE ########################################
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target login_server_debug -t "gradido/loginserver:test" -f ./login_server/Dockerfile.debug login_server/
-          docker save "gradido/loginserver:test" > /tmp/loginserver.tar
+          docker build --target login_server_debug -t "gradido/login_server:test" -f ./login_server/Dockerfile.debug login_server/
+          docker save "gradido/login_server:test" > /tmp/login_server.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: docker-loginserver-test
-          path: /tmp/loginserver.tar
+          name: docker-login-server-test
+          path: /tmp/login_server.tar
 
   ##############################################################################
   # JOB: DOCKER BUILD TEST COMMUNITY SERVER ####################################
@@ -72,23 +72,75 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       ##########################################################################
-      # BUILD COMMUNITY SERVER DOCKER IMAGE (build) ############################
+      # BUILD COMMUNITY SERVER DOCKER IMAGE ####################################
       ##########################################################################
       - name: community server | Build `test` image
         run: |
-          docker build -t "gradido/communityserver:test" -f ./community_server/Dockerfile ./
-          docker save "gradido/communityserver:test" > /tmp/communityserver.tar
+          docker build -t "gradido/community_server:test" -f ./community_server/Dockerfile ./
+          docker save "gradido/community_server:test" > /tmp/community_server.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: docker-communityserver-test
-          path: /tmp/communityserver.tar
+          name: docker-community-server-test
+          path: /tmp/community_server.tar
+
+  ##############################################################################
+  # JOB: DOCKER BUILD TEST MARIADB #############################################
+  ##############################################################################
+  build_test_mariadb:
+    name: Docker Build Test - MariaDB
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # BUILD MARIADB DOCKER IMAGE #############################################
+      ##########################################################################
+      - name: mariadb | Build `test` image
+        run: |
+          docker build -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
+          docker save "gradido/mariadb:test" > /tmp/mariadb.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-mariadb-test
+          path: /tmp/mariadb.tar
+
+  ##############################################################################
+  # JOB: DOCKER BUILD TEST NGINX ###############################################
+  ##############################################################################
+  build_test_nginx:
+    name: Docker Build Test - Nginx
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # BUILD NGINX DOCKER IMAGE #############################################
+      ##########################################################################
+      - name: nginx | Build `test` image
+        run: |
+          docker build -t "gradido/nginx:test" -f ./nginx/Dockerfile ./
+          docker save "gradido/nginx:test" > /tmp/nginx.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-nginx-test
+          path: /tmp/nginx.tar
 
   ##############################################################################
   # JOB: LINT FRONTEND #########################################################
   ##############################################################################
   lint_frontend:
-    name: Lint frontend
+    name: Lint - Frontend
     runs-on: ubuntu-latest
     needs: [build_test_frontend]
     steps:
@@ -155,11 +207,12 @@ jobs:
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
       - name: frontend | Coverage check
-        uses: devmasx/coverage-check-action@v1.2.0
+        uses: webcraftmedia/coverage-check-action@master
         with:
+          report_name: Coverage Frontend
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 10
+          min_coverage: 11
           token: ${{ github.token }}
   
   #test:
