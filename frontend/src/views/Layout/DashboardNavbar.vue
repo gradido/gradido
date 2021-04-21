@@ -70,10 +70,5 @@ export default {
       this.$router.push('/login')
     },
   },
-  beforeDestroy() {
-    if (this.$sidebar.showSidebar) {
-      this.$sidebar.showSidebar = false
-    }
-  },
 }
 </script>
