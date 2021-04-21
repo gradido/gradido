@@ -131,6 +131,9 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 				auto email = user_model->getEmail();
 				jsonUser.set("identHash", DRMakeStringHash(email.data(), email.size()));
 			}
+			else if (parameterString == "user.language") {
+				jsonUser.set("language", user_model->getLanguageKey());
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");
