@@ -1,4 +1,4 @@
-#include "TestPassphrase.h"
+﻿#include "TestPassphrase.h"
 
 #include "../../Crypto/Passphrase.h"
 #include "../../SingletonManager/MemoryManager.h"
@@ -41,7 +41,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases1[] = {
 		"Fichte Heuschrecke Botschafter G&ouml;ttingen Leasing losfliegen simpel enorm erk&auml;mpft Werk Wolke vorhanden jene Slums stagnieren Verifizieren insgesamt Hanau simpel Inspiration delegieren umtauschen ablegen suggerieren ",
-		"ankommt gesamt gestorben m&uuml;de Argument stolz diskutiert Kette Leonardo riesig Igor berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml;hig diskutiert erwidern Hanau Plage Fossilien ethnisch ",
+		"ankommt gesamt gestorben m&uuml;de sind stolz Enkel geklappt Leonardo riesig Bezugsquelle berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml;hig Enkel erwidern Hanau Plage Fossilien ethnisch ",
 		"beauty slight skill maze wrap neither table term pizza journey unusual fence mind buzz scrap height critic service table knock fury shrimp curious fog "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -57,7 +57,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases2[] = {
 		"oftmals bist bietet spalten Datenbank Masse str&auml;flich hervor Derartig Hallo christlich Brief iPhone einpendeln telefonieren musizieren gigantisch Orchester zirkulieren essen gilt Erich Dollar money ",
-		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Umkehrschluss Fidel jeder Heinrich Engagement leihen gezogen Disziplin zufolge raffen Iris J&auml;ger ",
+		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Wettbewerb Fidel jeder Heinrich Engagement leihen viertel Disziplin zufolge erwarten Iris J&auml;ger ",
 		"fresh hamster canvas lyrics chat mutual pair color airport estate fly assault suspect deliver similar fancy grass cliff tenant apple divert timber analyst seed "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -73,7 +73,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases3[] = {
 		"tief Acker Abgaben jenseits Revolution verdeckt Entdeckung Sanktion sammeln Umdrehung regulieren murmeln Erkenntnis hart zwar zuspitzen indem fegen bomber zw&ouml;lf Mobbing divers Inspiration Krieg ",
-		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel spalten unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich R&uuml;cken Finnland sehen erwidern Abs&auml;tze ",
+		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel ergr&uuml;nden unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich &Auml;ste Finnland sehen erwidern Abs&auml;tze ",
 		"rack gentle paddle illness feature fatigue teach ball dust decade dish kick skate income small pill collect often man trap doctor coffee knock excuse "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -110,11 +110,6 @@ TEST_F(PassphraseTest, detectMnemonicWithPubkey) {
 		auto key_pair = new KeyPairEd25519(*pubkeyBin);
 		for (int i = 0; i < ServerConfig::MNEMONIC_MAX; i++) {
 			ServerConfig::Mnemonic_Types type = (ServerConfig::Mnemonic_Types)i;
-			auto mnemonic_type = Passphrase::detectMnemonic(testDataSet.passphrases[type], key_pair);
-			if(nullptr == mnemonic_type) {
-			  printf("no match for passphrase: %s\n", testDataSet.passphrases[type].data());
-			  printf("type: %s\n", ServerConfig::mnemonicTypeToString(type));
-			}
 			EXPECT_EQ(Passphrase::detectMnemonic(testDataSet.passphrases[type], key_pair), &ServerConfig::g_Mnemonic_WordLists[type]);
 		}
 	}
