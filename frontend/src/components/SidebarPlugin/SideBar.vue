@@ -70,6 +70,7 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
+import loginAPI from '../../apis/loginAPI'
 
 export default {
   name: 'sidebar',
@@ -101,7 +102,8 @@ export default {
     showSidebar() {
       this.$sidebar.displaySidebar(true)
     },
-    logout() {
+    async logout() {
+      //const result = await loginAPI.logout(this.$store.state.session_id)
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
