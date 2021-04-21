@@ -304,7 +304,7 @@ In case of success returns:
 		"public_hex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"role": "none",
 		"username": ""
-	}
+	},
 	"session_id":1853761475
 }
 ```
