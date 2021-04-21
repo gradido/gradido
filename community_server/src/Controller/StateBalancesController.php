@@ -310,7 +310,7 @@ class StateBalancesController extends AppController
     }
 
 
-    public function ajaxListTransactions($session_id, $page, $count)
+    public function ajaxListTransactions($session_id, $page=1, $count=25)
     {
         if(!$session_id) {
             return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
