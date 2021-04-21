@@ -316,10 +316,7 @@ class AppRequestsController extends AppController
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
-          if($user) {   
-            $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id']);
-          } else {
-            $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, 0);
+          $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
           }
         }
 
