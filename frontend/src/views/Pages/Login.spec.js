@@ -93,14 +93,6 @@ describe('Login', () => {
           'The Email field must be a valid email',
         )
       })
-
-      it('shows a warning when password is too short', async () => {
-        wrapper.find('input[placeholder="form.password"]').setValue('1234')
-        await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
-          'The Password field must be at least 6 characters',
-        )
-      })
     })
 
     // to do: test submit button

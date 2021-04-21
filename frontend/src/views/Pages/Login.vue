@@ -38,7 +38,6 @@
                     alternative
                     class="mb-3"
                     name="Password"
-                    :rules="{ required: true, min: 6 }"
                     prepend-icon="ni ni-lock-circle-open"
                     type="password"
                     :placeholder="$t('form.password')"
