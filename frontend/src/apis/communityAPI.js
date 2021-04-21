@@ -33,7 +33,7 @@ const apiPost = async (url, payload) => {
 
 const communityAPI = {
   balance: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_STATE_BALANCE_URL + 'getBalance/' + session_id)
+    return apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + session_id)
   },
   transactions: async (session_id) => {
     return apiGet(
