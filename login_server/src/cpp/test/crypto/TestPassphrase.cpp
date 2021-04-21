@@ -1,4 +1,4 @@
-﻿#include "TestPassphrase.h"
+#include "TestPassphrase.h"
 
 #include "../../Crypto/Passphrase.h"
 #include "../../SingletonManager/MemoryManager.h"
