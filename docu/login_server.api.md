@@ -96,6 +96,7 @@ with:
 	"first_name":"Max",
 	"last_name":"Musterman" ,
     "emailType": 2,
+	"group_id": 1,
 	"password":"123abcDE&",
 	"login_after_register":true
 }
@@ -104,6 +105,7 @@ with:
 - `emailType`: control email-text sended with email verification code
   - 2: default, if user has registered directly
   - 5: if user was registered by an admin 
+- `group_id`: group id of group to which user will join (id from login_server)
 - `login_after_register`: if set to true auto-login after create user was successfull, means session cookie is set and session_id returned
 
 ### Response
