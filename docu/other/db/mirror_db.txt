@@ -1,0 +1,20 @@
+groups
+   varbinary(64)
+id index name public 
+
+transaction_signatures 
+                  varbinary(64) varbinary(32) 
+id transaction_id signature     pubkey 
+
+transactions
+int64                                    
+id group_id timestamp transaction_type_id hash received
+
+transaction_bins
+id transaction_id filename start size
+
+state_created
+id transaction_id month year short_ident_hash
+
+Für mehr Performance, jeweils eine transactions, transaction_bins und transaction_signatures
+Tabelle pro Gruppe

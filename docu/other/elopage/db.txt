@@ -1,0 +1,35 @@
+
+gdt_entries
+id amount date email comment coupon_code gdt_entry_type_id factor amount2 factor2
+
+gdt_entry_types
+id name description
+
+gdt_entries_elopage_transactions
+id gdt_entry_id elopage_transaction_id
+
+gdt_entries_elopage_transactions_publishers
+id gdt_entry_id elopage_transaction_id publisher_id publisher_deep
+
+publishers
+id first_name last_name email
+
+contacts
+id first_name last_name email publisher_id
+
+contact_emails
+id contact_id email
+
+validate_contacts 
+id first_name last_name email
+
+elopage_transactions
+                  // not unique
+id order_id email publisher_id amount fee revenue vat_rate vat_amount coupon_code created_date created_at success_date event action payment_state
+
+elopage_comments
+id body date sender_first_name sender_last_name discussion_name product_id
+
+users
+id username password
+

@@ -1,0 +1,148 @@
+22.12.20 13:07:47
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA=",
+    "ed25519": "cugS2Ero8Zu6y1fu1LCTByXtLVzSrsWyCp3r0s7m0+GbmxTGjUT9EnI83xiFsZJVPOO2QNzLy0Jz8ECIz4qdAg=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "",
+ "versionNumber": "0",
+ "groupMemberUpdate": {
+  "userPubkey": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA=",
+  "memberUpdateType": "ADD_USER",
+  "targetGroup": "staging1"
+ }
+}
+
+}
+22.12.20 13:11:45
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+    "ed25519": "Bg9WsvU03d12YClE1mGmRoh9SVeKIxJI3ruI782WatLYM/KR8yPW32U8Ct72r54qf+u0/+HAxKI+yhOY5PktCw=="
+   },
+   {
+    "pubKey": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA=",
+    "ed25519": "4WTB/NEca48JfX4wKGDeCUdJFyEj60pplWWg59E1p7eYP9jR7vlWS4+UTLHYnRLFJVVBgVmehn3nl0KoVoSEBA=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "",
+ "versionNumber": "0",
+ "groupMemberUpdate": {
+  "userPubkey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+  "memberUpdateType": "ADD_USER",
+  "targetGroup": "staging1"
+ }
+}
+
+}
+
+22.12.20 13:13:00
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA=",
+    "ed25519": "pJxQiSBQCiFkzu6dKfhCsfMis1UA1thzhpE4PMWR+z7Kqdjf5RZ14TFstD270fuK9QVjBubqokxFCnPBXqZdBA=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "test AGE 1",
+ "versionNumber": "0",
+ "creation": {
+  "receiver": {
+   "pubkey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+   "amount": "10000000"
+  },
+  "targetDate": {
+   "seconds": "1604188800"
+  }
+ }
+}
+
+}
+========= removed blockchain, restarted gradido node ======================
+22.12.20 13:15:35
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA=",
+    "ed25519": "qVGOxSPYJPJSt7EFkvG/BpZC7eeQDna5ryZM0upLDuuZXg6VH2mRKW8r7EHRcvie/G/OMdB0wNYLFGmPbwUPAQ=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "AGE2 TEST",
+ "versionNumber": "0",
+ "creation": {
+  "receiver": {
+   "pubkey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+   "amount": "10000000"
+  },
+  "targetDate": {
+   "seconds": "1604188800"
+  }
+ }
+}
+
+}
+22.12.20 13:19:28
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+    "ed25519": "PFaU4UAbnsKDmX3E3nsbo4efLb8NsVCYWK5xPhJqUZbQrhj3Bw1YCBgMb7s7JEcWW/10t1+TS6CEvtbKeNAPCQ=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "test transfer 2 shasadsa",
+ "versionNumber": "0",
+ "transfer": {
+  "local": {
+   "sender": {
+    "pubkey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+    "amount": "1000100"
+   },
+   "receiver": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA="
+  }
+ }
+}
+
+}
+22.12.20 13:21:50
+{
+ "sigMap": {
+  "sigPair": [
+   {
+    "pubKey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+    "ed25519": "AD87aOAVS/OZjX9kgPsdDPOlKAggtWEqHETmxNGJyB3CHBNiNr+fyH/S10+8A3jd8KOW1ACyiu+GChUCN0q8DA=="
+   }
+  ]
+ },
+ "bodyBytes": {
+ "memo": "test aslkdjaslkd alksdj lasdkkdlsaldjk alsakdj ",
+ "versionNumber": "0",
+ "transfer": {
+  "local": {
+   "sender": {
+    "pubkey": "xd+K1LQHl1ehSYg5A87brkqyhOqlF8x1umOf9WOKJns=",
+    "amount": "1000000"
+   },
+   "receiver": "qqBtMhHTLoUg6mXsedlD7O5GHbfsIE1VIpoq7eYQgZA="
+  }
+ }
+}
+
+}
