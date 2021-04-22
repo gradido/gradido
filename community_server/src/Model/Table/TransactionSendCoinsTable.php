@@ -66,6 +66,10 @@ class TransactionSendCoinsTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
+            ->requirePresence('sender_public_key', 'create')
+            ->notEmptyString('sender_public_key');
+        
+        $validator
             ->requirePresence('receiver_public_key', 'create')
             ->notEmptyString('receiver_public_key');
 

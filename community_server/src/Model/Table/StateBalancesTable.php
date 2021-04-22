@@ -82,29 +82,7 @@ class StateBalancesTable extends Table
 
         return $rules;
     }
-    /*
-     * create new state balance at beginning of next month from $previousStateBalance
-     * calculate decay for the time diff
-     */
-    private function calculateStateBalance($previousStateBalance)
-    {
-        $entity = $this->newEntity();
-        $entity->state_user_id = $previousStateBalance->state_user_id;
-        $newDate = $previousStateBalance->record_date;
-        $newDate->day(1);
-        if($newDate->month <= 12) {
-            $newDate->month($newDate->month + 1);
-        } else {
-            $newDate->month(1);
-            $newDate->year($newDate->year + 1);
-        }
-        $entity->record_date = $newDate;
-        $entity->amount = $previousStateBalance->partDecay($newDate);
-        if($this->save($entity)) {
-            return $entity;
-        }
-        return ['state' => 'error', 'msg' => 'couldn\'t save', 'details' => $entity->getErrors()];
-    }
+    
     
     public function sortTransactions($a, $b)
     {
@@ -113,240 +91,178 @@ class StateBalancesTable extends Table
         }
         return ($a['date'] > $b['date']) ? -1 : 1;
     }
-    /*
-     * calculate balance at end of month 
-     * work only if state balance at begin of month exist
-     * use transaction_send_coins and transaction_creations
-     */
-    public function updateLastStateBalanceOfMonth($month, $year, $state_user_id)
+    
+    
+    public function updateBalances($stateUserId)
     {
-        $first_of_month = new Time("$year-$month-01 00:00");
-        $last_of_month = new Time($first_of_month);
-        $last_of_month->addMonth(1);
-        $last_of_month->subSecond(1);
-        $query = $this->find('all')
-                      ->where(['AND' => [
-                          'state_user_id' => $state_user_id,
-                          'record_date >=' => $first_of_month,
-                          'record_date <=' => $last_of_month
-                      ]])
-                      ->order(['record_date' => 'ASC']);
-        if($query->isEmpty()) {
-            return [
-                'state' => 'error', 
-                'msg' => 'no state balance in this month found', 
-                'details' => [
-                    'month' => $month,
-                    'year' => $year,
-                    'state_user_id' => $state_user_id
-                ]
-            ];
-        }
-        // get transactions from this month
-        $balance_changes = [];
-        $transactionCreationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
-        $transactionTransfersTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
-        $relevant_creations = $transactionCreationsTable
-                                ->find('all')
-                                ->where(['AND' => [
-                                    'state_user_id' => $state_user_id,
-                                    'target_date >=' => $first_of_month,
-                                    'target_date <=' => $last_of_month
-                                ]])->contain(false);
-        foreach($relevant_creations as $creation) {
-            $balance_changes[] = ['amount' => $creation->amount, 'date' => $creation->target_date];
-        }
-        $relevant_transfers = $transactionTransfersTable
-                                ->find('all')
-                                ->where(['AND' => [
-                                    'OR' => [
-                                        'state_user_id' => $state_user_id,
-                                        'receiver_user_id' => $state_user_id
-                                    ],
-                                    'transaction.received >= ' => $first_of_month,
-                                    'transaction.received <=' => $last_of_month
-                                ]])->contain(['Transactions']);
-        debug($relevant_transfers);
-        foreach($relevant_transfers as $transfer) {
-            $amount = $transfer->amount;
-            // if it is a send transaction, negate the value
-            if($transfer->state_user_id == $state_user_id) {
-                $amount *= -1.0;
-            }
-            $balance_changes[] = ['amount' => $amount, 'date' => $transfer->transaction->received];
-        }
-        uasort($balance_changes, array($this, 'sortTransactions'));
-        $current_state_balance = null;
-        if($query->count() == 1) {
-            $current_state_balance = $this->newEntity();
-            $current_state_balance->amount = $query->first()->amount;
-            $current_state_balance->state_user_id = $state_user_id;
-            $current_state_balance->record_date = $query->first()->record_date;
-        } else if($query->count() == 2) {
-            $array = $query->toArray();
-            $current_state_balance = $array[1];
-        } else {
-            throw new Exception('Should\'n occure, never');
+        $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
+        $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        // info: cakephp use lazy loading, query will be executed later only if needed
+        $state_balances = $this->find('all')->where(['state_user_id' => $stateUserId]);
+        $state_user_transactions = $stateUserTransactionsTable
+                                            ->find()
+                                            ->where(['state_user_id' => $stateUserId])
+                                            ->order(['balance_date ASC'])
+                                            //->contain(false);
+                                            ;
+        
+        if(!$state_user_transactions || !$state_user_transactions->count()) {
+            return true;
         }
         
-        foreach($balance_changes as $change) {
-            $current_state_balance->amount = $current_state_balance->getDecay($change['date']);
-            $current_state_balance->amount += $change['amount'];
-            $current_state_balance->record_date = $change['date'];
+        // first: decide what todo
+        $create_state_balance = false;
+        $recalculate_state_user_transactions_balance = false;
+        $clear_state_balance = false;
+        $update_state_balance = false;
+        if($state_balances->count() == 0) {
+            $create_state_balance = true;
+            $recalculate_state_user_transactions_balance = true;
         }
-        if(!$this->save($current_state_balance)) {
-            return ['state' => 'error', 'msg' => 'couldn\'t save', 'details' => $current_state_balance->getErrors()];
+        if($state_balances->count() > 1) {
+            $clear_state_balance = true;
+            $create_state_balance = true;
+            $recalculate_state_user_transactions_balance = true;
         }
-        return $current_state_balance;
-    }
-    
-    /*
-     * getting start balance for month
-     * create and create all missing state_balances before if not exist 
-     * in while loop
-     */
-    
-    public function chooseForMonthAndUser($month, $year, $state_user_id)
-    {
-        $first_of_month = new Time("$year-$month-01 00:00");
-        $last_of_month = new Time($first_of_month);
-        $last_of_month->addMonth(1);
-        $last_of_month->subSecond(1);
-        //echo "first of month: " . $first_of_month->i18nFormat() . ", last of month: " . $last_of_month->i18nFormat() . "<br>";
-        $query = $this->find('all');
-                      
-        $query->select([
-            'month' => $query->func()->month(['record_date' => 'identifier']),
-            'year'  => $query->func()->year(['record_date' => 'identifier'])
-        ])->select($this)
-          //->where(['month' => $month, 'year' => $year, 'state_user_id' => $state_user_id])
-          ->where(['AND' => [
-                    'state_user_id' => $state_user_id,
-                    'record_date >=' => $first_of_month,
-                    'record_date <=' => $last_of_month
-                   ]
-                  ])
-          ->order(['record_date' => 'ASC'])     
-          ->limit(1)
-          ->contain([]);
-        if($query->count() == 0) 
-        {   
-            // if any state balance for user exist, pick last one
-            $state_balances = $this->find('all')
-                    ->where(['state_user_id' => $state_user_id])
-                    ->limit(1)
-                    ->order(['record_date' => 'DESC'])
-                    ;
-            // create one for first user transaction
-            if($state_balances->isEmpty()) 
-            {
-                $state_user_transactions_table = TableRegistry::getTableLocator()->get('StateUserTransactions');
-                $state_user_transaction = $state_user_transactions_table->find('all')
-                        ->where(['state_user_id' => $state_user_id, 'StateUserTransactions.transaction_type_id <' => 3])
-                        ->contain(['Transactions' => ['TransactionCreations', 'TransactionSendCoins']])
-                        ->limit(1)
-                        ->order(['transaction_id' => 'ASC'])
-                        ->first()
-                        ;
-                if(!$state_user_transaction) {
-                    return null;
-                }
-                $entity = $this->newEntity();
-                $entity->state_user_id = $state_user_id;
-                if($state_user_transaction->transaction_type_id == 1) {
-                    $creation = $state_user_transaction->transaction->transaction_creations[0];
-                    $entity->amount = $creation->amount;
-                    $entity->record_date = $creation->target_date;
-                } else if($state_user_transaction->transaction_type_id == 2) {
-                    $transfer = $state_user_transaction->transaction->transaction_send_coins[0];
-                    $entity->amount = $transfer->amount;
-                    $entity->record_date = $state_user_transaction->transaction->received;
-                }
-                if(!$this->save($entity)) {
-                    return ['state' => 'error', 'msg' => 'error by saving state balance', 'details' => $entity->getErrors()];
-                }
-            }
-            $state_balances = $this->find('all')
-                    ->where(['state_user_id' => $state_user_id])
-                    ->limit(1)
-                    ->order(['record_date' => 'DESC'])
-                    ;
-            if($state_balances->count() == 1) 
-            {
-                $current_state_balance = $state_balances->first();
-                while(true)
-                {
-                    $new_state_balance_begin = $this->calculateStateBalance($current_state_balance);
-                    if(is_array($new_state_balance_begin)) {
-                        return ['state' => 'error', 'msg' => 'error calculate state balance', 'details' => $new_state_balance_begin];
-                    }
-                    $record_date = $new_state_balance_begin->record_date;
-                    if($record_date->month === $month && $record_date->year === $year) {
-                        return $new_state_balance_begin;
-                    }
-                    $current_state_balance = $this->updateLastStateBalanceOfMonth($month, $year, $state_user_id);
-                }
-            } 
-            else 
-            {
-                return ['state' => 'error', 'msg' => 'creation of first state_balance failes'];
-            }
-        }
-        return $query->first();
-    }
-    
-    public function updateBalanceWithTransaction($newBalance, $recordDate, $userId)
-    {
-        // max 2 StateBalance Entrys per month:
-        // 1. first of month or first transaction of user
-        // 2. last of month or last transaction of user
-        $first_state_balance_of_month = $this->chooseForMonthAndUser($recordDate->month, $recordDate->year, $userId);
-        $updated_state_balance = null;
-        
-        if($first_state_balance_of_month == null || is_array($first_state_balance_of_month)) {
-            return $first_state_balance_of_month;
-        }
-        
-        if($first_state_balance_of_month->record_date->day == $recordDate->day && 
-           $recordDate > $first_state_balance_of_month->record_date) {
-            if($first_state_balance_of_month->amount == $newBalance) {
-                // nothing to do here
-                return true;
-            }
-            $updated_state_balance = $first_state_balance_of_month;
-            $updated_state_balance->amount = $newBalance;
-            // copy complete record date, inclusive time
-            $first_state_balance_of_month->record_date = $recordDate;
-        } else {
-            $query = $this->find('all')
-                          ->where(['AND' => [
-                                    'record_date >' => $first_state_balance_of_month->record_date,
-                                    'record_date <=' => $recordDate,
-                                    'state_user_id' => $userId
-                                  ]]);
-            if(!$query->isEmpty()) {
-                $updated_state_balance = $query->first();
-                if($updated_state_balance->record_date == $recordDate) {
-                    return true;
-                }
+        if($state_balances->count() == 1) {            
+            if($state_user_transactions->count() == 0){
+                $clear_state_balance = true;
             } else {
-                $updated_state_balance = $this->newEntity();
-                $updated_state_balance->state_user_id = $userId;
+                $last_state_user_transaction = $state_user_transactions->last();
+                $last_transaction = $this->newEntity();
+                $last_transaction->amount = $last_state_user_transaction->balance;
+                $last_transaction->record_date = $last_state_user_transaction->balance_date;
+                // if entrys are nearly the same, we don't need doing anything
+                if(abs($last_transaction->decay - $state_balances->first()->decay) > 100) {
+                    $recalculate_state_user_transactions_balance = true;
+                    $update_state_balance = true;
+                }
             }
-            $updated_state_balance->record_date = $recordDate;
-            $updated_state_balance->amount = $newBalance;   
         }
         
-        if($updated_state_balance) {
-            if(!$this->save($updated_state_balance)) {
-                return ['state' => 'error', 'msg' => 'error by saving state balance', 'details' => $entity->getErrors()];
-            } 
-            
-            // delete all state_balances which came after
-            // they will be automaticlly recovered by next call of chooseForMonthAndUser
-            $this->deleteAll(['state_user_id' => $userId, 'record_date >' => $recordDate]);
-        }
+        if(!$recalculate_state_user_transactions_balance) {
+            $last_state_user_transaction = $state_user_transactions->last();
+            if($last_state_user_transaction && $last_state_user_transaction->balance <= 0) {
+                $recalculate_state_user_transactions_balance = true;
+                if(!$create_state_balance) {
+                    $update_state_balance = true;
+                }
+            } else if(!$last_state_user_transaction) {
+                
+                $creationsTable = TableRegistry::getTableLocator()->get('TransactionCreations');
+                $creationTransactions = $creationsTable
+                    ->find('all')
+                    ->where(['state_user_id' => $stateUserId])
+                    ->contain(false);
 
-        return true;        
+                $transferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+                $transferTransactions = $transferTable
+                    ->find('all')
+                    ->where(['OR' => ['state_user_id' => $stateUserId, 'receiver_user_id' => $stateUserId]])
+                    ->contain(false);
+                if($creationTransactions->count() > 0 || $transferTransactions->count() > 0) {
+                    return ['success' => false, 'error' => 'state_user_transactions is empty but it exist transactions for user'];
+                }
+            }
+        }
+        // second: do what is needed
+        if($clear_state_balance) {
+            $this->deleteAll(['state_user_id' => $stateUserId]);
+        }
+        
+        $transaction_ids = [];
+        if($recalculate_state_user_transactions_balance) {
+           
+            $state_user_transactions_array = $state_user_transactions->toArray();
+            foreach($state_user_transactions_array as $i => $state_user_transaction) {
+                $transaction_ids[$state_user_transaction->transaction_id] = $i;
+            }
+        
+            $transactions = $transactionsTable
+                    ->find('all')
+                    ->where(['id IN' => array_keys($transaction_ids)])
+                    ->contain(['TransactionCreations', 'TransactionSendCoins']);
+
+            $transactions_indiced = [];
+            foreach($transactions as $transaction) {
+                $transactions_indiced[$transaction->id] = $transaction;
+            }
+            $balance_cursor = $this->newEntity();
+            $i = 0;
+            foreach($state_user_transactions_array as $state_user_transaction) {
+                $transaction = $transactions_indiced[$state_user_transaction->transaction_id];
+                if($transaction->transaction_type_id > 2) {
+                    continue;
+                }
+                //echo "transaction id: ".$transaction->id . "<br>";
+                $amount_date = null;
+                $amount = 0;
+                
+                if($transaction->transaction_type_id == 1) { // creation                    
+                    $temp = $transaction->transaction_creations[0];
+
+                    /*$balance_temp = $this->newEntity();
+                    $balance_temp->amount = $temp->amount;
+                    $balance_temp->record_date = $temp->target_date;
+                    */
+                    $amount = intval($temp->amount);//$balance_temp->partDecay($transaction->received);
+                    $amount_date = $temp->target_date;
+
+                    //$amount_date = 
+                } else if($transaction->transaction_type_id == 2) { // transfer
+
+                    $temp = $transaction->transaction_send_coins[0];
+                    $amount = intval($temp->amount);
+                    // reverse if sender
+                    if($stateUserId == $temp->state_user_id) {
+                        $amount *= -1.0;
+                    }
+                    $amount_date = $transaction->received;
+
+                }
+                if($i == 0) {
+                    $balance_cursor->amount = $amount;
+                } else {
+                    $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                }
+                //echo "new balance: " . $balance_cursor->amount . "<br>";
+               
+                $balance_cursor->record_date = $amount_date;
+                $state_user_transaction_index = $transaction_ids[$transaction->id];
+                $state_user_transactions_array[$state_user_transaction_index]->balance = $balance_cursor->amount;
+                $state_user_transactions_array[$state_user_transaction_index]->balance_date = $balance_cursor->record_date;   
+                $i++;
+                
+            }
+            
+            $results = $stateUserTransactionsTable->saveMany($state_user_transactions_array);
+            $errors = [];
+            foreach($results as $i => $result) {
+                if(!$result) {
+                    $errors[$i] = $state_user_transactions_array[$i]->getErrors();
+                }
+            }
+            if(count($errors)) {
+                return ['success' => false, 'error' => 'error saving one ore more state user transactions', 'details' => $errors];
+            }
+        }
+        $state_balance = null;
+        if($update_state_balance) {
+            $state_balance = $state_balances->first();
+        }
+        else if($create_state_balance) {
+             $state_balance = $this->newEntity();
+             $state_balance->state_user_id =  $stateUserId;
+        }
+        if($state_balance) {
+             $state_balance->amount = $state_user_transactions->last()->balance;
+             $state_balance->record_date = $state_user_transactions->last()->balance_date;    
+             if(!$this->save($state_balance)) {
+                 return ['success' => false, 'error' => 'error saving state balance', 'details' => $state_balance->getErrors()];
+             }
+        }
+        return true;
+
     }
+    
 }

@@ -7,6 +7,7 @@ namespace Model\Transactions;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\Mailer\Email;
+use Cake\I18n\FrozenTime;
 use Cake\I18n\FrozenDate;
 
 
@@ -153,24 +154,20 @@ class TransactionCreation extends TransactionBase {
       $transactionCreationEntity->state_user_id = $receiverUserId;
       $transactionCreationEntity->amount = $this->getAmount();
       $transactionCreationEntity->target_date = $this->protoTransactionCreation->getTargetDate()->getSeconds();
-      
+      $target_date = new FrozenTime($transactionCreationEntity->target_date);
       if(!$this->transactionCreationsTable->save($transactionCreationEntity)) {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
         return false;
       }
       
       // update state balance
-      $final_balance = $this->updateStateBalance($receiverUserId, $this->getAmount(), $transactionCreationEntity->target_date);
+      $final_balance = $this->updateStateBalance($receiverUserId, $this->getAmount(), $target_date);
       if(false === $final_balance) {
         return false;
       }
-      $target_date =  new FrozenDate($transactionCreationEntity->target_date);
-      $stateBalancesTable = self::getTable('stateBalances');
-      $state_balance = $stateBalancesTable->newEntity();
-      $state_balance->amount = $this->getAmount();
-      $state_balance->record_date = $target_date;
+      
       // decay is a virtual field which is calculated from amount and now() - record_date
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $state_balance->decay)) {
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $this->getAmount(), $target_date)) {
           return false;
       }
       

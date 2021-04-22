@@ -64,7 +64,7 @@ class StateBalance extends Entity
           return $this->amount;
       }
       //return $this->amount;
-      return $this->amount * pow(0.99999997802044727, $decay_duration);
+      return intval($this->amount * pow(0.99999997802044727, $decay_duration));
         
     }
     public function partDecay($target_date)
@@ -74,7 +74,7 @@ class StateBalance extends Entity
             return $this->amount;
         }
         //return 0;
-        return $this->amount * pow(0.99999997802044727, $decay_duration);
+        return intval($this->amount * pow(0.99999997802044727, $decay_duration));
     }
     
     public function decayDuration($target_date)

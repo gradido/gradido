@@ -154,6 +154,7 @@ class TransactionTransfer extends TransactionBase {
       $transactionTransferEntity = $transactionTransferTable->newEntity();
       $transactionTransferEntity->transaction_id = $transaction_id;
       $transactionTransferEntity->state_user_id  = $senderUserId;
+      $transactionTransferEntity->sender_public_key = $senderAmount->getPubkey();
       $transactionTransferEntity->receiver_public_key = $receiver;
       $transactionTransferEntity->receiver_user_id = $receiverUserId;
       $transactionTransferEntity->amount = $senderAmount->getAmount();
@@ -164,10 +165,10 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       
-      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount())) {
+      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
           return false;
       }
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount())) {
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
           return false;
       }
       
