@@ -53,14 +53,16 @@ Poco::JSON::Object* JsonLoginViaEmailVerificationCode::handle(Poco::Dynamic::Var
 	result->set("session_id", session->getHandle());
 	result->set("email_verification_code_type", model::table::EmailOptIn::typeToString(session->getEmailVerificationType()));
 	Poco::JSON::Array info;
-	
-	if (!session->getNewUser()->getModel()->getPasswordHashed()) {
-		info.add("user hasn't password");
+	auto user = session->getNewUser();
+
+	if (!user->getModel()->getPasswordHashed()) {
+		info.add("user has no password");
 	}
 	auto update_email_verification_result = session->updateEmailVerification(code);
 	if (1 == update_email_verification_result) {
 		info.add("email already activated");
 	}
+	result->set("user", user->getJson());
 
 	result->set("info", info);
 

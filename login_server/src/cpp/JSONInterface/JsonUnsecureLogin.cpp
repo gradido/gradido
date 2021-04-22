@@ -102,6 +102,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	case USER_COMPLETE:
 	case USER_EMAIL_NOT_ACTIVATED:
 		result->set("state", "success");
+		result->set("user", session->getNewUser()->getJson());
 		result->set("session_id", session->getHandle());
 		session->setClientIp(mClientIP);
 		return result;
