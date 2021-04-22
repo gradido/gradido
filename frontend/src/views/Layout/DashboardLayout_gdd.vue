@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <notifications></notifications>
-    <side-bar>
+    <side-bar @logout="logout">
       <template slot="links">
         <b-nav-item href="#!" to="/overview">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
@@ -36,6 +36,7 @@
 <script>
 import PerfectScrollbar from 'perfect-scrollbar'
 import 'perfect-scrollbar/css/perfect-scrollbar.css'
+import loginAPI from '../../apis/loginAPI'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -70,6 +71,12 @@ export default {
       if (isWindows) {
         initScrollbar('sidenav')
       }
+    },
+    async logout() {
+      const result = await loginAPI.logout(this.$store.state.session_id)
+      // do we have to check success?
+      this.$store.dispatch('logout')
+      this.$router.push('/login')
     },
   },
   mounted() {
