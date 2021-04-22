@@ -53,7 +53,7 @@
                           </strong>
                         </b-col>
                         <b-col class="text-right">
-                          <a href="#!" @click="closeAlert">
+                          <a @click="closeAlert">
                             <div>
                               <b-icon-exclamation-triangle-fill
                                 class="h2 mb-0"
@@ -88,9 +88,6 @@
               </router-link>
             </b-col>
           </b-row>
-          <b-row>
-            <b-col><router-link to="/reset">reset</router-link></b-col>
-          </b-row>
         </b-col>
       </b-row>
     </b-container>
@@ -114,6 +111,7 @@ export default {
   methods: {
     async onSubmit() {
       const result = await loginAPI.login(this.model.email, this.model.password)
+      console.log(result.data)
       if (result.success) {
         this.$store.dispatch('login', {
           session_id: result.result.data.session_id,
