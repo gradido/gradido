@@ -65,6 +65,7 @@ services:
       - 1201:1201
     volumes:
       - ./configs/login_server:/etc/grd_login
+      - login_build:/code/build_vol
       
   #########################################################
   ## NGINX ################################################
@@ -130,4 +131,4 @@ networks:
 
 volumes:
   db_vol: 
-  
+  login_build:
