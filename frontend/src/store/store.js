@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex)
-import loginAPI from '../apis/loginAPI'
 import communityAPI from '../apis/communityAPI'
 import createPersistedState from 'vuex-persistedstate'
 
@@ -49,23 +48,19 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
-    login: async ({ dispatch, commit }, data) => {
+    login: ({ dispatch, commit }, data) => {
       commit('session_id', data.session_id)
       commit('email', data.email)
     },
-    passwordReset: async (data) => {},
-    schoepfen: async (data) => {
+    passwordReset: (data) => {},
+    schoepfen: (data) => {
       // http://localhost/transaction-creations/ajaxCreate
     },
-    createUser: async ({ commit, dispatch }, data) => {
+    createUser: ({ commit, dispatch }, data) => {
       commit('session_id', data.session_id)
       commit('email', data.email)
     },
-    logout: async ({ commit, state }) => {
-      if (state.session_id) {
-        const result = await loginAPI.logout(state.session_id)
-        // The result can be error, but thats ok with us
-      }
+    logout: ({ commit, state }) => {
       commit('session_id', null)
       commit('email', null)
       sessionStorage.clear()
