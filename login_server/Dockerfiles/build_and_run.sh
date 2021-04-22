@@ -1,9 +1,19 @@
 #!/bin/bash
 
 cp build/conan* build_vol/
-cd build_vol 
 
+cd build_vol 
 cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+cd ..
+if [ ! -d "./src/cpp/proto/hedera" ] ; then
+	chmod +x unix_parse_proto.sh 
+    ./unix_parse_proto.sh
+fi
+chmod +x compile_pot.sh
+./compile_pot.sh
+ 
+cd build_vol 
 cmake .. 
 make -j$(nproc) Gradido_LoginServer
 #echo "building done"
