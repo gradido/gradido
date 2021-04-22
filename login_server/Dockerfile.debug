@@ -1,42 +1,32 @@
 
 #########################################################################################################
-# Build debug
+# debug build preparation
 #########################################################################################################
-From gradido/login_dependencies:stage2 as debug
-
-ENV DOCKER_WORKDIR="/code"
-
+From conanio/gcc9 as build_debug_preparation
 USER root
 
+ENV DOCKER_WORKDIR="/code"
+	
+RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
-COPY . .
 
-RUN chmod +x unix_parse_proto.sh
-RUN chmod +x compile_pot.sh
+COPY . . 
 
-RUN ./compile_pot.sh
-RUN ./unix_parse_proto.sh
-
+RUN cd dependencies/mariadb-connector-c && \
+	mkdir build && \
+	cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSL=OFF ..
 
 #########################################################################################################
 # run debug
 #########################################################################################################
-FROM debug as login_server_debug
+FROM build_debug_preparation as login_server_debug
 
 ENV DOCKER_WORKDIR="/code"
-#RUN apt-get update && \
-#    apt-get install -y --no-install-recommends gdb && \
-#	apt-get autoclean && \
-#	apt-get autoremove && \
-#    apt-get clean && \
-#	rm -rf /var/lib/apt/lists/*
-	
-VOLUME /var/log/grd_login
-VOLUME /code/src
 
 EXPOSE 1200
 EXPOSE 1201
 WORKDIR ${DOCKER_WORKDIR}
 RUN chmod +x ./Dockerfiles/build_and_run.sh 
 
-CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer
+CMD ./Dockerfiles/build_and_run.sh; ./build/bin/Gradido_LoginServer

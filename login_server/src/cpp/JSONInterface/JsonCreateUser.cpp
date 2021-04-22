@@ -17,11 +17,12 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string password;
 	bool login_after_register = false;
 	int emailType;
-	int group_id;
+	int group_id = 1;
+	bool group_was_not_set = false;
 
 	auto em = EmailManager::getInstance();
 	auto sm = SessionManager::getInstance();
-
+    printf("enter\n");
 	// if is json object
 	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
 		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
@@ -35,7 +36,11 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
-			paramJsonObject->get("group_id").convert(group_id);
+			auto group_id_obj = paramJsonObject->get("group_id");
+
+			if(!group_id_obj.isEmpty()) {
+                group_id_obj.convert(group_id);
+			}
 
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
@@ -75,6 +80,10 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	}
 
 	// create user
+	if(!group_id) {
+        group_id = 1;
+        group_was_not_set = true;
+	}
 	user = controller::User::create(email, first_name, last_name, group_id);
 	auto userModel = user->getModel();
 	Session* session = nullptr;
@@ -93,7 +102,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
 		create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
 	}
-	
+
 	auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
 	auto emailOptInModel = emailOptIn->getModel();
 	if (!emailOptInModel->insertIntoDB(false)) {
@@ -105,7 +114,11 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	if (login_after_register && session) {
 		Poco::JSON::Object* result = stateSuccess();
-
+        if(group_was_not_set) {
+            Poco::JSON::Array infos;
+            infos.add("group_id was not set, use 1 as default!");
+            result->set("info", infos);
+        }
 		result->set("session_id", session->getHandle());
 		return result;
 	}

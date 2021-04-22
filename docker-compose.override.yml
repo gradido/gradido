@@ -32,14 +32,30 @@ services:
       - SYS_PTRACE
     volumes:
       - ./logs:/var/log/grd_login 
+      - ./login_server/src:/code/src
+      - ./configs/login_server:/etc/grd_login
+      - login_build:/code/build
       - conan:/root/.conan
+
 
   #########################################################
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
   #########################################################
-  #community-server:
-  #  volumes:
-  #    - ./community_server
+  community-server:
+    build: 
+      context: .
+      dockerfile: ./community_server/Dockerfile
+    environment:
+      - DB_PASSWORD=''
+      - DB_USER='root'
+      - DB_DATABASE='gradido_community'
+    depends_on: 
+      - mariadb
+    networks: 
+      - internal-net
+    volumes:
+      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
+      - ./community_server/src:/var/www/cakephp/src
 
       
   #########################################################
@@ -84,5 +100,6 @@ services:
    
 volumes:
   frontend_node_modules:
+  login_build:
   conan:
 
