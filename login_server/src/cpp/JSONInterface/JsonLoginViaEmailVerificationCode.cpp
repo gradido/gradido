@@ -56,7 +56,7 @@ Poco::JSON::Object* JsonLoginViaEmailVerificationCode::handle(Poco::Dynamic::Var
 	auto user = session->getNewUser();
 
 	if (!user->getModel()->getPasswordHashed()) {
-		info.add("user hasn't password");
+		info.add("user has no password");
 	}
 	auto update_email_verification_result = session->updateEmailVerification(code);
 	if (1 == update_email_verification_result) {
