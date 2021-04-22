@@ -35,7 +35,6 @@ services:
       - ./login_server/src:/code/src
       - ./configs/login_server:/etc/grd_login
       - login_build_conan:/code/build_vol
-      - conan:/root/.conan
 
 
   #########################################################
@@ -101,5 +100,4 @@ services:
 volumes:
   frontend_node_modules:
   login_build_conan:
-  conan:
 
