@@ -317,7 +317,6 @@ class AppRequestsController extends AppController
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
-          }
         }
 
         
