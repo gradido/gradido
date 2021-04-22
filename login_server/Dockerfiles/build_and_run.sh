@@ -1,5 +1,17 @@
 #!/bin/bash
 
+cp build/conan* build_vol/
+cd build_vol 
+
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake .. 
+make -j$(nproc) Gradido_LoginServer
+#echo "building done"
+chmod +x ./bin/Gradido_LoginServer
+#./bin/Gradido_LoginServer
+
+
+: '
 cd build
 conan install .. --build=missing -s build_type=Debug
 cmake -DCMAKE_BUILD_TYPE=Debug ..
@@ -21,3 +33,4 @@ make -j$(nproc) Gradido_LoginServer
 #echo "building done"
 chmod +x ./bin/Gradido_LoginServer
 #./bin/Gradido_LoginServer
+'
