@@ -1,0 +1,101 @@
+LoginServer HTTP-Interface ActionsPage /addToGroup
+	
+	select: on Login Server registered groups with short description
+	
+	if user is already in a group:
+		// check if birth hash and user public key haven't changed
+		call to node server registered with login-server containing current group of user:
+		{"jsonrpc": "2.0", "method": "checkBirthHash", "params": {
+		   "groupAlias":<from db group[user.group_id]>, 
+		   "birthHash": <from db user.birth_hash>, 
+		   "pubkey":<from db user.pubkey>, 
+		   "apiKey": <unique per Login Server>
+		}, "id": rand()}
+		
+Node Server
+  search for birthHash in StateUserChangeGroup transactions in group[groupAlias]
+  if found as last StateUserChangeGroup with birthHash and pubkey are correct:
+	return {"jsonrpc": "2.0", "result": {"state": "success"}, "id": <id from call>}
+  if not found: 
+    check if a StateUserChangeGroup transaction for pubkey can be found
+	if found: 
+		return {"jsonrpc": "2.0", "result": {"state": "not same", "msg": "birth hash is different", "details": {"birthHash": <found birth hash>}}, "id": <id from call>}
+	else:
+		return {"jsonrpc": "2.0", "result": {"state": "not found", "msg": "birth hash not found"}, "id": <id from call>}
+  if birth hash and pubkey from last StateUserChangeGroup not the same:
+    return {"jsonrpc": "2.0", "result": {"state": "not same", "msg": "pubkey is different", "details": {"pubkey":<found pubkey>}, "id": <id from call>}
+
+LoginServer
+  cancel process if user is in group and request return not same or not found 
+	show error message
+  
+  if user isn't already in a group:
+	// check if birth hash is unique
+	call all registered Nodes:
+		{"jsonrpc": "2.0", "method": "checkBirthHash", "params": {
+			   "groupAlias":<from db group[user.group_id]>, 
+			   "birthHash": <from db user.birth_hash>, 
+			   "pubkey":<from db user.pubkey>, 
+			   "apiKey": <unique per Login Server>
+			}, "id": rand()}
+
+Node Server
+	
+	getting discovery transaction from mirror node
+	searching for birth hash in global blockchain
+	if found calling model.messages.gradido.DiscoverIfExist.answearUrl with:
+		{
+		  "birthHash": model.messages.gradido.DiscoverIfExist.value,
+		  "pubkey"   : <pubkey from youngest found transaction>
+		  "groupAlias": <group alias from youngest found transaction>
+		  "received" : <received from youngest found transaction>
+		}
+  
+LoginServer
+	Waiting at least 2 minutes for answear(s)
+		collect answears
+		cancel if birthHash was discovered with another pubkey and this has the biggest received value
+			show error message
+		else save group alias as parent
+		
+	If not canceled 
+		Hedera::ConsensusService::ConsensusSubmitMessage
+			proto.ConsensusSubmitMessageTransactionBody.topicID = <choosen group topic id> 
+			proto.ConsensusSubmitMessageTransactionBody.message = 
+			model.messages.gradido.Transaction
+					id = <left empty>;
+					received = <left empty>;
+					sigMap = model.messages.gradido.SignatureMap
+						if user is group founder:
+							sigPair = 
+								model.messages.gradido.SignaturePair
+									pubKey = <public root key of user and group founder>
+									signature = ed25519 = <bodyBytes signed with user and group founder private key>
+						else 
+							sigPair = [
+								model.messages.gradido.SignaturePair
+									pubKey = <public root key of user>
+									signature = ed25519 = <bodyBytes signed with user private key>
+							  for i = 0, i < n, i++ 
+								model.messages.gradido.SignaturePair
+									pubKey = <public root key of group member>
+									signature = ed25519 = <bodyBytes signed with group member private key>,
+								
+							], 
+							
+					txHash = <left empty>;
+					
+					bodyBytes = model.messages.gradido.TransactionBody  serialized
+						memo = <empty>
+						created = model.messages.gradido.TimestampSeconds
+							seconds = <current timestamp>
+						data = model.messages.gradido.StateCreateGroup
+							name = <group name>
+							alias = <group alias>
+							parentGroupAlias = <parent group alias or empty>
+							hederaTopicId = <from hedera answear>
+			serialized	
+Node Server(s)
+	receiving message, validate, put into blockchain of group
+
+

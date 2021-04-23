@@ -1,0 +1,15 @@
+522 Billion Transactions cash per year
+726 Billion Transactions online per year
+
+Summe: 3,5 Billion Transaction per day
+
+200 Byte per Transaction 
+= 651,925 GByte per Day
+
+~ 8 Billion Humans on Earth
+
+~ 134 MB per Block File/ ~ 700.000 Transaction per Block File
+~ 5.000 Block Files per Day
+~ 1.780.000 Block Files per Year
+~ 2.412 years until uint32 block nr overflow
+
