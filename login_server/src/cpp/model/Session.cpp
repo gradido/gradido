@@ -738,7 +738,6 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 	}
 
 	detectSessionState();
-	unlock();
 	if (0 == mNewUser->getModel()->getGroupId()) {
 		return USER_NO_GROUP;
 	}
