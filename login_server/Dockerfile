@@ -1,14 +1,32 @@
 #########################################################################################################
+# cmake 
+#########################################################################################################
+FROM gcc:9 as cmake-gcc-9 
+
+ENV DOCKER_WORKDIR="/code"
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+USER root
+
+RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 \
+    && cd CMake \
+	&& ./bootstrap \
+	&& make -j${nproc} \
+	&& make install
+
+
+#########################################################################################################
 # Build release 
 #########################################################################################################
-From conanio/gcc9 as release
+From cmake-gcc-9 as release
 
 ENV DOCKER_WORKDIR="/code"
 
 USER root
 
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install libsodium-dev libboost-all-dev \
+    && apt-get -y --no-install-recommends install libsodium-dev libboost-all-dev gettext \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 RUN mkdir -p ${DOCKER_WORKDIR}
