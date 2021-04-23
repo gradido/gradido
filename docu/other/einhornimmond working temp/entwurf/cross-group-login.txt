@@ -1,0 +1,11 @@
+Login-Server login 
+if group_id != 0
+  call group_server and send access-token, client ip
+
+community server
+state_login_server_access
+id access_code client_ip created 
+
+2. 
+state_user/login?session_id=<session_id>
+return 404 if unknown than fail2ban work

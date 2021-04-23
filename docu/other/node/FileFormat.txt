@@ -1,0 +1,27 @@
+group.index // txt file poco propertie format 
+ group hash = folder name (group_1 -> ...) uint32
+
+group_folder
+ // binary, konto hash = kto index uint32 (first in transaction, getting 1), sorted by hash
+ // hash at end of file
+ // sort in memory, file is unordered, maybe for small files linear search is faster
+ // put last used in cache
+ pubkeys_<first hash byte hex>
+   _<second hash byte hex>.index
+
+ // contain group states 
+ // like last kto index
+ // using leveldb
+ .state
+ 
+ // lowest kto index, highest kto index
+ // kto index = count, [file positions where transaction which contain kto starts]
+ // sorted
+ // write out after block finished, until than exist only in memory
+ // hash at end
+ blk0000000X.index 
+
+ // size, serialized transaction [loop]
+ // hash at end
+ blk0000000X.data
+ 

@@ -1,0 +1,90 @@
+/login
+{"session_id":<from login server session cookie>}
+return: {
+	"state":"success",
+	"clientIP":"<client ip string from login>", 
+	"user":
+	{
+		"first_name": "<user first name>",
+		"last_name":  "<user last name>",
+		"email":      "<user email>",
+		"created":    "<date of user creating account on login server>",
+		"email_checked": <true if user has clicked link in activation email>,
+		"ident_hash": "<currently not used>",
+		"disabled":    <true if user account was disabled and cannot login or doing anything>,
+		"role":       "<'admin' if user is server admin and can do anything>"
+		"public_hex": "<user public key in hex format>"
+	},
+	"Transaction.pending":<number of transaction of user which are prepeared for sign>,
+	"Transaction.executing":<number of transaction of user which are signed and are sended to hedera, waiting on confirmation from nodes>
+	}
+	
+
+/checkTransaction
+DEPRACTED
+
+/createTransaction
+{
+	"session_id":<from login server session cookie>,
+	"transaction_type":"<transfer|creation|groupMemberUpdate>",
+	"memo" : "<additional infos for transaction, maybe encrypt later>"
+	if transfer:
+		"amount": <GDD amount in GDD cent for transfer>,
+		"target_group": "<target group alias>"
+		  "target_email": "<target user email>"
+		 OR
+		  "target_username": "<target username>"
+		 OR
+		  "target_pubkey":"<target user public key in hex format>"
+	if creation:
+		"amount": <GDD amount in GDD cent for transfer>,
+		"target_date": "<target date for creation, only 1.000 GDD per month, max. 3 month in past>"
+		  "target_email": "<target user email>"
+		 OR
+		  "target_username": "<target username>"
+		 OR
+		  "target_pubkey":"<target user public key in hex format>"
+	if groupMemberUpdate:	
+		"target_group": "<target group alias>"
+}
+return: 
+if request contain unknown parameter format, shouldn't happen't at all
+{"state": "error", "msg": "parameter format unknown"}
+if json parsing failed
+{"state": "error", "msg": "json exception", "details":"exception text"}
+if session_id is zero or not set
+{"state": "error", "msg": "session_id invalid"}
+if session id wasn't found on login server, if server was restartet or user logged out (also per timeout, default: 15 minutes)
+{"state": "error", "msg": "session not found"}
+if session hasn't active user, shouldn't happen't at all, login-server should be checked if happen
+{"state": "code error", "msg":"user is zero"}
+if transaction type not known
+{"state": "error", "msg":"transaction_type unknown"}
+only by groupMemberUpdate, if target_group is empty or alias wasn't found on Login-Server
+{"state": "error", "msg": "target_group not found"}
+if receiver wasn't known to Login-Server
+{"state": "not found", "msg":"receiver not found"}
+if receiver account disabled, and therefor cannto receive any coins
+{"state": "disabled", "msg":"receiver is disabled"}
+if user hasn't joined group yet
+{"state":"error","msg":"receiver user hasn't group"}
+if receiver user isn't in target group by transfer transaction
+{"state":"error","msg":"user not in group","details":"receiver user isn't in target group"}
+if amount is invalid in creation
+{"state": "invalid parameter", "msg":"invalid amount", "details":"GDD amount in GDD cent ]0,10000000]"}
+if transaction was okay and will be further proccessed
+{"state":"success"}
+
+/getRunningUserTasks
+
+/getUsers
+
+/createUser
+
+/adminEmailVerificationResend
+
+/getUserInfos
+
+/updateUserInfos
+
+/search
