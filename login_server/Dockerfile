@@ -58,13 +58,20 @@ CMD ["./code"]
 # run release 
 #########################################################################################################
 #From alpine:latest as login_server
-FROM alpine:latest as login_server
+FROM ubuntu:latest as login_server
 
+USER root
 WORKDIR "/usr/bin"
 
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install libsodium-dev libssl-dev \
+    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
 COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
-COPY --from=release /code/build/lib/libmariadb.so.3 /usr/lib/
+COPY --from=release /code/build/lib/*.so.64 /usr/lib/
+COPY --from=release /code/build/dependencies/mariadb-connector-c/libmariadb/libmariadb.so.3 /usr/lib/
+#COPY --from=release /code/build/lib/libmariadb.so.3 /usr/lib/
 
 RUN chmod +x /usr/bin/Gradido_LoginServer
 ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
-CMD Gradido_LoginServer
+#CMD Gradido_LoginServer
