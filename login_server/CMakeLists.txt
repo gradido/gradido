@@ -6,6 +6,15 @@ SET ( CMAKE_CXX_FLAGS "-std=c++17" )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(WIN32)
+	set(CMAKE_CXX_FLAGS         "/MP /EHsc")
+	set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+else()
+	set(INSTALL_BINDIR "bin")
+	set(INSTALL_PLUGINDIR "bin")
+endif()
+
 include_directories(
 	"dependencies" 
 	"dependencies/tinf/src/" 
@@ -14,13 +23,21 @@ include_directories(
 	"dependencies/spirit-po/include"
 	"dependencies/grpc/include"
 	"dependencies/grpc/third_party/protobuf/src"
+	"dependencies/grpc/third_party/googletest/googletest/include"
+	"dependencies/poco/Crypto/include" 
+	"dependencies/poco/Data/include" 
+	"dependencies/poco/Util/include" 
+	"dependencies/poco/Foundation/include"
+	"dependencies/poco/JSON/include"
+	"dependencies/poco/Net/include"
+	"dependencies/poco/NetSSL_OpenSSL/include"
 	"src/cpp/proto"
 )
-#if(WIN32)
-#include_directories("dependencies/mariadb-connector-c/include", "dependencies/mariadb-connector-c/build/include")
-set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
-#endif(WIN32)
+
+
+
+#set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
@@ -84,12 +101,9 @@ if(MSVC)
 	source_group("Test" FILES ${TEST})
 endif()
 
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
-
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
+
+############################## config and add mariadb ###################################
 set(CLIENT_PLUGIN_DIALOG OFF)
 set(CLIENT_PLUGIN_MYSQL_CLEAR_PASSWORD OFF)
 set(CLIENT_PLUGIN_REMOTE_IO OFF)
@@ -111,6 +125,21 @@ add_subdirectory("dependencies/mariadb-connector-c")
 set(DEP_PATH "dependencies")
 set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
 
+if(WIN32)
+	find_library(MYSQL_LIBRARIES mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
+	find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
+endif()
+
+############################## config and add poco ###################################
+add_subdirectory("dependencies/poco")
+set(ENABLE_MONGODB OFF)
+set(ENABLE_DATA_SQLITE OFF)
+set(ENABLE_REDIS OFF)
+
+set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
+
+############################## config and add grpc ###################################
+
 set(GRPC_PATH "${DEP_PATH}/grpc/build")
 set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
 set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
@@ -118,76 +147,16 @@ set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
 set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
 set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
 
-
-
 if(WIN32)
-
-	find_library(MYSQL_LIBRARIES mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
-	find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
-	
-	find_library(CONAN_OPENSSL_SSL ssleay32 PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
-	find_library(CONAN_OPENSSL_CRYPTO libeay32 PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH ) 
-
 	set(GRPC_PATH "${GRPC_PATH}/Debug")
 	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
 	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
 	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
 	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
 	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
-
-
-	list(REMOVE_ITEM CONAN_LIBS "libeay32.lib")
-	list(REMOVE_ITEM CONAN_LIBS "ssleay32.lib")
-
-
-else()
-	#find_package(MariaDBClient PATHS "dependencies/cmake-modules")
-	#find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
-	find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
-	find_library(CONAN_OPENSSL_CRYPTO crypto PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
-	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
-
-	list(REMOVE_ITEM CONAN_LIBS "ssl")
-	list(REMOVE_ITEM CONAN_LIBS "crypto")
-	list(REMOVE_ITEM CONAN_LIBS "dl")
-
-#	find_library(MYSQL_LIBRARIES libmariadb.so PATHS ${MARIADB_CONNECTOR_PATH} REQUIRED)
-	find_library(CONAN_OPENSSL_SSL ssl PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH )
-	find_library(CONAN_OPENSSL_CRYPTO crypto PATHS ${CONAN_LIB_DIRS_OPENSSL} REQUIRED NO_DEFAULT_PATH ) 
-	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}")
-
-	list(REMOVE_ITEM CONAN_LIBS "ssl")
-	list(REMOVE_ITEM CONAN_LIBS "crypto")
-	list(REMOVE_ITEM CONAN_LIBS "dl")
-
 endif()
 
-# load same ssl version like used from poco
-#find_package(OpenSSL PATHS "../" NO_DEFAULT_PATH)
 
-
-set(CONAN_OPENSSL_CUSTOM_LIBS 
-	${CONAN_OPENSSL_SSL} 
-	${CONAN_OPENSSL_CRYPTO} 
-)
-include_directories(${CONAN_INCLUDE_DIRS_OPENSSL})
-# build grpc
-
-
-
-if(WIN32)
-
-	set(CMAKE_CXX_FLAGS         "/MP /EHsc")
-	#set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
-	#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
-else()
-
-	set(INSTALL_BINDIR "bin")
-	set(INSTALL_PLUGINDIR "bin")
-	target_link_libraries(Gradido_LoginServer ${CONAN_OPENSSL_CUSTOM_LIBS})
-
-endif()
 
 set(BUILD_TESTING OFF)
 set(gRPC_SSL_PROVIDER "package")
@@ -196,14 +165,19 @@ set(gRPC_SSL_PROVIDER "package")
 message(STATUS "Using gRPC via add_subdirectory.")
 
 set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
-target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
+
+############################## build login server ###################################
+if(UNIX)
+	set(INSTALL_BINDIR "bin")
+	set(INSTALL_PLUGINDIR "bin")
+endif()
+target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS} sodium)
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else() # unix
-	target_link_libraries(Gradido_LoginServer libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
+	target_link_libraries(Gradido_LoginServer libmariadb)
 endif()
 
 # install 
@@ -218,25 +192,26 @@ install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
 
 endif(UNIX)
 
-enable_testing()
+
 
 #  ----------------------    Test -----------------------------------------
+add_subdirectory("dependencies/grpc/third_party/googletest")
+enable_testing()
 #project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
-#find_package(gtest)
+
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
+target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} ${GRPC_LIBS} sodium gtest)
 
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
+	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} ${PROTOBUF_DEBUG_LIBS} Shlwapi)
 else()
-	target_link_libraries(Gradido_LoginServer_Test libmariadb ${GRPC_LIBS} ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
+	target_link_libraries(Gradido_LoginServer_Test libmariadb ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

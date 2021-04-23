@@ -7,6 +7,9 @@ ENV DOCKER_WORKDIR="/code"
 
 USER root
 
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install libsodium-dev libboost-all-dev \
+    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
@@ -22,7 +25,6 @@ RUN chmod +x compile_pot.sh && ./compile_pot.sh
 	
 RUN mkdir build && \
 	cd build && \
-	conan install .. --build=missing && \
 	cmake .. && \
 	make -j$(nproc) protoc grpc_cpp_plugin
 	

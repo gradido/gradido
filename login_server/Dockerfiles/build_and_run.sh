@@ -1,9 +1,8 @@
 #!/bin/bash
 
 cd build
-conan install .. --build=missing -s build_type=Debug
 cmake -DCMAKE_BUILD_TYPE=Debug ..
-make -j${CPU_COUNT} protoc grpc_cpp_plugin
+make -j${nproc} protoc grpc_cpp_plugin
 cd ..
 
 if [ ! -d "./src/cpp/proto/hedera" ] ; then

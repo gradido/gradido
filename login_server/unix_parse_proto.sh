@@ -5,8 +5,8 @@ fi
 if [ ! -d "./src/cpp/proto/gradido" ] ; then
 	mkdir ./src/cpp/proto/gradido
 fi
-PROTOC_PATH=./build/bin
-CPP_PLUGIN_PATH=./build/bin
+PROTOC_PATH=./build/dependencies/grpc/third_party/protobuf/bin
+CPP_PLUGIN_PATH=./build/dependencies/grpc/bin
 $PROTOC_PATH/protoc --cpp_out=./src/cpp/proto --proto_path=./src/proto ./src/proto/gradido/*.proto
 
 if [ ! -d "./src/cpp/proto/hedera" ] ; then 

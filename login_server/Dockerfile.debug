@@ -1,12 +1,33 @@
+#########################################################################################################
+# cmake 
+#########################################################################################################
+FROM gcc:9 as cmake-gcc-9 
+
+ENV DOCKER_WORKDIR="/code"
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+USER root
+
+RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 \
+    && cd CMake \
+	&& ./bootstrap \
+	&& make -j${nproc} \
+	&& make install
 
 #########################################################################################################
 # debug build preparation
 #########################################################################################################
-From conanio/gcc9 as build_debug_preparation
+FROM cmake-gcc-9 as build_debug_preparation
+
 USER root
 
 ENV DOCKER_WORKDIR="/code"
 	
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install libsodium-dev libboost-all-dev \
+    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
@@ -30,3 +51,4 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN chmod +x ./Dockerfiles/build_and_run.sh 
 
 CMD ./Dockerfiles/build_and_run.sh; ./build/bin/Gradido_LoginServer
+
