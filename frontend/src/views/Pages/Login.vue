@@ -111,7 +111,6 @@ export default {
   methods: {
     async onSubmit() {
       const result = await loginAPI.login(this.model.email, this.model.password)
-      console.log(result.data)
       if (result.success) {
         this.$store.dispatch('login', {
           session_id: result.result.data.session_id,
