@@ -1,6 +1,4 @@
 #!/bin/bash
-cp build/conan* build_vol/
-cd build_vol 
 
 cp build/conan* build_vol/
 
