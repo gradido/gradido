@@ -1,0 +1,82 @@
+Note to Hedera and Gradido Transactions:
+	- A Transaction contain TransactionBody serialized 
+	- TransactionBody contains the actual transaction
+	- Hedera has namespace proto, gradido has namespace model.messages.gradido 
+
+
+LoginServer
+	register NodeServer with (username and password) or API key
+	
+
+LoginServer get called with data from http form: 
+	- 1 group name
+	- 1 group alias
+	- x registered node server(s), evt. with API key if not saved
+	
+	check if alias in unique with choosen NodeServer
+	{"jsonrpc": "2.0", "method": "checkAlias", "params": {"alias": <from form>, "apiKey": <optional, unique per Login Server>}, "id": rand()}
+Gradido Node return result with 0 or 1 and memorize if apiKey is given (only in memory) by 0 request for 10 minutes
+	0 = alias unknown
+	1 = alias known
+	2 = has blockchain for group of alias
+
+	Hedera::ConsensusService::createTopic
+		get TransactionReceipt with TopicID (if succeed, alias unknown)
+		// TopicID consists of three int64: shardNum, realmNum, topicNum
+	
+	Hedera::ConsensusService::ConsensusSubmitMessage
+	    proto.ConsensusSubmitMessageTransactionBody.topicID = gradido_discover_topicid // global, must obtained before first node server can go online, maybe hardcoded?
+		proto.ConsensusSubmitMessageTransactionBody.message = 
+		model.messages.gradido.Transaction
+				id = <left empty>;
+				received = <left empty>;
+				sigMap = model.messages.gradido.SignatureMap
+					sigPair = model.messages.gradido.SignaturePair
+						pubKey = <public root key of group founder>
+						signature = ed25519 = <bodyBytes signed with group founder private key>
+				txHash = <left empty>;
+				
+				bodyBytes = model.messages.gradido.TransactionBody  serialized
+					memo = <empty>
+					created = model.messages.gradido.TimestampSeconds
+						seconds = <current timestamp>
+					data = model.messages.gradido.StateCreateGroup
+						name = <group name>
+						alias = <group alias>
+						parentGroupAlias = <parent group alias or empty>
+						hederaTopicId = <from hedera answear>
+		serialized	
+		signed from user, he is the group founder now and can sign group related messages
+		
+Gradido Node receive from Hedera Mirror Node: model.messages.gradido.Transaction with model.messages.gradido.StateCreateGroup
+	validate and save create Group Transaction in state-chain	
+	if checkAlias Request for this alias is memorized: 
+		create blockchain for this group,
+		register for listen to topic of this group
+		send HTTP POST Request in json format to login server(s) how called checkAlias with this alias 10 minutes or less before  { 
+		/group_created {
+			  "alias":StateCreateGroup.alias,
+			  "topicID": StateCreateGroup.hederaTopicId,
+			  "name": StateCreateGroup.name
+			}
+LoginServer
+	Show succeed
+
+-------------------------------------------------------------------------
+if node server already know group
+LoginServer 
+	{"jsonrpc": "2.0", "method": "addGroup", "params": {"alias": <from form>, "apiKey": <unique per Login Server>}, "id": rand()}
+	
+GradidoNode 
+	return {"jsonrpc": "2.0", "result": {"state": "not found", "msg":"group alias not known"}, "id": <id from call>}
+	
+	create blockchain for this group,
+		register for listen to topic of this group
+		return {"jsonrpc": "2.0", "result": {
+			       "alias":StateCreateGroup.alias,
+			       "topicID": StateCreateGroup.hederaTopicId,
+			       "name": StateCreateGroup.name
+			    }, "id": <id from call>}
+
+
+ 

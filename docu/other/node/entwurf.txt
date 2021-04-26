@@ -1,0 +1,5 @@
+get pubkey index per group
+cache in group?
+
+ask pubkey: -> at first in cache 
+            -> when not found in cache load index file
