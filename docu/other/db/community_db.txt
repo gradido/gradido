@@ -1,0 +1,75 @@
+operator_types
+id name text
+
+operators
+id username operator_type_id data_base64
+
+
+server_users
+id username password email role activated last_login created modified 
+
+transaction_types
+id name text
+
+state_groups
+   varbinary(64)
+id index_id name root_public_key user_count
+
+address_types
+id name text
+
+state_group_addresses
+id group_id public_key address_type
+
+
+state_users
+   short
+id index group_id public_key email first_name last_name
+
+state_errors
+id state_user_id transaction_type_id created message_json
+
+state_balances
+id state_user_id modified amount
+
+state_relationship_types
+id name text
+(1 allow_trade "erlaubt Handel zwischen Gruppen")
+
+state_group_relationships
+id group1_id group2_id state_relationship_id
+
+state_created
+id transaction_id month year state_user_id created short_ident_hash
+
+transaction_signatures 
+                  varbinary(64) varbinary(32) 
+id transaction_id signature     pubkey 
+
+transactions
+int64                                    
+id state_group_id transaction_type_id tx_hash received
+
+transaction_send_coins
+id transaction_id state_user_id receiver_public receiver_user_id amount sender_final_balance
+
+transaction_group_allowtrades
+id transaction_id remote_group_id allow
+
+transaction_group_addAddress
+id transaction_id address_type_id public_key
+
+transaction_group_creates
+id transaction_id group_public_key state_group_id name
+
+transaction_creations
+id transaction_id state_user_id amount ident_hash
+
+
+
+mirror_nodes
+id name ip port
+
+group_mirror_nodes
+id mirror_node_id group_id
+

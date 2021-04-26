@@ -32,7 +32,9 @@ services:
       - SYS_PTRACE
     volumes:
       - ./logs:/var/log/grd_login 
-      - conan:/root/.conan
+      - ./login_server/src:/code/src
+      - ./configs/login_server:/etc/grd_login
+      - login_build_conan:/code/build_vol
 
   #########################################################
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
@@ -84,5 +86,5 @@ services:
    
 volumes:
   frontend_node_modules:
-  conan:
+  login_build_conan:
 

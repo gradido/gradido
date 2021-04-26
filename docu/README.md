@@ -52,3 +52,110 @@ Some ideas of regarding fixing the broken authentication
 One upon a time the repository was split into multiple parts. This compartimalisation resulted in some inefficiencies which were resolved by merging (most of) them into a mono repository. The following graphic was made to explain the idea and plan the "mono-repoisation"
 
 ![](./graphics/repo-structure.png)
+
+## Questions
+
+### why distributed system for gradidos? is it needed to add this type of complexity?
+
+- ensuring uptime
+- data is not stored in single place, no single point of failure
+- even if most important nodes are hacked, we still have a replayable gradido blockchains, which can be migrated to another cluster
+
+### main ideas for gradido distributed system
+
+- system would rely on existence of honest / incorrupted nodes in the network
+- consists of nodes (not gradido nodes, but universal ones)
+- using blockchains to store data
+- generally open and transparent, with few exceptions (monitoring health, last-resort backup creation)
+- single topology blockchain for a cluster; TB contains at least:
+  - list of all nodes in the cluster along with their types
+  - updates to states of nodes (active, banned, etc.)
+- not all nodes can write to all blockchains
+- distributed system consists of nodes, each having at least:
+  - type
+  - signature key
+  - copy of TB
+- read sequence: sending same request to random many nodes, receiving answer, reporting other nodes to management in case of discrepancies, which could lead to node ban
+- write sequence: transaction goes to ordering service, receives consensus sequence id, is sent to listener nodes, is written to blockchain replicas
+
+### proposed nodes
+- management node
+  - adding new nodes to network on request, banning nodes
+  - should be maintained by us for our cluster
+- ordering node
+  - orders requests just like Hedera; can use Hedera (at least initially)
+- login server node
+- gradido blockchain node
+- gradido blockchain backup node
+- relay node: to anonymize blockchain read requests (for better cluster health)
+- community server is not a node; it stands out from distributed network and accesses cluster via login server
+
+### example sequences
+
+- user actions
+  - browse groups
+    - community server addresses login server; login server has TB; it asks for data, reporting invalid nodes in the process; result is returned to community server and presented
+    - required signatures: community server
+  - create group
+    - community server -> login server node -> management node (as it has to write to TB)
+    - required signatures: community server, login server node, management node
+  - join group
+    - by invitation: applies for invitation via email, gets link to URL (hosted by community server), clicks it, login server node gets notification
+    - required signatures: community server, login server node
+  - do work
+    - hours worked could be stored on community server, as necessary
+  - receive gradidos
+    - sent by group leader; they cannot exceed amount set in rules
+  - cross group transfer
+    - sender@sender-group issues request via community server, mentioning recipient@recipient-group in it; sender's login server receives it, adds outbound transfer on sender-group blockchain, notifies login server of receiver-group (found by looking up in TB); inbound transfer is added to recipient-group's blockchain by login server #2
+    - required signatures: community server, both login servers
+
+### how it comes together with model we have
+
+- user id would not be his email but username@gradido-group-name
+- gradido node server would keep:
+  - gradido group blockchains, which are associated with its login server (then it would be primary gradido node for particular gradido group)
+  - other blockchains - such as those which are necessary often, or needed to support network with backups (then it would be support gradido node for particular group)
+- when reading blockchain data from a gradido node, random nodes are picked from each of the three buckets:
+  - primary gradido nodes
+  - support gradido nodes
+  - trusted gradido nodes: maintained by us
+- growing of the cluster
+  - we could maintain some basic infrastructure to which it would be possible to add new nodes by other players
+    - existing login servers could be reused, for example; this way groups could be set up quickly
+
+### known weaknesses
+
+- hedera and flood
+  - cannot deny write access
+- if blockchain is public, then a participant can find out public key of its recent partner in transfer
+  - maybe that can be classified with time; but if we use Hedera, all data is public
+
+### development
+
+- it is possible to have basic version quickly
+  - only one way of joining a gradido group: by invitation
+  - only one type of gradido group: dictatorship (single person makes decisions)
+- prototyping
+  - demo in Erlang
+- within this model it is possible to ensure fault tolerance, resilience against flooding, resilience against timeout attacks, rollbacks, migration procedures; we can focus on main features in the beginning
+
+### other
+
+- each node could have credibility rating, built over time
+- if gradido node gets corrupted, login server node may get ban as well
+- all requests are signed by issuing node's private key; those can be used as evidence to track down source of hacker activity
+- consider the model described in this file as an "umbrella" for existing ideas of community server, login server, node server
+- possibility to have gradido organization badge for identified groups / individuals
+- user migration from group to group may involve two login servers
+- login server is actually a group of replicas
+- anyone can create a gradido cluster for his own needs; it is not mandatory to join our cluster
+- good practice would be to store memo along with gradido creations, always
+- gradido groups could have ratings
+- only management nodes can write to TB
+- only login server nodes may write to their primary group blockchains
+- clusters could be merged (gradido blockchains would migrate along with gradido nodes / login servers)
+- management nodes are considered primary nodes for TB
+- different programming languages could be used to implement various types of nodes, to improve safety and security
+- most of nodes are simple by themselves, easy to make
+- transaction ids are generated on sender's side
