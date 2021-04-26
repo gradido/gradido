@@ -2,18 +2,18 @@
   <div>
     <b-row v-show="row_form">
       <b-col xl="12" md="12">
-        <b-alert variant="warning" show dismissible v-html="$t('form.attention')"></b-alert>
+        <b-alert show dismissible variant="warning" class="text-center">
+          <span class="alert-text" v-html="$t('form.attention')"></span>
+        </b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
           <b-alert show variant="secondary">
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
-              <img src="/img/icons/gradido/qr-scan-pure.png" height="50" @click="scan = true" />
+              <a @click="scan = true" class="nav-link">
+                <img src="/img/icons/gradido/qr-scan-pure.png" height="50" />
+              </a>
             </b-col>
-            <b-alert v-show="scan" show variant="warning">
-              <span class="alert-text" @click="scan = false">
-                <strong>{{ $t('form.cancel') }}</strong>
-              </span>
-            </b-alert>
+
             <div v-if="scan">
               <!-- <b-row>                                          
                     <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
@@ -31,6 +31,11 @@
                 </b-row>
               </b-container>
             </div>
+            <b-alert v-show="scan" show variant="primary" class="pointer text-center">
+              <span class="alert-text" @click="scan = false">
+                <strong>{{ $t('form.cancel') }}</strong>
+              </span>
+            </b-alert>
           </b-alert>
 
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
@@ -274,6 +279,12 @@ export default {
 }
 </script>
 <style>
+.pointer {
+  cursor: pointer;
+}
+.pointer:hover {
+  background-color: #3c4d69;
+}
 video {
   max-height: 665px;
   max-width: 665px;
