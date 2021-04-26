@@ -14,8 +14,6 @@ else()
 	set(INSTALL_BINDIR "bin")
 	set(INSTALL_PLUGINDIR "bin")
 endif()
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ./lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ./lib)
 
 include_directories(
 	"dependencies" 
@@ -106,116 +104,30 @@ endif()
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
 ############################## config and add mariadb ###################################
-set(CLIENT_PLUGIN_DIALOG OFF)
-set(CLIENT_PLUGIN_MYSQL_CLEAR_PASSWORD OFF)
-set(CLIENT_PLUGIN_REMOTE_IO OFF)
-IF(WIN32)
-#set(CLIENT_PLUGIN_caching_sha2_password OFF)
-set(CLIENT_PLUGIN_CACHING_SHA2_PASSWORD OFF)
-set(CLIENT_PLUGIN_SHA256_PASSWORD OFF)
-set(CLIENT_PLUGIN_AUTH_GSSAPI_CLIENT OFF)
-set(CLIENT_PLUGIN_PVIO_NPIPE STATIC)
-set(CLIENT_PLUGIN_PVIO_SHMEM STATIC)
-set(CLIENT_PLUGIN_CLIENT_ED25519 OFF)
-ELSEIF()
-set(CLIENT_PLUGIN_client_ed25519 OFF)
-ENDIF()
 
-set(WITH_SSL OFF)
-add_subdirectory("dependencies/mariadb-connector-c")
-
-set(DEP_PATH "dependencies")
-set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
-
-if(WIN32)
-	find_library(MYSQL_LIBRARIES mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
-	find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
-endif()
+find_library(MYSQL_LIBRARIES mariadbd PATHS "pre_build/dependencies/mariadb-connector-c/libmariadb/lib" REQUIRED)
 
 ############################## config and add poco ###################################
-#SET(SOME_EXPAT_OPTION OFF CACHE BOOL "Use some expat option")
-SET(ENABLE_MONGODB OFF CACHE BOOL "" FORCE) 
-SET(ENABLE_DATA_SQLITE OFF CACHE BOOL "" FORCE) 
-SET(ENABLE_REDIS OFF CACHE BOOL "" FORCE)
-SET(ENABLE_PAGECOMPILER_FILE2PAGE OFF CACHE BOOL "" FORCE)
-add_subdirectory("dependencies/poco")
+set(BUILD_LIB_PATH "pre_build/lib")
+find_library(POCO_FOUNDATION_LIB PocoFoundationd PATHS ${BUILD_LIB_PATH} REQUIRED)
+find_library(POCO_UTIL_LIB PocoUtild PATHS ${BUILD_LIB_PATH} REQUIRED)
+find_library(POCO_NET_SSL_LIB PocoNetSSLd PATHS ${BUILD_LIB_PATH} REQUIRED)
+find_library(POCO_DATA_LIB PocoDatad PATHS ${BUILD_LIB_PATH} REQUIRED)
+find_library(POCO_JSON_LIB PocoJSONd PATHS ${BUILD_LIB_PATH} REQUIRED)
+find_library(POCO_NET_LIB PocoNetd PATHS ${BUILD_LIB_PATH} REQUIRED)
 
-set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
+set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO_DATA_LIB} ${POCO_JSON_LIB} ${POCO_NET_LIB})
 
 ############################## config and add grpc ###################################
 
-set(GRPC_PATH "${DEP_PATH}/grpc/build")
-set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
-set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
-set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
-set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
-set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
 
-if(WIN32)
-	set(GRPC_PATH "${GRPC_PATH}/Debug")
-	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
-	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
-	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
-	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
-	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
-endif()
+find_library(PROTOBUF_LIB protobufd PATHS "pre_build/dependencies/grpc/third_party/protobuf/lib" REQUIRED)
+set(DEPENDENCIES_GRPC_LIB_PATH "pre_build/dependencies/grpc/lib")
+find_library(GRPC_PP_REFLECTION grpc++_reflectiond PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
+find_library(GRPC_PP grpc++d PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
 
-
-
-set(BUILD_TESTING OFF)
-set(gRPC_SSL_PROVIDER "package")
-add_subdirectory("dependencies/grpc/")
-set(gRPC_SSL_PROVIDER "package")
-message(STATUS "Using gRPC via add_subdirectory.")
-
-set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
-
+set(GRPC_LIBS, ${GRPC_PP_REFLECTION} ${GRPC_PP} ${PROTOBUF_LIB})
 ############################## build login server ###################################
-if(UNIX)
-	set(INSTALL_BINDIR "bin")
-	set(INSTALL_PLUGINDIR "bin")
-endif()
-target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS} sodium)
 
-if(WIN32)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
-else() # unix
-	target_link_libraries(Gradido_LoginServer libmariadb)
-endif()
+target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS} ${MYSQL_LIBRARIES} sodium)
 
-# install 
-if(UNIX)
-install(TARGETS Gradido_LoginServer RUNTIME DESTINATION /usr/local/bin)
-#install(LIBRARYS DESTINATION /usr/local/lib)
-#install(FILES lib/libmariadb /usr/local/lib)
-install(FILES DESTINATION lib COMPONENT libmariadb)
-install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
-        FILES_MATCHING PATTERN "*.po(t)")
-
-
-endif(UNIX)
-
-
-
-#  ----------------------    Test -----------------------------------------
-add_subdirectory("dependencies/grpc/third_party/googletest")
-enable_testing()
-#project(Gradido_LoginServer_Test C CXX)
-#_TEST_BUILD
-
-
-add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
-target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
-
-target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} ${GRPC_LIBS} sodium gtest)
-
-
-if(WIN32)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} ${PROTOBUF_DEBUG_LIBS} Shlwapi)
-else()
-	target_link_libraries(Gradido_LoginServer_Test libmariadb ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
-endif()
-
-add_test(NAME main COMMAND Gradido_LoginServer_Test)

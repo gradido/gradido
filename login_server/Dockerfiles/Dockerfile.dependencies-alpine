@@ -1,0 +1,87 @@
+
+##### BUILD-ENV #####
+FROM alpine:3.13.5 as alpine-build
+
+RUN apk add --update --no-cache icu-dev
+RUN apk add --no-cache git openssl-dev make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev
+
+
+#####  CMAKE #####
+FROM alpine-build as alpine-gxx-cmake
+
+USER root
+ENV DOCKER_WORKDIR="/code"
+
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
+    cd CMake && \
+	 ./bootstrap --parallel=$(nproc) && \
+	make -j$(nproc) && \
+	make install && \
+	cd .. &&  \
+	rm -rf CMake
+
+RUN ls -la /usr/include/boost
+
+##### BUILD ENV ##############
+FROM alpine-build as build_debug_dependencies
+
+USER root
+ENV DOCKER_WORKDIR="/code"
+
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+RUN apk add --no-cache git make gettext openssl-dev
+# copy CMake from last stage 
+COPY --from=alpine-gxx-cmake /usr/local/bin/cmake /usr/local/bin/cmake
+COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Modules /usr/local/share/cmake-3.19/Modules
+COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Templates /usr/local/share/cmake-3.19/Templates
+
+
+
+# COPY files from context
+COPY ./dependencies ./dependencies
+COPY ./scripts ./scripts
+COPY ./CMakeLists.txt .
+COPY ./src ./src
+
+# run build
+RUN cd scripts && \
+	chmod +x ./prepare_build.sh && \
+    ./prepare_build.sh && \
+	mkdir ../build && \
+	chmod +x ./build_debug.sh && \
+	./build_debug.sh
+
+#########################################################################################################
+# builded libs and binaries 
+#########################################################################################################
+FROM alpine-build as debug_builded
+
+USER root 
+ENV DOCKER_WORKDIR="/code"
+
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+RUN apk add --no-cache bash
+
+# copy CMake from last stage 
+COPY --from=build_debug_dependencies /usr/local/bin/cmake /usr/local/bin/cmake
+COPY --from=build_debug_dependencies /usr/local/share/cmake-3.19 /usr/local/share/cmake-3.19
+
+COPY --from=build_debug_dependencies /code/build/bin ${DOCKER_WORKDIR}/pre_build/bin
+COPY --from=build_debug_dependencies /code/build/lib ${DOCKER_WORKDIR}/pre_build/lib
+
+# grpc 
+COPY --from=build_debug_dependencies /code/build/dependencies/grpc/lib ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/lib
+COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/protobuf/lib ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/third_party/protobuf/lib
+COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/re2/lib ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/third_party/re2/lib
+COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/zlib/lib ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/third_party/zlib/lib
+COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/cares/cares/lib ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/third_party/cares/cares/lib
+COPY --from=build_debug_dependencies /code/build/dependencies/mariadb-connector-c/libmariadb/lib ${DOCKER_WORKDIR}/pre_build/dependencies/mariadb-connector-c/libmariadb/lib
+
+

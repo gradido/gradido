@@ -1,4 +1,4 @@
-sudo apt install libsodium-dev libboost-all-dev
+sudo apt install libsodium-dev
 
 # get dependencies
 git submodule update --init --recursive

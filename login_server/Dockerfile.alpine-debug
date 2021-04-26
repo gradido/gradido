@@ -1,0 +1,21 @@
+FROM gradido/login_dependencies:alpine-stage2.1 as login_server_alpine_debug
+
+ENV DOCKER_WORKDIR="/code"
+
+
+EXPOSE 1200
+EXPOSE 1201
+WORKDIR ${DOCKER_WORKDIR}
+
+COPY ./CMakeLists.txt.lib ./CMakeLists.txt
+RUN ls -la ${DOCKER_WORKDIR}/pre_build && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/lib && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/third_party/protobuf/lib && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies/grpc/lib && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies/mariadb-connector-c/ && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies/mariadb-connector-c/libmariadb && \
+    ls -la ${DOCKER_WORKDIR}/pre_build/dependencies/mariadb-connector-c/libmariadb/lib
+
+CMD cp -r ${DOCKER_WORKDIR}/pre_build/bin ${DOCKER_WORKDIR}/build/bin;  cd scripts; ./prepare_build.sh; ./build_debug.sh; cd ..; ./build/bin/Gradido_LoginServer
+
