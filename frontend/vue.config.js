@@ -1,17 +1,11 @@
 const path = require('path')
 const dotenv = require('dotenv-webpack')
 
-function resolveSrc(_path) {
-  return path.join(__dirname, _path)
-}
-
-let vue_path = process.env.VUE_PATH
-if (vue_path == undefined) {
-  vue_path = '/vue'
-}
-
 // vue.config.js
 module.exports = {
+  devServer: {
+    port: process.env.PORT || 3000,
+  },
   pluginOptions: {
     i18n: {
       locale: 'de',
@@ -21,12 +15,12 @@ module.exports = {
     },
   },
   lintOnSave: true,
-  publicPath: vue_path + '/',
+  // publicPath: '/',
   configureWebpack: {
     // Set up all the aliases we use in our app.
     resolve: {
       alias: {
-        assets: resolveSrc('src/assets'),
+        assets: path.join(__dirname, 'src/assets'),
       },
     },
     plugins: [new dotenv()],
@@ -35,5 +29,5 @@ module.exports = {
     // Enable CSS source maps.
     sourceMap: process.env.NODE_ENV !== 'production',
   },
-  outputDir: path.resolve(__dirname, './dist' + vue_path),
+  outputDir: path.resolve(__dirname, './dist'),
 }
