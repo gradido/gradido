@@ -58,7 +58,7 @@
         <hr class="my-3" />
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
-            <a class="nav-link text-lg" href @click="logout">
+            <a class="nav-link text-lg pointer" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
@@ -107,3 +107,8 @@ export default {
   },
 }
 </script>
+<style>
+.pointer {
+  cursor: pointer;
+}
+</style>
