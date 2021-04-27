@@ -9,7 +9,7 @@
           <b-alert show variant="secondary">
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
-              <a @click="scan = true" class="nav-link">
+              <a @click="toggle" class="nav-link">
                 <img src="/img/icons/gradido/qr-scan-pure.png" height="50" />
               </a>
             </b-col>
@@ -32,7 +32,7 @@
               </b-container>
             </div>
             <b-alert v-show="scan" show variant="primary" class="pointer text-center">
-              <span class="alert-text" @click="scan = false">
+              <span class="alert-text" @click="toggle">
                 <strong>{{ $t('form.cancel') }}</strong>
               </span>
             </b-alert>
@@ -228,6 +228,9 @@ export default {
   },
   computed: {},
   methods: {
+    toggle() {
+      this.scan = !this.scan
+    },
     async onDecode(decodedString) {
       //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
       const arr = JSON.parse(decodedString)
