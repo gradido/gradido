@@ -37,6 +37,7 @@ class JsonRequestHandlerController extends AppController {
           $method = $this->request->getQuery('method');
           switch($method) {
             case 'getRunningUserTasks': return $this->getRunningUserTasks();
+            case 'klicktippSubscribe': return $this->klicktippSubscribe();
           }
           return $this->returnJson(['state' => 'error', 'msg' => 'unknown method for get', 'details' => $method]);
         }
@@ -507,6 +508,31 @@ class JsonRequestHandlerController extends AppController {
       return $this->returnJsonEncoded($json);
     }
     
-    
+    private function klicktippSubscribe() 
+    {
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        
+        $api_key =  Configure::read('KlickTipp_API_KEY');
+        $email_address = $user['email']; // Replace with the email address.    
+
+        $connector = new KlicktippConnector();
+        
+       /**
+        * Unsubscribe subscriber. API Key required.
+        *
+        * @param mixed $api_key
+        * @param mixed $email_address
+        *
+        * @return TRUE on success
+        */
+        $unsubscribed  = $connector->signoff($api_key, $email_address);
+
+        if ($unsubscribed) {
+            return $this->returnJson(['state' => 'success']);
+        } else {
+            return $this->returnJson(['state' => 'error','msg' => 'error in klicktipp', 'details' => $connector->get_last_error()]);
+        }
+    }
     
 }
