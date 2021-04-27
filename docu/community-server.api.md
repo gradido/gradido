@@ -245,3 +245,40 @@ Without auto-sign the transaction is pending on the login-server and waits for t
 // TODO Should this not be handled client side?
 
 
+# Klicktipp
+
+## Subscribe
+Subscribe current logged in user to gradido newsletter
+
+### Request
+`GET http://localhost/api/klicktipp_subscribe/[session_id]`
+Parts symbolized by [] are optional
+  - session_id: session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this
+
+### Response
+Assuming: session is valid
+
+```json
+{
+    "state": "success",
+    "redirect_url": "<redirect url from klicktipp>"
+}
+````
+
+## Unsubscribe
+Unsubscribe current logged in user from gradido newsletter
+
+### Request
+`GET http://localhost/api/klicktipp_unsubscribe/[session_id]`
+Parts symbolized by [] are optional
+  - session_id: session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this
+
+### Response
+Assuming: session is valid
+
+```json
+{
+    "state": "success"
+}
+````
+
