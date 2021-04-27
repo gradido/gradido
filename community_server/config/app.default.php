@@ -402,6 +402,6 @@ return [
     ],
     'ServerAdminEmail' => 'info@gradido.net', // email 'from' field for transfer notification emails
     'noReplyEmail' => 'no-replay@gradido.net', // email sender for creation notification emails to user 
-    
+    'KlickTipp_API_KEY' => '123xyz',
     'GroupNode' => false
 ];

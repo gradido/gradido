@@ -24,7 +24,10 @@ class AppRequestsController extends AppController
         $this->loadComponent('JsonRequestClient');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
+        $this->Auth->allow([
+            'index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions',
+            'klicktippSubscribe', 'klicktippUnsubscribe'
+        ]);
     }
     
   
@@ -352,5 +355,77 @@ class AppRequestsController extends AppController
       
     }
     
+    
+    
+    // ********************* klicktipp API ************************************
+
+    public function klicktippSubscribe($session_id = 0)
+    {
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        
+        $api_key =  Configure::read('KlickTipp_API_KEY');
+        $email_address = $user['email']; // Replace with the email address.
+        $fields = array ( // Use field_index to get all custom fields.
+          'fieldFirstName' => $user['first_name'],
+          'fieldLastName' => $user['last_name'],
+        );
+        
+
+        $connector = new KlicktippConnector();
+        
+        /**
+        * Add subscriber. API Key required.
+        * 
+        * @param mixed $api_key
+        * @param mixed $email_address
+        * @param mixed $fields (optional)
+        * @param mixed $smsnumber (optional)
+        * 
+        * @return redirect url as defined in the subscription process used in the API Key.
+        */
+        $redirect_url = $connector->signin($api_key, $email_address, $fields);
+
+        if ($redirect_url) {
+            return $this->returnJson(['state' => 'success', 'redirect_url' => $redirect_url]);
+        } else {
+            return $this->returnJson(['state' => 'error','msg' => 'error in klicktipp', 'details' => $connector->get_last_error()]);
+        }
+    }
+    
+    public function klicktippUnsubscribe($session_id = 0)
+    {
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        
+        $api_key =  Configure::read('KlickTipp_API_KEY');
+        $email_address = $user['email']; // Replace with the email address.    
+
+        $connector = new KlicktippConnector();
+        
+        /**
+        * Remove tag from subscriber. API Key required.
+        *
+        * @param mixed $api_key
+        * @param mixed $email_address
+        *
+        * @return TRUE on success
+        */
+        $untagged = $connector->signout($api_key, $email_address);
+
+        if ($untagged) {
+            return $this->returnJson(['state' => 'success']);
+        } else {
+            return $this->returnJson(['state' => 'error','msg' => 'error in klicktipp', 'details' => $connector->get_last_error()]);
+        }
+    }
 }
   
