@@ -87,7 +87,7 @@
                 {{ $t('site.login.new_wallet') }}
               </router-link>
             </b-col>
-          </b-row>         
+          </b-row>
         </b-col>
       </b-row>
     </b-container>
