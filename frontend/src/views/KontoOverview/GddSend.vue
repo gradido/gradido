@@ -261,7 +261,7 @@ export default {
         this.$emit('toggle-show-list', false)
         this.row_check = false
         this.row_thx = true
-        this.$emit('update-transctions', { ammount: Number(this.ajaxCreateData.amount) })
+        this.$emit('update-balance', { ammount: Number(this.ajaxCreateData.amount) })
       } else {
         alert('error')
         this.$emit('toggle-show-list', true)

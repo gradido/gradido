@@ -7,7 +7,7 @@
       <gdd-send
         :balance="balance"
         :show-transaction-list="showTransactionList"
-        @update-transctions="updateTransactions"
+        @update-balance="updateBalance"
         @toggle-show-list="toggleShowList"
       />
       <hr />
@@ -44,7 +44,7 @@ export default {
     toggleShowList(bool) {
       this.showTransactionList = bool
     },
-    updateTransactions(data) {
+    updateBalance(data) {
       this.$emit('update-balance', data.ammount)
     },
     setTransactions(transactions) {
