@@ -66,10 +66,7 @@
 
                       <b-input-group-append>
                         <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                          <b-icon
-                            :icon="passwordVisible ? 'eye' : 'eye-slash'"
-                            
-                          />
+                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>
                     </b-input-group>

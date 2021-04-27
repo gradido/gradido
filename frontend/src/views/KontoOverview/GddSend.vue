@@ -33,7 +33,7 @@
             </div>
             <div @click="toggle">
               <b-alert v-show="scan" show variant="primary" class="pointer text-center">
-                <span class="alert-text" >
+                <span class="alert-text">
                   <strong>{{ $t('form.cancel') }}</strong>
                 </span>
               </b-alert>
