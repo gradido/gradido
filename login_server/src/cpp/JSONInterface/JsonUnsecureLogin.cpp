@@ -79,6 +79,8 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		USER_DISABLED
 	*/
 	auto user_state = session->loadUser(email, password);
+	auto user_model = session->getNewUser()->getModel();
+	Poco::JSON::Array infos;
 	
 	switch (user_state) {
 	case USER_EMPTY:
@@ -98,6 +100,10 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		result->set("state", "disabled");
 		result->set("msg", "user is disabled");
 		break;
+	case USER_NO_GROUP: 
+		user_model->setGroupId(1);
+		user_model->updateIntoDB("group_id", 1);
+		infos.add("set user.group_id to default group_id = 1");
 	case USER_NO_PRIVATE_KEY:
 	case USER_COMPLETE:
 	case USER_EMAIL_NOT_ACTIVATED:
@@ -105,7 +111,14 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		result->set("user", session->getNewUser()->getJson());
 		result->set("session_id", session->getHandle());
 		session->setClientIp(mClientIP);
+		if(infos.size() > 0) {
+			result->set("info", infos);
+		}
 		return result;
+	default: 
+		result->set("state", "error");
+		result->set("msg", "unknown user state");
+		result->set("details", USER_NO_GROUP);
 	}
 	
 	sm->releaseSession(session);
