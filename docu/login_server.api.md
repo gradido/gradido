@@ -56,6 +56,7 @@ In case of success returns:
 		"first_name": "Max",
 		"group_alias": "gdd1",
 		"ident_hash": 323769895,
+		"language":"de",
 		"last_name": "Mustermann",
 		"public_hex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"role": "none",
@@ -74,6 +75,7 @@ In case of success returns:
   - `first_name`: first name of user
   - `group_alias`: alias of group/community to which user belong
   - `ident_hash`: currently hash of email, will be later a identification hash to prevent multiple accounts and therefore multiple creations per user
+  - `language`: language of user, currently only "de" or "en" 
   - `last_name`: last name of user
   - `public_hex`: public key of user in hex format
   - `role`: role of user currently only "none" or "admin"
@@ -302,6 +304,7 @@ In case of success returns:
 		"first_name": "Max",
 		"group_alias": "gdd1",
 		"ident_hash": 323769895,
+		"language": "de",
 		"last_name": "Mustermann",
 		"public_hex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"role": "none",
@@ -326,6 +329,7 @@ In case of success returns:
   - `first_name`: first name of user
   - `group_alias`: alias of group/community to which user belong
   - `ident_hash`: currently hash of email, will be later a identification hash to prevent multiple accounts and therefore multiple creations per user
+  - `language`: language of user, currently only "de" or "en"
   - `last_name`: last name of user
   - `public_hex`: public key of user in hex format
   - `role`: role of user currently only "none" or "admin"
