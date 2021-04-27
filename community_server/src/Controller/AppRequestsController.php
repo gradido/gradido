@@ -329,11 +329,13 @@ class AppRequestsController extends AppController
                                         ->page($page)
                                         ;
         $decay = true;
-        $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
+        $transactions = [];
+        if($stateUserTransactionsQuery->count() > 0) {
+            $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
         
-        
-        if($orderDirection == 'DESC') {
-            $transactions = array_reverse($transactions);
+            if($orderDirection == 'DESC') {
+                $transactions = array_reverse($transactions);
+            }
         }
         return $this->returnJson([
                 'state' => 'success',
