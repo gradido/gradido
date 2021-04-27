@@ -14,6 +14,7 @@ CREATE TABLE `users` (
   `language` varchar(4) NOT NULL DEFAULT 'de',
   `disabled` tinyint DEFAULT '0',
   `group_id` int unsigned DEFAULT 0,
+  `publisher_id` int DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

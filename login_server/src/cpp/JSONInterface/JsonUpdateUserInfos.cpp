@@ -118,6 +118,17 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					}
 				}
 			}
+			else if ("User.publisher_id" == name) {
+				if (value.isInteger()) {
+					int publisher_id = 0;
+					value.convert(publisher_id);
+					user_model->setPublisherId(publisher_id);
+					extractet_values++;
+				}
+				else {
+					jsonErrorsArray.add("User.publisher_id isn't a valid integer");
+				}
+			}
 			else if ("User.password" == name && value.size() > 0 && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.password isn't string");

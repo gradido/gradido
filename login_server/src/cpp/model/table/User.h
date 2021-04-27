@@ -28,7 +28,7 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
+		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int, int> UserTuple;
 
 		class User : public ModelBase 
 		{
@@ -60,6 +60,7 @@ namespace model {
 			inline std::string getNameWithEmailHtml() const { SHARED_LOCK; return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
 			inline const Poco::UInt64 getPasswordHashed() const { SHARED_LOCK; return mPasswordHashed; }
 			inline int getGroupId() const { SHARED_LOCK; return mGroupId; }
+			inline int getPublisherId() const { SHARED_LOCK; return mPublisherId; }
 			inline RoleType getRole() const { SHARED_LOCK; if (mRole.isNull()) return ROLE_NONE; return static_cast<RoleType>(mRole.value()); }
 			inline const unsigned char* getPublicKey() const { SHARED_LOCK; if (mPublicKey.isNull()) return nullptr; return mPublicKey.value().content().data(); }
 			MemoryBin* getPublicKeyCopy() const;
@@ -89,6 +90,7 @@ namespace model {
 			inline void setLanguageKey(const std::string& languageKey) { UNIQUE_LOCK; mLanguageKey = languageKey; }
 			inline void setDisabled(bool disabled) { UNIQUE_LOCK; mDisabled = disabled; }
 			inline void setGroupId(int groupId) { UNIQUE_LOCK; mGroupId = groupId; }
+			inline void setPublisherId(int publisherId) { UNIQUE_LOCK; mPublisherId = publisherId; }
 
 			Poco::JSON::Object getJson();			
 
@@ -121,6 +123,7 @@ namespace model {
 			bool mDisabled;
 
 			int mGroupId;
+			int mPublisherId;
 
 			// from neighbor tables
 			Poco::Nullable<int> mRole;

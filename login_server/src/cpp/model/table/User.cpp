@@ -15,12 +15,12 @@ namespace model {
 	namespace table {
 
 		User::User()
-			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de"), mDisabled(false), mRole(ROLE_NOT_LOADED)
+			: mPasswordHashed(0), mEmailChecked(false), mLanguageKey("de"), mDisabled(false), mPublisherId(0), mRole(ROLE_NOT_LOADED)
 		{
 		}
 
 		User::User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed/* = 0*/, std::string languageKey/* = "de"*/)
-			: mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mDisabled(false), mGroupId(group_id), mRole(ROLE_NOT_LOADED)
+			: mFirstName(first_name), mLastName(last_name), mPasswordHashed(passwordHashed), mEmailChecked(false), mLanguageKey(languageKey), mDisabled(false), mGroupId(group_id), mPublisherId(0), mRole(ROLE_NOT_LOADED)
 		{
 			setEmail(email);
 
@@ -29,8 +29,9 @@ namespace model {
 		User::User(UserTuple tuple)
 			: ModelBase(tuple.get<0>()), 
 			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mUsername(tuple.get<4>()),
-			mPublicKey(tuple.get<5>()), mCreated(tuple.get<6>()), mEmailChecked(tuple.get<7>()), mDisabled(tuple.get<8>()), mGroupId(tuple.get<9>()),
-			  mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
+			mPublicKey(tuple.get<5>()), mCreated(tuple.get<6>()), mEmailChecked(tuple.get<7>()), mDisabled(tuple.get<8>()), 
+			mGroupId(tuple.get<9>()), mPublisherId(tuple.get<10>()),
+			mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
 		}
@@ -82,12 +83,12 @@ namespace model {
 
 		
 			if (mPasswordHashed) {
-				insert << "INSERT INTO users (email, first_name, last_name, username, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId);
+				insert << "INSERT INTO users (email, first_name, last_name, username, password, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId), use(mPublisherId);
 			}
 			else {
-				insert << "INSERT INTO users (email, first_name, last_name, username, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?);",
-					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mEmailHash), use(mLanguageKey), use(mGroupId);
+				insert << "INSERT INTO users (email, first_name, last_name, username, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?);",
+					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mEmailHash), use(mLanguageKey), use(mGroupId), use(mPublisherId);
 			}
 
 			return insert;
@@ -100,13 +101,13 @@ namespace model {
 				_fieldName = getTableName() + std::string(".id");
 			}
 			Poco::Data::Statement select(session);
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, publisher_id, user_roles.role_id " 
 				   << " FROM " << getTableName() 
 				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
 				   << " WHERE " << _fieldName << " = ?" ,
 				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mUsername), into(mPasswordHashed),
 				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked), 
-				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mRole);
+				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mPublisherId), into(mRole);
 
 
 			return select;
@@ -116,7 +117,7 @@ namespace model {
 		{
 			Poco::Data::Statement select(session);
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id, publisher_id FROM " << getTableName()
 				<< " where " << fieldName << " LIKE ?";
 
 
@@ -132,7 +133,7 @@ namespace model {
 			}
 
 			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << getTableName()
+			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id, publisher_id FROM " << getTableName()
 				<< " where " << fieldNames[0] << " LIKE ?";
 			if (conditionType == MYSQL_CONDITION_AND) {
 				for (int i = 1; i < fieldNames.size(); i++) {
@@ -244,8 +245,8 @@ namespace model {
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
 			Poco::Data::Statement update(session);
-			update << "UPDATE users SET first_name = ?, last_name = ?, username = ?, disabled = ?, language = ? where id = ?;",
-				use(mFirstName), use(mLastName), use(mUsername), use(mDisabled), use(mLanguageKey), use(mID);
+			update << "UPDATE users SET first_name = ?, last_name = ?, username = ?, disabled = ?, language = ?, publisher_id = ? where id = ?;",
+				use(mFirstName), use(mLastName), use(mUsername), use(mDisabled), use(mLanguageKey), use(mPublisherId), use(mID);
 
 			
 			try {

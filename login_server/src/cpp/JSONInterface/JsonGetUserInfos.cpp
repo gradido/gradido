@@ -134,6 +134,9 @@ Poco::JSON::Object* JsonGetUserInfos::handle(Poco::Dynamic::Var params)
 			else if (parameterString == "user.language") {
 				jsonUser.set("language", user_model->getLanguageKey());
 			}
+			else if (parameterString == "user.publisher_id") {
+				jsonUser.set("publisher_id", user_model->getPublisherId());
+			}
 		}
 		catch (Poco::Exception& ex) {
 			jsonErrorsArray.add("ask parameter invalid");
