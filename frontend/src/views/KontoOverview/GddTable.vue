@@ -73,14 +73,11 @@
         </b-collapse>
       </b-list-group-item>
       <b-list-group-item v-show="this.$route.path == '/overview'">
-        <b-alert
-          v-if="count < 5"
-          show
-          variant="secondary"
-          v-html="$t('transaction.show_part', { count: count })"
-        ></b-alert>
+        <b-alert v-if="count < 5" show variant="secondary">
+          <span class="alert-text" v-html="$t('transaction.show_part', { count: count })"></span>
+        </b-alert>
         <router-link
-          else
+          v-else
           to="/transactions"
           v-html="$t('transaction.show_all', { count: count })"
         ></router-link>
