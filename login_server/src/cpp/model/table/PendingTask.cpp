@@ -10,13 +10,13 @@ namespace model
 	namespace table
 	{
 		PendingTask::PendingTask()
-			: mUserId(0), mHederaId(0), mTaskTypeId(TASK_TYPE_NONE)
+			: mUserId(0), mHederaId(0), mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
 		{
 
 		}
 		PendingTask::PendingTask(int userId, std::string serializedProtoRequest, TaskType type)
 			: mUserId(userId), mHederaId(0), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
-			  mTaskTypeId(TASK_TYPE_NONE)
+			  mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
 		{
 			
 		}
