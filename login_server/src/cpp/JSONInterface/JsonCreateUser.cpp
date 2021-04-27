@@ -38,7 +38,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
-			auto subscribe_clicktipp_obj = paramJsonObject->get("subscribeClicktip");
+			auto subscribe_clicktipp_obj = paramJsonObject->get("subscribe_clicktip");
 			auto group_id_obj = paramJsonObject->get("group_id");
 
 			if(!group_id_obj.isEmpty()) {

@@ -98,7 +98,8 @@ with:
     "emailType": 2,
 	"group_id": 1,
 	"password":"123abcDE&",
-	"login_after_register":true
+	"login_after_register":true,
+	"subscribe_clicktip": false
 }
 ```
 
@@ -107,12 +108,29 @@ with:
   - 5: if user was registered by an admin 
 - `group_id`: group id of group to which user will join (id from login_server)
 - `login_after_register`: if set to true auto-login after create user was successfull, means session cookie is set and session_id returned
+- `subscribe_clicktip` : if set to true, login server call klicktipp subscribe from community server 
 
 ### Response
 In case of success returns:
 
 ```json
 {
+	"state":"success"
+}
+```
+
+In case of klicktipp subscribe was success
+```json 
+{
+	"state":"success",
+	"klicktipp_redirect_url": "<klciktip redirect path>"
+}
+```
+
+In case of klicktipp subscribe failed
+```json 
+{
+	"info":["no redirect path get for klicktipp register"],
 	"state":"success"
 }
 ```
