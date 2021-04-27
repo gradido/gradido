@@ -9,7 +9,7 @@
           <b-alert show variant="secondary">
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
-              <a @click="toggle" class="nav-link">
+              <a @click="toggle" class="nav-link pointer">
                 <img src="/img/icons/gradido/qr-scan-pure.png" height="50" />
               </a>
             </b-col>
@@ -31,11 +31,13 @@
                 </b-row>
               </b-container>
             </div>
-            <b-alert v-show="scan" show variant="primary" class="pointer text-center">
-              <span class="alert-text" @click="toggle">
-                <strong>{{ $t('form.cancel') }}</strong>
-              </span>
-            </b-alert>
+            <div @click="toggle">
+              <b-alert v-show="scan" show variant="primary" class="pointer text-center">
+                <span class="alert-text" >
+                  <strong>{{ $t('form.cancel') }}</strong>
+                </span>
+              </b-alert>
+            </div>
           </b-alert>
 
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
