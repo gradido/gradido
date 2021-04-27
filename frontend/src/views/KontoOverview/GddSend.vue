@@ -288,9 +288,6 @@ export default {
 .pointer {
   cursor: pointer;
 }
-.pointer:hover {
-  background-color: #3c4d69;
-}
 video {
   max-height: 665px;
   max-width: 665px;

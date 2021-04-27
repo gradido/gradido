@@ -98,8 +98,8 @@ class AppRequestsController extends AppController
             $data = $this->request->input('json_decode');
         }
         $session_id = 0;
-        if(isset($data['session_id'])) {
-            $session_id = $data['session_id'];
+        if(isset($data->session_id)) {
+            $session_id = $data->session_id;
         }
         $login_request_result = $this->requestLogin($session_id, false);
         if($login_request_result !== true) {
@@ -119,12 +119,12 @@ class AppRequestsController extends AppController
             return ['state' => 'error', 'msg' => 'amount is invalid', 'details' => $param['amount']];
         }
         
-        if(isset($data['memo'])) {
-            $param['memo'] = $data['memo'];
+        if(isset($data->memo)) {
+            $param['memo'] = $data->memo;
         }
         
-        if(isset($data['auto_sign'])) {
-            $param['auto_sign'] = boolval($data['auto_sign']);
+        if(isset($data->auto_sign)) {
+            $param['auto_sign'] = boolval($data->auto_sign);
         }
         
         return true;
