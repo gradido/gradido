@@ -34,10 +34,12 @@ public:
 	JsonRequestReturn request(const char* methodName);
 	JsonRequestReturn requestGRPCRelay(const Poco::Net::NameValueCollection& payload);
 
+	inline Poco::JSON::Object::Ptr getResultJson() { return mResultJson;}
+
 protected:
 	int mServerPort;
 	std::string mServerHost;
-	
+	Poco::JSON::Object::Ptr mResultJson;
 };
 
 

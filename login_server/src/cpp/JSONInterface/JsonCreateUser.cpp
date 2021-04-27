@@ -15,6 +15,8 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string first_name;
 	std::string last_name;
 	std::string password;
+	bool subscribe_clicktipp = false;
+	std::string klicktipp_redirect_url;
 	bool login_after_register = false;
 	int emailType;
 	int group_id = 1;
@@ -36,10 +38,14 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
+			auto subscribe_clicktipp_obj = paramJsonObject->get("subscribeClicktip");
 			auto group_id_obj = paramJsonObject->get("group_id");
 
 			if(!group_id_obj.isEmpty()) {
                 group_id_obj.convert(group_id);
+			}
+			if (!subscribe_clicktipp_obj.isEmpty()) {
+				subscribe_clicktipp_obj.convert(subscribe_clicktipp);
 			}
 
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
@@ -112,16 +118,43 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
 
-	if (login_after_register && session) {
-		Poco::JSON::Object* result = stateSuccess();
-        if(group_was_not_set) {
-            Poco::JSON::Array infos;
-            infos.add("group_id was not set, use 1 as default!");
-            result->set("info", infos);
-        }
-		result->set("session_id", session->getHandle());
-		return result;
+	if (subscribe_clicktipp) {
+		auto group = user->getGroup();
+		if (group.isNull()) {
+			return stateError("group not found", std::to_string(group_id));
+		}
+		auto json_request = user->getGroup()->createJsonRequest();
+		Poco::Net::NameValueCollection params;
+		params.set("email", email);
+		if (JSON_REQUEST_RETURN_OK == json_request.request("klicktippSubscribe", params)) {
+			auto klicktipp_result = json_request.getResultJson();
+			auto redirect_url_object = klicktipp_result->get("redirect_url");
+			if (!redirect_url_object.isEmpty() && redirect_url_object.isString()) {
+				//klicktipp_redirect_path
+				redirect_url_object.convert(klicktipp_redirect_url);
+			}
+		};
 	}
 
-	return stateSuccess();
+	Poco::JSON::Object* result = stateSuccess();
+	Poco::JSON::Array infos;
+	if (group_was_not_set) {
+		infos.add("group_id was not set, use 1 as default!");
+	}
+	if (subscribe_clicktipp) {
+		if ("" == klicktipp_redirect_url) {
+			infos.add("no redirect path get for klicktipp register");
+		}
+		else {
+			result->set("klicktipp_redirect_url", klicktipp_redirect_url);
+		}
+	}
+	if (infos.size() > 0) {
+		result->set("info", infos);
+	}
+
+	if (login_after_register && session) {
+		result->set("session_id", session->getHandle());
+	}
+	return result;
 }

@@ -45,9 +45,12 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 		else {
 			clientSession = new Poco::Net::HTTPClientSession(mServerHost, mServerPort);
 		}
+		
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
 		request.setChunkedTransferEncoding(true);
+		
+		
 		std::ostream& request_stream = clientSession->sendRequest(request);
 		requestJson.stringify(request_stream);
 
@@ -93,9 +96,9 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 			return JSON_REQUEST_RETURN_PARSE_ERROR;
 		}
 
-		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
-		auto state = object.get("state");
-		auto message = object.get("message");
+		mResultJson = parsedJson.extract<Poco::JSON::Object::Ptr>();
+		auto state = mResultJson->get("state");
+		auto message = mResultJson->get("message");
 		if (state.isEmpty() && !message.isEmpty()) {
 			// than we have maybe get an cakephp exception as result
 			
@@ -106,7 +109,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 			for (int i = 0; i < 4; i++) {
 				auto field = fields[i];
 				std::string field_name = field + ": ";
-				addError(new ParamError(functionName, field_name.data(), object.get(field).toString()));
+				addError(new ParamError(functionName, field_name.data(), mResultJson->get(field).toString()));
 			}
 			sendErrorsAsEmail("", true);
 			return JSON_REQUEST_RETURN_ERROR;
@@ -115,17 +118,17 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 			std::string stateString = state.convert<std::string>();
 			if (stateString == "error") {
 				addError(new Error(functionName, "php server return error"));
-				if (!object.isNull("msg")) {
-					addError(new ParamError(functionName, "msg:", object.get("msg").convert<std::string>().data()));
+				if (!mResultJson->isNull("msg")) {
+					addError(new ParamError(functionName, "msg:", mResultJson->get("msg").convert<std::string>().data()));
 				}
-				if (!object.isNull("details")) {
-					addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
+				if (!mResultJson->isNull("details")) {
+					addError(new ParamError(functionName, "details:", mResultJson->get("details").convert<std::string>().data()));
 				}
 				sendErrorsAsEmail("", true);
 				return JSON_REQUEST_RETURN_ERROR;
 			}
 			else if (stateString == "success") {
-				for (auto it = object.begin(); it != object.end(); it++) {
+				for (auto it = mResultJson->begin(); it != mResultJson->end(); it++) {
 					if (it->first == "state") continue;
 					std::string index = it->first;
 					std::string value = it->second.toString();
