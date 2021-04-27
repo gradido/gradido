@@ -5,6 +5,7 @@
   "logout":"Abmelden",
   "login":"Login",
   "signup": "Registrieren",
+  "reset": "Passwort zurücksetzen",
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
   "members_area": "Mitgliedsbereich",
@@ -110,5 +111,9 @@
       "submit":"Einreichen",
       "hours_report":"Stundenbericht"
     }
+  },
+  "reset-password": {
+    "title": "Passwort Zurücksetzen",
+    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünfitg in der GRADIDO App anmelden kannst."
   }
 }

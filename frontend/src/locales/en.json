@@ -5,6 +5,7 @@
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
+  "reset": "Reset password",
   "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
   "members_area": "Member's area",
@@ -110,5 +111,9 @@
       "submit":"submit",
       "hours_report":"Hourly report"
     }
+  },
+  "reset-password": {
+    "title": "Reset Password",
+    "text": "Now you can save a new password to login to the GRADIDO App in the future."
   }
 }
