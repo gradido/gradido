@@ -10,7 +10,7 @@
       <li class="nav-item d-sm-none"></li>
     </b-navbar-nav>
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
-      <a class="pr-1 nav-link" slot="title-container" href>
+      <a class="pr-1 nav-link" slot="title-container pointer">
         <b-media no-body class="align-items-center">
           <span class="pb-2 text-lg font-weight-bold">
             {{ $store.state.email }}
@@ -41,3 +41,8 @@ export default {
   },
 }
 </script>
+<style>
+.pointer {
+  cursor: pointer;
+}
+</style>
