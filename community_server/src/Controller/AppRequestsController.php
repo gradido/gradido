@@ -411,17 +411,17 @@ class AppRequestsController extends AppController
 
         $connector = new KlicktippConnector();
         
-        /**
-        * Remove tag from subscriber. API Key required.
+       /**
+        * Unsubscribe subscriber. API Key required.
         *
         * @param mixed $api_key
         * @param mixed $email_address
         *
         * @return TRUE on success
         */
-        $untagged = $connector->signout($api_key, $email_address);
+        $unsubscribed  = $connector->signoff($api_key, $email_address);
 
-        if ($untagged) {
+        if ($unsubscribed) {
             return $this->returnJson(['state' => 'success']);
         } else {
             return $this->returnJson(['state' => 'error','msg' => 'error in klicktipp', 'details' => $connector->get_last_error()]);
