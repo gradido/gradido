@@ -180,7 +180,7 @@ class StateBalancesTable extends Table
         
             $transactions = $transactionsTable
                     ->find('all')
-                    ->where(['id IN' => array_keys($transaction_ids)])
+                    ->where(['Transactions.id IN' => array_keys($transaction_ids)])
                     ->contain(['TransactionCreations', 'TransactionSendCoins']);
 
             $transactions_indiced = [];
