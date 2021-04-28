@@ -17,7 +17,7 @@ namespace controller {
 
 	Poco::AutoPtr<Group> Group::create(const std::string& alias, const std::string& name, const std::string& url, const std::string& home, const std::string& description)
 	{
-		auto db = new model::table::Group(alias, name, url, home, description);
+		auto db = new model::table::Group(alias, name, url,"", home, description);
 		auto group = new Group(db);
 		return Poco::AutoPtr<Group>(group);
 	}
@@ -94,7 +94,11 @@ namespace controller {
 			}
 		}
 		auto model = getModel();
-		return JsonRequest(model->getUrl(), port);
+		std::string request_url = model->getHost();
+		if ("" == request_url) {
+			request_url = model->getUrl();
+		}
+		return JsonRequest(request_url, port);
 	}
 	
 	std::string Group::getHost()
