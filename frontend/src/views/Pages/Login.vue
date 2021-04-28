@@ -110,6 +110,7 @@ export default {
   },
   methods: {
     async onSubmit() {
+      let loader = this.$loading.show()
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
@@ -117,11 +118,14 @@ export default {
           email: this.model.email,
         })
         this.$router.push('/overview')
+        loader.hide()
       } else {
+        loader.hide()
         this.loginfail = true
       }
     },
     closeAlert() {
+      loader.hide()
       this.loginfail = false
     },
   },
