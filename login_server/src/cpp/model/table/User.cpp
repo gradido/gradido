@@ -421,6 +421,7 @@ namespace model {
 			userObj.set("created", createTimeStamp.raw() / createTimeStamp.resolution());
 			userObj.set("email_checked", mEmailChecked);
 			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
+			userObj.set("language", mLanguageKey);
 			userObj.set("disabled", mDisabled);
 			try {
 				userObj.set("role", UserRole::typeToString(getRole()));
