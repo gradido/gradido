@@ -114,7 +114,6 @@ export default {
         // Optional parameters
         container: this.$refs.submitButton,
       })
-
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
