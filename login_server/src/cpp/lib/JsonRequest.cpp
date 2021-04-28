@@ -136,6 +136,8 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 	}
 	catch (Poco::Exception& e) {
 		addError(new ParamError(functionName, "connect error to php server", e.displayText().data()));
+		addError(new ParamError(functionName, "host", mServerHost));
+		addError(new ParamError(functionName, "port", mServerPort));
 		sendErrorsAsEmail();
 		return JSON_REQUEST_CONNECT_ERROR;
 	}
