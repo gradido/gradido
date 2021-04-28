@@ -23,9 +23,6 @@ export default {
       fullPage: true,
     }
   },
-  props: {
-    isLoading: { type: Boolean, default: false },
-  },
   components: {
     Loading,
     ContentFooter,
