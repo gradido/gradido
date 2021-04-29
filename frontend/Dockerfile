@@ -16,8 +16,6 @@ ENV BUILD_COMMIT="0000000"
 ENV NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="3000"
-## Register in App  true || false
-ENV ALLOW_REGISTER="true"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
