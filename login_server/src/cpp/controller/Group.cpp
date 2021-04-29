@@ -15,9 +15,9 @@ namespace controller {
 
 	}
 
-	Poco::AutoPtr<Group> Group::create(const std::string& alias, const std::string& name, const std::string& url, const std::string& home, const std::string& description)
+	Poco::AutoPtr<Group> Group::create(const std::string& alias, const std::string& name, const std::string& url, const std::string& host, const std::string& home, const std::string& description)
 	{
-		auto db = new model::table::Group(alias, name, url,"", home, description);
+		auto db = new model::table::Group(alias, name, url, host, home, description);
 		auto group = new Group(db);
 		return Poco::AutoPtr<Group>(group);
 	}
@@ -51,25 +51,9 @@ namespace controller {
 	{
 		auto db = new model::table::Group();
 		std::vector<model::table::GroupTuple> group_list;
-		// throw an unresolved external symbol error
-		//group_list = db->loadAllFromDB<model::table::GroupTuple>();
 		
-		// work around for not working call to loadAllFromDB
-		auto cm = ConnectionManager::getInstance();
-		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
-		Poco::Data::Statement select(session);
-
-		select << "SELECT id, alias, name, url, home, description FROM " << db->getTableName()
-		, Poco::Data::Keywords::into(group_list);
-
-		size_t resultCount = 0;
-		try {
-			resultCount = select.execute();
-		}
-		catch (Poco::Exception& ex) {
-			printf("[Group::listAll] poco exception: %s\n", ex.displayText().data());
-		}
-		// work around end
+		group_list = db->loadAllFromDB<model::table::GroupTuple>();
+		
 		std::vector<Poco::AutoPtr<Group>> resultVector;
 		
 		resultVector.reserve(group_list.size());
