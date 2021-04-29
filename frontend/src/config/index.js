@@ -6,7 +6,7 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
-  VUE_APP_ALLOW_REGISTER: process.env.VUE_APP_ALLOW_REGISTER === 'true',
+  ALLOW_REGISTER: process.env.ALLOW_REGISTER === 'true',
 }
 
 const server = {

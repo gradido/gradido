@@ -17,7 +17,7 @@ ENV NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="3000"
 ## Register in App  true || false
-ENV VUE_APP_ALLOW_REGISTER="true"
+ENV ALLOW_REGISTER="true"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"

@@ -107,7 +107,7 @@ export default {
         // rememberMe: false
       },
       loginfail: false,
-      allowRegister: CONFIG.VUE_APP_ALLOW_REGISTER,
+      allowRegister: CONFIG.ALLOW_REGISTER,
     }
   },
   methods: {

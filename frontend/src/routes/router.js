@@ -22,7 +22,7 @@ const router = new VueRouter({
   },
 })
 
-if (CONFIG.VUE_APP_ALLOW_REGISTER) {
+if (CONFIG.ALLOW_REGISTER) {
   router.addRoute({
     path: '/register',
     component: () => import('../views/Pages/Register.vue'),
