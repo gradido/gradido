@@ -244,26 +244,26 @@ export default {
       //event.preventDefault()
       this.ajaxCreateData.email = this.form.email
       this.ajaxCreateData.amount = this.form.amount
-      this.ajaxCreateData.target_date = Date.now()
+      const now = new Date(Date.now()).toISOString()
+      this.ajaxCreateData.target_date = now
       this.ajaxCreateData.memo = this.form.memo
       this.$emit('toggle-show-list', false)
       this.row_check = true
       this.row_thx = false
     },
     async sendTransaction() {
-      this.ajaxCreateData.amount = this.ajaxCreateData.amount * 10000
-
       const result = await communityAPI.send(
         this.$store.state.session_id,
         this.ajaxCreateData.email,
-        this.ajaxCreateData.amount,
+        this.ajaxCreateData.amount * 10000,
         this.ajaxCreateData.memo,
+        this.ajaxCreateData.target_date,
       )
       if (result.success) {
         this.$emit('toggle-show-list', false)
         this.row_check = false
         this.row_thx = true
-        this.$emit('update-balance', { ammount: Number(this.ajaxCreateData.amount) })
+        this.$emit('update-balance', { ammount: this.ajaxCreateData.amount })
       } else {
         alert('error')
         this.$emit('toggle-show-list', true)

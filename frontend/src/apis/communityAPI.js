@@ -49,12 +49,13 @@ const communityAPI = {
     }
     return apiPost(CONFIG.COMMUNITY_API__URL + 'createCoins/', payload)
   },*/
-  send: async (session_id, email, amount, memo) => {
+  send: async (session_id, email, amount, memo, target_date) => {
     const payload = {
       session_id,
       email,
       amount,
       memo,
+      target_date,
       auto_sign: true,
     }
     return apiPost(CONFIG.COMMUNITY_API_URL + 'sendCoins/', payload)
