@@ -10,7 +10,7 @@
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
               <a @click="toggle" class="nav-link pointer">
-                <img src="/img/icons/gradido/qr-scan-pure.png" height="50" />
+                <img src="img/icons/gradido/qr-scan-pure.png" height="50" />
               </a>
             </b-col>
 

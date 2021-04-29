@@ -2,11 +2,11 @@
 
 // Load Package Details for some default values
 // const pkg = require('../../package')
-
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
+  ALLOW_REGISTER: process.env.ALLOW_REGISTER !== 'false',
 }
 
 const server = {
