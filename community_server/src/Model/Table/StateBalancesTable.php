@@ -199,7 +199,7 @@ class StateBalancesTable extends Table
                 $amount = 0;
                 
                 if($transaction->transaction_type_id == 1) { // creation                    
-                    $temp = $transaction->transaction_creations[0];
+                    $temp = $transaction->transaction_creation;
 
                     /*$balance_temp = $this->newEntity();
                     $balance_temp->amount = $temp->amount;
@@ -211,7 +211,7 @@ class StateBalancesTable extends Table
                     //$amount_date = 
                 } else if($transaction->transaction_type_id == 2) { // transfer
 
-                    $temp = $transaction->transaction_send_coins[0];
+                    $temp = $transaction->transaction_send_coin;
                     $amount = intval($temp->amount);
                     // reverse if sender
                     if($stateUserId == $temp->state_user_id) {

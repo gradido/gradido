@@ -10,7 +10,7 @@
         <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
       <b-row class="text-center">
-        <b-col>{{ $n($store.state.user.balance) }} GDD</b-col>
+        <b-col>{{ $n(balance) }} GDD</b-col>
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
@@ -87,6 +87,10 @@ export default {
       type: Boolean,
       default: true,
       description: 'Whether sidebar should autoclose on mobile when clicking an item',
+    },
+    balance: {
+      type: Number,
+      default: 0,
     },
   },
   provide() {

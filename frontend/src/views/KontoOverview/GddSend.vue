@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="row_form">
+    <b-row v-show="showTransactionList">
       <b-col xl="12" md="12">
         <b-alert show dismissible variant="warning" class="text-center">
           <span class="alert-text" v-html="$t('form.attention')"></span>
@@ -16,8 +16,8 @@
 
             <div v-if="scan">
               <!-- <b-row>                                          
-                    <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
-                </b-row> -->
+                   <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
+                   </b-row> -->
 
               <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect"></qrcode-stream>
 
@@ -80,7 +80,7 @@
               <br />
               <div>
                 <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
-                <b-col v-if="$store.state.user.balance == form.amount" class="text-right">
+                <b-col v-if="balance == form.amount" class="text-right">
                   <b-badge variant="primary">{{ $t('form.max_gdd_info') }}</b-badge>
                 </b-col>
                 <b-input-group
@@ -100,7 +100,7 @@
                     placeholder="0.01"
                     step="0.01"
                     min="0.01"
-                    :max="$store.state.user.balance"
+                    :max="balance"
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
@@ -204,9 +204,8 @@ export default {
     BIcon,
   },
   props: {
-    row_form: { type: Boolean, default: true },
-    row_check: { type: Boolean, default: false },
-    row_thx: { type: Boolean, default: false },
+    balance: { type: Number, default: 0 },
+    showTransactionList: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -226,6 +225,8 @@ export default {
         auto_sign: true,
       },
       send: false,
+      row_check: false,
+      row_thx: false,
     }
   },
   computed: {},
@@ -234,7 +235,6 @@ export default {
       this.scan = !this.scan
     },
     async onDecode(decodedString) {
-      //console.log('onDecode JSON.parse(decodedString)', JSON.parse(decodedString))
       const arr = JSON.parse(decodedString)
       this.form.email = arr[0].email
       this.form.amount = arr[0].amount
@@ -244,30 +244,31 @@ export default {
       //event.preventDefault()
       this.ajaxCreateData.email = this.form.email
       this.ajaxCreateData.amount = this.form.amount
-      this.ajaxCreateData.target_date = Date.now()
+      const now = new Date(Date.now()).toISOString()
+      this.ajaxCreateData.target_date = now
       this.ajaxCreateData.memo = this.form.memo
-
-      this.$emit('change-rows', { row_form: false, row_check: true, row_thx: false })
+      this.$emit('toggle-show-list', false)
+      this.row_check = true
+      this.row_thx = false
     },
     async sendTransaction() {
-      this.ajaxCreateData.amount = this.ajaxCreateData.amount * 10000
-
       const result = await communityAPI.send(
         this.$store.state.session_id,
         this.ajaxCreateData.email,
-        this.ajaxCreateData.amount,
+        this.ajaxCreateData.amount * 10000,
         this.ajaxCreateData.memo,
+        this.ajaxCreateData.target_date,
       )
-      // console.log(result)
-
       if (result.success) {
-        // console.log('send success')
-
-        this.$emit('change-rows', { row_form: false, row_check: false, row_thx: true })
+        this.$emit('toggle-show-list', false)
+        this.row_check = false
+        this.row_thx = true
+        this.$emit('update-balance', { ammount: this.ajaxCreateData.amount })
       } else {
-        // console.log('send error')
         alert('error')
-        this.$emit('change-rows', { row_form: true, row_check: false, row_thx: false })
+        this.$emit('toggle-show-list', true)
+        this.row_check = false
+        this.row_thx = false
       }
     },
     onReset(event) {
@@ -275,10 +276,12 @@ export default {
       this.form.email = ''
       this.form.amount = ''
       this.show = false
+      this.$emit('toggle-show-list', true)
+      this.row_check = false
+      this.row_thx = false
       this.$nextTick(() => {
         this.show = true
       })
-      this.$emit('change-rows', { row_form: true, row_check: false, row_thx: false })
     },
   },
 }

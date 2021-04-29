@@ -9,7 +9,6 @@ describe('GddStatus', () => {
 
   let state = {
     user: {
-      balance: 1234,
       balance_gdt: 9876,
     },
   }
@@ -22,8 +21,12 @@ describe('GddStatus', () => {
     $n: jest.fn((n) => n),
   }
 
+  let propsData = {
+    balance: 1234,
+  }
+
   const Wrapper = () => {
-    return mount(GddStatus, { localVue, store, mocks })
+    return mount(GddStatus, { localVue, store, mocks, propsData })
   }
 
   describe('mount', () => {

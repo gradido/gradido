@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex)
-import communityAPI from '../apis/communityAPI'
 import createPersistedState from 'vuex-persistedstate'
 
 export const store = new Vuex.Store({
@@ -20,13 +19,6 @@ export const store = new Vuex.Store({
       balance_gdt: 0,
     },
     modals: false,
-    optionAxios: {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': 'true',
-      },
-    },
   },
   getters: {},
   // Syncronous mutation of the state
@@ -64,14 +56,6 @@ export const store = new Vuex.Store({
       commit('session_id', null)
       commit('email', null)
       sessionStorage.clear()
-    },
-    accountBalance: async ({ commit, dispatch, state }) => {
-      const result = await communityAPI.balance(state.session_id)
-      if (result.success) {
-        commit('user_balance', result.result.data.balance)
-      } else {
-        //dispatch('logout')
-      }
     },
   },
 })
