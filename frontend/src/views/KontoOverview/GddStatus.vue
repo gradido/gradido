@@ -18,7 +18,7 @@
           class="mb-4 h1"
           style="background-color: #ebebeba3 !important"
         >
-          {{ $n($store.state.user.balance_gdt) }} GDT
+          {{ $n(GdtBalance) }} GDT
         </stats-card>
       </b-col>
     </b-row>
@@ -31,6 +31,7 @@ export default {
   props: {
     showTransactionList: { type: Boolean, default: true },
     balance: { type: Number, default: 0 },
+    GdtBalance: { type: Number, default: 0 },
   },
 }
 </script>

@@ -1,21 +1,10 @@
 import { mount } from '@vue/test-utils'
 import GddStatus from './GddStatus'
-import Vuex from 'vuex'
 
 const localVue = global.localVue
 
 describe('GddStatus', () => {
   let wrapper
-
-  let state = {
-    user: {
-      balance_gdt: 9876,
-    },
-  }
-
-  let store = new Vuex.Store({
-    state,
-  })
 
   let mocks = {
     $n: jest.fn((n) => n),
@@ -23,10 +12,11 @@ describe('GddStatus', () => {
 
   let propsData = {
     balance: 1234,
+    GdtBalance: 9876,
   }
 
   const Wrapper = () => {
-    return mount(GddStatus, { localVue, store, mocks, propsData })
+    return mount(GddStatus, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

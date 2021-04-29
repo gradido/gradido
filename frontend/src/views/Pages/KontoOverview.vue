@@ -2,7 +2,11 @@
   <div>
     <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-transparent"></base-header>
     <b-container fluid class="mt--7">
-      <gdd-status :balance="balance" :show-transaction-list="showTransactionList" />
+      <gdd-status
+        :balance="balance"
+        :gdt-balance="GdtBalance"
+        :show-transaction-list="showTransactionList"
+      />
       <br />
       <gdd-send
         :balance="balance"
@@ -34,6 +38,7 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
+    GdtBalance: { type: Number, default: 0 },
   },
   components: {
     GddStatus,
