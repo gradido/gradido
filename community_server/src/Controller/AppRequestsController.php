@@ -61,8 +61,8 @@ class AppRequestsController extends AppController
             if(is_array($field)) {
                 $one_exist = false;
                 foreach($field as $oneField) {
-                    if(isset($data[$oneField])) {
-                        $param[$oneField] = $data[$oneField];
+                    if(isset($data->$oneField)) {
+                        $param[$oneField] = $data->$oneField;
                         $one_exist = true;
                         break;
                     }
@@ -71,10 +71,10 @@ class AppRequestsController extends AppController
                     return ['state' => 'error', 'msg' => 'missing field of set', 'details' => $field];
                 }
             } else {
-                if(!isset($data[$field])) {
+                if(!isset($data->$field)) {
                     return ['state' => 'error', 'msg' => 'missing field', 'details' => $field . ' not found'];
                 } else {
-                    $param[$field] = $data[$field];
+                    $param[$field] = $data->$field;
                 }
             }
         }
@@ -85,9 +85,9 @@ class AppRequestsController extends AppController
     {
         foreach(array_keys($replaceKeys) as $key) {
             $newKey = $replaceKeys[$key];
-            if(isset($data[$key])) {
-                $data[$newKey] = $data[$key];
-                unset($data[$key]);
+            if(isset($data->$key)) {
+                $data->$newKey = $data->$key;
+                unset($data->$key);
             }
         }
     }
