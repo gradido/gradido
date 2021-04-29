@@ -51,10 +51,6 @@ const routes = [
     component: () => import('../views/Pages/thx.vue'),
   },
   {
-    path: '/register',
-    component: () => import('../views/Pages/Register.vue'),
-  },
-  {
     path: '/password',
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },

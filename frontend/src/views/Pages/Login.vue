@@ -82,7 +82,7 @@
                 {{ $t('site.login.forgot_pwd') }}
               </router-link>
             </b-col>
-            <b-col cols="6" class="text-right">
+            <b-col cols="6" class="text-right" v-show="allowRegister">
               <router-link to="/register">
                 {{ $t('site.login.new_wallet') }}
               </router-link>
@@ -95,6 +95,7 @@
 </template>
 <script>
 import loginAPI from '../../apis/loginAPI'
+import CONFIG from '../../config'
 
 export default {
   name: 'login',
@@ -106,6 +107,7 @@ export default {
         // rememberMe: false
       },
       loginfail: false,
+      allowRegister: CONFIG.VUE_APP_ALLOW_REGISTER,
     }
   },
   methods: {
