@@ -111,7 +111,6 @@ export default {
   methods: {
     async onSubmit() {
       let loader = this.$loading.show({
-        // Optional parameters
         container: this.$refs.submitButton,
       })
       const result = await loginAPI.login(this.model.email, this.model.password)
