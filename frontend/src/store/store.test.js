@@ -1,7 +1,7 @@
 import { mutations, actions } from './store'
 
 const { language, email, session_id } = mutations
-const { login, createUser, logout } = actions
+const { login, logout } = actions
 
 describe('Vuex store', () => {
   describe('mutations', () => {
