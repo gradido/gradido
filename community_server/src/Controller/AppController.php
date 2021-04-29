@@ -167,13 +167,15 @@ class AppController extends Controller
             $php_session_id = intval($session->read('session_id'));
         }
         $cookie_session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
-        if($php_session_id != 0) {
+        // decide in which order session_ids are tried
+        if($sessionId != 0) {
+            $session_id = $sessionId;
+        } else if($php_session_id != 0) {
             $session_id = $php_session_id;
         } else if($cookie_session_id != 0) {
             $session_id = $cookie_session_id;
-        } else {
-            $session_id = $sessionId;
-        }
+        } 
+
         $ip = $this->request->clientIp();
         if (!$session->check('client_ip')) {
             $session->write('client_ip', $ip);
