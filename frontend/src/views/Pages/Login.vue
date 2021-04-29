@@ -67,7 +67,7 @@
                   </b-alert>
 
                   <!-- <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox> -->
-                  <div class="text-center">
+                  <div class="text-center" ref="submitButton">
                     <base-button type="secondary" native-type="submit" class="my-4">
                       {{ $t('site.login.signin') }}
                     </base-button>
@@ -110,6 +110,9 @@ export default {
   },
   methods: {
     async onSubmit() {
+      let loader = this.$loading.show({
+        container: this.$refs.submitButton,
+      })
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
@@ -117,11 +120,14 @@ export default {
           email: this.model.email,
         })
         this.$router.push('/overview')
+        loader.hide()
       } else {
+        loader.hide()
         this.loginfail = true
       }
     },
     closeAlert() {
+      loader.hide()
       this.loginfail = false
     },
   },
