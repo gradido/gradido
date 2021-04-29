@@ -119,7 +119,7 @@ describe('DashboardLayoutGdd', () => {
       //it('has fourth item "Settigs" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
       //})
-//
+      //
       //it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
       //  navbar.findAll('ul > li > a').at(3).trigger('click')
       //  await flushPromises()
@@ -131,7 +131,7 @@ describe('DashboardLayoutGdd', () => {
       //it('has fifth item "Activity" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(4).text()).toEqual('site.navbar.activity')
       //})
-//
+      //
       //it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
       //  navbar.findAll('ul > li > a').at(4).trigger('click')
       //  await flushPromises()
