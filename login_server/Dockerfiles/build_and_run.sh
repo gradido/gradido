@@ -4,10 +4,12 @@ cp build/conan* build_vol/
 
 cd build_vol 
 cmake -DCMAKE_BUILD_TYPE=Debug ..
+make -j${CPU_COUNT} protoc grpc_cpp_plugin
 
 cd ..
-if [ ! -d "./src/cpp/proto/hedera" ] ; then
+if [ ! -f "./src/cpp/proto/gradido/TransactionBody.pb.h" ] ; then 
 	chmod +x unix_parse_proto.sh 
+    echo "parse proto files"
     ./unix_parse_proto.sh
 fi
 chmod +x compile_pot.sh
