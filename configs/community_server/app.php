@@ -427,6 +427,6 @@ return [
     ],
     'ServerAdminEmail' => 'info@gradido.net',
     'noReplyEmail' => 'no-reply@gradido.net',
-    'disableEmail' => false
+    'disableEmail' => true
    
 ];
