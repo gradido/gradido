@@ -88,7 +88,7 @@
 
 <script>
 import axios from 'axios'
-import communityAPI from '../../apis/communityAPI'
+import communityAPI from '../../../apis/communityAPI'
 
 export default {
   name: 'GddTable',

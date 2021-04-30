@@ -194,7 +194,7 @@
 <script>
 import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
-import communityAPI from '../../apis/communityAPI.js'
+import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
   name: 'GddSent',
