@@ -100,7 +100,7 @@ export default {
     async loadGDTBalance() {
       const result = await communityAPI.transactions(this.$store.state.session_id)
       if (result.success) {
-        this.GdtBalance = result.result.data.gdtSum
+        this.GdtBalance = result.result.data.gdtSum / 10000
       } else {
         // what to do when loading balance fails?
       }
