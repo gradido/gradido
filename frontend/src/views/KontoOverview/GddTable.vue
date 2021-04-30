@@ -108,7 +108,6 @@ export default {
     const result = await communityAPI.transactions(this.$store.state.session_id)
 
     if (result.success) {
-      this.$store.state.user.balance_gdt = result.result.data.gdtSum
       this.items = result.result.data.transactions
       this.count = result.result.data.count
     } else {

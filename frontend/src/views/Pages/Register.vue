@@ -174,7 +174,7 @@ export default {
         this.password,
       )
       if (result.success) {
-        this.$store.dispatch('createUser', {
+        this.$store.dispatch('login', {
           session_id: result.result.data.session_id,
           email: this.model.email,
         })

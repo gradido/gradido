@@ -28,7 +28,11 @@
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
-          <router-view :balance="balance" @update-balance="updateBalance"></router-view>
+          <router-view
+            :balance="balance"
+            :gdt-balance="GdtBalance"
+            @update-balance="updateBalance"
+          ></router-view>
         </fade-transition>
       </div>
       <content-footer v-if="!$route.meta.hideFooter"></content-footer>
@@ -71,6 +75,7 @@ export default {
   data() {
     return {
       balance: 0,
+      GdtBalance: 0,
     }
   },
   methods: {
@@ -94,6 +99,14 @@ export default {
         // what to do when loading balance fails?
       }
     },
+    async loadGDTBalance() {
+      const result = await communityAPI.transactions(this.$store.state.session_id)
+      if (result.success) {
+        this.GdtBalance = result.result.data.gdtSum / 10000
+      } else {
+        // what to do when loading balance fails?
+      }
+    },
     updateBalance(ammount) {
       this.balance -= ammount
     },
@@ -103,6 +116,7 @@ export default {
   },
   created() {
     this.loadBalance()
+    this.loadGDTBalance()
   },
 }
 </script>
