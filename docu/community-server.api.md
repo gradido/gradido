@@ -23,13 +23,13 @@ Additional session can be provided as GET-Parameter
 ```json
 {
 	"state":"success",
-        "balance":15906078,
+        "balance":1590.60,
         "decay":15873851,
         "decay_date":"2021-04-16T11:47:21+00:00"
 }
 ```
 
-- `balance`   : balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `balance`   : balance describes gradido
 - `decay`     : balance with decay on it at the time in decay_date, so it is the precise balance of user at time of calling this function
 - `decay_date`: date and time for decay amount, should be the time and date of function call 
 
@@ -65,7 +65,7 @@ Assuming: session is valid
 			"type": "send",
 			"transaction_id": 2,
 			"date": "2021-02-19T13:25:36+00:00",
-			"balance": 1920000,
+			"balance": 192,
 			"memo": "a piece of cake :)",
 			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
 		 }
@@ -95,7 +95,7 @@ Transaction:
   - `receiver`: user has received gradidos from another user
 - `transaction_id`: id of transaction in db, in stage2 also the hedera sequence number of transaction 
 - `date`: date of ordering transaction (booking date)
-- `balance`: Gradido Cent, 4 Nachkommastellen (2 Reserve), 1920000 = 192,00 GDD
+- `balance`: Gradido 
 - `memo`: Details about transaction
 
 ## Creation transaction
