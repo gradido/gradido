@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-list-group v-show="this.row_form">
+    <b-list-group v-show="showTransactionList">
       <b-list-group-item
         v-for="item in filteredItems"
         :key="item.id"
@@ -93,7 +93,7 @@ import communityAPI from '../../apis/communityAPI'
 export default {
   name: 'GddTable',
   props: {
-    row_form: { type: Boolean, default: true },
+    showTransactionList: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -108,7 +108,6 @@ export default {
     const result = await communityAPI.transactions(this.$store.state.session_id)
 
     if (result.success) {
-      this.$store.state.user.balance_gdt = result.result.data.gdtSum
       this.items = result.result.data.transactions
       this.count = result.result.data.count
     } else {

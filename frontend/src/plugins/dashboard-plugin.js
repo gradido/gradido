@@ -37,6 +37,10 @@ import 'vue-good-table/dist/vue-good-table.css'
 
 import VueMoment from 'vue-moment'
 
+import Loading from 'vue-loading-overlay'
+// import the styles
+import 'vue-loading-overlay/dist/vue-loading.css'
+
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
     ...rules[rule], // copies rule configuration
@@ -56,6 +60,7 @@ export default {
     Vue.use(VueQrcodeReader)
     Vue.use(VueQrcode)
     Vue.use(VueFlatPickr)
+    Vue.use(Loading)
     configure({
       classes: {
         valid: 'is-valid',
