@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-row v-show="showTransactionList">
-      <b-col xl="6" md="6">
+      <b-col col="6">
         <stats-card
           type="gradient-red"
           sub-title="balance_gdd"
@@ -11,7 +11,7 @@
           {{ $n(balance) }} GDD
         </stats-card>
       </b-col>
-      <b-col xl="6" md="6">
+      <b-col col="6">
         <stats-card
           type="gradient-orange"
           sub-title="balance_gdt"
