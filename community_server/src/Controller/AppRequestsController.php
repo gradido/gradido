@@ -286,7 +286,7 @@ class AppRequestsController extends AppController
         $now = new FrozenTime();
         return $this->returnJson([
             'state' => 'success',
-            'balance' => $state_balance->amount,
+            'balance' => $state_balance->amount_float,
             'decay' => $state_balance->partDecay($now),
             'decay_date' => $now
         ]);
