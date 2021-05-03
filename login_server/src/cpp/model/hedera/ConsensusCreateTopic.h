@@ -4,11 +4,11 @@
 
 #include "../../SingletonManager/MemoryManager.h"
 #include "../../controller/HederaId.h"
-#include "../../proto/hedera/ConsensusCreateTopic.pb.h"
+#include "proto/hedera/ConsensusCreateTopic.pb.h"
 
 namespace model {
 	namespace hedera {
-		class ConsensusCreateTopic 
+		class ConsensusCreateTopic
 		{
 		public:
 			ConsensusCreateTopic(Poco::AutoPtr<controller::HederaId> autoRenewHederaAccountId, Poco::UInt32 autoRenewPeriod);

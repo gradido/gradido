@@ -33,11 +33,101 @@ include_directories(
 	"dependencies/poco/JSON/include"
 	"dependencies/poco/Net/include"
 	"dependencies/poco/NetSSL_OpenSSL/include"
-	"src/cpp/proto"
+	"build"
+	"build/proto"
 )
 
+############################## config and add grpc ###################################
+
+set(GRPC_PATH "${DEP_PATH}/grpc/build")
+set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
+set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
+set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
+set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
+set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
+
+if(WIN32)
+	set(GRPC_PATH "${GRPC_PATH}/Debug")
+	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
+	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
+	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
+	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
+	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
+endif()
 
 
+
+set(BUILD_TESTING OFF)
+set(gRPC_SSL_PROVIDER "package")
+add_subdirectory("dependencies/grpc/")
+set(gRPC_SSL_PROVIDER "package")
+message(STATUS "Using gRPC via add_subdirectory.")
+
+set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
+
+############################## parse protobuf files ###################################
+
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto GRADIDO_PROTO_MODEL_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/hedera/hedera-protobuf/src/main/proto HEDERA_PROTO_MODEL_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/proto PROTOBINDING_PATH)
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH})
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/gradido)
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/hedera)
+
+FILE(GLOB DATAMODEL_GRADIDO_PROTOS "${GRADIDO_PROTO_MODEL_PATH}/gradido/*.proto")
+FILE(GLOB DATAMODEL_HEDERA_PROTOS "${HEDERA_PROTO_MODEL_PATH}/*.proto")
+
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin" REQUIRED)
+find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin" REQUIRED)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/grpc/third_party/protobuf/src GOOGLE_PROTOBUF_INCLUDES)
+
+FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
+   FILE(TO_NATIVE_PATH ${proto} proto_native)
+   get_filename_component(proto_parsed ${proto} NAME_WLE)
+   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/gradido/${proto_parsed}.pb.h proto_parsed_native)
+   
+   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
+		EXECUTE_PROCESS(
+			COMMAND 
+			${PROTOBUF_PROTOC_EXECUTABLE} 
+			--proto_path=${GRADIDO_PROTO_MODEL_PATH} 
+			--cpp_out=${PROTOBINDING_PATH} 
+			${proto_native}
+			RESULT_VARIABLE rv
+		)
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ENDIF()
+   ENDIF()
+
+ENDFOREACH(proto)
+
+FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
+   FILE(TO_NATIVE_PATH ${proto} proto_native)
+   get_filename_component(proto_parsed ${proto} NAME_WLE)
+   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/hedera/${proto_parsed}.pb.h proto_parsed_native)
+   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
+		EXECUTE_PROCESS(
+			COMMAND 
+			${PROTOBUF_PROTOC_EXECUTABLE} 
+			--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
+			--proto_path=${HEDERA_PROTO_MODEL_PATH} 
+			--proto_path=${GOOGLE_PROTOBUF_INCLUDES}
+			--cpp_out=${PROTOBINDING_PATH}/hedera 
+			--grpc_out ${PROTOBINDING_PATH}/hedera
+			${proto_native}
+			RESULT_VARIABLE rv
+		)
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ENDIF()
+   ENDIF()
+ENDFOREACH(proto)
+
+
+############################## bind source files ###################################
 
 #set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
 
@@ -56,8 +146,8 @@ FILE(GLOB MODEL_GRADIDO "src/cpp/model/gradido/*.h" "src/cpp/model/gradido/*.cpp
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
-FILE(GLOB PROTO_GRADIDO "src/cpp/proto/gradido/*.cc" "src/cpp/proto/gradido/*.h")
-FILE(GLOB PROTO_HEDERA "src/cpp/proto/hedera/*.cc" "src/cpp/proto/hedera/*.h")
+FILE(GLOB PROTO_GRADIDO "${PROTOBINDING_PATH}/gradido/*.cc" "${PROTOBINDING_PATH}/gradido/*.h")
+FILE(GLOB PROTO_HEDERA "${PROTOBINDING_PATH}/hedera/*.cc" "${PROTOBINDING_PATH}/hedera/*.h")
 
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
@@ -142,33 +232,7 @@ add_subdirectory("dependencies/poco")
 
 set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
 
-############################## config and add grpc ###################################
 
-set(GRPC_PATH "${DEP_PATH}/grpc/build")
-set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
-set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
-set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
-set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
-set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
-
-if(WIN32)
-	set(GRPC_PATH "${GRPC_PATH}/Debug")
-	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
-	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
-	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
-	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
-	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
-endif()
-
-
-
-set(BUILD_TESTING OFF)
-set(gRPC_SSL_PROVIDER "package")
-add_subdirectory("dependencies/grpc/")
-set(gRPC_SSL_PROVIDER "package")
-message(STATUS "Using gRPC via add_subdirectory.")
-
-set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
 
 ############################## build login server ###################################
 if(UNIX)

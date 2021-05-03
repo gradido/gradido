@@ -1,11 +1,11 @@
 #ifndef __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_TRANSACTION_RECORD_H
 #define __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_TRANSACTION_RECORD_H
 
-#include "../../proto/hedera/TransactionRecord.pb.h"
+#include "proto/hedera/TransactionRecord.pb.h"
 
 namespace model
 {
-	namespace hedera 
+	namespace hedera
 	{
 		class TransactionRecord
 		{

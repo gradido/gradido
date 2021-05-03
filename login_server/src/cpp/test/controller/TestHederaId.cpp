@@ -1,5 +1,5 @@
 #include "TestHederaId.h"
-#include "../SingletonManager/ConnectionManager.h"
+#include "../../SingletonManager/ConnectionManager.h"
 namespace controller {
 
 	void TestHederaId::SetUp()

@@ -17,7 +17,7 @@
 #include "ConsensusCreateTopic.h"
 #include "ConsensusSubmitMessage.h"
 
-#include "../../proto/hedera/TransactionBody.pb.h"
+#include "proto/hedera/TransactionBody.pb.h"
 
 namespace model {
 	namespace hedera {
@@ -44,7 +44,7 @@ namespace model {
 			bool setCryptoCreate(CryptoCreateTransaction& cryptoCreateTransaction);
 			bool setCreateTopic(ConsensusCreateTopic& consensusCreateTopicTransaction);
 			bool setConsensusSubmitMessage(ConsensusSubmitMessage& consensusSubmitMessageTransaction);
-			//bool 
+			//bool
 
 			inline const proto::TransactionBody* getProtoTransactionBody() const { return &mTransactionBody; }
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
@@ -54,7 +54,7 @@ namespace model {
 
 			void updateTimestamp();
 		protected:
-			
+
 			proto::TransactionBody mTransactionBody;
 			controller::NodeServerConnection mConnection;
 			bool mHasBody;

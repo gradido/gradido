@@ -12,8 +12,8 @@
 #pragma warning(disable:4800)
 
 #include "TransactionBase.h"
-#include "../proto/gradido/GradidoCreation.pb.h"
-#include "../controller/User.h"
+#include "proto/gradido/GradidoCreation.pb.h"
+#include "../../controller/User.h"
 
 namespace model {
 	namespace gradido {

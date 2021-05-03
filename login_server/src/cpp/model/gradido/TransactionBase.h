@@ -11,11 +11,11 @@
 
 #pragma warning(disable:4800)
 
-#include "../lib/NotificationList.h"
-#include "../proto/gradido/BasicTypes.pb.h"
-#include "../SingletonManager/MemoryManager.h"
+#include "../../lib/NotificationList.h"
+#include "proto/gradido/BasicTypes.pb.h"
+#include "../../SingletonManager/MemoryManager.h"
 
-#include "../controller/User.h"
+#include "../../controller/User.h"
 
 namespace model {
 	namespace gradido {
@@ -40,7 +40,7 @@ namespace model {
 		public:
 			TransactionBase(const std::string& memo);
 			virtual ~TransactionBase();
-			//! \return 0 if ok, < 0 if error, > 0 if not implemented 
+			//! \return 0 if ok, < 0 if error, > 0 if not implemented
 			virtual int prepare() = 0;
 			virtual TransactionValidation validate() = 0;
 

@@ -5,7 +5,7 @@
 #include "../../lib/Profiler.h"
 #include "../../lib/DataTypeConverter.h"
 
-#include "../ServerConfig.h"
+#include "../../ServerConfig.h"
 
 void TestAuthenticatedEncryption::SetUp()
 {
