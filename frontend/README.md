@@ -176,7 +176,7 @@ Wenn alles okay:
 			"type": "creation|send|receive",
 			"transaction_id": <transaction_id>, // db id not id from blockchain
 			"date": "<date string>",
-			"balance": <GDD balance in GDD cent /10000>,
+			"balance": <GDD balance in GDD cent>,
 			"memo": "<Verwendungszweck>",
 			"pubkey": "<other_user.public_key in hex>"
 		 
@@ -319,7 +319,7 @@ Wenn alles okay:
 			"type": "creation|send|receive",
 			"transaction_id": <transaction_id>, // db id not id from blockchain
 			"date": "<date string>",
-			"balance": <GDD balance in GDD cent /10000>,
+			"balance": <GDD balance in GDD cent>,
 			"memo": "<Verwendungszweck>",
 			"pubkey": "<other_user.public_key in hex>"
 		 

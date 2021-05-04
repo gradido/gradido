@@ -255,6 +255,7 @@ export default {
       const result = await communityAPI.send(
         this.$store.state.session_id,
         this.ajaxCreateData.email,
+        // better to send the user's input here?
         this.ajaxCreateData.amount * 10000,
         this.ajaxCreateData.memo,
         this.ajaxCreateData.target_date,

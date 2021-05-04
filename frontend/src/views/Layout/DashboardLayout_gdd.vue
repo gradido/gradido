@@ -94,7 +94,7 @@ export default {
     async loadBalance() {
       const result = await communityAPI.balance(this.$store.state.session_id)
       if (result.success) {
-        this.balance = result.result.data.balance / 10000
+        this.balance = result.result.data.balance // / 10000
       } else {
         // what to do when loading balance fails?
       }
@@ -102,7 +102,7 @@ export default {
     async loadGDTBalance() {
       const result = await communityAPI.transactions(this.$store.state.session_id)
       if (result.success) {
-        this.GdtBalance = result.result.data.gdtSum / 10000
+        this.GdtBalance = result.result.data.gdtSum // / 10000
       } else {
         // what to do when loading balance fails?
       }
