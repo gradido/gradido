@@ -8,7 +8,9 @@ WORKDIR ${DOCKER_WORKDIR}
 
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 COPY ./src ./src
-COPY ./dependencies ./dependencies
+COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
+COPY ./dependencies/spirit-po ./dependencies/spirit-po
+COPY ./dependencies/tinf ./dependencies/tinf
 COPY ./scripts ./scripts
 RUN cd scripts &&  \
 	chmod +x compile_pot.sh && \
