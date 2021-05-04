@@ -342,7 +342,7 @@ class AppRequestsController extends AppController
                 'transactions' => $transactions,
                 'transactionExecutingCount' => $session->read('Transactions.executing'),
                 'count' => count($transactions),
-                'gdtSum' => $gdtSum,
+                'gdtSum' => floatval($gdtSum) / 100.0,
                 'timeUsed' => microtime(true) - $startTime
             ]);
     }
