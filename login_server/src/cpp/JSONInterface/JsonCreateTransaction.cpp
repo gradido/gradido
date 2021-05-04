@@ -121,8 +121,12 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 			result = stateError("user not in group", "receiver user isn't in target group");
 		}
 	}
+	auto sender_user = mSession->getNewUser();
+	if (sender_user->getGradidoKeyPair()->isTheSame(*target_pubkey)) {
+		result = stateError("sender and receiver are the same");
+	}
 	if (!result) {
-		auto transaction = model::gradido::Transaction::createTransfer(mSession->getNewUser(), target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 
 		if (mAutoSign) {
 			Poco::JSON::Array errors;			
