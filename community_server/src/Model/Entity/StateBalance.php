@@ -3,6 +3,7 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 use Cake\I18n\Time;
+use Cake\I18n\Number;
 
 /**
  * StateBalance Entity
@@ -70,7 +71,7 @@ class StateBalance extends Entity
     
     protected function _getAmountFloat()
     {
-        return floatval($this->amount) / 10000.0;
+        return Number::format(floatval($this->amount) / 10000.0, ['precision' => 2]);
     }
             
     public function partDecay($target_date)

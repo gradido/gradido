@@ -6,7 +6,7 @@ use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\ORM\TableRegistry;
-
+use Cake\I18n\Number;
 /**
  * Transactions Model
  *
@@ -188,7 +188,7 @@ class TransactionsTable extends Table
                     //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
                     $final_transactions[] = [ 
                         'type' => 'decay',
-                        'balance' => floatval(-intval($prev->balance - $diff_amount)) / 10000.0,
+                        'balance' => Number::format(floatval(-intval($prev->balance - $diff_amount)) / 10000.0, ['precision' => 2]),
                         'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
                         'memo' => ''
                     ];
@@ -256,7 +256,7 @@ class TransactionsTable extends Table
                 $state_balance->record_date = $su_transaction->balance_date;
                 $final_transactions[] = [
                     'type' => 'decay',
-                    'balance' => floatval(-intval($su_transaction->balance - $state_balance->decay)) / 10000,
+                    'balance' => Number::format(floatval(-intval($su_transaction->balance - $state_balance->decay)) / 10000.0, ['precision' => 2]),
                     'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
                     'memo' => ''
                 ];
