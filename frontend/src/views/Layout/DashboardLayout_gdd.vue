@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <notifications></notifications>
-    <side-bar @logout="logout" :balance="balance">
+    <side-bar @logout="logout" :balance="displayedBalance">
       <template slot="links">
         <b-nav-item href="#!" to="/overview">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
@@ -13,12 +13,12 @@
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
         </b-nav-item>
         <!--
-        <b-nav-item href="#!" to="/profileedit">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/activity">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
-        </b-nav-item>
+             <b-nav-item href="#!" to="/profileedit">
+             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
+             </b-nav-item>
+             <b-nav-item href="#!" to="/activity">
+             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
+             </b-nav-item>
         -->
       </template>
     </side-bar>
@@ -29,7 +29,7 @@
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
           <router-view
-            :balance="balance"
+            :balance="displayedBalance"
             :gdt-balance="GdtBalance"
             @update-balance="updateBalance"
           ></router-view>
@@ -43,6 +43,7 @@
 import PerfectScrollbar from 'perfect-scrollbar'
 import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
+import { mixin as VueTimers } from 'vue-timers'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -72,11 +73,18 @@ export default {
     // DashboardContent,
     FadeTransition,
   },
+  mixins: [VueTimers],
   data() {
     return {
       balance: 0,
       GdtBalance: 0,
     }
+  },
+  computed: {
+    displayedBalance() {
+      const str = String(this.balance)
+      return Number(str.substring(0, str.indexOf('.') + 3))
+    },
   },
   methods: {
     initScrollbar() {
@@ -110,6 +118,12 @@ export default {
     updateBalance(ammount) {
       this.balance -= ammount
     },
+    decay() {
+      this.balance *= 0.99999997802044727
+    },
+  },
+  timers: {
+    decay: { time: 1000, autostart: true, repeat: true },
   },
   mounted() {
     this.initScrollbar()

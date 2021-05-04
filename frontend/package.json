@@ -74,6 +74,7 @@
     "vue-qrcode": "^0.3.5",
     "vue-qrcode-reader": "^2.3.16",
     "vue-router": "^3.0.6",
+    "vue-timers": "^2.0.4",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
     "vuex-persistedstate": "^4.0.0-beta.3"
