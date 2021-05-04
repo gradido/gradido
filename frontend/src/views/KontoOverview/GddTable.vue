@@ -22,7 +22,7 @@
             style="color: green"
           ></b-icon>
           <h1 class="mb-1">
-            {{ $n(item.balance / 10000) }}
+            {{ $n(item.balance) }}
             <small>GDD</small>
           </h1>
           <h2 class="text-muted">{{ item.name }}</h2>
