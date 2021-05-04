@@ -1,76 +1,42 @@
 #########################################################################################################
-# cmake 
-#########################################################################################################
-FROM gcc:9 as cmake-gcc-9 
-
-ENV DOCKER_WORKDIR="/code"
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
-USER root
-
-RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 \
-    && cd CMake \
-	&& ./bootstrap \
-	&& make -j${nproc} \
-	&& make install
-
-
-#########################################################################################################
 # Build release 
 #########################################################################################################
-From cmake-gcc-9 as release
+FROM gradido/login_dependencies:alpine-release-1 as release
 
 ENV DOCKER_WORKDIR="/code"
-
-USER root
-
-RUN apt-get update \
-    && apt-get -y --no-install-recommends install libboost-all-dev gettext \
-    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-
-RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-COPY . .
-	
-RUN cd dependencies/mariadb-connector-c && \
-	mkdir build && \
-	cd build && \
-	cmake -DWITH_SSL=OFF ..
-	
-RUN chmod +x compile_pot.sh && ./compile_pot.sh
-	
+COPY ./CMakeLists.txt.lib ./CMakeLists.txt
+COPY ./src ./src
+COPY ./dependencies ./dependencies
+COPY ./scripts ./scripts
+RUN cd scripts &&  \
+	chmod +x compile_pot.sh && \
+	./compile_pot.sh
+
 RUN mkdir build && \
 	cd build && \
-	cmake .. && \
-	make -j$(nproc) protoc grpc_cpp_plugin
-	
-RUN chmod +x unix_parse_proto.sh && ./unix_parse_proto.sh
+	cmake -DCMAKE_BUILD_TYPE=Release .. && \
+	make -j$(nproc) Gradido_LoginServer
 
-RUN cd build && \
-    cmake .. && \
-	make -j$(nproc) Gradido_LoginServer 
-
-CMD ["./code"]
 	
 #########################################################################################################
 # run release 
 #########################################################################################################
 #From alpine:latest as login_server
-FROM ubuntu:latest as login_server
+FROM alpine:3.13.5 as login_server
 
 USER root
 WORKDIR "/usr/bin"
 
-RUN apt-get update \
-    && apt-get -y --no-install-recommends install libsodium-dev libssl-dev \
-    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-
 COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
-COPY --from=release /code/build/lib/*.so.64 /usr/lib/
-COPY --from=release /code/build/dependencies/mariadb-connector-c/libmariadb/libmariadb.so.3 /usr/lib/
-#COPY --from=release /code/build/lib/libmariadb.so.3 /usr/lib/
+
+COPY --from=release /usr/local/lib/mariadb/libmariadb.so.3 /usr/local/lib/
+COPY --from=release  /usr/local/lib/libPoco* /usr/local/lib/ 
+COPY --from=release  /usr/lib/libsodium.so.23 /usr/lib/ 
+COPY --from=release  /usr/lib/libstdc++.so.6 /usr/lib/ 
+COPY --from=release  /usr/lib/libgcc_s.so.1 /usr/lib/ 
+
 
 RUN chmod +x /usr/bin/Gradido_LoginServer
 ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]

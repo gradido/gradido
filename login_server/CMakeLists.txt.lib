@@ -31,20 +31,7 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 FIND_PACKAGE(gRPC CONFIG REQUIRED)
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
 
-set(PROTOC_LIB_PATH "/usr/local/lib")
-find_library(PROTOBUF_LIB protobufd PATHS ${PROTOC_LIB_PATH} REQUIRED)
-find_library(PROTOBUF_LITE_LIB protobuf-lited PATHS ${PROTOC_LIB_PATH} REQUIRED)
-find_library(PROTOC_LIB protocd PATHS ${PROTOC_LIB_PATH} REQUIRED)
-
-set(DEPENDENCIES_GRPC_LIB_PATH "pre_build/dependencies/grpc/lib")
-find_library(GRPC_PP_REFLECTION grpc++_reflection PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
-find_library(GRPC_PP grpc++ PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
-find_library(GRPC_GPR gpr PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
-#find_library(GRPC_GRPC grpc PATHS ${DEPENDENCIES_GRPC_LIB_PATH} REQUIRED)
-
-
-#set(GRPC_LIBS ${GRPC_PP_REFLECTION} ${GRPC_PP} ${GRPC_GPR})
-set(PROTOBUF_LIBS ${PROTOBUF_LIB} ${PROTOBUF_LITE_LIB} ${PROTOC_LIB})
+set(PROTOBUF_LIBS protobuf::libprotobuf protobuf::libprotobuf-lite protobuf::libprotoc)
 
 ############################## parse proto files ###################################
 
@@ -175,12 +162,23 @@ find_library(MYSQL_LIBRARIES mariadb PATHS "/usr/local/lib/mariadb" REQUIRED)
 ############################## config and add poco ###################################
 set(BUILD_LIB_PATH "(/usr/local/lib")
 
-find_library(POCO_FOUNDATION_LIB PocoFoundationd PATHS ${BUILD_LIB_PATH} REQUIRED)
-find_library(POCO_UTIL_LIB PocoUtild PATHS ${BUILD_LIB_PATH} REQUIRED)
-find_library(POCO_NET_SSL_LIB PocoNetSSLd PATHS ${BUILD_LIB_PATH} REQUIRED)
-find_library(POCO_DATA_LIB PocoDatad PATHS ${BUILD_LIB_PATH} REQUIRED)
-find_library(POCO_JSON_LIB PocoJSONd PATHS ${BUILD_LIB_PATH} REQUIRED)
-find_library(POCO_NET_LIB PocoNetd PATHS ${BUILD_LIB_PATH} REQUIRED)
+IF(CMAKE_BUILD_TYPE MATCHES Debug)    
+	find_library(POCO_FOUNDATION_LIB PocoFoundationd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_UTIL_LIB PocoUtild PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_SSL_LIB PocoNetSSLd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_DATA_LIB PocoDatad PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_JSON_LIB PocoJSONd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_LIB PocoNetd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	message("use Poco Debug libs")
+ELSE()
+	find_library(POCO_FOUNDATION_LIB PocoFoundation PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_UTIL_LIB PocoUtil PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_SSL_LIB PocoNetSSL PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_DATA_LIB PocoData PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_JSON_LIB PocoJSON PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_LIB PocoNet PATHS ${BUILD_LIB_PATH} REQUIRED)
+	message("use Poco Release libs")
+ENDIF()
 
 set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO_DATA_LIB} ${POCO_JSON_LIB} ${POCO_NET_LIB})
 
