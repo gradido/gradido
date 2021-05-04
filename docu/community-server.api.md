@@ -150,6 +150,7 @@ with
 - `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
 - `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
 - `amount`: gdd amount to transfer in gradido cent (10000000 = 1000,00 GDD)
+- `target_date`: target date for creation, can be max 3 months before current date, but not after current date, allowed formats do you find here: https://pocoproject.org/docs/Poco.DateTimeFormat.html
 - `memo`: text for receiver, currently saved as clear text in blockchain
 - `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there
              if set to false, transaction must be signed after on `http://localhost/account/checkTransactions`

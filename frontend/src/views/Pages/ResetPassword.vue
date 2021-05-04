@@ -1,16 +1,13 @@
 <template>
-  <div class="resetpwd-form">
+  <div class="resetpwd-form" v-if="authenticated">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>Reset Password</h1>
-              <div class="pb-4">
-                Jetzt kannst du ein neues Passwort speichern, mit welchem du dich zukünfitg in der
-                GRADIDO App anmelden kannst.
-              </div>
+              <h1>{{ $t('reset-password.title') }}</h1>
+              <div class="pb-4">{{ $t('reset-password.text') }}</div>
             </b-col>
           </b-row>
         </div>
@@ -78,7 +75,7 @@
                     v-if="passwordsFilled && samePasswords && passwordValidation.valid"
                   >
                     <b-button type="submit" variant="secondary" class="mt-4">
-                      {{ $t('signup') }}
+                      {{ $t('reset') }}
                     </b-button>
                   </div>
                 </b-form>
@@ -91,6 +88,7 @@
   </div>
 </template>
 <script>
+import loginAPI from '../../apis/loginAPI'
 export default {
   name: 'reset',
   data() {
@@ -105,18 +103,34 @@ export default {
       checkPassword: '',
       passwordVisible: false,
       submitted: false,
+      authenticated: false,
+      session_id: null,
+      email: null,
     }
   },
   methods: {
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
-    onSubmit() {
-      this.$store.dispatch('createUser', {
-        password: this.model.password,
-      })
-      this.model.password = ''
-      this.$router.push('/thx')
+    async onSubmit() {
+      const result = await loginAPI.changePassword(this.session_id, this.email, this.password)
+      if (result.success) {
+        this.password = ''
+        this.$router.push('/thx')
+      } else {
+        alert(result.result.message)
+      }
+    },
+    async authenticate() {
+      const optin = this.$route.params.optin
+      const result = await loginAPI.loginViaEmailVerificationCode(optin)
+      if (result.success) {
+        this.authenticated = true
+        this.session_id = result.result.data.session_id
+        this.email = result.result.data.user.email
+      } else {
+        alert(result.result.message)
+      }
     },
   },
   computed: {
@@ -139,8 +153,8 @@ export default {
       return { valid: false, errors }
     },
   },
-  created() {
-    //console.log('resetpage', this.$route)
+  async created() {
+    this.authenticate()
   },
 }
 </script>

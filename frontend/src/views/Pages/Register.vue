@@ -65,11 +65,8 @@
                       ></b-form-input>
 
                       <b-input-group-append>
-                        <b-button variant="outline-primary">
-                          <b-icon
-                            :icon="passwordVisible ? 'eye' : 'eye-slash'"
-                            @click="togglePasswordVisibility"
-                          />
+                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>
                     </b-input-group>
@@ -177,7 +174,7 @@ export default {
         this.password,
       )
       if (result.success) {
-        this.$store.dispatch('createUser', {
+        this.$store.dispatch('login', {
           session_id: result.result.data.session_id,
           email: this.model.email,
         })

@@ -10,7 +10,7 @@
         <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
       <b-row class="text-center">
-        <b-col>{{ $n($store.state.user.balance) }} GDD</b-col>
+        <b-col>{{ $n(balance) }} GDD</b-col>
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
@@ -58,7 +58,7 @@
         <hr class="my-3" />
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
-            <a class="nav-link text-lg" @click="logout">
+            <a class="nav-link text-lg pointer" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
@@ -88,6 +88,10 @@ export default {
       default: true,
       description: 'Whether sidebar should autoclose on mobile when clicking an item',
     },
+    balance: {
+      type: Number,
+      default: 0,
+    },
   },
   provide() {
     return {
@@ -107,3 +111,8 @@ export default {
   },
 }
 </script>
+<style>
+.pointer {
+  cursor: pointer;
+}
+</style>

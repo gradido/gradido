@@ -21,20 +21,20 @@ const routes = [
       requiresAuth: true,
     },
   },
-  {
-    path: '/profileedit',
-    component: () => import('../views/Pages/UserProfileEdit.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: '/activity',
-    component: () => import('../views/Pages/UserProfileActivity.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
+  //{
+  //  path: '/profileedit',
+  //  component: () => import('../views/Pages/UserProfileEdit.vue'),
+  //  meta: {
+  //    requiresAuth: true,
+  //  },
+  //},
+  //{
+  //  path: '/activity',
+  //  component: () => import('../views/Pages/UserProfileActivity.vue'),
+  //  meta: {
+  //    requiresAuth: true,
+  //  },
+  //},
   {
     path: '/transactions',
     component: () => import('../views/Pages/UserProfileTransactionList.vue'),
@@ -51,15 +51,11 @@ const routes = [
     component: () => import('../views/Pages/thx.vue'),
   },
   {
-    path: '/register',
-    component: () => import('../views/Pages/Register.vue'),
-  },
-  {
     path: '/password',
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
-    path: '/reset',
+    path: '/reset/:optin',
     component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },

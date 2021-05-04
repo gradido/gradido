@@ -2,17 +2,21 @@
   <div>
     <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-transparent"></base-header>
     <b-container fluid class="mt--7">
-      <gdd-status :row_form="row_form" />
+      <gdd-status
+        :balance="balance"
+        :gdt-balance="GdtBalance"
+        :show-transaction-list="showTransactionList"
+      />
       <br />
       <gdd-send
-        :row_form="row_form"
-        :row_check="row_check"
-        :row_thx="row_thx"
-        @change-rows="setRows"
+        :balance="balance"
+        :show-transaction-list="showTransactionList"
+        @update-balance="updateBalance"
+        @toggle-show-list="toggleShowList"
       />
       <hr />
       <gdd-table
-        :row_form="row_form"
+        :show-transaction-list="showTransactionList"
         :transactions="transactions"
         @change-transactions="setTransactions"
       />
@@ -28,25 +32,25 @@ export default {
   name: 'Overview',
   data() {
     return {
-      row_form: true,
-      row_check: false,
-      row_thx: false,
       transactions: [],
+      showTransactionList: true,
     }
+  },
+  props: {
+    balance: { type: Number, default: 0 },
+    GdtBalance: { type: Number, default: 0 },
   },
   components: {
     GddStatus,
     GddSend,
     GddTable,
   },
-  created() {
-    this.$store.dispatch('accountBalance', this.$store.state.session_id)
-  },
   methods: {
-    setRows(rows) {
-      this.row_form = rows.row_form
-      this.row_check = rows.row_check
-      this.row_thx = rows.row_thx
+    toggleShowList(bool) {
+      this.showTransactionList = bool
+    },
+    updateBalance(data) {
+      this.$emit('update-balance', data.ammount)
     },
     setTransactions(transactions) {
       this.transactions = transactions

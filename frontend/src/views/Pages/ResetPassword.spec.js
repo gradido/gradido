@@ -1,35 +1,30 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
-import Vuex from 'vuex'
-import flushPromises from 'flush-promises'
+import { mount } from '@vue/test-utils'
+import VueRouter from 'vue-router'
+import routes from '../../routes/routes'
 
 import ResetPassword from './ResetPassword'
 
 const localVue = global.localVue
 
+const router = new VueRouter({ routes })
+
 describe('ResetPassword', () => {
   let wrapper
+
+  let emailVerification = jest.fn()
 
   let mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-  }
-
-  let state = {
-    // loginfail: false,
-  }
-
-  let store = new Vuex.Store({
-    state,
-  })
-
-  let stubs = {
-    RouterLink: RouterLinkStub,
+    loginAPI: {
+      loginViaEmailVerificationCode: emailVerification,
+    },
   }
 
   const Wrapper = () => {
-    return mount(ResetPassword, { localVue, mocks, store, stubs })
+    return mount(ResetPassword, { localVue, mocks, router })
   }
 
   describe('mount', () => {
@@ -37,7 +32,20 @@ describe('ResetPassword', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Reset Password form', () => {
+    /*
+    it('calls the email verification when created', () => {
+      const spy = jest.spyOn(wrapper.vm, 'authenticate')
+      expect(spy).toBeCalled()
+    })
+    */
+
+    it('does not render the Reset Password form when not authenticated', async () => {
+      expect(wrapper.find('div.resetpwd-form').exists()).toBeFalsy()
+    })
+
+    it('renders the Reset Password form', async () => {
+      wrapper.setData({ authenticated: true })
+      await wrapper.vm.$nextTick()
       expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
     })
 

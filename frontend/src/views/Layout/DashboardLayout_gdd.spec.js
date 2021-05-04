@@ -79,7 +79,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(5)
+        expect(navbar.findAll('ul > li')).toHaveLength(3)
       })
 
       it('has first item "send" in navbar', () => {
@@ -116,29 +116,29 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
       })
 
-      it('has fourth item "Settigs" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
-      })
+      //it('has fourth item "Settigs" in navbar', () => {
+      //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
+      //})
+      //
+      //it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
+      //  navbar.findAll('ul > li > a').at(3).trigger('click')
+      //  await flushPromises()
+      //  await jest.runAllTimers()
+      //  await flushPromises()
+      //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profileedit')
+      //})
 
-      it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
-        navbar.findAll('ul > li > a').at(3).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profileedit')
-      })
-
-      it('has fifth item "Activity" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(4).text()).toEqual('site.navbar.activity')
-      })
-
-      it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
-        navbar.findAll('ul > li > a').at(4).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/activity')
-      })
+      //it('has fifth item "Activity" in navbar', () => {
+      //  expect(navbar.findAll('ul > li').at(4).text()).toEqual('site.navbar.activity')
+      //})
+      //
+      //it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
+      //  navbar.findAll('ul > li > a').at(4).trigger('click')
+      //  await flushPromises()
+      //  await jest.runAllTimers()
+      //  await flushPromises()
+      //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/activity')
+      //})
     })
   })
 })

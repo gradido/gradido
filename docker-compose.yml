@@ -15,13 +15,13 @@ services:
       context: ./frontend
       target: production
     networks:
-      - external-net
+      - internal-net
     ports:
-      - 8080:8080
+      - 3000:3000
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT="8080"
+      # - PORT=3000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT

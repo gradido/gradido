@@ -8,6 +8,8 @@ services:
     image: gradido/frontend:development
     build:
       target: development
+    networks:
+      - external-net
     environment:
       - NODE_ENV="development"
       # - DEBUG=true

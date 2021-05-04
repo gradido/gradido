@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-list-group v-show="this.row_form">
+    <b-list-group v-show="showTransactionList">
       <b-list-group-item
         v-for="item in filteredItems"
         :key="item.id"
@@ -73,14 +73,11 @@
         </b-collapse>
       </b-list-group-item>
       <b-list-group-item v-show="this.$route.path == '/overview'">
-        <b-alert
-          v-if="count < 5"
-          show
-          variant="secondary"
-          v-html="$t('transaction.show_part', { count: count })"
-        ></b-alert>
+        <b-alert v-if="count < 5" show variant="secondary">
+          <span class="alert-text" v-html="$t('transaction.show_part', { count: count })"></span>
+        </b-alert>
         <router-link
-          else
+          v-else
           to="/transactions"
           v-html="$t('transaction.show_all', { count: count })"
         ></router-link>
@@ -96,7 +93,7 @@ import communityAPI from '../../apis/communityAPI'
 export default {
   name: 'GddTable',
   props: {
-    row_form: { type: Boolean, default: true },
+    showTransactionList: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -111,7 +108,6 @@ export default {
     const result = await communityAPI.transactions(this.$store.state.session_id)
 
     if (result.success) {
-      this.$store.state.user.balance_gdt = result.result.data.gdtSum
       this.items = result.result.data.transactions
       this.count = result.result.data.count
     } else {

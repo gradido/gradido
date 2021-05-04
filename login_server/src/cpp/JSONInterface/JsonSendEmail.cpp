@@ -110,7 +110,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 	{
 		session = sm->getNewSession();
 		if (emailType == model::EMAIL_USER_RESET_PASSWORD) {
-			auto r = session->sendResetPasswordEmail(receiver_user, false, receiver_user->getGroupBaseUrl());
+			auto r = session->sendResetPasswordEmail(receiver_user, true, receiver_user->getGroupBaseUrl());
 			if (1 == r) {
 				return stateWarning("email already sended");
 			}

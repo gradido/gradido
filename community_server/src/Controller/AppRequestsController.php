@@ -61,8 +61,8 @@ class AppRequestsController extends AppController
             if(is_array($field)) {
                 $one_exist = false;
                 foreach($field as $oneField) {
-                    if(isset($data[$oneField])) {
-                        $param[$oneField] = $data[$oneField];
+                    if(isset($data->$oneField)) {
+                        $param[$oneField] = $data->$oneField;
                         $one_exist = true;
                         break;
                     }
@@ -71,10 +71,10 @@ class AppRequestsController extends AppController
                     return ['state' => 'error', 'msg' => 'missing field of set', 'details' => $field];
                 }
             } else {
-                if(!isset($data[$field])) {
+                if(!isset($data->$field)) {
                     return ['state' => 'error', 'msg' => 'missing field', 'details' => $field . ' not found'];
                 } else {
-                    $param[$field] = $data[$field];
+                    $param[$field] = $data->$field;
                 }
             }
         }
@@ -85,9 +85,9 @@ class AppRequestsController extends AppController
     {
         foreach(array_keys($replaceKeys) as $key) {
             $newKey = $replaceKeys[$key];
-            if(isset($data[$key])) {
-                $data[$newKey] = $data[$key];
-                unset($data[$key]);
+            if(isset($data->$key)) {
+                $data->$newKey = $data->$key;
+                unset($data->$key);
             }
         }
     }
@@ -98,8 +98,8 @@ class AppRequestsController extends AppController
             $data = $this->request->input('json_decode');
         }
         $session_id = 0;
-        if(isset($data['session_id'])) {
-            $session_id = $data['session_id'];
+        if(isset($data->session_id)) {
+            $session_id = $data->session_id;
         }
         $login_request_result = $this->requestLogin($session_id, false);
         if($login_request_result !== true) {
@@ -119,12 +119,12 @@ class AppRequestsController extends AppController
             return ['state' => 'error', 'msg' => 'amount is invalid', 'details' => $param['amount']];
         }
         
-        if(isset($data['memo'])) {
-            $param['memo'] = $data['memo'];
+        if(isset($data->memo)) {
+            $param['memo'] = $data->memo;
         }
         
-        if(isset($data['auto_sign'])) {
-            $param['auto_sign'] = boolval($data['auto_sign']);
+        if(isset($data->auto_sign)) {
+            $param['auto_sign'] = boolval($data->auto_sign);
         }
         
         return true;
@@ -317,7 +317,6 @@ class AppRequestsController extends AppController
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
-          }
         }
 
         
@@ -330,11 +329,13 @@ class AppRequestsController extends AppController
                                         ->page($page)
                                         ;
         $decay = true;
-        $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
+        $transactions = [];
+        if($stateUserTransactionsQuery->count() > 0) {
+            $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
         
-        
-        if($orderDirection == 'DESC') {
-            $transactions = array_reverse($transactions);
+            if($orderDirection == 'DESC') {
+                $transactions = array_reverse($transactions);
+            }
         }
         return $this->returnJson([
                 'state' => 'success',
