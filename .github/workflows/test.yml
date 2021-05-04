@@ -44,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: true
       ##########################################################################
       # BUILD LOGIN SERVER DOCKER IMAGE ########################################
       ##########################################################################
