@@ -68,12 +68,7 @@ class StateBalance extends Entity
       return intval($this->amount * pow(0.99999997802044727, $decay_duration));
         
     }
-    
-    protected function _getAmountFloat()
-    {
-        return Number::format(floatval($this->amount) / 10000.0, ['precision' => 2]);
-    }
-            
+     
     public function partDecay($target_date)
     {
         $decay_duration = intval($this->convertToTimestamp($target_date) - $this->convertToTimestamp($this->record_date));

@@ -268,7 +268,7 @@ class AppRequestsController extends AppController
     
     public function getBalance($session_id = 0)
     {
-
+        $this->viewBuilder()->setLayout('ajax');
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
             return $this->returnJson($login_result);
@@ -284,12 +284,13 @@ class AppRequestsController extends AppController
             return $this->returnJson(['state' => 'success', 'balance' => 0]);
         }
         $now = new FrozenTime();
-        return $this->returnJson([
+        $body = [
             'state' => 'success',
-            'balance' => $state_balance->amount_float,
+            'balance' => $state_balance->amount,
             'decay' => $state_balance->partDecay($now),
             'decay_date' => $now
-        ]);
+        ];
+        $this->set('body', $body);
     }
     
     public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
@@ -337,14 +338,29 @@ class AppRequestsController extends AppController
                 $transactions = array_reverse($transactions);
             }
         }
-        return $this->returnJson([
-                'state' => 'success',
-                'transactions' => $transactions,
-                'transactionExecutingCount' => $session->read('Transactions.executing'),
-                'count' => count($transactions),
-                'gdtSum' => floatval($gdtSum) / 100.0,
-                'timeUsed' => microtime(true) - $startTime
-            ]);
+        
+        $state_balance = $stateBalancesTable->find()->where(['state_user_id' => $user['id']])->first();
+        
+        $body = [
+            'state' => 'success',
+            'transactions' => $transactions,
+            'transactionExecutingCount' => $session->read('Transactions.executing'),
+            'count' => count($transactions),
+            'gdtSum' => $gdtSum,
+            'timeUsed' => microtime(true) - $startTime
+        ];
+        $now = new FrozenTime();
+        $body['decay_date'] = $now;
+        
+        if(!$state_balance) {
+            $body['balance'] = 0;
+            $body['decay'] = 0;
+        } else {
+            $body['balance'] = $state_balance->amount;
+            $body['decay'] = $state_balance->partDecay($now);
+        }
+        
+        $this->set('body', $body);
     }
     
     private function acquireAccessToken($session_id)
