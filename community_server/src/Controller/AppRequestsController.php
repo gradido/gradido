@@ -22,6 +22,7 @@ class AppRequestsController extends AppController
     {
         parent::initialize();
         $this->loadComponent('JsonRequestClient');
+        $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
@@ -118,6 +119,7 @@ class AppRequestsController extends AppController
         if(intval($param['amount']) <= 0) {
             return ['state' => 'error', 'msg' => 'amount is invalid', 'details' => $param['amount']];
         }
+        $param['amount'] = $this->GradidoNumber->parseInputNumberToCentNumber($param['amount']);
         
         if(isset($data->memo)) {
             $param['memo'] = $data->memo;
