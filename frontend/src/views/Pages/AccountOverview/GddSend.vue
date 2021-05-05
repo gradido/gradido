@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="gdd-send">
     <b-row v-show="showTransactionList">
       <b-col xl="12" md="12">
         <b-alert show dismissible variant="warning" class="text-center">
@@ -105,8 +105,7 @@
                   ></b-form-input>
                 </b-input-group>
                 <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
-
-                <b-input-group>
+                <b-input-group id="input-group-3">
                   <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-3"></b-icon>
                   </b-input-group-prepend>
@@ -194,7 +193,7 @@
 <script>
 import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
-import communityAPI from '../../apis/communityAPI.js'
+import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
   name: 'GddSent',

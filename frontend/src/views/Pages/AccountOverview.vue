@@ -2,11 +2,7 @@
   <div>
     <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-transparent"></base-header>
     <b-container fluid class="mt--7">
-      <gdd-status
-        :balance="balance"
-        :gdt-balance="GdtBalance"
-        :show-transaction-list="showTransactionList"
-      />
+      <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
       <br />
       <gdd-send
         :balance="balance"
@@ -16,29 +12,31 @@
       />
       <hr />
       <gdd-table
-        :show-transaction-list="showTransactionList"
+        v-if="showTransactionList"
         :transactions="transactions"
-        @change-transactions="setTransactions"
+        @update-transactions="updateTransactions"
       />
     </b-container>
   </div>
 </template>
 <script>
-import GddStatus from '../KontoOverview/GddStatus.vue'
-import GddSend from '../KontoOverview/GddSend.vue'
-import GddTable from '../KontoOverview/GddTable.vue'
+import GddStatus from './AccountOverview/GddStatus.vue'
+import GddSend from './AccountOverview/GddSend.vue'
+import GddTable from './AccountOverview/GddTable.vue'
 
 export default {
   name: 'Overview',
   data() {
     return {
-      transactions: [],
       showTransactionList: true,
     }
   },
   props: {
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
+    transactions: {
+      default: () => [],
+    },
   },
   components: {
     GddStatus,
@@ -52,8 +50,8 @@ export default {
     updateBalance(data) {
       this.$emit('update-balance', data.ammount)
     },
-    setTransactions(transactions) {
-      this.transactions = transactions
+    updateTransactions() {
+      this.$emit('update-transactions')
     },
   },
 }

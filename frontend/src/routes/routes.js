@@ -9,7 +9,7 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('../views/Pages/KontoOverview.vue'),
+    component: () => import('../views/Pages/AccountOverview.vue'),
     meta: {
       requiresAuth: true,
     },
