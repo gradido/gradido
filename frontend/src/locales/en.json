@@ -42,7 +42,7 @@
     "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
     "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"Thank you, ",
+    "thx":"Thank you,",
     "send_success":"your transaction was successfully completed"
   },
   "transaction":{
