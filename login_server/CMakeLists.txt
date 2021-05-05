@@ -2,24 +2,20 @@ cmake_minimum_required(VERSION 3.18.2)
 project(Gradido_LoginServer C CXX)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin" )
 
-SET ( CMAKE_CXX_FLAGS "-std=c++17" )
+SET(CMAKE_CXX_FLAGS "-std=c++17" )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
+IF(WIN32)
 	set(CMAKE_CXX_FLAGS         "/MP /EHsc")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-else()
-	set(INSTALL_BINDIR "bin")
-	set(INSTALL_PLUGINDIR "bin")
-endif()
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ./lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ./lib)
+ENDIF()
+
+set(INSTALL_BINDIR "bin")
+set(INSTALL_PLUGINDIR "bin")
 
 include_directories(
 	"dependencies" 
-	"dependencies/tinf/src" 
+	"dependencies/tinf/src/" 
 	"dependencies/mariadb-connector-c/include"
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
@@ -56,11 +52,10 @@ if(WIN32)
 endif()
 
 
-
 set(BUILD_TESTING OFF)
-set(gRPC_SSL_PROVIDER "package")
+#set(gRPC_SSL_PROVIDER "package")
 add_subdirectory("dependencies/grpc/")
-set(gRPC_SSL_PROVIDER "package")
+#set(gRPC_SSL_PROVIDER "package")
 message(STATUS "Using gRPC via add_subdirectory.")
 
 set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
@@ -77,10 +72,17 @@ file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/hedera)
 FILE(GLOB DATAMODEL_GRADIDO_PROTOS "${GRADIDO_PROTO_MODEL_PATH}/gradido/*.proto")
 FILE(GLOB DATAMODEL_HEDERA_PROTOS "${HEDERA_PROTO_MODEL_PATH}/*.proto")
 
-find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin" REQUIRED)
-find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin" REQUIRED)
+IF(WIN32)
+	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin/Debug")
+	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin/Release")
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin/Debug" )
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin/Release" )
+ELSE()
+	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin")
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin" )
+ENDIF()
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/grpc/third_party/protobuf/src GOOGLE_PROTOBUF_INCLUDES)
-
+MESSAGE("protoc: ${PROTOBUF_PROTOC_EXECUTABLE} in build/dependencies/grpc/bin/${CMAKE_BUILD_TYPE}")
 FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
    FILE(TO_NATIVE_PATH ${proto} proto_native)
    get_filename_component(proto_parsed ${proto} NAME_WLE)
@@ -129,8 +131,6 @@ ENDFOREACH(proto)
 
 ############################## bind source files ###################################
 
-#set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
-
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
@@ -146,8 +146,8 @@ FILE(GLOB MODEL_GRADIDO "src/cpp/model/gradido/*.h" "src/cpp/model/gradido/*.cpp
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
-FILE(GLOB PROTO_GRADIDO "${PROTOBINDING_PATH}/gradido/*.cc" "${PROTOBINDING_PATH}/gradido/*.h")
-FILE(GLOB PROTO_HEDERA "${PROTOBINDING_PATH}/hedera/*.cc" "${PROTOBINDING_PATH}/hedera/*.h")
+FILE(GLOB PROTO_GRADIDO "build/proto/gradido/*.cc" "build/proto/gradido/*.h")
+FILE(GLOB PROTO_HEDERA "build/proto/hedera/*.cc" "build/proto/hedera/*.h")
 
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
@@ -193,6 +193,11 @@ if(MSVC)
 	source_group("Test" FILES ${TEST})
 endif()
 
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
 ############################## config and add mariadb ###################################
@@ -217,10 +222,10 @@ add_subdirectory("dependencies/mariadb-connector-c")
 set(DEP_PATH "dependencies")
 set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
 
-if(WIN32)
-	find_library(MYSQL_LIBRARIES mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
-	find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
-endif()
+#if(WIN32)
+	#find_library(MYSQL_LIBRARIES mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Release" REQUIRED)
+	#find_library(COMPILED_MARIADB_CLIENT_DEBUG mariadbclient PATHS "${MARIADB_CONNECTOR_PATH}/Debug" REQUIRED)
+#endif()
 
 ############################## config and add poco ###################################
 #SET(SOME_EXPAT_OPTION OFF CACHE BOOL "Use some expat option")
@@ -235,17 +240,15 @@ set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
 
 
 ############################## build login server ###################################
-if(UNIX)
-	set(INSTALL_BINDIR "bin")
-	set(INSTALL_PLUGINDIR "bin")
-endif()
-target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS} sodium)
+
+target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS})
 
 if(WIN32)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+	target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
+	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
+	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
-	target_link_libraries(Gradido_LoginServer libmariadb)
+	target_link_libraries(Gradido_LoginServer libmariadb sodium)
 endif()
 
 # install 
@@ -260,26 +263,26 @@ install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
 
 endif(UNIX)
 
-
+enable_testing()
 
 #  ----------------------    Test -----------------------------------------
-add_subdirectory("dependencies/grpc/third_party/googletest")
-enable_testing()
 #project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
-
+#find_package(gtest)
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} ${GRPC_LIBS} sodium gtest)
 
+target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} ${POCO_LIBS})
 
 if(WIN32)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
-	TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} ${PROTOBUF_DEBUG_LIBS} Shlwapi)
+	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
+	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
+	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test libmariadb ${CMAKE_DL_LIBS} ${PROTOBUF_LIBS})
+	target_link_libraries(Gradido_LoginServer_Test libmariadb sodium)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
