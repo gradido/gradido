@@ -295,6 +295,7 @@ class AppRequestsController extends AppController
     
     public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
     {
+        $this->viewBuilder()->setLayout('ajax');
         $startTime = microtime(true);
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
