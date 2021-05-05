@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="p-3">
       <b-container>
-        <div class="text-center mb-7">
+        <div class="text-center mb-7 header">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>Gradido</h1>
