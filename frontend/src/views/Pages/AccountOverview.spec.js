@@ -35,12 +35,6 @@ describe('AccountOverview', () => {
       expect(wrapper.find('gdd-table-stub').exists()).toBeTruthy()
     })
 
-    it('updates transctions data when change-transactions is emitted', async () => {
-      wrapper.find('gdd-table-stub').vm.$emit('change-transactions', [0, 1])
-      await wrapper.vm.$nextTick()
-      expect(wrapper.vm.transactions).toEqual(expect.arrayContaining([0, 1]))
-    })
-
     describe('updateBalance method', () => {
       beforeEach(async () => {
         wrapper.find('gdd-send-stub').vm.$emit('update-balance', {
