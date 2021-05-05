@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils'
-import KontoOverview from './KontoOverview'
+import AccountOverview from './AccountOverview'
 
 const localVue = global.localVue
 
-describe('KontoOverview', () => {
+describe('AccountOverview', () => {
   let wrapper
 
   let mocks = {
@@ -11,7 +11,7 @@ describe('KontoOverview', () => {
   }
 
   const Wrapper = () => {
-    return shallowMount(KontoOverview, { localVue, mocks })
+    return shallowMount(AccountOverview, { localVue, mocks })
   }
 
   describe('shallow Mount', () => {
