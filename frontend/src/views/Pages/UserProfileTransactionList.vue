@@ -14,7 +14,7 @@
   </div>
 </template>
 <script>
-import GddTable from '../../views/KontoOverview/GddTable.vue'
+import GddTable from '../../views/Pages/AccountOverview/GddTable.vue'
 
 export default {
   components: {

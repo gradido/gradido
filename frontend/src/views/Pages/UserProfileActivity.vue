@@ -31,8 +31,8 @@
   </div>
 </template>
 <script>
-import GddWorkTable from '../../views/KontoOverview/GddWorkTable.vue'
-import GddAddWork2 from '../../views/KontoOverview/GddAddWork2.vue'
+import GddWorkTable from '../../views/Pages/AccountOverview/GddWorkTable.vue'
+import GddAddWork2 from '../../views/Pages/AccountOverview/GddAddWork2.vue'
 
 import * as chartConfigs from '@/components/Charts/config'
 import LineChart from '@/components/Charts/LineChart'
