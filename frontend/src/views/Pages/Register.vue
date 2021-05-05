@@ -175,7 +175,7 @@ export default {
       passwordVisible: false,
       submitted: false,
       registerfail: false,
-      registererror: '',
+      showError: '',
     }
   },
   methods: {
