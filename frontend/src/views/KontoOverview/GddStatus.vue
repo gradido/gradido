@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="showTransactionList">
+    <b-row>
       <b-col xl="6" md="6">
         <stats-card
           type="gradient-red"
@@ -29,7 +29,6 @@
 export default {
   name: 'GddStatus',
   props: {
-    showTransactionList: { type: Boolean, default: true },
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
   },

@@ -46,8 +46,8 @@
     "send_success":"Deine Zahlung wurde erfolgreich versendet."
   },
   "transaction":{
-    "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
+    "nullTransactions":"Du hast noch keine Transaktionen auf deinem Konto.",
     "more": "mehr"
   },
   "site": {
