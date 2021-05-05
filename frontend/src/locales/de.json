@@ -45,6 +45,9 @@
     "thx":"Danke!",
     "send_success":"Deine Zahlung wurde erfolgreich versendet."
   },
+  "error": {
+    "error":"Fehler"
+  },
   "transaction":{
     "show_part": "Die letzten <strong>{count}</strong> Transaktionen",
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",

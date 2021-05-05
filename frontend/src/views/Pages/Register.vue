@@ -110,6 +110,20 @@
                       </base-input>
                     </b-col>
                   </b-row>
+                  <b-alert
+                    v-if="registerfail"
+                    show
+                    dismissible
+                    variant="warning"
+                    @dismissed="closeAlert"
+                  >
+                    <span class="alert-icon"><i class="ni ni-point"></i></span>
+                    <span class="alert-text">
+                      <strong>{{ $t('error.error') }}!</strong>
+                      {{ registererror }}
+                    </span>
+                  </b-alert>
+
                   <div
                     class="text-center"
                     v-if="
@@ -160,6 +174,8 @@ export default {
       checkPassword: '',
       passwordVisible: false,
       submitted: false,
+      registerfail: false,
+      registererror: '',
     }
   },
   methods: {
@@ -184,10 +200,17 @@ export default {
         this.password = ''
         this.$router.push('/thx')
       } else {
-        // todo: Display a proper error message!
-        this.$store.dispatch('logout')
-        this.$router.push('/login')
+        this.registerfail = true
+        this.registererror = result.result.message
       }
+    },
+    closeAlert() {
+      this.registerfail = false
+      this.registererror = ''
+      this.model.email = ''
+      this.model.firstname = ''
+      this.model.lastname = ''
+      this.password = ''
     },
   },
   computed: {

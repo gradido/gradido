@@ -45,6 +45,9 @@
     "thx":"THX",
     "send_success":"Deine Zahlung wurde erfolgreich versendet."
   },
+  "error": {
+    "error":"Error"
+  },
   "transaction":{
     "show_part": "The last <strong>{count}</strong> transactions",
     "show_all":"View all <strong>{count}</strong> transactions",
