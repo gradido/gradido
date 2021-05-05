@@ -116,7 +116,7 @@ class AppRequestsController extends AppController
             return $required_fields;
         }
         
-        if(intval($param['amount']) <= 0) {
+        if(floatval($param['amount']) <= 0.0) {
             return ['state' => 'error', 'msg' => 'amount is invalid', 'details' => $param['amount']];
         }
         $param['amount'] = $this->GradidoNumber->parseInputNumberToCentNumber($param['amount']);
