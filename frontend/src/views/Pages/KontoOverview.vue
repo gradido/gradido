@@ -34,9 +34,8 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
-
     transactions: {
-      default: [],
+      default: () => [],
     },
   },
   components: {

@@ -103,56 +103,13 @@ export default {
       }
     },
     async updateTransactions() {
-      // const result = await communityAPI.transactions(this.$store.state.session_id)
-      // if (result.success) {
-      //   this.GdtBalance = result.result.data.gdtSum / 10000
-      //   this.transactions = result.result.data.transactions
-      // } else {
-      //   // what to do when loading balance fails?
-      // }
-
-      this.transactions = [
-        {
-          name: 'Max Mustermann',
-          email: 'Maxim@Mustermann',
-          type: 'send',
-          transaction_id: 2,
-          date: '2021-02-19T13:25:38+00:00',
-          balance: 1920000,
-          memo: 'a piece of cake :)',
-          pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-        },
-        {
-          name: 'Bob Bobmann',
-          email: 'Bob@Bobmann',
-          type: 'receive',
-          transaction_id: 3,
-          date: '2021-03-19T13:27:36+00:00',
-          balance: 1920000,
-          memo: 'test text hier eingeben :)',
-          pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-        },
-        {
-          name: 'Gradido Akademie',
-          email: 'Gradido@Akademie',
-          type: 'creation',
-          transaction_id: 4,
-          date: '2021-03-22T13:25:36+00:00',
-          balance: 10000000,
-          memo: '1000 Gradidos für das Sammeln von Müll im Wald.',
-          pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-        },
-        {
-          name: 'Verfall',
-          email: 'Gradido@Akademie',
-          type: 'decay',
-          transaction_id: 5,
-          date: '2021-02-22T13:25:37+00:00',
-          balance: 20000,
-          memo: 'verfall',
-          pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-        },
-      ]
+      const result = await communityAPI.transactions(this.$store.state.session_id)
+      if (result.success) {
+        this.GdtBalance = result.result.data.gdtSum / 10000
+        this.transactions = result.result.data.transactions
+      } else {
+        // what to do when loading balance fails?
+      }
     },
     updateBalance(ammount) {
       this.balance -= ammount
