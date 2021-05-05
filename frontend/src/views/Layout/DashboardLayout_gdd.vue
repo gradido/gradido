@@ -31,7 +31,9 @@
           <router-view
             :balance="balance"
             :gdt-balance="GdtBalance"
+            :transactions="transactions"
             @update-balance="updateBalance"
+            @update-transactions="updateTransactions"
           ></router-view>
         </fade-transition>
       </div>
@@ -76,6 +78,7 @@ export default {
     return {
       balance: 0,
       GdtBalance: 0,
+      transactions: [],
     }
   },
   methods: {
@@ -99,10 +102,11 @@ export default {
         // what to do when loading balance fails?
       }
     },
-    async loadGDTBalance() {
+    async updateTransactions() {
       const result = await communityAPI.transactions(this.$store.state.session_id)
       if (result.success) {
         this.GdtBalance = result.result.data.gdtSum // / 10000
+        this.transactions = result.result.data.transactions
       } else {
         // what to do when loading balance fails?
       }
@@ -116,7 +120,7 @@ export default {
   },
   created() {
     this.loadBalance()
-    this.loadGDTBalance()
+    this.updateTransactions()
   },
 }
 </script>

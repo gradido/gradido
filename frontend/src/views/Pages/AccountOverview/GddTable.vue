@@ -2,26 +2,42 @@
   <div>
     <b-list-group v-show="showTransactionList">
       <b-list-group-item
-        v-for="item in filteredItems"
+        v-for="item in transactions"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
         <div class="d-flex w-100 justify-content-between">
           <b-icon
             v-if="item.type === 'send'"
-            icon="box-arrow-left"
-            class="m-1"
+            icon="arrow-left-circle"
+            class="m-1 text-danger"
             font-scale="2"
             style="color: red"
           ></b-icon>
           <b-icon
-            v-else
-            icon="box-arrow-right"
+            v-else-if="item.type === 'receive'"
+            icon="arrow-right-circle"
             class="m-1"
             font-scale="2"
             style="color: green"
           ></b-icon>
-          <h1 class="mb-1">
+          <b-icon
+            v-else-if="item.type === 'creation'"
+            icon="gift"
+            class="m-1"
+            font-scale="2"
+            style="color: orange"
+          ></b-icon>
+          <b-icon
+            v-else
+            icon="droplet-half"
+            class="m-1"
+            font-scale="2"
+            style="color: orange"
+          ></b-icon>
+          <h1 class="">
+            <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
+            <span v-else>-</span>
             {{ $n(item.balance) }}
             <small>GDD</small>
           </h1>
@@ -73,11 +89,11 @@
         </b-collapse>
       </b-list-group-item>
       <b-list-group-item v-show="this.$route.path == '/overview'">
-        <b-alert v-if="count < 5" show variant="secondary">
-          <span class="alert-text" v-html="$t('transaction.show_part', { count: count })"></span>
+        <b-alert v-if="transactions.length === 0" show variant="secondary">
+          <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
         </b-alert>
         <router-link
-          v-else
+          v-else-if="transactions.length > 5"
           to="/transactions"
           v-html="$t('transaction.show_all', { count: count })"
         ></router-link>
@@ -87,13 +103,11 @@
 </template>
 
 <script>
-import axios from 'axios'
-import communityAPI from '../../apis/communityAPI'
-
 export default {
   name: 'GddTable',
   props: {
     showTransactionList: { type: Boolean, default: true },
+    transactions: { default: [] },
   },
   data() {
     return {
@@ -103,16 +117,8 @@ export default {
       count: 0,
     }
   },
-
-  async created() {
-    const result = await communityAPI.transactions(this.$store.state.session_id)
-
-    if (result.success) {
-      this.items = result.result.data.transactions
-      this.count = result.result.data.count
-    } else {
-      //console.log('error', result)
-    }
+  created() {
+    this.$emit('change-transactions')
   },
   computed: {
     filteredItems() {
@@ -128,7 +134,6 @@ export default {
       })
       return result
     },
-
     rowClass(item, type) {
       if (!item || type !== 'row') return
       if (item.type === 'receive') return 'table-success'

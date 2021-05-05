@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils'
-import KontoOverview from './KontoOverview'
+import AccountOverview from './AccountOverview'
 
 const localVue = global.localVue
 
-describe('KontoOverview', () => {
+describe('AccountOverview', () => {
   let wrapper
 
   let mocks = {
@@ -11,7 +11,7 @@ describe('KontoOverview', () => {
   }
 
   const Wrapper = () => {
-    return shallowMount(KontoOverview, { localVue, mocks })
+    return shallowMount(AccountOverview, { localVue, mocks })
   }
 
   describe('shallow Mount', () => {
@@ -33,12 +33,6 @@ describe('KontoOverview', () => {
 
     it('has a transactions table', () => {
       expect(wrapper.find('gdd-table-stub').exists()).toBeTruthy()
-    })
-
-    it('updates transctions data when change-transactions is emitted', async () => {
-      wrapper.find('gdd-table-stub').vm.$emit('change-transactions', [0, 1])
-      await wrapper.vm.$nextTick()
-      expect(wrapper.vm.transactions).toEqual(expect.arrayContaining([0, 1]))
     })
 
     describe('updateBalance method', () => {

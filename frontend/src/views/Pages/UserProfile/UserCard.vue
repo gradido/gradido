@@ -36,7 +36,7 @@
             </div>
             <div>
               <span class="heading">
-                {{ $n(this.$store.state.user.balance) }}
+                {{ $n(balance) }}
               </span>
               <span class="description">GDD</span>
             </div>
@@ -59,6 +59,9 @@ export default {
   name: 'profilecard',
   components: {
     VueQrcode,
+  },
+  props: {
+    balance: { type: Number, default: 0 },
   },
 }
 </script>
