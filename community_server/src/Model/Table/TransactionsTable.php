@@ -183,15 +183,19 @@ class TransactionsTable extends Table
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
-     
-                    //echo $interval->format('%R%a days');
-                    //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
-                    $final_transactions[] = [ 
-                        'type' => 'decay',
-                        'balance' => -intval($prev->balance - $diff_amount),
-                        'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
-                        'memo' => ''
-                    ];
+                    $balance = -intval($prev->balance - $diff_amount);
+                    // skip small decays (smaller than 0,00 GDD)
+                    
+                    if(abs($balance) > 100) {
+                        //echo $interval->format('%R%a days');
+                        //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
+                        $final_transactions[] = [ 
+                            'type' => 'decay',
+                            'balance' => -intval($prev->balance - $diff_amount),
+                            'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
+                            'memo' => ''
+                        ];
+                    }
                 }
             }
             
