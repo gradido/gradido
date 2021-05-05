@@ -188,7 +188,7 @@ class TransactionsTable extends Table
                     //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
                     $final_transactions[] = [ 
                         'type' => 'decay',
-                        'balance' => floatval(-intval($prev->balance - $diff_amount)),
+                        'balance' => floatval(intval($prev->balance - $diff_amount)),
                         'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
                         'memo' => ''
                     ];
@@ -256,7 +256,7 @@ class TransactionsTable extends Table
                 $state_balance->record_date = $su_transaction->balance_date;
                 $final_transactions[] = [
                     'type' => 'decay',
-                    'balance' => floatval(-intval($su_transaction->balance - $state_balance->decay)),
+                    'balance' => floatval(intval($su_transaction->balance - $state_balance->decay)),
                     'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
                     'memo' => ''
                 ];
