@@ -117,7 +117,6 @@ export default {
       count: 0,
     }
   },
-
   created() {
     this.$emit('change-transactions')
   },
@@ -135,7 +134,6 @@ export default {
       })
       return result
     },
-
     rowClass(item, type) {
       if (!item || type !== 'row') return
       if (item.type === 'receive') return 'table-success'
