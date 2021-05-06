@@ -356,8 +356,8 @@ class AppRequestsController extends AppController
         $body['decay_date'] = $now;
         
         if(!$state_balance) {
-            $body['balance'] = 0;
-            $body['decay'] = 0;
+            $body['balance'] = 0.0;
+            $body['decay'] = 0.0;
         } else {
             $body['balance'] = $state_balance->amount;
             $body['decay'] = $state_balance->partDecay($now);
