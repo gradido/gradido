@@ -65,7 +65,7 @@ Assuming: session is valid
 			"type": "send",
 			"transaction_id": 2,
 			"date": "2021-02-19T13:25:36+00:00",
-			"balance": 192,
+			"balance": 192.0,
 			"memo": "a piece of cake :)",
 			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
 		 }
@@ -244,5 +244,4 @@ Without auto-sign the transaction is pending on the login-server and waits for t
 // TODO how is this more secure?
 // TODO Is this in line with our usability goals?
 // TODO Should this not be handled client side?
-
 
