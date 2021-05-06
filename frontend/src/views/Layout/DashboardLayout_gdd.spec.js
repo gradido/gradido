@@ -107,7 +107,7 @@ describe('DashboardLayoutGdd', () => {
       //it('has third item "My profile" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
       //})
-//
+      //
       //it.skip('has third item "My profile" linked to profile in navbar', async () => {
       //  navbar.findAll('ul > li > a').at(2).trigger('click')
       //  await flushPromises()
