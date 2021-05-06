@@ -313,15 +313,20 @@ class TransactionsController extends AppController
         if ($this->request->is('post')) {
             $transaction = $this->Transactions->patchEntity($transaction, $this->request->getData());
             if ($this->Transactions->save($transaction)) {
-                $this->Flash->success(__('The transaction has been saved.'));
-
-                return $this->redirect(['action' => 'index']);
+                $result = $this->Transactions->updateTxHash($transaction, 'start decay');
+                if($result === true) {
+                    $this->Flash->success(__('The transaction has been saved.'));
+                    return $this->redirect(['action' => 'index']);
+                } else {
+                    $this->Flash->error(__('Error by saving: ' . json_encode($result)));
+                }
             }
             $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
         }
         $stateGroups = $this->Transactions->StateGroups->find('list', ['limit' => 200]);
         $transactionTypes = $this->Transactions->TransactionTypes->find('list', ['limit' => 200]);
-        $this->set(compact('transaction', 'stateGroups', 'transactionTypes'));
+        $blockchainTypes = $this->Transactions->BlockchainTypes->find('list');
+        $this->set(compact('transaction', 'stateGroups', 'transactionTypes', 'blockchainTypes'));
     }
 
     /**

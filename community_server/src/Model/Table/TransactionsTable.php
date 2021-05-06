@@ -266,4 +266,58 @@ class TransactionsTable extends Table
         return $final_transactions;
       
     }
+    
+    public function updateTxHash($transaction, $signatureMapString) 
+    {
+        $transaction_id = $transaction->id;
+        $previousTxHash = null;
+        if($transaction_id > 1) {
+            try {
+                $previousTransaction = $this
+                    ->find('all', ['contain' => false])
+                    ->select(['tx_hash'])
+                    ->where(['id' => $transaction_id - 1])
+                    ->first();
+          /*$previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
+              'contain' => false, 
+              'fields' => ['tx_hash']
+          ]);*/
+            } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+              return ['state' => 'error', 'msg' => 'previous transaction not found', 'details' => $ex->getMessage()];
+            }
+            if(!$previousTransaction) {
+              // shouldn't occur
+              return ['state' => 'error', 'msg' => 'previous transaction not found'];
+            }
+            $previousTxHash = $previousTransaction->tx_hash;
+      }
+      try {
+        //$transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
+        $transaction->received = $this
+                ->find('all', ['contain' => false])
+                ->where(['id' => $transaction->id])
+                ->select(['received'])->first()->received;
+      } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+        return ['state' => 'error', 'msg' => 'current transaction not found in db', 'details' => $ex->getMessage()];
+      }
+      
+      // calculate tx hash
+      // previous tx hash + id + received + sigMap as string
+      // Sodium use for the generichash function BLAKE2b today (11.11.2019), mabye change in the future
+      $state = \Sodium\crypto_generichash_init();
+      //echo "prev hash: $previousTxHash\n";
+      if($previousTxHash != null) {
+        \Sodium\crypto_generichash_update($state, stream_get_contents($previousTxHash));
+      }
+      //echo "id: " . $transactionEntity->id . "\n";
+      \Sodium\crypto_generichash_update($state, strval($transaction->id));
+      //echo "received: " . $transactionEntity->received;
+      \Sodium\crypto_generichash_update($state, $transaction->received->i18nFormat('yyyy-MM-dd HH:mm:ss'));
+      \Sodium\crypto_generichash_update($state, $signatureMapString);
+      $transaction->tx_hash = \Sodium\crypto_generichash_final($state);
+      if ($this->save($transaction)) {
+        return true;
+      }
+      return ['state' => 'error', 'msg' => 'error by saving transaction', 'details' => $transaction->getErrors()];
+    }
 }
