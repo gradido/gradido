@@ -99,12 +99,12 @@ class TransactionTransfer extends TransactionBase {
                   ->where(['public_key' => $senderPublic])
                   ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
         if(!$user) {
-          $this->addError($functionName, 'couldn\'t find sender ' . $i .' in db' );
+          $this->addError($functionName, 'couldn\'t find sender in db' );
           return false;
         }
         //var_dump($user);
         if(intval($user->state_balances[0]->amount) < intval($amount)) {
-          $this->addError($functionName, 'sender ' . $i . ' hasn\t enough GDD');
+          $this->addError($functionName, 'sender hasn\t enough GDD');
           return false;
         }
       
@@ -116,7 +116,7 @@ class TransactionTransfer extends TransactionBase {
         // check if receiver exist
         $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
         if(!$receiver_user) {
-            $this->addError($functionName, 'couldn\'t find receiver ' . $i .' in db' );
+            $this->addError($functionName, 'couldn\'t find receiver in db' );
             return false;
         }
         if($amount < 0) {
