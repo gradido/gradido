@@ -120,7 +120,7 @@ describe('GddSend', () => {
         })
 
         it('has the text "form.cancel"', () => {
-          expect(wrapper.find('button[type="reset"]').text()).toBe('form.cancel')
+          expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
         })
 
         it.skip('clears the email field on click', async () => {

@@ -1,9 +1,9 @@
 <template>
   <div class="login-form">
     <!-- Header -->
-    <div class="header p-4">
+    <div class="p-3">
       <b-container>
-        <div class="text-center mb-7">
+        <div class="text-center mb-7 header">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>Gradido</h1>
@@ -14,11 +14,11 @@
       </b-container>
     </div>
     <!-- Page content -->
-    <b-container class="mt--8 p-1">
+    <b-container class="mt--8">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important">
-            <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
+            <b-card-body class="p-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('login') }}</small>
               </div>

@@ -21,6 +21,7 @@
   "form": {
     "attention": "<strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Abbrechen",
+    "reset": "Zurücksetzen",
     "close":"schließen",
     "receiver":"Empfänger",
     "sender":"Absender",
@@ -44,6 +45,9 @@
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
     "thx":"Danke,",
     "send_success":"deine Transaktion wurde erfolgreich ausgeführt"
+  },
+  "error": {
+    "error":"Fehler"
   },
   "transaction":{
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",

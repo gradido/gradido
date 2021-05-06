@@ -16,7 +16,7 @@
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
-            <b-card-body class="px-lg-5 py-lg-5">
+            <b-card-body class="p-4">
               <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
                   <base-input

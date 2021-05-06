@@ -19,7 +19,7 @@
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
-            <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
+            <b-card-body class="p-4">
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('signup') }}</small>
               </div>
@@ -110,6 +110,20 @@
                       </base-input>
                     </b-col>
                   </b-row>
+                  <b-alert
+                    v-if="showError"
+                    show
+                    dismissible
+                    variant="warning"
+                    @dismissed="closeAlert"
+                  >
+                    <span class="alert-icon"><i class="ni ni-point"></i></span>
+                    <span class="alert-text">
+                      <strong>{{ $t('error.error') }}!</strong>
+                      {{ messageError }}
+                    </span>
+                  </b-alert>
+
                   <div
                     class="text-center"
                     v-if="
@@ -160,6 +174,8 @@ export default {
       checkPassword: '',
       passwordVisible: false,
       submitted: false,
+      showError: false,
+      messageError: '',
     }
   },
   methods: {
@@ -184,10 +200,17 @@ export default {
         this.password = ''
         this.$router.push('/thx')
       } else {
-        // todo: Display a proper error message!
-        this.$store.dispatch('logout')
-        this.$router.push('/login')
+        this.showError = true
+        this.messageError = result.result.message
       }
+    },
+    closeAlert() {
+      this.showError = false
+      this.messageError = ''
+      this.model.email = ''
+      this.model.firstname = ''
+      this.model.lastname = ''
+      this.password = ''
     },
   },
   computed: {
