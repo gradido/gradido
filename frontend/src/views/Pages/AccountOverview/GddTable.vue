@@ -2,7 +2,7 @@
   <div>
     <b-list-group v-show="showTransactionList">
       <b-list-group-item
-        v-for="item in transactions"
+        v-for="item in filteredItems"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -122,7 +122,11 @@ export default {
   },
   computed: {
     filteredItems() {
-      return this.ojectToArray(this.items).reverse()
+      if (this.$router.currentRoute.path === '/overview') {
+        return this.transactions.slice(0, 5)
+      } else {
+        return this.transactions
+      }
     },
   },
   methods: {
