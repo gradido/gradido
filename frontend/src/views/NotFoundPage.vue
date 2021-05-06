@@ -2,7 +2,6 @@
   <div>
     <!-- Header -->
     <div class="header py-1 py-lg-1 pt-lg-3">
-      <b-container>xx</b-container>
       <b-container>
         <div class="header-body text-center mb-3">
           <a href="/login" to="/login">
