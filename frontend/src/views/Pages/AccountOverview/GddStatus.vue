@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-show="showTransactionList">
+    <b-row>
       <b-col col="6">
         <stats-card
           type="gradient-red"

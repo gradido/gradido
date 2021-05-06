@@ -254,7 +254,7 @@ export default {
       const result = await communityAPI.send(
         this.$store.state.session_id,
         this.ajaxCreateData.email,
-        this.ajaxCreateData.amount * 10000,
+        this.ajaxCreateData.amount,
         this.ajaxCreateData.memo,
         this.ajaxCreateData.target_date,
       )
