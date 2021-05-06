@@ -1,7 +1,7 @@
 <template>
   <div>
-    <base-header class="pb-6 pb-8 pt-5 pt-md-8 bg-transparent"></base-header>
-    <b-container fluid class="mt--7">
+    <base-header class="pb-4 pt-2 bg-transparent"></base-header>
+    <b-container fluid class="p-2">
       <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
       <br />
       <gdd-send
