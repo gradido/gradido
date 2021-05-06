@@ -32,6 +32,7 @@
             :balance="balance"
             :gdt-balance="GdtBalance"
             :transactions="transactions"
+            :transactionCount="transactionCount"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -80,6 +81,7 @@ export default {
       GdtBalance: 0,
       transactions: [],
       bookedBalance: 0,
+      transactionCount: 0,
     }
   },
   methods: {
@@ -102,6 +104,7 @@ export default {
         this.transactions = result.result.data.transactions
         this.balance = Number(result.result.data.decay)
         this.bookedBalance = Number(result.result.data.balance)
+        this.transactionCount = result.result.data.count
       } else {
         // what to do when loading balance fails?
       }

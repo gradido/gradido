@@ -15,6 +15,8 @@
         v-if="showTransactionList"
         :transactions="transactions"
         :max="5"
+        :timestamp="timestamp"
+        :transactionCount="transactionCount"
         @update-transactions="updateTransactions"
       />
     </b-container>
@@ -30,6 +32,7 @@ export default {
   data() {
     return {
       showTransactionList: true,
+      timestamp: Date.now(),
     }
   },
   props: {
@@ -38,6 +41,7 @@ export default {
     transactions: {
       default: () => [],
     },
+    transactionCount: { type: Number, default: 0 },
   },
   components: {
     GddStatus,
