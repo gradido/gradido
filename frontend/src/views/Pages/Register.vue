@@ -111,7 +111,7 @@
                     </b-col>
                   </b-row>
                   <b-alert
-                    v-if="registerfail"
+                    v-if="showError"
                     show
                     dismissible
                     variant="warning"
@@ -120,7 +120,7 @@
                     <span class="alert-icon"><i class="ni ni-point"></i></span>
                     <span class="alert-text">
                       <strong>{{ $t('error.error') }}!</strong>
-                      {{ registererror }}
+                      {{ messageError }}
                     </span>
                   </b-alert>
 
@@ -174,8 +174,8 @@ export default {
       checkPassword: '',
       passwordVisible: false,
       submitted: false,
-      registerfail: false,
-      showError: '',
+      showError: false,
+      messageError: '',
     }
   },
   methods: {
@@ -200,13 +200,13 @@ export default {
         this.password = ''
         this.$router.push('/thx')
       } else {
-        this.registerfail = true
-        this.registererror = result.result.message
+        this.showError = true
+        this.messageError = result.result.message
       }
     },
     closeAlert() {
-      this.registerfail = false
-      this.registererror = ''
+      this.showError = false
+      this.messageError = ''
       this.model.email = ''
       this.model.firstname = ''
       this.model.lastname = ''
