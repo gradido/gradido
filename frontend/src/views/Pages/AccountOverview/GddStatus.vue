@@ -29,7 +29,6 @@
 export default {
   name: 'GddStatus',
   props: {
-    showTransactionList: { type: Boolean, default: true },
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
   },
