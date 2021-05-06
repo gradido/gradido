@@ -79,6 +79,7 @@ export default {
       balance: 0,
       GdtBalance: 0,
       transactions: [],
+      bookedBalance: 0,
     }
   },
   methods: {
@@ -94,19 +95,13 @@ export default {
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
-    async loadBalance() {
-      const result = await communityAPI.balance(this.$store.state.session_id)
-      if (result.success) {
-        this.balance = result.result.data.balance // / 10000
-      } else {
-        // what to do when loading balance fails?
-      }
-    },
     async updateTransactions() {
       const result = await communityAPI.transactions(this.$store.state.session_id)
       if (result.success) {
-        this.GdtBalance = result.result.data.gdtSum // / 10000
+        this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
+        this.balance = Number(result.result.data.decay)
+        this.bookedBalance = Number(result.result.data.balance)
       } else {
         // what to do when loading balance fails?
       }
@@ -119,7 +114,6 @@ export default {
     this.initScrollbar()
   },
   created() {
-    this.loadBalance()
     this.updateTransactions()
   },
 }

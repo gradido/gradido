@@ -1,8 +1,8 @@
 <template>
   <div>
-    <b-list-group v-show="showTransactionList">
+    <b-list-group>
       <b-list-group-item
-        v-for="item in transactions"
+        v-for="item in transactions.slice(0, max)"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -106,8 +106,8 @@
 export default {
   name: 'GddTable',
   props: {
-    showTransactionList: { type: Boolean, default: true },
     transactions: { default: [] },
+    max: { type: Number, default: 25 },
   },
   data() {
     return {

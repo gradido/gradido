@@ -14,6 +14,7 @@
       <gdd-table
         v-if="showTransactionList"
         :transactions="transactions"
+        :max="5"
         @update-transactions="updateTransactions"
       />
     </b-container>
