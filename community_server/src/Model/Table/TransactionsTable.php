@@ -186,7 +186,7 @@ class TransactionsTable extends Table
                     $balance = -intval($prev->balance - $diff_amount);
                     // skip small decays (smaller than 0,00 GDD)
                     
-                    if(abs($balance) > 100) {
+                    if(abs($balance) >= 100) {
                         //echo $interval->format('%R%a days');
                         //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
                         $final_transactions[] = [ 
