@@ -46,6 +46,9 @@
     "thx":"Danke,",
     "send_success":"deine Transaktion wurde erfolgreich ausgeführt"
   },
+  "error": {
+    "error":"Fehler"
+  },
   "transaction":{
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
     "nullTransactions":"Du hast noch keine Transaktionen auf deinem Konto.",
