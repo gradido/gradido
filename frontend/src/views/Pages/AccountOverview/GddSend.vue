@@ -121,8 +121,8 @@
               <br />
               <b-row>
                 <b-col>
-                  <b-button type="reset" variant="secondary">
-                    {{ $t('form.cancel') }}
+                  <b-button type="reset" variant="secondary" @click="onReset">
+                    {{ $t('form.reset') }}
                   </b-button>
                 </b-col>
                 <b-col class="text-right">
@@ -274,6 +274,7 @@ export default {
       event.preventDefault()
       this.form.email = ''
       this.form.amount = ''
+      this.form.memo = ''
       this.show = false
       this.$emit('toggle-show-list', true)
       this.row_check = false
