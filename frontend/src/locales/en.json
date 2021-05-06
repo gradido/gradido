@@ -50,7 +50,8 @@
     "error":"Error"
   },
   "transaction":{
-    "show_part": "The last <strong>{count}</strong> transactions",
+    "show_all":"View all <strong>{count}</strong> transactions.",
+    "show_part": "The last <strong>{count}</strong> transactions.",
     "nullTransactions":"You don't have any transactions on your account yet.",
     "more": "more"
   },
