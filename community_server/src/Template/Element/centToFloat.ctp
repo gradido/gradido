@@ -11,5 +11,8 @@ $transformAmount = $cent;
 if($cut_places > 0) {
     $transformAmount = floor($cent / pow(10, $cut_places));
 }
+if($cut_places < 0) {
+    $cut_places = 0;
+}
 echo $transformAmount / pow(10, $precision -  $cut_places);
 
