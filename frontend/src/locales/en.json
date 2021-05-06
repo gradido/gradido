@@ -21,6 +21,7 @@
   "form": {
     "attention": "Achtung! Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Cancel",
+    "reset": "Reset",
     "close":"Close",
     "receiver":"Receiver",
     "sender":"Sender",
