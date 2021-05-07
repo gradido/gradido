@@ -74,7 +74,6 @@ class TransactionBase {
         if($stateBalanceQuery->count() > 0) {
           $stateBalanceEntry = $stateBalanceQuery->first();
           $stateBalanceEntry->amount = $stateBalanceEntry->partDecay($recordDate) + $addAmountCent;
-          $stateBalanceEntry->amount += $addAmountCent;
         } else {
           $stateBalanceEntry = $stateBalancesTable->newEntity();
           $stateBalanceEntry->state_user_id = $stateUserId;
