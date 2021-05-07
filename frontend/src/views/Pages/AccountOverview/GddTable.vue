@@ -1,93 +1,58 @@
 <template>
   <div>
-    <b-list-group>
-      <b-list-group-item
-        v-for="item in transactions.slice(0, max)"
-        :key="item.id"
-        style="background-color: #ebebeba3 !important"
-      >
-        <div class="d-flex w-100 justify-content-between">
-          <b-icon
-            v-if="item.type === 'send'"
-            icon="arrow-left-circle"
-            class="m-1 text-danger"
-            font-scale="2"
-            style="color: red"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'receive'"
-            icon="arrow-right-circle"
-            class="m-1"
-            font-scale="2"
-            style="color: green"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'creation'"
-            icon="gift"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <b-icon
-            v-else
-            icon="droplet-half"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <h1 class="">
-            <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
-            <span v-else>-</span>
-            {{ $n(item.balance) }}
-            <small>GDD</small>
-          </h1>
-          <h2 class="text-muted">{{ item.name }}</h2>
-          <b-button v-b-toggle="'a' + item.transaction_id" variant="secondary">
-            <b>i</b>
-          </b-button>
-        </div>
-        <b-collapse :id="'a' + item.transaction_id" class="mt-2">
-          <b-card>
-            <b-list-group>
-              <b-list-group-item v-if="item.type === 'send'">
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
-              <b-list-group-item v-else>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.sender') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
-
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>type</b-badge>
-                {{ item.type }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-5" variant="primary" pill>id</b-badge>
-                {{ item.transaction_id }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.date') }}</b-badge>
-                {{ item.date }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>gdd</b-badge>
-                {{ item.balance }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.memo') }}</b-badge>
-                {{ item.memo }}
-              </b-list-group-item>
-            </b-list-group>
-            <b-button v-b-toggle="'collapse-1-inner' + item.transaction_id" variant="secondary">
-              {{ $t('transaction.more') }}
-            </b-button>
-            <b-collapse :id="'collapse-1-inner' + item.transaction_id" class="mt-2">
-              <b-card>{{ item }}</b-card>
-            </b-collapse>
-          </b-card>
-        </b-collapse>
+    <b-list-group
+      horizontal="sm"
+      class="w-100 justify-content-between align-content-space-around"      
+      v-for="item in transactions.slice(0, max)"
+      :key="item.id"
+      style="background-color: #ebebeba3 !important"
+    >
+      <b-list-group-item>
+        <b-icon
+          v-if="item.type === 'send'"
+          icon="arrow-left-circle"
+          class="m-1 text-danger"
+          font-scale="2"
+          style="color: red"
+        ></b-icon>
+        <b-icon
+          v-else-if="item.type === 'receive'"
+          icon="arrow-right-circle"
+          class="m-1"
+          font-scale="2"
+          style="color: green"
+        ></b-icon>
+        <b-icon
+          v-else-if="item.type === 'creation'"
+          icon="gift"
+          class="m-1"
+          font-scale="2"
+          style="color: orange"
+        ></b-icon>
+        <b-icon
+          v-else
+          icon="droplet-half"
+          class="m-1"
+          font-scale="2"
+          style="color: orange"
+        ></b-icon>
       </b-list-group-item>
+      <b-list-group-item class="w-100 align-items-start pt-4">
+        <b class="">
+          <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
+          <span v-else>-</span>
+          {{ $n(item.balance) }}
+        </b>
+      </b-list-group-item>
+      <b-list-group-item class="w-100 align-items-start">
+        <b class="text-muted">{{ item.name }}</b>
+        <div>{{ item.memo }}</div>
+      </b-list-group-item>
+      <b-list-group-item class="w-100 align-items-start">
+        {{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}
+      </b-list-group-item>
+    </b-list-group>
+   
       <b-list-group-item v-show="this.$route.path == '/overview'">
         <b-alert v-if="transactions.length === 0" show variant="secondary">
           <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
@@ -98,7 +63,6 @@
           v-html="$t('transaction.show_all', { count: count })"
         ></router-link>
       </b-list-group-item>
-    </b-list-group>
   </div>
 </template>
 
@@ -119,6 +83,49 @@ export default {
   },
   created() {
     this.$emit('change-transactions')
+
+    this.transactions = [
+      {
+        name: 'Max Mustermann',
+        email: 'Maxim@Mustermann',
+        type: 'send',
+        transaction_id: 2,
+        date: '2021-02-19T13:25:38+00:00',
+        balance: 1920000,
+        memo: 'a piece of cake :)',
+        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
+      },
+      {
+        name: 'Bob Bobmann',
+        email: 'Bob@Bobmann',
+        type: 'receive',
+        transaction_id: 3,
+        date: '2021-03-19T13:27:36+00:00',
+        balance: 1920000,
+        memo: 'test text hier eingeben :)',
+        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
+      },
+      {
+        name: 'Gradido Akademie',
+        email: 'Gradido@Akademie',
+        type: 'creation',
+        transaction_id: 4,
+        date: '2021-03-22T13:25:36+00:00',
+        balance: 10000000,
+        memo: '1000 Gradidos für das Sammeln von Müll im Wald.',
+        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
+      },
+      {
+        name: 'Verfall',
+        email: 'Gradido@Akademie',
+        type: 'decay',
+        transaction_id: 5,
+        date: '2021-02-22T13:25:37+00:00',
+        balance: 20000,
+        memo: 'verfall',
+        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
+      },
+    ]
   },
   computed: {
     filteredItems() {
@@ -131,19 +138,18 @@ export default {
       Object.entries(obj).forEach((entry) => {
         const [key, value] = entry
         result[key] = value
+        console.log(result)
       })
       return result
-    },
-    rowClass(item, type) {
-      if (!item || type !== 'row') return
-      if (item.type === 'receive') return 'table-success'
-      if (item.type === 'send') return 'table-warning'
-      if (item.type === 'creation') return 'table-primary'
     },
   },
 }
 </script>
 <style>
+.list-group-item {
+  background-color: #eff0f2;
+  border: 1px solid #e9ecef;
+}
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
