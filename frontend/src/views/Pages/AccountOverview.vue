@@ -1,7 +1,7 @@
 <template>
   <div>
     <base-header class="pb-4 pt-2 bg-transparent"></base-header>
-    <b-container fluid class="p-2">
+    <b-container fluid class="p-2 mt-5">
       <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
       <br />
       <gdd-send
@@ -15,6 +15,8 @@
         v-if="showTransactionList"
         :transactions="transactions"
         :max="5"
+        :timestamp="timestamp"
+        :transactionCount="transactionCount"
         @update-transactions="updateTransactions"
       />
     </b-container>
@@ -30,6 +32,7 @@ export default {
   data() {
     return {
       showTransactionList: true,
+      timestamp: Date.now(),
     }
   },
   props: {
@@ -38,6 +41,7 @@ export default {
     transactions: {
       default: () => [],
     },
+    transactionCount: { type: Number, default: 0 },
   },
   components: {
     GddStatus,
