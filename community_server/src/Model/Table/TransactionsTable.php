@@ -183,15 +183,19 @@ class TransactionsTable extends Table
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
-     
-                    //echo $interval->format('%R%a days');
-                    //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
-                    $final_transactions[] = [ 
-                        'type' => 'decay',
-                        'balance' => floatval(intval($prev->balance - $diff_amount)),
-                        'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
-                        'memo' => ''
-                    ];
+                    $balance = floatval($prev->balance - $diff_amount);
+                    // skip small decays (smaller than 0,00 GDD)
+                    
+                    if(abs($balance) >= 100) {
+                        //echo $interval->format('%R%a days');
+                        //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
+                        $final_transactions[] = [ 
+                            'type' => 'decay',
+                            'balance' => $balance,
+                            'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
+                            'memo' => ''
+                        ];
+                    }
                 }
             }
             
@@ -254,12 +258,15 @@ class TransactionsTable extends Table
             if($i == $stateUserTransactionsCount-1 && $decay == true) {
                 $state_balance->amount = $su_transaction->balance;
                 $state_balance->record_date = $su_transaction->balance_date;
-                $final_transactions[] = [
-                    'type' => 'decay',
-                    'balance' => floatval(intval($su_transaction->balance - $state_balance->decay)),
-                    'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
-                    'memo' => ''
-                ];
+                $balance = floatval($su_transaction->balance - $state_balance->decay);
+                if($balance > 100) {
+                    $final_transactions[] = [
+                        'type' => 'decay',
+                        'balance' => $balance,
+                        'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
+                        'memo' => ''
+                    ];
+                }
             }
         }
         
