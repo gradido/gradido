@@ -22,6 +22,7 @@ class AppRequestsController extends AppController
     {
         parent::initialize();
         $this->loadComponent('JsonRequestClient');
+        $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
@@ -115,9 +116,10 @@ class AppRequestsController extends AppController
             return $required_fields;
         }
         
-        if(intval($param['amount']) <= 0) {
+        if(floatval($param['amount']) <= 0.0) {
             return ['state' => 'error', 'msg' => 'amount is invalid', 'details' => $param['amount']];
         }
+        $param['amount'] = $this->GradidoNumber->parseInputNumberToCentNumber($param['amount']);
         
         if(isset($data->memo)) {
             $param['memo'] = $data->memo;
@@ -268,7 +270,7 @@ class AppRequestsController extends AppController
     
     public function getBalance($session_id = 0)
     {
-
+        $this->viewBuilder()->setLayout('ajax');
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
             return $this->returnJson($login_result);
@@ -284,16 +286,18 @@ class AppRequestsController extends AppController
             return $this->returnJson(['state' => 'success', 'balance' => 0]);
         }
         $now = new FrozenTime();
-        return $this->returnJson([
+        $body = [
             'state' => 'success',
             'balance' => $state_balance->amount,
             'decay' => $state_balance->partDecay($now),
             'decay_date' => $now
-        ]);
+        ];
+        $this->set('body', $body);
     }
     
     public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
     {
+        $this->viewBuilder()->setLayout('ajax');
         $startTime = microtime(true);
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
@@ -337,14 +341,29 @@ class AppRequestsController extends AppController
                 $transactions = array_reverse($transactions);
             }
         }
-        return $this->returnJson([
-                'state' => 'success',
-                'transactions' => $transactions,
-                'transactionExecutingCount' => $session->read('Transactions.executing'),
-                'count' => count($transactions),
-                'gdtSum' => $gdtSum,
-                'timeUsed' => microtime(true) - $startTime
-            ]);
+        
+        $state_balance = $stateBalancesTable->find()->where(['state_user_id' => $user['id']])->first();
+        
+        $body = [
+            'state' => 'success',
+            'transactions' => $transactions,
+            'transactionExecutingCount' => $session->read('Transactions.executing'),
+            'count' => count($transactions),
+            'gdtSum' => $gdtSum,
+            'timeUsed' => microtime(true) - $startTime
+        ];
+        $now = new FrozenTime();
+        $body['decay_date'] = $now;
+        
+        if(!$state_balance) {
+            $body['balance'] = 0.0;
+            $body['decay'] = 0.0;
+        } else {
+            $body['balance'] = $state_balance->amount;
+            $body['decay'] = $state_balance->partDecay($now);
+        }
+        
+        $this->set('body', $body);
     }
     
     private function acquireAccessToken($session_id)

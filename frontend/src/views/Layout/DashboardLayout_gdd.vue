@@ -9,10 +9,10 @@
         <b-nav-item href="#!" to="/transactions">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
         </b-nav-item>
+        <!--
         <b-nav-item href="#!" to="/profile">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
-        </b-nav-item>
-        <!--
+        </b-nav-item>       
         <b-nav-item href="#!" to="/profileedit">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
         </b-nav-item>
@@ -32,6 +32,7 @@
             :balance="balance"
             :gdt-balance="GdtBalance"
             :transactions="transactions"
+            :transactionCount="transactionCount"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -79,6 +80,8 @@ export default {
       balance: 0,
       GdtBalance: 0,
       transactions: [],
+      bookedBalance: 0,
+      transactionCount: 0,
     }
   },
   methods: {
@@ -94,19 +97,14 @@ export default {
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
-    async loadBalance() {
-      const result = await communityAPI.balance(this.$store.state.session_id)
-      if (result.success) {
-        this.balance = result.result.data.balance / 10000
-      } else {
-        // what to do when loading balance fails?
-      }
-    },
     async updateTransactions() {
       const result = await communityAPI.transactions(this.$store.state.session_id)
       if (result.success) {
-        this.GdtBalance = result.result.data.gdtSum / 10000
+        this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
+        this.balance = Number(result.result.data.decay)
+        this.bookedBalance = Number(result.result.data.balance)
+        this.transactionCount = result.result.data.count
       } else {
         // what to do when loading balance fails?
       }
@@ -119,7 +117,6 @@ export default {
     this.initScrollbar()
   },
   created() {
-    this.loadBalance()
     this.updateTransactions()
   },
 }

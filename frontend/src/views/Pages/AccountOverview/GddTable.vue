@@ -1,8 +1,8 @@
 <template>
   <div>
-    <b-list-group v-show="showTransactionList">
+    <b-list-group>
       <b-list-group-item
-        v-for="item in transactions"
+        v-for="item in transactions.slice(0, max)"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -38,7 +38,7 @@
           <h1 class="">
             <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
             <span v-else>-</span>
-            {{ $n(item.balance / 10000) }}
+            {{ $n(item.balance) }}
             <small>GDD</small>
           </h1>
           <h2 class="text-muted">{{ item.name }}</h2>
@@ -95,7 +95,7 @@
         <router-link
           v-else-if="transactions.length > 5"
           to="/transactions"
-          v-html="$t('transaction.show_all', { count: count })"
+          v-html="$t('transaction.show_all', { count: transactionCount })"
         ></router-link>
       </b-list-group-item>
     </b-list-group>
@@ -106,39 +106,27 @@
 export default {
   name: 'GddTable',
   props: {
-    showTransactionList: { type: Boolean, default: true },
     transactions: { default: [] },
+    max: { type: Number, default: 25 },
+    timestamp: { type: Number, default: 0 },
+    transactionCount: { type: Number, default: 0 },
   },
   data() {
     return {
       form: [],
       fields: ['balance', 'date', 'memo', 'name', 'transaction_id', 'type', 'details'],
       items: [],
-      count: 0,
     }
   },
-  created() {
-    this.$emit('change-transactions')
-  },
-  computed: {
-    filteredItems() {
-      return this.ojectToArray(this.items).reverse()
+  watch: {
+    timestamp: {
+      immediate: true,
+      handler: 'updateTransactions',
     },
   },
   methods: {
-    ojectToArray(obj) {
-      let result = new Array(Object.keys(obj).length)
-      Object.entries(obj).forEach((entry) => {
-        const [key, value] = entry
-        result[key] = value
-      })
-      return result
-    },
-    rowClass(item, type) {
-      if (!item || type !== 'row') return
-      if (item.type === 'receive') return 'table-success'
-      if (item.type === 'send') return 'table-warning'
-      if (item.type === 'creation') return 'table-primary'
+    updateTransactions() {
+      this.$emit('update-transactions')
     },
   },
 }

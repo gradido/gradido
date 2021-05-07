@@ -3,6 +3,7 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 use Cake\I18n\Time;
+use Cake\I18n\Number;
 
 /**
  * StateBalance Entity
@@ -34,7 +35,7 @@ class StateBalance extends Entity
         'state_user' => true
     ];
     
-    protected $_virtual = ['decay'];
+    protected $_virtual = ['decay','amount_float'];
     
     private function convertToTimestamp($dateOrTime)
     {
@@ -67,6 +68,7 @@ class StateBalance extends Entity
       return intval($this->amount * pow(0.99999997802044727, $decay_duration));
         
     }
+     
     public function partDecay($target_date)
     {
         $decay_duration = intval($this->convertToTimestamp($target_date) - $this->convertToTimestamp($this->record_date));

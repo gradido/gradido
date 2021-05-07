@@ -6,7 +6,7 @@ use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\ORM\TableRegistry;
-
+use Cake\I18n\Number;
 /**
  * Transactions Model
  *
@@ -260,7 +260,7 @@ class TransactionsTable extends Table
                 $state_balance->record_date = $su_transaction->balance_date;
                 $final_transactions[] = [
                     'type' => 'decay',
-                    'balance' => -intval($su_transaction->balance - $state_balance->decay),
+                    'balance' => floatval(intval($su_transaction->balance - $state_balance->decay)),
                     'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
                     'memo' => ''
                 ];

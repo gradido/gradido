@@ -79,7 +79,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(3)
+        expect(navbar.findAll('ul > li')).toHaveLength(2)
       })
 
       it('has first item "send" in navbar', () => {
@@ -104,17 +104,17 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
       })
 
-      it('has third item "My profile" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
-      })
-
-      it.skip('has third item "My profile" linked to profile in navbar', async () => {
-        navbar.findAll('ul > li > a').at(2).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
-      })
+      //it('has third item "My profile" in navbar', () => {
+      //  expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
+      //})
+      //
+      //it.skip('has third item "My profile" linked to profile in navbar', async () => {
+      //  navbar.findAll('ul > li > a').at(2).trigger('click')
+      //  await flushPromises()
+      //  await jest.runAllTimers()
+      //  await flushPromises()
+      //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
+      //})
 
       //it('has fourth item "Settigs" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
