@@ -183,7 +183,7 @@ class TransactionsTable extends Table
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
-                    $balance = -intval($prev->balance - $diff_amount);
+                    $balance = floatval(intval($prev->balance - $diff_amount));
                     // skip small decays (smaller than 0,00 GDD)
                     
                     if(abs($balance) >= 100) {
@@ -258,12 +258,15 @@ class TransactionsTable extends Table
             if($i == $stateUserTransactionsCount-1 && $decay == true) {
                 $state_balance->amount = $su_transaction->balance;
                 $state_balance->record_date = $su_transaction->balance_date;
-                $final_transactions[] = [
-                    'type' => 'decay',
-                    'balance' => floatval(intval($su_transaction->balance - $state_balance->decay)),
-                    'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
-                    'memo' => ''
-                ];
+                $balance = floatval($su_transaction->balance - $state_balance->decay);
+                if($balance > 100) {
+                    $final_transactions[] = [
+                        'type' => 'decay',
+                        'balance' => $balance,
+                        'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
+                        'memo' => ''
+                    ];
+                }
             }
         }
         
