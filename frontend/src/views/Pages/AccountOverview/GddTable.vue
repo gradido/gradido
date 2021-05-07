@@ -2,7 +2,7 @@
   <div>
     <b-list-group
       horizontal="sm"
-      class="w-100 justify-content-between align-content-space-around"      
+      class="w-100 justify-content-between align-content-space-around"
       v-for="item in transactions.slice(0, max)"
       :key="item.id"
       style="background-color: #ebebeba3 !important"
@@ -52,17 +52,17 @@
         {{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}
       </b-list-group-item>
     </b-list-group>
-   
-      <b-list-group-item v-show="this.$route.path == '/overview'">
-        <b-alert v-if="transactions.length === 0" show variant="secondary">
-          <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
-        </b-alert>
-        <router-link
-          v-else-if="transactions.length > 5"
-          to="/transactions"
-          v-html="$t('transaction.show_all', { count: count })"
-        ></router-link>
-      </b-list-group-item>
+
+    <b-list-group-item v-show="this.$route.path == '/overview'">
+      <b-alert v-if="transactions.length === 0" show variant="secondary">
+        <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
+      </b-alert>
+      <router-link
+        v-else-if="transactions.length > 5"
+        to="/transactions"
+        v-html="$t('transaction.show_all', { count: count })"
+      ></router-link>
+    </b-list-group-item>
   </div>
 </template>
 
@@ -83,65 +83,6 @@ export default {
   },
   created() {
     this.$emit('change-transactions')
-
-    this.transactions = [
-      {
-        name: 'Max Mustermann',
-        email: 'Maxim@Mustermann',
-        type: 'send',
-        transaction_id: 2,
-        date: '2021-02-19T13:25:38+00:00',
-        balance: 1920000,
-        memo: 'a piece of cake :)',
-        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-      },
-      {
-        name: 'Bob Bobmann',
-        email: 'Bob@Bobmann',
-        type: 'receive',
-        transaction_id: 3,
-        date: '2021-03-19T13:27:36+00:00',
-        balance: 1920000,
-        memo: 'test text hier eingeben :)',
-        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-      },
-      {
-        name: 'Gradido Akademie',
-        email: 'Gradido@Akademie',
-        type: 'creation',
-        transaction_id: 4,
-        date: '2021-03-22T13:25:36+00:00',
-        balance: 10000000,
-        memo: '1000 Gradidos für das Sammeln von Müll im Wald.',
-        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-      },
-      {
-        name: 'Verfall',
-        email: 'Gradido@Akademie',
-        type: 'decay',
-        transaction_id: 5,
-        date: '2021-02-22T13:25:37+00:00',
-        balance: 20000,
-        memo: 'verfall',
-        pubkey: '038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7',
-      },
-    ]
-  },
-  computed: {
-    filteredItems() {
-      return this.ojectToArray(this.items).reverse()
-    },
-  },
-  methods: {
-    ojectToArray(obj) {
-      let result = new Array(Object.keys(obj).length)
-      Object.entries(obj).forEach((entry) => {
-        const [key, value] = entry
-        result[key] = value
-        console.log(result)
-      })
-      return result
-    },
   },
 }
 </script>
