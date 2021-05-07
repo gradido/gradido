@@ -127,7 +127,7 @@ export default {
   },
   methods: {
     ojectToArray(obj) {
-      let result = new Array(Object.keys(obj).length)
+      const result = new Array(Object.keys(obj).length)
       Object.entries(obj).forEach((entry) => {
         const [key, value] = entry
         result[key] = value

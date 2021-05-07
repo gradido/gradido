@@ -21,20 +21,20 @@ const routes = [
       requiresAuth: true,
     },
   },
-  //{
+  // {
   //  path: '/profileedit',
   //  component: () => import('../views/Pages/UserProfileEdit.vue'),
   //  meta: {
   //    requiresAuth: true,
   //  },
-  //},
-  //{
+  // },
+  // {
   //  path: '/activity',
   //  component: () => import('../views/Pages/UserProfileActivity.vue'),
   //  meta: {
   //    requiresAuth: true,
   //  },
-  //},
+  // },
   {
     path: '/transactions',
     component: () => import('../views/Pages/UserProfileTransactionList.vue'),

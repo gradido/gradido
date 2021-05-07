@@ -68,6 +68,7 @@ export default {
       if (item.status === 'earned') return 'table-primary'
     },
     toogle(item) {
+      // eslint-disable-next-line no-unused-vars
       const temp =
         '<b-collapse visible v-bind:id="item.id">xxx <small class="text-muted">porta</small></b-collapse>'
     },

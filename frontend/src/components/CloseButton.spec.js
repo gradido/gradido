@@ -6,7 +6,7 @@ const localVue = global.localVue
 
 describe('CloseButton', () => {
   let wrapper
-  let propsData = {
+  const propsData = {
     target: 'Target',
     expanded: false,
   }

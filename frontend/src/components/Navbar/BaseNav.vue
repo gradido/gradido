@@ -90,8 +90,8 @@ export default {
   },
   computed: {
     classes() {
-      let color = `bg-${this.type}`
-      let classes = [
+      const color = `bg-${this.type}`
+      const classes = [
         { 'navbar-transparent': this.transparent },
         { [`navbar-expand-${this.expand}`]: this.expand },
       ]

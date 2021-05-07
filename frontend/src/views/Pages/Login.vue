@@ -112,7 +112,7 @@ export default {
   },
   methods: {
     async onSubmit() {
-      let loader = this.$loading.show({
+      const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
       const result = await loginAPI.login(this.model.email, this.model.password)
@@ -129,7 +129,7 @@ export default {
       }
     },
     closeAlert() {
-      loader.hide()
+      this.$loading.hide()
       this.loginfail = false
     },
   },
