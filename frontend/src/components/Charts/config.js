@@ -2,7 +2,7 @@ import { parseOptions } from '@/components/Charts/optionHelpers'
 import Chart from 'chart.js'
 
 export const Charts = {
-  mode: 'light', //(themeMode) ? themeMode : 'light';
+  mode: 'light', // (themeMode) ? themeMode : 'light';
   fonts: {
     base: 'Open Sans',
   },
@@ -34,9 +34,9 @@ export const Charts = {
 }
 
 function chartOptions() {
-  let { colors, mode, fonts } = Charts
+  const { colors, mode, fonts } = Charts
   // Options
-  let options = {
+  const options = {
     defaults: {
       global: {
         responsive: true,
@@ -59,21 +59,21 @@ function chartOptions() {
         elements: {
           point: {
             radius: 0,
-            backgroundColor: colors.theme['primary'],
+            backgroundColor: colors.theme.primary,
           },
           line: {
             tension: 0.4,
             borderWidth: 4,
-            borderColor: colors.theme['primary'],
+            borderColor: colors.theme.primary,
             backgroundColor: colors.transparent,
             borderCapStyle: 'rounded',
           },
           rectangle: {
-            backgroundColor: colors.theme['warning'],
+            backgroundColor: colors.theme.warning,
           },
           arc: {
-            backgroundColor: colors.theme['primary'],
-            borderColor: mode == 'dark' ? colors.gray[800] : colors.white,
+            backgroundColor: colors.theme.primary,
+            borderColor: mode === 'dark' ? colors.gray[800] : colors.white,
             borderWidth: 4,
           },
         },
@@ -94,11 +94,11 @@ function chartOptions() {
         },
         cutoutPercentage: 83,
         legendCallback: function (chart) {
-          let data = chart.data
+          const data = chart.data
           let content = ''
 
           data.labels.forEach(function (label, index) {
-            let bgColor = data.datasets[0].backgroundColor[index]
+            const bgColor = data.datasets[0].backgroundColor[index]
 
             content += '<span class="chart-legend-item">'
             content +=
@@ -172,7 +172,7 @@ export const basicOptions = {
   },
   responsive: true,
 }
-export let blueChartOptions = {
+export const blueChartOptions = {
   scales: {
     yAxes: [
       {
@@ -185,7 +185,7 @@ export let blueChartOptions = {
   },
 }
 
-export let lineChartOptionsBlue = {
+export const lineChartOptionsBlue = {
   ...basicOptions,
   tooltips: {
     backgroundColor: '#f5f5f5',

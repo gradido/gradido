@@ -6,7 +6,7 @@ const localVue = global.localVue
 describe('AccountOverview', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $t: jest.fn((t) => t),
   }
 

@@ -38,11 +38,6 @@ export default {
   },
   data() {
     return {
-      language: 'en',
-    }
-  },
-  data() {
-    return {
       config: {
         num: [1, 7],
         rps: 15,

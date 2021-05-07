@@ -141,8 +141,8 @@ export default {
       return this.password !== '' && this.checkPassword !== ''
     },
     passwordValidation() {
-      let errors = []
-      for (let condition of this.rules) {
+      const errors = []
+      for (const condition of this.rules) {
         if (!condition.regex.test(this.password)) {
           errors.push(condition.message)
         }

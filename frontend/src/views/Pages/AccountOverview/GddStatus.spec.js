@@ -6,11 +6,11 @@ const localVue = global.localVue
 describe('GddStatus', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $n: jest.fn((n) => n),
   }
 
-  let propsData = {
+  const propsData = {
     balance: 1234,
     GdtBalance: 9876,
   }

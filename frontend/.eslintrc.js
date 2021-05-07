@@ -3,28 +3,24 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    jest: true
+    jest: true,
   },
   parserOptions: {
-    parser: 'babel-eslint'
+    parser: 'babel-eslint',
   },
-  extends: [
-    'plugin:vue/essential',
-    'plugin:prettier/recommended'
-  ],
+  extends: ['standard', 'plugin:vue/essential', 'plugin:prettier/recommended'],
   // required to lint *.vue files
-  plugins: [
-    'vue',
-    'prettier',
-    'jest'
-  ],
+  plugins: ['vue', 'prettier', 'jest'],
   // add your custom rules here
   rules: {
     'no-console': ['error'],
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
-    'prettier/prettier': ['error', {
-      htmlWhitespaceSensitivity: 'ignore'
-    }],
-  }
+    'prettier/prettier': [
+      'error',
+      {
+        htmlWhitespaceSensitivity: 'ignore',
+      },
+    ],
+  },
 }

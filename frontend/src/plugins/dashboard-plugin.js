@@ -3,7 +3,7 @@ import '@/polyfills'
 // Notifications plugin. Used on Notifications page
 import Notifications from '@/components/NotificationPlugin'
 // Validation plugin used to validate forms
-import { configure } from 'vee-validate'
+import { configure, extend } from 'vee-validate'
 // A plugin file where you could register global components used across the app
 import GlobalComponents from './globalComponents'
 // A plugin file where you could register global directives
@@ -14,7 +14,6 @@ import SideBar from '@/components/SidebarPlugin'
 // element ui language configuration
 import lang from 'element-ui/lib/locale/lang/en'
 import locale from 'element-ui/lib/locale'
-locale.use(lang)
 
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
@@ -22,7 +21,6 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 // asset imports
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
-import { extend } from 'vee-validate'
 import * as rules from 'vee-validate/dist/rules'
 import { messages } from 'vee-validate/dist/locale/en.json'
 
@@ -40,6 +38,7 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 // import the styles
 import 'vue-loading-overlay/dist/vue-loading.css'
+locale.use(lang)
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {

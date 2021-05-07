@@ -9,22 +9,22 @@ const localVue = global.localVue
 describe('Login', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
   }
 
-  let state = {
+  const state = {
     loginfail: false,
   }
 
-  let store = new Vuex.Store({
+  const store = new Vuex.Store({
     state,
   })
 
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
   }
 
