@@ -39,6 +39,17 @@
           >
             {{ $t('whitepaper') }}
           </b-nav-item>
+          <b-nav-item
+            :href="
+              $i18n.locale === 'de'
+                ? 'https://gradido.net/de/contact/'
+                : 'https://gradido.net/en/contact/'
+            "
+            target="_blank"
+            icon="life-preserver"
+          >
+            {{ $t('site.navbar.support') }}
+          </b-nav-item>
         </b-nav>
       </b-col>
     </b-row>
