@@ -183,7 +183,7 @@ class TransactionsTable extends Table
                     $state_balance->amount = $prev->balance;
                     $state_balance->record_date = $prev->balance_date;
                     $diff_amount = $state_balance->partDecay($current->balance_date);
-                    $balance = floatval(intval($prev->balance - $diff_amount));
+                    $balance = floatval($prev->balance - $diff_amount);
                     // skip small decays (smaller than 0,00 GDD)
                     
                     if(abs($balance) >= 100) {
