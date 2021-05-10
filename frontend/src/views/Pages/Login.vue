@@ -102,6 +102,8 @@ export default {
   },
   methods: {
     async onSubmit() {
+      // error info  ausschalten
+      this.loginfail = false
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
@@ -117,10 +119,6 @@ export default {
         loader.hide()
         this.loginfail = true
       }
-    },
-    closeAlert() {
-      this.$loading.hide()
-      this.loginfail = false
     },
   },
 }
