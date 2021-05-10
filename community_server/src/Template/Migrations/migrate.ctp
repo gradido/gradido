@@ -15,4 +15,4 @@
     <p><?= json_encode($result) ?></p>
 <?php endif; ?>
     <p><?= $this->Html->link('Back to Dashboard', ['controller' => 'Dashboard', 'action' => 'index']) ?></p>
-);
+
