@@ -7,11 +7,13 @@
     <b-container fluid class="mt--6">
       <b-row>
         <b-col class="order-xl-1">
-          <gdd-table :transactions="transactions" @update-transactions="updateTransactions" />
+          <gdd-table
+            :timestamp="timestamp"
+            :transactionCount="transactionCount"
+            :transactions="transactions"
+            @update-transactions="updateTransactions"
+          />
         </b-col>
-      </b-row>
-      <b-row class="text-center mb-6" v-if="transactions.length == 0">
-        <b-col class="h2">{{ $t('transaction.nullTransactions') }}</b-col>
       </b-row>
     </b-container>
   </div>
@@ -27,6 +29,12 @@ export default {
     transactions: {
       default: [],
     },
+    transactionCount: { type: Number, default: 0 },
+  },
+  data() {
+    return {
+      timestamp: Date.now(),
+    }
   },
   methods: {
     updateTransactions() {

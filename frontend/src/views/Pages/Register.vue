@@ -191,7 +191,7 @@ export default {
       )
       if (result.success) {
         this.$store.dispatch('login', {
-          session_id: result.result.data.session_id,
+          sessionId: result.result.data.session_id,
           email: this.model.email,
         })
         this.model.email = ''
@@ -232,8 +232,8 @@ export default {
       return this.model.email !== ''
     },
     passwordValidation() {
-      let errors = []
-      for (let condition of this.rules) {
+      const errors = []
+      for (const condition of this.rules) {
         if (!condition.regex.test(this.password)) {
           errors.push(condition.message)
         }

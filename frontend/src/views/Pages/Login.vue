@@ -44,23 +44,13 @@
                     v-model="model.password"
                   ></base-input>
 
-                  <b-alert v-show="loginfail" show variant="warning">
+                  <b-alert v-show="loginfail" show dismissible variant="warning">
                     <span class="alert-text bv-example-row">
                       <b-row>
-                        <b-col class="col-9 text-left">
+                        <b-col class="col-9 text-left text-dark">
                           <strong>
                             Leider konnten wir keinen Account finden mit diesen Daten!
                           </strong>
-                        </b-col>
-                        <b-col class="text-right">
-                          <a @click="closeAlert">
-                            <div>
-                              <b-icon-exclamation-triangle-fill
-                                class="h2 mb-0"
-                              ></b-icon-exclamation-triangle-fill>
-                              <b-icon-x class="h1 pl-2"></b-icon-x>
-                            </div>
-                          </a>
                         </b-col>
                       </b-row>
                     </span>
@@ -112,13 +102,15 @@ export default {
   },
   methods: {
     async onSubmit() {
-      let loader = this.$loading.show({
+      // error info  ausschalten
+      this.loginfail = false
+      const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
-          session_id: result.result.data.session_id,
+          sessionId: result.result.data.session_id,
           email: this.model.email,
         })
         this.$router.push('/overview')
@@ -127,10 +119,6 @@ export default {
         loader.hide()
         this.loginfail = true
       }
-    },
-    closeAlert() {
-      loader.hide()
-      this.loginfail = false
     },
   },
 }

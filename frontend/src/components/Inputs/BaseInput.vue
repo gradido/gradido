@@ -170,7 +170,7 @@ export default {
   },
   methods: {
     updateValue(evt) {
-      let value = evt.target.value
+      const value = evt.target.value
       this.$emit('input', value)
     },
     onFocus(evt) {
