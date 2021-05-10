@@ -19,7 +19,7 @@
         :transactionCount="transactionCount"
         @update-transactions="updateTransactions"
       />
-      <gdd-table-footer :count="count"/>
+      <gdd-table-footer :count="transactionCount"/>
     </b-container>
   </div>
 </template>
