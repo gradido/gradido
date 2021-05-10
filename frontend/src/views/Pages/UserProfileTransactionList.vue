@@ -15,9 +15,6 @@
           />
         </b-col>
       </b-row>
-      <b-row class="text-center mb-6" v-if="transactions.length == 0">
-        <b-col class="h2">{{ $t('transaction.nullTransactions') }}</b-col>
-      </b-row>
     </b-container>
   </div>
 </template>

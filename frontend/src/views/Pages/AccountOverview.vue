@@ -19,6 +19,7 @@
         :transactionCount="transactionCount"
         @update-transactions="updateTransactions"
       />
+      <gdd-table-footer :transactionCount="transactionCount" />
     </b-container>
   </div>
 </template>
@@ -26,6 +27,7 @@
 import GddStatus from './AccountOverview/GddStatus.vue'
 import GddSend from './AccountOverview/GddSend.vue'
 import GddTable from './AccountOverview/GddTable.vue'
+import GddTableFooter from './AccountOverview/GddTableFooter.vue'
 
 export default {
   name: 'Overview',
@@ -47,6 +49,7 @@ export default {
     GddStatus,
     GddSend,
     GddTable,
+    GddTableFooter,
   },
   methods: {
     toggleShowList(bool) {

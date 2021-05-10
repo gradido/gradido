@@ -88,15 +88,10 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
-      <b-list-group-item v-show="this.$route.path == '/overview'">
-        <b-alert v-if="transactions.length === 0" show variant="secondary">
+      <b-list-group-item v-show="transactionCount === 0">
+        <b-alert show variant="secondary">
           <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
         </b-alert>
-        <router-link
-          v-else-if="transactions.length > 5"
-          to="/transactions"
-          v-html="$t('transaction.show_all', { count: transactionCount })"
-        ></router-link>
       </b-list-group-item>
     </b-list-group>
   </div>
