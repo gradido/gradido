@@ -18,7 +18,7 @@ use Cake\Validation\Validator;
  * @method \App\Model\Entity\BlockchainType[] patchEntities($entities, array $data, array $options = [])
  * @method \App\Model\Entity\BlockchainType findOrCreate($search, callable $callback = null, $options = [])
  */
-class BlockchainTypesTable extends Table
+class BlockchainTypesTable extends AppTable
 {
     /**
      * Initialize method
@@ -64,5 +64,38 @@ class BlockchainTypesTable extends Table
             ->allowEmptyString('symbol');
 
         return $validator;
+    }
+    
+    public function fillWithDefault()
+    {
+        $entry_contents = [
+            [
+                'id' => 1,
+                'name' => 'mysql',
+                'text' => 'use mysql db as blockchain, work only with single community-server', 
+                'symbol' => NULL
+            ],
+            [   
+                'id' => 2,
+                'name' => 'hedera',
+                'text' => 'use hedera for transactions', 
+                'symbol' => 'HBAR'
+            ]
+        ];
+        $entities = $this->newEntities($entry_contents);
+        $this->truncate();
+        $save_results = $this->saveMany($entities);
+        $errors = [];
+        foreach($save_results as $i => $result)
+        {
+            if(!$result) {
+                $errors[] = $entities[$i]->getErrors();
+            }
+        }
+        if(count($errors) > 0) {
+            return ['success' => false, 'msg' => 'error by saving blockchain types', 'errors' => $errors];
+        }
+        return ['success' => true];
+
     }
 }

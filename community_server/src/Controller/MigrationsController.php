@@ -41,7 +41,9 @@ class MigrationsController extends AppController
         $startTime = microtime(true);
         $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
         $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        $transactionTypesTable = TableRegistry::getTableLocator()->get('TransactionTypes');
         $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+        $blockchainTypesTable = TableRegistry::getTableLocator()->get('BlockchainTypes');
         
         $new_db_version = 1;
         
@@ -51,7 +53,9 @@ class MigrationsController extends AppController
             $stateUserTransactionsTable->truncate();
             $commands = [
                 [$transactionsTable, 'fillStateUserTransactions'],
-                [$stateBalancesTable, 'updateAllBalances']
+                [$stateBalancesTable, 'updateAllBalances'],
+                [$blockchainTypesTable, 'fillWithDefault'],
+                [$transactionTypesTable, 'fillWithDefault']  
             ];
             $new_db_version = 2;
         }
