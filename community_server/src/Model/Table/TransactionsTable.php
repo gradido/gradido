@@ -1,12 +1,12 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
+
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\ORM\TableRegistry;
-use Cake\I18n\Number;
+use Cake\I18n\FrozenTime;
 /**
  * Transactions Model
  *
@@ -172,24 +172,25 @@ class TransactionsTable extends Table
             //var_dump($su_transaction);
             //die("step");
             // add decay transactions 
-            if($i > 0 && $decay == true) 
-            {
+            $prev = null;
+            if($i > 0 ) {
                 $prev = $stateUserTransactions[$i-1];
+            }
+            if($prev && $decay == true) 
+            {
+                
                 if($prev->balance > 0) {
                 //    var_dump($stateUserTransactions);
                     $current = $su_transaction;
                     //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
-                    $interval = $current->balance_date->diff($prev->balance_date);
-                    $state_balance->amount = $prev->balance;
-                    $state_balance->record_date = $prev->balance_date;
-                    $diff_amount = $state_balance->partDecay($current->balance_date);
-     
+                    $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
+  
                     //echo $interval->format('%R%a days');
                     //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
                     $final_transactions[] = [ 
                         'type' => 'decay',
-                        'balance' => floatval(intval($prev->balance - $diff_amount)),
-                        'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
+                        'balance' => floatval($prev->balance - $calculated_decay['balance']),
+                        'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
                         'memo' => ''
                     ];
                 }
@@ -207,13 +208,16 @@ class TransactionsTable extends Table
             echo "<br>";*/
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
+                $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);
+                
                 $final_transactions[] = [
                   'name' => 'Gradido Akademie',
                   'type' => 'creation',
                   'transaction_id' => $transaction->id,
                   'date' => $transaction->received,// $creation->target_date,
                   'target_date' => $creation->target_date,
-                  'balance' => $creation->amount,
+                  'creation_amount' => $creation->amount,
+                  'balance' => $balance,
                   'memo' => $transaction->memo
                 ];
             } else if($su_transaction->transaction_type_id == 2) { // transfer or send coins
@@ -253,12 +257,18 @@ class TransactionsTable extends Table
             }
 
             if($i == $stateUserTransactionsCount-1 && $decay == true) {
-                $state_balance->amount = $su_transaction->balance;
-                $state_balance->record_date = $su_transaction->balance_date;
+                $calculated_decay = $stateBalancesTable->calculateDecay(
+                        $su_transaction->balance, 
+                        $su_transaction->balance_date, new FrozenTime(), true);
+                $decay_start_date = $stateBalancesTable->getDecayStartDateCached();
+                $duration = $su_transaction->balance_date->timeAgoInWords();
+                if($decay_start_date > $su_transaction->balance_date) {
+                    $duration = $decay_start_date->timeAgoInWords();
+                }
                 $final_transactions[] = [
                     'type' => 'decay',
-                    'balance' => floatval(intval($su_transaction->balance - $state_balance->decay)),
-                    'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
+                    'balance' => floatval($su_transaction->balance - $calculated_decay['balance']),
+                    'decay_duration' => $duration,
                     'memo' => ''
                 ];
             }
@@ -337,12 +347,13 @@ class TransactionsTable extends Table
     }
     
     public function fillStateUserTransactions()
-    {
+    {        
         $missing_transaction_ids = [];
         $transaction_ids = $this
                 ->find('all')
                 ->select(['id', 'transaction_type_id'])
                 ->order(['id'])
+                ->where(['transaction_type_id <' => 6])
                 ->all()
                 ;
         $state_user_transaction_ids = $this->StateUserTransactions
@@ -422,21 +433,10 @@ class TransactionsTable extends Table
           }
         }
         
-        $results = $this->StateUserTransactions->saveMany($finalEntities);
-        $errors = [];
-        foreach($results as $i => $res) {
-          if($res == false) {
-              $errors[] = $finalEntities[$i]->getErrors();
-          }
+        $save_results = $this->StateUserTransactions->saveManyWithErrors($finalEntities);
+        if(!$save_results['success']) {
+            $save_results['msg'] = 'error by saving at least one state user transaction';
         }
-        if(count($errors) == 0) {
-            $result = ['success' => true];
-        } else {
-            $result = ['success' => false, 'msg' => 'error by saving at least one state user transaction', 'errors' => $errors];
-        }
-        
-        
-        
-        return $result;
+        return $save_results;
     }
 }

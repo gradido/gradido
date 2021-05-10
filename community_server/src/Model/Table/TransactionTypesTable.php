@@ -55,7 +55,7 @@ class TransactionTypesTable extends AppTable
 
         $validator
             ->scalar('name')
-            ->maxLength('name', 24)
+            ->maxLength('name', 45)
             ->requirePresence('name', 'create')
             ->notEmptyString('name');
 
@@ -111,17 +111,10 @@ class TransactionTypesTable extends AppTable
         ];
         $entities = $this->newEntities($entry_contents);
         $this->truncate();
-        $save_results = $this->saveMany($entities);
-        $errors = [];
-        foreach($save_results as $i => $result)
-        {
-            if(!$result) {
-                $errors[] = $entities[$i]->getErrors();
-            }
+        $save_results = $this->saveManyWithErrors($entities);
+        if(!$save_results['success']) {
+            $save_results['msg'] = 'error by saving default transaction types';
         }
-        if(count($errors) > 0) {
-            return ['success' => false, 'msg' => 'error by saving transaction types', 'errors' => $errors];
-        }
-        return ['success' => true];
+        return $save_results;
     }
 }

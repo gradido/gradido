@@ -91,25 +91,38 @@ class StateBalancesTable extends Table
         return $rules;
     }
     
-    public static function calculateDecay($startBalance, FrozenTime $startDate, FrozenTime $endDate)
+    public function calculateDecay($startBalance, FrozenTime $startDate, FrozenTime $endDate, $withInterval = false)
     {
         $decayStartDate = self::getDecayStartDateCached();
         // if no start decay block exist, we just return input
         // if start date for decay is after enddate, we also just return input
         if($decayStartDate === null || $decayStartDate >= $endDate) {
-            return $startBalance;
+            if($withInterval) {
+                return ['balance' => $startBalance, 'interval' => new \DateInterval('PT0S')];
+            } else {
+                return $startBalance;
+            }
         }
         $state_balance = $this->newEntity();
         $state_balance->amount = $startBalance;
+        $interval = null;
         // if decay start date is before start date we calculate decay for full duration
         if($decayStartDate < $startDate) {
             $state_balance->record_date = $startDate;
+            $interval = $endDate->diff($startDate);
         } 
         // if decay start in between start date and end date we caculcate decay from decay start time to end date
         else {
             $state_balance->record_date = $decayStartDate;
+            $interval = $endDate->diff($decayStartDate);
         }
-        return $state_balance->partDecay($endDate);
+        $decay = $state_balance->partDecay($endDate);
+        if($withInterval) {
+            return ['balance' => $decay, 'interval' => $interval];
+        } else {
+            return $decay;
+        }
+        
         
     }
     

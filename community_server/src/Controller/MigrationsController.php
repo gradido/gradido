@@ -13,6 +13,12 @@ use Cake\ORM\TableRegistry;
  */
 class MigrationsController extends AppController
 {
+    public function initialize()
+    {
+        parent::initialize();
+        $this->Auth->allow('migrate');
+    }
+    
     /**
      * Index method
      *
@@ -36,8 +42,12 @@ class MigrationsController extends AppController
         return ['success' => true];
     }
     
-    public function migrate($html, $current_db_version) 
+    public function migrate() 
     {
+
+        $html = $this->request->getQuery('html');
+        $current_db_version = $this->request->getQuery('db_version');
+
         $startTime = microtime(true);
         $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
         $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
@@ -52,10 +62,10 @@ class MigrationsController extends AppController
         if($current_db_version == 1) {    
             $stateUserTransactionsTable->truncate();
             $commands = [
-                [$transactionsTable, 'fillStateUserTransactions'],
-                [$stateBalancesTable, 'updateAllBalances'],
                 [$blockchainTypesTable, 'fillWithDefault'],
-                [$transactionTypesTable, 'fillWithDefault']  
+                [$transactionTypesTable, 'fillWithDefault'],
+                [$transactionsTable, 'fillStateUserTransactions'],
+                [$stateBalancesTable, 'updateAllBalances']
             ];
             $new_db_version = 2;
         }

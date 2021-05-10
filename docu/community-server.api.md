@@ -23,13 +23,13 @@ Additional session can be provided as GET-Parameter
 ```json
 {
 	"state":"success",
-        "balance":1590.60,
+        "balance":15906078,
         "decay":15873851,
         "decay_date":"2021-04-16T11:47:21+00:00"
 }
 ```
 
-- `balance`   : balance describes gradido
+- `balance`   : balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
 - `decay`     : balance with decay on it at the time in decay_date, so it is the precise balance of user at time of calling this function
 - `decay_date`: date and time for decay amount, should be the time and date of function call 
 
@@ -59,16 +59,32 @@ Assuming: session is valid
 {
 	"state":"success",
 	"transactions": [
+                { 
+                        "type": "decay",
+                        "balance": "14.74",
+                        "decay_duration": "4 days, 2 hours ago",
+                        "memo": ""
+                },
 		{
 			"name": "Max Mustermann",
 			"email": "Maxim Mustermann", 
 			"type": "send",
 			"transaction_id": 2,
 			"date": "2021-02-19T13:25:36+00:00",
-			"balance": 192.0,
+			"balance": 192,
 			"memo": "a piece of cake :)",
 			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
-		 }
+		 },
+                { 
+                        "name": "Gradido Akademie",
+                        "type": "creation",
+                        "transaction_id": 10,
+                        "date": "2021-04-15T11:19:45+00:00",
+                        "target_date": "2021-02-01T00:00:00+00:00",
+                        "creation_amount": "1000",
+                        "balance": "1000",    
+                        "memo": "AGE Februar 2021" 
+                }
 	],
 	"transactionExecutingCount": 0,
 	"count": 1,
@@ -95,8 +111,11 @@ Transaction:
   - `receiver`: user has received gradidos from another user
 - `transaction_id`: id of transaction in db, in stage2 also the hedera sequence number of transaction 
 - `date`: date of ordering transaction (booking date)
-- `balance`: Gradido 
+- `balance`: Gradido as float, max 2 Nachkommastellen, by creation balance after subtract decay amount
 - `memo`: Details about transaction
+- `decay_duration`: only for decay, time duration for decay calculation in english text 
+- `creation_amount`: only for creation transaction, created account before decay
+- `target_date`: only by creation transaction, target date for creation, start time for decay calculation (if < as global decay start time)
 
 ## Creation transaction
 Makes a creation transaction to create new Gradido
@@ -150,7 +169,6 @@ with
 - `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
 - `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
 - `amount`: gdd amount to transfer in gradido cent (10000000 = 1000,00 GDD)
-- `target_date`: target date for creation, can be max 3 months before current date, but not after current date, allowed formats do you find here: https://pocoproject.org/docs/Poco.DateTimeFormat.html
 - `memo`: text for receiver, currently saved as clear text in blockchain
 - `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there
              if set to false, transaction must be signed after on `http://localhost/account/checkTransactions`
@@ -244,4 +262,42 @@ Without auto-sign the transaction is pending on the login-server and waits for t
 // TODO how is this more secure?
 // TODO Is this in line with our usability goals?
 // TODO Should this not be handled client side?
+
+
+# Klicktipp
+
+## Subscribe
+Subscribe current logged in user to gradido newsletter
+
+### Request
+`GET http://localhost/api/klicktipp_subscribe/[session_id]`
+Parts symbolized by [] are optional
+  - session_id: session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this
+
+### Response
+Assuming: session is valid
+
+```json
+{
+    "state": "success",
+    "redirect_url": "<redirect url from klicktipp>"
+}
+````
+
+## Unsubscribe
+Unsubscribe current logged in user from gradido newsletter
+
+### Request
+`GET http://localhost/api/klicktipp_unsubscribe/[session_id]`
+Parts symbolized by [] are optional
+  - session_id: session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this
+
+### Response
+Assuming: session is valid
+
+```json
+{
+    "state": "success"
+}
+````
 

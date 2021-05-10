@@ -10,7 +10,7 @@
 <p>Migrate from Version <?= $db_version ?></p>
 <?php if($result['success']) : ?> 
     <h3><success>Success</success></h3>
-<?php elseif : ?>
+<?php else : ?>
     <h3><error>Error</error></h3>
     <p><?= json_encode($result) ?></p>
 <?php endif; ?>

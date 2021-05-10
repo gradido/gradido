@@ -12,6 +12,9 @@ $body['gdtSum'] = $this->element('centToFloat', ['cent' => $body['gdtSum'], 'pre
 
 foreach($body['transactions'] as $i => $transaction) {
     $body['transactions'][$i]['balance'] = $this->element('centToFloat', ['cent' => $transaction['balance'], 'precision' => 4]);
+    if(isset($transaction['creation_amount'])) {
+        $body['transactions'][$i]['creation_amount'] = $this->element('centToFloat', ['cent' => $transaction['creation_amount'], 'precision' => 4]);
+    }
 }
 
 ?><?= json_encode($body) ?>
