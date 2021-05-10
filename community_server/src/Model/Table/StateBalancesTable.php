@@ -1,14 +1,12 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 use Cake\ORM\TableRegistry;
-use Cake\I18n\Date;
-use Cake\I18n\Time;
+use Cake\I18n\FrozenTime;
 
 /**
  * StateBalances Model
@@ -28,6 +26,7 @@ use Cake\I18n\Time;
  */
 class StateBalancesTable extends Table
 {
+    private static $startDecayDate = null;
     /**
      * Initialize method
      *
@@ -48,6 +47,15 @@ class StateBalancesTable extends Table
             'foreignKey' => 'state_user_id',
             'joinType' => 'INNER'
         ]);
+    }
+    
+    public static function getDecayStartDateCached()
+    {
+        if(self::$startDecayDate == null) {
+            $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+            self::$startDecayDate = $transactionsTable->getDecayStartDate();
+        }
+        return self::$startDecayDate;
     }
 
     /**
@@ -83,20 +91,33 @@ class StateBalancesTable extends Table
         return $rules;
     }
     
-    
-    public function sortTransactions($a, $b)
+    public static function calculateDecay($startBalance, FrozenTime $startDate, FrozenTime $endDate)
     {
-        if ($a['date'] == $b['date']) {
-            return 0;
+        $decayStartDate = self::getDecayStartDateCached();
+        // if no start decay block exist, we just return input
+        // if start date for decay is after enddate, we also just return input
+        if($decayStartDate === null || $decayStartDate >= $endDate) {
+            return $startBalance;
         }
-        return ($a['date'] > $b['date']) ? -1 : 1;
+        $state_balance = $this->newEntity();
+        $state_balance->amount = $startBalance;
+        // if decay start date is before start date we calculate decay for full duration
+        if($decayStartDate < $startDate) {
+            $state_balance->record_date = $startDate;
+        } 
+        // if decay start in between start date and end date we caculcate decay from decay start time to end date
+        else {
+            $state_balance->record_date = $decayStartDate;
+        }
+        return $state_balance->partDecay($endDate);
+        
     }
-    
     
     public function updateBalances($stateUserId)
     {
         $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
         $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        $now = new FrozenTime;
         // info: cakephp use lazy loading, query will be executed later only if needed
         $state_balances = $this->find('all')->where(['state_user_id' => $stateUserId]);
         $state_user_transactions = $stateUserTransactionsTable
@@ -128,18 +149,26 @@ class StateBalancesTable extends Table
             if($state_user_transactions->count() == 0){
                 $clear_state_balance = true;
             } else {
+                
+                $first_state_balance = $state_balances->first();
+                $first_state_balance_decayed = self::calculateDecay(
+                        $first_state_balance->amount, 
+                        $first_state_balance->record_date,
+                        $now);
+                
                 $last_state_user_transaction = $state_user_transactions->last();
-                $last_transaction = $this->newEntity();
-                $last_transaction->amount = $last_state_user_transaction->balance;
-                $last_transaction->record_date = $last_state_user_transaction->balance_date;
+                $last_state_user_transaction_decayed = self::calculateDecay(
+                        $last_state_user_transaction->balance, 
+                        $last_state_user_transaction->balance_date, 
+                        $now);
                 // if entrys are nearly the same, we don't need doing anything
-                if(abs($last_transaction->decay - $state_balances->first()->decay) > 100) {
+                if(abs($last_state_user_transaction_decayed - $first_state_balance_decayed) > 100) {
                     $recalculate_state_user_transactions_balance = true;
                     $update_state_balance = true;
                 }
             }
         }
-        
+
         if(!$recalculate_state_user_transactions_balance) {
             $last_state_user_transaction = $state_user_transactions->last();
             if($last_state_user_transaction && $last_state_user_transaction->balance <= 0) {
@@ -223,7 +252,11 @@ class StateBalancesTable extends Table
                 if($i == 0) {
                     $balance_cursor->amount = $amount;
                 } else {
-                    $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                    
+                    //$balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                    $balance_cursor->amount = 
+                            $this->calculateDecay($balance_cursor->amount, $balance_cursor->recordDate, $amount_date) 
+                            + $amount;
                 }
                 //echo "new balance: " . $balance_cursor->amount . "<br>";
                

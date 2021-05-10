@@ -211,7 +211,8 @@ class TransactionsTable extends Table
                   'name' => 'Gradido Akademie',
                   'type' => 'creation',
                   'transaction_id' => $transaction->id,
-                  'date' => $creation->target_date,
+                  'date' => $transaction->received,// $creation->target_date,
+                  'target_date' => $creation->target_date,
                   'balance' => $creation->amount,
                   'memo' => $transaction->memo
                 ];
@@ -319,5 +320,19 @@ class TransactionsTable extends Table
         return true;
       }
       return ['state' => 'error', 'msg' => 'error by saving transaction', 'details' => $transaction->getErrors()];
+    }
+    
+    /*!
+     * @return: false if no decay start block found
+     * @return: DateTime Object with start date if one start block found
+     * @return: ['state':'error'] if more than one found
+     */
+    public function getDecayStartDate()
+    {
+        $transaction = $this->find()->where(['transaction_type_id' => 9])->select(['received'])->order(['received' => 'ASC']);
+        if($transaction->count() == 0) {
+            return null;
+        }
+        return $transaction->first()->received;
     }
 }
