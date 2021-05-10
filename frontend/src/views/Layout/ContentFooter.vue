@@ -4,7 +4,11 @@
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
-          <a :href="`https://gradido.net/${$i18n.locale}`" class="font-weight-bold ml-1">
+          <a
+            :href="`https://gradido.net/${$i18n.locale}`"
+            class="font-weight-bold ml-1"
+            target="_blank"
+          >
             Gradido-Akademie
           </a>
           |
