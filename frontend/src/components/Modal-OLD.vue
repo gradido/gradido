@@ -60,7 +60,7 @@ export default {
       type: String,
       default: '',
       validator(value) {
-        let acceptedValues = ['', 'notice', 'mini']
+        const acceptedValues = ['', 'notice', 'mini']
         return acceptedValues.indexOf(value) !== -1
       },
       description: 'Modal type (notice|mini|"") ',
@@ -73,7 +73,7 @@ export default {
       type: String,
       description: 'Modal size',
       validator(value) {
-        let acceptedValues = ['', 'sm', 'lg']
+        const acceptedValues = ['', 'sm', 'lg']
         return acceptedValues.indexOf(value) !== -1
       },
     },

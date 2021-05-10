@@ -102,7 +102,7 @@ export default {
   created() {},
   watch: {
     $form: function () {
-      stunden(this.form)
+      this.stunden(this.form)
     },
   },
   mounted() {},
@@ -133,16 +133,16 @@ export default {
     },
     deleteNewMessage: function (event) {
       this.form.splice(event, null)
-      this.messages.splice(index, 1)
+      this.messages.splice(this.index, 1)
       this.index--
     },
     submitForm: function (e) {
-      //console.log('submitForm')
+      // console.log('submitForm')
       this.messages = [{ DaysNumber: '', TextDecoded: '' }]
       this.submitted = true
     },
     textFocus() {
-      //console.log('textFocus TODO')
+      // console.log('textFocus TODO')
     },
     newWorkForm() {
       this.formular = `  
@@ -174,7 +174,7 @@ export default {
               ></textarea>
             </base-input>
           </b-col>
-         `
+       `
 
       // console.log('newWorkForm TODO')
       const myElement = this.$refs.mydiv

@@ -43,11 +43,11 @@ export default {
     },
     onFileChange(fieldName, file) {
       const { maxSize } = this
-      let imageFile = file[0]
+      const imageFile = file[0]
 
-      //check if user actually selected a file
+      // check if user actually selected a file
       if (file.length > 0) {
-        let size = imageFile.size / maxSize / maxSize
+        const size = imageFile.size / maxSize / maxSize
         if (!imageFile.type.match('image.*')) {
           // check whether the upload is an image
           this.errorDialog = true
@@ -58,8 +58,8 @@ export default {
           this.errorText = 'Your file is too big! Please select an image under 1MB'
         } else {
           // Append file into FormData & turn file into image URL
-          let formData = new FormData()
-          let imageURL = URL.createObjectURL(imageFile)
+          const formData = new FormData()
+          const imageURL = URL.createObjectURL(imageFile)
           formData.append(fieldName, imageFile)
           // Emit FormData & image URL to the parent component
           this.$emit('input', { formData, imageURL })

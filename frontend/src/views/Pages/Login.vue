@@ -112,13 +112,13 @@ export default {
   },
   methods: {
     async onSubmit() {
-      let loader = this.$loading.show({
+      const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
-          session_id: result.result.data.session_id,
+          sessionId: result.result.data.session_id,
           email: this.model.email,
         })
         this.$router.push('/overview')
@@ -129,7 +129,7 @@ export default {
       }
     },
     closeAlert() {
-      loader.hide()
+      this.$loading.hide()
       this.loginfail = false
     },
   },

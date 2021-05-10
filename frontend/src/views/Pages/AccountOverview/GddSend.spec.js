@@ -7,18 +7,18 @@ const localVue = global.localVue
 describe('GddSend', () => {
   let wrapper
 
-  let state = {
+  const state = {
     user: {
       balance: 1234,
       balance_gdt: 9876,
     },
   }
 
-  let store = new Vuex.Store({
+  const store = new Vuex.Store({
     state,
   })
 
-  let mocks = {
+  const mocks = {
     //    $n: jest.fn((n) => n),
     $t: jest.fn((t) => t),
     $moment: jest.fn((m) => ({

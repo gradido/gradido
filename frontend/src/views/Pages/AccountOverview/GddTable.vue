@@ -44,12 +44,10 @@
           {{ $n(item.balance) }}
         </b>
       </b-list-group-item>
-      <b-list-group-item class="w-100 align-items-start">
-        <b class="text-muted">{{ item.name }}</b>
-        <div>{{ item.memo }}</div>
-      </b-list-group-item>
-      <b-list-group-item class="w-100 align-items-start">
-        {{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}
+      <b-list-group-item>
+        <b-alert v-if="transactions.length === 0" show variant="secondary">
+          <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
+        </b-alert>
       </b-list-group-item>
     </b-list-group>
 
@@ -72,17 +70,26 @@ export default {
   props: {
     transactions: { default: [] },
     max: { type: Number, default: 25 },
+    timestamp: { type: Number, default: 0 },
+    transactionCount: { type: Number, default: 0 },
   },
   data() {
     return {
       form: [],
       fields: ['balance', 'date', 'memo', 'name', 'transaction_id', 'type', 'details'],
       items: [],
-      count: 0,
     }
   },
-  created() {
-    this.$emit('change-transactions')
+  watch: {
+    timestamp: {
+      immediate: true,
+      handler: 'updateTransactions',
+    },
+  },
+  methods: {
+    updateTransactions() {
+      this.$emit('update-transactions')
+    },
   },
 }
 </script>
