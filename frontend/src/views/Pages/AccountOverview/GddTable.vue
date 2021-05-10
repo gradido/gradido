@@ -88,8 +88,8 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
-      <b-list-group-item v-show="transactionCount === 0">
-        <b-alert show variant="secondary">
+      <b-list-group-item>
+        <b-alert v-if="transactions.length === 0" show variant="secondary">
           <span class="alert-text">{{ $t('transaction.nullTransactions') }}</span>
         </b-alert>
       </b-list-group-item>
