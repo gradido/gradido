@@ -50,6 +50,7 @@
             <a
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
               class="nav-link text-lg"
+              target="_blank"
             >
               {{ $t('members_area') }}
             </a>
