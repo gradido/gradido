@@ -3,7 +3,8 @@ import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
 import { configure, extend } from 'vee-validate'
-import { required, email, min, between, double } from 'vee-validate/dist/rules'
+// eslint-disable-next-line camelcase
+import { required, email, min, between, double, is_not } from 'vee-validate/dist/rules'
 
 // store
 import { store } from './store/store'
@@ -53,6 +54,13 @@ extend('double', {
 extend('between', {
   ...between,
   message: (_, values) => i18n.t('validations.messages.between', values),
+})
+
+// eslint-disable-next-line camelcase
+extend('is_not', {
+  // eslint-disable-next-line camelcase
+  ...is_not,
+  message: (_, values) => i18n.t('form.validation.is-not', values),
 })
 
 /* eslint-disable no-new */

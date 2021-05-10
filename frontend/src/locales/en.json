@@ -46,7 +46,8 @@
     "thx":"Thank you,",
     "send_success":"your transaction was successfully completed",
     "validation": {
-      "double": "The {field} field must be a decimal with two digits"
+      "double": "The {field} field must be a decimal with two digits",
+      "is-not": "You cannot send Gradidos to yourself"
     }
   },
   "error": {

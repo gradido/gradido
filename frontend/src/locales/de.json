@@ -46,7 +46,8 @@
     "thx":"Danke,",
     "send_success":"deine Transaktion wurde erfolgreich ausgeführt",
     "validation": {
-      "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein"
+      "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
+      "is-not": "Du kannst Dir selbst keine Gradidos überweisen"
     }
   },
   "error": {

@@ -53,7 +53,15 @@
               </div>
               <br />
               <div>
-                <validation-provider name="Email" rules="required|email" v-slot="{ errors }">
+                <validation-provider
+                  name="Email"
+                  :rules="{
+                    required: true,
+                    email: true,
+                    is_not: $store.state.email,
+                  }"
+                  v-slot="{ errors }"
+                >
                   <b-row>
                     <b-col class="text-left p-3 p-sm-1">{{ $t('form.receiver') }}</b-col>
                     <b-col v-if="errors" class="text-right p-3 p-sm-1">
