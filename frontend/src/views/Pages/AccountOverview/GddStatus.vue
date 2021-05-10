@@ -15,7 +15,7 @@
         <stats-card
           type="gradient-orange"
           sub-title="balance_gdt"
-          class="pt-3 sm-h3 h2"
+          class="pt-3 h2"
           style="background-color: #ebebeba3 !important"
         >
           {{ $n(GdtBalance) }} GDT
