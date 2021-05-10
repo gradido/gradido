@@ -104,7 +104,7 @@ export default {
       passwordVisible: false,
       submitted: false,
       authenticated: false,
-      session_id: null,
+      sessionId: null,
       email: null,
     }
   },
@@ -113,7 +113,7 @@ export default {
       this.passwordVisible = !this.passwordVisible
     },
     async onSubmit() {
-      const result = await loginAPI.changePassword(this.session_id, this.email, this.password)
+      const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
       if (result.success) {
         this.password = ''
         this.$router.push('/thx')
@@ -126,7 +126,7 @@ export default {
       const result = await loginAPI.loginViaEmailVerificationCode(optin)
       if (result.success) {
         this.authenticated = true
-        this.session_id = result.result.data.session_id
+        this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
         alert(result.result.message)

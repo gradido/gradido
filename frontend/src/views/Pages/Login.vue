@@ -118,7 +118,7 @@ export default {
       const result = await loginAPI.login(this.model.email, this.model.password)
       if (result.success) {
         this.$store.dispatch('login', {
-          session_id: result.result.data.session_id,
+          sessionId: result.result.data.session_id,
           email: this.model.email,
         })
         this.$router.push('/overview')

@@ -36,17 +36,17 @@ describe('Vuex store', () => {
       const state = {}
 
       it('calls two commits', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
         expect(commit).toHaveBeenCalledTimes(2)
       })
 
       it('commits sessionId', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
         expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', 1234)
       })
 
       it('commits email', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
         expect(commit).toHaveBeenNthCalledWith(2, 'email', 'someone@there.is')
       })
     })
