@@ -5,7 +5,7 @@
         <stats-card
           type="gradient-red"
           sub-title="balance_gdd"
-          class="mb-4 h1"
+          class="pt-3 h2"
           style="background-color: #ebebeba3 !important"
         >
           {{ $n(balance) }} GDD
@@ -15,7 +15,7 @@
         <stats-card
           type="gradient-orange"
           sub-title="balance_gdt"
-          class="mb-4 h1"
+          class="pt-3 sm-h3 h2"
           style="background-color: #ebebeba3 !important"
         >
           {{ $n(GdtBalance) }} GDT
