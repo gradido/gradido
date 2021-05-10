@@ -154,7 +154,7 @@
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ ajaxCreateData.memo ? '' : '-' }}
+            {{ ajaxCreateData.memo ? ajaxCreateData.memo : '-' }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
