@@ -44,7 +44,10 @@
     "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
     "thx":"Thank you,",
-    "send_success":"your transaction was successfully completed"
+    "send_success":"your transaction was successfully completed",
+    "validation": {
+      "double": "The {field} field must be a decimal with two digits"
+    }
   },
   "error": {
     "error":"Error"
