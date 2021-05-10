@@ -44,23 +44,13 @@
                     v-model="model.password"
                   ></base-input>
 
-                  <b-alert v-show="loginfail" show variant="warning">
+                  <b-alert v-show="loginfail" show dismissible variant="warning">
                     <span class="alert-text bv-example-row">
                       <b-row>
-                        <b-col class="col-9 text-left">
+                        <b-col class="col-9 text-left text-dark">
                           <strong>
                             Leider konnten wir keinen Account finden mit diesen Daten!
                           </strong>
-                        </b-col>
-                        <b-col class="text-right">
-                          <a @click="closeAlert">
-                            <div>
-                              <b-icon-exclamation-triangle-fill
-                                class="h2 mb-0"
-                              ></b-icon-exclamation-triangle-fill>
-                              <b-icon-x class="h1 pl-2"></b-icon-x>
-                            </div>
-                          </a>
                         </b-col>
                       </b-row>
                     </span>
