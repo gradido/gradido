@@ -47,12 +47,19 @@ import PerfectScrollbar from 'perfect-scrollbar'
 import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
 
+import DashboardNavbar from './DashboardNavbar.vue'
+import ContentFooter from './ContentFooter.vue'
+// import DashboardContent from './Content.vue';
+import { FadeTransition } from 'vue2-transitions'
+import communityAPI from '../../apis/communityAPI'
+
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
 }
 
 function initScrollbar(className) {
   if (hasElement(className)) {
+    // eslint-disable-next-line no-new
     new PerfectScrollbar(`.${className}`)
   } else {
     // try to init it later in case this component is loaded async
@@ -61,12 +68,6 @@ function initScrollbar(className) {
     }, 100)
   }
 }
-
-import DashboardNavbar from './DashboardNavbar.vue'
-import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
-import { FadeTransition } from 'vue2-transitions'
-import communityAPI from '../../apis/communityAPI'
 
 export default {
   components: {
@@ -86,13 +87,13 @@ export default {
   },
   methods: {
     initScrollbar() {
-      let isWindows = navigator.platform.startsWith('Win')
+      const isWindows = navigator.platform.startsWith('Win')
       if (isWindows) {
         initScrollbar('sidenav')
       }
     },
     async logout() {
-      const result = await loginAPI.logout(this.$store.state.session_id)
+      await loginAPI.logout(this.$store.state.session_id)
       // do we have to check success?
       this.$store.dispatch('logout')
       this.$router.push('/login')

@@ -11,9 +11,9 @@ const router = new VueRouter({ routes })
 describe('ResetPassword', () => {
   let wrapper
 
-  let emailVerification = jest.fn()
+  const emailVerification = jest.fn()
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
@@ -49,13 +49,13 @@ describe('ResetPassword', () => {
       expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
     })
 
-    //describe('Register header', () => {
+    // describe('Register header', () => {
     //  it('has a welcome message', () => {
     //    expect(wrapper.find('div.header').text()).toBe('site.signup.title site.signup.subtitle')
     //  })
-    //})
+    // })
 
-    //describe('links', () => {
+    // describe('links', () => {
     //  it('has a link "Back"', () => {
     //    expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
     //  })
@@ -63,9 +63,9 @@ describe('ResetPassword', () => {
     //  it('links to /login when clicking "Back"', () => {
     //    expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
     //  })
-    //})
+    // })
 
-    //describe('Register form', () => {
+    // describe('Register form', () => {
     //  it('has a register form', () => {
     //    expect(wrapper.find('form').exists()).toBeTruthy()
     //  })
@@ -108,7 +108,7 @@ describe('ResetPassword', () => {
     //  })
 
     //  //TODO test different invalid password combinations
-    //})
+    // })
 
     // TODO test submit button
   })

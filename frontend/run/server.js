@@ -7,6 +7,7 @@ const port = process.env.PORT || 3000
 
 // Express Server
 const app = express()
+// eslint-disable-next-line node/no-path-concat
 app.use(serveStatic(__dirname + '/../dist'))
 app.listen(port)
 

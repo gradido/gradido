@@ -67,7 +67,7 @@ export default {
       type: String,
       default: 'primary',
       validator: (value) => {
-        let acceptedValues = ['primary', 'info', 'success', 'warning', 'danger']
+        const acceptedValues = ['primary', 'info', 'success', 'warning', 'danger']
         return acceptedValues.indexOf(value) !== -1
       },
     },
@@ -102,7 +102,7 @@ export default {
   },
   methods: {
     findAndActivateTab(title) {
-      let tabToActivate = this.tabs.find((t) => t.title === title)
+      const tabToActivate = this.tabs.find((t) => t.title === title)
       if (tabToActivate) {
         this.activateTab(tabToActivate)
       }

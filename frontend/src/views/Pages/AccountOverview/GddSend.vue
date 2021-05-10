@@ -240,7 +240,7 @@ export default {
       this.scan = false
     },
     async onSubmit() {
-      //event.preventDefault()
+      // event.preventDefault()
       this.ajaxCreateData.email = this.form.email
       this.ajaxCreateData.amount = this.form.amount
       const now = new Date(Date.now()).toISOString()

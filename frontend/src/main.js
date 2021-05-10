@@ -2,7 +2,6 @@ import Vue from 'vue'
 import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
-import VeeValidate from './vee-validate.js'
 
 // store
 import { store } from './store/store'

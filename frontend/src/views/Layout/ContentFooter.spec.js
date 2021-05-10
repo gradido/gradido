@@ -7,7 +7,7 @@ const localVue = global.localVue
 describe('ContentFooter', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },

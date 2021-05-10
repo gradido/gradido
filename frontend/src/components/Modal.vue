@@ -39,7 +39,7 @@ export default {
       submittedNames: [],
     }
   },
-  /*Modal*/
+  /* Modal */
   checkFormValidity() {
     const valid = this.$refs.form.checkValidity()
     this.nameState = valid
