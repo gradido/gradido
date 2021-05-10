@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\ORM\TableRegistry;
 
 /**
  * Migrations Controller
@@ -22,6 +23,52 @@ class MigrationsController extends AppController
         $migrations = $this->paginate($this->Migrations);
 
         $this->set(compact('migrations'));
+    }
+    
+    protected function callFunctions(array $callables)
+    {
+        foreach($callables as $callable) {
+            $result = call_user_func($callable);
+            if(!$result['success']) {
+                return $result;
+            }
+        }
+        return ['success' => true];
+    }
+    
+    public function migrate($html, $current_db_version) 
+    {
+        $startTime = microtime(true);
+        $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
+        $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+        
+        $new_db_version = 1;
+        
+        $commands = [];
+        // migrate from version 1 to 2
+        if($current_db_version == 1) {    
+            $stateUserTransactionsTable->truncate();
+            $commands = [
+                [$transactionsTable, 'fillStateUserTransactions'],
+                [$stateBalancesTable, 'updateAllBalances']
+            ];
+            $new_db_version = 2;
+        }
+        
+        $migration_result = $this->callFunctions($commands);
+        if($migration_result['success']) {
+            $migration_entity = $this->Migrations->newEntity();
+            $migration_entity->db_version = $new_db_version;
+            $this->Migrations->save($migration_entity);
+        }
+        if(!$html) {
+            return $this->returnJson($migration_result);
+        } else {
+            $this->set('db_version', $current_db_version);
+            $this->set('result', $migration_result);
+            $this->set('timeUsed', microtime(true) - $startTime);
+        }
     }
 
     /**

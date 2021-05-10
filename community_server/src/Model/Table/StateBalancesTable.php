@@ -113,6 +113,20 @@ class StateBalancesTable extends Table
         
     }
     
+    public function updateAllBalances()
+    {
+        $stateUserTable =  TableRegistry::getTableLocator()->get('StateUsers');
+        $state_users = $stateUserTable->find()->select(['id'])->contain([]);
+        foreach($state_users as $state_user) {
+            $result = $this->updateBalances($state_user->id);
+            if($result['success'] === false) {
+                $result['state_user_id'] = $state_user->id;
+                return $result;
+            }
+        }
+        return ['success' => true];
+    }
+    
     public function updateBalances($stateUserId)
     {
         $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
@@ -128,7 +142,7 @@ class StateBalancesTable extends Table
                                             ;
         
         if(!$state_user_transactions || !$state_user_transactions->count()) {
-            return true;
+            return ['success' => true];
         }
         
         // first: decide what todo
@@ -222,40 +236,27 @@ class StateBalancesTable extends Table
                 $transaction = $transactions_indiced[$state_user_transaction->transaction_id];
                 if($transaction->transaction_type_id > 2) {
                     continue;
-                }
-                //echo "transaction id: ".$transaction->id . "<br>";
-                $amount_date = null;
+                }                
                 $amount = 0;
                 
                 if($transaction->transaction_type_id == 1) { // creation                    
-                    $temp = $transaction->transaction_creation;
-
-                    /*$balance_temp = $this->newEntity();
-                    $balance_temp->amount = $temp->amount;
-                    $balance_temp->record_date = $temp->target_date;
-                    */
-                    $amount = intval($temp->amount);//$balance_temp->partDecay($transaction->received);
-                    $amount_date = $temp->target_date;
-
-                    //$amount_date = 
+                    $amount = intval($transaction->transaction_creation->amount);
                 } else if($transaction->transaction_type_id == 2) { // transfer
-
                     $temp = $transaction->transaction_send_coin;
                     $amount = intval($temp->amount);
                     // reverse if sender
                     if($stateUserId == $temp->state_user_id) {
                         $amount *= -1.0;
                     }
-                    $amount_date = $transaction->received;
-
                 }
+                $amount_date = $transaction->received;
                 if($i == 0) {
                     $balance_cursor->amount = $amount;
                 } else {
                     
                     //$balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
                     $balance_cursor->amount = 
-                            $this->calculateDecay($balance_cursor->amount, $balance_cursor->recordDate, $amount_date) 
+                            $this->calculateDecay($balance_cursor->amount, $balance_cursor->record_date, $amount_date) 
                             + $amount;
                 }
                 //echo "new balance: " . $balance_cursor->amount . "<br>";
@@ -294,7 +295,7 @@ class StateBalancesTable extends Table
                  return ['success' => false, 'error' => 'error saving state balance', 'details' => $state_balance->getErrors()];
              }
         }
-        return true;
+        return ['success' => true];
 
     }
     

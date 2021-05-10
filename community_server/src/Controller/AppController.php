@@ -156,8 +156,24 @@ class AppController extends Controller
         }
     }
 
+    protected function checkForMigration($html = true)
+    {
+        $migrationsTable = TableRegistry::getTableLocator()->get('Migrations');
+        $last_migration = $migrationsTable->find()->last();
+        $current_db_version = 1;
+        if($last_migration) {
+            $current_db_version = $last_migration->db_version;
+        }
+        $php_data_version = 2;
+        if($current_db_version < $php_data_version) {
+            $this->redirect(['controller' => 'Migrations', 'action' => 'migrate', $html, $current_db_version]);
+        }
+    }
+
+
     protected function requestLogin($sessionId = 0, $redirect = true)
     {
+        $this->checkForMigration($redirect);
         $session = $this->getRequest()->getSession();
         // check login
         // disable encryption for cookies
