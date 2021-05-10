@@ -184,7 +184,6 @@
         </div>
 
         <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
-        <hr />
       </b-col>
     </b-row>
   </div>
