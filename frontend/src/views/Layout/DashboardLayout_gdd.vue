@@ -93,13 +93,13 @@ export default {
       }
     },
     async logout() {
-      await loginAPI.logout(this.$store.state.session_id)
+      await loginAPI.logout(this.$store.state.sessionId)
       // do we have to check success?
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
     async updateTransactions() {
-      const result = await communityAPI.transactions(this.$store.state.session_id)
+      const result = await communityAPI.transactions(this.$store.state.sessionId)
       if (result.success) {
         this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions

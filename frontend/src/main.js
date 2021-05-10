@@ -14,7 +14,7 @@ Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !store.state.session_id) {
+  if (to.meta.requiresAuth && !store.state.sessionId) {
     next({ path: '/login' })
   } else {
     next()

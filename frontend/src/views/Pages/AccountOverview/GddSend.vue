@@ -252,7 +252,7 @@ export default {
     },
     async sendTransaction() {
       const result = await communityAPI.send(
-        this.$store.state.session_id,
+        this.$store.state.sessionId,
         this.ajaxCreateData.email,
         this.ajaxCreateData.amount,
         this.ajaxCreateData.memo,

@@ -17,7 +17,7 @@ export const mutations = {
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
-    commit('sessionId', data.session_id)
+    commit('sessionId', data.sessionId)
     commit('email', data.email)
   },
   logout: ({ commit, state }) => {
