@@ -244,7 +244,7 @@ export default {
       },
       send: false,
       row_check: false,
-      row_thx: true,
+      row_thx: false,
       row_error: false,
     }
   },
