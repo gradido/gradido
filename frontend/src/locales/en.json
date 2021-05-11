@@ -13,13 +13,13 @@
   "back":"Back",
   "send":"Send",
   "transactions":"Transactions",
-  "language":"Sprache",
+  "language":"Language",
   "languages":{
     "de": "Deutsch",
     "en": "English"
   },
   "form": {
-    "attention": "Achtung! Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
+    "attention": "Attention! Please check all your entries very carefully. You are solely responsible for your decisions. Sent Gradidos cannot be retrieved.",
     "cancel":"Cancel",
     "reset": "Reset",
     "close":"Close",
@@ -40,11 +40,13 @@
     "at":"at",
     "time":"Time",
     "send_now":"Send now",
-    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
-    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"Thank you,",
-    "send_success":"your transaction was successfully completed",
+    "scann_code":"<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
+    "max_gdd_info":"Maximum number of GDDs to be sent has been reached!",
+    "send_check":"Confirm your payment. Please check all data again!",
+    "thx":"Thank you",
+    "sorry":"Sorry",
+    "send_transaction_success":"Your transaction was successfully completed",
+    "send_transaction_error":"Unfortunately, the transaction could not be executed!",
     "validation": {
       "double": "The {field} field must be a decimal with two digits",
       "is-not": "You cannot send Gradidos to yourself"
@@ -123,6 +125,6 @@
   },
   "reset-password": {
     "title": "Reset Password",
-    "text": "Now you can save a new password to login to the GRADIDO App in the future."
+    "text": "Now you can save a new password to login to the Gradido-App in the future."
   }
 }

@@ -2,10 +2,11 @@
   <div class="gdd-send">
     <b-row v-show="showTransactionList">
       <b-col xl="12" md="12">
-        <b-alert show dismissible variant="warning" class="text-center">
-          <span class="alert-text" v-html="$t('form.attention')"></span>
+        <b-alert show dismissible variant="default" class="text-center">
+          <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
         </b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <!--
           <b-alert show variant="secondary">
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
@@ -15,9 +16,9 @@
             </b-col>
 
             <div v-if="scan">
-              <!-- <b-row>                                          
+               <b-row>                                          
                    <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
-                   </b-row> -->
+                   </b-row> 
 
               <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect"></qrcode-stream>
 
@@ -39,6 +40,7 @@
               </b-alert>
             </div>
           </b-alert>
+          -->
 
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
             <b-form
@@ -47,11 +49,11 @@
               @reset="onReset"
               v-if="show"
             >
-              <br />
-              <div>
+              <!-- <div>
                 <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
               </div>
               <br />
+              -->
               <div>
                 <validation-provider
                   name="Email"
@@ -177,7 +179,7 @@
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ ajaxCreateData.memo }}
+            {{ ajaxCreateData.memo ? ajaxCreateData.memo : '-' }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
@@ -200,29 +202,46 @@
     </b-row>
     <b-row v-show="row_thx">
       <b-col>
-        <div class="display-1 p-4">
-          {{ $t('form.thx') }}
-          <hr />
-          {{ $t('form.send_success') }}
-        </div>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.thx') }}
+            <hr />
+            {{ $t('form.send_transaction_success') }}
+          </div>
 
-        <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
-        <hr />
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
+      </b-col>
+    </b-row>
+    <b-row v-show="row_error">
+      <b-col>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.sorry') }}
+            <hr />
+            {{ $t('form.send_transaction_error') }}
+          </div>
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
       </b-col>
     </b-row>
   </div>
 </template>
 
 <script>
-import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
+// import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
 import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
   name: 'GddSent',
   components: {
-    QrcodeStream,
-    QrcodeDropZone,
+    // QrcodeStream,
+    // QrcodeDropZone,
     BIcon,
   },
   props: {
@@ -231,7 +250,7 @@ export default {
   },
   data() {
     return {
-      scan: false,
+      // scan: false,
       show: true,
       form: {
         img: '',
@@ -248,20 +267,21 @@ export default {
       },
       send: false,
       row_check: false,
-      row_thx: false,
+      row_thx: true,
+      row_error: false,
     }
   },
   computed: {},
   methods: {
-    toggle() {
-      this.scan = !this.scan
-    },
-    async onDecode(decodedString) {
-      const arr = JSON.parse(decodedString)
-      this.form.email = arr[0].email
-      this.form.amount = arr[0].amount
-      this.scan = false
-    },
+    // toggle() {
+    //  this.scan = !this.scan
+    // },
+    // async onDecode(decodedString) {
+    //  const arr = JSON.parse(decodedString)
+    //  this.form.email = arr[0].email
+    //  this.form.amount = arr[0].amount
+    //  this.scan = false
+    // },
     async onSubmit() {
       // event.preventDefault()
       this.ajaxCreateData.email = this.form.email
@@ -272,6 +292,7 @@ export default {
       this.$emit('toggle-show-list', false)
       this.row_check = true
       this.row_thx = false
+      this.row_error = false
     },
     async sendTransaction() {
       const result = await communityAPI.send(
@@ -285,12 +306,13 @@ export default {
         this.$emit('toggle-show-list', false)
         this.row_check = false
         this.row_thx = true
+        this.row_error = false
         this.$emit('update-balance', { ammount: this.ajaxCreateData.amount })
       } else {
-        alert('error')
         this.$emit('toggle-show-list', true)
         this.row_check = false
         this.row_thx = false
+        this.row_error = true
       }
     },
     onReset(event) {
@@ -302,6 +324,7 @@ export default {
       this.$emit('toggle-show-list', true)
       this.row_check = false
       this.row_thx = false
+      this.row_error = false
       this.$nextTick(() => {
         this.show = true
       })

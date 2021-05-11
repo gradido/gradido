@@ -62,7 +62,7 @@ class StateBalancesController extends AppController
         
         $user = $session->read('StateUser');
         $update_balance_result = $this->StateBalances->updateBalances($user['id']);
-        if($update_balance_result !== true) {
+        if($update_balance_result['success'] !== true) {
             $this->addAdminError('StateBalances', 'overview', $update_balance_result, $user['id']);
         }
         // sendRequestGDT

@@ -6,5 +6,5 @@ INSERT INTO `transaction_types` (`id`, `name`, `text`) VALUES
 (5, 'group remove member', 'remove user from group, maybe he was moved elsewhere'),
 (6, 'hedera topic create', 'create new topic on hedera'),
 (7, 'hedera topic send message', 'send consensus message over hedera topic'),
-(8, 'hedera account create', 'create new account on hedera for holding some founds with unencrypted keys');
-
+(8, 'hedera account create', 'create new account on hedera for holding some founds with unencrypted keys'),
+(9, 'decay start', 'signalize the starting point for decay calculation, allowed only once per chain');
