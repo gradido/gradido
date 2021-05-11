@@ -41,7 +41,7 @@
             </div>
           </div>
         </div>
-        <ul class="navbar-nav">
+        <ul class="navbar-nav" @click="$sidebar.displaySidebar(false)">
           <slot name="links"></slot>
         </ul>
         <hr class="my-3" />
