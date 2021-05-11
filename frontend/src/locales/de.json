@@ -46,7 +46,11 @@
     "thx":"Danke",
     "sorry":"Entschuldigung",
     "send_transaction_success":"Deine Transaktion wurde erfolgreich ausgeführt",
-    "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!"
+    "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
+    "validation": {
+      "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
+      "is-not": "Du kannst Dir selbst keine Gradidos überweisen"
+    }
   },
   "error": {
     "error":"Fehler"

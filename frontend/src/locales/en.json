@@ -46,7 +46,11 @@
     "thx":"Thank you",
     "sorry":"Sorry",
     "send_transaction_success":"Your transaction was successfully completed",
-    "send_transaction_error":"Unfortunately, the transaction could not be executed!"
+    "send_transaction_error":"Unfortunately, the transaction could not be executed!",
+    "validation": {
+      "double": "The {field} field must be a decimal with two digits",
+      "is-not": "You cannot send Gradidos to yourself"
+    }
   },
   "error": {
     "error":"Error"

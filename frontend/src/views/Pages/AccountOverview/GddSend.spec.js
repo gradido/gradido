@@ -24,6 +24,10 @@ describe('GddSend', () => {
     $moment: jest.fn((m) => ({
       format: () => m,
     })),
+    $i18n: {
+      locale: jest.fn(() => 'en'),
+    },
+    $n: jest.fn((n) => String(n)),
   }
 
   const Wrapper = () => {
