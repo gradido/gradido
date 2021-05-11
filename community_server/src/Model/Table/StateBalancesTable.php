@@ -189,7 +189,7 @@ class StateBalancesTable extends Table
                         $last_state_user_transaction->balance_date, 
                         $now);
                 // if entrys are nearly the same, we don't need doing anything
-                if(abs($last_state_user_transaction_decayed - $first_state_balance_decayed) > 100) {
+                if(floor($last_state_user_transaction_decayed/100) !== floor($first_state_balance_decayed/100)) {
                     $recalculate_state_user_transactions_balance = true;
                     $update_state_balance = true;
                 }
