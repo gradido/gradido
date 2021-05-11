@@ -43,7 +43,13 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	//std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 
 	mClientIp = request.clientAddress().host();
-
+	
+	if (request.secure()) {
+		mServerHost = "https://" + request.getHost();
+	}
+	else {
+		mServerHost = "http://" + request.getHost();
+	}
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
 	Poco::JSON::Object* json_result = nullptr;
