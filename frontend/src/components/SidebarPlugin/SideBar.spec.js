@@ -58,6 +58,22 @@ describe('SideBar', () => {
       it('has a navbar button', () => {
         expect(wrapper.find('button.navbar-toggler').exists()).toBeTruthy()
       })
+
+      it('calls showSidebar when clicked', async () => {
+        const spy = jest.spyOn(wrapper.vm.$sidebar, 'displaySidebar')
+        wrapper.find('button.navbar-toggler').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(spy).toHaveBeenCalledWith(true)
+      })
+    })
+
+    describe('close siedbar', () => {
+      it('calls closeSidebar when clicked', async () => {
+        const spy = jest.spyOn(wrapper.vm.$sidebar, 'displaySidebar')
+        wrapper.find('#sidenav-collapse-main').find('button.navbar-toggler').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(spy).toHaveBeenCalledWith(false)
+      })
     })
 
     describe('static menu items', () => {
@@ -90,11 +106,10 @@ describe('SideBar', () => {
           expect(wrapper.findAll('li').at(1).text()).toBe('logout')
         })
 
-        it.skip('emits logout when logout is clicked', async () => {
-          const spy = jest.spyOn(wrapper.vm, 'logout')
+        it('emits logout when logout is clicked', async () => {
           wrapper.findAll('li').at(1).find('a').trigger('click')
           await wrapper.vm.$nextTick()
-          expect(spy).toHaveBeenCalled()
+          expect(wrapper.emitted('logout')).toEqual([[]])
         })
       })
     })
