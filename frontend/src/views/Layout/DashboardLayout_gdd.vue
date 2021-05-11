@@ -103,7 +103,13 @@ export default {
       if (result.success) {
         this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
-        this.balance = Number(result.result.data.decay)
+        // OLD CODE => this.balance = Number(result.result.data.decay)
+        // new Intl.NumberFormat('de-DE').format(number)
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+        const balance_number = new Intl.NumberFormat(
+          ''+ this.$i18n.locale + '-' + this.$i18n.locale.toUpperCase()+'',
+        ).format(123456.789)
+        this.balance = Number(balance_number.replace(/,/g, ''))
         this.bookedBalance = Number(result.result.data.balance)
         this.transactionCount = result.result.data.count
       } else {
