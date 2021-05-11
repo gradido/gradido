@@ -52,7 +52,7 @@ export default {
     },
     async onDecode(decodedString) {
       const arr = JSON.parse(decodedString)
-      this.emit('set-transaction', { email: arr[0].email, amount: arr[0].amount })
+      this.$emit('set-transaction', { email: arr[0].email, amount: arr[0].amount })
       this.scan = false
     },
   },
