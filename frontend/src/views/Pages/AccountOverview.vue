@@ -2,7 +2,12 @@
   <div>
     <base-header class="pb-4 pt-2 bg-transparent"></base-header>
     <b-container fluid class="p-2 mt-5">
-      <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
+      <gdd-status
+        v-if="showTransactionList"
+        :pending="pending"
+        :balance="balance"
+        :gdt-balance="GdtBalance"
+      />
       <br />
       <gdd-send
         :balance="balance"
@@ -50,6 +55,10 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    pending: {
+      type: Boolean,
+      default: true,
+    },
   },
   methods: {
     toggleShowList(bool) {

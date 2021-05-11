@@ -8,7 +8,7 @@
           class="mb-4 h1"
           style="background-color: #ebebeba3 !important"
         >
-          {{ $n(balance) }} GDD
+          {{ pending ? '—' : $n(balance) }} GDD
         </stats-card>
       </b-col>
       <b-col>
@@ -18,7 +18,7 @@
           class="mb-4 h1"
           style="background-color: #ebebeba3 !important"
         >
-          {{ $n(GdtBalance) }} GDT
+          {{ pending ? '—' : $n(GdtBalance) }} GDT
         </stats-card>
       </b-col>
     </b-row>
@@ -31,6 +31,10 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
+    pending: {
+      type: Boolean,
+      default: true,
+    },
   },
 }
 </script>
