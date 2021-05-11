@@ -6,42 +6,7 @@
           <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
         </b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
-          <!--
-          <b-alert show variant="secondary">
-            <span class="alert-text" v-html="$t('form.scann_code')"></span>
-            <b-col v-show="!scan" lg="12" class="text-right">
-              <a @click="toggle" class="nav-link pointer">
-                <img src="img/icons/gradido/qr-scan-pure.png" height="50" />
-              </a>
-            </b-col>
-
-            <div v-if="scan">
-               <b-row>                                          
-                   <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
-                   </b-row> 
-
-              <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect"></qrcode-stream>
-
-              <b-container>
-                <b-row>
-                  <b-col lg="8">
-                    <b-alert show variant="secondary">
-                      <span class="alert-text" v-html="$t('form.scann_code')"></span>
-                    </b-alert>
-                  </b-col>
-                </b-row>
-              </b-container>
-            </div>
-            <div @click="toggle">
-              <b-alert v-show="scan" show variant="primary" class="pointer text-center">
-                <span class="alert-text">
-                  <strong>{{ $t('form.cancel') }}</strong>
-                </span>
-              </b-alert>
-            </div>
-          </b-alert>
-          -->
-
+          <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
             <b-form
               role="form"
@@ -233,16 +198,17 @@
 </template>
 
 <script>
-// import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
+// import { QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
+// import QrCode from './GddSend/QrCode'
 import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
-  name: 'GddSent',
+  name: 'GddSend',
   components: {
-    // QrcodeStream,
     // QrcodeDropZone,
     BIcon,
+    //    QrCode,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -250,7 +216,6 @@ export default {
   },
   data() {
     return {
-      // scan: false,
       show: true,
       form: {
         img: '',
@@ -271,19 +236,8 @@ export default {
       row_error: false,
     }
   },
-  computed: {},
   methods: {
-    // toggle() {
-    //  this.scan = !this.scan
-    // },
-    // async onDecode(decodedString) {
-    //  const arr = JSON.parse(decodedString)
-    //  this.form.email = arr[0].email
-    //  this.form.amount = arr[0].amount
-    //  this.scan = false
-    // },
     async onSubmit() {
-      // event.preventDefault()
       this.ajaxCreateData.email = this.form.email
       this.ajaxCreateData.amount = this.form.amount
       const now = new Date(Date.now()).toISOString()
@@ -329,17 +283,14 @@ export default {
         this.show = true
       })
     },
+    setTransaction(data) {
+      this.form.email = data.email
+      this.form.amount = data.amount
+    },
   },
 }
 </script>
 <style>
-.pointer {
-  cursor: pointer;
-}
-video {
-  max-height: 665px;
-  max-width: 665px;
-}
 span.errors {
   color: red;
 }
