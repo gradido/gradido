@@ -127,12 +127,12 @@
                     <b>{{ form.memo.length }}</b>
                     <small>(minimal 5 Zeichen)</small>
                   </span>
-                  <span v-if="form.memo.length > 5 && form.memo.length < 254" class="text-success">
+                  <span v-if="form.memo.length > 5 && form.memo.length < 150" class="text-success">
                     ok
                   </span>
-                  <span v-if="form.memo.length > 254" class="text-warning">
+                  <span v-if="form.memo.length > 150" class="text-warning">
                     <b>{{ form.memo.length }}</b>
-                    <small>(maximal 255 Zeichen)</small>
+                    <small>(maximal 150 Zeichen)</small>
                   </span>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default {
       return this.form.amount >= '0.01'
     },
     MemoFilled() {
-      return this.form.memo.length >= 5 && this.form.memo.length <= 255
+      return this.form.memo.length >= 5 && this.form.memo.length <= 149
     },
   },
   methods: {
