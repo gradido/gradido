@@ -41,10 +41,12 @@
     "time":"Zeit",
     "send_now":"Jetzt versenden",
     "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
+    "max_gdd_info":"Maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"Danke,",
-    "send_success":"deine Transaktion wurde erfolgreich ausgeführt"
+    "thx":"Danke",
+    "sorry":"Entschuldigung",
+    "send_transaction_success":"Deine Transaktion wurde erfolgreich ausgeführt",
+    "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!"
   },
   "error": {
     "error":"Fehler"

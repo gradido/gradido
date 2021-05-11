@@ -179,13 +179,31 @@
     </b-row>
     <b-row v-show="row_thx">
       <b-col>
-        <div class="display-1 p-4">
-          {{ $t('form.thx') }}
-          <hr />
-          {{ $t('form.send_success') }}
-        </div>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.thx') }}
+            <hr />
+            {{ $t('form.send_transaction_success') }}
+          </div>
 
-        <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
+      </b-col>
+    </b-row>
+    <b-row v-show="row_error">
+      <b-col>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.sorry') }}
+            <hr />
+            {{ $t('form.send_transaction_error') }}
+          </div>
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
       </b-col>
     </b-row>
   </div>
@@ -226,7 +244,8 @@ export default {
       },
       send: false,
       row_check: false,
-      row_thx: false,
+      row_thx: true,
+      row_error: false,
     }
   },
   computed: {},
@@ -250,6 +269,7 @@ export default {
       this.$emit('toggle-show-list', false)
       this.row_check = true
       this.row_thx = false
+      this.row_error = false
     },
     async sendTransaction() {
       const result = await communityAPI.send(
@@ -263,12 +283,13 @@ export default {
         this.$emit('toggle-show-list', false)
         this.row_check = false
         this.row_thx = true
+        this.row_error = false
         this.$emit('update-balance', { ammount: this.ajaxCreateData.amount })
       } else {
-        alert('error')
         this.$emit('toggle-show-list', true)
         this.row_check = false
         this.row_thx = false
+        this.row_error = true
       }
     },
     onReset(event) {
@@ -280,6 +301,7 @@ export default {
       this.$emit('toggle-show-list', true)
       this.row_check = false
       this.row_thx = false
+      this.row_error = false
       this.$nextTick(() => {
         this.show = true
       })
