@@ -109,7 +109,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		emailOptInModel->sendErrorsAsEmail();
 		return stateError("insert emailOptIn failed");
 	}
-
+	emailOptIn->setBaseUrl(mServerHost + "/" + ServerConfig::g_frontend_checkEmailPath);
 	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
 
 	if (login_after_register && session) {
