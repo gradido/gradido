@@ -41,17 +41,7 @@ describe('GddSend', () => {
 
     describe('warning messages', () => {
       it('has a warning message', () => {
-        expect(wrapper.find('div.alert-warning').find('span').text()).toBe('form.attention')
-      })
-
-      it('has a dismiss button', () => {
-        expect(wrapper.find('div.alert-warning').find('button').exists()).toBeTruthy()
-      })
-
-      it('dismisses the warning when button is clicked', async () => {
-        wrapper.find('div.alert-warning').find('button').trigger('click')
-        await wrapper.vm.$nextTick()
-        expect(wrapper.find('div.alert-warning').exists()).toBeFalsy()
+        expect(wrapper.find('div.alert-default').find('span').text()).toBe('form.attention')
       })
     })
 

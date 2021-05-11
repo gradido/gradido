@@ -2,8 +2,8 @@
   <div class="gdd-send">
     <b-row v-show="showTransactionList">
       <b-col xl="12" md="12">
-        <b-alert show dismissible variant="warning" class="text-center">
-          <span class="alert-text" v-html="$t('form.attention')"></span>
+        <b-alert show dismissible variant="default" class="text-center">
+          <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
         </b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
           <b-alert show variant="secondary">
