@@ -104,6 +104,7 @@
                     min="0.01"
                     :max="balance"
                     style="font-size: xx-large; padding-left: 20px"
+                    :rules="{ required: true }"
                   ></b-form-input>
                 </b-input-group>
                 <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
@@ -116,8 +117,24 @@
                     v-model="form.memo"
                     class="pl-3"
                     style="font-size: x-large"
+                    min="5"
+                    max="254"
+                    :rules="{ required: true }"
                   ></b-form-textarea>
                 </b-input-group>
+                <div class="text-right">
+                  <span v-if="form.memo.length < 5" class="text-warning">
+                    <b>{{ form.memo.length }}</b>
+                    <small>(minimal 5 Zeichen)</small>
+                  </span>
+                  <span v-if="form.memo.length > 5 && form.memo.length < 254" class="text-success">
+                    ok
+                  </span>
+                  <span v-if="form.memo.length > 254" class="text-warning">
+                    <b>{{ form.memo.length }}</b>
+                    <small>(maximal 255 Zeichen)</small>
+                  </span>
+                </div>
               </div>
 
               <br />
@@ -128,7 +145,7 @@
                   </b-button>
                 </b-col>
                 <b-col class="text-right">
-                  <b-button type="submit" variant="success">
+                  <b-button type="submit" variant="success" :disabled="!allFilled">
                     {{ $t('form.send_now') }}
                   </b-button>
                 </b-col>
@@ -229,7 +246,24 @@ export default {
       row_thx: false,
     }
   },
-  computed: {},
+  computed: {
+    allFilled() {
+      // console.log("EmailFilled", this.EmailFilled)
+      // console.log("AmmountFilled", this.AmmountFilled)
+      // console.log("MemoFilled", this.MemoFilled)
+      // console.log("!((", (this.EmailFilled && this.AmmountFilled && this.MemoFilled))
+      return this.EmailFilled && this.AmmountFilled && this.MemoFilled
+    },
+    EmailFilled() {
+      return this.form.email !== ''
+    },
+    AmmountFilled() {
+      return this.form.amount >= '0.01'
+    },
+    MemoFilled() {
+      return this.form.memo.length >= 5 && this.form.memo.length <= 255
+    },
+  },
   methods: {
     // toggle() {
     //  this.scan = !this.scan
