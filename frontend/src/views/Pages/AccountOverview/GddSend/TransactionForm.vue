@@ -125,6 +125,7 @@
 </template>
 <script>
 // import QrCode from './QrCode'
+// import { QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
 
 export default {
@@ -132,6 +133,7 @@ export default {
   components: {
     BIcon,
     //    QrCode,
+    // QrcodeDropZone,
   },
   props: {
     balance: { type: Number, default: 0 },

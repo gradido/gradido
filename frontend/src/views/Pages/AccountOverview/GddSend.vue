@@ -14,51 +14,25 @@
       @send-transaction="sendTransaction"
       @on-reset="onReset"
     ></transaction-confirmation>
-    <b-row v-show="row_thx">
-      <b-col>
-        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
-          <div class="display-2 p-4">
-            {{ $t('form.thx') }}
-            <hr />
-            {{ $t('form.send_transaction_success') }}
-          </div>
-
-          <p class="text-center">
-            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
-    <b-row v-show="row_error">
-      <b-col>
-        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
-          <div class="display-2 p-4">
-            {{ $t('form.sorry') }}
-            <hr />
-            {{ $t('form.send_transaction_error') }}
-          </div>
-          <p class="text-center">
-            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
+    <transaction-result
+      v-if="row_thx || row_error"
+      :error="error"
+      @on-reset="onReset"
+    ></transaction-result>
   </div>
 </template>
-
 <script>
-// import { QrcodeDropZone } from 'vue-qrcode-reader'
 import TransactionForm from './GddSend/TransactionForm.vue'
 import TransactionConfirmation from './GddSend/TransactionConfirmation.vue'
+import TransactionResult from './GddSend/TransactionResult.vue'
 import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
   name: 'GddSend',
   components: {
-    // QrcodeDropZone,
     TransactionForm,
     TransactionConfirmation,
-    //    QrCode,
+    TransactionResult,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -72,7 +46,7 @@ export default {
         target_date: '',
         memo: '',
       },
-      send: false,
+      error: false,
       row_check: false,
       row_thx: false,
       row_error: false,
@@ -98,12 +72,14 @@ export default {
         this.row_check = false
         this.row_thx = true
         this.row_error = false
+        this.error = false
         this.$emit('update-balance', { ammount: this.transactionData.amount })
       } else {
         this.$emit('toggle-show-list', true)
         this.row_check = false
         this.row_thx = false
         this.row_error = true
+        this.error = true
       }
     },
     onReset() {
