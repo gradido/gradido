@@ -104,10 +104,10 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
       })
 
-      //it('has tree items in the navbar', () => {
+      // it('has tree items in the navbar', () => {
       //  expect(navbar.findAll('ul > li')).toHaveLength(3)
-      //})
-//
+      // })
+      //
       // it('has third item "My profile" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
       // })
