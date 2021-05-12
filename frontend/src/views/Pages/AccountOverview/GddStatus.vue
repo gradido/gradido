@@ -2,24 +2,14 @@
   <div>
     <b-row>
       <b-col>
-        <stats-card
-          type="gradient-red"
-          sub-title="balance_gdd"
-          class="mb-4 h1"
-          style="background-color: #ebebeba3 !important"
-        >
+        <b-card style="background-color: #ebebeba3 !important">
           {{ pending ? '—' : $n(balance) }} GDD
-        </stats-card>
+        </b-card>
       </b-col>
       <b-col>
-        <stats-card
-          type="gradient-orange"
-          sub-title="balance_gdt"
-          class="mb-4 h1"
-          style="background-color: #ebebeba3 !important"
-        >
+        <b-card class="lg-h2 text-right" style="background-color: #ebebeba3 !important">
           {{ pending ? '—' : $n(GdtBalance) }} GDT
-        </stats-card>
+        </b-card>
       </b-col>
     </b-row>
   </div>

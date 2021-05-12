@@ -1,14 +1,20 @@
 <template>
   <div class="wrapper">
-    <notifications></notifications>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
-        <b-nav-item href="#!" to="/overview">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/transactions">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
-        </b-nav-item>
+        <sidebar-item
+          :link="{
+            name: $t('send'),
+            path: '/overview',
+          }"
+        ></sidebar-item>
+        <sidebar-item
+          :link="{
+            name: $t('transactions'),
+            path: '/transactions',
+          }"
+        ></sidebar-item>
+
         <!--
              <b-nav-item href="#!" to="/profile">
              <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
@@ -24,7 +30,6 @@
     </side-bar>
     <div class="main-content">
       <dashboard-navbar :type="$route.meta.navbarType"></dashboard-navbar>
-
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
