@@ -22,6 +22,10 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
+    pending: {
+      type: Boolean,
+      default: true,
+    },
   },
 }
 </script>
