@@ -2,24 +2,36 @@
   <div>
     <base-header class="pb-4 pt-2 bg-transparent"></base-header>
     <b-container fluid class="p-2 mt-5">
-      <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
+      <gdd-status v-if="showContext" :balance="balance" :gdt-balance="GdtBalance" />
       <br />
-      <gdd-send
-        :balance="balance"
-        :show-transaction-list="showTransactionList"
-        @update-balance="updateBalance"
-        @toggle-show-list="toggleShowList"
-      />
+      <gdd-send :currentTransactionStep="transactionSteps[currentTransactionStep]">
+        <template #transaction-form>
+          <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
+        </template>
+        <template #transaction-confirmation>
+          <transaction-confirmation
+            :email="transactionData.email"
+            :amount="transactionData.amount"
+            :memo="transactionData.memo"
+            :date="transactionData.target_date"
+            @send-transaction="sendTransaction"
+            @on-reset="onReset"
+          ></transaction-confirmation>
+        </template>
+        <template #transaction-result>
+          <transaction-result :error="error" @on-reset="onReset"></transaction-result>
+        </template>
+      </gdd-send>
       <hr />
       <gdd-table
-        v-if="showTransactionList"
+        v-if="showContext"
         :transactions="transactions"
         :max="5"
         :timestamp="timestamp"
         :transactionCount="transactionCount"
-        @update-transactions="updateTransactions"
+        @update-transactions="$emit('update-transactions')"
       />
-      <gdd-table-footer :count="transactionCount" />
+      <gdd-table-footer v-if="showContext" :count="transactionCount" />
     </b-container>
   </div>
 </template>
@@ -28,6 +40,10 @@ import GddStatus from './AccountOverview/GddStatus.vue'
 import GddSend from './AccountOverview/GddSend.vue'
 import GddTable from './AccountOverview/GddTable.vue'
 import GddTableFooter from './AccountOverview/GddTableFooter.vue'
+import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
+import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
+import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
+import communityAPI from '../../apis/communityAPI.js'
 
 export default {
   name: 'Overview',
@@ -36,11 +52,23 @@ export default {
     GddSend,
     GddTable,
     GddTableFooter,
+    TransactionForm,
+    TransactionConfirmation,
+    TransactionResult,
   },
   data() {
     return {
-      showTransactionList: true,
+      showContext: true,
       timestamp: Date.now(),
+      transactionData: {
+        email: '',
+        amount: 0,
+        target_date: '',
+        memo: '',
+      },
+      error: false,
+      transactionSteps: ['transaction-form', 'transaction-confirmation', 'transaction-result'],
+      currentTransactionStep: 0,
     }
   },
   props: {
@@ -52,14 +80,37 @@ export default {
     transactionCount: { type: Number, default: 0 },
   },
   methods: {
-    toggleShowList(bool) {
-      this.showTransactionList = bool
+    setTransaction(data) {
+      this.transactionData.email = data.email
+      this.transactionData.amount = data.amount
+      this.transactionData.memo = data.memo
+      this.transactionData.target_date = new Date(Date.now()).toISOString()
+      this.showContext = false
+      this.currentTransactionStep = 1
     },
-    updateBalance(data) {
-      this.$emit('update-balance', data.ammount)
+    async sendTransaction() {
+      const result = await communityAPI.send(
+        this.$store.state.sessionId,
+        this.transactionData.email,
+        this.transactionData.amount,
+        this.transactionData.memo,
+        this.transactionData.target_date,
+      )
+      if (result.success) {
+        this.error = false
+        this.$emit('update-balance', this.transactionData.amount)
+      } else {
+        this.error = true
+      }
+      this.currentTransactionStep = 2
     },
-    updateTransactions() {
-      this.$emit('update-transactions')
+    onReset() {
+      this.transactionData.email = ''
+      this.transactionData.amount = 0
+      this.transactionData.memo = ''
+      this.transactionData.target_date = ''
+      this.showContext = true
+      this.currentTransactionStep = 0
     },
   },
 }
