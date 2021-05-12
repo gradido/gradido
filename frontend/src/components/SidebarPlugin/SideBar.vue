@@ -10,7 +10,7 @@
         <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
       <b-row class="text-center">
-        <b-col>{{ $n(balance) }} GDD</b-col>
+        <b-col>{{ pending ? '—' : $n(balance) }} GDD</b-col>
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
@@ -92,6 +92,10 @@ export default {
     balance: {
       type: Number,
       default: 0,
+    },
+    pending: {
+      type: Boolean,
+      default: true,
     },
   },
   provide() {

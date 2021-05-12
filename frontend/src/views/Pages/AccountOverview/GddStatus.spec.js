@@ -24,12 +24,30 @@ describe('GddStatus', () => {
       wrapper = Wrapper()
     })
 
-    it('it displays the ammount of GDD', () => {
-      expect(wrapper.findAll('div.card-body').at(0).text()).toEqual('1234 GDD')
+    describe('balance is loading', () => {
+      it('it displays em-dash as the ammount of GDD', () => {
+        expect(wrapper.findAll('div.card-body').at(0).text()).toEqual('— GDD')
+      })
+
+      it('it displays em-dash as the ammount of GDT', () => {
+        expect(wrapper.findAll('div.card-body').at(1).text()).toEqual('— GDT')
+      })
     })
 
-    it('it displays the ammount of GDT', () => {
-      expect(wrapper.findAll('div.card-body').at(1).text()).toEqual('9876 GDT')
+    describe('balance is loaded', () => {
+      beforeEach(() => {
+        wrapper.setProps({
+          pending: false,
+        })
+      })
+
+      it('it displays the ammount of GDD', () => {
+        expect(wrapper.findAll('div.card-body').at(0).text()).toEqual('1234 GDD')
+      })
+
+      it('it displays the ammount of GDT', () => {
+        expect(wrapper.findAll('div.card-body').at(1).text()).toEqual('9876 GDT')
+      })
     })
   })
 })
