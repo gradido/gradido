@@ -118,7 +118,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	default: 
 		result->set("state", "error");
 		result->set("msg", "unknown user state");
-		result->set("details", USER_NO_GROUP);
+		result->set("details", user_state);
 	}
 	
 	sm->releaseSession(session);

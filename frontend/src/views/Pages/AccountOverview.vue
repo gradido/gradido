@@ -1,0 +1,72 @@
+<template>
+  <div>
+    <base-header class="pb-4 pt-2 bg-transparent"></base-header>
+    <b-container fluid class="p-2 mt-5">
+      <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
+      <br />
+      <gdd-send
+        :balance="balance"
+        :show-transaction-list="showTransactionList"
+        @update-balance="updateBalance"
+        @toggle-show-list="toggleShowList"
+      />
+      <hr />
+      <gdd-table
+        v-if="showTransactionList"
+        :transactions="transactions"
+        :max="5"
+        :timestamp="timestamp"
+        :transactionCount="transactionCount"
+        @update-transactions="updateTransactions"
+      />
+      <gdd-table-footer :count="transactionCount" />
+    </b-container>
+  </div>
+</template>
+<script>
+import GddStatus from './AccountOverview/GddStatus.vue'
+import GddSend from './AccountOverview/GddSend.vue'
+import GddTable from './AccountOverview/GddTable.vue'
+import GddTableFooter from './AccountOverview/GddTableFooter.vue'
+
+export default {
+  name: 'Overview',
+  components: {
+    GddStatus,
+    GddSend,
+    GddTable,
+    GddTableFooter,
+  },
+  data() {
+    return {
+      showTransactionList: true,
+      timestamp: Date.now(),
+    }
+  },
+  props: {
+    balance: { type: Number, default: 0 },
+    GdtBalance: { type: Number, default: 0 },
+    transactions: {
+      default: () => [],
+    },
+    transactionCount: { type: Number, default: 0 },
+  },
+  methods: {
+    toggleShowList(bool) {
+      this.showTransactionList = bool
+    },
+    updateBalance(data) {
+      this.$emit('update-balance', data.ammount)
+    },
+    updateTransactions() {
+      this.$emit('update-transactions')
+    },
+  },
+}
+</script>
+
+<style>
+.active {
+  background-color: rgba(192, 192, 192, 0.568);
+}
+</style>

@@ -17,7 +17,7 @@ namespace model {
 			case TRANSACTION_VALID_INVALID_TARGET_DATE: return "invalid target date";
 			case TRANSACTION_VALID_CREATION_OUT_OF_BORDER: return "creation out of border";
 			case TRANSACTION_VALID_INVALID_AMOUNT: return "invalid amount";
-			case TRANSCATION_VALID_INVALID_PUBKEY: return "invalid pubkey";
+			case TRANSACTION_VALID_INVALID_PUBKEY: return "invalid pubkey";
 			case TRANSACTION_VALID_INVALID_GROUP_ALIAS: return "invalid group alias";
 			case TRANSACTION_VALID_INVALID_SIGN: return "invalid sign";
 			}

@@ -590,7 +590,7 @@ namespace model {
 			auto result = validate();
 			if (TRANSACTION_VALID_OK != result) {
 				if (   TRANSACTION_VALID_MISSING_SIGN == result || TRANSACTION_VALID_CODE_ERROR == result
-					|| TRANSACTION_VALID_MISSING_PARAM == result || TRANSCATION_VALID_INVALID_PUBKEY == result
+					|| TRANSACTION_VALID_MISSING_PARAM == result || TRANSACTION_VALID_INVALID_PUBKEY == result
 					|| TRANSACTION_VALID_INVALID_SIGN == result) {
 					addError(new ParamError(function_name, "code error", TransactionValidationToString(result)));
 					//sendErrorsAsEmail();

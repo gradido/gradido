@@ -32,15 +32,17 @@ const apiPost = async (url, payload) => {
 }
 
 const communityAPI = {
-  balance: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + session_id)
+  balance: async (sessionId) => {
+    return apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + sessionId)
   },
-  transactions: async (session_id) => {
-    return apiGet(CONFIG.COMMUNITY_API_URL + 'listTransactions/1/25/ASC/' + session_id)
+  transactions: async (sessionId, firstPage = 1, items = 1000, order = 'DESC') => {
+    return apiGet(
+      `${CONFIG.COMMUNITY_API_URL}listTransactions/${firstPage}/${items}/${order}/${sessionId}`,
+    )
   },
-  /*create: async (session_id, email, amount, memo, target_date = new Date() ) => {
+  /* create: async (sessionId, email, amount, memo, target_date = new Date() ) => {
     const payload = {
-      session_id,
+      sessionId,
       email,
       amount,
       target_date,
@@ -48,14 +50,14 @@ const communityAPI = {
       auto_sign: true,
     }
     return apiPost(CONFIG.COMMUNITY_API__URL + 'createCoins/', payload)
-  },*/
-  send: async (session_id, email, amount, memo, target_date) => {
+  }, */
+  send: async (sessionId, email, amount, memo, targetDate) => {
     const payload = {
-      session_id,
+      session_id: sessionId,
       email,
       amount,
       memo,
-      target_date,
+      target_date: targetDate,
       auto_sign: true,
     }
     return apiPost(CONFIG.COMMUNITY_API_URL + 'sendCoins/', payload)

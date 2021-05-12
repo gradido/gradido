@@ -22,7 +22,7 @@ use Cake\Validation\Validator;
  * @method \App\Model\Entity\StateUserTransaction[] patchEntities($entities, array $data, array $options = [])
  * @method \App\Model\Entity\StateUserTransaction findOrCreate($search, callable $callback = null, $options = [])
  */
-class StateUserTransactionsTable extends Table
+class StateUserTransactionsTable extends AppTable
 {
     /**
      * Initialize method

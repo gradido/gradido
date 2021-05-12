@@ -70,7 +70,7 @@ export default {
   },
   methods: {
     activate() {
-      let wasActive = this.active
+      const wasActive = this.active
       if (!this.multipleActive) {
         this.deactivateAll()
       }

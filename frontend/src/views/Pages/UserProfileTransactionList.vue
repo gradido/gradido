@@ -7,18 +7,39 @@
     <b-container fluid class="mt--6">
       <b-row>
         <b-col class="order-xl-1">
-          <gdd-table></gdd-table>
+          <gdd-table
+            :timestamp="timestamp"
+            :transactionCount="transactionCount"
+            :transactions="transactions"
+            @update-transactions="updateTransactions"
+          />
         </b-col>
       </b-row>
     </b-container>
   </div>
 </template>
 <script>
-import GddTable from '../../views/KontoOverview/GddTable.vue'
+import GddTable from '../../views/Pages/AccountOverview/GddTable.vue'
 
 export default {
   components: {
     GddTable,
+  },
+  props: {
+    transactions: {
+      default: [],
+    },
+    transactionCount: { type: Number, default: 0 },
+  },
+  data() {
+    return {
+      timestamp: Date.now(),
+    }
+  },
+  methods: {
+    updateTransactions() {
+      this.$emit('update-transactions')
+    },
   },
 }
 </script>

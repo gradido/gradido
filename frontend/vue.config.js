@@ -23,6 +23,7 @@ module.exports = {
         assets: path.join(__dirname, 'src/assets'),
       },
     },
+    // eslint-disable-next-line new-cap
     plugins: [new dotenv()],
   },
   css: {

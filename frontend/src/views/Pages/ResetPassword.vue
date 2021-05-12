@@ -19,7 +19,7 @@
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
-            <b-card-body class="py-lg-4 px-sm-0 px-0 px-md-2 px-lg-4">
+            <b-card-body class="p-4">
               <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
                   <b-form-group :label="$t('form.password')">
@@ -35,11 +35,8 @@
                       ></b-form-input>
 
                       <b-input-group-append>
-                        <b-button variant="outline-primary">
-                          <b-icon
-                            :icon="passwordVisible ? 'eye' : 'eye-slash'"
-                            @click="togglePasswordVisibility"
-                          />
+                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>
                     </b-input-group>
@@ -104,7 +101,7 @@ export default {
       passwordVisible: false,
       submitted: false,
       authenticated: false,
-      session_id: null,
+      sessionId: null,
       email: null,
     }
   },
@@ -113,7 +110,7 @@ export default {
       this.passwordVisible = !this.passwordVisible
     },
     async onSubmit() {
-      const result = await loginAPI.changePassword(this.session_id, this.email, this.password)
+      const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
       if (result.success) {
         this.password = ''
         this.$router.push('/thx')
@@ -126,7 +123,7 @@ export default {
       const result = await loginAPI.loginViaEmailVerificationCode(optin)
       if (result.success) {
         this.authenticated = true
-        this.session_id = result.result.data.session_id
+        this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
         alert(result.result.message)
@@ -141,8 +138,8 @@ export default {
       return this.password !== '' && this.checkPassword !== ''
     },
     passwordValidation() {
-      let errors = []
-      for (let condition of this.rules) {
+      const errors = []
+      for (const condition of this.rules) {
         if (!condition.regex.test(this.password)) {
           errors.push(condition.message)
         }

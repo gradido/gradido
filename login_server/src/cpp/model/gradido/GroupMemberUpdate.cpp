@@ -67,7 +67,7 @@ namespace model {
 			const static char functionName[] = { "GroupMemberUpdate::validate" };
 			if (mProtoMemberUpdate.user_pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(functionName, "pubkey not set or wrong size"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
 
 			if (mProtoMemberUpdate.member_update_type() != proto::gradido::GroupMemberUpdate::ADD_USER) {

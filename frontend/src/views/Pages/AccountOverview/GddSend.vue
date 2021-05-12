@@ -1,11 +1,12 @@
 <template>
-  <div>
+  <div class="gdd-send">
     <b-row v-show="showTransactionList">
       <b-col xl="12" md="12">
-        <b-alert show dismissible variant="warning" class="text-center">
-          <span class="alert-text" v-html="$t('form.attention')"></span>
+        <b-alert show dismissible variant="default" class="text-center">
+          <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
         </b-alert>
         <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <!--
           <b-alert show variant="secondary">
             <span class="alert-text" v-html="$t('form.scann_code')"></span>
             <b-col v-show="!scan" lg="12" class="text-right">
@@ -15,9 +16,9 @@
             </b-col>
 
             <div v-if="scan">
-              <!-- <b-row>                                          
+               <b-row>                                          
                    <qrcode-capture @detect="onDetect"  capture="user" ></qrcode-capture>                     
-                   </b-row> -->
+                   </b-row> 
 
               <qrcode-stream class="mt-3" @decode="onDecode" @detect="onDetect"></qrcode-stream>
 
@@ -39,6 +40,7 @@
               </b-alert>
             </div>
           </b-alert>
+          -->
 
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
             <b-form
@@ -47,83 +49,105 @@
               @reset="onReset"
               v-if="show"
             >
-              <br />
-              <div>
+              <!-- <div>
                 <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
               </div>
               <br />
+              -->
               <div>
-                <b-col class="text-left p-3 p-sm-1">{{ $t('form.receiver') }}</b-col>
-
-                <b-input-group
-                  id="input-group-1"
-                  label="Empfänger:"
-                  label-for="input-1"
-                  description="We'll never share your email with anyone else."
-                  size="lg"
-                  class="mb-3"
+                <validation-provider
+                  name="Email"
+                  :rules="{
+                    required: true,
+                    email: true,
+                    is_not: $store.state.email,
+                  }"
+                  v-slot="{ errors }"
                 >
-                  <b-input-group-prepend class="p-3 d-none d-md-block">
-                    <b-icon icon="envelope" class="display-3"></b-icon>
-                  </b-input-group-prepend>
-                  <b-form-input
-                    id="input-1"
-                    v-model="form.email"
-                    type="email"
-                    placeholder="E-Mail"
-                    :rules="{ required: true, email: true }"
-                    required
-                    style="font-size: xx-large; padding-left: 20px"
-                  ></b-form-input>
-                </b-input-group>
+                  <b-row>
+                    <b-col class="text-left p-3 p-sm-1">{{ $t('form.receiver') }}</b-col>
+                    <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                      <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
+                    </b-col>
+                  </b-row>
+                  <b-input-group
+                    id="input-group-1"
+                    label="Empfänger:"
+                    label-for="input-1"
+                    description="We'll never share your email with anyone else."
+                    size="lg"
+                    class="mb-3"
+                  >
+                    <b-input-group-prepend class="p-3 d-none d-md-block">
+                      <b-icon icon="envelope" class="display-3"></b-icon>
+                    </b-input-group-prepend>
+                    <b-form-input
+                      id="input-1"
+                      v-model="form.email"
+                      type="email"
+                      placeholder="E-Mail"
+                      style="font-size: xx-large; padding-left: 20px"
+                    ></b-form-input>
+                  </b-input-group>
+                </validation-provider>
               </div>
               <br />
               <div>
-                <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
-                <b-col v-if="balance == form.amount" class="text-right">
-                  <b-badge variant="primary">{{ $t('form.max_gdd_info') }}</b-badge>
-                </b-col>
-                <b-input-group
-                  id="input-group-2"
-                  label="Betrag:"
-                  label-for="input-2"
-                  size="lg"
-                  class="mb-3"
+                <validation-provider
+                  :name="$t('form.amount')"
+                  :rules="{
+                    required: true,
+                    double: [2, $i18n.locale === 'de' ? ',' : '.'],
+                    between: [0.01, balance],
+                  }"
+                  v-slot="{ errors }"
                 >
-                  <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <div class="h3 pt-3 pr-3">GDD</div>
-                  </b-input-group-prepend>
-                  <b-form-input
-                    id="input-2"
-                    v-model="form.amount"
-                    type="number"
-                    placeholder="0.01"
-                    step="0.01"
-                    min="0.01"
-                    :max="balance"
-                    style="font-size: xx-large; padding-left: 20px"
-                  ></b-form-input>
-                </b-input-group>
-                <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
-
-                <b-input-group>
-                  <b-input-group-prepend class="p-3 d-none d-md-block">
-                    <b-icon icon="chat-right-text" class="display-3"></b-icon>
-                  </b-input-group-prepend>
-                  <b-form-textarea
-                    rows="3"
-                    v-model="form.memo"
-                    class="pl-3"
-                    style="font-size: x-large"
-                  ></b-form-textarea>
-                </b-input-group>
+                  <b-row>
+                    <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
+                    <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                      <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+                    </b-col>
+                  </b-row>
+                  <b-input-group
+                    id="input-group-2"
+                    label="Betrag:"
+                    label-for="input-2"
+                    size="lg"
+                    class="mb-3"
+                  >
+                    <b-input-group-prepend class="p-2 d-none d-md-block">
+                      <div class="h3 pt-3 pr-3">GDD</div>
+                    </b-input-group-prepend>
+                    <b-form-input
+                      id="input-2"
+                      v-model="form.amount"
+                      type="number"
+                      :lang="$i18n.locale"
+                      :placeholder="$n(0.01)"
+                      step="0.01"
+                      style="font-size: xx-large; padding-left: 20px"
+                    ></b-form-input>
+                  </b-input-group>
+                  <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
+                  <b-input-group id="input-group-3">
+                    <b-input-group-prepend class="p-3 d-none d-md-block">
+                      <b-icon icon="chat-right-text" class="display-3"></b-icon>
+                    </b-input-group-prepend>
+                    <b-form-textarea
+                      rows="3"
+                      v-model="form.memo"
+                      class="pl-3"
+                      style="font-size: x-large"
+                    ></b-form-textarea>
+                  </b-input-group>
+                </validation-provider>
               </div>
 
               <br />
               <b-row>
                 <b-col>
-                  <b-button type="reset" variant="secondary">
-                    {{ $t('form.cancel') }}
+                  <b-button type="reset" variant="secondary" @click="onReset">
+                    {{ $t('form.reset') }}
                   </b-button>
                 </b-col>
                 <b-col class="text-right">
@@ -155,7 +179,7 @@
           </b-list-group-item>
 
           <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ ajaxCreateData.memo }}
+            {{ ajaxCreateData.memo ? ajaxCreateData.memo : '-' }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
@@ -178,29 +202,46 @@
     </b-row>
     <b-row v-show="row_thx">
       <b-col>
-        <div class="display-1 p-4">
-          {{ $t('form.thx') }}
-          <hr />
-          {{ $t('form.send_success') }}
-        </div>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.thx') }}
+            <hr />
+            {{ $t('form.send_transaction_success') }}
+          </div>
 
-        <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
-        <hr />
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
+      </b-col>
+    </b-row>
+    <b-row v-show="row_error">
+      <b-col>
+        <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+          <div class="display-2 p-4">
+            {{ $t('form.sorry') }}
+            <hr />
+            {{ $t('form.send_transaction_error') }}
+          </div>
+          <p class="text-center">
+            <b-button variant="success" @click="onReset">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
       </b-col>
     </b-row>
   </div>
 </template>
 
 <script>
-import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
+// import { QrcodeStream, QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
-import communityAPI from '../../apis/communityAPI.js'
+import communityAPI from '../../../apis/communityAPI.js'
 
 export default {
   name: 'GddSent',
   components: {
-    QrcodeStream,
-    QrcodeDropZone,
+    // QrcodeStream,
+    // QrcodeDropZone,
     BIcon,
   },
   props: {
@@ -209,7 +250,7 @@ export default {
   },
   data() {
     return {
-      scan: false,
+      // scan: false,
       show: true,
       form: {
         img: '',
@@ -227,21 +268,22 @@ export default {
       send: false,
       row_check: false,
       row_thx: false,
+      row_error: false,
     }
   },
   computed: {},
   methods: {
-    toggle() {
-      this.scan = !this.scan
-    },
-    async onDecode(decodedString) {
-      const arr = JSON.parse(decodedString)
-      this.form.email = arr[0].email
-      this.form.amount = arr[0].amount
-      this.scan = false
-    },
+    // toggle() {
+    //  this.scan = !this.scan
+    // },
+    // async onDecode(decodedString) {
+    //  const arr = JSON.parse(decodedString)
+    //  this.form.email = arr[0].email
+    //  this.form.amount = arr[0].amount
+    //  this.scan = false
+    // },
     async onSubmit() {
-      //event.preventDefault()
+      // event.preventDefault()
       this.ajaxCreateData.email = this.form.email
       this.ajaxCreateData.amount = this.form.amount
       const now = new Date(Date.now()).toISOString()
@@ -250,12 +292,13 @@ export default {
       this.$emit('toggle-show-list', false)
       this.row_check = true
       this.row_thx = false
+      this.row_error = false
     },
     async sendTransaction() {
       const result = await communityAPI.send(
-        this.$store.state.session_id,
+        this.$store.state.sessionId,
         this.ajaxCreateData.email,
-        this.ajaxCreateData.amount * 10000,
+        this.ajaxCreateData.amount,
         this.ajaxCreateData.memo,
         this.ajaxCreateData.target_date,
       )
@@ -263,22 +306,25 @@ export default {
         this.$emit('toggle-show-list', false)
         this.row_check = false
         this.row_thx = true
+        this.row_error = false
         this.$emit('update-balance', { ammount: this.ajaxCreateData.amount })
       } else {
-        alert('error')
         this.$emit('toggle-show-list', true)
         this.row_check = false
         this.row_thx = false
+        this.row_error = true
       }
     },
     onReset(event) {
       event.preventDefault()
       this.form.email = ''
       this.form.amount = ''
+      this.form.memo = ''
       this.show = false
       this.$emit('toggle-show-list', true)
       this.row_check = false
       this.row_thx = false
+      this.row_error = false
       this.$nextTick(() => {
         this.show = true
       })
@@ -293,5 +339,8 @@ export default {
 video {
   max-height: 665px;
   max-width: 665px;
+}
+span.errors {
+  color: red;
 }
 </style>

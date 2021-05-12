@@ -59,7 +59,7 @@ export default {
       type: String,
       default: 'top',
       validator: (value) => {
-        let acceptedValues = ['top', 'bottom']
+        const acceptedValues = ['top', 'bottom']
         return acceptedValues.indexOf(value) !== -1
       },
       description: 'Vertical alignment of notification (top|bottom)',
@@ -68,7 +68,7 @@ export default {
       type: String,
       default: 'right',
       validator: (value) => {
-        let acceptedValues = ['left', 'center', 'right']
+        const acceptedValues = ['left', 'center', 'right']
         return acceptedValues.indexOf(value) !== -1
       },
       description: 'Horizontal alignment of notification (left|center|right)',
@@ -77,7 +77,7 @@ export default {
       type: String,
       default: 'info',
       validator: (value) => {
-        let acceptedValues = ['default', 'info', 'primary', 'danger', 'warning', 'success']
+        const acceptedValues = ['default', 'info', 'primary', 'danger', 'warning', 'success']
         return acceptedValues.indexOf(value) !== -1
       },
       description:
@@ -129,8 +129,8 @@ export default {
       return `alert-${this.type}`
     },
     customPosition() {
-      let initialMargin = 20
-      let alertHeight = this.elmHeight + 10
+      const initialMargin = 20
+      const alertHeight = this.elmHeight + 10
       let sameAlertsCount = this.$notifications.state.filter((alert) => {
         return (
           alert.horizontalAlign === this.horizontalAlign &&
@@ -141,8 +141,8 @@ export default {
       if (this.$notifications.settings.overlap) {
         sameAlertsCount = 1
       }
-      let pixels = (sameAlertsCount - 1) * alertHeight + initialMargin
-      let styles = {}
+      const pixels = (sameAlertsCount - 1) * alertHeight + initialMargin
+      const styles = {}
       if (this.verticalAlign === 'top') {
         styles.top = `${pixels}px`
       } else {

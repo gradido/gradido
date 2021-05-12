@@ -29,7 +29,7 @@ const SidebarPlugin = {
     if (options && options.sidebarLinks) {
       SidebarStore.sidebarLinks = options.sidebarLinks
     }
-    let app = new Vue({
+    const app = new Vue({
       data: {
         sidebarStore: SidebarStore,
       },

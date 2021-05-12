@@ -20,7 +20,7 @@ const transitionStub = () => ({
 describe('DashboardLayoutGdd', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
@@ -28,7 +28,7 @@ describe('DashboardLayoutGdd', () => {
     $n: jest.fn(),
   }
 
-  let state = {
+  const state = {
     user: {
       name: 'Peter Lustig',
       balance: 2546,
@@ -37,12 +37,12 @@ describe('DashboardLayoutGdd', () => {
     email: 'peter.lustig@example.org',
   }
 
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
     FadeTransition: transitionStub(),
   }
 
-  let store = new Vuex.Store({
+  const store = new Vuex.Store({
     state,
   })
 
@@ -79,7 +79,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(3)
+        expect(navbar.findAll('ul > li')).toHaveLength(2)
       })
 
       it('has first item "send" in navbar', () => {
@@ -104,41 +104,41 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
       })
 
-      it('has third item "My profile" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
-      })
-
-      it.skip('has third item "My profile" linked to profile in navbar', async () => {
-        navbar.findAll('ul > li > a').at(2).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
-      })
-
-      //it('has fourth item "Settigs" in navbar', () => {
-      //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
-      //})
+      // it('has third item "My profile" in navbar', () => {
+      //  expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
+      // })
       //
-      //it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
+      // it.skip('has third item "My profile" linked to profile in navbar', async () => {
+      //  navbar.findAll('ul > li > a').at(2).trigger('click')
+      //  await flushPromises()
+      //  await jest.runAllTimers()
+      //  await flushPromises()
+      //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
+      // })
+
+      // it('has fourth item "Settigs" in navbar', () => {
+      //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
+      // })
+      //
+      // it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
       //  navbar.findAll('ul > li > a').at(3).trigger('click')
       //  await flushPromises()
       //  await jest.runAllTimers()
       //  await flushPromises()
       //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profileedit')
-      //})
+      // })
 
-      //it('has fifth item "Activity" in navbar', () => {
+      // it('has fifth item "Activity" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(4).text()).toEqual('site.navbar.activity')
-      //})
+      // })
       //
-      //it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
+      // it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
       //  navbar.findAll('ul > li > a').at(4).trigger('click')
       //  await flushPromises()
       //  await jest.runAllTimers()
       //  await flushPromises()
       //  expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/activity')
-      //})
+      // })
     })
   })
 })

@@ -7,7 +7,7 @@
     <b-container fluid class="mt--6">
       <b-row>
         <b-col xl="12" class="order-xl-2 mb-5">
-          <user-card></user-card>
+          <user-card :balance="balance"></user-card>
         </b-col>
       </b-row>
     </b-container>
@@ -19,6 +19,9 @@ import UserCard from './UserProfile/UserCard.vue'
 export default {
   components: {
     UserCard,
+  },
+  props: {
+    balance: { type: Number, default: 0 },
   },
 }
 </script>

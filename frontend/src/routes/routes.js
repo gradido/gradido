@@ -9,7 +9,7 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('../views/Pages/KontoOverview.vue'),
+    component: () => import('../views/Pages/AccountOverview.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -21,20 +21,20 @@ const routes = [
       requiresAuth: true,
     },
   },
-  //{
+  // {
   //  path: '/profileedit',
   //  component: () => import('../views/Pages/UserProfileEdit.vue'),
   //  meta: {
   //    requiresAuth: true,
   //  },
-  //},
-  //{
+  // },
+  // {
   //  path: '/activity',
   //  component: () => import('../views/Pages/UserProfileActivity.vue'),
   //  meta: {
   //    requiresAuth: true,
   //  },
-  //},
+  // },
   {
     path: '/transactions',
     component: () => import('../views/Pages/UserProfileTransactionList.vue'),

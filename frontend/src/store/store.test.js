@@ -1,6 +1,6 @@
 import { mutations, actions } from './store'
 
-const { language, email, session_id } = mutations
+const { language, email, sessionId } = mutations
 const { login, logout } = actions
 
 describe('Vuex store', () => {
@@ -21,11 +21,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('session_id', () => {
-      it('sets the state of session_id', () => {
-        const state = { session_id: null }
-        session_id(state, '1234')
-        expect(state.session_id).toEqual('1234')
+    describe('sessionId', () => {
+      it('sets the state of sessionId', () => {
+        const state = { sessionId: null }
+        sessionId(state, '1234')
+        expect(state.sessionId).toEqual('1234')
       })
     })
   })
@@ -36,17 +36,17 @@ describe('Vuex store', () => {
       const state = {}
 
       it('calls two commits', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
         expect(commit).toHaveBeenCalledTimes(2)
       })
 
-      it('commits session_id', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
-        expect(commit).toHaveBeenNthCalledWith(1, 'session_id', 1234)
+      it('commits sessionId', () => {
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
+        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', 1234)
       })
 
       it('commits email', () => {
-        login({ commit, state }, { session_id: 1234, email: 'someone@there.is' })
+        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
         expect(commit).toHaveBeenNthCalledWith(2, 'email', 'someone@there.is')
       })
     })
@@ -60,9 +60,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenCalledTimes(2)
       })
 
-      it('commits session_id', () => {
+      it('commits sessionId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(1, 'session_id', null)
+        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', null)
       })
 
       it('commits email', () => {

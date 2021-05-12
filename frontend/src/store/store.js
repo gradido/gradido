@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-Vue.use(Vuex)
 import createPersistedState from 'vuex-persistedstate'
+Vue.use(Vuex)
 
 export const mutations = {
   language: (state, language) => {
@@ -10,18 +10,18 @@ export const mutations = {
   email: (state, email) => {
     state.email = email
   },
-  session_id: (state, session_id) => {
-    state.session_id = session_id
+  sessionId: (state, sessionId) => {
+    state.sessionId = sessionId
   },
 }
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
-    commit('session_id', data.session_id)
+    commit('sessionId', data.sessionId)
     commit('email', data.email)
   },
   logout: ({ commit, state }) => {
-    commit('session_id', null)
+    commit('sessionId', null)
     commit('email', null)
     sessionStorage.clear()
   },
@@ -34,7 +34,7 @@ export const store = new Vuex.Store({
     }),
   ],
   state: {
-    session_id: null,
+    sessionId: null,
     email: '',
     language: 'en',
     modals: false,
