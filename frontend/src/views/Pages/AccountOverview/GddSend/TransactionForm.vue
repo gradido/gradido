@@ -1,5 +1,5 @@
 <template>
-  <b-row>
+  <b-row class="transaction-form">
     <b-col xl="12" md="12">
       <b-alert show dismissible variant="default" class="text-center">
         <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
