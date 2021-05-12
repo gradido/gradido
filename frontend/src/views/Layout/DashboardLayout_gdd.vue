@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <notifications></notifications>
-    <side-bar @logout="logout" :balance="balance">
+    <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
         <sidebar-item
           :link="{
@@ -17,15 +17,15 @@
         ></sidebar-item>
 
         <!--
-        <b-nav-item href="#!" to="/profile">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
-        </b-nav-item>       
-        <b-nav-item href="#!" to="/profileedit">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/activity">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
-        </b-nav-item>
+             <b-nav-item href="#!" to="/profile">
+             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
+             </b-nav-item>       
+             <b-nav-item href="#!" to="/profileedit">
+             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
+             </b-nav-item>
+             <b-nav-item href="#!" to="/activity">
+             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
+             </b-nav-item>
         -->
       </template>
     </side-bar>
@@ -39,6 +39,7 @@
             :gdt-balance="GdtBalance"
             :transactions="transactions"
             :transactionCount="transactionCount"
+            :pending="pending"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -89,6 +90,7 @@ export default {
       transactions: [],
       bookedBalance: 0,
       transactionCount: 0,
+      pending: true,
     }
   },
   methods: {
@@ -105,6 +107,7 @@ export default {
       this.$router.push('/login')
     },
     async updateTransactions() {
+      this.pending = true
       const result = await communityAPI.transactions(this.$store.state.sessionId)
       if (result.success) {
         this.GdtBalance = Number(result.result.data.gdtSum)
@@ -112,7 +115,9 @@ export default {
         this.balance = Number(result.result.data.decay)
         this.bookedBalance = Number(result.result.data.balance)
         this.transactionCount = result.result.data.count
+        this.pending = false
       } else {
+        this.pending = true
         // what to do when loading balance fails?
       }
     },
