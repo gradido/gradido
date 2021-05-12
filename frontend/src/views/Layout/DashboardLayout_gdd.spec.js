@@ -79,29 +79,33 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(5)
-      })
+        expect(navbar.findAll('ul > a')).toHaveLength(2)
+      })      
 
       it('has first item "send" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(0).text()).toEqual('send')
+        expect(navbar.findAll('ul > a').at(0).text()).toEqual('send')
       })
 
       it('has first item "send" linked to overview in navbar', () => {
-        navbar.findAll('ul > li').at(0).trigger('click')
+        navbar.findAll('ul > a').at(0).trigger('click')
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/overview')
       })
 
       it('has second item "transactions" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(1).text()).toEqual('transactions')
+        expect(navbar.findAll('ul > a').at(1).text()).toEqual('transactions')
       })
 
       // to do: get this working!
       it.skip('has second item "transactions" linked to transactions in navbar', async () => {
-        navbar.findAll('ul > li > a').at(1).trigger('click')
+        navbar.findAll('ul > a').at(1).trigger('click')
         await flushPromises()
         await jest.runAllTimers()
         await flushPromises()
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
+      })
+
+      it('has tree items in the navbar', () => {
+        expect(navbar.findAll('ul > li')).toHaveLength(3)
       })
 
       // it('has third item "My profile" in navbar', () => {

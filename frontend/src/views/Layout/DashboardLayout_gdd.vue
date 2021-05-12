@@ -3,12 +3,21 @@
     <notifications></notifications>
     <side-bar @logout="logout" :balance="balance">
       <template slot="links">
-        <b-nav-item to="/overview">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item to="/transactions">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
-        </b-nav-item>
+        <sidebar-item
+          :link="{
+            name: $t('send'),
+            icon: false,
+            path: '/overview',
+          }"
+        ></sidebar-item>
+        <sidebar-item
+          :link="{
+            name: $t('transactions'),
+            icon: '',
+            path: '/transactions',
+          }"
+        ></sidebar-item>
+
         <b-nav-item>
           <b-nav-text class="pt-3"><language-switch /></b-nav-text>
         </b-nav-item>

@@ -44,22 +44,22 @@
         <ul class="navbar-nav">
           <slot name="links"></slot>
         </ul>
-        <hr class="my-3" />
-        <ul class="navbar-nav mb-md-3">
+        <hr class="my-2" />
+        <ul class="navbar-nav">
           <li class="nav-item">
             <a
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
-              class="nav-link text-lg"
+              class="nav-link"
               target="_blank"
             >
               {{ $t('members_area') }}
             </a>
           </li>
         </ul>
-        <hr class="my-3" />
+        <hr class="my-2" />
         <ul class="navbar-nav mb-md-3">
           <li class="nav-item">
-            <a class="nav-link text-lg pointer" @click="logout">
+            <a class="nav-link pointer" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
