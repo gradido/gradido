@@ -4,7 +4,7 @@
     <b-container fluid class="p-2 mt-5">
       <gdd-status v-if="showContext" :balance="balance" :gdt-balance="GdtBalance" />
       <br />
-      <gdd-send :currentTransactionStep="transactionSteps[currentTransactionStep]">
+      <gdd-send :currentTransactionStep="currentTransactionStep">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
@@ -58,7 +58,6 @@ export default {
   },
   data() {
     return {
-      showContext: true,
       timestamp: Date.now(),
       transactionData: {
         email: '',
@@ -67,7 +66,6 @@ export default {
         memo: '',
       },
       error: false,
-      transactionSteps: ['transaction-form', 'transaction-confirmation', 'transaction-result'],
       currentTransactionStep: 0,
     }
   },
@@ -79,23 +77,19 @@ export default {
     },
     transactionCount: { type: Number, default: 0 },
   },
+  computed: {
+    showContext() {
+      return this.currentTransactionStep === 0
+    },
+  },
   methods: {
     setTransaction(data) {
-      this.transactionData.email = data.email
-      this.transactionData.amount = data.amount
-      this.transactionData.memo = data.memo
-      this.transactionData.target_date = new Date(Date.now()).toISOString()
-      this.showContext = false
+      data.target_date = new Date(Date.now()).toISOString()
+      this.transactionData = { ...data }
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
-      const result = await communityAPI.send(
-        this.$store.state.sessionId,
-        this.transactionData.email,
-        this.transactionData.amount,
-        this.transactionData.memo,
-        this.transactionData.target_date,
-      )
+      const result = await communityAPI.send(this.$store.state.sessionId, this.transactionData)
       if (result.success) {
         this.error = false
         this.$emit('update-balance', this.transactionData.amount)
@@ -105,11 +99,12 @@ export default {
       this.currentTransactionStep = 2
     },
     onReset() {
-      this.transactionData.email = ''
-      this.transactionData.amount = 0
-      this.transactionData.memo = ''
-      this.transactionData.target_date = ''
-      this.showContext = true
+      this.transactionData = {
+        email: '',
+        amount: 0,
+        memo: '',
+        target_date: '',
+      }
       this.currentTransactionStep = 0
     },
   },
