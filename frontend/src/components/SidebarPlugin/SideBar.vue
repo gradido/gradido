@@ -45,7 +45,7 @@
           <slot name="links"></slot>
         </ul>
         <hr class="my-2" />
-        <ul class="navbar-nav ml-2">
+        <ul class="navbar-nav ml-3">
           <li class="nav-item">
             <a
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
@@ -57,7 +57,7 @@
           </li>
         </ul>
 
-        <ul class="navbar-nav ml-2">
+        <ul class="navbar-nav ml-3">
           <li class="nav-item">
             <a class="nav-link pointer" @click="logout">
               {{ $t('logout') }}
