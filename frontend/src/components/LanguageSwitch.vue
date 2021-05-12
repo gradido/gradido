@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="language-switch">
     <b-dropdown size="sm" :text="$t('language') + ' - ' + $i18n.locale">
       <b-dropdown-item @click.prevent="setLocale('de')">Deutsch</b-dropdown-item>
       <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>

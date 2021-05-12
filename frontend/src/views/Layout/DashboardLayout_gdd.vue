@@ -1,6 +1,5 @@
 <template>
   <div class="wrapper">
-    <notifications></notifications>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
         <sidebar-item

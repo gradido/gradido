@@ -59,10 +59,6 @@ describe('DashboardLayoutGdd', () => {
       expect(wrapper.find('nav#sidenav-main').exists()).toBeTruthy()
     })
 
-    it('has a notifications component', () => {
-      expect(wrapper.find('div.notifications').exists()).toBeTruthy()
-    })
-
     it('has a main content div', () => {
       expect(wrapper.find('div.main-content').exists()).toBeTruthy()
     })
