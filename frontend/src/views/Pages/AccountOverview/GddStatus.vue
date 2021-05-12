@@ -3,8 +3,7 @@
     <b-row>
       <b-col>
         <b-card style="background-color: #ebebeba3 !important">
-          <b>{{ pending ? '—' : $n(balance) }}</b>
-          GDD
+          {{ pending ? '—' : $n(balance) }} GDD
         </b-card>
       </b-col>
       <b-col>

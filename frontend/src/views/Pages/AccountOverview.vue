@@ -9,8 +9,6 @@
         :gdt-balance="GdtBalance"
       />
       <br />
-      <gdd-send :balance="balance" :gdt-balance="GdtBalance" />
-      <br />
       <gdd-send :currentTransactionStep="currentTransactionStep">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
