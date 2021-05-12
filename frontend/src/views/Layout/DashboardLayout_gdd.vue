@@ -3,11 +3,14 @@
     <notifications></notifications>
     <side-bar @logout="logout" :balance="balance">
       <template slot="links">
-        <b-nav-item href="#!" to="/overview">
+        <b-nav-item to="/overview">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
         </b-nav-item>
-        <b-nav-item href="#!" to="/transactions">
+        <b-nav-item to="/transactions">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
+        </b-nav-item>
+        <b-nav-item class="d-lg-none">
+          <b-nav-text class="pt-3"><language-switch /></b-nav-text>
         </b-nav-item>
         <!--
         <b-nav-item href="#!" to="/profile">
@@ -24,7 +27,6 @@
     </side-bar>
     <div class="main-content">
       <dashboard-navbar :type="$route.meta.navbarType"></dashboard-navbar>
-
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
@@ -52,6 +54,7 @@ import ContentFooter from './ContentFooter.vue'
 // import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
+import LanguageSwitch from '@/components/LanguageSwitch.vue'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -75,6 +78,7 @@ export default {
     ContentFooter,
     // DashboardContent,
     FadeTransition,
+    LanguageSwitch,
   },
   data() {
     return {

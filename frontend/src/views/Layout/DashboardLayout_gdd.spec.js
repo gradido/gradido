@@ -79,7 +79,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(2)
+        expect(navbar.findAll('ul > li')).toHaveLength(5)
       })
 
       it('has first item "send" in navbar', () => {
