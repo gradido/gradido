@@ -166,3 +166,8 @@ export default {
   },
 }
 </script>
+<style>
+span.errors {
+  color: red;
+}
+</style>
