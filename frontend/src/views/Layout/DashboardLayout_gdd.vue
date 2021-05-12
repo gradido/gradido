@@ -111,7 +111,7 @@ export default {
         this.transactionCount = result.result.data.count
         this.pending = false
       } else {
-        this.pending = false
+        this.pending = true
         // what to do when loading balance fails?
       }
     },
