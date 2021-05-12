@@ -1,7 +1,8 @@
 [requires]
+Poco/1.9.4@pocoproject/stable
 libsodium/1.0.18@bincrafters/stable
 boost/1.71.0@conan/stable
-libressl/3.2.1
+
 
 [generators]
 cmake

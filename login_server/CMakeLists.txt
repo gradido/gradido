@@ -22,17 +22,21 @@ include_directories(
 	"dependencies/grpc/include"
 	"dependencies/grpc/third_party/protobuf/src"
 	"dependencies/grpc/third_party/googletest/googletest/include"
-	"dependencies/poco/Crypto/include" 
-	"dependencies/poco/Data/include" 
-	"dependencies/poco/Util/include" 
-	"dependencies/poco/Foundation/include"
-	"dependencies/poco/JSON/include"
-	"dependencies/poco/Net/include"
-	"dependencies/poco/NetSSL_OpenSSL/include"
 	"build"
 	"build/proto"
 )
 
+IF(UNIX)
+	include_directories(
+		"dependencies/poco/Crypto/include" 
+		"dependencies/poco/Data/include" 
+		"dependencies/poco/Util/include" 
+		"dependencies/poco/Foundation/include"
+		"dependencies/poco/JSON/include"
+		"dependencies/poco/Net/include"
+		"dependencies/poco/NetSSL_OpenSSL/include"
+	)
+ENDIF()
 ############################## config and add grpc ###################################
 
 set(GRPC_PATH "${DEP_PATH}/grpc/build")
@@ -193,10 +197,11 @@ if(MSVC)
 	source_group("Test" FILES ${TEST})
 endif()
 
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
+IF(WIN32)
+	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	conan_basic_setup()
+	#add_compile_definitions(POCO_NETSSL_WIN)
+ENDIF()
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
@@ -229,26 +234,27 @@ set(MARIADB_CONNECTOR_PATH "${DEP_PATH}/mariadb-connector-c/build/libmariadb")
 
 ############################## config and add poco ###################################
 #SET(SOME_EXPAT_OPTION OFF CACHE BOOL "Use some expat option")
-SET(ENABLE_MONGODB OFF CACHE BOOL "" FORCE) 
-SET(ENABLE_DATA_SQLITE OFF CACHE BOOL "" FORCE) 
-SET(ENABLE_REDIS OFF CACHE BOOL "" FORCE)
-SET(ENABLE_PAGECOMPILER_FILE2PAGE OFF CACHE BOOL "" FORCE)
-add_subdirectory("dependencies/poco")
+IF(UNIX)
+	SET(ENABLE_MONGODB OFF CACHE BOOL "" FORCE) 
+	SET(ENABLE_DATA_SQLITE OFF CACHE BOOL "" FORCE) 
+	SET(ENABLE_REDIS OFF CACHE BOOL "" FORCE)
+	SET(ENABLE_PAGECOMPILER_FILE2PAGE OFF CACHE BOOL "" FORCE)
+	add_subdirectory("dependencies/poco")
 
-set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
-
+	set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
+ENDIF()
 
 
 ############################## build login server ###################################
 
-target_link_libraries(Gradido_LoginServer ${GRPC_LIBS} ${POCO_LIBS})
+target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer ${CONAN_LIBS})
+	target_link_libraries(Gradido_LoginServer mariadbclient ${CONAN_LIBS})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
-	target_link_libraries(Gradido_LoginServer libmariadb sodium)
+	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium)
 endif()
 
 # install 
@@ -273,8 +279,7 @@ enable_testing()
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-
-target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} ${POCO_LIBS})
+target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} )
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
@@ -282,7 +287,7 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test libmariadb sodium)
+	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
