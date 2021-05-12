@@ -35,7 +35,7 @@ const communityAPI = {
   balance: async (sessionId) => {
     return apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + sessionId)
   },
-  transactions: async (sessionId, firstPage = 1, items = 25, order = 'DESC') => {
+  transactions: async (sessionId, firstPage = 1, items = 1000, order = 'DESC') => {
     return apiGet(
       `${CONFIG.COMMUNITY_API_URL}listTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )
@@ -51,14 +51,11 @@ const communityAPI = {
     }
     return apiPost(CONFIG.COMMUNITY_API__URL + 'createCoins/', payload)
   }, */
-  send: async (sessionId, email, amount, memo, targetDate) => {
+  send: async (sessionId, data) => {
     const payload = {
       session_id: sessionId,
-      email,
-      amount,
-      memo,
-      target_date: targetDate,
       auto_sign: true,
+      ...data,
     }
     return apiPost(CONFIG.COMMUNITY_API_URL + 'sendCoins/', payload)
   },
