@@ -9,7 +9,6 @@
       <!-- This item dont have <b-nav-item> because item have data-action/data-target on tag <a>, wich we cant add -->
       <li class="nav-item d-sm-none"></li>
     </b-navbar-nav>
-    <language-switch class="mr-3" />
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
       <div class="pr-1" slot="title-container ">
         <b-media no-body class="align-items-center">
@@ -28,14 +27,12 @@
 </template>
 <script>
 import { BaseNav } from '@/components'
-import LanguageSwitch from '@/components/LanguageSwitch.vue'
 import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
     BaseNav,
     VueQrcode,
-    LanguageSwitch,
   },
   props: {
     type: {

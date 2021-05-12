@@ -9,7 +9,7 @@
         <b-nav-item to="/transactions">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
         </b-nav-item>
-        <b-nav-item class="d-lg-none">
+        <b-nav-item>
           <b-nav-text class="pt-3"><language-switch /></b-nav-text>
         </b-nav-item>
         <!--
