@@ -45,6 +45,13 @@ import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfir
 import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
 import communityAPI from '../../apis/communityAPI.js'
 
+const _emptyTransactionData = {
+  email: '',
+  amount: 0,
+  memo: '',
+  target_date: '',
+}
+
 export default {
   name: 'Overview',
   components: {
@@ -59,12 +66,7 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      transactionData: {
-        email: '',
-        amount: 0,
-        target_date: '',
-        memo: '',
-      },
+      transactionData: { ..._emptyTransactionData },
       error: false,
       currentTransactionStep: 0,
     }
@@ -99,12 +101,7 @@ export default {
       this.currentTransactionStep = 2
     },
     onReset() {
-      this.transactionData = {
-        email: '',
-        amount: 0,
-        memo: '',
-        target_date: '',
-      }
+      this.transactionData = { ..._emptyTransactionData }
       this.currentTransactionStep = 0
     },
   },
