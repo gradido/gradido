@@ -34,8 +34,8 @@
                   label="Empfänger:"
                   label-for="input-1"
                   description="We'll never share your email with anyone else."
-                  size="lg"
-                  class="mb-3"
+                  size="sm"
+                  class="mb-lg-2"
                 >
                   <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="envelope" class="display-3"></b-icon>
@@ -71,7 +71,7 @@
                   id="input-group-2"
                   label="Betrag:"
                   label-for="input-2"
-                  size="lg"
+                  size="sm"
                   class="mb-3"
                 >
                   <b-input-group-prepend class="p-2 d-none d-md-block">
@@ -87,7 +87,7 @@
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
-                <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
+                <div class="pb-3 pt-3">{{ $t('form.memo') }}</div>
                 <b-input-group id="input-group-3">
                   <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-3"></b-icon>

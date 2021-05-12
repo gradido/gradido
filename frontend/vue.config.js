@@ -26,6 +26,14 @@ module.exports = {
     // eslint-disable-next-line new-cap
     plugins: [new dotenv()],
   },
+  chainWebpack: (config) => {
+    config.plugin('html').tap((args) => {
+      args[0].title = 'Gradido App'
+      args[0].meta = { viewport: 'width=device-width,initial-scale=1,user-scalable=no' }
+
+      return args
+    })
+  },
   css: {
     // Enable CSS source maps.
     sourceMap: process.env.NODE_ENV !== 'production',
