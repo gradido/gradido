@@ -45,7 +45,7 @@
           <slot name="links"></slot>
         </ul>
         <hr class="my-2" />
-        <ul class="navbar-nav">
+        <ul class="navbar-nav ml-2">
           <li class="nav-item">
             <a
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
@@ -56,14 +56,17 @@
             </a>
           </li>
         </ul>
-        <hr class="my-2" />
-        <ul class="navbar-nav mb-md-3">
+
+        <ul class="navbar-nav ml-2">
           <li class="nav-item">
             <a class="nav-link pointer" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
         </ul>
+        <div class="mt-5 ml-4">
+          <language-switch />
+        </div>
       </div>
     </div>
   </nav>
@@ -71,12 +74,14 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
+import LanguageSwitch from '@/components/LanguageSwitch.vue'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
     VueQrcode,
+    LanguageSwitch,
   },
   props: {
     logo: {

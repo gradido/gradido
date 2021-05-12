@@ -6,21 +6,16 @@
         <sidebar-item
           :link="{
             name: $t('send'),
-            icon: false,
             path: '/overview',
           }"
         ></sidebar-item>
         <sidebar-item
           :link="{
             name: $t('transactions'),
-            icon: '',
             path: '/transactions',
           }"
         ></sidebar-item>
 
-        <b-nav-item>
-          <b-nav-text class="pt-3"><language-switch /></b-nav-text>
-        </b-nav-item>
         <!--
         <b-nav-item href="#!" to="/profile">
           <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
@@ -63,7 +58,6 @@ import ContentFooter from './ContentFooter.vue'
 // import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
-import LanguageSwitch from '@/components/LanguageSwitch.vue'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -87,7 +81,6 @@ export default {
     ContentFooter,
     // DashboardContent,
     FadeTransition,
-    LanguageSwitch,
   },
   data() {
     return {
