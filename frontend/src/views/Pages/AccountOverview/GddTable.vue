@@ -100,7 +100,7 @@ export default {
   name: 'GddTable',
   props: {
     transactions: { default: [] },
-    max: { type: Number, default: 25 },
+    max: { type: Number, default: 1000 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
   },
