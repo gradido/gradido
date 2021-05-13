@@ -426,6 +426,9 @@ class TransactionsTable extends Table
             } 
           }
         }
+        if(count($state_user_ids) < 1) {
+            return ['success' => true];
+        }
         //var_dump($entities);
         $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
         $existingStateUsers = $stateUsersTable->find('all')->select(['id'])->where(['id IN' => $state_user_ids])->order(['id'])->all();
