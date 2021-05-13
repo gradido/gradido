@@ -167,11 +167,12 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// *************** load from config ********************************************
 		
 		std::string cfg_Path = Poco::Path::config() + "grd_login/";
-		if (mConfigPath != "") {
-			cfg_Path = mConfigPath;
-		}
 		try {
-			loadConfiguration(cfg_Path + "grd_login.properties");
+                        if(mConfigPath != "") {
+                           loadConfiguration(mConfigPath);
+ 			} else {
+			   loadConfiguration(cfg_Path + "grd_login.properties");
+                        }
 		}
 		catch (Poco::Exception& ex) {
 			errorLog.error("error loading config: %s", ex.displayText());
