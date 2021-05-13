@@ -95,7 +95,7 @@ void ResetPassword::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::N
 				// send reset password email
 				int result = 0;
 				if(user_exist) {
-					result = session->sendResetPasswordEmail(user, sendUserEmail, getBaseUrl() + "/checkEmail");
+					result = session->sendResetPasswordEmail(user, sendUserEmail, ServerConfig::g_serverPath + "/checkEmail");
 				}
 
 				if(2 == result) {
