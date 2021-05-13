@@ -102,7 +102,7 @@ Poco::JSON::Object* JsonAdminEmailVerificationResend::handle(Poco::Dynamic::Var 
 	}
 
 	emailVerification->getModel()->insertIntoDB(false);
-	emailVerification->setBaseUrl(receiverUser->getGroupBaseUrl() + "/checkEmail");
+	emailVerification->setBaseUrl(ServerConfig::g_serverPath + "/checkEmail");
 	em->addEmail(new model::Email(emailVerification, receiverUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND));
 	return stateSuccess();
 
