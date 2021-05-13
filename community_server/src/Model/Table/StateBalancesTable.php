@@ -24,7 +24,7 @@ use Cake\I18n\FrozenTime;
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
-class StateBalancesTable extends Table
+class StateBalancesTable extends AppTable
 {
     private static $startDecayDate = null;
     /**

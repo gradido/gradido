@@ -134,6 +134,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 #if defined(_WIN32) || defined(_WIN64)
 		log_Path = "./";
 #endif
+		if (mConfigPath != "") {
+			log_Path = "./";
+		}
 
 		// init speed logger
 		Poco::AutoPtr<Poco::SimpleFileChannel> speedLogFileChannel(new Poco::SimpleFileChannel(log_Path + "speedLog.txt"));
@@ -165,10 +168,14 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		createConsoleFileAsyncLogger("emailLog", log_Path + "emailLog.txt");
 
 		// *************** load from config ********************************************
-
+		
 		std::string cfg_Path = Poco::Path::config() + "grd_login/";
 		try {
-			loadConfiguration(cfg_Path + "grd_login.properties");
+				if(mConfigPath != "") {
+				    loadConfiguration(mConfigPath);
+ 				} else {
+					loadConfiguration(cfg_Path + "grd_login.properties");
+                }
 		}
 		catch (Poco::Exception& ex) {
 			errorLog.error("error loading config: %s", ex.displayText());
