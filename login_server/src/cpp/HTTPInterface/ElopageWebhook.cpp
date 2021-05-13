@@ -382,7 +382,7 @@ int HandleElopageRequestTask::run()
 			DataTypeConverter::strToInt(mRequestData.get("noEmail", "0"), noEMail);
 
 			if (noEMail != 1) {
-				emailVerification->setBaseUrl(newUser->getGroupBaseUrl() + "checkEmail");
+				emailVerification->setBaseUrl(newUser->getGroupBaseUrl() + "/checkEmail");
 				em->addEmail(new model::Email(emailVerification, newUser, model::EMAIL_USER_VERIFICATION_CODE));
 			}
 		}
