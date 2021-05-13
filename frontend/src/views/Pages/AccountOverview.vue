@@ -19,6 +19,7 @@
             :amount="transactionData.amount"
             :memo="transactionData.memo"
             :date="transactionData.target_date"
+            :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
           ></transaction-confirmation>
@@ -74,6 +75,7 @@ export default {
       transactionData: EMPTY_TRANSACTION_DATA,
       error: false,
       currentTransactionStep: 0,
+      loading: false,
     }
   },
   props: {
@@ -100,6 +102,7 @@ export default {
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
+      this.loading = true
       const result = await communityAPI.send(this.$store.state.sessionId, this.transactionData)
       if (result.success) {
         this.error = false
@@ -108,6 +111,7 @@ export default {
         this.error = true
       }
       this.currentTransactionStep = 2
+      this.loading = false
     },
     onReset() {
       this.transactionData = EMPTY_TRANSACTION_DATA

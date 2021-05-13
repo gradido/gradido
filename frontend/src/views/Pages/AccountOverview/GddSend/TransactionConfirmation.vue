@@ -27,7 +27,7 @@
           <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
         </b-col>
         <b-col class="text-right">
-          <b-button variant="success" @click="$emit('send-transaction')">
+          <b-button variant="success" :disabled="loading" @click="$emit('send-transaction')">
             {{ $t('form.send_now') }}
           </b-button>
         </b-col>
@@ -43,6 +43,7 @@ export default {
     amount: { type: String, default: '' },
     memo: { type: String, default: '' },
     date: { type: String, default: '' },
+    loading: { type: Boolean, default: false },
   },
 }
 </script>
