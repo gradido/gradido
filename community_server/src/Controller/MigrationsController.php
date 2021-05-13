@@ -64,6 +64,7 @@ class MigrationsController extends AppController
             $commands = [
                 [$blockchainTypesTable, 'fillWithDefault'],
                 [$transactionTypesTable, 'fillWithDefault'],
+                [$stateBalancesTable, 'truncate'],
                 [$transactionsTable, 'fillStateUserTransactions'],
                 [$stateBalancesTable, 'updateAllBalances']
             ];
