@@ -1,20 +1,5 @@
 <template>
   <div id="app" class="font-sans text-gray-800">
-    <header>
-      <b-col class="text-center">
-        <b-dropdown
-          size="sm"
-          split
-          variant="secondary"
-          :text="$t('language') + ' - ' + $i18n.locale"
-          class="m-md-2"
-        >
-          <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-item @click.prevent="setLocale('de')">Deutsch</b-dropdown-item>
-          <b-dropdown-item @click.prevent="setLocale('en')">English</b-dropdown-item>
-        </b-dropdown>
-      </b-col>
-    </header>
     <div class="">
       <particles-bg type="custom" :config="config" :bg="true" />
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
@@ -25,7 +10,6 @@
 <script>
 import { ParticlesBg } from 'particles-bg-vue'
 import icon from './icon.js'
-import { localeChanged } from 'vee-validate'
 import DashboardLayout from '@/views/Layout/DashboardLayout_gdd.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
 
@@ -53,13 +37,6 @@ export default {
         random: 2,
       },
     }
-  },
-  methods: {
-    setLocale(locale) {
-      this.$i18n.locale = locale
-      this.$store.commit('language', this.$i18n.locale)
-      localeChanged(locale)
-    },
   },
 }
 </script>
