@@ -90,12 +90,6 @@ export default {
   name: 'reset',
   data() {
     return {
-      rules: [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ],
       password: '',
       checkPassword: '',
       passwordVisible: false,
@@ -136,6 +130,14 @@ export default {
     },
     passwordsFilled() {
       return this.password !== '' && this.checkPassword !== ''
+    },
+    rules() {
+      return [
+        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+      ]
     },
     passwordValidation() {
       const errors = []
