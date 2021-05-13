@@ -360,7 +360,7 @@ class AppRequestsController extends AppController
             $body['decay'] = 0.0;
         } else {
             $body['balance'] = $state_balance->amount;
-            $body['decay'] = $state_balance->partDecay($now);
+            $body['decay'] = $stateBalancesTable->calculateDecay($state_balance->amount, $state_balance->record_date, $now);
         }
         
         $this->set('body', $body);

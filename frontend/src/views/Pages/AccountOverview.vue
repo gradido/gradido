@@ -1,25 +1,43 @@
 <template>
   <div>
-    <base-header class="pb-4 pt-2 bg-transparent"></base-header>
-    <b-container fluid class="p-2 mt-5">
-      <gdd-status v-if="showTransactionList" :balance="balance" :gdt-balance="GdtBalance" />
-      <br />
-      <gdd-send
+    <base-header class="pb-lg-4 pt-lg-2 bg-transparent"></base-header>
+    <b-container fluid class="p-lg-2 mt-lg-5">
+      <gdd-status
+        v-if="showContext"
+        :pending="pending"
         :balance="balance"
-        :show-transaction-list="showTransactionList"
-        @update-balance="updateBalance"
-        @toggle-show-list="toggleShowList"
+        :gdt-balance="GdtBalance"
       />
+      <br />
+      <gdd-send :currentTransactionStep="currentTransactionStep">
+        <template #transaction-form>
+          <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
+        </template>
+        <template #transaction-confirmation>
+          <transaction-confirmation
+            :email="transactionData.email"
+            :amount="transactionData.amount"
+            :memo="transactionData.memo"
+            :date="transactionData.target_date"
+            :loading="loading"
+            @send-transaction="sendTransaction"
+            @on-reset="onReset"
+          ></transaction-confirmation>
+        </template>
+        <template #transaction-result>
+          <transaction-result :error="error" @on-reset="onReset"></transaction-result>
+        </template>
+      </gdd-send>
       <hr />
       <gdd-table
-        v-if="showTransactionList"
+        v-if="showContext"
         :transactions="transactions"
         :max="5"
         :timestamp="timestamp"
         :transactionCount="transactionCount"
-        @update-transactions="updateTransactions"
+        @update-transactions="$emit('update-transactions')"
       />
-      <gdd-table-footer :count="transactionCount" />
+      <gdd-table-footer v-if="showContext" :count="transactionCount" />
     </b-container>
   </div>
 </template>
@@ -28,6 +46,17 @@ import GddStatus from './AccountOverview/GddStatus.vue'
 import GddSend from './AccountOverview/GddSend.vue'
 import GddTable from './AccountOverview/GddTable.vue'
 import GddTableFooter from './AccountOverview/GddTableFooter.vue'
+import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
+import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
+import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
+import communityAPI from '../../apis/communityAPI.js'
+
+const EMPTY_TRANSACTION_DATA = {
+  email: '',
+  amount: 0,
+  memo: '',
+  target_date: '',
+}
 
 export default {
   name: 'Overview',
@@ -36,11 +65,17 @@ export default {
     GddSend,
     GddTable,
     GddTableFooter,
+    TransactionForm,
+    TransactionConfirmation,
+    TransactionResult,
   },
   data() {
     return {
-      showTransactionList: true,
       timestamp: Date.now(),
+      transactionData: EMPTY_TRANSACTION_DATA,
+      error: false,
+      currentTransactionStep: 0,
+      loading: false,
     }
   },
   props: {
@@ -50,16 +85,37 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    pending: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  computed: {
+    showContext() {
+      return this.currentTransactionStep === 0
+    },
   },
   methods: {
-    toggleShowList(bool) {
-      this.showTransactionList = bool
+    setTransaction(data) {
+      data.target_date = new Date(Date.now()).toISOString()
+      this.transactionData = { ...data }
+      this.currentTransactionStep = 1
     },
-    updateBalance(data) {
-      this.$emit('update-balance', data.ammount)
+    async sendTransaction() {
+      this.loading = true
+      const result = await communityAPI.send(this.$store.state.sessionId, this.transactionData)
+      if (result.success) {
+        this.error = false
+        this.$emit('update-balance', this.transactionData.amount)
+      } else {
+        this.error = true
+      }
+      this.currentTransactionStep = 2
+      this.loading = false
     },
-    updateTransactions() {
-      this.$emit('update-transactions')
+    onReset() {
+      this.transactionData = EMPTY_TRANSACTION_DATA
+      this.currentTransactionStep = 0
     },
   },
 }

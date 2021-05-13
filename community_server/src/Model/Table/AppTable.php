@@ -22,6 +22,7 @@ class AppTable extends Table
             $this->getConnection()->query($truncateCommand);
         }
         $this->getConnection()->query('ALTER TABLE ' . $this->getSchema()->name() . ' AUTO_INCREMENT=1');
+        return ['success' => true];
     }    
     public function saveManyWithErrors($entities) 
     {
