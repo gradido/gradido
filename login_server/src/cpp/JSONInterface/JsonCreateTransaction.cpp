@@ -85,6 +85,7 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 
 Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 {
+	static const char* function_name = "JsonCreateTransaction::transfer";
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return customStateError("not found", "receiver not found");
@@ -126,20 +127,33 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		result = stateError("sender and receiver are the same");
 	}
 	if (!result) {
-		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		try {
+			auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 
-		if (mAutoSign) {
-			Poco::JSON::Array errors;			
-			transaction->sign(user);
-			if (transaction->errorCount() > 0) {
-				errors.add(transaction->getErrorsArray());
-			}
+			if (mAutoSign) {
+				Poco::JSON::Array errors;
+				transaction->sign(user);
+				if (transaction->errorCount() > 0) {
+					errors.add(transaction->getErrorsArray());
+				}
 
-			if (errors.size() > 0) {
-				return stateError("error by signing transaction", errors);
+				if (errors.size() > 0) {
+					return stateError("error by signing transaction", errors);
+				}
 			}
 		}
-		
+		catch (Poco::Exception& ex) {
+			NotificationList errors;
+			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
+			errors.sendErrorsAsEmail();
+			return stateError("exception");
+		} 
+		catch (std::exception& ex) {
+			NotificationList errors;
+			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
+			errors.sendErrorsAsEmail();
+			return stateError("exception");
+		}
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
@@ -147,6 +161,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 }
 Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 {
+	static const char* function_name = "JsonCreateTransaction::creation";
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return customStateError("not found", "receiver not found");
@@ -205,11 +220,25 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 	}
 	
 	if(!result) {
-		auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
-		if (mAutoSign) {
-			if (!transaction->sign(mSession->getNewUser())) {
-				return stateError("error by signing transaction", transaction);
+		try {
+			auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
+			if (mAutoSign) {
+				if (!transaction->sign(mSession->getNewUser())) {
+					return stateError("error by signing transaction", transaction);
+				}
 			}
+		} 
+		catch (Poco::Exception& ex) {
+			NotificationList errors;
+			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
+			errors.sendErrorsAsEmail();
+			return stateError("exception");
+		} 
+		catch (std::exception& ex) {
+			NotificationList errors;
+			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
+			errors.sendErrorsAsEmail();
+			return stateError("exception");
 		}
 		
 		result = stateSuccess();

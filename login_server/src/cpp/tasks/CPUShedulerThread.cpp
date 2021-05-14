@@ -32,6 +32,8 @@ namespace UniLib {
 
 		int CPUShedulerThread::ThreadFunction()
 		{
+			Poco::Logger& errorLog = Poco::Logger::get("errorLog");
+			static const char* function_name = "CPUShedulerThread::ThreadFunction";
 			while(!mWaitingTask.isNull())
 			{
 				
@@ -53,7 +55,15 @@ namespace UniLib {
 #endif
 				}
 				catch (Poco::NullPointerException& ex) {
-					printf("[CPUShedulerThread::ThreadFunction] Null Pointer Exception for Task type: %s\n", mWaitingTask->getResourceType());			
+					//printf("[CPUShedulerThread::ThreadFunction] Null Pointer Exception for Task type: %s\n", mWaitingTask->getResourceType());			
+					errorLog.error("[%s] Null Pointer Exception for Task type %s: %s", function_name, mWaitingTask->getResourceType(), ex.displayText());
+				}
+				catch (Poco::Exception& ex) {
+					errorLog.error("[%s]  Exception for Task type %s: %s", function_name, mWaitingTask->getResourceType(), ex.displayText());
+				}
+				catch (std::exception& ex) {
+					std::string exception_message = ex.what();
+					errorLog.error("[%s] std::exception for task type %s: %s", function_name, mWaitingTask->getResourceType(), exception_message);
 				}
 
 				mWaitingTask = mParent->getNextUndoneTask(this);
