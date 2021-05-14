@@ -91,7 +91,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		return customStateError("not found", "receiver not found");
 	}
 
-	auto user = mSession->getNewUser();
+	auto sender_user = mSession->getNewUser();
 	Poco::UInt32 amount = 0;
 	auto mm = MemoryManager::getInstance();
 	Poco::JSON::Object* result = nullptr;
@@ -122,9 +122,15 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 			result = stateError("user not in group", "receiver user isn't in target group");
 		}
 	}
-	auto sender_user = mSession->getNewUser();
-	if (sender_user->getGradidoKeyPair()->isTheSame(*target_pubkey)) {
-		result = stateError("sender and receiver are the same");
+	
+	auto gradido_key_pair = sender_user->getGradidoKeyPair();
+	if (gradido_key_pair) {
+		if (gradido_key_pair->isTheSame(*target_pubkey)) {
+			result = stateError("sender and receiver are the same");
+		}
+	}
+	else {
+		printf("user hasn't valid key pair set\n");
 	}
 	if (!result) {
 		try {
@@ -132,7 +138,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 
 			if (mAutoSign) {
 				Poco::JSON::Array errors;
-				transaction->sign(user);
+				transaction->sign(sender_user);
 				if (transaction->errorCount() > 0) {
 					errors.add(transaction->getErrorsArray());
 				}
