@@ -26,8 +26,8 @@ services:
   #########################################################
   login-server:
     build:
-      target: login_server_debug
-      dockerfile: Dockerfile.debug
+      target: login_server_alpine_debug
+      dockerfile: Dockerfile.alpine-debug
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -35,8 +35,10 @@ services:
     volumes:
       - ./logs:/var/log/grd_login 
       - ./login_server/src:/code/src
+      - ./login_server/dependencies:/code/dependencies
+      - ./login_server/scripts:/code/scripts
       - ./configs/login_server:/etc/grd_login
-      - login_build_conan:/code/build_vol
+      - login_build_alpine:/code/build
 
 
   #########################################################
@@ -101,5 +103,4 @@ services:
    
 volumes:
   frontend_node_modules:
-  login_build_conan:
-
+  login_build_alpine:

@@ -1,9 +1,9 @@
 #ifndef __GRADIDO_LOGIN_MODEL_HEDERA_CRYPTO_CREATE_TRANSACTION_H
 #define __GRADIDO_LOGIN_MODEL_HEDERA_CRYPTO_CREATE_TRANSACTION_H
 
-#include "../../proto/hedera/CryptoCreate.pb.h"
+#include "proto/hedera/CryptoCreate.pb.h"
 
-#include "../Crypto/KeyPairHedera.h"
+#include "../../Crypto/KeyPairHedera.h"
 
 namespace model {
 	namespace hedera {

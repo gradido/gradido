@@ -1,7 +1,7 @@
 #ifndef __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_SUBMIT_MESSAGE_H
 #define __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_SUBMIT_MESSAGE_H
 
-#include "../../proto/hedera/ConsensusSubmitMessage.pb.h"
+#include "proto/hedera/ConsensusSubmitMessage.pb.h"
 #include "../../controller/HederaId.h"
 
 namespace model {
@@ -20,7 +20,7 @@ namespace model {
 
 			bool validate();
 
-			
+
 
 		protected:
 			proto::ConsensusSubmitMessageTransactionBody* mConsensusMessageBody;

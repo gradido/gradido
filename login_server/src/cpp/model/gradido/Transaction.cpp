@@ -9,9 +9,9 @@
 #include "../../controller/HederaAccount.h"
 #include "../../controller/HederaRequest.h"
 
-#include "../lib/DataTypeConverter.h"
-#include "../lib/Profiler.h"
-#include "../lib/JsonRequest.h"
+#include "../../lib/DataTypeConverter.h"
+#include "../../lib/Profiler.h"
+#include "../../lib/JsonRequest.h"
 
 #include "../hedera/Transaction.h"
 #include "../hedera/TransactionId.h"
@@ -30,7 +30,7 @@ namespace model {
 		Transaction::Transaction(Poco::AutoPtr<TransactionBody> body)
 			: mTransactionBody(body), mBodyBytesHash(0)
 		{
-			
+
 			auto body_bytes = mTransactionBody->getBodyBytes();
 			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
 			mProtoTransaction.set_body_bytes(body_bytes);
@@ -50,7 +50,7 @@ namespace model {
 			auto body_bytes = mTransactionBody->getBodyBytes();
 			mBodyBytesHash = DRMakeStringHash(body_bytes.data(), body_bytes.size());
 		}
-	
+
 		Transaction::~Transaction()
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
@@ -76,7 +76,7 @@ namespace model {
 			}
 
 			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
-			
+
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 			auto model = result->getModel();
 			model->setHederaId(topic_id->getModel()->getID());
@@ -87,7 +87,7 @@ namespace model {
 
 		Poco::AutoPtr<Transaction> Transaction::createCreation(
 			Poco::AutoPtr<controller::User> receiver,
-			Poco::UInt32 amount, 
+			Poco::UInt32 amount,
 			Poco::DateTime targetDate,
 			const std::string& memo,
 			BlockchainType blockchainType
@@ -101,7 +101,7 @@ namespace model {
 			}
 			auto network_type = ServerConfig::g_HederaNetworkType;
 			auto receiver_model = receiver->getModel();
-			
+
 			auto body = TransactionBody::create(memo, receiver, amount, targetDate, blockchainType);
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 
@@ -118,7 +118,7 @@ namespace model {
 				}
 				model->setHederaId(topic_id->getModel()->getID());
 			}
-			
+
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
 			PendingTasksManager::getInstance()->addTask(result);
 			return result;
@@ -129,7 +129,7 @@ namespace model {
 			const MemoryBin* receiverPubkey,
 			Poco::AutoPtr<controller::Group> receiverGroup,
 			Poco::UInt32 amount,
-			const std::string& memo, 
+			const std::string& memo,
 			BlockchainType blockchainType,
 			bool inbound/* = true*/
 		)
@@ -143,25 +143,25 @@ namespace model {
 			if (sender.isNull() || !sender->getModel() || !receiverPubkey || !amount) {
 				return transaction;
 			}
-			
+
 			auto sender_model = sender->getModel();
-		
-			
+
+
 			if (blockchainType == BLOCKCHAIN_MYSQL) {
 				transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
 				transaction = new Transaction(transaction_body);
 			}
-			else if (blockchainType == BLOCKCHAIN_HEDERA) 
+			else if (blockchainType == BLOCKCHAIN_HEDERA)
 			{
 				auto network_type = ServerConfig::g_HederaNetworkType;
-				
-				
+
+
 				// LOCAL Transfer
 				if (receiverGroup.isNull() || sender_model->getGroupId() == receiverGroup->getModel()->getID())
 				{
 					topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
 
-					if (topic_id.isNull()) 
+					if (topic_id.isNull())
 					{
 						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
 						em->addError(new ParamError(function_name, "network type: ", network_type));
@@ -220,7 +220,7 @@ namespace model {
 				transaction_model->setHederaId(topic_id->getModel()->getID());
 
 			}
-			
+
 			transaction->setParam("blockchain_type", (int)blockchainType);
 			transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
 			PendingTasksManager::getInstance()->addTask(transaction);
@@ -249,10 +249,10 @@ namespace model {
 		}
 
 		Poco::AutoPtr<Transaction> Transaction::createTransfer(
-			const MemoryBin* senderPubkey, 
-			Poco::AutoPtr<controller::User> receiver, 
-			std::string senderGroupAlias, 
-			Poco::UInt32 amount, 
+			const MemoryBin* senderPubkey,
+			Poco::AutoPtr<controller::User> receiver,
+			std::string senderGroupAlias,
+			Poco::UInt32 amount,
 			const std::string& memo,
 			BlockchainType blockchainType
 			)
@@ -268,7 +268,7 @@ namespace model {
 			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
 			auto receiver_model = receiver->getModel();
 			auto network_type = ServerConfig::g_HederaNetworkType;
-			
+
 			auto sender_groups = controller::Group::load(senderGroupAlias);
 			if (!sender_groups.size()) {
 				em->addError(new ParamError(function_name, "couldn't find group", senderGroupAlias));
@@ -286,10 +286,10 @@ namespace model {
 			Poco::Timestamp pairedTransactionId;
 			// create only inbound transaction, and outbound before sending to hedera
 			//for (int i = 0; i < 1; i++) {
-			
+
 			//transaction_group = receiverGroup;
 			//topic_group = sender_group;
-			
+
 			if (transaction_group.isNull()) {
 				em->addError(new Error(function_name, "transaction group is zero, inbound"));
 				em->sendErrorsAsEmail();
@@ -314,7 +314,7 @@ namespace model {
 
 			return result;
 		}
-	
+
 
 		Poco::AutoPtr<Transaction> Transaction::load(model::table::PendingTask* dbModel)
 		{
@@ -335,10 +335,10 @@ namespace model {
 			if (!finished) {
 				transaction->ifEnoughSignsProceed(nullptr);
 			}
-			
+
 			return transaction;
 		}
-		
+
 		bool Transaction::insertPendingTaskIntoDB(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
 		{
 			static const char* function_name = "Transaction::insertPendingTaskIntoDB";
@@ -355,7 +355,7 @@ namespace model {
 			model->setTaskType(type);
 			model->setRequest(mProtoTransaction.SerializeAsString());
 			if (!model->insertIntoDB(true)) {
-				
+
 				return false;
 			}
 			return true;
@@ -365,8 +365,8 @@ namespace model {
 		{
 			static const char function_name[] = "Transaction::addSign";
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-				
-			if (user.isNull() || !user->getModel()) 
+
+			if (user.isNull() || !user->getModel())
 			{
 				addError(new Error(function_name, "error user is invalid"));
 				return false;
@@ -381,9 +381,9 @@ namespace model {
 			}
 			auto hash = DRMakeStringHash(bodyBytes.data(), bodyBytes.size());
 
-			
+
 			auto sigMap = mProtoTransaction.mutable_sig_map();
-			if (sigMap->sigpair_size() > 0 && mBodyBytesHash && mBodyBytesHash != hash) 
+			if (sigMap->sigpair_size() > 0 && mBodyBytesHash && mBodyBytesHash != hash)
 			{
 				addError(new Error(function_name, "body bytes hash has changed and signature(s) exist already!"));
 				return false;
@@ -413,33 +413,33 @@ namespace model {
 			auto gradido_key_pair = user->getGradidoKeyPair();
 			KeyPairEd25519* recovered_gradido_key_pair = nullptr;
 
-			if (!gradido_key_pair || !gradido_key_pair->hasPrivateKey()) 
+			if (!gradido_key_pair || !gradido_key_pair->hasPrivateKey())
 			{
-				if (!user->tryLoadPassphraseUserBackup(&recovered_gradido_key_pair))  
+				if (!user->tryLoadPassphraseUserBackup(&recovered_gradido_key_pair))
 				{
-					if (user->setGradidoKeyPair(recovered_gradido_key_pair)) 
+					if (user->setGradidoKeyPair(recovered_gradido_key_pair))
 					{
 						user->getModel()->updatePrivkey();
 					}
-				} 
-				else 
+				}
+				else
 				{
 					addError(new Error(function_name, "user cannot decrypt private key"));
 					return false;
 				}
 			}
-			
+
 
 			MemoryBin* sign = nullptr;
-			if (gradido_key_pair) 
+			if (gradido_key_pair)
 			{
 				sign = gradido_key_pair->sign(bodyBytes);
 			}
-			else if (recovered_gradido_key_pair) 
+			else if (recovered_gradido_key_pair)
 			{
 				sign = recovered_gradido_key_pair->sign(bodyBytes);
 			}
-			if (!sign) 
+			if (!sign)
 			{
 				ErrorManager::getInstance()->sendErrorsAsEmail();
 				addError(new Error(function_name, "error by calculate signature"));
@@ -457,7 +457,7 @@ namespace model {
 			mm->releaseMemory(sign);
 
 			updateRequestInDB();
-			
+
 			return ifEnoughSignsProceed(user);
 		}
 
@@ -509,7 +509,7 @@ namespace model {
 
 			// check if all signatures belong to current body bytes
 			auto body_bytes = mProtoTransaction.body_bytes();
-			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++) 
+			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++)
 			{
 				KeyPairEd25519 key_pair((const unsigned char*)it->pubkey().data());
 				if (!key_pair.verify(body_bytes, it->ed25519())) {
@@ -537,7 +537,7 @@ namespace model {
 				addError(new ParamError(function_name, "user public key has invalid size: ", pubkey_size));
 				return false;
 			}
-			for (auto it = sig_pairs.begin(); it != sig_pairs.end(); it++) 
+			for (auto it = sig_pairs.begin(); it != sig_pairs.end(); it++)
 			{
 				if (it->pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 					addError(new ParamError(function_name, "signed public key has invalid length: ", it->pubkey().size()));
@@ -589,7 +589,7 @@ namespace model {
 			static const char* function_name = "Transaction::runSendTransaction";
 			auto result = validate();
 			if (TRANSACTION_VALID_OK != result) {
-				if (   TRANSACTION_VALID_MISSING_SIGN == result || TRANSACTION_VALID_CODE_ERROR == result 
+				if (   TRANSACTION_VALID_MISSING_SIGN == result || TRANSACTION_VALID_CODE_ERROR == result
 					|| TRANSACTION_VALID_MISSING_PARAM == result || TRANSACTION_VALID_INVALID_PUBKEY == result
 					|| TRANSACTION_VALID_INVALID_SIGN == result) {
 					addError(new ParamError(function_name, "code error", TransactionValidationToString(result)));
@@ -599,20 +599,20 @@ namespace model {
 					addError(new ParamError(function_name, "validation return: ", TransactionValidationToString(result)));
 					//sendErrorsAsEmail();
 				}
-				else 
+				else
 				{
-					
+
 					std::string error_name;
 					std::string error_description;
 					auto lm = LanguageManager::getInstance();
 					auto user_model = getUser()->getModel();
 					auto t = lm->getFreeCatalog(lm->languageFromString(user_model->getLanguageKey()));
 					switch (result) {
-					case TRANSACTION_VALID_FORBIDDEN_SIGN: 
+					case TRANSACTION_VALID_FORBIDDEN_SIGN:
 						error_name = t->gettext_str("Signature Error");
 						error_description = t->gettext_str("Invalid signature!");
 						break;
-					case TRANSACTION_VALID_INVALID_TARGET_DATE: 
+					case TRANSACTION_VALID_INVALID_TARGET_DATE:
 						error_name = t->gettext_str("Creation Error");
 						error_description = t->gettext_str("Invalid target date! No future and only 3 month in the past.");
 						break;
@@ -628,7 +628,7 @@ namespace model {
 						error_name = t->gettext_str("Group Error");
 						error_description = t->gettext_str("Invalid Group Alias! I didn't know group, please check alias and try again.");
 						break;
-					default: 
+					default:
 						error_name = t->gettext_str("Unknown Error");
 						error_description = t->gettext_str("Admin gets an E-Mail");
 						addError(new ParamError(function_name, "unknown error", TransactionValidationToString(result)));
@@ -738,7 +738,7 @@ namespace model {
 						auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
 						auto precheck_code = hedera_transaction_response->getPrecheckCode();
 						auto cost = hedera_transaction_response->getCost();
-						
+
 						// for showing in docker
 						std::clog << "hedera response: " << hedera_precheck_code_string
 							<< ", cost: " << cost
@@ -791,7 +791,7 @@ namespace model {
 				return -4;
 			}
 			return 0;
-		
+
 		}
 		int Transaction::runSendTransactionMysql()
 		{
@@ -807,10 +807,10 @@ namespace model {
 			auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
 
 			if (base_64_message == "") {
-				addError(new Error(function_name, "error convert final transaction to base64"));	
+				addError(new Error(function_name, "error convert final transaction to base64"));
 				return -7;
 			}
-			
+
 
 			// create json request
 			auto user = getUser();
@@ -834,7 +834,7 @@ namespace model {
 				}
 				return 1;
 			}
-			
+
 			getErrors(&json_request);
 
 			return -1;
@@ -888,8 +888,8 @@ namespace model {
 			return json_message;
 
 		}
-		
-	
+
+
 		/// TASK ////////////////////////
 		SendTransactionTask::SendTransactionTask(Poco::AutoPtr<Transaction> transaction)
 			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mTransaction(transaction)

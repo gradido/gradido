@@ -1,0 +1,79 @@
+
+##### BUILD-ENV #####
+FROM alpine:3.13.5 as alpine-build
+
+RUN apk add --update --no-cache icu-dev
+RUN apk add --no-cache git openssl-dev make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev
+
+
+#####  CMAKE #####
+FROM alpine-build as alpine-gxx-cmake
+
+RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
+    cd CMake && \
+	 ./bootstrap --parallel=$(nproc) && \
+	make -j$(nproc) && \
+	make install
+
+######### BUILD grpc ##############
+FROM alpine-gxx-cmake as alpine-gxx-grpc
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/grpc/grpc.git --branch=v1.37.0 --recursive -j4 && \
+    cd grpc && \
+	mkdir build && cd build && \
+	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
+	make install
+
+# abseil don't install themself correctly
+RUN cp -r grpc/third_party/abseil-cpp/absl /usr/local/include/
+
+# protobuf libs missing after make install
+RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
+
+######### BUILD poco ##############
+FROM alpine-gxx-cmake as alpine-gxx-poco
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/pocoproject/poco.git --recursive && \
+    cd poco && \
+    git checkout poco-1.9.4-release && \
+    mkdir cmake-build && cd cmake-build && \
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..  && make -j$(nproc) && \
+	make install 
+
+######### BUILD mariadb ###########
+FROM alpine-gxx-cmake as alpine-gxx-mariadb-connector
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/mariadb-corporation/mariadb-connector-c.git && \
+	cd mariadb-connector-c && \
+    git checkout 159540f && \
+	mkdir build && cd build && \
+	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
+	make install 
+
+#########################################################################################################
+# builded libs and binaries 
+#########################################################################################################
+FROM alpine-build as alpine-libs
+
+# copy CMake from cmake stage
+COPY --from=alpine-gxx-cmake /usr/local/bin/cmake /usr/local/bin/cmake
+COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Modules /usr/local/share/cmake-3.19/Modules
+COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Templates /usr/local/share/cmake-3.19/Templates
+
+# copy from grpc
+COPY --from=alpine-gxx-grpc /usr/local /usr/local
+
+
+# COPY from poco 
+COPY --from=alpine-gxx-poco /usr/local /usr/local
+
+# COPY from mariadb 
+COPY --from=alpine-gxx-mariadb-connector /usr/local /usr/local
+
+

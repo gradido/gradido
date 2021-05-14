@@ -15,7 +15,7 @@
 //#include "Transaction.h"
 #include "../proto/gradido/GradidoTransfer.pb.h"
 
-#include "../controller/User.h"
+#include "../../controller/User.h"
 
 namespace model {
 	namespace gradido {

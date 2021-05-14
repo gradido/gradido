@@ -1,0 +1,189 @@
+cmake_minimum_required(VERSION 3.18.2)
+project(Gradido_LoginServer C CXX)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin" )
+
+SET ( CMAKE_CXX_FLAGS "-std=c++17" )
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(WIN32)
+	set(CMAKE_CXX_FLAGS         "/MP /EHsc")
+	set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+else()
+	set(INSTALL_BINDIR "bin")
+	set(INSTALL_PLUGINDIR "bin")
+endif()
+
+include_directories(
+	"dependencies" 
+	"dependencies/tinf/src" 
+	"dependencies/spirit-po/include"
+	"/usr/local/include/mariadb"
+	"build"
+	"build/proto"
+)
+
+############################## config and add grpc ###################################
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+
+FIND_PACKAGE(gRPC CONFIG REQUIRED)
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+
+set(PROTOBUF_LIBS protobuf::libprotobuf protobuf::libprotobuf-lite protobuf::libprotoc)
+
+############################## parse proto files ###################################
+
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto GRADIDO_PROTO_MODEL_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/hedera/hedera-protobuf/src/main/proto HEDERA_PROTO_MODEL_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/proto PROTOBINDING_PATH)
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH})
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/gradido)
+file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/hedera)
+
+FILE(GLOB DATAMODEL_GRADIDO_PROTOS "${GRADIDO_PROTO_MODEL_PATH}/gradido/*.proto")
+FILE(GLOB DATAMODEL_HEDERA_PROTOS "${HEDERA_PROTO_MODEL_PATH}/*.proto")
+
+FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
+   FILE(TO_NATIVE_PATH ${proto} proto_native)
+   get_filename_component(proto_parsed ${proto} NAME_WLE)
+   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/gradido/${proto_parsed}.pb.h proto_parsed_native)
+   
+   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
+		EXECUTE_PROCESS(
+			COMMAND 
+			${PROTOBUF_PROTOC_EXECUTABLE} 
+			--proto_path=${GRADIDO_PROTO_MODEL_PATH} 
+			--cpp_out=${PROTOBINDING_PATH} 
+			${proto_native}
+			RESULT_VARIABLE rv
+		)
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ENDIF()
+   ENDIF()
+
+ENDFOREACH(proto)
+
+FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
+   FILE(TO_NATIVE_PATH ${proto} proto_native)
+   get_filename_component(proto_parsed ${proto} NAME_WLE)
+   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/hedera/${proto_parsed}.pb.h proto_parsed_native)
+   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
+		EXECUTE_PROCESS(
+			COMMAND 
+			${PROTOBUF_PROTOC_EXECUTABLE} 
+			--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
+			--proto_path=${HEDERA_PROTO_MODEL_PATH} 
+			--proto_path=${GOOGLE_PROTOBUF_INCLUDES}
+			--cpp_out=${PROTOBINDING_PATH}/hedera 
+			--grpc_out ${PROTOBINDING_PATH}/hedera
+			${proto_native}
+			RESULT_VARIABLE rv
+		)
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ENDIF()
+   ENDIF()
+ENDFOREACH(proto)
+
+############################## include src files  ###################################
+#set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
+
+FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
+FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
+FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
+FILE(GLOB JSONInterface "src/cpp/JSONInterface/*.h" "src/cpp/JSONInterface/*.cpp")
+FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
+FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
+FILE(GLOB LIB_SRC "src/cpp/lib/*.h" "src/cpp/lib/*.cpp")
+FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
+FILE(GLOB MODEL_TABLE "src/cpp/model/table/*.h" "src/cpp/model/table/*.cpp")
+FILE(GLOB MODEL_EMAIL "src/cpp/model/email/*.h" "src/cpp/model/email/*.cpp")
+FILE(GLOB MODEL_HEDERA "src/cpp/model/hedera/*.h" "src/cpp/model/hedera/*.cpp")
+FILE(GLOB MODEL_GRADIDO "src/cpp/model/gradido/*.h" "src/cpp/model/gradido/*.cpp")
+FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
+FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
+FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
+FILE(GLOB PROTO_GRADIDO "${PROTOBINDING_PATH}/gradido/*.cc" "${PROTOBINDING_PATH}/gradido/*.h")
+FILE(GLOB PROTO_HEDERA "${PROTOBINDING_PATH}/hedera/*.cc" "${PROTOBINDING_PATH}/hedera/*.h")
+
+# used only for test project 
+FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
+FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
+FILE(GLOB TEST_MODEL "src/cpp/test/model/*.cpp" "src/cpp/test/model/*.h")
+FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/table/*.h")
+FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
+
+SET(LOCAL_SRCS 
+	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
+	${JSONInterface} ${CRYPTO}
+	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA} ${MODEL_GRADIDO}
+	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
+	${PROTO_GRADIDO} ${PROTO_HEDERA}
+)
+SET(LOCAL_TEST_SRC
+	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER}
+)
+aux_source_directory("src/cpp" LOCAL_SRCS)
+
+if(MSVC)
+	# src
+	source_group("controller" FILES ${CONTROLLER})
+	source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
+	source_group("proto\\hedera" FILES ${PROTO_HEDERA})
+	source_group("tinf" FILES ${TINF})
+	source_group("Crypto" FILES ${CRYPTO})
+	source_group("tasks" FILES ${TASKS})
+	source_group("model\\table" FILES ${MODEL_TABLE})
+	source_group("model\\email" FILES ${MODEL_EMAIL})
+	source_group("model\\hedera" FILES ${MODEL_HEDERA})
+	source_group("model\\gradido" FILES ${MODEL_GRADIDO})
+	source_group("model" FILES ${MODEL})
+	source_group("mysql" FILES ${MYSQL})
+	source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
+	source_group("lib" FILES ${LIB_SRC})
+	source_group("HTTP-Interface" FILES ${HTTPInterface})
+	source_group("Json-Interface" FILES ${JSONInterface})
+	source_group("Test\\crypto" FILES ${TEST_CRYPTO})
+	source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
+	source_group("Test\\model" FILES ${TEST_MODEL})
+	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
+	source_group("Test" FILES ${TEST})
+endif()
+
+add_executable(Gradido_LoginServer ${LOCAL_SRCS})
+
+############################## find mariadb ###################################
+find_library(MYSQL_LIBRARIES mariadb PATHS "/usr/local/lib/mariadb" REQUIRED)
+############################## config and add poco ###################################
+set(BUILD_LIB_PATH "(/usr/local/lib")
+
+IF(CMAKE_BUILD_TYPE MATCHES Debug)    
+	find_library(POCO_FOUNDATION_LIB PocoFoundationd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_UTIL_LIB PocoUtild PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_SSL_LIB PocoNetSSLd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_DATA_LIB PocoDatad PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_JSON_LIB PocoJSONd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_LIB PocoNetd PATHS ${BUILD_LIB_PATH} REQUIRED)
+	message("use Poco Debug libs")
+ELSE()
+	find_library(POCO_FOUNDATION_LIB PocoFoundation PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_UTIL_LIB PocoUtil PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_SSL_LIB PocoNetSSL PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_DATA_LIB PocoData PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_JSON_LIB PocoJSON PATHS ${BUILD_LIB_PATH} REQUIRED)
+	find_library(POCO_NET_LIB PocoNet PATHS ${BUILD_LIB_PATH} REQUIRED)
+	message("use Poco Release libs")
+ENDIF()
+
+set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO_DATA_LIB} ${POCO_JSON_LIB} ${POCO_NET_LIB})
+
+
+############################## build login server ###################################
+
+target_link_libraries(Gradido_LoginServer gRPC::grpc++ ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread)
+

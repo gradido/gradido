@@ -27,5 +27,10 @@
 	
 [submodule "community_server/src/protobuf"]
 	path = community_server/src/protobuf
-	url =  git@github.com:gradido/gradido_protocol.git
-
+	url =  https://github.com/gradido/gradido_protocol.git
+[submodule "login_server/dependencies/libsodium"]
+	path = login_server/dependencies/libsodium
+	url = https://github.com/jedisct1/libsodium.git
+[submodule "login_server/src/proto"]
+        path = login_server/src/proto
+        url =  https://github.com/gradido/gradido_protocol.git

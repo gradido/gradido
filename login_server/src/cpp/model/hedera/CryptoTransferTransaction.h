@@ -10,7 +10,7 @@
 *
 */
 
-#include "../../proto/hedera/CryptoTransfer.pb.h"
+#include "proto/hedera/CryptoTransfer.pb.h"
 #include "../../controller/HederaId.h"
 
 namespace model {
