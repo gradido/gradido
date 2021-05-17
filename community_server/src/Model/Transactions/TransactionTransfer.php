@@ -186,11 +186,9 @@ class TransactionTransfer extends TransactionBase {
       $local_transfer = $this->protoTransactionTransfer->getLocal();
       $sender = $local_transfer->getSender();
       $senderAmount = $sender->getAmount();
-      $senderUserId = $this->getStateUserId($sender->getPubkey());
-      $receiverUserId = $this->getStateUserId($local_transfer->getReceiver());
+      $senderUser = $this->getStateUserFromPublickey($sender->getPubkey());
+      $receiverUser = $this->getStateUserFromPublickey($local_transfer->getReceiver());
       
-      $receiverUser = $this->getStateUser($receiverUserId);
-      $senderUser   = $this->getStateUser($senderUserId);
       $serverAdminEmail = Configure::read('ServerAdminEmail');
 
       try {
@@ -216,6 +214,25 @@ class TransactionTransfer extends TransactionBase {
         return false;
       }
       return true;
+    }
+    
+    public function getSenderUser()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        return $this->getStateUserFromPublickey($local_transfer->getSender()->getPubkey());
+    }
+    
+    public function getReceiverUser()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        return $this->getStateUserFromPublickey($local_transfer->getReceiver());
+    }
+    
+    public function getAmount()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $sender = $local_transfer->getSender();
+        return $sender->getAmount();
     }
     
     static public function fromEntity($transactionTransferEntity)

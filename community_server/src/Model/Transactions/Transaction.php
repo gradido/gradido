@@ -98,6 +98,11 @@ class Transaction extends TransactionBase {
       return $sigPairs[0]->getPubKey();
     }
     
+    public function getFirstSigningUser()
+    {
+        return $this->getStateUserFromPublickey($this->getFirstPublic());
+    }
+    
     public function getId() {
       return $this->mProtoTransaction->getId();
     }

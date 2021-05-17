@@ -323,23 +323,33 @@ class AppRequestsController extends AppController
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
         }
 
+        $stateUserTransactions_total = $stateUserTransactionsTable
+                                        ->find()
+                                        ->select(['id'])
+                                        ->where(['state_user_id' => $user['id']])
+                                        ->contain([]);
         
         $stateUserTransactionsQuery = $stateUserTransactionsTable
                                         ->find()
                                         ->where(['state_user_id' => $user['id']])
-                                        ->order(['balance_date' => 'ASC'])
+                                        ->order(['balance_date' => $orderDirection])
                                         ->contain([])
                                         ->limit($count)
                                         ->page($page)
                                         ;
         $decay = true;
         $transactions = [];
+        $transactions_from_db = $stateUserTransactionsQuery->toArray();
         if($stateUserTransactionsQuery->count() > 0) {
-            $transactions = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
-        
+            if($orderDirection == 'DESC') {
+                $transactions_from_db = array_reverse($transactions_from_db);
+            }
+            $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay);
+            
             if($orderDirection == 'DESC') {
                 $transactions = array_reverse($transactions);
             }
+            
         }
         
         $state_balance = $stateBalancesTable->find()->where(['state_user_id' => $user['id']])->first();
@@ -348,7 +358,7 @@ class AppRequestsController extends AppController
             'state' => 'success',
             'transactions' => $transactions,
             'transactionExecutingCount' => $session->read('Transactions.executing'),
-            'count' => count($transactions),
+            'count' => $stateUserTransactions_total->count(),
             'gdtSum' => $gdtSum,
             'timeUsed' => microtime(true) - $startTime
         ];
