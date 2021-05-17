@@ -9,7 +9,11 @@
 $cut_places = $precision - 2;
 $transformAmount = $cent;
 if($cut_places > 0) {
-    $transformAmount = floor($cent / pow(10, $cut_places));
+    if(isset($useCeil) && $useCeil) {
+        $transformAmount = ceil($cent / pow(10, $cut_places));
+    } else {
+        $transformAmount = floor($cent / pow(10, $cut_places));
+    }
 }
 if($cut_places < 0) {
     $cut_places = 0;

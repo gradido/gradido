@@ -275,6 +275,7 @@ class TransactionsTable extends Table
                         'type' => 'decay',
                         'balance' => $balance,
                         'decay_duration' => $duration,
+                        'last_decay' => true,
                         'memo' => ''
                     ];
                 }
