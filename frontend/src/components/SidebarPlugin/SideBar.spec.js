@@ -94,7 +94,7 @@ describe('SideBar', () => {
             mocks.$i18n.locale = 'de'
           })
 
-          it('links to the German elopage when locale is set to de', async () => {
+          it('links to the German elopage when locale is set to de', () => {
             expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
               'https://elopage.com/s/gradido/sign_in?locale=de',
             )

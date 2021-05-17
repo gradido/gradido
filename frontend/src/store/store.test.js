@@ -35,7 +35,7 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls two commits', () => {
+      it('calls three commits', () => {
         login(
           { commit, state },
           { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
