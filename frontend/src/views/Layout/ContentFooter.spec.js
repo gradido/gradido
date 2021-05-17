@@ -12,9 +12,6 @@ describe('ContentFooter', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-    $store: {
-      commit: jest.fn(),
-    },
   }
 
   const Wrapper = () => {

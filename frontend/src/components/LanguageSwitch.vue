@@ -21,12 +21,14 @@ export default {
   data() {
     return {
       locales: locales,
+      currentLanguage: {},
     }
   },
   methods: {
-    async setLocale(locale) {
+    setLocale(locale) {
       this.$i18n.locale = locale
       this.$store.commit('language', this.$i18n.locale)
+      this.currentLanguage = this.getLocaleObject(locale)
       localeChanged(locale)
     },
     async saveLocale(locale) {
@@ -52,9 +54,7 @@ export default {
       if (lang) return lang.split('-')[0]
       return lang
     },
-  },
-  computed: {
-    currentLanguage() {
+    setCurrentLanguage() {
       let locale = this.$store.state.language || this.getNavigatorLanguage() || 'en'
       let object = this.getLocaleObject(locale)
       if (!object) {
@@ -62,8 +62,11 @@ export default {
         object = this.getLocaleObject(locale)
       }
       this.setLocale(locale)
-      return object
+      this.currentLanguage = object
     },
+  },
+  created() {
+    this.setCurrentLanguage()
   },
 }
 </script>
