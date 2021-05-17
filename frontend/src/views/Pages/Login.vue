@@ -111,7 +111,7 @@ export default {
       if (result.success) {
         this.$store.dispatch('login', {
           sessionId: result.result.data.session_id,
-          email: this.model.email,
+          user: result.result.data.user,
         })
         this.$router.push('/overview')
         loader.hide()
