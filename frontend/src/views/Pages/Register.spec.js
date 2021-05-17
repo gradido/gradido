@@ -1,5 +1,4 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
 
 import Register from './Register'
@@ -16,20 +15,12 @@ describe('Register', () => {
     $t: jest.fn((t) => t),
   }
 
-  const state = {
-    // loginfail: false,
-  }
-
-  const store = new Vuex.Store({
-    state,
-  })
-
   const stubs = {
     RouterLink: RouterLinkStub,
   }
 
   const Wrapper = () => {
-    return mount(Register, { localVue, mocks, store, stubs })
+    return mount(Register, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

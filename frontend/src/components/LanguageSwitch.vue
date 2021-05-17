@@ -1,6 +1,6 @@
 <template>
   <div class="language-switch">
-    <b-dropdown size="sm" :text="currentLanguageName + ' - ' + currentLanguage">
+    <b-dropdown size="sm" :text="currentLanguage.name + ' - ' + currentLanguage.code">
       <b-dropdown-item
         v-for="lang in locales"
         @click.prevent="saveLocale(lang.code)"
@@ -24,7 +24,7 @@ export default {
     }
   },
   methods: {
-    setLocale(locale) {
+    async setLocale(locale) {
       this.$i18n.locale = locale
       this.$store.commit('language', this.$i18n.locale)
       localeChanged(locale)
@@ -32,7 +32,7 @@ export default {
     async saveLocale(locale) {
       this.setLocale(locale)
       if (this.$store.state.sessionId && this.$store.state.email) {
-        const result = loginAPI.updateLanguage(
+        const result = await loginAPI.updateLanguage(
           this.$store.state.sessionId,
           this.$store.state.email,
           locale,
@@ -44,15 +44,25 @@ export default {
         }
       }
     },
+    getLocaleObject(code) {
+      return this.locales.find((l) => l.code === code)
+    },
+    getNavigatorLanguage() {
+      const lang = navigator.language
+      if (lang) return lang.split('-')[0]
+      return lang
+    },
   },
   computed: {
     currentLanguage() {
-      const locale = this.$store.state.language || navigator.language || 'en'
-      this.setLocale(this.$store.state.language)
-      return locale
-    },
-    currentLanguageName() {
-      return this.locales.find((l) => l.code === this.currentLanguage).name
+      let locale = this.$store.state.language || this.getNavigatorLanguage() || 'en'
+      let object = this.getLocaleObject(locale)
+      if (!object) {
+        locale = 'en'
+        object = this.getLocaleObject(locale)
+      }
+      this.setLocale(locale)
+      return object
     },
   },
 }
