@@ -68,7 +68,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	if (password.size()) {
 		NotificationList errors;
-		if (!sm->checkPwdValidation(password, &errors)) {
+		if (!sm->checkPwdValidation(password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 			Poco::JSON::Object* result = new Poco::JSON::Object;
 			result->set("state", "error");
 			result->set("msg", errors.getLastError()->getString(false));

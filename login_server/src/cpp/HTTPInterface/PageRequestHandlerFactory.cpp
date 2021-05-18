@@ -15,7 +15,7 @@
 #include "SaveKeysPage.h"
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
-#include "UpdateUserPasswordPage.h"
+#include "UserUpdatePasswordPage.h"
 #include "UserUpdateGroupPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
@@ -229,7 +229,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		auto sessionState = s->getSessionState();
 		//printf("session state: %s\n", s->getSessionStateString());
 		if (url_first_part == "/updateUserPassword") {
-			return basicSetup(new UpdateUserPasswordPage(s), request, timeUsed);
+			return basicSetup(new UserUpdatePasswordPage(s), request, timeUsed);
 		}
 		if (url_first_part == "/checkTransactions") {
 			return basicSetup(new CheckTransactionPage(s), request, timeUsed);
@@ -318,7 +318,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		assert(session->getNewUser());
 		if (!session->getNewUser()->hasPassword()) {
 			// user has no password, maybe account created from elopage webhook
-			return basicSetup(new UpdateUserPasswordPage(session), request, timeUsed);
+			return basicSetup(new UserUpdatePasswordPage(session), request, timeUsed);
 		}
 		/*
 		//! \return 1 = konto already exist
@@ -336,7 +336,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 				printf("return check email page\n");
 				pageRequestHandler = new CheckEmailPage(session);
 			} else if(SESSION_STATE_RESET_PASSWORD_REQUEST == session->getSessionState()) {
-				pageRequestHandler = new UpdateUserPasswordPage(session);
+				pageRequestHandler = new UserUpdatePasswordPage(session);
 			} else {
 				pageRequestHandler = new PassphrasePage(session);
 			}

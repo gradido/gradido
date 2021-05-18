@@ -55,7 +55,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	NotificationList pwd_errors;
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 
-	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors)) {
+	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 	
 		result->set("state", "error");
 		result->set("msg", pwd_errors.getLastError()->getString(false));
