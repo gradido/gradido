@@ -207,6 +207,10 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	auto em = ErrorManager::getInstance();
 	auto email_manager = EmailManager::getInstance();
 
+	if (mLanguageCatalog.isNull()) {
+		mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(LANG_DE);
+	}
+
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
 		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
@@ -219,7 +223,8 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
 		return false;
 	}
-	if (!sm->checkPwdValidation(password, this)) {
+	
+	if (!sm->checkPwdValidation(password, this, mLanguageCatalog)) {
 		return false;
 	}
 
@@ -658,7 +663,13 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 	if (mNewUser->getUserState() >= USER_LOADED_FROM_DB) {
 		
 		NotificationList pwd_errors;
-		if (!sm->checkPwdValidation(password, &pwd_errors))
+		auto lm = LanguageManager::getInstance();
+		auto lang_key = mNewUser->getModel()->getLanguageKey();
+		if (mLanguageCatalog.isNull()) {
+			mLanguageCatalog = lm->getFreeCatalog(lm->languageFromString(lang_key));
+		}
+
+		if (!sm->checkPwdValidation(password, &pwd_errors, mLanguageCatalog))
 		{
 			Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 			return USER_PASSWORD_INCORRECT;
