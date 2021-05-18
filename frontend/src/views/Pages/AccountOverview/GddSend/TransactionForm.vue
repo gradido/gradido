@@ -87,7 +87,22 @@
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
-                <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
+              </validation-provider>
+              <validation-provider
+                :rules="{
+                  required: true,
+                  min: 5,
+                  max: 150,
+                }"
+                :name="$t('form.memo')"
+                v-slot="{ errors }"
+              >
+                <b-row>
+                  <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
+                  <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                    <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+                  </b-col>
+                </b-row>
                 <b-input-group id="input-group-3">
                   <b-input-group-prepend class="p-3 d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-3"></b-icon>
