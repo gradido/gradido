@@ -34,15 +34,22 @@
                     v-model="model.email"
                   ></base-input>
 
-                  <base-input
-                    alternative
-                    class="mb-3"
-                    name="Password"
-                    prepend-icon="ni ni-lock-circle-open"
-                    type="password"
-                    :placeholder="$t('form.password')"
-                    v-model="model.password"
-                  ></base-input>
+                  <b-input-group>
+                    <b-form-input
+                      class="mb-0"
+                      v-model="model.password"
+                      name="Password"
+                      :type="passwordVisible ? 'text' : 'password'"
+                      prepend-icon="ni ni-lock-circle-open"
+                      :placeholder="$t('form.password')"
+                    ></b-form-input>
+
+                    <b-input-group-append>
+                      <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                        <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                      </b-button>
+                    </b-input-group-append>
+                  </b-input-group>
 
                   <b-alert v-show="loginfail" show dismissible variant="warning">
                     <span class="alert-text bv-example-row">
@@ -98,9 +105,13 @@ export default {
       },
       loginfail: false,
       allowRegister: CONFIG.ALLOW_REGISTER,
+      passwordVisible: false,
     }
   },
   methods: {
+    togglePasswordVisibility() {
+      this.passwordVisible = !this.passwordVisible
+    },
     async onSubmit() {
       // error info  ausschalten
       this.loginfail = false
