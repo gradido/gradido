@@ -102,6 +102,7 @@ export default {
     async logout() {
       await loginAPI.logout(this.$store.state.sessionId)
       // do we have to check success?
+      this.$sidebar.displaySidebar(false)
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
