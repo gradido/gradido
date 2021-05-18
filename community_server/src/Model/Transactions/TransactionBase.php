@@ -60,6 +60,16 @@ class TransactionBase {
       
       return NULL;
     }
+    
+    protected function getStateUserFromPublickey($publicKey) {
+        $stateUsersTable = self::getTable('state_users');
+        $stateUser = $stateUsersTable->find('all')->where(['public_key' => $publicKey])->first();
+        if($stateUser) {
+          return $stateUser;
+        }
+      
+      return NULL;
+    }
 
 
     protected function updateStateBalance($stateUserId, $addAmountCent, $recordDate) {

@@ -72,7 +72,12 @@ class TransactionCreation extends TransactionBase {
       return $this->protoTransactionCreation->getReceiver()->getPubkey();
     }
     
-    
+    public function getReceiverUser() {
+        return $this->getStateUserFromPublickey($this->getReceiverPublic());
+    }
+    public function getTargetDate() {
+        return new FrozenDate($this->protoTransactionCreation->getTargetDate()->getSeconds());
+    }
     
     public function validate($sigPairs) {
       // check if receiver public is not in signature list
