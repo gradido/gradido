@@ -85,8 +85,8 @@
     "thx": {
       "title": "Thank you!",
       "email": "We have sent you an email.",
-      "reset": "Your password has been changed",
-      "register": "You are registred now"      
+      "reset": "Your password has been changed.",
+      "register": "You are registred now."      
     },
     "overview":{
       "account_overview":"Account overview",
