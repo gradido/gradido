@@ -84,9 +84,7 @@
     },
     "thx": {
       "title": "Danke!",
-      "email": "Wir haben dir eine eMail gesendet.",
-      "reset": "Dein Passwort wurde geändert",
-      "register": "Du bist jetzt regisriert"      
+      "subtitle": "Wir haben dir eine eMail gesendet."
     },
     "overview":{
       "account_overview":"Kontoübersicht",
