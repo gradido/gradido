@@ -16,17 +16,17 @@
 </template>
 <script>
 const textFields = {
-  '/password': {
+  password: {
     subtitle: 'site.thx.email',
     button: 'login',
     linkTo: '/login',
   },
-  '/reset': {
+  reset: {
     subtitle: 'site.thx.reset',
-    button: 'site.login.signin',
-    linkTo: '/overview',
+    button: 'login',
+    linkTo: '/login',
   },
-  '/register': {
+  register: {
     subtitle: 'site.thx.register',
     button: 'site.login.signin',
     linkTo: '/overview',
@@ -37,22 +37,16 @@ export default {
   name: 'Thx',
   data() {
     return {
-      comingFrom: null,
       displaySetup: {},
     }
   },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.comingFrom = from.path
-    })
-  },
   methods: {
-    setupDisplay() {
-      this.displaySetup = textFields[this.comingFrom]
+    setDisplaySetup(from) {
+      this.displaySetup = textFields[this.$route.params.comingFrom]
     },
   },
   created() {
-    this.setupDisplay()
+    this.setDisplaySetup()
   },
 }
 </script>
