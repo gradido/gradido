@@ -32,7 +32,7 @@ describe('AccountOverview', () => {
     })
 
     it('has a transactions table', () => {
-      expect(wrapper.find('gdd-table-stub').exists()).toBeTruthy()
+      expect(wrapper.find('gdd-transaction-list-stub').exists()).toBeTruthy()
     })
   })
 })

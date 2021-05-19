@@ -6,43 +6,36 @@
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex w-100 justify-content-between">
-          <b-icon
-            v-if="item.type === 'send'"
-            icon="arrow-left-circle"
-            class="m-1 text-danger"
-            font-scale="2"
-            style="color: red"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'receive'"
-            icon="arrow-right-circle"
-            class="m-1"
-            font-scale="2"
-            style="color: green"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'creation'"
-            icon="gift"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <b-icon
-            v-else
-            icon="droplet-half"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <h1 class="">
+        <div class="d-flex">
+          <div style="width: 10%">
+            <b-icon
+              v-if="item.type === 'send'"
+              icon="arrow-left-circle"
+              class="m-mb-1 text-danger font2em"
+            ></b-icon>
+            <b-icon
+              v-else-if="item.type === 'receive'"
+              icon="arrow-right-circle"
+              class="m-md-1 text-success font2em"
+            ></b-icon>
+            <b-icon
+              v-else-if="item.type === 'creation'"
+              icon="gift"
+              class="m-md-1 font2em"
+              style="color: green"
+            ></b-icon>
+            <b-icon v-else icon="droplet-half" class="m-md-1 font2em" style="color: gray"></b-icon>
+          </div>
+          <div class="font1_2em pl-2" style="width: 30%">
+            {{ $n(item.balance) }}
             <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
             <span v-else>-</span>
-            {{ $n(item.balance) }}
-            <small>GDD</small>
-          </h1>
-          <h2 class="text-muted">{{ item.name }}</h2>
-          <b-button v-b-toggle="'a' + item.transaction_id" variant="secondary">
+          </div>
+          <div class="font1_2em" style="width: 50%">
+            {{ item.name }} -
+            <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
+          </div>
+          <b-button v-b-toggle="'a' + item.transaction_id" class="btn-sm">
             <b>i</b>
           </b-button>
         </div>
@@ -97,7 +90,7 @@
 
 <script>
 export default {
-  name: 'GddTable',
+  name: 'gdd-transaction-list',
   props: {
     transactions: { default: [] },
     max: { type: Number, default: 1000 },
@@ -125,6 +118,12 @@ export default {
 }
 </script>
 <style>
+.font1_2em {
+  font-size: 1.2em;
+}
+.font2em {
+  font-size: 1.5em;
+}
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;

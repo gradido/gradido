@@ -13,7 +13,7 @@
 
 <script>
 export default {
-  name: 'GddTableFooter',
+  name: 'GddTransactionListFooter',
   props: {
     count: { count: Number },
   },

@@ -1,29 +1,24 @@
 <template>
   <div>
     <div
-      class="header pb-8 pt-lg-4 d-flex align-items-center profile-header"
+      class="header pb-sm-1 pb-md-7 d-flex align-items-center profile-header"
       style="max-height: 200px"
     ></div>
-    <b-container fluid class="mt--6">
-      <b-row>
-        <b-col class="order-xl-1">
-          <gdd-table
-            :timestamp="timestamp"
-            :transactionCount="transactionCount"
-            :transactions="transactions"
-            @update-transactions="updateTransactions"
-          />
-        </b-col>
-      </b-row>
-    </b-container>
+
+    <gdd-transaction-list
+      :timestamp="timestamp"
+      :transactionCount="transactionCount"
+      :transactions="transactions"
+      @update-transactions="updateTransactions"
+    />
   </div>
 </template>
 <script>
-import GddTable from '../../views/Pages/AccountOverview/GddTable.vue'
+import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 
 export default {
   components: {
-    GddTable,
+    GddTransactionList,
   },
   props: {
     transactions: {
