@@ -18,7 +18,8 @@ export const mutations = {
 export const actions = {
   login: ({ dispatch, commit }, data) => {
     commit('sessionId', data.sessionId)
-    commit('email', data.email)
+    commit('email', data.user.email)
+    commit('language', data.user.language)
   },
   logout: ({ commit, state }) => {
     commit('sessionId', null)
@@ -36,7 +37,7 @@ export const store = new Vuex.Store({
   state: {
     sessionId: null,
     email: '',
-    language: 'en',
+    language: null,
     modals: false,
   },
   getters: {},

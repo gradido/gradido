@@ -19,6 +19,7 @@ describe('SideBar', () => {
       state: {
         email: 'test@example.org',
       },
+      commit: jest.fn(),
     },
     $i18n: {
       locale: 'en',
