@@ -1,9 +1,6 @@
 <template>
   <b-row class="transaction-form">
     <b-col xl="12" md="12">
-      <b-alert show dismissible variant="default" class="text-center">
-        <span class="alert-text h3 text-light" v-html="$t('form.attention')"></span>
-      </b-alert>
       <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
         <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">

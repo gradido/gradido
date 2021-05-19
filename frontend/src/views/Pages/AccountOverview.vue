@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-header class="pb-lg-4 pt-lg-2 bg-transparent"></base-header>
+    <base-header class="pb-md-4 pt-md-2 pb-lg-4 pt-lg-2 bg-transparent"></base-header>
     <b-container fluid class="p-lg-2 mt-lg-5">
       <gdd-status
         v-if="showContext"

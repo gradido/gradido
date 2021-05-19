@@ -35,12 +35,6 @@ describe('GddSend', () => {
       expect(wrapper.find('div.transaction-form').exists()).toBeTruthy()
     })
 
-    describe('warning messages', () => {
-      it('has a warning message', () => {
-        expect(wrapper.find('div.alert-default').find('span').text()).toBe('form.attention')
-      })
-    })
-
     describe('transaction form', () => {
       describe('email field', () => {
         it('has an input field of type email', () => {
