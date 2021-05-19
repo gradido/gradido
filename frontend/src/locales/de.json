@@ -48,7 +48,7 @@
     "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
     "validation": {
       "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
-      "is-not": "Du kannst Dir selbst keine Gradidos überweisen"
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen"
     }
   },
   "error": {
