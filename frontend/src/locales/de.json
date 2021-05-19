@@ -19,7 +19,6 @@
     "en": "English"
   },
   "form": {
-    "attention": "<strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Abbrechen",
     "reset": "Zurücksetzen",
     "close":"schließen",
@@ -49,7 +48,7 @@
     "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
     "validation": {
       "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
-      "is-not": "Du kannst Dir selbst keine Gradidos überweisen"
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen"
     }
   },
   "error": {
