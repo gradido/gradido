@@ -19,10 +19,6 @@ describe('AccountOverview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a header', () => {
-      expect(wrapper.find('base-header-stub').exists()).toBeTruthy()
-    })
-
     it('has a status line', () => {
       expect(wrapper.find('gdd-status-stub').exists()).toBeTruthy()
     })

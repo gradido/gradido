@@ -21,7 +21,6 @@
           <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
         </b-list-group-item>
       </b-list-group>
-      <hr />
       <b-row>
         <b-col>
           <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>

@@ -35,19 +35,36 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls two commits', () => {
-        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
-        expect(commit).toHaveBeenCalledTimes(2)
+      it('calls three commits', () => {
+        login(
+          { commit, state },
+          { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
+        )
+        expect(commit).toHaveBeenCalledTimes(3)
       })
 
       it('commits sessionId', () => {
-        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
+        login(
+          { commit, state },
+          { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
+        )
         expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', 1234)
       })
 
       it('commits email', () => {
-        login({ commit, state }, { sessionId: 1234, email: 'someone@there.is' })
+        login(
+          { commit, state },
+          { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
+        )
         expect(commit).toHaveBeenNthCalledWith(2, 'email', 'someone@there.is')
+      })
+
+      it('commits language', () => {
+        login(
+          { commit, state },
+          { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
+        )
+        expect(commit).toHaveBeenNthCalledWith(3, 'language', 'en')
       })
     })
 
