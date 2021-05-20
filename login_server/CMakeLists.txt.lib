@@ -139,6 +139,7 @@ ENDFOREACH(cpsp_file)
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
+FILE(GLOB COMPILED_PAGES "build/http_pages/*.h" "build/http_pages/*.cpp")
 FILE(GLOB JSONInterface "src/cpp/JSONInterface/*.h" "src/cpp/JSONInterface/*.cpp")
 FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
 FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
@@ -162,7 +163,7 @@ FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/
 FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
 
 SET(LOCAL_SRCS 
-	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
+	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} ${COMPILED_PAGES}
 	${JSONInterface} ${CRYPTO}
 	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA} ${MODEL_GRADIDO}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
@@ -172,31 +173,6 @@ SET(LOCAL_TEST_SRC
 	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
-
-if(MSVC)
-	# src
-	source_group("controller" FILES ${CONTROLLER})
-	source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
-	source_group("proto\\hedera" FILES ${PROTO_HEDERA})
-	source_group("tinf" FILES ${TINF})
-	source_group("Crypto" FILES ${CRYPTO})
-	source_group("tasks" FILES ${TASKS})
-	source_group("model\\table" FILES ${MODEL_TABLE})
-	source_group("model\\email" FILES ${MODEL_EMAIL})
-	source_group("model\\hedera" FILES ${MODEL_HEDERA})
-	source_group("model\\gradido" FILES ${MODEL_GRADIDO})
-	source_group("model" FILES ${MODEL})
-	source_group("mysql" FILES ${MYSQL})
-	source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
-	source_group("lib" FILES ${LIB_SRC})
-	source_group("HTTP-Interface" FILES ${HTTPInterface})
-	source_group("Json-Interface" FILES ${JSONInterface})
-	source_group("Test\\crypto" FILES ${TEST_CRYPTO})
-	source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
-	source_group("Test\\model" FILES ${TEST_MODEL})
-	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
-	source_group("Test" FILES ${TEST})
-endif()
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
