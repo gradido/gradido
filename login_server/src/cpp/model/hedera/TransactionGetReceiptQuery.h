@@ -2,7 +2,7 @@
 #define GRADIDO_LOGIN_SERVER_MODEL_HEDERA_TRANSACTION_GET_RECEIPT_QUERY_H
 
 #include "QueryHeader.h"
-#include "../../proto/hedera/TransactionGetReceipt.pb.h"
+#include "proto/hedera/TransactionGetReceipt.pb.h"
 
 namespace model {
 	namespace hedera {
@@ -19,7 +19,7 @@ namespace model {
 		protected:
 			Poco::AutoPtr<QueryHeader> mQueryHeader;
 			proto::TransactionGetReceiptQuery mProtoReceiptQuery;
-			
+
 		};
 	}
 }

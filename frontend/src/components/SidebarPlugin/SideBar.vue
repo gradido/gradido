@@ -10,7 +10,7 @@
         <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
       <b-row class="text-center">
-        <b-col>{{ $n(balance) }} GDD</b-col>
+        <b-col>{{ pending ? '—' : $n(balance) }} GDD</b-col>
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
@@ -32,9 +32,7 @@
         <div class="navbar-collapse-header d-md-none">
           <div class="row">
             <div class="col-6 collapse-brand">
-              <router-link to="/overview">
-                <img :src="logo" />
-              </router-link>
+              <img :src="logo" />
             </div>
             <div class="col-6 collapse-close">
               <navbar-toggle-button @click.native="closeSidebar"></navbar-toggle-button>
@@ -44,26 +42,29 @@
         <ul class="navbar-nav">
           <slot name="links"></slot>
         </ul>
-        <hr class="my-3" />
-        <ul class="navbar-nav mb-md-3">
+        <hr class="my-2" />
+        <ul class="navbar-nav ml-3">
           <li class="nav-item">
             <a
               :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
-              class="nav-link text-lg"
+              class="nav-link"
               target="_blank"
             >
               {{ $t('members_area') }}
             </a>
           </li>
         </ul>
-        <hr class="my-3" />
-        <ul class="navbar-nav mb-md-3">
+
+        <ul class="navbar-nav ml-3">
           <li class="nav-item">
-            <a class="nav-link text-lg pointer" @click="logout">
+            <a class="nav-link pointer" @click="logout">
               {{ $t('logout') }}
             </a>
           </li>
         </ul>
+        <div class="mt-5 ml-4">
+          <language-switch />
+        </div>
       </div>
     </div>
   </nav>
@@ -71,12 +72,14 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
+import LanguageSwitch from '@/components/LanguageSwitch.vue'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
     VueQrcode,
+    LanguageSwitch,
   },
   props: {
     logo: {
@@ -84,6 +87,7 @@ export default {
       default: 'img/brand/green.png',
       description: 'Gradido Sidebar app logo',
     },
+    value: { type: Array },
     autoClose: {
       type: Boolean,
       default: true,
@@ -92,6 +96,10 @@ export default {
     balance: {
       type: Number,
       default: 0,
+    },
+    pending: {
+      type: Boolean,
+      default: true,
     },
   },
   provide() {

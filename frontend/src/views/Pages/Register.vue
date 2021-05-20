@@ -97,7 +97,6 @@
                       </p>
                     </div>
                   </transition>
-
                   <b-row class="my-4">
                     <b-col cols="12">
                       <base-input
@@ -164,12 +163,7 @@ export default {
         email: '',
         agree: false,
       },
-      rules: [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ],
+
       password: '',
       checkPassword: '',
       passwordVisible: false,
@@ -198,7 +192,7 @@ export default {
         this.model.firstname = ''
         this.model.lastname = ''
         this.password = ''
-        this.$router.push('/thx')
+        this.$router.push('/thx/register')
       } else {
         this.showError = true
         this.messageError = result.result.message
@@ -230,6 +224,14 @@ export default {
     },
     emailFilled() {
       return this.model.email !== ''
+    },
+    rules() {
+      return [
+        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+      ]
     },
     passwordValidation() {
       const errors = []

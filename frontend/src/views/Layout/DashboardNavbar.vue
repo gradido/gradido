@@ -10,18 +10,18 @@
       <li class="nav-item d-sm-none"></li>
     </b-navbar-nav>
     <b-navbar-nav class="align-items-center ml-auto ml-md-0">
-      <a class="pr-1 nav-link" slot="title-container pointer">
+      <div class="pr-1" slot="title-container ">
         <b-media no-body class="align-items-center">
           <span class="pb-2 text-lg font-weight-bold">
             {{ $store.state.email }}
           </span>
-          <b-media-body class="ml-2 d-none d-lg-block">
+          <b-media-body class="ml-2 d-none d-lg-block d-md-block">
             <span class="avatar">
               <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
             </span>
           </b-media-body>
         </b-media>
-      </a>
+      </div>
     </b-navbar-nav>
   </base-nav>
 </template>

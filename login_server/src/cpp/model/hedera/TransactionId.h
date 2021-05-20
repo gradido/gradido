@@ -10,7 +10,7 @@
 *
 */
 
-#include "../../proto/hedera/BasicTypes.pb.h"
+#include "proto/hedera/BasicTypes.pb.h"
 
 #include "Poco/JSON/Object.h"
 
@@ -26,7 +26,7 @@ namespace model {
 
 			Poco::JSON::Object::Ptr convertToJSON();
 
-		protected:			
+		protected:
 			Poco::Timestamp mTransactionValidStart;
 			union {
 				struct {

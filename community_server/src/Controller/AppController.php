@@ -21,7 +21,7 @@ use Cake\Routing\Router;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\I18n\Time;
-use Cake\I18n\I18n;
+use Cake\I18n\FrozenTime;
 
 /**
  * Application Controller
@@ -156,8 +156,25 @@ class AppController extends Controller
         }
     }
 
+    protected function checkForMigration($html = true)
+    {
+        $migrationsTable = TableRegistry::getTableLocator()->get('Migrations');
+        $last_migration = $migrationsTable->find()->last();
+        $current_db_version = 1;
+        if($last_migration) {
+            $current_db_version = $last_migration->db_version;
+        }
+        $php_data_version = 2;
+        if($current_db_version < $php_data_version) {
+            $this->redirect(['controller' => 'Migrations', 'action' => 'migrate', 'html' => $html, 'db_version' => $current_db_version]);
+        }
+    }
+
+
     protected function requestLogin($sessionId = 0, $redirect = true)
     {
+        $this->checkForMigration($redirect);
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
         $session = $this->getRequest()->getSession();
         // check login
         // disable encryption for cookies
@@ -190,12 +207,15 @@ class AppController extends Controller
             $transactionPendings = $session->read('Transactions.pending');
             $transactionExecutings = $session->read('Transactions.executing');
             $transaction_can_signed = $session->read('Transactions.can_signed');
+            
+            
 
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
               intval($transactionExecutings) > 0 ||
-              intval($transaction_can_signed > 0)) {
+              intval($transaction_can_signed > 0)) 
+              {
                 $http = new Client();
 
                 try {
@@ -226,6 +246,7 @@ class AppController extends Controller
                             $session->write('Transactions.can_signed', $transaction_can_signed);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+                            
 
                             if (isset($json['user']['public_hex']) && $json['user']['public_hex'] != '') {
                                 $public_key_bin = hex2bin($json['user']['public_hex']);
@@ -253,11 +274,6 @@ class AppController extends Controller
                                         if (!$stateUserTable->save($stateUser)) {
                                             $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
                                         }
-                                    }
-                                  //var_dump($stateUser);
-                                    if (count($stateUser->state_balances) > 0) {
-
-                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->decay);
                                     }
                                     $session->write('StateUser.id', $stateUser->id);
                               //echo $stateUser['id'];
@@ -309,6 +325,11 @@ class AppController extends Controller
                     return $this->redirect(['controller' => 'Dashboard', 'action' => 'errorHttpRequest']);
                   //continue;
                 }
+            }
+            $state_balance = $stateBalancesTable->find()->where(['state_user_id' => $session->read('StateUser.id')])->first();
+            if ($state_balance) {
+                $now = new FrozenTime;
+                $session->write('StateUser.balance', $stateBalancesTable->calculateDecay($state_balance->amount, $state_balance->record_date, $now));
             }
         } else {
           // no login

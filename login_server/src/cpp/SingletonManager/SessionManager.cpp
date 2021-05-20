@@ -596,30 +596,42 @@ void SessionManager::deleteLoginCookies(Poco::Net::HTTPServerRequest& request, P
 	//session_id = atoi(cookies.get("GRADIDO_LOGIN").data());
 }
 
-bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList* errorReciver)
+bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList* errorReciver, Poco::AutoPtr<LanguageCatalog> lang)
 {
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		return true;
 	}
 
 	if (!isValid(pwd, VALIDATE_PASSWORD)) {
-		errorReciver->addError(new Error("Passwort", "Bitte gebe ein g&uuml;ltiges Password ein mit mindestens 8 Zeichen, Gro&szlig;- und Kleinbuchstaben, mindestens einer Zahl und einem Sonderzeichen (@$!%*?&+-_) ein!"));
+		errorReciver->addError(new Error(
+			lang->gettext("Password"), 
+			lang->gettext("Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character (@$!%*?&+-_)!")));
 
 		// @$!%*?&+-
 		if (pwd.size() < 8) {
-			errorReciver->addError(new Error("Passwort", "Dein Passwort ist zu kurz!"));
+			errorReciver->addError(new Error(
+				lang->gettext("Password"), 
+				lang->gettext("Your password is to short!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_LOWERCASE_LETTER)) {
-			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Kleinbuchstaben!"));
+			errorReciver->addError(new Error(
+				lang->gettext("Password"), 
+				lang->gettext("Your password does not contain lowercase letters!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_UPPERCASE_LETTER)) {
-			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Gro&szlig;buchstaben!"));
+			errorReciver->addError(new Error(
+				lang->gettext("Password"), 
+				lang->gettext("Your password does not contain any capital letters!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_NUMBER)) {
-			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Zahlen!"));
+			errorReciver->addError(new Error(
+				lang->gettext("Password"),
+				lang->gettext("Your password does not contain any number!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_SPECIAL_CHARACTER)) {
-			errorReciver->addError(new Error("Passwort", "Dein Passwort enth&auml;lt keine Sonderzeichen (@$!%*?&+-)!"));
+			errorReciver->addError(new Error(
+				lang->gettext("Password"),
+				lang->gettext("Your password does not contain special characters (@$!%*?&+-)!")));
 		}
 
 		return false;

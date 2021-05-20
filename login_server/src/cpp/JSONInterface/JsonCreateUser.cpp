@@ -68,7 +68,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 
 	if (password.size()) {
 		NotificationList errors;
-		if (!sm->checkPwdValidation(password, &errors)) {
+		if (!sm->checkPwdValidation(password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 			Poco::JSON::Object* result = new Poco::JSON::Object;
 			result->set("state", "error");
 			result->set("msg", errors.getLastError()->getString(false));
@@ -109,7 +109,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 		emailOptInModel->sendErrorsAsEmail();
 		return stateError("insert emailOptIn failed");
 	}
-
+	emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
 	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
 
 	if (login_after_register && session) {

@@ -10,7 +10,7 @@
 *
 */
 
-#include "../../proto/hedera/Response.pb.h"
+#include "proto/hedera/Response.pb.h"
 #include "ConsensusTopicInfo.h"
 #include "TransactionReceipt.h"
 #include "TransactionRecord.h"
@@ -23,7 +23,7 @@ namespace model {
 		public:
 			Response();
 			~Response();
-			
+
 			inline proto::Response* getResponsePtr() { return &mResponseProto; }
 			Poco::UInt64 getAccountBalance();
 			std::unique_ptr<ConsensusTopicInfo> getConsensusTopicInfo();
@@ -31,14 +31,14 @@ namespace model {
 			TransactionRecord* getTransactionRecord();
 			Poco::UInt64 getQueryCost();
 			proto::ResponseCodeEnum getResponseCode();
-			
+
 
 			inline bool isCryptoGetAccountBalanceResponse() { return mResponseProto.has_cryptogetaccountbalance(); }
 			inline bool isConsensusGetTopicInfoResponse() { return mResponseProto.has_consensusgettopicinfo(); }
 
 		protected:
 			proto::Response mResponseProto;
-			
+
 		};
 	}
 }

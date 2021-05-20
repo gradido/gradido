@@ -10,7 +10,7 @@
 *
 */
 
-#include "../../proto/hedera/Transaction.pb.h"
+#include "proto/hedera/Transaction.pb.h"
 #include "../../Crypto/KeyPairHedera.h"
 #include "TransactionBody.h"
 
@@ -25,7 +25,7 @@ namespace model {
 
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, const TransactionBody* transactionBody);
 			bool sign(std::unique_ptr<KeyPairHedera> keyPairHedera, std::unique_ptr<TransactionBody> transactionBody);
-			
+
 			inline proto::Transaction* getTransaction() { return mTransaction; }
 			inline std::string getConnectionString() const { return mConnection.getUriWithPort(); }
 			const controller::NodeServerConnection& getConnection() const { return mConnection; }

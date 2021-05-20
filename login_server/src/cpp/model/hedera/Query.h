@@ -3,14 +3,14 @@
 
 /*!
  * @author: Dario Rekowski
- * 
+ *
  * @date: 31.08.20
- * 
+ *
  * @brief: class for put together hedera querys (ask for state data, not a transaction, but needs a payment transaction)
  *
 */
 
-#include "../../proto/hedera/Query.pb.h"
+#include "proto/hedera/Query.pb.h"
 #include "../../controller/NodeServer.h"
 #include "../../Crypto/KeyPairHedera.h"
 #include "TransactionBody.h"
@@ -39,7 +39,7 @@ namespace model {
 			void setResponseType(proto::ResponseType type);
 			proto::ResponseType getResponseType();
 			inline bool setTransactionFee(Poco::UInt64 fee) { return mTransactionBody->updateCryptoTransferAmount(fee);}
-			
+
 			inline const proto::Query* getProtoQuery() const { return &mQueryProto; }
 			std::string getConnectionString() const;
 

@@ -176,11 +176,19 @@ namespace model {
 			}
 			if (receiver_pubkey->size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "invalid size of receiver pubkey"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
 			if (sender->pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "invalid size of sender pubkey"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
+			}
+			if(0 == memcmp(sender->pubkey().data(), receiver_pubkey->data(), KeyPairEd25519::getPublicKeySize())) {
+				addError(new Error(function_name, "sender and receiver are the same"));
+				return TRANSACTION_VALID_INVALID_PUBKEY;
+			}
+			if (mMemo.size() < 5 || mMemo.size() > 150) {
+				addError(new Error(function_name, "memo is not set or not in expected range [5;150]"));
+				return TRANSACTION_VALID_INVALID_MEMO;
 			}
 			return TRANSACTION_VALID_OK;
 		}

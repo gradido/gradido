@@ -8,7 +8,7 @@
 
 #include "TableControllerBase.h"
 
-#include "../proto/hedera/BasicTypes.pb.h"
+#include "proto/hedera/BasicTypes.pb.h"
 
 namespace controller {
 	class HederaAccount;

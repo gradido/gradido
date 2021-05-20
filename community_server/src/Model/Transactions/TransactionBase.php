@@ -60,6 +60,16 @@ class TransactionBase {
       
       return NULL;
     }
+    
+    protected function getStateUserFromPublickey($publicKey) {
+        $stateUsersTable = self::getTable('state_users');
+        $stateUser = $stateUsersTable->find('all')->where(['public_key' => $publicKey])->first();
+        if($stateUser) {
+          return $stateUser;
+        }
+      
+      return NULL;
+    }
 
 
     protected function updateStateBalance($stateUserId, $addAmountCent, $recordDate) {
@@ -72,9 +82,11 @@ class TransactionBase {
         //debug($stateBalanceQuery);
         
         if($stateBalanceQuery->count() > 0) {
+          
           $stateBalanceEntry = $stateBalanceQuery->first();
-          $stateBalanceEntry->amount = $stateBalanceEntry->partDecay($recordDate) + $addAmountCent;
-          $stateBalanceEntry->amount += $addAmountCent;
+          $stateBalanceEntry->amount =
+                  $stateBalancesTable->calculateDecay($stateBalanceEntry->amount, $stateBalanceEntry->record_date, $recordDate)
+                  + $addAmountCent;
         } else {
           $stateBalanceEntry = $stateBalancesTable->newEntity();
           $stateBalanceEntry->state_user_id = $stateUserId;
@@ -93,11 +105,12 @@ class TransactionBase {
     
     protected function addStateUserTransaction($stateUserId, $transactionId, $transactionTypeId, $balance, $balance_date) {
         $stateUserTransactionTable = self::getTable('state_user_transactions');
+        
         $stateUserTransactions = $stateUserTransactionTable
                                     ->find('all')
                                     ->where(['state_user_id' => $stateUserId])
                                     ->order(['transaction_id DESC']);
-        
+        $new_balance = $balance;
         if($stateUserTransactions->count() > 0) {
             $stateBalanceTable = self::getTable('state_balances');
             $state_user_transaction = $stateUserTransactions->first();
@@ -105,16 +118,17 @@ class TransactionBase {
                 $this->addError('TransactionBase::addStateUserTransaction', 'state_user_transaction is zero, no first entry exist?');
                 return false;
             }
-            $balance_entity = $stateBalanceTable->newEntity();
-            $balance_entity->amount = $state_user_transaction->balance;
-            $balance_entity->record_date = $state_user_transaction->balance_date;
-            $balance = $balance_entity->decay + $balance;
+            $new_balance += $stateBalanceTable->calculateDecay(
+                    $state_user_transaction->balance, 
+                    $state_user_transaction->balance_date, 
+                    $balance_date
+            );
         }
         $entity = $stateUserTransactionTable->newEntity();
         $entity->state_user_id = $stateUserId;
         $entity->transaction_id = $transactionId;
         $entity->transaction_type_id =  $transactionTypeId;
-        $entity->balance = $balance;
+        $entity->balance = $new_balance;
         $entity->balance_date = $balance_date;
         
         if(!$stateUserTransactionTable->save($entity)) {

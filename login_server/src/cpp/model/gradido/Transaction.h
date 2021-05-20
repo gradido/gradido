@@ -3,23 +3,23 @@
 
 /*
  * @author: Dario Rekowski
- * 
+ *
  * @date: 12.10.2020
- * 
- * @brief: mainly for signing gradido transaction 
+ *
+ * @brief: mainly for signing gradido transaction
 */
 
-#include "../../proto/gradido/GradidoTransaction.pb.h"
+#include "proto/gradido/GradidoTransaction.pb.h"
 #include "TransactionBody.h"
 #include "../../tasks/GradidoTask.h"
 #include "../../controller/User.h"
 
-#include "../tasks/CPUTask.h"
+#include "../../tasks/CPUTask.h"
 
 namespace model {
 	namespace gradido {
 
-		
+
 
 		class Transaction : public GradidoTask
 		{
@@ -32,21 +32,21 @@ namespace model {
 			// groupMemberUpdate
 			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
 			//! \brief transfer
-			//! \return 
+			//! \return
 			static Poco::AutoPtr<Transaction> createTransfer(
-				Poco::AutoPtr<controller::User> sender, 
-				const MemoryBin* receiverPubkey, 
-				Poco::AutoPtr<controller::Group> receiverGroup, 
-				Poco::UInt32 amount, 
-				const std::string& memo, 
+				Poco::AutoPtr<controller::User> sender,
+				const MemoryBin* receiverPubkey,
+				Poco::AutoPtr<controller::Group> receiverGroup,
+				Poco::UInt32 amount,
+				const std::string& memo,
 				BlockchainType blockchainType,
 				bool inbound = true);
 
 			Poco::AutoPtr<Transaction> createTransfer(
-				const MemoryBin* senderPubkey, 
+				const MemoryBin* senderPubkey,
 				Poco::AutoPtr<controller::User> receiver,
-				std::string senderGroupAlias, 
-				Poco::UInt32 amount, 
+				std::string senderGroupAlias,
+				Poco::UInt32 amount,
 				const std::string& memo,
 				BlockchainType blockchainType);
 
@@ -66,7 +66,7 @@ namespace model {
 
 			//! \brief validate and if valid send transaction via Hedera Consensus Service to node server
 			int runSendTransaction();
-			
+
 			inline Poco::AutoPtr<TransactionBody> getTransactionBody() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mTransactionBody; }
 
 			//! \brief get current body bytes from proto transaction and save it into db

@@ -1,3 +1,19 @@
+#########################################################################################################
+# cmake 
+#########################################################################################################
+FROM gcc:9 as cmake-gcc-9 
+
+ENV DOCKER_WORKDIR="/code"
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+USER root
+
+RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 \
+    && cd CMake \
+	&& ./bootstrap \
+	&& make -j$(nproc) \
+	&& make install
 
 #########################################################################################################
 # Build debug
@@ -5,14 +21,15 @@
 From gradido/login_dependencies:stage2 as debug
 
 ENV DOCKER_WORKDIR="/code"
-
+	
 USER root
 
 WORKDIR ${DOCKER_WORKDIR}
-COPY . .
+COPY . . 
 
-RUN chmod +x unix_parse_proto.sh
-RUN chmod +x compile_pot.sh
+RUN cd scripts \
+    && chmod +x ./prepare_build.sh \ 
+	&& ./prepare_build.sh
 
 RUN ./compile_pot.sh
 RUN ./unix_parse_proto.sh
@@ -30,13 +47,14 @@ ENV DOCKER_WORKDIR="/code"
 #	apt-get autoremove && \
 #    apt-get clean && \
 #	rm -rf /var/lib/apt/lists/*
-	
+
 VOLUME /var/log/grd_login
 VOLUME /code/src
 
 EXPOSE 1200
 EXPOSE 1201
 WORKDIR ${DOCKER_WORKDIR}
-RUN chmod +x ./Dockerfiles/build_and_run.sh 
+RUN chmod +x ./scripts/build_and_run.sh 
 
 CMD ./Dockerfiles/build_and_run.sh; ./build_vol/bin/Gradido_LoginServer
+

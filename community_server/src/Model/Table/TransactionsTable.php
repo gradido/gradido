@@ -1,12 +1,12 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
+
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\ORM\TableRegistry;
-use Cake\I18n\Number;
+use Cake\I18n\FrozenTime;
 /**
  * Transactions Model
  *
@@ -172,18 +172,19 @@ class TransactionsTable extends Table
             //var_dump($su_transaction);
             //die("step");
             // add decay transactions 
-            if($i > 0 && $decay == true) 
-            {
+            $prev = null;
+            if($i > 0 ) {
                 $prev = $stateUserTransactions[$i-1];
+            }
+            if($prev && $decay == true) 
+            {
+                
                 if($prev->balance > 0) {
                 //    var_dump($stateUserTransactions);
                     $current = $su_transaction;
                     //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
-                    $interval = $current->balance_date->diff($prev->balance_date);
-                    $state_balance->amount = $prev->balance;
-                    $state_balance->record_date = $prev->balance_date;
-                    $diff_amount = $state_balance->partDecay($current->balance_date);
-                    $balance = floatval($prev->balance - $diff_amount);
+                    $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
+                    $balance = floatval($prev->balance - $calculated_decay['balance']);
                     // skip small decays (smaller than 0,00 GDD)
                     
                     if(abs($balance) >= 100) {
@@ -192,7 +193,7 @@ class TransactionsTable extends Table
                         $final_transactions[] = [ 
                             'type' => 'decay',
                             'balance' => $balance,
-                            'decay_duration' => $interval->format('%a days, %H hours, %I minutes, %S seconds'),
+                            'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
                             'memo' => ''
                         ];
                     }
@@ -211,12 +212,16 @@ class TransactionsTable extends Table
             echo "<br>";*/
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
+                $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);
+                
                 $final_transactions[] = [
                   'name' => 'Gradido Akademie',
                   'type' => 'creation',
                   'transaction_id' => $transaction->id,
-                  'date' => $creation->target_date,
-                  'balance' => $creation->amount,
+                  'date' => $transaction->received,// $creation->target_date,
+                  'target_date' => $creation->target_date,
+                  'creation_amount' => $creation->amount,
+                  'balance' => $balance,
                   'memo' => $transaction->memo
                 ];
             } else if($su_transaction->transaction_type_id == 2) { // transfer or send coins
@@ -256,14 +261,21 @@ class TransactionsTable extends Table
             }
 
             if($i == $stateUserTransactionsCount-1 && $decay == true) {
-                $state_balance->amount = $su_transaction->balance;
-                $state_balance->record_date = $su_transaction->balance_date;
-                $balance = floatval($su_transaction->balance - $state_balance->decay);
+                $calculated_decay = $stateBalancesTable->calculateDecay(
+                        $su_transaction->balance, 
+                        $su_transaction->balance_date, new FrozenTime(), true);
+                $decay_start_date = $stateBalancesTable->getDecayStartDateCached();
+                $duration = $su_transaction->balance_date->timeAgoInWords();
+                if($decay_start_date > $su_transaction->balance_date) {
+                    $duration = $decay_start_date->timeAgoInWords();
+                }
+                $balance = floatval($su_transaction->balance - $calculated_decay['balance']);
                 if($balance > 100) {
                     $final_transactions[] = [
                         'type' => 'decay',
                         'balance' => $balance,
-                        'decay_duration' => $su_transaction->balance_date->timeAgoInWords(),
+                        'decay_duration' => $duration,
+                        'last_decay' => true,
                         'memo' => ''
                     ];
                 }
@@ -272,5 +284,170 @@ class TransactionsTable extends Table
         
         return $final_transactions;
       
+    }
+    
+    public function updateTxHash($transaction, $signatureMapString) 
+    {
+        $transaction_id = $transaction->id;
+        $previousTxHash = null;
+        if($transaction_id > 1) {
+            try {
+                $previousTransaction = $this
+                    ->find('all', ['contain' => false])
+                    ->select(['tx_hash'])
+                    ->where(['id' => $transaction_id - 1])
+                    ->first();
+          /*$previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
+              'contain' => false, 
+              'fields' => ['tx_hash']
+          ]);*/
+            } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+              return ['state' => 'error', 'msg' => 'previous transaction not found', 'details' => $ex->getMessage()];
+            }
+            if(!$previousTransaction) {
+              // shouldn't occur
+              return ['state' => 'error', 'msg' => 'previous transaction not found'];
+            }
+            $previousTxHash = $previousTransaction->tx_hash;
+      }
+      try {
+        //$transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
+        $transaction->received = $this
+                ->find('all', ['contain' => false])
+                ->where(['id' => $transaction->id])
+                ->select(['received'])->first()->received;
+      } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
+        return ['state' => 'error', 'msg' => 'current transaction not found in db', 'details' => $ex->getMessage()];
+      }
+      
+      // calculate tx hash
+      // previous tx hash + id + received + sigMap as string
+      // Sodium use for the generichash function BLAKE2b today (11.11.2019), mabye change in the future
+      $state = \Sodium\crypto_generichash_init();
+      //echo "prev hash: $previousTxHash\n";
+      if($previousTxHash != null) {
+        \Sodium\crypto_generichash_update($state, stream_get_contents($previousTxHash));
+      }
+      //echo "id: " . $transactionEntity->id . "\n";
+      \Sodium\crypto_generichash_update($state, strval($transaction->id));
+      //echo "received: " . $transactionEntity->received;
+      \Sodium\crypto_generichash_update($state, $transaction->received->i18nFormat('yyyy-MM-dd HH:mm:ss'));
+      \Sodium\crypto_generichash_update($state, $signatureMapString);
+      $transaction->tx_hash = \Sodium\crypto_generichash_final($state);
+      if ($this->save($transaction)) {
+        return true;
+      }
+      return ['state' => 'error', 'msg' => 'error by saving transaction', 'details' => $transaction->getErrors()];
+    }
+    
+    /*!
+     * @return: false if no decay start block found
+     * @return: DateTime Object with start date if one start block found
+     * @return: ['state':'error'] if more than one found
+     */
+    public function getDecayStartDate()
+    {
+        $transaction = $this->find()->where(['transaction_type_id' => 9])->select(['received'])->order(['received' => 'ASC']);
+        if($transaction->count() == 0) {
+            return null;
+        }
+        return $transaction->first()->received;
+    }
+    
+    public function fillStateUserTransactions()
+    {        
+        $missing_transaction_ids = [];
+        $transaction_ids = $this
+                ->find('all')
+                ->select(['id', 'transaction_type_id'])
+                ->order(['id'])
+                ->where(['transaction_type_id <' => 6])
+                ->all()
+                ;
+        $state_user_transaction_ids = $this->StateUserTransactions
+                ->find('all')
+                ->select(['transaction_id'])
+                ->group(['transaction_id'])
+                ->order(['transaction_id'])
+                ->toArray()
+                ;
+        $i2 = 0;
+        $count = count($state_user_transaction_ids);
+        foreach($transaction_ids as $tr_id) {
+          //echo "$i1: ";
+          if($i2 >= $count) {
+            $missing_transaction_ids[] = $tr_id;
+            //echo "adding to missing: $tr_id, continue <br>";
+            continue;
+          }
+          $stu_id = $state_user_transaction_ids[$i2];
+          if($tr_id->id == $stu_id->transaction_id) {
+            $i2++;
+            //echo "after i2++: $i2<br>";
+          } else if($tr_id->id < $stu_id->transaction_id) {
+            $missing_transaction_ids[] = $tr_id;
+            //echo "adding to missing: $tr_id<br>";
+          }
+        }
+      
+      
+        $tablesForType = [
+            1 => $this->TransactionCreations,
+            2 => $this->TransactionSendCoins,
+            3 => $this->TransactionGroupCreates,
+            4 => $this->TransactionGroupAddaddress,
+            5 => $this->TransactionGroupAddaddress
+        ];
+        $idsForType = [];
+        foreach($missing_transaction_ids as $i => $transaction) {
+          if(!isset($idsForType[$transaction->transaction_type_id])) {
+            $idsForType[$transaction->transaction_type_id] = [];
+          }
+          $idsForType[$transaction->transaction_type_id][] = $transaction->id;
+        }
+        $entities = [];
+        $state_user_ids = [];
+        foreach($idsForType as $type_id => $transaction_ids) {
+          $specific_transactions = $tablesForType[$type_id]->find('all')->where(['transaction_id IN' => $transaction_ids])->toArray();
+          $keys = $tablesForType[$type_id]->getSchema()->columns();
+          //var_dump($keys);
+          foreach($specific_transactions as $specific) {
+
+            foreach($keys as $key) {
+              if(preg_match('/_user_id/', $key)) {
+                $entity = $this->StateUserTransactions->newEntity();
+                $entity->transaction_id = $specific['transaction_id'];
+                $entity->transaction_type_id = $type_id;
+                $entity->state_user_id = $specific[$key];
+                if(!in_array($entity->state_user_id, $state_user_ids)) {
+                  array_push($state_user_ids, $entity->state_user_id);
+                }
+                $entities[] = $entity;
+              }
+            } 
+          }
+        }
+        if(count($state_user_ids) < 1) {
+            return ['success' => true];
+        }
+        //var_dump($entities);
+        $stateUsersTable = TableRegistry::getTableLocator()->get('StateUsers');
+        $existingStateUsers = $stateUsersTable->find('all')->select(['id'])->where(['id IN' => $state_user_ids])->order(['id'])->all();
+        $existing_state_user_ids = [];
+        $finalEntities = [];
+        foreach($existingStateUsers as $stateUser) {
+          $existing_state_user_ids[] = $stateUser->id;
+        }
+        foreach($entities as $entity) {
+          if(in_array($entity->state_user_id, $existing_state_user_ids)) {
+            array_push($finalEntities, $entity);
+          }
+        }
+        
+        $save_results = $this->StateUserTransactions->saveManyWithErrors($finalEntities);
+        if(!$save_results['success']) {
+            $save_results['msg'] = 'error by saving at least one state user transaction';
+        }
+        return $save_results;
     }
 }

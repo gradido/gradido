@@ -1,7 +1,7 @@
 #ifndef __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_TRANSACTION_RESPONSE_H
 #define __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_TRANSACTION_RESPONSE_H
 
-#include "../../proto/hedera/TransactionResponse.pb.h"
+#include "proto/hedera/TransactionResponse.pb.h"
 #include "Poco/Types.h"
 
 namespace model {

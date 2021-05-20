@@ -2,7 +2,7 @@
 #define __GRADIDO_LOGIN_SERVER_MODEL_HEDERA_CONSENSUS_GET_TOPIC_INFO_RESPONSE_H
 
 #include "../proto/hedera/ConsensusTopicInfo.pb.h"
-#include "../SingletonManager/MemoryManager.h"
+#include "../../SingletonManager/MemoryManager.h"
 #include "../../lib/DataTypeConverter.h"
 #include "Poco/DateTime.h"
 

@@ -3,7 +3,7 @@
   "welcome":"Willkommen!",
   "community": "Gemeinschaft",
   "logout":"Abmelden",
-  "login":"Login",
+  "login":"Anmeldung",
   "signup": "Registrieren",
   "reset": "Passwort zurücksetzen",
   "imprint":"Impressum",
@@ -13,13 +13,12 @@
   "back":"Zurück",
   "send":"Senden",
   "transactions":"Transaktionen",
-  "language":"Language",
+  "language":"Sprache",
   "languages":{
     "de": "Deutsch",
     "en": "English"
   },
   "form": {
-    "attention": "<strong>Achtung!</strong> Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Abbrechen",
     "reset": "Zurücksetzen",
     "close":"schließen",
@@ -41,10 +40,16 @@
     "time":"Zeit",
     "send_now":"Jetzt versenden",
     "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
+    "max_gdd_info":"Maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"Danke,",
-    "send_success":"deine Transaktion wurde erfolgreich ausgeführt"
+    "thx":"Danke",
+    "sorry":"Entschuldigung",
+    "send_transaction_success":"Deine Transaktion wurde erfolgreich ausgeführt",
+    "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
+    "validation": {
+      "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen"
+    }
   },
   "error": {
     "error":"Fehler"
@@ -79,7 +84,9 @@
     },
     "thx": {
       "title": "Danke!",
-      "subtitle": "Wir haben dir eine eMail gesendet."
+      "email": "Wir haben dir eine eMail gesendet.",
+      "reset": "Dein Passwort wurde geändert.",
+      "register": "Du bist jetzt regisriert."      
     },
     "overview":{
       "account_overview":"Kontoübersicht",
@@ -117,7 +124,7 @@
     }
   },
   "reset-password": {
-    "title": "Passwort Zurücksetzen",
-    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünfitg in der GRADIDO App anmelden kannst."
+    "title": "Passwort zurücksetzen",
+    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
   }
 }

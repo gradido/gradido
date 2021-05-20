@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "../controller/HederaId.h"
+#include "../../controller/HederaId.h"
 
 
 namespace controller {

@@ -90,12 +90,6 @@ export default {
   name: 'reset',
   data() {
     return {
-      rules: [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ],
       password: '',
       checkPassword: '',
       passwordVisible: false,
@@ -113,7 +107,13 @@ export default {
       const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
       if (result.success) {
         this.password = ''
-        this.$router.push('/thx')
+        /*
+         this.$store.dispatch('login', {
+           sessionId: result.result.data.session_id,
+           email: result.result.data.user.email,
+         })
+         */
+        this.$router.push('/thx/reset')
       } else {
         alert(result.result.message)
       }
@@ -136,6 +136,14 @@ export default {
     },
     passwordsFilled() {
       return this.password !== '' && this.checkPassword !== ''
+    },
+    rules() {
+      return [
+        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+      ]
     },
     passwordValidation() {
       const errors = []

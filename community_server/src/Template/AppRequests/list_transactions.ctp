@@ -11,7 +11,14 @@ $body['decay'] = $this->element('centToFloat', ['cent' => $body['decay'], 'preci
 $body['gdtSum'] = $this->element('centToFloat', ['cent' => $body['gdtSum'], 'precision' => 2]);
 
 foreach($body['transactions'] as $i => $transaction) {
-    $body['transactions'][$i]['balance'] = $this->element('centToFloat', ['cent' => $transaction['balance'], 'precision' => 4]);
+    $useCeil = false;
+    if(isset($transaction['last_decay']) && $transaction['last_decay']) {
+        $useCeil = true;
+    }
+    $body['transactions'][$i]['balance'] = $this->element('centToFloat', ['cent' => $transaction['balance'], 'precision' => 4, 'useCeil' => $useCeil]);
+    if(isset($transaction['creation_amount'])) {
+        $body['transactions'][$i]['creation_amount'] = $this->element('centToFloat', ['cent' => $transaction['creation_amount'], 'precision' => 4]);
+    }
 }
 
 ?><?= json_encode($body) ?>

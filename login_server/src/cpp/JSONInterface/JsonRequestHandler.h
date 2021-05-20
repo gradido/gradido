@@ -26,6 +26,7 @@ public:
 protected:
 	Poco::JSON::Object* mResultJson;
 	Poco::Net::IPAddress mClientIp;
+	std::string			mServerHost;
 	Session*			 mSession;
 
 	Poco::JSON::Object* checkAndLoadSession(Poco::Dynamic::Var params, bool checkIp = false);

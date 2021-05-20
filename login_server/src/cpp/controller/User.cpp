@@ -69,8 +69,8 @@ namespace controller {
 
 			using namespace Poco::Data::Keywords;
 			Poco::Data::Statement select(session);
-			// 		typedef Poco::Tuple<std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, pubkey, created, email_checked, disabled FROM " << db->getTableName();
+			// 		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
+			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << db->getTableName();
 			select << " where email_checked = 0 ";
 			select, into(resultFromDB);
 			if (searchString != "") {

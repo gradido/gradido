@@ -7,3 +7,4 @@ model/email/Email.cpp
 model/email/EmailCustomReply.cpp
 model/email/EmailNotificationCreation.cpp
 model/email/EmailNotificationTransfer.cpp
+SingletonManager/SessionManager.cpp
