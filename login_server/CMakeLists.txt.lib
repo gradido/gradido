@@ -214,16 +214,31 @@ enable_testing()
 if(UNIX)
 include(cmake/CodeCoverage.cmake)
 append_coverage_compiler_flags()
-setup_target_for_coverage_gcovr_html(
-    NAME coverage
-    EXECUTABLE Gradido_LoginServer_Test
-    DEPENDENCIES lib/libmariadb.so.3
+set(EXCLUDE_FOR_HTML_COV 
+	"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
 )
+setup_target_for_coverage_gcovr_html(
+    NAME coverage_html
+    EXECUTABLE Gradido_LoginServer_Test
+	EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+    #DEPENDENCIES lib/libmariadb.so.3
+)
+#set(EXCLUDE_FOR_COV 
+	#${EXCLUDE_FOR_HTML_COV}
+	#"/usr/include/*"
+#)
+#setup_target_for_coverage_lcov(
+ #   NAME coverage
+  #  EXECUTABLE Gradido_LoginServer_Test
+	#EXCLUDE "${EXCLUDE_FOR_COV}"
+    #DEPENDENCIES lib/libmariadb.so.3
+#)
 endif()
-
 #_TEST_BUILD
-find_package(GTest CONFIG REQUIRED)
-include(GoogleTest)
+
+add_subdirectory("googletest")
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
@@ -236,7 +251,7 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium GTest::gtest)
+	target_link_libraries(Gradido_LoginServer_Test gRPC::grpc++ ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread gtest)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

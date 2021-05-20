@@ -68,6 +68,7 @@ COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Templates /usr/local/sh
 
 # copy from grpc
 COPY --from=alpine-gxx-grpc /usr/local /usr/local
+COPY --from=alpine-gxx-grpc /grpc/third_party/googletest /usr/local/googletest
 
 
 # COPY from poco 

@@ -1,17 +1,22 @@
+
 #########################################################################################################
 # Build debug 
 #########################################################################################################
-FROM gradido/login_dependencies:alpine-debug-1 as debug
+FROM gradido/login_dependencies:alpine-debug-2 as debug
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 COPY ./src ./src
+COPY ./cmake/CodeCoverage.cmake ./cmake/CodeCoverage.cmake
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
 COPY ./scripts ./scripts
+RUN cp -r /usr/local/googletest ./
+
+RUN apk add --update --no-cache gcovr
 
 RUN mkdir build && \
 	cd build && \
