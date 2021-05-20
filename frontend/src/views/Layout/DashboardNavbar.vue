@@ -15,7 +15,7 @@
           <span class="pb-2 text-lg font-weight-bold">
             {{ $store.state.email }}
           </span>
-          <b-media-body class="ml-2 d-none d-lg-block">
+          <b-media-body class="ml-2 d-none d-lg-block d-md-block">
             <span class="avatar">
               <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
             </span>

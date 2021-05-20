@@ -1,5 +1,7 @@
 import axios from 'axios'
 import CONFIG from '../config'
+// eslint-disable-next-line no-unused-vars
+import regeneratorRuntime from 'regenerator-runtime'
 
 // control email-text sended with email verification code
 const EMAIL_TYPE = {
@@ -82,6 +84,16 @@ const loginAPI = {
       email,
       update: {
         'User.password': password,
+      },
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  updateLanguage: async (sessionId, email, language) => {
+    const payload = {
+      session_id: sessionId,
+      email,
+      update: {
+        'User.language': language,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)

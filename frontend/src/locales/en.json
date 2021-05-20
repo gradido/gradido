@@ -19,7 +19,6 @@
     "en": "English"
   },
   "form": {
-    "attention": "Attention! Please check all your entries very carefully. You are solely responsible for your decisions. Sent Gradidos cannot be retrieved.",
     "cancel":"Cancel",
     "reset": "Reset",
     "close":"Close",
@@ -85,9 +84,7 @@
     },
     "thx": {
       "title": "Thank you!",
-      "email": "We have sent you an email.",
-      "reset": "Your password has been changed",
-      "register": "You are registred now"      
+      "subtitle": "We have sent you an email."
     },
     "overview":{
       "account_overview":"Account overview",
