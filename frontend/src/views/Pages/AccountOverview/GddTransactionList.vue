@@ -6,24 +6,26 @@
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex">
+        <div class="d-flex" v-b-toggle="'a' + item.date + ''" >
           <div style="width: 10%">
             <b-icon :icon="getIcon(item)" :class="getClass(item)" />
           </div>
-          <div class="font1_2em pl-2" style="width: 20%">
+          <div class="font1_2em pr-2 text-right" style="width: 20%">
+            <span>{{getOperator(item)}}</span>
             {{ $n(item.balance) }}
           </div>
           <div class="font1_2em text-left pl-2" style="width: 65%">
-            {{ item.name }} -
+            {{ item.name }} <small>{{ item.name ? '' : $t('decay') }}</small>
             <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
           </div>
-          <div class="font1_2em text-right" style="width: 5%">
-            <b-button v-b-toggle="'a' + item.transaction_id" class="btn-sm">
+           <div class="font1_2em text-right" style="width: 5%">
+            <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
+        
         </div>
-        <b-collapse :id="'a' + item.transaction_id" class="mt-2">
+        <b-collapse :id="'a' + item.date + ''" class="mt-2">
           <b-card>
             <b-list-group>
               <b-list-group-item v-if="item.type === 'send'">
@@ -56,10 +58,10 @@
                 {{ item.memo }}
               </b-list-group-item>
             </b-list-group>
-            <b-button v-b-toggle="'collapse-1-inner' + item.transaction_id" variant="secondary">
+            <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
               {{ $t('transaction.more') }}
             </b-button>
-            <b-collapse :id="'collapse-1-inner' + item.transaction_id" class="mt-2">
+            <b-collapse :id="'collapse-1-inner' + item.date" class="mt-2">
               <b-card>{{ item }}</b-card>
             </b-collapse>
           </b-card>
@@ -74,10 +76,10 @@
 
 <script>
 const iconsByType = {
-  send: { icon: 'arrow-left-circle', classes: 'text-danger' },
-  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent' },
-  creation: { icon: 'gift', classes: 'gradido-global-color-accent' },
-  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray' },
+  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-'},
+  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
+  creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
+  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
 }
 
 export default {
@@ -114,6 +116,12 @@ export default {
     getClass(item) {
       const icon = iconsByType[item.type]
       if (icon) return icon.classes + ' m-mb-1 font2em'
+      const thing = new Error('no item to given type')
+      thing()
+    }, 
+    getOperator(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.operator
       const thing = new Error('no item to given type')
       thing()
     },
