@@ -7,10 +7,10 @@
         style="background-color: #ebebeba3 !important"
       >
         <div class="d-flex" v-b-toggle="'a' + item.date + ''">
-          <div style="width: 10%">
+          <div style="width: 8%">
             <b-icon :icon="getIcon(item)" :class="getClass(item)" />
           </div>
-          <div class="font1_2em pr-2 text-right" style="width: 20%">
+          <div class="font1_2em pr-2 text-right" style="width: 22%">
             <span>{{ getOperator(item) }}</span>
             {{ $n(item.balance) }}
           </div>
@@ -19,7 +19,7 @@
             <small>{{ item.name ? '' : $t('decay') }}</small>
             <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
           </div>
-          <div class="font1_2em text-right" style="width: 5%">
+          <div class="text-right" style="width: 5%">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
@@ -67,7 +67,7 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
-      <div v-if="transactions.length !== 0" class="mt-4 text-center">
+      <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </b-list-group>
