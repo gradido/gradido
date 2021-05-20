@@ -1,4 +1,32 @@
 #########################################################################################################
+# Build debug 
+#########################################################################################################
+FROM gradido/login_dependencies:alpine-debug-1 as debug
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
+
+COPY ./CMakeLists.txt.lib ./CMakeLists.txt
+COPY ./src ./src
+COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
+COPY ./dependencies/spirit-po ./dependencies/spirit-po
+COPY ./dependencies/tinf ./dependencies/tinf
+COPY ./scripts ./scripts
+
+RUN mkdir build && \
+	cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+	make -j$(nproc) Gradido_LoginServer Gradido_LoginServer_Test
+
+RUN cd scripts &&  \
+	chmod +x compile_pot.sh && \
+	./compile_pot.sh
+
+RUN chmod +x build/bin/Gradido_LoginServer
+ENTRYPOINT ["build/bin/Gradido_LoginServer"]
+
+
+#########################################################################################################
 # Build release 
 #########################################################################################################
 FROM gradido/login_dependencies:alpine-release-1 as release

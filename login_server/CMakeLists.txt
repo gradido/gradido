@@ -316,6 +316,8 @@ install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
 
 endif(UNIX)
 
+#  ----------------------    Test -----------------------------------------
+
 enable_testing()
 
 if(UNIX)
@@ -324,13 +326,14 @@ append_coverage_compiler_flags()
 setup_target_for_coverage_gcovr_html(
     NAME coverage
     EXECUTABLE Gradido_LoginServer_Test
-    DEPENDENCIES lib/libmariadb.so.3
+    #DEPENDENCIES lib/libmariadb.so.3
 )
 endif()
-#  ----------------------    Test -----------------------------------------
-#project(Gradido_LoginServer_Test C CXX)
+
+project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
-#find_package(gtest)
+#find_package(GTest CONFIG REQUIRED)
+add_subdirectory("dependencies/grpc/third_party/googletest")
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
@@ -343,7 +346,7 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium)
+	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

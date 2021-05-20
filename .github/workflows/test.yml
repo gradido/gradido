@@ -50,7 +50,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target login_server -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
+          docker build --target debug -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
           docker save "gradido/login_server:test" > /tmp/login_server.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
