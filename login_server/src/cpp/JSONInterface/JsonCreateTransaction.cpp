@@ -108,6 +108,9 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 	else {
 		result = stateError("parameter format unknown");
 	}
+	if (mMemo.size() < 5 || mMemo.size() > 150) {
+		result = stateError("memo is not set or not in expected range [5;150]");
+	}
 	if (result) {
 		mm->releaseMemory(target_pubkey);
 		return result;
