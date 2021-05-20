@@ -22,6 +22,8 @@ include_directories(
 	"/usr/local/include/mariadb"
 	"build"
 	"build/proto"
+	"build/http_pages"
+	"src/cpp"
 )
 
 ############################## config and add grpc ###################################
@@ -61,7 +63,9 @@ FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
 		)
 		# Optional, but that can show the user if something have gone wrong with the proto generation 
 		IF(${rv})
-				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ELSE()
+			MESSAGE("Parsed: src/proto/gradido/${proto_parsed}.proto")
 		ENDIF()
    ENDIF()
 
@@ -85,10 +89,49 @@ FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
 		)
 		# Optional, but that can show the user if something have gone wrong with the proto generation 
 		IF(${rv})
-				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ELSE()
+			MESSAGE("Parsed: src/proto/hedera/hedera-protobuf/src/main/proto/${proto_parsed}.proto")
 		ENDIF()
    ENDIF()
 ENDFOREACH(proto)
+
+############################## parse cpsp Files ####################################
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/cpsp GRADIDO_CPSP_PAGE_SRC_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/http_pages GRADIDO_HTTP_PAGES_PATH)
+file(MAKE_DIRECTORY ${GRADIDO_HTTP_PAGES_PATH})
+
+FILE(GLOB GRADIDO_HTTP_PAGES_SRC "${GRADIDO_CPSP_PAGE_SRC_PATH}/*.cpsp")
+
+find_program(POCO_PAGE_COMPILER cpspc)
+
+MESSAGE("Poco Page Compiler: ${POCO_PAGE_COMPILER}")
+
+FOREACH(cpsp_file ${GRADIDO_HTTP_PAGES_SRC})
+   FILE(TO_NATIVE_PATH ${cpsp_file} cpsp_file_native)
+   get_filename_component(cpsp_file_parsed ${cpsp_file} NAME_WLE)
+   
+   FILE(TO_NATIVE_PATH ${GRADIDO_HTTP_PAGES_PATH}/${cpsp_file_parsed}Page.cpp cpsp_file_parsed_native)
+   
+   IF(${cpsp_file_native} IS_NEWER_THAN ${cpsp_file_parsed_native})
+		EXECUTE_PROCESS(
+			COMMAND 
+			${POCO_PAGE_COMPILER} 
+			--output-dir=${GRADIDO_HTTP_PAGES_PATH}
+			--header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
+			--noline
+			${cpsp_file_native}
+			RESULT_VARIABLE rv
+		)
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+			MESSAGE("Generation of HTTP Page return ${rv} for cpsp ${cpsp_file_native}")
+		ELSE()
+			MESSAGE("Parsed: src/cpsp/${cpsp_file_parsed}.cpsp")
+		ENDIF()
+   ENDIF()
+
+ENDFOREACH(cpsp_file)
 
 ############################## include src files  ###################################
 #set(MYSQL_INCLUDE_DIR "dependencies/mariadb-connector-c/include")
