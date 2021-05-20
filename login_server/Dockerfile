@@ -12,14 +12,15 @@ COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
 COPY ./scripts ./scripts
-RUN cd scripts &&  \
-	chmod +x compile_pot.sh && \
-	./compile_pot.sh
 
 RUN mkdir build && \
 	cd build && \
 	cmake -DCMAKE_BUILD_TYPE=Release .. && \
 	make -j$(nproc) Gradido_LoginServer
+
+RUN cd scripts &&  \
+	chmod +x compile_pot.sh && \
+	./compile_pot.sh
 
 	
 #########################################################################################################
