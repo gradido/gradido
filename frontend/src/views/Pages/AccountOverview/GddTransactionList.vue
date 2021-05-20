@@ -8,36 +8,20 @@
       >
         <div class="d-flex">
           <div style="width: 10%">
-            <b-icon
-              v-if="item.type === 'send'"
-              icon="arrow-left-circle"
-              class="m-mb-1 text-danger font2em"
-            ></b-icon>
-            <b-icon
-              v-else-if="item.type === 'receive'"
-              icon="arrow-right-circle"
-              class="m-md-1 text-success font2em"
-            ></b-icon>
-            <b-icon
-              v-else-if="item.type === 'creation'"
-              icon="gift"
-              class="m-md-1 font2em"
-              style="color: green"
-            ></b-icon>
-            <b-icon v-else icon="droplet-half" class="m-md-1 font2em" style="color: gray"></b-icon>
+            <b-icon :icon="getIcon(item)" :class="getClass(item)" />
           </div>
-          <div class="font1_2em pl-2" style="width: 30%">
+          <div class="font1_2em pl-2" style="width: 20%">
             {{ $n(item.balance) }}
-            <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
-            <span v-else>-</span>
           </div>
-          <div class="font1_2em" style="width: 50%">
+          <div class="font1_2em text-left pl-2" style="width: 65%">
             {{ item.name }} -
             <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
           </div>
-          <b-button v-b-toggle="'a' + item.transaction_id" class="btn-sm">
-            <b>i</b>
-          </b-button>
+          <div class="font1_2em text-right" style="width: 5%">
+            <b-button v-b-toggle="'a' + item.transaction_id" class="btn-sm">
+              <b>i</b>
+            </b-button>
+          </div>
         </div>
         <b-collapse :id="'a' + item.transaction_id" class="mt-2">
           <b-card>
@@ -81,7 +65,7 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
-      <div v-if="transactions.length === 0" class="mt-lg-4 text-center">
+      <div v-if="transactions.length !== 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </b-list-group>
@@ -89,6 +73,13 @@
 </template>
 
 <script>
+const iconsByType = {
+  send: { icon: 'arrow-left-circle', classes: 'text-danger' },
+  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent' },
+  creation: { icon: 'gift', classes: 'gradido-global-color-accent' },
+  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray' },
+}
+
 export default {
   name: 'gdd-transaction-list',
   props: {
@@ -114,16 +105,22 @@ export default {
     updateTransactions() {
       this.$emit('update-transactions')
     },
+    getIcon(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.icon
+      const thing = new Error('no item to given type')
+      thing()
+    },
+    getClass(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.classes + ' m-mb-1 font2em'
+      const thing = new Error('no item to given type')
+      thing()
+    },
   },
 }
 </script>
 <style>
-.font1_2em {
-  font-size: 1.2em;
-}
-.font2em {
-  font-size: 1.5em;
-}
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;

@@ -16,7 +16,7 @@ const routes = [
   },
   {
     path: '/profile',
-    component: () => import('../views/Pages/UserProfileCard.vue'),
+    component: () => import('../views/Pages/UserProfile.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -53,8 +53,6 @@ const routes = [
       const validFrom = ['/password', '/reset', '/register']
       if (!validFrom.includes(from.path)) {
         next({ path: '/login' })
-      } else {
-        next()
       }
     },
   },
