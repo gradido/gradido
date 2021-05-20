@@ -94,11 +94,11 @@ export default {
       transactionCount: 0,
       pending: true,
       UserProfileTestData: {
+        username: 'Mustermax',
         name: 'Max',
         lastname: 'Mustermann',
         desc:
           'Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. ',
-        img: '12345.png',
       },
     }
   },

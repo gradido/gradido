@@ -19,17 +19,25 @@
     "en": "English"
   },
   "form": {
-    "cancel":"Abbrechen",
+    "cancel": "Abbrechen",
     "reset": "Zurücksetzen",
-    "close":"schließen",
+    "close": "schließen",
+    "edit": "bearbeiten",
+    "save": "speichern",
     "receiver":"Empfänger",
     "sender":"Absender",
+    "username":"Username",
     "firstname":"Vorname",
     "lastname":"Nachname",
+    "description": "Beschreibung",
     "email":"E-Mail",
     "email_repeat":"eMail wiederholen",
     "password":"Passwort",
     "password_repeat":"Passwort wiederholen",
+    "password_old":"altes Passwort",
+    "password_new":"neues Passwort",
+    "password_new_repeat":"neues Passwort wiederholen",
+    "change": "ändern",
     "amount":"Betrag",
     "memo":"Nachricht für den Empfänger",
     "message":"Nachricht",
@@ -49,7 +57,8 @@
     "validation": {
       "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
       "is-not": "Du kannst Dir selbst keine Gradidos überweisen"
-    }
+    },
+    "change_username_info": "Das ändern des Usernamens bedarf mehrerer Schritte."
   },
   "error": {
     "error":"Fehler"
@@ -93,7 +102,9 @@
       "add_work":"neuer Gemeinschaftsbeitrag"
     },
     "profil": {
-      "transactions":"transactions",
+      "edit": {
+
+      },
       "activity": {
         "chart":"Gemeinschaftsstunden Chart",
         "new":"Neue Gemeinschaftsstunden eintragen",
