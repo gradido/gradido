@@ -323,9 +323,25 @@ enable_testing()
 if(UNIX)
 include(cmake/CodeCoverage.cmake)
 append_coverage_compiler_flags()
+set(EXCLUDE_FOR_HTML_COV 
+	"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
+)
 setup_target_for_coverage_gcovr_html(
+    NAME coverage_html
+    EXECUTABLE Gradido_LoginServer_Test
+	EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+    #DEPENDENCIES lib/libmariadb.so.3
+)
+set(EXCLUDE_FOR_COV 
+	${EXCLUDE_FOR_HTML_COV}
+	"/usr/include/*"
+)
+setup_target_for_coverage_lcov(
     NAME coverage
     EXECUTABLE Gradido_LoginServer_Test
+	EXCLUDE "${EXCLUDE_FOR_COV}"
     #DEPENDENCIES lib/libmariadb.so.3
 )
 endif()
