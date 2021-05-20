@@ -61,7 +61,7 @@ namespace ServerConfig {
 		HEDERA_UNKNOWN
 	};
 
-	
+
 
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
@@ -101,7 +101,8 @@ namespace ServerConfig {
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
-	
+
+	const char* mnemonicTypeToString(Mnemonic_Types type);
 
 	void writeToFile(std::istream& datas, std::string fileName);
 

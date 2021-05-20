@@ -215,6 +215,37 @@ jobs:
           min_coverage: 19
           token: ${{ github.token }}
   
+  ##############################################################################
+  # JOB: UNIT TEST LOGIN-SERVER  ###############################################
+  ##############################################################################
+  unit_test_login_server:
+    name: Unit tests - Login-Server
+    runs-on: ubuntu-latest
+    needs: [build_test_login_server]
+    steps: 
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGE ##################################################
+      ##########################################################################
+      - name: Download Docker Image (Login-Server)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-loginserver-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/loginserver.tar
+      ##########################################################################
+      # UNIT TESTS FRONTEND ####################################################
+      ##########################################################################
+      - name: Login-Server | Unit tests
+        run: |
+          docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          cp -r ~/coverage ./coverage
+
   #test:
   #  runs-on: ubuntu-latest
   #  steps:

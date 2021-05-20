@@ -23,6 +23,7 @@ ENV DOCKER_WORKDIR="/code"
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+COPY ./cmake ./cmake
 
 RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
     cd CMake && \
