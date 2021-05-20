@@ -1,6 +1,10 @@
 <template>
   <div class="mt-sm-4 mt-lg-5">
-    <user-card :balance="balance"></user-card>
+    <user-card
+      :balance="balance"
+      :transactionCount="transactionCount"
+      :UserProfileTestData="UserProfileTestData"
+    ></user-card>
   </div>
 </template>
 <script>
@@ -12,6 +16,8 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
+    transactionCount: { type: Number, default: 0 },
+    UserProfileTestData: { type: Object },
   },
 }
 </script>
