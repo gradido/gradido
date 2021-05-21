@@ -37,14 +37,21 @@ FROM debug as test
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
+RUN apk add --no-cache bash perl
 
-RUN mkdir build && \
-	cd build && \
+RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
+    cd lcov && \
+    make install
+
+RUN cd build && \
 	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(nproc) Gradido_LoginServer_Test
+	make -j$(nproc) Gradido_LoginServer_Test 
+	
 
-RUN chmod +x build/bin/Gradido_LoginServer_Test
-ENTRYPOINT [ "make -C build -j$(nproc) coverage_html" ]
+#RUN chmod +x build/bin/Gradido_LoginServer_Test
+#CMD [ "./build/bin/Gradido_LoginServer" ]
+#ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
+ENTRYPOINT cd build && ls -la && make coverage;
 
 #########################################################################################################
 # Build release 

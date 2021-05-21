@@ -233,7 +233,7 @@ setup_target_for_coverage_lcov(
     NAME coverage
     EXECUTABLE Gradido_LoginServer_Test
 	EXCLUDE "${EXCLUDE_FOR_COV}"
-    DEPENDENCIES lib/libmariadb.so.3
+    #DEPENDENCIES lib/libmariadb.so.3
 )
 endif()
 #_TEST_BUILD
