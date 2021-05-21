@@ -294,7 +294,7 @@ jobs:
           - 1200:1200
           - 1201:1201
         volumes:
-          - ./configs/login_server:/etc/grd_login
+          - ~/configs/login_server:/etc/grd_login
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
