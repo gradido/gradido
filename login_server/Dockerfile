@@ -1,8 +1,8 @@
 
 #########################################################################################################
-# Build debug 
+# Prepare debug 
 #########################################################################################################
-FROM gradido/login_dependencies:alpine-debug-2 as debug
+FROM gradido/login_dependencies:alpine-debug-2 as prepare_debug
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
@@ -16,6 +16,36 @@ COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
 COPY ./scripts ./scripts
 
+#########################################################################################################
+# Build test 
+#########################################################################################################
+FROM prepare_debug as test 
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
+
+RUN apk add --no-cache bash perl
+
+#RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
+ #   cd lcov && \
+  #  make install
+
+RUN mkdir build && cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+	make -j$(nproc) Gradido_LoginServer_Test 
+	
+#RUN chmod +x build/bin/Gradido_LoginServer_Test
+#CMD [ "./build/bin/Gradido_LoginServer" ]
+#ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
+ENTRYPOINT cd build && make coverage;
+
+#########################################################################################################
+# Build debug 
+#########################################################################################################
+FROM prepare_debug as debug
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
 
 RUN mkdir build && \
 	cd build && \
@@ -28,30 +58,6 @@ RUN cd scripts &&  \
 
 RUN chmod +x build/bin/Gradido_LoginServer
 ENTRYPOINT ["build/bin/Gradido_LoginServer"]
-
-#########################################################################################################
-# Build test 
-#########################################################################################################
-FROM debug as test 
-
-ENV DOCKER_WORKDIR="/code"
-WORKDIR ${DOCKER_WORKDIR}
-
-RUN apk add --no-cache bash perl
-
-RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
-    cd lcov && \
-    make install
-
-RUN cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(nproc) Gradido_LoginServer_Test 
-	
-
-#RUN chmod +x build/bin/Gradido_LoginServer_Test
-#CMD [ "./build/bin/Gradido_LoginServer" ]
-#ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
-ENTRYPOINT cd build && ls -la && make coverage;
 
 #########################################################################################################
 # Build release 

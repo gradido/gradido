@@ -249,12 +249,23 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/loginserver.tar
       ##########################################################################
-      # UNIT TESTS FRONTEND ####################################################
+      # UNIT TESTS BACKEND LOGIN-SERVER  #######################################
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
           docker run -v ~/coverage:/code/build/coverage -v ./configs/login_server/Gradido_LoginServer_Test.properties:/code/build/Gradido_LoginServer_Test.properties gradido/login_server:test --entrypoint
           cp -r ~/coverage ./coverage
+      ##########################################################################
+      # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
+      ##########################################################################
+      - name: backend | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: lcov
+          result_path: ./coverage/lcov.info
+          min_coverage: 8
+          token: ${{ github.token }}
 
   #test:
   #  runs-on: ubuntu-latest
