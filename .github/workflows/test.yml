@@ -224,15 +224,10 @@ jobs:
     needs: [build_test_login_server]
     services:
       mariadb:
-        build:
-          context: .
-          dockerfile: ./mariadb/Dockerfile
-          target: mariadb_server_test
-        environment:
-          - MARIADB_ALLOW_EMPTY_PASSWORD=1
-          - MARIADB_USER=root
-        networks: 
-          - internal-net
+        image: gradido/mariadb:test
+        env:
+           MARIADB_ALLOW_EMPTY_PASSWORD: 1
+           MARIADB_USER: root
         ports: 
           - 3306:3306
         volumes: 
