@@ -267,6 +267,59 @@ jobs:
           min_coverage: 8
           token: ${{ github.token }}
 
+  ##############################################################################
+  # JOB: UNIT TEST COMMUNITY-SERVER  ###########################################
+  ##############################################################################
+  unit_test_community_server:
+    name: Unit tests - Community Server
+    runs-on: ubuntu-latest
+    needs: [build_test_community_server]
+    services: 
+      nginx:
+        image: gradido/nginx:latest
+        ports:
+          - 80:80
+      mariadb:
+        image: gradido/mariadb:test
+        env:
+           MARIADB_ALLOW_EMPTY_PASSWORD: 1
+           MARIADB_USER: root
+        ports: 
+          - 3306:3306
+        volumes: 
+          - db_vol:/var/lib/mysql
+      login-server:
+        image: gradido/login-server:latest
+        ports:
+          - 1200:1200
+          - 1201:1201
+        volumes:
+          - ./configs/login_server:/etc/grd_login
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGE ##################################################
+      ##########################################################################
+      - name: Download Docker Image (Community-Server)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-community-server-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/community_server.tar
+      ##########################################################################
+      # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
+      ##########################################################################
+      - name: Login-Server | Unit tests
+        run: |
+          docker run -v ~/coverage:/code/build/coverage -v ./configs/login_server/Gradido_LoginServer_Test.properties:/code/build/Gradido_LoginServer_Test.properties gradido/login_server:test --entrypoint
+          cp -r ~/coverage ./coverage
+
+
   #test:
   #  runs-on: ubuntu-latest
   #  steps:
