@@ -103,21 +103,21 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
       })
 
-       it('has tree items in the navbar', () => {
+      it('has tree items in the navbar', () => {
         expect(navbar.findAll('ul > a')).toHaveLength(3)
-       })
-      
-       it('has third item "My profile" in navbar', () => {
+      })
+
+      it('has third item "My profile" in navbar', () => {
         expect(navbar.findAll('ul > a').at(2).text()).toEqual('site.navbar.my-profil')
-       })
-      
-       it.skip('has third item "My profile" linked to profile in navbar', async () => {
+      })
+
+      it.skip('has third item "My profile" linked to profile in navbar', async () => {
         navbar.findAll('ul > a').at(2).trigger('click')
         await flushPromises()
         await jest.runAllTimers()
         await flushPromises()
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
-       })
+      })
 
       // it('has fourth item "Settigs" in navbar', () => {
       //  expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
