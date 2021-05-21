@@ -289,7 +289,7 @@ jobs:
         volumes: 
           - db_vol:/var/lib/mysql
       login-server:
-        image: gradido/login-server:latest
+        image: gradido/login_server:latest
         ports:
           - 1200:1200
           - 1201:1201
