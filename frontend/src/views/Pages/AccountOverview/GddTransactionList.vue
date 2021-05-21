@@ -6,47 +6,26 @@
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex w-100 justify-content-between">
-          <b-icon
-            v-if="item.type === 'send'"
-            icon="arrow-left-circle"
-            class="m-1 text-danger"
-            font-scale="2"
-            style="color: red"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'receive'"
-            icon="arrow-right-circle"
-            class="m-1"
-            font-scale="2"
-            style="color: green"
-          ></b-icon>
-          <b-icon
-            v-else-if="item.type === 'creation'"
-            icon="gift"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <b-icon
-            v-else
-            icon="droplet-half"
-            class="m-1"
-            font-scale="2"
-            style="color: orange"
-          ></b-icon>
-          <h1 class="">
-            <span v-if="item.type === 'receive' || item.type === 'creation'">+</span>
-            <span v-else>-</span>
+        <div class="d-flex" v-b-toggle="'a' + item.date + ''">
+          <div style="width: 8%">
+            <b-icon :icon="getIcon(item)" :class="getClass(item)" />
+          </div>
+          <div class="font1_2em pr-2 text-right" style="width: 22%">
+            <span>{{ getOperator(item) }}</span>
             {{ $n(item.balance) }}
-            <small>GDD</small>
-          </h1>
-          <h2 class="text-muted">{{ item.name }}</h2>
-          <b-button v-b-toggle="'a' + item.transaction_id" variant="secondary">
-            <b>i</b>
-          </b-button>
+          </div>
+          <div class="font1_2em text-left pl-2" style="width: 65%">
+            {{ item.name }}
+            <small>{{ item.name ? '' : $t('decay') }}</small>
+            <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
+          </div>
+          <div class="text-right" style="width: 5%">
+            <b-button class="btn-sm">
+              <b>i</b>
+            </b-button>
+          </div>
         </div>
-        <b-collapse :id="'a' + item.transaction_id" class="mt-2">
+        <b-collapse :id="'a' + item.date + ''" class="mt-2">
           <b-card>
             <b-list-group>
               <b-list-group-item v-if="item.type === 'send'">
@@ -79,16 +58,16 @@
                 {{ item.memo }}
               </b-list-group-item>
             </b-list-group>
-            <b-button v-b-toggle="'collapse-1-inner' + item.transaction_id" variant="secondary">
+            <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
               {{ $t('transaction.more') }}
             </b-button>
-            <b-collapse :id="'collapse-1-inner' + item.transaction_id" class="mt-2">
+            <b-collapse :id="'collapse-1-inner' + item.date" class="mt-2">
               <b-card>{{ item }}</b-card>
             </b-collapse>
           </b-card>
         </b-collapse>
       </b-list-group-item>
-      <div v-if="transactions.length === 0" class="mt-lg-4 text-center">
+      <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </b-list-group>
@@ -96,8 +75,15 @@
 </template>
 
 <script>
+const iconsByType = {
+  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
+  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
+  creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
+  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
+}
+
 export default {
-  name: 'GddTable',
+  name: 'gdd-transaction-list',
   props: {
     transactions: { default: [] },
     max: { type: Number, default: 1000 },
@@ -120,6 +106,24 @@ export default {
   methods: {
     updateTransactions() {
       this.$emit('update-transactions')
+    },
+    getIcon(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.icon
+      const thing = new Error('no item to given type')
+      thing()
+    },
+    getClass(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.classes + ' m-mb-1 font2em'
+      const thing = new Error('no item to given type')
+      thing()
+    },
+    getOperator(item) {
+      const icon = iconsByType[item.type]
+      if (icon) return icon.operator
+      const thing = new Error('no item to given type')
+      thing()
     },
   },
 }

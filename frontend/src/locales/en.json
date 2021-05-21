@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "decay": "Decay",
   "form": {
     "cancel":"Cancel",
     "reset": "Reset",
