@@ -48,16 +48,19 @@ int load() {
 		printf("[load] error loading Gradido_LoginServer_Test.properties, make sure this file exist! (%s)\n", ex.displayText().data());
 		return -3;
 	}
+	std::clog << "[Gradido_LoginServer_Test::load] after loading config" << std::endl;
 
 	if (!ServerConfig::initServerCrypto(*test_config)) {
 		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
 		printf("[load] error init server crypto");
 		return -1;
 	}
+	std::clog << "[Gradido_LoginServer_Test::load] after init server crypto" << std::endl;
 	if (!ServerConfig::loadMnemonicWordLists()) {
 		printf("[load] error in loadMnemonicWordLists");
 		return -2;
 	}
+	std::clog << "[Gradido_LoginServer_Test::load] after load mnemonic word lists" << std::endl;
 
 	// start cpu scheduler
 	uint8_t worker_count = Poco::Environment::processorCount();
@@ -77,6 +80,7 @@ int load() {
     } catch(Poco::Exception& ex) {
         printf("Poco Exception by connecting to db: %s\n", ex.displayText().data());
     }
+	std::clog << "[Gradido_LoginServer_Test::load] after connecting to db" << std::endl;
 	//printf("try connect php server mysql \n");
 	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
 
@@ -132,8 +136,7 @@ int load() {
 
 int run()
 {
-	//printf("running tests\n");
-	printf("running tests\n");
+	std::clog << "[Gradido_LoginServer_Test::run]" << std::endl;
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
 		//printf("running: %s\n", it->getName());
