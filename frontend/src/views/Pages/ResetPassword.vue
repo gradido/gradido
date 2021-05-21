@@ -107,7 +107,13 @@ export default {
       const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
       if (result.success) {
         this.password = ''
-        this.$router.push('/thx')
+        /*
+         this.$store.dispatch('login', {
+           sessionId: result.result.data.session_id,
+           email: result.result.data.user.email,
+         })
+         */
+        this.$router.push('/thx/reset')
       } else {
         alert(result.result.message)
       }

@@ -237,6 +237,11 @@ class TransactionSendCoinsController extends AppController
                    $this->set('timeUsed', microtime(true) - $startTime);
                    return;
                  }
+                 if($answear_data['msg'] === 'memo is not set or not in expected range [5;150]') {
+                    $this->Flash->error(__('Ein Verwendungszweck zwischen 5 und 150 Zeichen wird benötig!'));
+                    $this->set('timeUsed', microtime(true) - $startTime);
+                    return;
+                 }
                } else if($answear_data['state'] === 'not found' && $answear_data['msg'] === 'receiver not found') {
                   $this->Flash->error(__('Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?'));
                   $this->set('timeUsed', microtime(true) - $startTime);

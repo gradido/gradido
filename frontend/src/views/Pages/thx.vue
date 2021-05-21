@@ -5,12 +5,48 @@
       <b-container>
         <div class="header-body text-center mb-7">
           <p class="h1">{{ $t('site.thx.title') }}</p>
-          <p class="h4">{{ $t('site.thx.subtitle') }}</p>
+          <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
-          <b-button to="/login">{{ $t('login') }}</b-button>
+          <b-button :to="displaySetup.linkTo">{{ $t(displaySetup.button) }}</b-button>
         </div>
       </b-container>
     </div>
     <!-- Page content -->
   </div>
 </template>
+<script>
+const textFields = {
+  password: {
+    subtitle: 'site.thx.email',
+    button: 'login',
+    linkTo: '/login',
+  },
+  reset: {
+    subtitle: 'site.thx.reset',
+    button: 'login',
+    linkTo: '/login',
+  },
+  register: {
+    subtitle: 'site.thx.register',
+    button: 'site.login.signin',
+    linkTo: '/overview',
+  },
+}
+
+export default {
+  name: 'Thx',
+  data() {
+    return {
+      displaySetup: {},
+    }
+  },
+  methods: {
+    setDisplaySetup(from) {
+      this.displaySetup = textFields[this.$route.params.comingFrom]
+    },
+  },
+  created() {
+    this.setDisplaySetup()
+  },
+}
+</script>

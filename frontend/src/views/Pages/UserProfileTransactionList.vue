@@ -3,7 +3,7 @@
     <b-container fluid>
       <b-row>
         <b-col class="order-xl-1">
-          <gdd-table
+          <gdd-transaction-list
             :timestamp="timestamp"
             :transactionCount="transactionCount"
             :transactions="transactions"
@@ -15,11 +15,11 @@
   </div>
 </template>
 <script>
-import GddTable from '../../views/Pages/AccountOverview/GddTable.vue'
+import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 
 export default {
   components: {
-    GddTable,
+    GddTransactionList,
   },
   props: {
     transactions: {

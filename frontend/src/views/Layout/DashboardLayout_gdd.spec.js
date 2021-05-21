@@ -44,6 +44,9 @@ describe('DashboardLayoutGdd', () => {
 
   const store = new Vuex.Store({
     state,
+    mutations: {
+      language: jest.fn(),
+    },
   })
 
   const Wrapper = () => {

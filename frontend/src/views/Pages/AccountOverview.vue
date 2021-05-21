@@ -28,7 +28,7 @@
         </template>
       </gdd-send>
       <hr />
-      <gdd-table
+      <gdd-transaction-list
         v-if="showContext"
         :transactions="transactions"
         :max="5"
@@ -36,15 +36,15 @@
         :transactionCount="transactionCount"
         @update-transactions="$emit('update-transactions')"
       />
-      <gdd-table-footer v-if="showContext" :count="transactionCount" />
+      <gdd-transaction-list-footer v-if="showContext" :count="transactionCount" />
     </b-container>
   </div>
 </template>
 <script>
 import GddStatus from './AccountOverview/GddStatus.vue'
 import GddSend from './AccountOverview/GddSend.vue'
-import GddTable from './AccountOverview/GddTable.vue'
-import GddTableFooter from './AccountOverview/GddTableFooter.vue'
+import GddTransactionList from './AccountOverview/GddTransactionList.vue'
+import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
 import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
@@ -62,8 +62,8 @@ export default {
   components: {
     GddStatus,
     GddSend,
-    GddTable,
-    GddTableFooter,
+    GddTransactionList,
+    GddTransactionListFooter,
     TransactionForm,
     TransactionConfirmation,
     TransactionResult,

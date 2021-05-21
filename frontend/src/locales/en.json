@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "decay": "Decay",
   "form": {
     "cancel":"Cancel",
     "reset": "Reset",
@@ -93,7 +94,9 @@
     },
     "thx": {
       "title": "Thank you!",
-      "subtitle": "We have sent you an email."
+      "email": "We have sent you an email.",
+      "reset": "Your password has been changed.",
+      "register": "You are registred now."      
     },
     "overview":{
       "account_overview":"Account overview",

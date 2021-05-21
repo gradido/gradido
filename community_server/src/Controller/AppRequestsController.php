@@ -156,6 +156,9 @@ class AppRequestsController extends AppController
         if($required_fields !== true) {
             return $this->returnJson($required_fields);
         }
+        if(!isset($params['memo']) || strlen($params['memo']) < 5 || strlen($params['memo']) > 150) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'memo is not set or not in expected range [5;150]']);
+        }
         $params['transaction_type'] = 'transfer';
         
         $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode($params), '/createTransaction');

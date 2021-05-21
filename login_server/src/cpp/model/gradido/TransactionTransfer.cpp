@@ -186,6 +186,10 @@ namespace model {
 				addError(new Error(function_name, "sender and receiver are the same"));
 				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
+			if (mMemo.size() < 5 || mMemo.size() > 150) {
+				addError(new Error(function_name, "memo is not set or not in expected range [5;150]"));
+				return TRANSACTION_VALID_INVALID_MEMO;
+			}
 			return TRANSACTION_VALID_OK;
 		}
 
