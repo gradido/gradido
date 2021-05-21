@@ -38,7 +38,7 @@ void runMysql(std::string sqlQuery)
 
 int load() {
 	// init server config, init seed array
-
+	std::clog << "[Gradido_LoginServer_Test::load]" << std::endl;
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
 	try {
 		auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");

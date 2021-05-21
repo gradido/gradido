@@ -50,7 +50,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target debug -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
+          docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
           docker save "gradido/login_server:test" > /tmp/login_server.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -234,7 +234,7 @@ jobs:
       - name: Download Docker Image (Login-Server)
         uses: actions/download-artifact@v2
         with:
-          name: docker-loginserver-test
+          name: docker-login-server-test
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/loginserver.tar
@@ -243,7 +243,11 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          docker run \
+            -v ~/coverage:/code/build/coverage_html \
+            -v ./configs/login_server:/code/build \
+            --rm gradido/login_server:test \
+            "make -C /code/build -j$(nproc) coverage_html"
           cp -r ~/coverage ./coverage
 
   #test:

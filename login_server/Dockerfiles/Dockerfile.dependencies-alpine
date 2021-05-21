@@ -2,8 +2,8 @@
 ##### BUILD-ENV #####
 FROM alpine:3.13.5 as alpine-build
 
-RUN apk add --update --no-cache icu-dev
-RUN apk add --no-cache git openssl-dev make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev
+RUN apk add --update --no-cache icu-dev 
+RUN apk add --no-cache git openssl-dev make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev 
 
 
 #####  CMAKE #####
@@ -14,6 +14,15 @@ RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
 	 ./bootstrap --parallel=$(nproc) && \
 	make -j$(nproc) && \
 	make install
+
+##### lcov #####
+FROM alpine-build as alpine-lcov
+
+RUN apk add --no-cache bash perl
+
+RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
+    cd lcov && \
+    make install
 
 ######### BUILD grpc ##############
 FROM alpine-gxx-cmake as alpine-gxx-grpc
@@ -70,6 +79,9 @@ COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Templates /usr/local/sh
 COPY --from=alpine-gxx-grpc /usr/local /usr/local
 COPY --from=alpine-gxx-grpc /grpc/third_party/googletest /usr/local/googletest
 
+# copy from lcov
+COPY --from=alpine-lcov /usr/local/bin /usr/local/bin
+COPY --from=alpine-lcov /usr/local/etc/lcovrc /usr/local/etc/lcovrc
 
 # COPY from poco 
 COPY --from=alpine-gxx-poco /usr/local /usr/local
