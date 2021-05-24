@@ -253,7 +253,7 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run -v ~/coverage:/code/build/coverage -v ./configs/login_server:/etc/grd_login gradido/login_server:test 
+          docker run -v ~/coverage:/code/build/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################

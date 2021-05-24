@@ -52,7 +52,7 @@ int load(int argc, char* argv[]) {
 	}
 	catch (Poco::Exception& ex) {
 		std::clog 
-			<< "[load] error loading Gradido_LoginServer_Test.properties, make sure this file exist! " 
+			<< "[load] error loading grd_login_test.properties, make sure this file exist! " 
 			<< ex.displayText().data()
 			<< std::endl;
 
