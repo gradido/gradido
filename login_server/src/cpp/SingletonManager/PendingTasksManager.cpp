@@ -180,30 +180,42 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTran
 
 void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 {
+	static const char* function_name = "PendingTasksManager::checkForFinishedTasks";
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	try {
 
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
-	{
-		auto list = map_it->second;
-		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+		for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
 		{
-			if ((*list_it)->getModel()->isGradidoTransaction()) {
-				auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
-				auto json = transaction->getModel()->getResultJson();
-				bool removeIt = false;
-				if (!json.isNull()) {
-					auto state = json->get("state");
-					if (!state.isEmpty() && state.toString() == "success") {
-						removeIt = true;
+			auto list = map_it->second;
+			for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+			{
+				if ((*list_it)->getModel()->isGradidoTransaction()) {
+					auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
+					auto json = transaction->getModel()->getResultJson();
+					bool removeIt = false;
+					if (!json.isNull()) {
+						auto state = json->get("state");
+						if (!state.isEmpty() && state.toString() == "success") {
+							removeIt = true;
+						}
 					}
-				}
-				if (removeIt) {
-					transaction->deleteFromDB();
-					list_it = list->erase(list_it);
-					if (!list->size()) break;
+					if (removeIt) {
+						transaction->deleteFromDB();
+						list_it = list->erase(list_it);
+						if (!list->size() || list_it == list->end()) break;
+					}
 				}
 			}
 		}
+	}
+	catch (Poco::Exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "poco exception", ex.displayText()));
+		errors.sendErrorsAsEmail();
+	} catch(std::exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "std::exception", ex.what()));
+		errors.sendErrorsAsEmail();
 	}
 }
 
