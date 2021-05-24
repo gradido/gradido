@@ -316,7 +316,7 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run -v ~/coverage:/code/build/coverage -v gradido/login_server:test " ./vendor/bin/phpunit --coverage-html ./coverage"
+          docker run -v ~/coverage:/code/build/coverage gradido/community_server:test " ./vendor/bin/phpunit --coverage-html ./coverage"
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################

@@ -42,7 +42,9 @@ int load() {
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
 	try {
 		auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");
+		std::clog << "[Gradido_LoginServer_Test::load] add config start" << std::endl;
 		test_config->add(cfg);
+		std::clog << "[Gradido_LoginServer_Test::load] after add config" << std::endl;
 	}
 	catch (Poco::Exception& ex) {
 		printf("[load] error loading Gradido_LoginServer_Test.properties, make sure this file exist! (%s)\n", ex.displayText().data());
