@@ -39,7 +39,7 @@ RUN mkdir build && cd build && \
 RUN chmod +x build/bin/Gradido_LoginServer_Test
 #CMD [ "./build/bin/Gradido_LoginServer_Test" ]
 #ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
-ENTRYPOINT cd build && make coverage;
+ENTRYPOINT make -C build coverage
 
 #########################################################################################################
 # Build debug 
