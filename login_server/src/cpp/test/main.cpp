@@ -5,6 +5,7 @@
 
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/Environment.h"
+#include "Poco/Path.h"
 
 #include "../SingletonManager/ConnectionManager.h"
 
