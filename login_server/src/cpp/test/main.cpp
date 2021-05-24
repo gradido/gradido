@@ -38,31 +38,35 @@ void runMysql(std::string sqlQuery)
 
 int load() {
 	// init server config, init seed array
-	std::clog << "[Gradido_LoginServer_Test::load]" << std::endl;
+	std::clog << "[load]" << std::endl;
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
 	try {
 		auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");
-		std::clog << "[Gradido_LoginServer_Test::load] add config start" << std::endl;
+		std::clog << "[load] add config start" << std::endl;
 		test_config->add(cfg);
-		std::clog << "[Gradido_LoginServer_Test::load] after add config" << std::endl;
+		std::clog << "[load] after add config" << std::endl;
 	}
 	catch (Poco::Exception& ex) {
-		printf("[load] error loading Gradido_LoginServer_Test.properties, make sure this file exist! (%s)\n", ex.displayText().data());
+		std::clog 
+			<< "[load] error loading Gradido_LoginServer_Test.properties, make sure this file exist! " 
+			<< ex.displayText().data()
+			<< std::endl;
+
 		return -3;
 	}
-	std::clog << "[Gradido_LoginServer_Test::load] after loading config" << std::endl;
+	std::clog << "[load] after loading config" << std::endl;
 
 	if (!ServerConfig::initServerCrypto(*test_config)) {
 		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
 		printf("[load] error init server crypto");
 		return -1;
 	}
-	std::clog << "[Gradido_LoginServer_Test::load] after init server crypto" << std::endl;
+	std::clog << "[load] after init server crypto" << std::endl;
 	if (!ServerConfig::loadMnemonicWordLists()) {
 		printf("[load] error in loadMnemonicWordLists");
 		return -2;
 	}
-	std::clog << "[Gradido_LoginServer_Test::load] after load mnemonic word lists" << std::endl;
+	std::clog << "[load] after load mnemonic word lists" << std::endl;
 
 	// start cpu scheduler
 	uint8_t worker_count = Poco::Environment::processorCount();

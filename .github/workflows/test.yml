@@ -275,10 +275,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_test_community_server]
     services: 
-      nginx:
-        image: gradido/nginx:latest
-        ports:
-          - 80:80
       mariadb:
         image: gradido/mariadb:test
         env:
@@ -288,13 +284,6 @@ jobs:
           - 3306:3306
         volumes: 
           - db_vol:/var/lib/mysql
-      login-server:
-        image: gradido/login_server:latest
-        ports:
-          - 1200:1200
-          - 1201:1201
-        volumes:
-          - ~/configs/login_server:/etc/grd_login
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
