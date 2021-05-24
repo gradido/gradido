@@ -41,10 +41,8 @@ int load() {
 	std::clog << "[load]" << std::endl;
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
 	try {
-		auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");
-		std::clog << "[load] add config start" << std::endl;
+		auto cfg = new Poco::Util::PropertyFileConfiguration("config/Gradido_LoginServer_Test.properties");
 		test_config->add(cfg);
-		std::clog << "[load] after add config" << std::endl;
 	}
 	catch (Poco::Exception& ex) {
 		std::clog 
@@ -54,19 +52,16 @@ int load() {
 
 		return -3;
 	}
-	std::clog << "[load] after loading config" << std::endl;
 
 	if (!ServerConfig::initServerCrypto(*test_config)) {
 		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
 		printf("[load] error init server crypto");
 		return -1;
 	}
-	std::clog << "[load] after init server crypto" << std::endl;
 	if (!ServerConfig::loadMnemonicWordLists()) {
 		printf("[load] error in loadMnemonicWordLists");
 		return -2;
 	}
-	std::clog << "[load] after load mnemonic word lists" << std::endl;
 
 	// start cpu scheduler
 	uint8_t worker_count = Poco::Environment::processorCount();
@@ -86,7 +81,6 @@ int load() {
     } catch(Poco::Exception& ex) {
         printf("Poco Exception by connecting to db: %s\n", ex.displayText().data());
     }
-	std::clog << "[Gradido_LoginServer_Test::load] after connecting to db" << std::endl;
 	//printf("try connect php server mysql \n");
 	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
 
