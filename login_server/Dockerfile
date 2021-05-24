@@ -30,8 +30,6 @@ RUN apk add --no-cache bash perl
  #   cd lcov && \
   #  make install
 
-
-
 RUN mkdir build && cd build && \
 	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
 	make -j$(nproc) Gradido_LoginServer_Test
@@ -39,6 +37,7 @@ RUN mkdir build && cd build && \
 RUN chmod +x build/bin/Gradido_LoginServer_Test
 #CMD [ "./build/bin/Gradido_LoginServer_Test" ]
 #ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
+
 ENTRYPOINT make -C build coverage
 
 #########################################################################################################

@@ -36,12 +36,17 @@ void runMysql(std::string sqlQuery)
 	}
 }
 
-int load() {
+int load(int argc, char* argv[]) {
 	// init server config, init seed array
 	std::clog << "[load]" << std::endl;
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
+	std::string config_file_name = Poco::Path::config() + "grd_login/grd_login_test.properties";
+	if(argc > 1 && strlen(argv[1]) > 4) {
+		config_file_name = argv[1];
+	}
+
 	try {
-		auto cfg = new Poco::Util::PropertyFileConfiguration("config/Gradido_LoginServer_Test.properties");
+		auto cfg = new Poco::Util::PropertyFileConfiguration(config_file_name);
 		test_config->add(cfg);
 	}
 	catch (Poco::Exception& ex) {
@@ -161,7 +166,7 @@ void ende()
 
 int main(int argc, char** argv)
 {
-	if (load() < 0) {
+	if (load(argc, argv) < 0) {
 		printf("early exit\n");
 		return -42;
 	}

@@ -1,0 +1,103 @@
+name: gradido debug actions with act CI
+
+jobs:
+  ##############################################################################
+  # JOB: DOCKER BUILD AND TEST LOGIN SERVER ####################################
+  ##############################################################################
+  test_login_server_debug:
+    name: Docker Build Test - Login Server
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    services:
+      mariadb:
+        image: gradido/mariadb:test
+        env:
+           MARIADB_ALLOW_EMPTY_PASSWORD: 1
+           MARIADB_USER: root
+        ports: 
+          - 3306:3306
+        volumes: 
+          - db_vol:/var/lib/mysql 
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      ##########################################################################
+      # BUILD LOGIN SERVER DOCKER IMAGE ########################################
+      ##########################################################################
+      - name: login server | Build `test` image
+        run: |
+          docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
+          docker save "gradido/login_server:test" > /tmp/login_server.tar
+      ##########################################################################
+      # UNIT TESTS BACKEND LOGIN-SERVER  #######################################
+      ##########################################################################
+      - name: Login-Server | Unit tests
+        run: |
+          docker run -v ~/coverage:/code/build/coverage -v ./configs/login_server:/etc/grd_login gradido/login_server:test 
+          cp -r ~/coverage ./coverage
+      ##########################################################################
+      # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
+      ##########################################################################
+      - name: backend | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: lcov
+          result_path: ./coverage/lcov.info
+          min_coverage: 8
+          token: ${{ github.token }}
+
+  ##############################################################################
+  # JOB: DOCKER BUILD AND TEST COMMUNITY SERVER ################################
+  ##############################################################################
+  build_test_community_server:
+    name: Docker Build Test - Community Server
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    services: 
+      mariadb:
+        image: gradido/mariadb:test
+        env:
+           MARIADB_ALLOW_EMPTY_PASSWORD: 1
+           MARIADB_USER: root
+        ports: 
+          - 3306:3306
+        volumes: 
+          - db_vol:/var/lib/mysql
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # BUILD COMMUNITY SERVER DOCKER IMAGE ####################################
+      ##########################################################################
+      - name: community server | Build `test` image
+        run: |
+          docker build -t "gradido/community_server:test" -f ./community_server/Dockerfile ./
+          docker save "gradido/community_server:test" > /tmp/community_server.tar
+
+      ##########################################################################
+      # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
+      ##########################################################################
+      - name: community server | Unit tests
+        run: |
+          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test "./vendor/bin/phpunit --coverage-html ./webroot/coverage"
+          cp -r ~/coverage ./coverage
+      ##########################################################################
+      # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
+      ##########################################################################
+      - name: backend | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: lcov
+          result_path: ./coverage/lcov.info
+          min_coverage: 8
+          token: ${{ github.token }}
