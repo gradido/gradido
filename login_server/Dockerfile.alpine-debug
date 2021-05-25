@@ -1,4 +1,4 @@
-FROM gradido/login_dependencies:alpine-debug-1 as login_server_alpine_debug
+FROM gradido/login_dependencies:alpine-debug-2 as login_server_alpine_debug
 
 ENV DOCKER_WORKDIR="/code"
 
@@ -10,6 +10,7 @@ WORKDIR ${DOCKER_WORKDIR}
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 COPY ./scripts ./scripts
 COPY ./cmake ./cmake 
+RUN ln -s /usr/local/googletest ./googletest
 
 CMD cd scripts; ./build_debug.sh; cd ..; ./build/bin/Gradido_LoginServer
 

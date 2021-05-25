@@ -6,6 +6,11 @@
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/Environment.h"
 #include "Poco/Path.h"
+#include "Poco/AsyncChannel.h"
+#include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
+#include "Poco/ConsoleChannel.h"
+#include "Poco/SplitterChannel.h"
 
 #include "../SingletonManager/ConnectionManager.h"
 
@@ -118,6 +123,28 @@ int load(int argc, char* argv[]) {
 		}
 	}
 	
+	std::string log_Path = "/var/log/grd_login/";
+//#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
+	log_Path = "./";
+#endif
+	
+	std::string filePath = log_Path + "errorLog.txt";
+	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
+	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
+	logSplitter->addChannel(logConsoleChannel);
+	logSplitter->addChannel(logFileChannel);
+
+	Poco::AutoPtr<Poco::AsyncChannel> logAsyncChannel(new Poco::AsyncChannel(logSplitter));
+
+	Poco::Logger& log = Poco::Logger::get("errorLog");
+	log.setChannel(logAsyncChannel);
+	log.setLevel("information");
+
+	log.error("Test Error");
+
+	//errorLog
 	
 	//printf("try connect php server mysql \n");
 	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
@@ -163,10 +190,12 @@ int load(int argc, char* argv[]) {
 		<< "(1, 3, 'gdd_test_topic', 1, 0, 1, NULL, NULL, '1999-12-31 23:00:00', 0, '2020-09-14 18:29:04'); ";
 	runMysql(ss.str());
 	ss.str(std::string());
+	std::clog << "after inserting everything in db" << std::endl;
 
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
+		std::clog << "call init on test: " << (*it)->getName() << std::endl;
 		if ((*it)->init()) printf("Fehler bei Init test: %s\n", (*it)->getName());
 	}
 	return 0;
@@ -179,7 +208,11 @@ int run()
 	{
 		//printf("running: %s\n", it->getName());
 		printf("running test: %s\n", (*it)->getName());
-		if (!(*it)->test()) printf("success\n");
+		try {
+			if (!(*it)->test()) printf("success\n");
+		} catch(std::exception& ex) {
+			std::clog << "exception in running test: " << ex.what() << std::endl;
+		}
 	}
 	return 0;
 }
@@ -207,6 +240,9 @@ int main(int argc, char** argv)
 	} catch(std::exception& ex) {
 		printf("no catched exception while loading: %s\n", ex.what());
 	}
+	
+  	//printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
+
 	run();
 	ende();
 	::testing::InitGoogleTest(&argc, argv);

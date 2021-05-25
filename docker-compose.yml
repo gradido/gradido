@@ -38,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: ./mariadb/Dockerfile
-      target: mariadb_server
+      target: mariadb_server_test
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
@@ -47,7 +47,7 @@ services:
     ports: 
       - 3306:3306
     volumes: 
-      - db_vol:/var/lib/mysql      
+      - db_vol:/var/lib/mysql     
     
   #########################################################
   ## LOGIN SERVER #########################################

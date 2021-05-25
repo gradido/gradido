@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /go/bin/skeema .
 #########################################################################################################
 # Run skeema
 #########################################################################################################
-From alpine:latest as skeema_run
+FROM alpine:3.13.5 as skeema_run
 
 ENV DOCKER_WORKDIR="/skeema"
 	

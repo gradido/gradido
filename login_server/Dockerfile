@@ -2,10 +2,12 @@
 #########################################################################################################
 # Prepare debug 
 #########################################################################################################
-FROM gradido/login_dependencies:alpine-debug-2 as prepare_debug
+FROM gradido/login_dependencies:gcc9-debug-1 as prepare_debug
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
+
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 RUN ln -s /usr/local/googletest ./googletest
@@ -24,21 +26,23 @@ FROM prepare_debug as test
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
-RUN apk add --no-cache bash perl
 
-#RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
- #   cd lcov && \
-  #  make install
+#RUN apt-get update && \
+#    apt-get install -y --no-install-recommends gdb && \
+#	apt-get autoclean && \
+#	apt-get autoremove && \
+#    apt-get clean && \
+#	rm -rf /var/lib/apt/lists/*
 
 RUN mkdir build && cd build && \
 	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
 	make -j$(nproc) Gradido_LoginServer_Test
 
 RUN chmod +x build/bin/Gradido_LoginServer_Test
-#CMD [ "./build/bin/Gradido_LoginServer_Test" ]
-#ENTRYPOINT [ "/usr/bin/make", "-C", "/code/build", "coverage" ]
+#CMD gdb -ex run ./build/bin/Gradido_LoginServer_Test
+CMD ./build/bin/Gradido_LoginServer_Test
 
-ENTRYPOINT make -C build coverage
+#ENTRYPOINT make -C build coverage
 
 #########################################################################################################
 # Build debug 
