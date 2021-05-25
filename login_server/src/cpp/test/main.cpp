@@ -83,6 +83,22 @@ int load(int argc, char* argv[]) {
 	//conn->setConnection()
 	//printf("try connect login server mysql db\n");
 	try {
+		conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+	}
+	catch (Poco::Exception& ex) {
+		// maybe we in docker environment and db needs some time to start up
+		// let's wait 10 seconds
+		int count = 10;
+		while (count > 0) {
+			printf("\rwait on mysql/mariadb %d seconds...", count);
+			count--;
+			Poco::Thread::sleep(1000);
+		}
+		conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+	}
+	std::clog << "Wait another 10 seconds for mysql/mariadb" << std::endl;
+	Poco::Thread::sleep(10000);
+	try {
         conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
     } catch(Poco::Exception& ex) {
         printf("Poco Exception by connecting to db: %s\n", ex.displayText().data());
