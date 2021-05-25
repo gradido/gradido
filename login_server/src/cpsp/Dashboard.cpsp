@@ -1,0 +1,53 @@
+<%@ page class="DashboardPage" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="HTTPInterface/SessionHTTPRequestHandler.h" %>
+<%@ page form="true" %>
+<%! 
+#include "SingletonManager/SessionManager.h"
+#include "Poco/Net/HTTPServerParams.h"
+%>
+<%%
+	const char* pageName = "Dashboard";
+	auto user = mSession->getNewUser();
+	auto user_model = user->getModel();
+	//Poco::Net::NameValueCollection cookies;
+	//request.getCookies(cookies);
+	if(!form.empty()) {
+		//form.get("email-verification-code")
+	}
+	auto uri_start = getBaseUrl();
+	//response.redirect(ServerConfig::g_php_serverPath);
+	response.redirect(user->getGroupBaseUrl());
+	return;
+%><%@ include file="include/header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Willkommen <%= user_model->getFirstName() %>&nbsp;<%= user_model->getLastName() %></h1>
+	<%= mSession->getErrorsHtml() %>
+	<h3>Status</h3>
+	<p><%= mSession->getSessionStateString() %></p>
+	<% if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_SEND) { %>
+	<p>Verification Code E-Mail wurde erfolgreich an dich verschickt, bitte schaue auch in dein Spam-Verzeichnis nach wenn du sie nicht findest und klicke auf den Link den du dort findest oder kopiere den Code hier her:</p>
+	<form method="GET" action="<%= uri_start %>/checkEmail">
+		<input type="number" name="email-verification-code">
+		<input class="grd-form-bn-succeed grd_clickable" type="submit" value="&Uuml;berpr&uuml;fe Code">
+	</form>
+	<% } else if(mSession->getSessionState() == SESSION_STATE_EMAIL_VERIFICATION_WRITTEN) { %>
+	<p>Hast du schon eine E-Mail mit einem Verification Code erhalten? Wenn ja kannst du ihn hier hinein kopieren:</p>
+	<form method="GET" action="checkEmail">
+		<input type="number" name="email-verification-code">
+		<input class="grd-form-bn-succeed grd_clickable" type="submit" value="&Uuml;berpr&uuml;fe Code">
+	</form>
+	<% } %>
+	<a class="grd-form-bn" href="<%= uri_start %>/logout">Abmelden</a>
+	<a class="grd-form-bn" href="<%= uri_start %>/user_delete">Account l&ouml;schen</a>
+</div>
+<nav class="grd-left-bar expanded" data-topbar role="navigation">
+	<div class="grd-left-bar-section">
+		<ul class="grd-no-style">
+		  <li><a href="<%= user->getGroupBaseUrl() %>" class="grd-nav-bn">Startseite</a>
+		  <li><a href="<%= uri_start %>/logout" class="grd-nav-bn">Logout</a></li>
+		</ul>
+	</div>
+</nav>
+<%@ include file="include/footer.cpsp" %>

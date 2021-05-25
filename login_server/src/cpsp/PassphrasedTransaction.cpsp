@@ -1,13 +1,12 @@
-<%@ page class="PassphrasedTransaction" %>
+<%@ page class="PassphrasedTransactionPage" %>
 <%@ page form="true" %>
-<%@	page compressed="true" %>
 <%@ page baseClass="PageRequestMessagedHandler" %>
-<%@ header include="PageRequestMessagedHandler.h" %>
+<%@ header include="HTTPInterface/PageRequestMessagedHandler.h" %>
 <%!
-#include "../SingletonManager/MemoryManager.h"
-#include "../SingletonManager/SessionManager.h"
-#include "../Crypto/KeyPairEd25519.h"
-#include "../ServerConfig.h"
+#include "SingletonManager/MemoryManager.h"
+#include "SingletonManager/SessionManager.h"
+#include "Crypto/KeyPairEd25519.h"
+#include "ServerConfig.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
@@ -135,7 +134,7 @@ enum PageState {
 	}
 	
 	
-%><%@ include file="header_old.cpsp" %>
+%><%@ include file="include/header_old.cpsp" %>
 <% if("" == errorString) { %>
 	<%= errorString %>
 <% } %>
@@ -161,4 +160,4 @@ enum PageState {
 		<a href="<%= ServerConfig::g_serverPath %>/passphrased_transaction">Weitere Gradidos überweisen</a>
 	<% } %>
 </div>
-<%@ include file="footer.cpsp" %>
+<%@ include file="include/footer.cpsp" %>
