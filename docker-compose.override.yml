@@ -47,6 +47,7 @@ services:
   community-server:
     build: 
       context: .
+      target: community_server
       dockerfile: ./community_server/Dockerfile
     environment:
       - DB_PASSWORD=''

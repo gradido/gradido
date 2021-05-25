@@ -305,7 +305,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test "./vendor/bin/phpunit --coverage-html ./webroot/coverage"
+          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test ./vendor/bin/phpunit --coverage-html ./webroot/coverage
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################

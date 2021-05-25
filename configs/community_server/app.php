@@ -304,7 +304,7 @@ return [
             'className' => Connection::class,
             'driver' => Mysql::class,
             'persistent' => false,
-            'host' => 'localhost',
+            'host' => 'mariadb',
             //'port' => 'non_standard_port_number',
             'username' => 'root',
             'password' => '',

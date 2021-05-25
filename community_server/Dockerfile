@@ -1,8 +1,8 @@
-FROM phpdockerio/php74-fpm
+FROM phpdockerio/php74-fpm as community_server
 
 # install php fpm 
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install curl unzip php7.4-curl php7.4-fpm php7.4-mbstring php7.4-intl php7.4-xml php7.4-pdo php7.4-mysql \
+    && apt-get -y --no-install-recommends install curl unzip php7.4-curl php7.4-fpm php7.4-mbstring php7.4-intl php7.4-xml php7.4-pdo php7.4-mysql php7.4-xdebug \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 WORKDIR /var/www/cakephp
@@ -13,5 +13,15 @@ COPY ./configs/community_server/app.php ./config/
 RUN composer update
 RUN composer dump-autoload
 
+
+#########  special for code coverage and testing
+FROM community_server as test
+
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install php7.4-xdebug \
+    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
+WORKDIR /var/www/cakephp
+ENV XDEBUG_MODE=coverage
 
 

@@ -82,11 +82,17 @@ int load(int argc, char* argv[]) {
 	auto conn = ConnectionManager::getInstance();
 	//conn->setConnection()
 	//printf("try connect login server mysql db\n");
+	bool connected = false;
 	try {
-		conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+		if(conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER)) {
+			connected = true;
+		}
 	}
 	catch (Poco::Exception& ex) {
 		// maybe we in docker environment and db needs some time to start up
+		printf("Poco Exception by connecting to db: %s, let's try again\n", ex.displayText().data());
+	}
+	if(!connected) {
 		// let's wait 10 seconds
 		int count = 10;
 		while (count > 0) {
@@ -94,15 +100,25 @@ int load(int argc, char* argv[]) {
 			count--;
 			Poco::Thread::sleep(1000);
 		}
-		conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+		try {
+			if(conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER)) {
+				connected = true;
+			}
+		} catch(Poco::Exception& ex) {
+			printf("Poco Exception by connecting to db: %s, let's wait another 10 seconds\n", ex.displayText().data());
+		}
 	}
-	std::clog << "Wait another 10 seconds for mysql/mariadb" << std::endl;
-	Poco::Thread::sleep(10000);
-	try {
-        conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
-    } catch(Poco::Exception& ex) {
-        printf("Poco Exception by connecting to db: %s\n", ex.displayText().data());
-    }
+	if(!connected) {
+		Poco::Thread::sleep(10000);
+		try {
+			conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+		} catch(Poco::Exception& ex) {
+			printf("Poco Exception by connecting to db: %s, exit\n", ex.displayText().data());
+			return -4;
+		}
+	}
+	
+	
 	//printf("try connect php server mysql \n");
 	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
 
@@ -183,9 +199,13 @@ void ende()
 
 int main(int argc, char** argv)
 {
-	if (load(argc, argv) < 0) {
-		printf("early exit\n");
-		return -42;
+	try {
+		if (load(argc, argv) < 0) {
+			printf("early exit\n");
+			return -42;
+		}
+	} catch(std::exception& ex) {
+		printf("no catched exception while loading: %s\n", ex.what());
 	}
 	run();
 	ende();
