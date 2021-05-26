@@ -17,7 +17,7 @@
           <div class="font1_2em text-left pl-2" style="width: 65%">
             {{ item.name }}
             <small>{{ item.name ? '' : $t('decay') }}</small>
-            <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
+            <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
           </div>
           <div class="text-right" style="width: 5%">
             <b-button class="btn-sm">
