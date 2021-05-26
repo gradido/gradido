@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
         v-for="item in transactions.slice(0, max)"
@@ -85,17 +85,10 @@ const iconsByType = {
 export default {
   name: 'gdd-transaction-list',
   props: {
-    transactions: { default: [] },
+    transactions: { default: () => [] },
     max: { type: Number, default: 1000 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
-  },
-  data() {
-    return {
-      form: [],
-      fields: ['balance', 'date', 'memo', 'name', 'transaction_id', 'type', 'details'],
-      items: [],
-    }
   },
   watch: {
     timestamp: {
@@ -110,20 +103,20 @@ export default {
     getIcon(item) {
       const icon = iconsByType[item.type]
       if (icon) return icon.icon
-      const thing = new Error('no item to given type')
-      thing()
+      this.throwError('no icon to given type')
     },
     getClass(item) {
       const icon = iconsByType[item.type]
       if (icon) return icon.classes + ' m-mb-1 font2em'
-      const thing = new Error('no item to given type')
-      thing()
+      this.throwError('no class to given type')
     },
     getOperator(item) {
       const icon = iconsByType[item.type]
       if (icon) return icon.operator
-      const thing = new Error('no item to given type')
-      thing()
+      this.throwError('no operator to given type')
+    },
+    throwError(msg) {
+      throw new Error(msg)
     },
   },
 }
