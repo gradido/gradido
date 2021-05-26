@@ -6,17 +6,16 @@
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex" v-b-toggle="'a' + item.date + ''">
+        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''">
           <div style="width: 8%">
-            <b-icon :icon="getIcon(item)" :class="getClass(item)" />
+            <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
           </div>
           <div class="font1_2em pr-2 text-right" style="width: 32%">
-            <span>{{ getOperator(item) }}</span>
+            <span>{{ getProperties(item).operator }}</span>
             {{ $n(item.balance, 'decimal') }}
           </div>
           <div class="font1_2em text-left pl-2" style="width: 55%">
-            {{ item.name }}
-            <small>{{ item.name ? '' : $t('decay') }}</small>
+            {{ item.name ? item.name : $t('decay') }}
             <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
           </div>
           <div class="text-right" style="width: 5%">
@@ -100,20 +99,15 @@ export default {
     updateTransactions() {
       this.$emit('update-transactions')
     },
-    getIcon(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.icon
+    getProperties(item) {
+      const type = iconsByType[item.type]
+      if (type)
+        return {
+          icon: type.icon,
+          class: type.classes + ' m-mb-1 font2em',
+          operator: type.operator,
+        }
       this.throwError('no icon to given type')
-    },
-    getClass(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.classes + ' m-mb-1 font2em'
-      this.throwError('no class to given type')
-    },
-    getOperator(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.operator
-      this.throwError('no operator to given type')
     },
     throwError(msg) {
       throw new Error(msg)
