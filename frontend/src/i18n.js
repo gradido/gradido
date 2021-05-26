@@ -32,18 +32,18 @@ function loadLocaleMessages() {
 }
 
 const numberFormats = {
-  'en-US': {
-    currency: {
-      style: 'currency',
-      currency: 'GDD',
-      abbreviate: true,
+  en: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     },
   },
-  'de-DE': {
-    currency: {
-      style: 'currency',
-      currency: 'GDD',
-      abbreviate: true,
+  de: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     },
   },
 }
