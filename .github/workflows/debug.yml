@@ -38,7 +38,7 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run --network -v ~/coverage:/code/build/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
+          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/code/build_cov/coverage_html -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
@@ -101,7 +101,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test ./vendor/bin/phpunit --coverage-html ./webroot/coverage
+          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test ./vendor/bin/phpunit --coverage-html ./webroot/coverage
           cp -r ~/coverage ./coverage
           
       ##########################################################################

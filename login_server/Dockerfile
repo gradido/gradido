@@ -47,7 +47,7 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN if [ ! -d "./build_cov" ] ; then mkdir build_cov; fi
 
 RUN cd build_cov && \
-	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON .. 
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=gcovr .. 
 	#make -j$(nproc) Gradido_LoginServer_Test
 
 #RUN chmod +x build_cov/bin/Gradido_LoginServer_Test
