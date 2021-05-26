@@ -111,7 +111,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('div').at(3).text()).toContain(
-            'Tue May 25 2021 19:38:13 GMT+0200',
+            'Tue May 25 2021',
           )
         })
       })
@@ -144,7 +144,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('div').at(3).text()).toContain(
-            'Thu Apr 29 2021 17:34:49 GMT+0200',
+            'Thu Apr 29 2021',
           )
         })
       })
@@ -177,7 +177,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('div').at(3).text()).toContain(
-            'Thu Apr 29 2021 19:26:40 GMT+0200',
+            'Thu Apr 29 2021',
           )
         })
       })
