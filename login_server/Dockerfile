@@ -18,31 +18,44 @@ COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
 COPY ./scripts ./scripts
 
+
+#########################################################################################################
+# Install Coverage tool
+#########################################################################################################
+FROM prepare_debug as coverage
+
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-pip && \
+	apt-get autoclean && \
+	apt-get autoremove && \
+    apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install gcovr
+
+
 #########################################################################################################
 # Build test 
 #########################################################################################################
-FROM prepare_debug as test 
+FROM coverage as test 
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
 
-#RUN apt-get update && \
-#    apt-get install -y --no-install-recommends gdb && \
-#	apt-get autoclean && \
-#	apt-get autoremove && \
-#    apt-get clean && \
-#	rm -rf /var/lib/apt/lists/*
+RUN if [ ! -d "./build_cov" ] ; then mkdir build_cov; fi
 
-RUN mkdir build && cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Debug .. && \
-	make -j$(nproc) Gradido_LoginServer_Test
+RUN cd build_cov && \
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON .. 
+	#make -j$(nproc) Gradido_LoginServer_Test
 
-RUN chmod +x build/bin/Gradido_LoginServer_Test
-#CMD gdb -ex run ./build/bin/Gradido_LoginServer_Test
-CMD ./build/bin/Gradido_LoginServer_Test
+#RUN chmod +x build_cov/bin/Gradido_LoginServer_Test
+#CMD gdb -ex run ./build_cov/bin/Gradido_LoginServer_Test
+#CMD ./build_cov/bin/Gradido_LoginServer_Test
 
-#ENTRYPOINT make -C build coverage
+#ENTRYPOINT make -C build_cov coverage
+CMD cd build_cov && make -j$(nproc) Gradido_LoginServer_Test && make coverage_html
 
 #########################################################################################################
 # Build debug 

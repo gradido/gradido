@@ -37,8 +37,10 @@ services:
       - internal-net
     volumes:
       - ./logs:/var/log/grd_login 
+      - ./login_server/src:/code/src
       - ./configs/login_server:/etc/grd_login
-      - ~/coverage/login:/code/build/coverage
+      - login_build_cov:/code/build_cov
+      - ./coverage/login:/code/build_cov/coverage_html
 
   #########################################################
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
@@ -55,7 +57,7 @@ services:
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
       - ./community_server/src:/var/www/cakephp/src
-      - ~/coverage/community:/var/www/cakephp/webroot/coverage
+      - ./coverage/community:/var/www/cakephp/webroot/coverage
 
         
   #########################################################
@@ -94,3 +96,4 @@ networks:
 
 volumes:
   db_test_vol: 
+  login_build_cov:

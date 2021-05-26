@@ -38,7 +38,7 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run -v ~/coverage:/code/build/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
+          docker run --network -v ~/coverage:/code/build/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
@@ -66,8 +66,8 @@ jobs:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
            MARIADB_DATABASE: gradido_community_test
-        ports: 
-          - 3306:3306
+        #ports: 
+          #- 3306:3306
         options: --health-cmd="mysqladmin ping"
                  --health-interval=5s
                  --health-timeout=2s
@@ -76,6 +76,8 @@ jobs:
       - name: Get MySQL service ID
         id: mariadb-service
         run: echo "::set-output name=container-id::$(docker ps | grep -i mariadb | awk '{print $1}')"
+      - name: Create docker network
+        run: docker network create gradido-network
       - name: Debug service
         run: echo "$(docker ps)"
       #- name: Get Github network gateway address
@@ -101,6 +103,7 @@ jobs:
         run: |
           docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test ./vendor/bin/phpunit --coverage-html ./webroot/coverage
           cp -r ~/coverage ./coverage
+          
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
       ##########################################################################
