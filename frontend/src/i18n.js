@@ -48,9 +48,43 @@ const numberFormats = {
   },
 }
 
+const dateTimeFormats = {
+  en: {
+    short: {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    },
+    long: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
+  de: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
+}
+
 export default new VueI18n({
   locale: 'en',
   fallbackLocale: 'en',
   messages: loadLocaleMessages(),
   numberFormats,
+  dateTimeFormats,
 })
