@@ -320,30 +320,56 @@ endif(UNIX)
 
 enable_testing()
 
-if(UNIX)
-include(cmake/CodeCoverage.cmake)
-append_coverage_compiler_flags()
-set(EXCLUDE_FOR_HTML_COV 
-	"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
-	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
-)
-setup_target_for_coverage_gcovr_html(
-    NAME coverage_html
-    EXECUTABLE Gradido_LoginServer_Test
-	EXCLUDE ${EXCLUDE_FOR_HTML_COV}
-    #DEPENDENCIES lib/libmariadb.so.3
-)
-set(EXCLUDE_FOR_COV 
-	${EXCLUDE_FOR_HTML_COV}
-	"/usr/include/*"
-)
-setup_target_for_coverage_lcov(
-    NAME coverage
-    EXECUTABLE Gradido_LoginServer_Test
-	EXCLUDE "${EXCLUDE_FOR_COV}"
-    #DEPENDENCIES lib/libmariadb.so.3
-)
+option(COLLECT_COVERAGE_DATA "Use cov to collect coverage informations" OFF)
+set(COVERAGE_TOOL "Coverage Tool (gcovr|lcov|fastcov)" CACHE STRING "gcovr")
+
+if(COLLECT_COVERAGE_DATA)
+	
+	include(cmake/CodeCoverage.cmake)
+	append_coverage_compiler_flags()
+	set(EXCLUDE_FOR_HTML_COV 
+		"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
+		"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
+		"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/include/gtest/internal/*"
+		"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/src/"
+	)
+	if("${COVERAGE_TOOL}" STREQUAL "gcovr")
+		setup_target_for_coverage_gcovr_html(
+			NAME coverage
+			EXECUTABLE Gradido_LoginServer_Test
+			EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+			GCOVR_ADDITIONAL_ARGS "--txt "
+			#DEPENDENCIES lib/libmariadb.so.3
+		)
+	endif()
+
+	set(EXCLUDE_FOR_COV 
+		${EXCLUDE_FOR_HTML_COV}
+		"/usr/include/*"
+	)
+	if("${COVERAGE_TOOL}" STREQUAL "lcov")
+		setup_target_for_coverage_lcov(
+			NAME coverage
+			EXECUTABLE Gradido_LoginServer_Test
+			EXCLUDE "${EXCLUDE_FOR_COV}"
+			#DEPENDENCIES lib/libmariadb.so.3
+		)
+	endif()
+	
+	if("${COVERAGE_TOOL}" STREQUAL "fastcov")
+		setup_target_for_coverage_fastcov(
+	     NAME coverage                    # New target name
+	     EXECUTABLE Gradido_LoginServer_Test -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
+	     #BASE_DIRECTORY "../"                        # Base directory for report
+	                                                 #  (defaults to PROJECT_SOURCE_DIR)
+	     EXCLUDE "${EXCLUDE_FOR_COV}"                # Patterns to exclude.
+	     NO_DEMANGLE                                 # Don't demangle C++ symbols
+	                                                 #  even if c++filt is found
+	     SKIP_HTML                                   # Don't create html report
+	 )
+	endif()
+
 endif()
 
 project(Gradido_LoginServer_Test C CXX)

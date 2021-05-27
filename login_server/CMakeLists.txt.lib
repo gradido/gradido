@@ -212,7 +212,7 @@ project(Gradido_LoginServer_Test C CXX)
 enable_testing()
 
 option(COLLECT_COVERAGE_DATA "Use cov to collect coverage informations" OFF)
-set(COVERAGE_TOOL "Coverage Tool (gcovr|lcov)" CACHE STRING "gcovr")
+set(COVERAGE_TOOL "Coverage Tool (gcovr|lcov|fastcov)" CACHE STRING "gcovr")
 
 
 if(COLLECT_COVERAGE_DATA)
@@ -228,9 +228,10 @@ if(COLLECT_COVERAGE_DATA)
 	)
 	if("${COVERAGE_TOOL}" STREQUAL "gcovr")
 		setup_target_for_coverage_gcovr_html(
-			NAME coverage_html
+			NAME coverage
 			EXECUTABLE Gradido_LoginServer_Test
 			EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+			GCOVR_ADDITIONAL_ARGS "--txt "
 			#DEPENDENCIES lib/libmariadb.so.3
 		)
 	endif()
@@ -246,6 +247,19 @@ if(COLLECT_COVERAGE_DATA)
 			EXCLUDE "${EXCLUDE_FOR_COV}"
 			#DEPENDENCIES lib/libmariadb.so.3
 		)
+	endif()
+	
+	if("${COVERAGE_TOOL}" STREQUAL "fastcov")
+		setup_target_for_coverage_fastcov(
+	     NAME coverage                    # New target name
+	     EXECUTABLE Gradido_LoginServer_Test -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
+	     #BASE_DIRECTORY "coverage"                        # Base directory for report
+	                                                 #  (defaults to PROJECT_SOURCE_DIR)
+	     EXCLUDE "${EXCLUDE_FOR_COV}"                # Patterns to exclude.
+	     NO_DEMANGLE                                 # Don't demangle C++ symbols
+	                                                 #  even if c++filt is found
+	     SKIP_HTML                                   # Don't create html report
+	 )
 	endif()
 
 endif()

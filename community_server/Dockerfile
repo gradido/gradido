@@ -24,4 +24,6 @@ RUN apt-get update \
 WORKDIR /var/www/cakephp
 ENV XDEBUG_MODE=coverage
 
+CMD ./vendor/bin/phpunit && lcov --no-external --capture --quiet --output-file ./webroot/coverage/coverage.info
+
 

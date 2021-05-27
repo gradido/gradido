@@ -32,7 +32,8 @@ RUN apt-get update && \
     apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install gcovr
+RUN pip3 install gcovr setuptools wheel && \
+    pip3 install fastcov
 
 
 #########################################################################################################
@@ -47,7 +48,7 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN if [ ! -d "./build_cov" ] ; then mkdir build_cov; fi
 
 RUN cd build_cov && \
-	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=gcovr .. 
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=fastcov .. 
 	#make -j$(nproc) Gradido_LoginServer_Test
 
 #RUN chmod +x build_cov/bin/Gradido_LoginServer_Test
@@ -55,8 +56,10 @@ RUN cd build_cov && \
 #CMD ./build_cov/bin/Gradido_LoginServer_Test
 
 #ENTRYPOINT make -C build_cov coverage
-CMD cd build_cov && make -j$(nproc) Gradido_LoginServer_Test && make coverage_html
-
+CMD cd build_cov && make -j$(nproc) Gradido_LoginServer_Test && make coverage && \
+	if [ ! -d "./coverage" ] ; then mkdir coverage; fi && \
+	cp coverage.info ./coverage/
+	
 #########################################################################################################
 # Build debug 
 #########################################################################################################

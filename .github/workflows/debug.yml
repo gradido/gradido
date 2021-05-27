@@ -38,7 +38,8 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/code/build_cov/coverage_html -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
+          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/code/build_cov/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
+          mkdir ~/coverage
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
@@ -48,7 +49,7 @@ jobs:
         with:
           report_name: Coverage Backend
           type: lcov
-          result_path: ./coverage/lcov.info
+          result_path: ./coverage/coverage.info
           min_coverage: 8
           token: ${{ github.token }}
 
