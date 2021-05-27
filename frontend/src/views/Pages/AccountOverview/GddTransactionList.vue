@@ -2,7 +2,8 @@
   <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
-        v-for="item in transactions.slice(0, max)"
+        id="gdd-transaction-list"
+        v-for="item in transactions"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -66,6 +67,14 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
+      <pagination-buttons v-if="showPagination && transactionCount > pageSize"
+                          :has-next="hasNext"
+                          :has-previous="hasPrevious"
+                          :total-pages="totalPages"
+                          :current-page="currentPage"
+                          @show-next="showNext"
+                          @show-previous="showPrevious">
+      </pagination-buttons>
       <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
@@ -74,46 +83,84 @@
 </template>
 
 <script>
-const iconsByType = {
-  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
-  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
-  creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
-  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
-}
+ import PaginationButtons from '../../../components/PaginationButtons'
+ 
+ const iconsByType = {
+   send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
+   receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
+   creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
+   decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
+ }
 
-export default {
-  name: 'gdd-transaction-list',
-  props: {
-    transactions: { default: () => [] },
-    max: { type: Number, default: 1000 },
-    timestamp: { type: Number, default: 0 },
-    transactionCount: { type: Number, default: 0 },
-  },
-  watch: {
-    timestamp: {
-      immediate: true,
-      handler: 'updateTransactions',
-    },
-  },
-  methods: {
-    updateTransactions() {
-      this.$emit('update-transactions')
-    },
-    getProperties(item) {
-      const type = iconsByType[item.type]
-      if (type)
-        return {
-          icon: type.icon,
-          class: type.classes + ' m-mb-1 font2em',
-          operator: type.operator,
-        }
-      this.throwError('no icon to given type')
-    },
-    throwError(msg) {
-      throw new Error(msg)
-    },
-  },
-}
+ export default {
+   name: 'gdd-transaction-list',
+   components: {
+     PaginationButtons,
+   },
+   data() {
+     return {
+       currentPage: 1,
+     }
+   },
+   props: {
+     transactions: { default: () => [] },
+     pageSize: { type: Number, default: 5 },
+     timestamp: { type: Number, default: 0 },
+     transactionCount: { type: Number, default: 0 },
+     showPagination: { type: Boolean, default: false },
+   },
+   watch: {
+     timestamp: {
+       immediate: true,
+       handler: 'updateTransactions',
+     },
+   },
+   computed: {
+     hasNext() {
+       console.log('hasNext', this.currentPage * this.pageSize < this.transactionCount)
+       return this.currentPage * this.pageSize < this.transactionCount
+     },
+     hasPrevious() {
+       console.log('hasPrevious', this.currentPage > 1)
+       return this.currentPage > 1
+     },
+     totalPages() {
+       return Math.ceil(this.transactionCount / this.pageSize)
+     },
+   },
+   methods: {
+     updateTransactions(pagination = {}) {
+       this.$emit('update-transactions', pagination)
+     },
+     getProperties(item) {
+       const type = iconsByType[item.type]
+       if (type)
+         return {
+           icon: type.icon,
+           class: type.classes + ' m-mb-1 font2em',
+           operator: type.operator,
+         }
+       this.throwError('no icon to given type')
+     },
+     throwError(msg) {
+       throw new Error(msg)
+     },
+     showNext() {
+       this.updateTransactions({
+         firstPage: 1 + this.pageSize * (this.currentPage - 1),
+         items: this.pageSize,
+       })
+       this.currentPage++
+     },
+     showPrevious() {
+       this.currentPage--
+       this.updateTransactions({
+         firstPage: 1 + this.pageSize * (this.currentPage - 1),
+         items: this.pageSize,
+       })
+     },
+   },
+ }
 </script>
 <style>
 .el-table .cell {

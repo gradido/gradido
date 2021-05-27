@@ -9,6 +9,7 @@
       :timestamp="timestamp"
       :transactionCount="transactionCount"
       :transactions="transactions"
+      :show-pagination="true"
       @update-transactions="updateTransactions"
     />
   </div>
