@@ -33,8 +33,8 @@ export default {
     }
   },
   methods: {
-    updateTransactions() {
-      this.$emit('update-transactions')
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
     },
   },
 }

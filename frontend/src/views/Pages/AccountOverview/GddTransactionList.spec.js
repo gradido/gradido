@@ -203,9 +203,9 @@ describe('GddTransactionList', () => {
         })
       })
 
-      describe('max property set to 2', () => {
+      describe('pageSize property set to 2', () => {
         beforeEach(async () => {
-          await wrapper.setProps({ max: 2 })
+          await wrapper.setProps({ pageSize: 2 })
         })
 
         it('shows only 2 transactions', () => {
