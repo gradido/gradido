@@ -10,11 +10,11 @@
           <div style="width: 8%">
             <b-icon :icon="getIcon(item)" :class="getClass(item)" />
           </div>
-          <div class="font1_2em pr-2 text-right" style="width: 22%">
+          <div class="font1_2em pr-2 text-right" style="width: 32%">
             <span>{{ getOperator(item) }}</span>
-            {{ $n(item.balance) }}
+            {{ $n(item.balance, 'decimal') }}
           </div>
-          <div class="font1_2em text-left pl-2" style="width: 65%">
+          <div class="font1_2em text-left pl-2" style="width: 55%">
             {{ item.name }}
             <small>{{ item.name ? '' : $t('decay') }}</small>
             <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
