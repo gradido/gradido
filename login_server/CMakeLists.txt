@@ -139,13 +139,22 @@ FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
 ENDFOREACH(proto)
 
 ############################## parse cpsp Files ####################################
+
+IF(WIN32)
+	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	conan_basic_setup()
+	#add_compile_definitions(POCO_NETSSL_WIN)
+ENDIF()
+
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/cpsp GRADIDO_CPSP_PAGE_SRC_PATH)
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/http_pages GRADIDO_HTTP_PAGES_PATH)
 file(MAKE_DIRECTORY ${GRADIDO_HTTP_PAGES_PATH})
 
 FILE(GLOB GRADIDO_HTTP_PAGES_SRC "${GRADIDO_CPSP_PAGE_SRC_PATH}/*.cpsp")
 IF(WIN32)
+	string(REGEX REPLACE "(.*)package/([a-f0-9]*)" "\\1build/\\2/build/bin" POCO_BUILD_BIN "${CONAN_POCO_ROOT}")
     find_program(POCO_PAGE_COMPILER cpspc.exe PATHS "${CONAN_POCO_ROOT}")
+	find_program(POCO_PAGE_COMPILER cpspc.exe PATHS "${POCO_BUILD_BIN}")
 ELSE()
 	find_program(POCO_PAGE_COMPILER cpspc PATHS "${CMAKE_CURRENT_SOURCE_DIR}/build/bin")
 ENDIF()
@@ -159,15 +168,27 @@ FOREACH(cpsp_file ${GRADIDO_HTTP_PAGES_SRC})
    FILE(TO_NATIVE_PATH ${GRADIDO_HTTP_PAGES_PATH}/${cpsp_file_parsed}Page.cpp cpsp_file_parsed_native)
    
    IF(${cpsp_file_native} IS_NEWER_THAN ${cpsp_file_parsed_native})
-		EXECUTE_PROCESS(
-			COMMAND 
-			${POCO_PAGE_COMPILER} 
-			--output-dir=${GRADIDO_HTTP_PAGES_PATH}
-			--header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
-			--noline
-			${cpsp_file_native}
-			RESULT_VARIABLE rv
-		)
+		IF(WIN32) 
+			EXECUTE_PROCESS(
+				COMMAND 
+				${POCO_PAGE_COMPILER} 
+				/output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				/header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				/noline
+				${cpsp_file_native}
+				RESULT_VARIABLE rv
+			)
+		ELSE()
+			EXECUTE_PROCESS(
+				COMMAND 
+				${POCO_PAGE_COMPILER} 
+				--output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				--header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				--noline
+				${cpsp_file_native}
+				RESULT_VARIABLE rv
+			)
+		ENDIF()
 		# Optional, but that can show the user if something have gone wrong with the proto generation 
 		IF(${rv})
 			MESSAGE("Generation of HTTP Page return ${rv} for cpsp ${cpsp_file_native}")
@@ -244,11 +265,7 @@ if(MSVC)
 	source_group("Test" FILES ${TEST})
 endif()
 
-IF(WIN32)
-	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-	conan_basic_setup()
-	#add_compile_definitions(POCO_NETSSL_WIN)
-ENDIF()
+
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 
