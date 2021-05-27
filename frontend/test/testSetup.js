@@ -17,6 +17,8 @@ import VueQrcode from 'vue-qrcode'
 import BaseHeader from '@/components/BaseHeader'
 import StatsCard from '@/components/Cards/StatsCard.vue'
 
+import VueMoment from 'vue-moment'
+
 import clickOutside from '@/directives/click-ouside.js'
 
 global.localVue = createLocalVue()
@@ -37,6 +39,7 @@ global.localVue.use(Notifications)
 global.localVue.use(SideBar)
 global.localVue.use(VueRouter)
 global.localVue.use(VueQrcode)
+global.localVue.use(VueMoment)
 global.localVue.component(BaseInput.name, BaseInput)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
