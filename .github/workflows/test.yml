@@ -235,6 +235,10 @@ jobs:
                  --health-timeout=2s
                  --health-retries=3
     steps: 
+      - name: Debug service
+        run: echo "$(docker ps)"
+      - name: Debug container choosing script
+        run: echo "$(docker container ls | grep mariadb | awk '{ print $1 }')"
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
