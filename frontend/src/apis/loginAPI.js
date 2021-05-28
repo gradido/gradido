@@ -88,12 +88,55 @@ const loginAPI = {
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
   },
+  changePasswordProfil: async (sessionId, email, password, passwordNew) => {
+    const payload = {
+      session_id: sessionId,
+      email,
+      update: {
+        'User.password': password,
+        'User.passwordNew': passwordNew,
+      },
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  changeEmailProfil: async (sessionId, email, emailNew) => {
+    const payload = {
+      session_id: sessionId,
+      email,
+      update: {
+        'User.emailNew': emailNew,
+      },
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  changeUsernameProfil: async (sessionId, email, usernameNew) => {
+    const payload = {
+      session_id: sessionId,
+      email,
+      update: {
+        'User.usernameNew': usernameNew,
+      },
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
   updateLanguage: async (sessionId, email, language) => {
     const payload = {
       session_id: sessionId,
       email,
       update: {
         'User.language': language,
+      },
+    }
+    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  updateUserdata: async (sessionId, email, firstName, lastName, description) => {
+    const payload = {
+      session_id: sessionId,
+      email,
+      update: {
+        'User.first_name': firstName,
+        'User.last_name': lastName,
+        'User.description': description,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)

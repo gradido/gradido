@@ -4,8 +4,8 @@
 
     <form-user-data :UserProfileTestData="UserProfileTestData" />
     <form-username :UserProfileTestData="UserProfileTestData" />
-    <form-user-mail :UserProfileTestData="UserProfileTestData" />
-    <form-user-passwort :UserProfileTestData="UserProfileTestData" />
+    <form-user-mail />
+    <form-user-passwort />
   </b-container>
 </template>
 <script>
@@ -28,6 +28,7 @@ export default {
     transactionCount: { type: Number, default: 0 },
     UserProfileTestData: { type: Object },
   },
+  methods: {},
 }
 </script>
 <style></style>
