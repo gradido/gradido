@@ -374,27 +374,21 @@ class JsonRequestHandlerController extends AppController {
   
     private function putTransaction($transactionBase64) {
       $transaction = new Transaction($transactionBase64);
-      //echo "new transaction\n$transactionBase64\n";
-      /*try {
-        $transactionBin = sodium_base642bin($transactionBase64, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
-        $transaction = new Transaction($transactionBin);
-      } catch(\SodiumException $e) {
-        //echo 'exception: '. $e->getMessage();
-        return $this->returnJson(['state' => 'error', 'msg' => 'error decoding base 64', 'details' => $e->getMessage(), 'base64' => $transactionBase64]);
-      }*/
       
-      //echo "after new transaction<br>";
       if($transaction->hasErrors()) {
         $this->sendEMailTransactionFailed($transaction, 'parse');
         return $this->returnJson(['state' => 'error', 'msg' => 'error parsing transaction', 'details' => $transaction->getErrors()]);
       }
-      //echo "after check on errors<br>";
+      
       if(!$transaction->validate()) {
           //$transaction_details
         $this->sendEMailTransactionFailed($transaction, 'validate');
-        return $this->returnJsonSaveError($transaction, ['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
+        return $this->returnJsonSaveError($transaction, [
+            'state' => 'error',
+            'msg' => 'error validate transaction',
+            'details' => $transaction->getErrors()
+        ]);
       }
-      //echo "after validate <br>";
       
       if ($transaction->save()) {
         // success
