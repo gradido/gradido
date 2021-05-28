@@ -265,7 +265,7 @@ class AppRequestControllerTest extends TestCase
         }
 
         if(is_array($expected)) {
-            $dynamic_fields = ['timeUsed', 'decay_date', 'decay'];
+            $dynamic_fields = ['timeUsed', 'decay_date', 'decay', 'gdtSum'];
             // copy timeUsed because this value will be variy always
             foreach($dynamic_fields as $field) {
                 if(isset($expected[$field]) && isset($json->$field)) {

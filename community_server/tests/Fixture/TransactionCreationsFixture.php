@@ -19,7 +19,7 @@ class TransactionCreationsFixture extends BaseTestFixture
         'transaction_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'state_user_id' => ['type' => 'integer', 'length' => 10, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'amount' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'ident_hash' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null],
+        'ident_hash' => ['type' => 'binary', 'length' => 32, 'null' => false, 'default' => '0000000000000000000000000000000000000000000000000000000000000000', 'comment' => '', 'precision' => null],
         'target_date' => ['type' => 'timestamp', 'length' => null, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
         '_constraints' => [
             'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
