@@ -234,6 +234,10 @@ jobs:
                  --health-interval=5s
                  --health-timeout=2s
                  --health-retries=3
+      login-server:
+        image: gradido/login_server:latest
+        ports: 
+          - 1201:1201
     steps: 
       - name: Debug service
         run: echo "$(docker ps)"
@@ -259,7 +263,7 @@ jobs:
       ##########################################################################
       - name: Login-Server | Unit tests
         run: |
-          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/code/build_cov/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
+          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') --network container:$(docker container ls | grep login | awk '{ print $1 }') -v ~/coverage:/code/build_cov/coverage -v $(pwd)/configs/login_server:/etc/grd_login gradido/login_server:test 
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
