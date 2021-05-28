@@ -1,23 +1,22 @@
 <template>
-  <div>
+  <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
         v-for="item in transactions.slice(0, max)"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex" v-b-toggle="'a' + item.date + ''">
+        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''">
           <div style="width: 8%">
-            <b-icon :icon="getIcon(item)" :class="getClass(item)" />
+            <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
           </div>
-          <div class="font1_2em pr-2 text-right" style="width: 22%">
-            <span>{{ getOperator(item) }}</span>
-            {{ $n(item.balance) }}
+          <div class="font1_2em pr-2 text-right" style="width: 32%">
+            <span>{{ getProperties(item).operator }}</span>
+            {{ $n(item.balance, 'decimal') }}
           </div>
-          <div class="font1_2em text-left pl-2" style="width: 65%">
-            {{ item.name }}
-            <small>{{ item.name ? '' : $t('decay') }}</small>
-            <div class="text-sm">{{ $moment(item.date).format('DD.MM.YYYY - HH:mm:ss') }}</div>
+          <div class="font1_2em text-left pl-2" style="width: 55%">
+            {{ item.name ? item.name : $t('decay') }}
+            <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
           </div>
           <div class="text-right" style="width: 5%">
             <b-button class="btn-sm">
@@ -85,17 +84,10 @@ const iconsByType = {
 export default {
   name: 'gdd-transaction-list',
   props: {
-    transactions: { default: [] },
+    transactions: { default: () => [] },
     max: { type: Number, default: 1000 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
-  },
-  data() {
-    return {
-      form: [],
-      fields: ['balance', 'date', 'memo', 'name', 'transaction_id', 'type', 'details'],
-      items: [],
-    }
   },
   watch: {
     timestamp: {
@@ -107,23 +99,18 @@ export default {
     updateTransactions() {
       this.$emit('update-transactions')
     },
-    getIcon(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.icon
-      const thing = new Error('no item to given type')
-      thing()
+    getProperties(item) {
+      const type = iconsByType[item.type]
+      if (type)
+        return {
+          icon: type.icon,
+          class: type.classes + ' m-mb-1 font2em',
+          operator: type.operator,
+        }
+      this.throwError('no icon to given type')
     },
-    getClass(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.classes + ' m-mb-1 font2em'
-      const thing = new Error('no item to given type')
-      thing()
-    },
-    getOperator(item) {
-      const icon = iconsByType[item.type]
-      if (icon) return icon.operator
-      const thing = new Error('no item to given type')
-      thing()
+    throwError(msg) {
+      throw new Error(msg)
     },
   },
 }

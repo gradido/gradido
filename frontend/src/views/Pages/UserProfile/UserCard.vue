@@ -3,7 +3,6 @@
     <div class="w-100 text-center">
       <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
     </div>
-
     <b-row>
       <b-col>
         <div class="card-profile-stats d-flex justify-content-center mt-md-5">

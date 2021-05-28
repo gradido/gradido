@@ -1,0 +1,158 @@
+<%@ page class="DecodeTransactionPage" %>
+<%@ page form="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="HTTPInterface/SessionHTTPRequestHandler.h" %>
+<%!
+#include "sodium.h"
+#include "proto/gradido/GradidoTransaction.pb.h"
+#include "proto/gradido/TransactionBody.pb.h"
+#include "controller/User.h"
+#include "model/gradido/TransactionBase.h"
+#include "model/gradido/TransactionCreation.h"
+#include "lib/DataTypeConverter.h"
+%>
+<%%
+	const char* pageName = "Decode Transaction";
+	proto::gradido::TransactionBody transactionBody;
+	proto::gradido::GradidoTransaction transaction;
+	bool decoded = false;
+	bool adminUser = false;
+	if(mSession && mSession->getNewUser())  {
+		auto user = mSession->getNewUser();
+		auto model = user->getModel();
+		if(model && model->getRole() == model::table::ROLE_ADMIN) {
+			adminUser = true;
+		}
+	}
+	if(!form.empty()) {
+		auto base64 = form.get("transaction", "");
+		if(base64 != "") {
+			unsigned char* binBuffer = (unsigned char*)malloc(base64.size());
+			size_t resultingBinSize = 0;
+			size_t base64_size = base64.size();
+			bool encodingValid = false;
+			bool encodedTransaction = false;
+			if (!sodium_base642bin(
+				binBuffer, base64_size,
+				base64.data(), base64_size, 
+				nullptr, &resultingBinSize, nullptr, 
+				sodium_base64_VARIANT_ORIGINAL)) 
+			{
+				encodingValid = true;
+			} else if(!sodium_base642bin(
+  					  binBuffer, base64_size, 
+					  base64.data(), base64_size,
+					  nullptr, &resultingBinSize, nullptr,
+					  sodium_base64_VARIANT_URLSAFE_NO_PADDING)) {
+				  encodingValid = true;
+				  //free(binBuffer);
+				  //addError(new Error("ProcessingTransaction", "it is maybe a Transaction, but I support only TransactionBodys"), false);
+				  encodedTransaction = true;
+			}
+			if(false == encodingValid) {
+				free(binBuffer);
+				addError(new Error("ProcessingTransaction", "error decoding base64"), false);
+			} else {
+				std::string binString((char*)binBuffer, resultingBinSize);
+				free(binBuffer);
+				if(!encodedTransaction) {
+					
+					if (!transactionBody.ParseFromString(binString)) {
+						addError(new Error("ProcessingTransaction", "error creating Transaction Body from binary Message"), false);			
+					} else {
+						decoded = true;
+					}
+				} else {
+					
+					if(!transaction.ParseFromString(binString)) {
+						addError(new Error("ProcessingTransaction", "error creating Transaction from binary Message"), false);
+					} else {
+						if(!transactionBody.ParseFromString(transaction.body_bytes())) {
+							addError(new Error("ProcessingTransaction", "error creating Transaction Body from Transaction body bytes"), false);			
+						} else {
+							decoded = true;
+						}
+					}
+				}
+			}
+			
+		}
+	} 
+	/*
+	char *sodium_bin2hex(char * const hex, const size_t hex_maxlen,
+                     const unsigned char * const bin, const size_t bin_len);
+	*/
+%><%@ include file="include/header_old.cpsp" %>
+<div class="grd_container">
+	<h1>Transaktion dekodieren</h1>
+	<%= getErrorsHtml() %>
+	<form method="POST">
+		<fieldset class="grd_container_small">
+			<legend>Transaktion dekodieren</legend>
+			<textarea style="width:100%;height:100px" name="transaction"><%= !form.empty() ? form.get("transaction", "") : "" %></textarea>
+		</fieldset>
+		<input class="grd-form-bn grd-form-bn-succeed" type="submit" name="submit" value="Dekodieren">
+	</form>
+	<% if(decoded) { %>
+		<p><b>Verwendungszweck:</b></p>
+		<p><%= transactionBody.memo() %></p>
+		<% if(transactionBody.has_transfer()) { 
+			auto transfer = transactionBody.transfer();
+			char hex[65]; memset(hex, 0, 65);
+		%>
+			<% if(transfer.has_local()) { 
+				auto local_transfer = transfer.local();
+				auto sender_pubkey = local_transfer.sender().pubkey();
+				auto receiver_pubkey = local_transfer.receiver();
+				sodium_bin2hex(hex, 65, (const unsigned char*)sender_pubkey.data(), sender_pubkey.size());
+			%>
+				<h3>Local Transfer</h3>
+				<b>From: </b><%= hex %>
+				<% sodium_bin2hex(hex, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size()); %>
+				<b>To: </b><%= hex %>
+				<b>Amount: </b><%= model::gradido::TransactionBase::amountToString(local_transfer.sender().amount()) %>
+			<% } else { %>
+				<h3>- Not implemented yet (Group Transfer) -</h3>
+			<% } %>
+
+		<% } else if(transactionBody.has_creation()) { 
+			auto creation = transactionBody.creation();
+			model::gradido::TransactionCreation creationObject("", creation);
+			//TransactionCreation creationObject("", creation);
+			auto receiver = creation.receiver();
+			char hex[65]; memset(hex, 0, 65);
+			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());
+			
+			Poco::AutoPtr<controller::User> user = nullptr;
+			if(adminUser) {
+				user = controller::User::create();
+				if(!user->load((const unsigned char*)receiver.pubkey().data())) {
+					user.assign(nullptr);
+				}
+			}
+			//pubkey
+		%>
+		<h3>Creation</h3>
+		<% if(!adminUser || user.isNull() || !user->getModel()) { %>
+		<p>pubkey: <%= hex %></p>
+		<% } else { %>
+		<p>user: </p>
+		<p><%= user->getModel()->toHTMLString() %></p>
+		<% } %>
+		<p>amount: <%= model::gradido::TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<p>target date: <%= creationObject.getTargetDateString() %></p>
+		<% } else if(transactionBody.has_group_member_update()) { 
+			auto group_member_update = transactionBody.group_member_update();
+			auto paired_transaction_id = group_member_update.paired_transaction_id();
+			std::string paired_transaction_string = std::to_string(paired_transaction_id.seconds()) + "." + std::to_string(paired_transaction_id.nanos());
+			%>
+			<h3>Group Member Update</h3>
+			<p><b>Target group alias: </b><%= group_member_update.target_group() %></p>
+			<p><b>Paired transaction id: </b><%= paired_transaction_string %></p>
+			<p><b>Member Update Type: </b><%= proto::gradido::GroupMemberUpdate_MemberUpdateType_Name(group_member_update.member_update_type()) %></p>
+			<p><b>User Public Key Hex: </b><%= DataTypeConverter::pubkeyToHex((const unsigned char*)group_member_update.user_pubkey().data()) %></p>
+		<% } %>
+	<% } %>
+</div>
+<%@ include file="include/footer.cpsp" %>

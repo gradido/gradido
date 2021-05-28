@@ -8,9 +8,6 @@ describe('GddSend', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $moment: jest.fn((m) => ({
-      format: () => m,
-    })),
     $i18n: {
       locale: jest.fn(() => 'en'),
     },

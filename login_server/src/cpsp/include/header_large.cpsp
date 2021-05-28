@@ -1,0 +1,32 @@
+<%!
+#include "ServerConfig.h"
+%><%%
+	bool withMaterialIcons = false;
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Gradido Login Server: <%= pageName %></title>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/main.css">
+<% if(withMaterialIcons) { %>
+<link rel="stylesheet" type="text/css" href="<%= ServerConfig::g_php_serverPath %>css/materialdesignicons.min.css">
+<% } %>
+</head>
+<body>
+    <div class="layout">
+		<div class="sidebar1 nav-menu initial">
+			<div class="nav-vertical">
+				<ul>
+					<% if(!user.isNull()) { %>
+						<li><a href="<%= user->getGroupBaseUrl() %>/"><span class="link-title">Startseite</span></a></li>
+					<% } %>
+					<li><a href="<%= getBaseUrl() %>/groups"><span class="link-title">Gruppen</span></a></li>
+					<li><a href="<%= getBaseUrl() %>/nodes"><span class="link-title">Node Server</span></a></li>
+					<li><a href="<%= getBaseUrl() %>/hedera_account"><span class="link-title">Hedera Accounts</span></a></li>
+					<li><a href="<%= getBaseUrl() %>/topic"><span class="link-title">Hedera Topics</span></a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="content">
