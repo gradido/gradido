@@ -234,10 +234,6 @@ jobs:
                  --health-interval=5s
                  --health-timeout=2s
                  --health-retries=3
-      login-server:
-        image: gradido/login_server:latest
-        ports: 
-          - 1201:1201
     steps: 
       - name: Debug service
         run: echo "$(docker ps)"
@@ -285,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_test_community_server]
     services: 
-     mariadb:
+      mariadb:
         image: mariadb/server:10.5
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
@@ -297,7 +293,7 @@ jobs:
                  --health-interval=5s
                  --health-timeout=2s
                  --health-retries=3
-    login-server:
+      login-server:
         image: gradido/login_server:latest
         ports: 
           - 1201:1201
