@@ -298,7 +298,7 @@ jobs:
         ports: 
           - 1201:1201
         volumes:
-          - ~/configs/login_server:/etc/grd_login
+          - configs/login_server:/etc/grd_login
     steps:
       - name: Debug service
         run: echo "$(docker ps)"
