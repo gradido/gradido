@@ -297,8 +297,8 @@ jobs:
         image: gradido/login_server:latest
         ports: 
           - 1201:1201
-        volumes:
-          - configs/login_server:/etc/grd_login
+        #volumes:
+          #- configs/login_server:/etc/grd_login
     steps:
       - name: Debug service
         run: echo "$(docker ps)"
