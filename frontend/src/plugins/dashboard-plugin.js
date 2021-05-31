@@ -11,10 +11,6 @@ import GlobalDirectives from './globalDirectives'
 // Sidebar on the right. Used as a local plugin in DashboardLayout.vue
 import SideBar from '@/components/SidebarPlugin'
 
-// element ui language configuration
-import lang from 'element-ui/lib/locale/lang/en'
-import locale from 'element-ui/lib/locale'
-
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
@@ -38,7 +34,6 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 // import the styles
 import 'vue-loading-overlay/dist/vue-loading.css'
-locale.use(lang)
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
