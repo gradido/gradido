@@ -343,7 +343,7 @@ class AppRequestsController extends AppController
         $decay = true;
         $transactions = [];
         $transactions_from_db = $stateUserTransactionsQuery->toArray();
-        if(count(transactions_from_db)) {
+        if(count($transactions_from_db)) {
             if($orderDirection == 'DESC') {
                 $transactions_from_db = array_reverse($transactions_from_db);
             }
