@@ -297,6 +297,12 @@ jobs:
         ports: 
           - 1201:1201
     steps:
+      - name: Start Network
+        run:  docker network create test-network
+      - name: Connect Mariadb to network
+        run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
+      - name: Connect Login-Server to network
+        run: docker network connect test-network $(docker container ls | grep login-server | awk '{ print $1 }')
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
@@ -317,7 +323,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network test-network -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
