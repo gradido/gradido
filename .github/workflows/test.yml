@@ -296,13 +296,7 @@ jobs:
         image: gradido/login_server:default
         ports: 
           - 1201:1201
-        volumes:
-          - /home/runner/work/gradido/gradido/configs/login_server:/etc/grd_login
     steps:
-      - name: Debug service
-        run: echo "$(docker ps)"
-      - name: Debug folder
-        run: echo "$(pwd)"
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
