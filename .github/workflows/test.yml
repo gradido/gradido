@@ -292,13 +292,13 @@ jobs:
                  --health-interval=5s
                  --health-timeout=2s
                  --health-retries=3
-      login-server:
+      login_server:
         image: gradido/login_server:default
         #ports: 
          # - 1201:1201
     steps:
       - name: get login-server container id
-        run: LOGIN_SERVER_ID=$(docker container ls | grep login-server | awk '{ print $1 }')
+        run: LOGIN_SERVER_ID=$(docker container ls | grep login_server | awk '{ print $1 }')
       - name: debug running container
         run: docker container ps
       - name: Start Network
