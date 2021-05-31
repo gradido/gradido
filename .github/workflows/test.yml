@@ -297,14 +297,18 @@ jobs:
         #ports: 
          # - 1201:1201
     steps:
+      - name: get login-server container id
+        run: LOGIN_SERVER_ID=$(docker container ls | grep login-server | awk '{ print $1 }')
       - name: debug running container
         run: docker container ps
-     # - name: Start Network
-     #   run:  docker network create test-network
-     # - name: Connect Mariadb to network
-     #   run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
-     # - name: Connect Login-Server to network
-     #   run: docker network connect test-network $(docker container ls | grep login-server | awk '{ print $1 }')
+      - name: Start Network
+        run:  docker network create test-network
+      - name: Connect Mariadb to network
+        run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
+      - name: show login-server log
+        run: docker logs ${LOGIN_SERVER_ID}
+      - name: Connect Login-Server to network
+        run: docker network connect test-network ${LOGIN_SERVER_ID}
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
@@ -325,7 +329,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network test-network -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
