@@ -83,13 +83,14 @@ ENTRYPOINT ["build/bin/Gradido_LoginServer"]
 #########################################################################################################
 # Build release 
 #########################################################################################################
-FROM gradido/login_dependencies:alpine-release-1 as release
+FROM gradido/login_dependencies:alpine-release-2 as release
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 COPY ./src ./src
+RUN ln -s /usr/local/googletest ./googletest
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
@@ -126,3 +127,11 @@ COPY --from=release  /usr/lib/libgcc_s.so.1 /usr/lib/
 RUN chmod +x /usr/bin/Gradido_LoginServer
 ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
 #CMD Gradido_LoginServer
+
+#########################################################################################################
+# run release with default docker config
+#########################################################################################################
+FROM login_server as login_server_default_config
+
+COPY ../configs/login_server/grd_login.properties /etc/grd_login/
+

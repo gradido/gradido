@@ -270,7 +270,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./coverage/coverage.info
-          min_coverage: 8
+          min_coverage: 6
           token: ${{ github.token }}
 
   ##############################################################################
@@ -282,11 +282,10 @@ jobs:
     needs: [build_test_community_server]
     services: 
       mariadb:
-        image: mariadb/server:10.5
+        image: gradido/mariadb:test
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
-           MARIADB_DATABASE: gradido_community_test
         ports: 
           - 3306:3306
         options: --health-cmd="mysqladmin ping"
@@ -294,16 +293,16 @@ jobs:
                  --health-timeout=2s
                  --health-retries=3
       login-server:
-        image: gradido/login_server:latest
+        image: gradido/login_server:default
         ports: 
           - 1201:1201
-        #volumes:
-          #- configs/login_server:/etc/grd_login
+        volumes:
+          - /home/runner/work/gradido/gradido/configs/login_server:/etc/grd_login
     steps:
       - name: Debug service
         run: echo "$(docker ps)"
       - name: Debug folder
-        run: $(pwd)
+        run: echo "$(pwd)"
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
@@ -324,7 +323,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') --network container:$(docker container ls | grep login | awk '{ print $1 }') -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }') -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
