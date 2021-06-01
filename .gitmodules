@@ -15,16 +15,13 @@
 [submodule "login_server/dependencies/spirit-po"]
 	path = login_server/dependencies/spirit-po
 	url = https://github.com/cbeck88/spirit-po.git
-[submodule "login_server/dependencies/grpc"]
-	path = login_server/dependencies/grpc
-	url = https://github.com/grpc/grpc.git
 [submodule "login_server/dependencies/poco"]
 	path = login_server/dependencies/poco
 	url = https://github.com/pocoproject/poco.git
 [submodule "login_server/dependencies/cmake-modules"]
 	path = login_server/dependencies/cmake-modules
 	url = https://github.com/viaduck/cmake-modules.git
-	
+
 [submodule "community_server/src/protobuf"]
 	path = community_server/src/protobuf
 	url =  https://github.com/gradido/gradido_protocol.git
