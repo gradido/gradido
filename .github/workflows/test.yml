@@ -296,8 +296,13 @@ jobs:
       - name: get mariadb container id
         run: echo "::set-output name=id::$(docker container ls | grep mariadb | awk '{ print $1 }')"
         id: mariadb_container
+      - name: show networks
+        run: echo "$(docker network ls)"
+      - name: get automatic created network
+        run: echo "::set-output name=id::$(docker network ls | grep bridge | awk '{ print $1 }')"
+        id: network
       - name: Start Login-Server
-        run: docker run --network container:${{ steps.mariadb_container.outputs.id }} --name=login-server -d gradido/login_server:default
+        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:default
       - name: get login-server container id
         run: echo "::set-output name=id::$(docker container ls | grep login_server | awk '{ print $1 }')"
         id: login_server_container
@@ -316,7 +321,7 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
-
+        
       # for debugging login-server
       - name: check login-server
         run: docker logs ${{ steps.login_server_container.outputs.id }}
@@ -327,7 +332,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run --network container:${{ steps.login_server_container.outputs.id }} --network container:${{ steps.mariadb_container.outputs.id }} -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network ${{ steps.network.outputs.id }} -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
