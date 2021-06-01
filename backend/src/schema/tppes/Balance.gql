@@ -1,0 +1,8 @@
+type Balance {
+  gdd: Float
+  gdt: Float
+}
+
+type Mutation {
+  getBalance(): Balance
+}

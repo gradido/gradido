@@ -1,0 +1,60 @@
+enum UserRole {
+  user
+  admin
+}
+
+type User {
+  id: ID!
+  firstName: String
+  lastName: String
+  userName: ID!
+
+  language: String
+  description: String
+  
+  publicKey: String
+  privateKey: String
+  
+  createdAt: String
+  updatedAt: String
+    
+  disabled: Boolean
+  deleted: Boolean
+  
+  role: UserRole
+  group: Group
+}
+
+type Query {
+  User(
+    id: ID
+    firstName: String
+    lastName: String
+    userName: ID
+  ): [User]
+}
+
+type Mutation {
+  # return a JWT 
+  login(email: String!, password: String!): String!
+  changePassword(oldPassword: String!, newPassword: String!): String!
+  
+  # return success of sending an email
+  requestPasswordReset(email: String!): Boolean!
+
+  # return success of password reset
+  resetPassword(email: String!, nonce: String!, newPassword: String!): Boolean!
+
+  updateUser(
+    firstName: String
+    lastName: String
+    userName: ID
+    language: String
+    description: String
+  ): User
+
+  disableUser(id: ID!): User
+  deleteUser(id: ID!): User
+
+  changeUserRole(id: ID!, role: UserRole!): User
+}

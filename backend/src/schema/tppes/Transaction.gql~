@@ -1,0 +1,6 @@
+enum TransactionTypes {
+  create
+  send
+  receive
+  decay
+}

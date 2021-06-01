@@ -1,0 +1,9 @@
+type Group {
+  id: ID!
+  alias: String
+  name: String
+  url: String
+  host: String
+  home: String
+  description: String
+}

@@ -1,0 +1,22 @@
+enum TransactionType {
+  create
+  send
+  receive
+  decay
+}
+
+type Transaction {
+  id: ID!
+  type: TransactionType
+  memo: String
+  receivedDate: String
+}
+
+type Query {
+  Transaction(currentPage: Int = 1, pageSize: Int = 25): [Transaction] 
+}
+
+type Mutation {
+  sendTransaction(amount: Float!, receiver: ID!): Transaction
+}
+
