@@ -69,10 +69,10 @@ jobs:
     steps:
       #- name: Start Network
         #run:  docker network create test-network
-      - name: Connect Mariadb to network
-        run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
-      - name: Start Login-Server
-        run: docker run --network test-network --name=login-server -d gradido/login_server:default
+      #- name: Connect Mariadb to network
+      #  run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
+      #- name: Start Login-Server
+      #  run: docker run --network test-network --name=login-server -d gradido/login_server:default
       - name: get login-server container id
         run: echo "::set-output name=LOGIN_SERVER_ID::$(docker container ls | grep login_server | awk '{ print $1 }')"
         id: login_server_container_id
@@ -110,8 +110,8 @@ jobs:
         run: docker logs ${{ steps.login_server_container_id.outputs.LOGIN_SERVER_ID }}
       - name: community server | Unit tests
         run: |
-          docker run --network test-network  -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
-          cp -r ~/coverage ./coverage
+          docker run --network test-network  -v /home/einhornimmond/code/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          cp -r /home/einhornimmond/code/coverage ./coverage
           
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
@@ -121,6 +121,6 @@ jobs:
         with:
           report_name: Coverage Backend
           type: lcov
-          result_path: ./coverage/lcov.info
+          result_path: /home/einhornimmond/code/coverage/lcov.info
           min_coverage: 8
           token: ${{ github.token }}
