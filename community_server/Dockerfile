@@ -16,9 +16,13 @@ RUN composer dump-autoload
 #########  special for code coverage and testing
 FROM community_server as test
 
+
+
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install php7.4-xdebug lcov \
+    && apt-get -y --no-install-recommends install php7.4-xdebug lcov python3-pip \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
+RUN pip3 install gcovr 
 
 WORKDIR /var/www/cakephp
 ENV XDEBUG_MODE=coverage
