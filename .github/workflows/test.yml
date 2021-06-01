@@ -327,7 +327,7 @@ jobs:
       ##########################################################################
       - name: community server | Unit tests
         run: |
-          docker run --network container:${{ steps.mariadb_container.outputs.id }} -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network container:${{ steps.login_server_container.outputs.id }} --network container:${{ steps.mariadb_container.outputs.id }} -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
