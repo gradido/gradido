@@ -299,7 +299,7 @@ jobs:
       - name: show networks
         run: echo "$(docker network ls)"
       - name: get automatic created network
-        run: echo "::set-output name=id::$(docker network ls | grep bridge | awk '{ print $1 }')"
+        run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start Login-Server
         run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:default
