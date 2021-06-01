@@ -2,7 +2,7 @@
   <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
-        v-for="item in transactions.slice(0, pageSize)"
+        v-for="item in transactions"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -104,7 +104,7 @@ export default {
   },
   props: {
     transactions: { default: () => [] },
-    pageSize: { type: Number, default: 5 },
+    pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
@@ -129,7 +129,7 @@ export default {
   methods: {
     updateTransactions() {
       this.$emit('update-transactions', {
-        firstPage: 1 + this.pageSize * (this.currentPage - 1),
+        firstPage: this.currentPage,
         items: this.pageSize,
       })
     },

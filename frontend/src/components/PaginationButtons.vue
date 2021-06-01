@@ -2,7 +2,7 @@
   <div class="pagination-buttons">
     <b-row class="m-4">
       <b-col class="text-right">
-        <b-button :disabled="!hasPrevious" @click="$emit('show-previous')">
+        <b-button class="previous-page" :disabled="!hasPrevious" @click="$emit('show-previous')">
           <b-icon icon="chevron-left" variant="primary"></b-icon>
         </b-button>
       </b-col>
@@ -10,7 +10,7 @@
         <p class="text-center pt-2">{{ currentPage }} / {{ totalPages }}</p>
       </b-col>
       <b-col>
-        <b-button :disabled="!hasNext" @click="$emit('show-next')">
+        <b-button class="next-page" :disabled="!hasNext" @click="$emit('show-next')">
           <b-icon icon="chevron-right" variant="primary"></b-icon>
         </b-button>
       </b-col>
