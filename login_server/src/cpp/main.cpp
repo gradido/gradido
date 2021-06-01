@@ -13,7 +13,6 @@
 #include "model/table/EmailOptIn.h"
 
 #include "Poco/DateTimeParser.h"
-#include <grpc/grpc.h>
 
 #ifndef _TEST_BUILD
 
@@ -52,18 +51,16 @@ int main(int argc, char** argv)
 		return -3;
 	}
 	printf("[Gradido_LoginServer::main] passed important tests\n");
-	grpc_init();
 
 	Gradido_LoginServer app;
 	try {
 		auto result = app.run(argc, argv);
-		grpc_shutdown();
 		return result;
 	}
 	catch (Poco::Exception& ex) {
 		printf("[Gradido_LoginServer::main] exception by starting server: %s\n", ex.displayText().data());
 	}
 	return -1;
-	
+
 }
 #endif

@@ -24,17 +24,11 @@
 #include "DebugMnemonicPage.h"
 #include "AdminCheckUserBackupPage.h"
 #include "TranslatePassphrasePage.h"
-#include "PassphrasedTransactionPage.h"
 #include "AdminUserPasswordResetPage.h"
 #include "RegisterDirectPage.h"
 #include "AdminGroupsPage.h"
-#include "AdminTopicPage.h"
-#include "AdminHederaAccountPage.h"
-#include "AdminNodeServerPage.h"
-#include "AdminNodeServerTestPage.h"
 
 #include "DecodeTransactionPage.h"
-#include "RepairDefectPassphrasePage.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -121,7 +115,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 
 	// TODO: count invalid session requests from IP and block IP for some time to prevent brute force session hijacking
 	// or use log file and configure fail2ban for this to do
-	
+
 	if (url_first_part == "/checkEmail") {
 		//return new CheckEmailPage(s);
 		//printf("url checkEmail\n");
@@ -147,12 +141,8 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		mLogging.information(dateTimeString + " decode");
 		return basicSetup(new DecodeTransactionPage(s), request, timeUsed);
 	}
-	if (url_first_part == "/passphrased_transaction") {
-		return basicSetup(new PassphrasedTransactionPage, request, timeUsed);
-	}
-	if (url_first_part == "/adminNodeServerTest") {
-		return basicSetup(new AdminNodeServerTestPage, request, timeUsed);
-	}
+
+
 	if (s) {
 		if (externReferer != "") {
 
@@ -178,9 +168,6 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (url_first_part == "/transform_passphrase") {
 			return basicSetup(new TranslatePassphrasePage(s), request, timeUsed);
 		}
-		if (url_first_part == "/repairPassphrase") {
-			return basicSetup(new RepairDefectPassphrasePage(s), request, timeUsed);
-		}
 		if (userModel && userModel->getRole() == model::table::ROLE_ADMIN) {
 			if (url_first_part == "/adminRegister") {
 				return basicSetup(new RegisterAdminPage(s), request, timeUsed);
@@ -200,21 +187,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			if (url_first_part == "/groups") {
 				return basicSetup(new AdminGroupsPage(s), request, timeUsed);
 			}
-			if (url_first_part == "/topic") {
-				return basicSetup(new AdminTopicPage(s), request, timeUsed);
-			}
-			if (url_first_part == "/hedera_account") {
-				return basicSetup(new AdminHederaAccountPage(s), request, timeUsed);
-			}
-			if (url_first_part == "/nodes") {
-				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
-			}
 		}
 
 		if(url_first_part == "/logout") {
 			sm->releaseSession(s);
 			// remove cookie(s)
-			
+
 			//printf("session released\n");
 			return basicSetup(new LoginPage(nullptr), request, timeUsed);
 		}
@@ -223,7 +201,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 				sm->releaseSession(s);
 
 				return basicSetup(new LoginPage(nullptr), request, timeUsed);
-			}			
+			}
 		}
 		auto sessionState = s->getSessionState();
 		//printf("session state: %s\n", s->getSessionStateString());
@@ -241,7 +219,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (url_first_part == "/login" || url_first_part == "/") {
 			return basicSetup(new LoginPage(s), request, timeUsed);
 		}
-		
+
 	} else {
 
 		if (url_first_part == "/config") {
@@ -305,7 +283,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
 			*/
 		}
-		else {	
+		else {
 			//sm->releaseSession(session);
 			return basicSetup(new CheckEmailPage(session), request, timeUsed);
 		}
@@ -325,7 +303,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		//!        -2 = critical error
 		//!         0 = ok
 		*/
-		// update session, mark as verified 
+		// update session, mark as verified
 		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
 		printf("[%s] return from update email verification: %d\n", __FUNCTION__, retUpdateEmailVerification);
 		if (0 == retUpdateEmailVerification) {
@@ -340,7 +318,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 				pageRequestHandler = new PassphrasePage(session);
 			}
 			return basicSetup(pageRequestHandler, request, timeUsed);
-			
+
 		}
 		else if (1 == retUpdateEmailVerification) {
 			//auto user = session->getUser();
@@ -358,7 +336,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		else if (-2 == retUpdateEmailVerification) {
 			return basicSetup(new Error500Page(session), request, timeUsed);
 		}
-		
+
 	}
 	if (session) {
 		sm->releaseSession(session);

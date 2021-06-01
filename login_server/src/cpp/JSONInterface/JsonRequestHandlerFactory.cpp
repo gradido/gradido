@@ -13,7 +13,6 @@
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
 #include "JsonUnknown.h"
-#include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
 #include "JsonLoginViaEmailVerificationCode.h"
@@ -28,7 +27,7 @@
 #include "JsonSearch.h"
 
 
-JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
+JsonRequestHandlerFactory::JsonRequestHandlerFactory()
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
 {
 }
@@ -75,9 +74,6 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
 	}
-	else if (url_first_part == "/checkTransaction") {
-		return new JsonTransaction;
-	}
 	else if (url_first_part == "/createTransaction") {
 		return new JsonCreateTransaction;
 	}
@@ -86,7 +82,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/getUsers") {
 		return new JsonGetUsers;
-	} 
+	}
 	else if (url_first_part == "/networkInfos") {
 		return new JsonNetworkInfos;
 	}
@@ -136,7 +132,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
 	}
-	
+
 	return new JsonUnknown;
 }
 
