@@ -13,7 +13,6 @@ COPY ./configs/community_server/app.php ./config/
 RUN composer update
 RUN composer dump-autoload
 
-
 #########  special for code coverage and testing
 FROM community_server as test
 
@@ -22,7 +21,7 @@ RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
     make install
 
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install php7.4-xdebug \
+    && apt-get -y --no-install-recommends install php7.4-xdebug lcov \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 WORKDIR /var/www/cakephp
