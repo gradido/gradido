@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "decay": "Vergänglichkeit",
   "form": {
     "cancel":"Abbrechen",
     "reset": "Zurücksetzen",
@@ -84,7 +85,9 @@
     },
     "thx": {
       "title": "Danke!",
-      "subtitle": "Wir haben dir eine eMail gesendet."
+      "email": "Wir haben dir eine eMail gesendet.",
+      "reset": "Dein Passwort wurde geändert.",
+      "register": "Du bist jetzt regisriert."      
     },
     "overview":{
       "account_overview":"Kontoübersicht",

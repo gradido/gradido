@@ -1,5 +1,4 @@
 import { createLocalVue } from '@vue/test-utils'
-import ElementUI from 'element-ui'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import Vuex from 'vuex'
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -17,6 +16,8 @@ import VueQrcode from 'vue-qrcode'
 import BaseHeader from '@/components/BaseHeader'
 import StatsCard from '@/components/Cards/StatsCard.vue'
 
+import VueMoment from 'vue-moment'
+
 import clickOutside from '@/directives/click-ouside.js'
 
 global.localVue = createLocalVue()
@@ -28,7 +29,6 @@ Object.keys(rules).forEach((rule) => {
   })
 })
 
-global.localVue.use(ElementUI)
 global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
@@ -37,6 +37,7 @@ global.localVue.use(Notifications)
 global.localVue.use(SideBar)
 global.localVue.use(VueRouter)
 global.localVue.use(VueQrcode)
+global.localVue.use(VueMoment)
 global.localVue.component(BaseInput.name, BaseInput)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)

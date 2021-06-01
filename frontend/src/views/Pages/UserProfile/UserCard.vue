@@ -36,7 +36,7 @@
             </div>
             <div>
               <span class="heading">
-                {{ $n(balance) }}
+                {{ $n(balance, 'decimal') }}
               </span>
               <span class="description">GDD</span>
             </div>

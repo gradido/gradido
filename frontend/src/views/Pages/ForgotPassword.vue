@@ -62,7 +62,7 @@ export default {
     async onSubmit() {
       const result = await loginAPI.sendEmail(this.form.email)
       if (result.success) {
-        this.$router.push({ path: '/thx', params: { id: 'resetmail' } })
+        this.$router.push('/thx/password')
       } else {
         alert(result.result)
       }

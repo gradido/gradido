@@ -192,7 +192,7 @@ export default {
         this.model.firstname = ''
         this.model.lastname = ''
         this.password = ''
-        this.$router.push('/thx')
+        this.$router.push('/thx/register')
       } else {
         this.showError = true
         this.messageError = result.result.message
