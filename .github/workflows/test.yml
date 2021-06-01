@@ -290,7 +290,7 @@ jobs:
         #  - 3306:3306
         options: --health-cmd="mysqladmin ping"
                  --health-interval=5s
-                 --health-timeout=2s
+                 --health-timeout=5s
                  --health-retries=3
     steps:
       - name: Start Network
@@ -317,10 +317,12 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
-        
+
       # for debugging login-server
       - name: check login-server
         run: docker logs ${{ steps.login_server_container_id.outputs.LOGIN_SERVER_ID }}
+      - name: check mariadb
+        run: docker logs $(docker container ls | grep mariadb | awk '{ print $1 }')
       ##########################################################################
       # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
       ##########################################################################
