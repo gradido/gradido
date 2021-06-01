@@ -292,23 +292,16 @@ jobs:
                  --health-interval=5s
                  --health-timeout=2s
                  --health-retries=3
-      login_server:
-        image: gradido/login_server:default
-        #ports: 
-         # - 1201:1201
     steps:
-      - name: get login-server container id
-        run: LOGIN_SERVER_ID=$(docker container ls | grep login_server | awk '{ print $1 }')
-      - name: debug running container
-        run: docker container ps
       - name: Start Network
         run:  docker network create test-network
       - name: Connect Mariadb to network
         run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
-      - name: show login-server log
-        run: docker logs ${LOGIN_SERVER_ID}
-      - name: Connect Login-Server to network
-        run: docker network connect test-network ${LOGIN_SERVER_ID}
+      - name: Start Login-Server
+        run: docker run --network test-network --name=login-server -d gradido/login_server:default
+      - name: get login-server container id
+        run: echo "::set-output name=LOGIN_SERVER_ID::$(docker container ls | grep login_server | awk '{ print $1 }')"
+        id: login_server_container_id
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
@@ -324,6 +317,10 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
+        
+      # for debugging login-server
+      - name: check login-server
+        run: docker logs ${{ steps.login_server_container_id.outputs.LOGIN_SERVER_ID }}
       ##########################################################################
       # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
       ##########################################################################

@@ -62,25 +62,27 @@ jobs:
     #needs: [nothing]
     services: 
       mariadb:
-        image: mariadb/server:10.5
+        image: gradido/mariadb:test
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
-           MARIADB_DATABASE: gradido_community_test
-        #ports: 
-          #- 3306:3306
-        options: --health-cmd="mysqladmin ping"
-                 --health-interval=5s
-                 --health-timeout=2s
-                 --health-retries=3
-      login-server:
-        image: gradido/login_server:latest
-        ports: 
-          - 1201:1201
     steps:
-      - name: Get MySQL service ID
-        id: mariadb-service
-        run: echo "::set-output name=container-id::$(docker ps | grep -i mariadb | awk '{print $1}')"
+      #- name: Start Network
+        #run:  docker network create test-network
+      - name: Connect Mariadb to network
+        run: docker network connect test-network $(docker container ls | grep mariadb | awk '{ print $1 }')
+      - name: Start Login-Server
+        run: docker run --network test-network --name=login-server -d gradido/login_server:default
+      - name: get login-server container id
+        run: echo "::set-output name=LOGIN_SERVER_ID::$(docker container ls | grep login_server | awk '{ print $1 }')"
+        id: login_server_container_id
+      - name: show running container
+        run: docker container ls
+      - name: print login server container id
+        run: echo ${{ steps.login_server_container_id.outputs.LOGIN_SERVER_ID }}
+  #    - name: Get MySQL service ID
+ #       id: mariadb-service
+#        run: echo "::set-output name=container-id::$(docker ps | grep -i mariadb | awk '{print $1}')"
       #- name: Create docker network
       #  run: docker network create gradido-network
       - name: Debug service
@@ -104,9 +106,11 @@ jobs:
       ##########################################################################
       # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
       ##########################################################################
+      - name: check login-server
+        run: docker logs ${{ steps.login_server_container_id.outputs.LOGIN_SERVER_ID }}
       - name: community server | Unit tests
         run: |
-          docker run --network container:$(docker container ls | grep mariadb | awk '{ print $1 }')  -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
+          docker run --network test-network  -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
           
       ##########################################################################
