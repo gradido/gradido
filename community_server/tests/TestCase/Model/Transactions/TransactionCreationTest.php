@@ -30,6 +30,10 @@ class TransactionCreationTest extends TestCase
         parent::setUp();
         
     }
+    public function testDummy()
+    {
+        $this->assertEquals(true, true);
+    }
 
    
 

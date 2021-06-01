@@ -1,12 +1,10 @@
 <?php
 namespace App\Test\Fixture;
 
-use Cake\TestSuite\Fixture\TestFixture;
-
 /**
  * TransactionCreationsFixture
  */
-class TransactionCreationsFixture extends TestFixture
+class TransactionCreationsFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -37,16 +35,11 @@ class TransactionCreationsFixture extends TestFixture
      */
     public function init()
     {
-        $this->records = [
-            [
-                'id' => 1,
-                'transaction_id' => 1,
-                'state_user_id' => 1,
-                'amount' => 1,
-                'ident_hash' => 'Lorem ipsum dolor sit amet',
-                'target_date' => 1622472043,
-            ],
+         $sql = [
+            [2, 1, 4, 10000000, '0000000000000000000000000000000000000000000000000000000000000000', '2021-01-01 00:00:00'],
+            [3, 2, 1, 10000000, '0000000000000000000000000000000000000000000000000000000000000000', '2021-01-01 00:00:00']
         ];
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }
