@@ -87,8 +87,6 @@ export default {
       pending: true,
       UserProfileTestData: {
         username: 'Mustermax',
-        name: 'Max',
-        lastname: 'Mustermann',
         desc:
           'Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. ',
       },

@@ -7,9 +7,6 @@
             <span>{{ $t('form.username') }} {{ $t('form.change') }}</span>
           </a>
           <div v-else>
-            <a href="#formusername" @click="onSubmit">
-              <span class="mr-4 text-success display-4">{{ $t('form.save') }}</span>
-            </a>
             <a href="#formusername" @click="edit_username = !edit_username">
               <span>
                 <b>{{ $t('form.cancel') }}</b>
@@ -23,12 +20,21 @@
         <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
           <small>{{ $t('form.username') }}</small>
         </b-col>
-        <b-col v-if="edit_username" class="col-md-9 col-sm-10">@{{ username }}</b-col>
+        <b-col v-if="edit_username" class="col-md-9 col-sm-10">@{{ $store.state.username }}</b-col>
         <b-col v-else class="col-md-9 col-sm-10">
-          <b-input type="text" v-model="this.username"></b-input>
-          <div>
-            {{ $t('form.change_username_info') }}
-          </div>
+          <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
+            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
+              <b-form-input v-model="username" :placeholder="$store.state.username"></b-form-input>
+              <div>
+                {{ $t('form.change_username_info') }}
+              </div>
+              <div class="text-center" ref="submitButton">
+                <b-button type="submit" class="mt-4">
+                  {{ $t('form.save') }}
+                </b-button>
+              </div>
+            </b-form>
+          </validation-observer>
         </b-col>
       </b-row>
     </b-container>
@@ -42,11 +48,8 @@ export default {
   data() {
     return {
       edit_username: true,
-      username: this.UserProfileTestData.username,
+      username: '',
     }
-  },
-  props: {
-    UserProfileTestData: { type: Object },
   },
   methods: {
     async onSubmit() {

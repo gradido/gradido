@@ -25,10 +25,10 @@
             <small>{{ $t('form.firstname') }}</small>
           </b-col>
           <b-col v-if="edit_userdata" class="col-md-9 col-sm-10">
-            {{ UserProfileTestData.name }}
+            {{ userdata.first_name }}
           </b-col>
           <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="name"></b-input>
+            <b-input type="text" v-model="form.first_name"></b-input>
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -36,10 +36,10 @@
             <small>{{ $t('form.lastname') }}</small>
           </b-col>
           <b-col v-if="edit_userdata" class="col-md-9 col-sm-10">
-            {{ UserProfileTestData.lastname }}
+            {{ userdata.last_name }}
           </b-col>
           <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="lastname"></b-input>
+            <b-input type="text" v-model="form.last_name"></b-input>
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -50,12 +50,7 @@
             {{ UserProfileTestData.desc }}
           </b-col>
           <b-col v-else class="col-md-9 col-sm-10">
-            <b-textarea
-              rows="3"
-              max-rows="6"
-              placeholder="UserProfileTestData.dec"
-              v-model="dec"
-            ></b-textarea>
+            <b-textarea rows="3" max-rows="6" v-model="form.desc"></b-textarea>
           </b-col>
         </b-row>
       </div>
@@ -63,39 +58,37 @@
   </b-card>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
-
 export default {
   name: 'FormUserData',
-
+  props: {
+    userdata: { type: Object },
+    UserProfileTestData: { type: Object },
+  },
   data() {
     return {
       edit_userdata: true,
       sessionId: null,
       email: null,
-      name: this.UserProfileTestData.name,
-      lastname: this.UserProfileTestData.lastname,
-      desc: this.UserProfileTestData.desc,
+      form: {
+        first_name: this.userdata.first_name,
+        last_name: this.userdata.last_name,
+        desc: this.UserProfileTestData.desc,
+      },
     }
-  },
-  props: {
-    UserProfileTestData: { type: Object },
   },
   methods: {
     async onSubmit() {
-      // console.log(this.$props.UserProfileTestData)
-      const result = await loginAPI.updateUserdata(
-        this.sessionId,
-        this.email,
-        this.name,
-        this.lastname,
-        this.desc,
-      )
-      if (result.success) {
-        alert('updateUserdata success')
-      } else {
-        alert(result.result.message)
-      }
+      // this.$emit('update-userdata')
+      // console.log("form name:", this.first_name)
+      // console.log("form nachname:", this.last_name)
+      // console.log("form desc:", this.desc)
+      //  if (result.success) {
+      //    console.log("updateUserdata success")
+      //    console.log(result)
+      //
+      //  } else {
+      //    alert(result.result.message)
+      //  }
     },
   },
 }

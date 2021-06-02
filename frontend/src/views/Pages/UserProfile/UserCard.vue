@@ -14,7 +14,7 @@
             <span class="description">GDD</span>
           </div>
           <div>
-            <span class="heading">{{ $n(transactionCount) }}</span>
+            <span class="heading">{{ transactionCount }}</span>
             <span class="description">{{ $t('transactions') }}</span>
           </div>
           <div>
