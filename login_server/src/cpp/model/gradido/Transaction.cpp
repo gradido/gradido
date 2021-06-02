@@ -356,9 +356,10 @@ namespace model {
 
 					}
 				}
-				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
-				transaction_send_task->scheduleTask(transaction_send_task);
-				return true;
+				//UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
+				//transaction_send_task->scheduleTask(transaction_send_task);
+				return 1 == runSendTransaction();
+				//return true;
 			}
 			return false;
 		}
@@ -509,6 +510,7 @@ namespace model {
 
 					auto pt = PendingTasksManager::getInstance();
 					pt->reportErrorToCommunityServer(Poco::AutoPtr<Transaction>(this, true), error_name, error_description);
+					addError(new ParamError(function_name, error_name, error_description));
 				}
 				return -1;
 			}
@@ -562,6 +564,10 @@ namespace model {
 			if (JSON_REQUEST_RETURN_OK == result) {
 				if (!json_request.errorCount()) {
 					finishSuccess();
+				}
+				else {
+					getErrors(&json_request);
+					return -1;
 				}
 				return 1;
 			}
