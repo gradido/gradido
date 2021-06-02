@@ -7,7 +7,6 @@
 
 #include "ConfigPage.h"
 #include "LoginPage.h"
-//#include "RegisterPage.h"
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
 #include "CheckEmailPage.h"
@@ -19,14 +18,14 @@
 #include "UserUpdateGroupPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
-#include "ResetPassword.h"
+#include "ResetPasswordPage.h"
 #include "RegisterAdminPage.h"
 #include "DebugPassphrasePage.h"
 #include "DebugMnemonicPage.h"
-#include "AdminCheckUserBackup.h"
-#include "TranslatePassphrase.h"
-#include "PassphrasedTransaction.h"
-#include "AdminUserPasswordReset.h"
+#include "AdminCheckUserBackupPage.h"
+#include "TranslatePassphrasePage.h"
+#include "PassphrasedTransactionPage.h"
+#include "AdminUserPasswordResetPage.h"
 #include "RegisterDirectPage.h"
 #include "AdminGroupsPage.h"
 #include "AdminTopicPage.h"
@@ -35,7 +34,7 @@
 #include "AdminNodeServerTestPage.h"
 
 #include "DecodeTransactionPage.h"
-#include "RepairDefectPassphrase.h"
+#include "RepairDefectPassphrasePage.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -141,7 +140,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return basicSetup(new RegisterDirectPage, request, timeUsed);
 	}
 	if (url_first_part == "/resetPassword") {
-		return basicSetup(new ResetPassword, request, timeUsed);
+		return basicSetup(new ResetPasswordPage, request, timeUsed);
 	}
 
 	if (url_first_part == "/decode_transaction") {
@@ -149,7 +148,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return basicSetup(new DecodeTransactionPage(s), request, timeUsed);
 	}
 	if (url_first_part == "/passphrased_transaction") {
-		return basicSetup(new PassphrasedTransaction, request, timeUsed);
+		return basicSetup(new PassphrasedTransactionPage, request, timeUsed);
 	}
 	if (url_first_part == "/adminNodeServerTest") {
 		return basicSetup(new AdminNodeServerTestPage, request, timeUsed);
@@ -177,10 +176,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 
 		if (url_first_part == "/transform_passphrase") {
-			return basicSetup(new TranslatePassphrase(s), request, timeUsed);
+			return basicSetup(new TranslatePassphrasePage(s), request, timeUsed);
 		}
 		if (url_first_part == "/repairPassphrase") {
-			return basicSetup(new RepairDefectPassphrase(s), request, timeUsed);
+			return basicSetup(new RepairDefectPassphrasePage(s), request, timeUsed);
 		}
 		if (userModel && userModel->getRole() == model::table::ROLE_ADMIN) {
 			if (url_first_part == "/adminRegister") {
@@ -193,10 +192,10 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 				return basicSetup(new DebugMnemonicPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/checkUserBackups") {
-				return basicSetup(new AdminCheckUserBackup(s), request, timeUsed);
+				return basicSetup(new AdminCheckUserBackupPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/adminUserPasswordReset") {
-				return basicSetup(new AdminUserPasswordReset(s), request, timeUsed);
+				return basicSetup(new AdminUserPasswordResetPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/groups") {
 				return basicSetup(new AdminGroupsPage(s), request, timeUsed);

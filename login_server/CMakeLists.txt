@@ -24,6 +24,8 @@ include_directories(
 	"dependencies/grpc/third_party/googletest/googletest/include"
 	"build"
 	"build/proto"
+	"build/http_pages"
+	"src/cpp"
 )
 
 IF(UNIX)
@@ -103,7 +105,9 @@ FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
 		)
 		# Optional, but that can show the user if something have gone wrong with the proto generation 
 		IF(${rv})
-				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ELSE()
+			MESSAGE("Parsed: src/proto/gradido/${proto_parsed}.proto")
 		ENDIF()
    ENDIF()
 
@@ -127,17 +131,80 @@ FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
 		)
 		# Optional, but that can show the user if something have gone wrong with the proto generation 
 		IF(${rv})
-				MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
+		ELSE()
+			MESSAGE("Parsed: src/proto/hedera/hedera-protobuf/src/main/proto/${proto_parsed}.proto")
 		ENDIF()
    ENDIF()
 ENDFOREACH(proto)
 
+############################## parse cpsp Files ####################################
+
+IF(WIN32)
+	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	conan_basic_setup()
+	#add_compile_definitions(POCO_NETSSL_WIN)
+ENDIF()
+
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/cpsp GRADIDO_CPSP_PAGE_SRC_PATH)
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/http_pages GRADIDO_HTTP_PAGES_PATH)
+file(MAKE_DIRECTORY ${GRADIDO_HTTP_PAGES_PATH})
+
+FILE(GLOB GRADIDO_HTTP_PAGES_SRC "${GRADIDO_CPSP_PAGE_SRC_PATH}/*.cpsp")
+IF(WIN32)
+	string(REGEX REPLACE "(.*)package/([a-f0-9]*)" "\\1build/\\2/build/bin" POCO_BUILD_BIN "${CONAN_POCO_ROOT}")
+    find_program(POCO_PAGE_COMPILER cpspc.exe PATHS "${CONAN_POCO_ROOT}")
+	find_program(POCO_PAGE_COMPILER cpspc.exe PATHS "${POCO_BUILD_BIN}")
+ELSE()
+	find_program(POCO_PAGE_COMPILER cpspc PATHS "${CMAKE_CURRENT_SOURCE_DIR}/build/bin")
+ENDIF()
+
+MESSAGE("Poco Page Compiler: ${POCO_PAGE_COMPILER}")
+
+FOREACH(cpsp_file ${GRADIDO_HTTP_PAGES_SRC})
+   FILE(TO_NATIVE_PATH ${cpsp_file} cpsp_file_native)
+   get_filename_component(cpsp_file_parsed ${cpsp_file} NAME_WLE)
+   
+   FILE(TO_NATIVE_PATH ${GRADIDO_HTTP_PAGES_PATH}/${cpsp_file_parsed}Page.cpp cpsp_file_parsed_native)
+   
+   IF(${cpsp_file_native} IS_NEWER_THAN ${cpsp_file_parsed_native})
+		IF(WIN32) 
+			EXECUTE_PROCESS(
+				COMMAND 
+				${POCO_PAGE_COMPILER} 
+				/output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				/header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				/noline
+				${cpsp_file_native}
+				RESULT_VARIABLE rv
+			)
+		ELSE()
+			EXECUTE_PROCESS(
+				COMMAND 
+				${POCO_PAGE_COMPILER} 
+				--output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				--header-output-dir=${GRADIDO_HTTP_PAGES_PATH}
+				--noline
+				${cpsp_file_native}
+				RESULT_VARIABLE rv
+			)
+		ENDIF()
+		# Optional, but that can show the user if something have gone wrong with the proto generation 
+		IF(${rv})
+			MESSAGE("Generation of HTTP Page return ${rv} for cpsp ${cpsp_file_native}")
+		ELSE()
+			MESSAGE("Parsed: src/cpsp/${cpsp_file_parsed}.cpsp")
+		ENDIF()
+   ENDIF()
+
+ENDFOREACH(cpsp_file)
 
 ############################## bind source files ###################################
 
 FILE(GLOB CONTROLLER "src/cpp/controller/*.cpp" "src/cpp/controller/*.h")
 FILE(GLOB TINF "dependencies/tinf/src/*.c" "dependencies/tinf/src/*.h")
 FILE(GLOB HTTPInterface "src/cpp/HTTPInterface/*.h" "src/cpp/HTTPInterface/*.cpp")
+FILE(GLOB COMPILED_PAGES "build/http_pages/*.h" "build/http_pages/*.cpp")
 FILE(GLOB JSONInterface "src/cpp/JSONInterface/*.h" "src/cpp/JSONInterface/*.cpp")
 FILE(GLOB TASKS "src/cpp/tasks/*.cpp" "src/cpp/tasks/*.h")
 FILE(GLOB SINGLETON_MANAGER "src/cpp/SingletonManager/*.h" "src/cpp/SingletonManager/*.cpp")
@@ -161,7 +228,7 @@ FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/
 FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
 
 SET(LOCAL_SRCS 
-	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} 
+	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} ${COMPILED_PAGES}
 	${JSONInterface} ${CRYPTO}
 	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA} ${MODEL_GRADIDO}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
@@ -188,6 +255,7 @@ if(MSVC)
 	source_group("mysql" FILES ${MYSQL})
 	source_group("SingletonManager" FILES ${SINGLETON_MANAGER})
 	source_group("lib" FILES ${LIB_SRC})
+	source_group("HTTP-Interface\\pages" FILES ${COMPILED_PAGES})
 	source_group("HTTP-Interface" FILES ${HTTPInterface})
 	source_group("Json-Interface" FILES ${JSONInterface})
 	source_group("Test\\crypto" FILES ${TEST_CRYPTO})
@@ -197,11 +265,7 @@ if(MSVC)
 	source_group("Test" FILES ${TEST})
 endif()
 
-IF(WIN32)
-	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-	conan_basic_setup()
-	#add_compile_definitions(POCO_NETSSL_WIN)
-ENDIF()
+
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
 

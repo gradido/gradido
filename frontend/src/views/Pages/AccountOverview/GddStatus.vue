@@ -3,12 +3,12 @@
     <b-row>
       <b-col>
         <b-card style="background-color: #ebebeba3 !important">
-          {{ pending ? '—' : $n(balance) }} GDD
+          {{ pending ? '—' : $n(balance, 'decimal') }} GDD
         </b-card>
       </b-col>
       <b-col>
         <b-card class="lg-h2 text-right" style="background-color: #ebebeba3 !important">
-          {{ pending ? '—' : $n(GdtBalance) }} GDT
+          {{ pending ? '—' : $n(GdtBalance, 'decimal') }} GDT
         </b-card>
       </b-col>
     </b-row>
