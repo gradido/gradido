@@ -122,6 +122,14 @@ namespace controller {
 		Poco::Data::BLOB email_hash(*emailHash, crypto_generichash_BYTES);
 		return getModel()->loadFromDB("email_hash", email_hash);
 	}
+	size_t User::load(const std::string& emailOrUsername)
+	{
+		auto model = getModel();
+		if (1 == model->loadFromDB("email", emailOrUsername)) {
+			return 1;
+		}
+		return model->loadFromDB("username", emailOrUsername);
+	}
 	Poco::AutoPtr<User> User::sload(int user_id)
 	{
 		auto db = new model::table::User();

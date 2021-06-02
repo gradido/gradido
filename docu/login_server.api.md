@@ -38,9 +38,12 @@ with:
 ```json
 {
 	"email": "max.musterman@gmail.de",
+	"username": "Maxilein", 
 	"password": "123abcDE&"
 }
 ```
+`username` or `email` must be present!
+If booth present, `email` will be used. 
 
 ### Response
 In case of success returns:
