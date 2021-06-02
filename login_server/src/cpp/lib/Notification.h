@@ -7,6 +7,7 @@ class Notification
 {
 public:
 	Notification(const char* functionName, const char* message);
+	Notification(const char* functionName, const std::string& message);
 
 	const char* getFunctionName() { return mFunctionName.data(); }
 	const char* getMessage() { return mMessage.data(); }
