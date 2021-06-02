@@ -50,6 +50,7 @@ In case of success returns:
 	"state":"success",
 	"user": {
 		"created": 1614782270,
+		"description": "",
 		"disabled": false,
 		"email": "max.musterman@gmail.de",
 		"email_checked": true,
@@ -69,6 +70,7 @@ In case of success returns:
 
 - `user`: contain user object
   - `created`: timestamp on which account was created
+  - `description`: description of user for other user 
   - `disabled`: true if account was disabled, if disabled no login or coin transfer is possible
   - `email`: email of user
   - `email_checked`: true if user has successfully clicked on activation link in email
@@ -96,7 +98,9 @@ with:
 {
 	"email":"max.musterman@gmail.de",
 	"first_name":"Max",
-	"last_name":"Musterman" ,
+	"last_name":"Musterman",
+	"username": "Maxilein",
+	"description": "Tischler",
     "emailType": 2,
 	"group_id": 1,
 	"password":"123abcDE&",
@@ -104,6 +108,8 @@ with:
 }
 ```
 
+- `username`: (optional), mindestens 4 Zeichen, return error if already used
+- `description`: (optional), mindestens 4 Zeichen
 - `emailType`: control email-text sended with email verification code
   - 2: default, if user has registered directly
   - 5: if user was registered by an admin 
@@ -167,6 +173,8 @@ with:
 	"update": {
 		"User.first_name": "Max",
 		"User.last_name" : "Musterman",
+		"User.username" : "Maxilein",
+		"User.description" : "Tischler",
 		"User.disabled": 0,
 		"User.language": "de",
 		"User.password": "1234"
@@ -237,6 +245,8 @@ with:
 		"user.pubkeyhex",
 		"user.first_name",
 		"user.last_name",
+		"user.username",
+		"user.description",
 		"user.disabled",
 		"user.email_checked",
 		"user.language"
@@ -271,6 +281,8 @@ Return only the fields which are defined in request
 - `user.pubkeyhex`: public key of user in hex-format
 - `user.first_name`: first name of user 
 - `user.last_name`: last name of user 
+- `user.username`: username of user (min 4 Character, unique per group)
+- `user.description`: profil text for user
 - `user.disabled`: User will be disabled if he wants a account delete but has transactions. Until transactions are saved in real blockchain, we need this data because the public key
 is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible. Disabled User cannot login and cannot receive transactions. 
 - `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1
@@ -298,6 +310,7 @@ In case of success returns:
 	"info":[],
 	"user": {
 		"created": 1614782270,
+		"description": "Tischler"
 		"disabled": false,
 		"email": "max.musterman@gmail.de",
 		"email_checked": true,

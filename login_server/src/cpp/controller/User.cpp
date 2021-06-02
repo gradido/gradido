@@ -105,6 +105,12 @@ namespace controller {
 
 	}
 
+	bool User::isUsernameAlreadyUsed(const std::string& username)
+	{
+		auto db = getModel();
+		return db->loadFromDB({ "username", "group_id" }, username, db->getGroupId(), model::table::MYSQL_CONDITION_AND) > 0;
+	}
+
 	int User::load(const unsigned char* pubkey_array)
 	{
 		Poco::Data::BLOB pubkey(pubkey_array, 32);

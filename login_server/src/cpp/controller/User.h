@@ -47,6 +47,8 @@ namespace controller {
 
 		static std::vector<User*> search(const std::string& searchString, const std::string& accountState = "all");
 
+		bool isUsernameAlreadyUsed(const std::string& username);
+
 		//! \brief go through whole db and search users with email_checked = false and schedule resend 7 days after email_opt_in created date
 		//! 
 		//! Should be only called by server start, later it aren't necessary, because register function schedule resend tasks by himself.
