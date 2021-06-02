@@ -28,7 +28,7 @@
             {{ userdata.first_name }}
           </b-col>
           <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="form.first_name"></b-input>
+            <b-input type="text" v-model="form.firstName"></b-input>
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -39,7 +39,7 @@
             {{ userdata.last_name }}
           </b-col>
           <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="form.last_name"></b-input>
+            <b-input type="text" v-model="form.lastName"></b-input>
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -67,11 +67,11 @@ export default {
   data() {
     return {
       edit_userdata: true,
-      sessionId: null,
+      sessionId: this.$store.state.sessionId,
       email: null,
       form: {
-        first_name: this.userdata.first_name,
-        last_name: this.userdata.last_name,
+        firstName: this.userdata.first_name,
+        lastName: this.userdata.last_name,
         desc: this.UserProfileTestData.desc,
       },
     }

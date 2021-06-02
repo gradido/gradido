@@ -54,7 +54,7 @@ export default {
   methods: {
     async onSubmit() {
       // console.log(this.data)
-      const result = await loginAPI.changeUsernameProfil(this.username)
+      const result = await loginAPI.changeUsernameProfile(this.username)
       if (result.success) {
         alert('changeUsername success')
       } else {

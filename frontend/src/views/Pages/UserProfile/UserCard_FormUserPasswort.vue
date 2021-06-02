@@ -68,7 +68,6 @@ export default {
   data() {
     return {
       edit_pwd: true,
-      sessionId: null,
       email: null,
       password: '',
       passwordNew: '',
@@ -78,8 +77,8 @@ export default {
   methods: {
     async onSubmit() {
       // console.log(this.data)
-      const result = await loginAPI.changePasswordProfil(
-        this.sessionId,
+      const result = await loginAPI.changePasswordProfile(
+        this.$store.state.sessionId,
         this.email,
         this.password,
         this.passwordNew,

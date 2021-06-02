@@ -25,7 +25,7 @@
         </b-col>
         <b-col v-if="edit_email" class="col-md-9 col-sm-10">{{ $store.state.email }}</b-col>
         <b-col v-else class="col-md-9 col-sm-10">
-          <b-input type="text" v-model="$store.state.email"></b-input>
+          <b-input type="text" v-model="newEmail"></b-input>
         </b-col>
       </b-row>
     </b-container>
@@ -39,16 +39,16 @@ export default {
   data() {
     return {
       edit_email: true,
+      newEmail: '',
     }
   },
   methods: {
     async onSubmit() {
       // console.log(this.data)
       const result = await loginAPI.changeEmailProfil(
-        this.sessionId,
+        this.$store.state.sessionId,
         this.email,
-        this.password,
-        this.passwordNew,
+        this.newEmail,
       )
       if (result.success) {
         alert('changePassword success')
