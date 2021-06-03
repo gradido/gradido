@@ -86,6 +86,32 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					extractet_values++;
 				}
 			}
+			else if ("User.username" == name && value.size() > 3) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("User.username isn't a string");
+				}
+				else {
+					auto new_username = value.toString();
+					if (user_model->getUsername() != new_username) {
+						if (user->isUsernameAlreadyUsed(new_username)) {
+							jsonErrorsArray.add("username already used");
+						}
+						else {
+							user_model->setUsername(new_username);
+							extractet_values++;
+						}
+					}
+				}
+			}
+			else if ("User.description" == name && value.size() > 3) {
+				if (!value.isString()) {
+					jsonErrorsArray.add("description isn't a string");
+				}
+				else {
+					user_model->setDescription(value.toString());
+					extractet_values++;
+				}
+			}
 			else if ("User.disabled" == name) {
 				if (value.isBoolean()) {
 					bool disabled;

@@ -11,8 +11,6 @@
 #include "Poco/JSON/Array.h"
 #include "../SingletonManager/LanguageManager.h"
 
-#include "proto/hedera/Timestamp.pb.h"
-#include "proto/hedera/Duration.pb.h"
 #include "proto/gradido/BasicTypes.pb.h"
 
 #include "sodium.h"
@@ -58,15 +56,12 @@ namespace DataTypeConverter {
 	//! \brief convert duration in string showing seconds, minutes, hours or days
 	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
 
-	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp);
 	Poco::Timestamp convertFromProtoTimestamp(const proto::gradido::Timestamp& timestamp);
-	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp);
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp);
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
 	inline void convertToProtoTimestampSeconds(const Poco::Timestamp pocoTimestamp, proto::gradido::TimestampSeconds* protoTimestampSeconds) {
 		protoTimestampSeconds->set_seconds(pocoTimestamp.epochTime());
 	}
-	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 
 	//! \brief go through json object and replace every string entry in base64 format into hex format
 	//! \return count of replaced strings

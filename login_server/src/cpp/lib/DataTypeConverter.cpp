@@ -19,17 +19,17 @@ namespace DataTypeConverter
 			result = stoi(input);
 			return NUMBER_PARSE_OKAY;
 		}
-		catch (const std::invalid_argument& ia) 
+		catch (const std::invalid_argument& ia)
 		{
 			printf("[strToInt] exception: invalid argument: %s\n", ia.what());
 			return NUMBER_PARSE_INVALID_ARGUMENT;
 		}
-		catch (const std::out_of_range& oor) 
+		catch (const std::out_of_range& oor)
 		{
 			printf("[strToInt] exception: out or range: %s\n", oor.what());
 			return NUMBER_PARSE_OUT_OF_RANGE;
 		}
-		catch (const std::logic_error & ler) 
+		catch (const std::logic_error & ler)
 		{
 			printf("[strToInt] exception: logical error: %s\n", ler.what());
 			return NUMBER_PARSE_LOGIC_ERROR;
@@ -198,13 +198,13 @@ namespace DataTypeConverter
 		return bin;
 	}
 
-	
+
 
 
 	std::string binToBase64(const unsigned char* data, size_t size, int variant /*= sodium_base64_VARIANT_ORIGINAL*/)
 	{
 		auto mm = MemoryManager::getInstance();
-		
+
 		size_t encodedSize = sodium_base64_encoded_len(size, variant);
 		auto base64 = mm->getFreeMemory(encodedSize);
 		memset(*base64, 0, encodedSize);
@@ -295,12 +295,6 @@ namespace DataTypeConverter
 		return result;
 	}
 
-	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp)
-	{
-		// microseconds
-		google::protobuf::int64 microseconds = timestamp.seconds() * (google::protobuf::int64)10e5 + (google::protobuf::int64)(timestamp.nanos()) / (google::protobuf::int64)10e2;
-		return microseconds;
-	}
 
 	Poco::Timestamp convertFromProtoTimestamp(const proto::gradido::Timestamp& timestamp)
 	{
@@ -309,13 +303,6 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
-	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp)
-	{
-		auto microsecondsTotal = pocoTimestamp.epochMicroseconds();
-		auto secondsTotal = pocoTimestamp.epochTime();
-		protoTimestamp->set_seconds(secondsTotal);
-		protoTimestamp->set_nanos((microsecondsTotal - secondsTotal * pocoTimestamp.resolution()) * 1000);
-	}
 
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp)
 	{
@@ -332,11 +319,6 @@ namespace DataTypeConverter
 		return microseconds;
 	}
 
-
-	Poco::Timespan convertFromProtoDuration(const proto::Duration& duration)
-	{
-		return Poco::Timespan(duration.seconds(), 0);
-	}
 
 	int replaceBase64WithHex(Poco::JSON::Object::Ptr json)
 	{
@@ -356,7 +338,7 @@ namespace DataTypeConverter
 				count_replacements += replaceBase64WithHex(local_json);
 				json->set(it->first, local_json);
 			}
-			else if (it->second.isString()) 
+			else if (it->second.isString())
 			{
 				if (it->first == "amount") continue;
 				auto field_value = it->second.extract<std::string>();
@@ -383,7 +365,7 @@ namespace DataTypeConverter
 		for (Poco::JSON::Array::ValueVec::const_iterator it = json->begin(); it != json->end(); it++)
 		{
 			if (json->isObject(it)) {
-				
+
 				auto local_json = it->extract<Poco::JSON::Object::Ptr>();
 				count_replacements += replaceBase64WithHex(local_json);
 				json->set(count, local_json);
@@ -414,14 +396,14 @@ namespace DataTypeConverter
 
 	std::string replaceNewLineWithBr(std::string& in)
 	{
-		
+
 		std::string::size_type pos = 0; // Must initialize
 		while ((pos = in.find("\r\n", pos)) != std::string::npos) {
 			in.replace(pos, 2, "<br>");
 		}
 		pos = 0;
 		while ((pos = in.find("\n", pos)) != std::string::npos) {
-			in.replace(pos, 1, "<br>"); 
+			in.replace(pos, 1, "<br>");
 		}
 		pos = 0;
 		while ((pos = in.find(" ", pos)) != std::string::npos) {

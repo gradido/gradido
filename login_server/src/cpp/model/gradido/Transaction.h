@@ -86,14 +86,11 @@ namespace model {
 			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
 			inline Poco::AutoPtr<Transaction> getPairedTransaction() { return mPairedTransaction; }
 
-			bool setTopicIdByGroup(const std::string& alias);
-
 
 		protected:
 
 			bool ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user);
 
-			int runSendTransactionHedera();
 			int runSendTransactionMysql();
 
 			Poco::AutoPtr<Transaction> mPairedTransaction;

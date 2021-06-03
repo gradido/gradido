@@ -2,21 +2,13 @@
 #include "../../SingletonManager/ErrorManager.h"
 #include "../../SingletonManager/PendingTasksManager.h"
 #include "../../SingletonManager/LanguageManager.h"
-#include "../../SingletonManager/CronManager.h"
 #include "../../ServerConfig.h"
 
-#include "../../controller/HederaId.h"
-#include "../../controller/HederaAccount.h"
-#include "../../controller/HederaRequest.h"
 
 #include "../../lib/DataTypeConverter.h"
 #include "../../lib/Profiler.h"
 #include "../../lib/JsonRequest.h"
 
-#include "../hedera/Transaction.h"
-#include "../hedera/TransactionId.h"
-
-#include "../../tasks/HederaTask.h"
 
 #include <google/protobuf/util/json_util.h>
 
@@ -65,21 +57,11 @@ namespace model {
 				return nullptr;
 			}
 			auto group_model = group->getModel();
-			auto network_type = ServerConfig::g_HederaNetworkType;
-			auto topic_id = controller::HederaId::find(group_model->getID(), network_type);
-
-			if (topic_id.isNull()) {
-				em->addError(new ParamError(function_name, "could'n find topic for group: ", group_model->getID()));
-				em->addError(new ParamError(function_name, "network type: ", network_type));
-				em->sendErrorsAsEmail();
-				return nullptr;
-			}
 
 			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
 
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
 			auto model = result->getModel();
-			model->setHederaId(topic_id->getModel()->getID());
 			result->insertPendingTaskIntoDB(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
 			PendingTasksManager::getInstance()->addTask(result);
 			return result;
@@ -99,7 +81,6 @@ namespace model {
 			if (receiver.isNull() || !receiver->getModel()) {
 				return nullptr;
 			}
-			auto network_type = ServerConfig::g_HederaNetworkType;
 			auto receiver_model = receiver->getModel();
 
 			auto body = TransactionBody::create(memo, receiver, amount, targetDate, blockchainType);
@@ -107,17 +88,7 @@ namespace model {
 
 			result->setParam("blockchain_type", (int)blockchainType);
 			auto model = result->getModel();
-			if (blockchainType == BLOCKCHAIN_HEDERA) {
-				auto topic_id = controller::HederaId::find(receiver_model->getGroupId(), network_type);
 
-				if (topic_id.isNull()) {
-					em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
-					em->addError(new ParamError(function_name, "network type: ", network_type));
-					em->sendErrorsAsEmail();
-					return nullptr;
-				}
-				model->setHederaId(topic_id->getModel()->getID());
-			}
 
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
 			PendingTasksManager::getInstance()->addTask(result);
@@ -136,7 +107,6 @@ namespace model {
 		{
 			Poco::AutoPtr<Transaction> transaction;
 			Poco::AutoPtr<TransactionBody> transaction_body;
-			Poco::AutoPtr<controller::HederaId> topic_id;
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create transfer";
 
@@ -151,75 +121,6 @@ namespace model {
 				transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
 				transaction = new Transaction(transaction_body);
 			}
-			else if (blockchainType == BLOCKCHAIN_HEDERA)
-			{
-				auto network_type = ServerConfig::g_HederaNetworkType;
-
-
-				// LOCAL Transfer
-				if (receiverGroup.isNull() || sender_model->getGroupId() == receiverGroup->getModel()->getID())
-				{
-					topic_id = controller::HederaId::find(sender_model->getGroupId(), network_type);
-
-					if (topic_id.isNull())
-					{
-						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
-						em->addError(new ParamError(function_name, "network type: ", network_type));
-						em->sendErrorsAsEmail();
-						return transaction;
-					}
-					transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
-					transaction = new Transaction(transaction_body);
-				}
-				else
-				{
-					auto sender_group = controller::Group::load(sender_model->getGroupId());
-					if (sender_group.isNull())
-					{
-						em->addError(new ParamError(function_name, "couldn't find group with id: ", sender_model->getGroupId()));
-						em->sendErrorsAsEmail();
-						return transaction;
-					}
-					Poco::AutoPtr<controller::Group> transaction_group;
-					Poco::AutoPtr<controller::Group> topic_group;
-					// default constructor set it to now
-					Poco::Timestamp pairedTransactionId;
-					// create only inbound transaction, and outbound before sending to hedera
-					//for (int i = 0; i < 1; i++) {
-					if (!inbound) {
-						transaction_group = receiverGroup;
-						topic_group = sender_group;
-					}
-					// transaction send to receiver blockchain
-					else if (inbound) {
-						transaction_group = sender_group;
-						topic_group = receiverGroup;
-					}
-					auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
-					if (topic_id.isNull()) {
-						em->addError(new ParamError(function_name, "could'n find topic for group: ", sender_model->getGroupId()));
-						em->addError(new ParamError(function_name, "network type: ", network_type));
-						em->sendErrorsAsEmail();
-						return transaction;
-					}
-					if (transaction_group.isNull()) {
-						em->addError(new ParamError(function_name, "transaction group is zero, inbound", inbound));
-						em->sendErrorsAsEmail();
-						return transaction;
-					}
-
-					auto body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType, pairedTransactionId, transaction_group);
-					Poco::AutoPtr<Transaction> transaction = new Transaction(body);
-
-					auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
-					transfer_transaction->setOwnGroupAlias(sender_group->getModel()->getAlias());
-					transfer_transaction->setTargetGroupAlias(receiverGroup->getModel()->getAlias());
-
-				}
-				auto transaction_model = transaction->getModel();
-				transaction_model->setHederaId(topic_id->getModel()->getID());
-
-			}
 
 			transaction->setParam("blockchain_type", (int)blockchainType);
 			transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
@@ -228,25 +129,6 @@ namespace model {
 			return transaction;
 		}
 
-		bool Transaction::setTopicIdByGroup(const std::string& alias)
-		{
-			static const char* function_name = "Transaction::setTopicIdByGroup";
-			auto topic_groups = controller::Group::load(alias);
-			if (topic_groups.size() != 1) {
-				addError(new ParamError(function_name, "not one group found for alias: ", alias));
-				sendErrorsAsEmail();
-				return false;
-			}
-			auto topic = controller::HederaId::find(topic_groups[0]->getModel()->getID(), ServerConfig::g_HederaNetworkType);
-			if (topic.isNull()) {
-				addError(new ParamError(function_name, "no topic found for group id", topic_groups[0]->getModel()->getID()));
-				addError(new ParamError(function_name, "and network type: ", ServerConfig::g_HederaNetworkType));
-				sendErrorsAsEmail();
-				return false;
-			}
-			getModel()->setHederaId(topic->getModel()->getID());
-			return true;
-		}
 
 		Poco::AutoPtr<Transaction> Transaction::createTransfer(
 			const MemoryBin* senderPubkey,
@@ -267,7 +149,6 @@ namespace model {
 
 			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
 			auto receiver_model = receiver->getModel();
-			auto network_type = ServerConfig::g_HederaNetworkType;
 
 			auto sender_groups = controller::Group::load(senderGroupAlias);
 			if (!sender_groups.size()) {
@@ -298,16 +179,7 @@ namespace model {
 
 			auto body = TransactionBody::create(memo, senderPubkey, receiver, amount, pairedTransactionId, transaction_group);
 			result = new Transaction(body);
-			if (blockchainType == BLOCKCHAIN_HEDERA) {
-				auto topic_id = controller::HederaId::find(topic_group->getModel()->getID(), network_type);
-				if (topic_id.isNull()) {
-					em->addError(new ParamError(function_name, "could'n find topic for group: ", receiver_model->getGroupId()));
-					em->addError(new ParamError(function_name, "network type: ", network_type));
-					em->sendErrorsAsEmail();
-					return result;
-				}
-				result->getModel()->setHederaId(topic_id->getModel()->getID());
-			}
+
 			result->setParam("blockchain_type", (int)blockchainType);
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
 			PendingTasksManager::getInstance()->addTask(result);
@@ -484,9 +356,10 @@ namespace model {
 
 					}
 				}
-				UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
-				transaction_send_task->scheduleTask(transaction_send_task);
-				return true;
+				//UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
+				//transaction_send_task->scheduleTask(transaction_send_task);
+				return 1 == runSendTransaction();
+				//return true;
 			}
 			return false;
 		}
@@ -637,15 +510,14 @@ namespace model {
 
 					auto pt = PendingTasksManager::getInstance();
 					pt->reportErrorToCommunityServer(Poco::AutoPtr<Transaction>(this, true), error_name, error_description);
+					addError(new ParamError(function_name, error_name, error_description));
 				}
 				return -1;
 			}
 			else
 			{
-				if (mTransactionBody->isHederaBlockchain()) {
-					return runSendTransactionHedera();
-				}
-				else if (mTransactionBody->isMysqlBlockchain()) {
+
+				if (mTransactionBody->isMysqlBlockchain()) {
 					return runSendTransactionMysql();
 				}
 				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
@@ -654,145 +526,6 @@ namespace model {
 
 		}
 
-		int Transaction::runSendTransactionHedera()
-		{
-			static const char* function_name = "Transaction::runSendTransactionHedera";
-			// send transaction via hedera
-			auto network_type = ServerConfig::g_HederaNetworkType;
-			// TODO: get correct topic id for user group
-			//int user_group_id = 1;
-			//auto topic_id = controller::HederaId::find(user_group_id, network_type);
-			auto topic_id = controller::HederaId::load(getModel()->getHederaId());
-			auto hedera_operator_account = controller::HederaAccount::pick(network_type, false);
-
-			if (!topic_id.isNull() && !hedera_operator_account.isNull())
-			{
-				auto crypto_key = hedera_operator_account->getCryptoKey();
-				if (!crypto_key.isNull())
-				{
-					model::hedera::ConsensusSubmitMessage consensus_submit_message(topic_id);
-					std::string raw_message = mProtoTransaction.SerializeAsString();
-
-					if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BINARY == ServerConfig::g_ConsensusMessageFormat) {
-						consensus_submit_message.setMessage(raw_message);
-
-						// print to txt for debugging gradido node
-						static Poco::FastMutex _file_mutex;
-						Poco::ScopedLock<Poco::FastMutex> _lock_file(_file_mutex);
-						std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S") + "\n";
-
-						std::string json_message = getTransactionAsJson();
-						std::string base64_message = DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-						if (json_message != "")
-						{
-							Poco::Logger& transactions_log = Poco::Logger::get("transactions_log");
-							transactions_log.information(dateTimeString);
-							transactions_log.information(json_message);
-						}
-						if (base64_message != "")
-						{
-							Poco::Logger& transaction_log_base64 = Poco::Logger::get("transactions_log_base64");
-							transaction_log_base64.information(dateTimeString);
-							transaction_log_base64.information(base64_message);
-						}
-					}
-					else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING == ServerConfig::g_ConsensusMessageFormat) {
-						consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-					}
-					else if (ServerConfig::HEDERA_CONSENSUS_FORMAT_JSON == ServerConfig::g_ConsensusMessageFormat) {
-						std::string json_message = getTransactionAsJson();
-						if (json_message != "") {
-							consensus_submit_message.setMessage(json_message);
-						}
-						else {
-							//sendErrorsAsEmail();
-							return -7;
-						}
-
-					}
-					// if using testnet, transfer message base64 encoded to check messages in hedera block explorer
-					//if (network_type == table::HEDERA_TESTNET) {
-						//consensus_submit_message.setMessage(DataTypeConverter::binToBase64((const unsigned char*)raw_message.data(), raw_message.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-					//}
-					//else {
-
-					//}
-					auto hedera_transaction_body = hedera_operator_account->createTransactionBody();
-					hedera_transaction_body->setConsensusSubmitMessage(consensus_submit_message);
-					model::hedera::Transaction hedera_transaction;
-
-					hedera_transaction.sign(crypto_key->getKeyPair(), std::move(hedera_transaction_body));
-
-					HederaRequest hedera_request;
-					Poco::AutoPtr<HederaTask> hedera_task(new HederaTask(this));
-
-					if (HEDERA_REQUEST_RETURN_OK != hedera_request.request(&hedera_transaction, hedera_task))
-					{
-						addError(new Error(function_name, "error send transaction to hedera"));
-						getErrors(&hedera_request);
-						//sendErrorsAsEmail();
-						return -2;
-					}
-					else {
-						auto hedera_transaction_response = hedera_task->getTransactionResponse();
-						auto hedera_precheck_code_string = hedera_transaction_response->getPrecheckCodeString();
-						auto precheck_code = hedera_transaction_response->getPrecheckCode();
-						auto cost = hedera_transaction_response->getCost();
-
-						// for showing in docker
-						std::clog << "hedera response: " << hedera_precheck_code_string
-							<< ", cost: " << cost
-							<< ", type: " << TransactionBody::transactionTypeToString(mTransactionBody->getType())
-							<< std::endl;
-						/*printf("hedera response: %s, cost: %" PRIu64 ", type: %s\n",
-							hedera_precheck_code_string.data(), cost,
-							TransactionBody::transactionTypeToString(mTransactionBody->getType()));*/
-						if (precheck_code == proto::INVALID_TRANSACTION_START) {
-							int zahl = 0;
-							return -5;
-						}
-						else if (precheck_code == proto::OK) {
-							// simply assume if transaction was sended to hedera without error, it was also accepted from gradido node
-							// TODO: later check, but now I haven't any way to communicate with the gradido node
-							mTransactionBody->getTransactionBase()->transactionAccepted(getUser());
-							auto transaction_model = getModel();
-							transaction_model->setFinished(Poco::DateTime());
-							Poco::JSON::Object::Ptr result = new Poco::JSON::Object;
-							model::hedera::TransactionId transaction_id(hedera_task->getTransactionId());
-							result->set("state", "success");
-							result->set("transactionId", transaction_id.convertToJSON());
-
-							transaction_model->setResultJson(result);
-							Profiler timer;
-							transaction_model->updateFinishedAndResult();
-							printf("time for update 2 fields in db: %s\n", timer.string().data());
-
-							// trigger community server update in 5 seconds
-							CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(5, 0));
-							return 1;
-						}
-
-					}
-					//model::hedera::TransactionBody hedera_transaction_body()
-				}
-				else
-				{
-					addError(new ParamError(function_name, "hedera crypto key not found for paying for consensus submit message! NetworkType: ", network_type));
-					//sendErrorsAsEmail();
-					return -3;
-				}
-			}
-			else
-			{
-				addError(new Error(function_name, "hedera topic id or operator account not found!"));
-				addError(new ParamError(function_name, "topic id: ", topic_id->getModel()->toString()));
-				addError(new ParamError(function_name, "network type: ", network_type));
-				//sendErrorsAsEmail();
-				return -4;
-			}
-			return 0;
-
-		}
 		int Transaction::runSendTransactionMysql()
 		{
 			static const char* function_name = "Transaction::runSendTransactionMysql";
@@ -831,6 +564,10 @@ namespace model {
 			if (JSON_REQUEST_RETURN_OK == result) {
 				if (!json_request.errorCount()) {
 					finishSuccess();
+				}
+				else {
+					getErrors(&json_request);
+					return -1;
 				}
 				return 1;
 			}
