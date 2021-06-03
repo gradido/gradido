@@ -7,6 +7,12 @@ Error::Error(const char* functionName, const char* message)
 
 }
 
+Error::Error(const char* functionName, const std::string& message)
+    : Notification(functionName, message)
+{
+
+}
+
 Error::~Error()
 {
 

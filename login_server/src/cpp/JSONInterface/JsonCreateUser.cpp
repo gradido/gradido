@@ -15,6 +15,8 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string first_name;
 	std::string last_name;
 	std::string password;
+	std::string username;
+	std::string description;
 	bool login_after_register = false;
 	int emailType;
 	int group_id = 1;
@@ -36,18 +38,27 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("first_name").convert(first_name);
 			paramJsonObject->get("last_name").convert(last_name);
 			paramJsonObject->get("emailType").convert(emailType);
+
 			auto group_id_obj = paramJsonObject->get("group_id");
+			auto username_obj = paramJsonObject->get("username");
+			auto description_obj = paramJsonObject->get("description");
 
 			if(!group_id_obj.isEmpty()) {
                 group_id_obj.convert(group_id);
 			}
-
+			if (!username_obj.isEmpty()) {
+				username_obj.convert(username);
+			}
+			if (!description_obj.isEmpty()) {
+				description_obj.convert(description);
+			}
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
 			}
 			if (!paramJsonObject->isNull("login_after_register")) {
 				paramJsonObject->get("login_after_register").convert(login_after_register);
 			}
+			
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -85,6 +96,15 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
         group_was_not_set = true;
 	}
 	user = controller::User::create(email, first_name, last_name, group_id);
+	if (username.size() > 3) {
+		if (user->isUsernameAlreadyUsed(username)) {
+			return stateError("username already in use");
+		}
+		user->getModel()->setUsername(username);
+	}
+	if (description.size() > 3) {
+		user->getModel()->setDescription(description);
+	}
 	auto userModel = user->getModel();
 	Session* session = nullptr;
 

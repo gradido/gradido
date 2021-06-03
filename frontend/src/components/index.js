@@ -20,7 +20,6 @@ import Collapse from './Collapse/Collapse.vue'
 import CollapseItem from './Collapse/CollapseItem.vue'
 import Modal from './Modal.vue'
 import BaseSlider from './BaseSlider.vue'
-import LoadingPanel from './LoadingPanel.vue'
 
 import BasePagination from './BasePagination.vue'
 
@@ -48,5 +47,4 @@ export {
   BaseButton,
   Collapse,
   CollapseItem,
-  LoadingPanel,
 }

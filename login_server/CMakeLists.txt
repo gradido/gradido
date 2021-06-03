@@ -19,9 +19,7 @@ include_directories(
 	"dependencies/mariadb-connector-c/include"
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
-	"dependencies/grpc/include"
-	"dependencies/grpc/third_party/protobuf/src"
-	"dependencies/grpc/third_party/googletest/googletest/include"
+	"dependencies/protobuf/src"
 	"build"
 	"build/proto"
 	"build/http_pages"
@@ -39,56 +37,28 @@ IF(UNIX)
 		"dependencies/poco/NetSSL_OpenSSL/include"
 	)
 ENDIF()
-############################## config and add grpc ###################################
 
-set(GRPC_PATH "${DEP_PATH}/grpc/build")
-set(GRPC_ABSL_PATH "${GRPC_PATH}/third_party/abseil-cpp/absl/types")
-set(GRPC_CARES_PATH "${GRPC_PATH}/third_party/cares/cares/lib")
-set(GRPC_BORING_SSL_PATH "${GRPC_PATH}/third_party/boringssl-with-bazel")
-set(GRPC_RE2_PATH "${GRPC_PATH}/third_party/re2")
-set(GRPC_PROTOBUF_PATH "${GRPC_PATH}/third_party/protobuf")
-
-if(WIN32)
-	set(GRPC_PATH "${GRPC_PATH}/Debug")
-	set(GRPC_ABSL_PATH "${GRPC_ABSL_PATH}/Debug")
-	set(GRPC_CARES_PATH "${GRPC_CARES_PATH}/Debug")
-	set(GRPC_BORING_SSL_PATH "${GRPC_CGRPC_BORING_SSL_PATHARES_PATH}/Debug")
-	set(GRPC_RE2_PATH "${GRPC_RE2_PATH}/Debug")
-	set(GRPC_PROTOBUF_DEBUG_PATH "${GRPC_PROTOBUF_PATH}/Debug")
-endif()
-
-
-set(BUILD_TESTING OFF)
-#set(gRPC_SSL_PROVIDER "package")
-add_subdirectory("dependencies/grpc/")
-#set(gRPC_SSL_PROVIDER "package")
-message(STATUS "Using gRPC via add_subdirectory.")
-
-set(GRPC_LIBS libprotobuf grpc++_reflection grpc++)
+############################## find protobuf  #########################################
+add_subdirectory(dependencies/protobuf/cmake)
 
 ############################## parse protobuf files ###################################
 
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto GRADIDO_PROTO_MODEL_PATH)
-FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/hedera/hedera-protobuf/src/main/proto HEDERA_PROTO_MODEL_PATH)
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/proto PROTOBINDING_PATH)
 file(MAKE_DIRECTORY ${PROTOBINDING_PATH})
 file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/gradido)
-file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/hedera)
 
 FILE(GLOB DATAMODEL_GRADIDO_PROTOS "${GRADIDO_PROTO_MODEL_PATH}/gradido/*.proto")
-FILE(GLOB DATAMODEL_HEDERA_PROTOS "${HEDERA_PROTO_MODEL_PATH}/*.proto")
 
 IF(WIN32)
-	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin/Debug")
-	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin/Release")
-	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin/Debug" )
-	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin/Release" )
+	set(PROTOC_BIN_PATH "build/dependencies/protobuf/cmake/bin")
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "${PROTOC_BIN_PATH}/Debug" )
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "${PROTOC_BIN_PATH}/Release" )
 ELSE()
-	find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin PATHS "build/dependencies/grpc/bin")
-	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/grpc/third_party/protobuf/bin" )
+	find_program(PROTOBUF_PROTOC_EXECUTABLE protoc PATHS "build/dependencies/protobuf/cmake/bin" )
 ENDIF()
-FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/grpc/third_party/protobuf/src GOOGLE_PROTOBUF_INCLUDES)
-MESSAGE("protoc: ${PROTOBUF_PROTOC_EXECUTABLE} in build/dependencies/grpc/bin/${CMAKE_BUILD_TYPE}")
+FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf/src GOOGLE_PROTOBUF_INCLUDES)
+MESSAGE("protoc: ${PROTOBUF_PROTOC_EXECUTABLE} in build/dependencies/protobuf/bin/${CMAKE_BUILD_TYPE}")
 FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
    FILE(TO_NATIVE_PATH ${proto} proto_native)
    get_filename_component(proto_parsed ${proto} NAME_WLE)
@@ -113,30 +83,6 @@ FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
 
 ENDFOREACH(proto)
 
-FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
-   FILE(TO_NATIVE_PATH ${proto} proto_native)
-   get_filename_component(proto_parsed ${proto} NAME_WLE)
-   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/hedera/${proto_parsed}.pb.h proto_parsed_native)
-   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
-		EXECUTE_PROCESS(
-			COMMAND 
-			${PROTOBUF_PROTOC_EXECUTABLE} 
-			--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
-			--proto_path=${HEDERA_PROTO_MODEL_PATH} 
-			--proto_path=${GOOGLE_PROTOBUF_INCLUDES}
-			--cpp_out=${PROTOBINDING_PATH}/hedera 
-			--grpc_out ${PROTOBINDING_PATH}/hedera
-			${proto_native}
-			RESULT_VARIABLE rv
-		)
-		# Optional, but that can show the user if something have gone wrong with the proto generation 
-		IF(${rv})
-			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
-		ELSE()
-			MESSAGE("Parsed: src/proto/hedera/hedera-protobuf/src/main/proto/${proto_parsed}.proto")
-		ENDIF()
-   ENDIF()
-ENDFOREACH(proto)
 
 ############################## parse cpsp Files ####################################
 
@@ -212,13 +158,11 @@ FILE(GLOB LIB_SRC "src/cpp/lib/*.h" "src/cpp/lib/*.cpp")
 FILE(GLOB MODEL "src/cpp/model/*.h" "src/cpp/model/*.cpp")
 FILE(GLOB MODEL_TABLE "src/cpp/model/table/*.h" "src/cpp/model/table/*.cpp")
 FILE(GLOB MODEL_EMAIL "src/cpp/model/email/*.h" "src/cpp/model/email/*.cpp")
-FILE(GLOB MODEL_HEDERA "src/cpp/model/hedera/*.h" "src/cpp/model/hedera/*.cpp")
 FILE(GLOB MODEL_GRADIDO "src/cpp/model/gradido/*.h" "src/cpp/model/gradido/*.cpp")
 FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
 FILE(GLOB PROTO_GRADIDO "build/proto/gradido/*.cc" "build/proto/gradido/*.h")
-FILE(GLOB PROTO_HEDERA "build/proto/hedera/*.cc" "build/proto/hedera/*.h")
 
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
@@ -230,9 +174,9 @@ FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controll
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} ${COMPILED_PAGES}
 	${JSONInterface} ${CRYPTO}
-	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_HEDERA} ${MODEL_GRADIDO}
+	${MODEL} ${MODEL_TABLE} ${MODEL_EMAIL} ${MODEL_GRADIDO}
 	${SINGLETON_MANAGER} ${LIB_SRC} ${MYSQL} ${TASKS}
-	${PROTO_GRADIDO} ${PROTO_HEDERA}
+	${PROTO_GRADIDO} 
 )
 SET(LOCAL_TEST_SRC
 	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER}
@@ -243,13 +187,11 @@ if(MSVC)
 	# src
 	source_group("controller" FILES ${CONTROLLER})
 	source_group("proto\\gradido" FILES ${PROTO_GRADIDO})
-	source_group("proto\\hedera" FILES ${PROTO_HEDERA})
 	source_group("tinf" FILES ${TINF})
 	source_group("Crypto" FILES ${CRYPTO})
 	source_group("tasks" FILES ${TASKS})
 	source_group("model\\table" FILES ${MODEL_TABLE})
 	source_group("model\\email" FILES ${MODEL_EMAIL})
-	source_group("model\\hedera" FILES ${MODEL_HEDERA})
 	source_group("model\\gradido" FILES ${MODEL_GRADIDO})
 	source_group("model" FILES ${MODEL})
 	source_group("mysql" FILES ${MYSQL})
@@ -264,7 +206,6 @@ if(MSVC)
 	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
 	source_group("Test" FILES ${TEST})
 endif()
-
 
 
 add_executable(Gradido_LoginServer ${LOCAL_SRCS})
@@ -314,11 +255,11 @@ ENDIF()
 target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer mariadbclient ${CONAN_LIBS})
+	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
-	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium)
+	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium libprotobuf)
 endif()
 
 # install 

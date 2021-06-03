@@ -1,5 +1,4 @@
 import { createLocalVue } from '@vue/test-utils'
-import ElementUI from 'element-ui'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import Vuex from 'vuex'
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -30,7 +29,6 @@ Object.keys(rules).forEach((rule) => {
   })
 })
 
-global.localVue.use(ElementUI)
 global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
