@@ -86,13 +86,13 @@ const loginAPI = {
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', payload)
   },
-  updateUserInfos: async (sessionId, email, firstName, lastName /*, description */) => {
+  updateUserInfos: async (sessionId, email, data) => {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.first_name': firstName,
-        'User.last_name': lastName,
+        'User.first_name': data.firstName,
+        'User.last_name': data.lastName,
         /* 'User.description': description, */
       },
     }
