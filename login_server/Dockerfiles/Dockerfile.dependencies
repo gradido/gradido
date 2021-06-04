@@ -21,21 +21,20 @@ RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
 	make install
 
 ######### BUILD grpc ##############
-FROM gcc_9_cmake as gcc_9_grpc
+FROM gcc_9_cmake as gcc_9_protobuf
 
 ARG BUILD_TYPE=Debug
 
-RUN git clone https://github.com/grpc/grpc.git --branch=v1.37.0 --recursive -j4 && \
-    cd grpc && \
-	mkdir build && cd build && \
-	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
-	make install
-
-# abseil don't install themself correctly
-RUN cp -r grpc/third_party/abseil-cpp/absl /usr/local/include/
+RUN git clone https://github.com/protocolbuffers/protobuf.git --recursive -j4 && \
+    cd protobuf && \
+	./autogen.sh && \
+	./configure && \
+	make -j$(nproc) && \
+ 	make install && \
+    ldconfig
 
 # protobuf libs missing after make install
-RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
+#RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
 
 ######### BUILD poco ##############
 FROM gcc_9_cmake as gcc_9_poco
@@ -74,8 +73,8 @@ COPY --from=gcc_9_cmake /usr/local/share/cmake-3.19/Modules /usr/local/share/cma
 COPY --from=gcc_9_cmake /usr/local/share/cmake-3.19/Templates /usr/local/share/cmake-3.19/Templates
 
 # copy from grpc
-COPY --from=gcc_9_grpc /usr/local /usr/local
-COPY --from=gcc_9_grpc /grpc/third_party/googletest /usr/local/googletest
+COPY --from=gcc_9_protobuf /usr/local /usr/local
+COPY --from=gcc_9_protobuf /protobuf/third_party/googletest /usr/local/googletest
 
 # COPY from poco 
 COPY --from=gcc_9_poco /usr/local /usr/local

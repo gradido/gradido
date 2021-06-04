@@ -80,6 +80,7 @@ services:
     depends_on:
       - community-server
       - login-server
+      - frontend 
     ports:
       - 80:80
   

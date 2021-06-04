@@ -2,7 +2,7 @@
 #########################################################################################################
 # Prepare debug 
 #########################################################################################################
-FROM gradido/login_dependencies:gcc9-debug-1 as prepare_debug
+FROM gradido/login_dependencies:gcc9-debug-3 as prepare_debug
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
@@ -83,7 +83,7 @@ ENTRYPOINT ["build/bin/Gradido_LoginServer"]
 #########################################################################################################
 # Build release 
 #########################################################################################################
-FROM gradido/login_dependencies:alpine-release-2 as release
+FROM gradido/login_dependencies:alpine-release-3 as release
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
@@ -118,20 +118,13 @@ WORKDIR "/usr/bin"
 COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
 
 COPY --from=release /usr/local/lib/mariadb/libmariadb.so.3 /usr/local/lib/
-COPY --from=release  /usr/local/lib/libPoco* /usr/local/lib/ 
-COPY --from=release  /usr/lib/libsodium.so.23 /usr/lib/ 
-COPY --from=release  /usr/lib/libstdc++.so.6 /usr/lib/ 
-COPY --from=release  /usr/lib/libgcc_s.so.1 /usr/lib/ 
+COPY --from=release /usr/local/lib/libPoco* /usr/local/lib/ 
+COPY --from=release /usr/local/lib/libproto* /usr/local/lib/
+COPY --from=release /usr/lib/libsodium.so.23 /usr/lib/ 
+COPY --from=release /usr/lib/libstdc++.so.6 /usr/lib/ 
+COPY --from=release /usr/lib/libgcc_s.so.1 /usr/lib/ 
 
 
 RUN chmod +x /usr/bin/Gradido_LoginServer
 ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
 #CMD Gradido_LoginServer
-
-#########################################################################################################
-# run release with default docker config
-#########################################################################################################
-FROM login_server as login_server_default_config
-
-COPY ../configs/login_server/grd_login.properties /etc/grd_login/
-

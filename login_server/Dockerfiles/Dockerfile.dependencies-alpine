@@ -15,31 +15,22 @@ RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
 	make -j$(nproc) && \
 	make install
 
-##### lcov #####
-FROM alpine-build as alpine-lcov
-
-RUN apk add --no-cache bash perl
-
-RUN git clone https://github.com/linux-test-project/lcov.git --branch=v1.15 && \
-    cd lcov && \
-    make install
-
 ######### BUILD grpc ##############
-FROM alpine-gxx-cmake as alpine-gxx-grpc
+FROM alpine-gxx-cmake as alpine-gxx-protobuf
 
 ARG BUILD_TYPE=Debug
 
-RUN git clone https://github.com/grpc/grpc.git --branch=v1.37.0 --recursive -j4 && \
-    cd grpc && \
-	mkdir build && cd build && \
-	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
-	make install
+RUN apk add --no-cache autoconf automake libtool curl unzip
 
-# abseil don't install themself correctly
-RUN cp -r grpc/third_party/abseil-cpp/absl /usr/local/include/
+RUN git clone https://github.com/protocolbuffers/protobuf.git --recursive -j4 && \
+    cd protobuf && \
+	./autogen.sh && \
+	./configure && \
+	make -j$(nproc) && \
+ 	make install
 
 # protobuf libs missing after make install
-RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
+#RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
 
 ######### BUILD poco ##############
 FROM alpine-gxx-cmake as alpine-gxx-poco
@@ -76,12 +67,7 @@ COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Modules /usr/local/shar
 COPY --from=alpine-gxx-cmake /usr/local/share/cmake-3.19/Templates /usr/local/share/cmake-3.19/Templates
 
 # copy from grpc
-COPY --from=alpine-gxx-grpc /usr/local /usr/local
-COPY --from=alpine-gxx-grpc /grpc/third_party/googletest /usr/local/googletest
-
-# copy from lcov
-COPY --from=alpine-lcov /usr/local/bin /usr/local/bin
-COPY --from=alpine-lcov /usr/local/etc/lcovrc /usr/local/etc/lcovrc
+COPY --from=alpine-gxx-protobuf /usr/local /usr/local
 
 # COPY from poco 
 COPY --from=alpine-gxx-poco /usr/local /usr/local
@@ -89,4 +75,10 @@ COPY --from=alpine-gxx-poco /usr/local /usr/local
 # COPY from mariadb 
 COPY --from=alpine-gxx-mariadb-connector /usr/local /usr/local
 
+#########################################################################################################
+# COPY Things only needed for testing
+#########################################################################################################
+FROM alpine-libs as alpine-libs-test
+
+COPY --from=alpine-gxx-protobuf /protobuf/third_party/googletest /usr/local/googletest
 
