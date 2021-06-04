@@ -333,7 +333,7 @@ endif()
 project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
 #find_package(GTest CONFIG REQUIRED)
-add_subdirectory("dependencies/grpc/third_party/googletest")
+#add_subdirectory("dependencies/protobuf/third_party/googletest")
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
