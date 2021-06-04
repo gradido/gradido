@@ -89,6 +89,56 @@ In case of success returns:
 nginx was wrong configured.
 - `session_id`: can be also negative
 
+## Check username
+### Request 
+`GET http://localhost/login_api/checkUsername?username=<username>&group_id=<group_id>`
+
+`POST http://localhost/login_api/checkUsername`
+with
+```json
+{
+	"username": "Maxilein",
+	"group_id": 1,
+	"group_alias": "gdd1"
+}
+```
+
+group_id or group_alias, one of both is enough. 
+group_id is better, because one db request less
+
+### Response
+
+If username is not already taken
+```json
+{
+	"state":"success"
+}
+```
+
+If username is already taken
+```json
+{
+	"state":"warning",
+	"msg":"username already in use"
+}
+```
+
+If only group_alias was given and group with that alias was found in db
+```json
+{
+	"state":"success",
+	"group_id": 1
+}
+```
+
+If group_id or group_alias unknown
+```json
+{
+	"state":"error",
+	"msg": "unknown group"
+}
+```
+
 ## Create user
 Register a new User
 
