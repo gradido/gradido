@@ -48,21 +48,6 @@ namespace ServerConfig {
 		UNSECURE_ALLOW_ALL_PASSWORDS = 8
 	};
 
-	enum HederaConsensusMessageFormat {
-		HEDERA_CONSENSUS_FORMAT_BINARY,
-		HEDERA_CONSENSUS_FORMAT_JSON,
-		HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING
-	};
-
-	enum HederaNetworkType {
-		HEDERA_MAINNET,
-		HEDERA_TESTNET,
-		HEDERA_NET_COUNT,
-		HEDERA_UNKNOWN
-	};
-
-
-
 
 	extern Mnemonic g_Mnemonic_WordLists[MNEMONIC_MAX];
 
@@ -92,9 +77,6 @@ namespace ServerConfig {
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
-	extern HederaConsensusMessageFormat g_ConsensusMessageFormat;
-	extern HederaNetworkType g_HederaNetworkType;
-	extern Poco::Timespan  g_HederaDefaultTimeout;
 
 
 	bool loadMnemonicWordLists();
@@ -102,7 +84,6 @@ namespace ServerConfig {
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
 
-	const char* mnemonicTypeToString(Mnemonic_Types type);
 
 	void writeToFile(std::istream& datas, std::string fileName);
 

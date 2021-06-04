@@ -21,7 +21,6 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Environment.h"
 
-#include "model/table/HederaAccount.h"
 
 
 using Poco::Net::SSLManager;
@@ -62,9 +61,6 @@ namespace ServerConfig {
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
 	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
-	HederaConsensusMessageFormat g_ConsensusMessageFormat = HEDERA_CONSENSUS_FORMAT_BINARY;
-	HederaNetworkType g_HederaNetworkType = HEDERA_TESTNET;
-	Poco::Timespan  g_HederaDefaultTimeout;
 
 #ifdef __linux__
 #include <stdio.h>
@@ -157,36 +153,6 @@ namespace ServerConfig {
 		return SERVER_TYPE_PRODUCTION;
 	}
 
-	HederaConsensusMessageFormat getHederaConsensusMessageFormatFromString(const std::string& hederaConsensusMessageFormatString)
-	{
-		if ("json" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_JSON;
-		}
-		if ("binary" == hederaConsensusMessageFormatString || "bin" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_BINARY;
-		}
-		if ("base64" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING;
-		}
-		return HEDERA_CONSENSUS_FORMAT_BINARY;
-	}
-
-    const char* mnemonicTypeToString(Mnemonic_Types type)
-    {
-        /*
-        MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER,
-		MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES,
-		MNEMONIC_BIP0039_SORTED_ORDER
-        */
-        switch(type) {
-        case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER: return "german random order";
-        case MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES: return "german random order fixed cases";
-        case MNEMONIC_BIP0039_SORTED_ORDER: return "BIP 0039 sorted";
-        }
-        return "<unknown>";
-    }
-
-
 
 	bool loadMnemonicWordLists()
 	{
@@ -265,14 +231,6 @@ namespace ServerConfig {
 
 		g_devDefaultGroup = cfg.getString("dev.default_group", "");
 
-		auto hedera_consensus_message_format_string = cfg.getString("hedera.consensus.message_format", "bin");
-		g_ConsensusMessageFormat = getHederaConsensusMessageFormatFromString(hedera_consensus_message_format_string);
-
-		auto hedera_network_type_string = cfg.getString("hedera.nettype", "Testnet");
-		g_HederaNetworkType = model::table::HederaAccount::hederaNetworkTypeFromString(hedera_network_type_string);
-		if (HEDERA_UNKNOWN == g_HederaNetworkType) {
-			g_HederaNetworkType = HEDERA_TESTNET;
-		}
 
 		// app secret for encrypt user private keys
 		// TODO: encrypt with server admin key
@@ -299,7 +257,6 @@ namespace ServerConfig {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
 		}
 
-		g_HederaDefaultTimeout = cfg.getInt("hedera.default_timeout", 5);
 
 		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
 

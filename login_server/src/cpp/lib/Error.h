@@ -19,6 +19,7 @@ class Error : public Notification
 {
 public:
 	Error(const char* functionName, const char* message);
+	Error(const char* functionName, const std::string& message);
 	~Error();
 
 	const char* getFunctionName() { return mFunctionName.data(); }
@@ -38,6 +39,8 @@ public:
 	ParamError(const char* functionName, const char* message, const char* param) 
 		: Error(functionName, message), mParam(param) {}
 	ParamError(const char* functionName, const char* message, const std::string& param)
+		: Error(functionName, message), mParam(param) {}
+	ParamError(const char* functionName, const std::string& message, const std::string& param)
 		: Error(functionName, message), mParam(param) {}
 
 	ParamError(const char* functioName, const char* message, int param)

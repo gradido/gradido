@@ -38,7 +38,7 @@ services:
       - ./login_server/dependencies:/code/dependencies
       - ./login_server/scripts:/code/scripts
       - ./configs/login_server:/etc/grd_login
-      - login_build_alpine:/code/build
+      - login_build_3:/code/build
 
 
   #########################################################
@@ -100,4 +100,4 @@ services:
    
 volumes:
   frontend_node_modules:
-  login_build_alpine:
+  login_build_3:

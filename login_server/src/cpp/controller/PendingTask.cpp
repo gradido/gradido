@@ -1,7 +1,6 @@
 #include "PendingTask.h"
 
 #include "../model/gradido/Transaction.h"
-#include "../tasks/HederaTask.h"
 
 #include "../SingletonManager/PendingTasksManager.h"
 #include "../SingletonManager/ErrorManager.h"
@@ -37,7 +36,7 @@ namespace controller {
 			resultVector.push_back(loadCorrectDerivedClass(new model::table::PendingTask(*it)));
 		}
 		return resultVector;
-		
+
 
 	}
 
@@ -57,9 +56,7 @@ namespace controller {
 		if (dbModel->isGradidoTransaction()) {
 			return model::gradido::Transaction::load(dbModel);
 		}
-		else if (dbModel->isGradidoTransaction()) {
-			return HederaTask::load(dbModel);
-		}
+
 		return nullptr;
 	}
 
@@ -70,7 +67,7 @@ namespace controller {
 		// throw an unresolved external symbol error
 		task_list = db->loadAllFromDB<model::table::PendingTaskTuple>();
 
-		
+
 		//*/ //work around end
 		std::vector<Poco::AutoPtr<PendingTask>> resultVector;
 
@@ -85,7 +82,7 @@ namespace controller {
 	bool PendingTask::deleteFromDB()
 	{
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-		auto result = mDBModel->deleteFromDB(); 
+		auto result = mDBModel->deleteFromDB();
 		return result;
 	}
 
@@ -109,7 +106,7 @@ namespace controller {
 		Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		static const char* function_name = "PendingTask::startTimer";
 		auto em = ErrorManager::getInstance();
-		
+
 		if (isTimeoutTask()) {
 			auto next_run_time = getNextRunTime();
 			if (next_run_time >= Poco::DateTime()) {
@@ -136,7 +133,7 @@ namespace controller {
 			Poco::TimerCallback<PendingTask> callback(*this, &PendingTask::calledFromTimer);
 			mTimer.start(callback);
 		}
-		
+
 	}
 	void PendingTask::calledFromTimer(Poco::Timer& timer)
 	{
