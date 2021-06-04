@@ -48,7 +48,7 @@ jobs:
       ##########################################################################
       # BUILD LOGIN SERVER DOCKER IMAGE ########################################
       ##########################################################################
-      - name: login server | Build `test` image
+      - name: login server | Build `release` image
         run: |
           docker build --target release -t "gradido/login_server:release" -f ./login_server/Dockerfile login_server/
           #docker save "gradido/login_server:test" > /tmp/login_server.tar
@@ -249,8 +249,8 @@ jobs:
       ##########################################################################
       # Build Login-Server Test Docker image ###################################
       ##########################################################################
-      - name: build login-server test  
-      run: |
+      - name: - name: login server | Build `test` image
+        run: |
           docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
       ##########################################################################
       # UNIT TESTS BACKEND LOGIN-SERVER  #######################################
