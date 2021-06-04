@@ -249,7 +249,7 @@ jobs:
       ##########################################################################
       # Build Login-Server Test Docker image ###################################
       ##########################################################################
-      - name: - name: login server | Build `test` image
+      - name: login server | Build `test` image
         run: |
           docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
       ##########################################################################
