@@ -228,8 +228,35 @@ with
 	"memo":"a gift",
 	"auto_sign": true
 }
+
+#### OR
+
+```json
+{
+	"email": "max.musterman@gmail.de",
+	"group_id": 1,
+	"amount": 100.0,
+	"memo":"a gift",
+	"auto_sign": true
+}
+```
+
+#### OR
+
+```json
+{
+	"email": "max.musterman@gmail.de",
+	"group_alias": "gdd1",
+	"amount": 100.0,
+	"memo":"a gift",
+	"auto_sign": true
+}
+```
+
 ```
 - `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
+- `group_id`: optional, for sending gradidos across groups
+- `group_alias`: optional, for sending gradidos across groups
 - `amount`: amount to transfer as float
 - `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
 - `memo`: text for receiver, currently saved as clear text in blockchain
