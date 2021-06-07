@@ -211,6 +211,7 @@ class TransactionTransfer extends TransactionBase {
               ->send();
       } catch(Exception $e) {
         //$this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+          $this->addWarning('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
         return false;
       }
       return true;

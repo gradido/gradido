@@ -387,6 +387,10 @@ class JsonRequestHandlerController extends AppController {
       //echo "after validate <br>";
       
       if ($transaction->save()) {
+          $result = ['state' => 'success'];
+          if($transaction->hasWarnings()) {
+              $result['warnings'] = $transaction->getWarnings();
+          }
         // success
         return $this->returnJson(['state' => 'success']);
       } else {
