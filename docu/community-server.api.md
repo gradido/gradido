@@ -290,7 +290,17 @@ Without auto-sign the transaction is pending on the login-server and waits for t
 // TODO Is this in line with our usability goals?
 // TODO Should this not be handled client side?
 
+## Get Community Group Alias
+### Request
+`GET http://localhost/api/getGroupAlias`
 
+### Response
+```json
+{
+	"success":true,
+	"group_alias":"gdd1"
+}
+```
 # Klicktipp
 
 ## Subscribe
