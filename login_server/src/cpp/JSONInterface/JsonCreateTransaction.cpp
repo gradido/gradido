@@ -37,6 +37,8 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
 		}
+		mTargetGroup = getTargetGroup(paramJsonObject);
+		
 	}
 	else {
 		return stateError("parameter format unknown");
@@ -62,15 +64,10 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		em->sendErrorsAsEmail();
 		return customStateError("code error", "user is zero");
 	}
+	if (mTargetGroup.isNull()) {
+		mTargetGroup = controller::Group::load(user->getModel()->getGroupId());
+	}
 	
-	if (mBlockchainType == model::gradido::BLOCKCHAIN_HEDERA) {
-		getTargetGroup(params);
-	}
-	else {
-		if (!getTargetGroup(params)) {
-			mTargetGroup = controller::Group::load(user->getModel()->getGroupId());
-		}
-	}
 	if (transaction_type == "transfer") {
 		return transfer(params);
 	}
@@ -331,40 +328,3 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 	return result;
 }
 
-bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
-{
-	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-	try 
-	{
-		auto group_id_obj = paramJsonObject->get("group_id");
-		
-		if (!group_id_obj.isEmpty()) {
-			int group_id = 0;
-			group_id_obj.convert(group_id);
-			if (!group_id) {
-				mTargetGroup = controller::Group::load(group_id);
-				if (!mTargetGroup.isNull()) {
-					return true;
-				}
-			}
-		}
-
-		auto group_alias_obj = paramJsonObject->get("group_alias");
-
-		if (!group_alias_obj.isEmpty()) {
-
-			std::string group_alias;
-			group_alias_obj.convert(group_alias);
-			auto groups = controller::Group::load(group_alias);
-			if (groups.size() == 1) {
-				mTargetGroup = groups[0];
-				return true;
-			}
-		}
-	
-	}
-	catch (Poco::Exception& ex) {
-		return false;
-	}
-	return false;
-}

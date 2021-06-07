@@ -229,9 +229,11 @@ Retrieve different user data.
 
 You can query a subset of data or all of it at once.
 
-Normal Users can only retrieve data for themselves, admins (login-server admin) can retrieve data for every user.
+Normal Users can only retrieve data for themselves, admins (login-server admin) can retrieve data for every user. It is also possible without session to get username for pubkey or vica versa.
+If asked for username, group_id or group_alias needed as well.
 
 Email is also the email address of user from which data are asked 
+
 
 ### Request
 `POST http://localhost/login_api/getUserInfos`
@@ -248,6 +250,7 @@ with:
 		"user.pubkeyhex",
 		"user.first_name",
 		"user.last_name",
+		"user.email",
 		"user.username",
 		"user.description",
 		"user.disabled",
@@ -268,6 +271,7 @@ In case of success:
 		"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"first_name": "Max",
 		"last_name": "Musterman",
+		"email": "max.musterman@gmail.de"
 		"disabled": 0,
 		"email_checked": 1
   	},
@@ -277,19 +281,43 @@ In case of success:
   	"errors": []
 }
 ```
+#### OR
+```json 
+{
+	"username": "maxi",
+	"group_alias": "gdd1",
+	"ask": [
+		"user.pubkeyhex",
+  	]
+}
+```
+### Response
+In case of success:
+
+```json 
+{
+	"state": "success",
+	"userData": { 
+		"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
+  	},
+  	"errors": []
+}
+```
 
 Return only the fields which are defined in request 
 - `EmailVerificationCode.Register`: return the email verification code for check email (create one if none exist), work only if logged in user is admin and the email isn't from him 
 - `loginServer.path`: the redirect path to login-server, for example for login with login-server html frontend 
 - `user.pubkeyhex`: public key of user in hex-format
-- `user.first_name`: first name of user 
-- `user.last_name`: last name of user 
+- `user.first_name`: first name of user, only if logged in
+- `user.last_name`: last name of user, only if logged in
+- `user.email` : email of user, only if logged in
 - `user.username`: username of user (min 4 Character, unique per group)
-- `user.description`: profil text for user
+- `user.description`: profil text for user, only if logged in
 - `user.disabled`: User will be disabled if he wants a account delete but has transactions. Until transactions are saved in real blockchain, we need this data because the public key
 is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible. Disabled User cannot login and cannot receive transactions. 
-- `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1
-- `language`: Language Key for User, currently 'de' or 'en'
+Only if logged in.
+- `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1, only if logged in
+- `language`: Language Key for User, currently 'de' or 'en', only if logged in
 - `errors`: array of strings if error occure 
 
 ## Login by Email Verification Code

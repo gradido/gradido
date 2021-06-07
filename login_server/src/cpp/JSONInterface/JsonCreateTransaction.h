@@ -17,7 +17,6 @@ protected:
 	Poco::JSON::Object* creation(Poco::Dynamic::Var params);
 	Poco::JSON::Object* groupMemberUpdate(Poco::Dynamic::Var params);
 	MemoryBin* getTargetPubkey(Poco::Dynamic::Var params);
-	bool getTargetGroup(Poco::Dynamic::Var params);
 
 	Session* mSession;
 	std::string mMemo;

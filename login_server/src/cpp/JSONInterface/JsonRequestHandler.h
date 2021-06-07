@@ -30,6 +30,9 @@ protected:
 	Session*			 mSession;
 
 	Poco::JSON::Object* checkAndLoadSession(Poco::Dynamic::Var params, bool checkIp = false);
+	static void copyValueIfExist(Poco::JSON::Object::Ptr params, const std::string& fieldName, std::string& stringValue);
+	static void copyValueIfExist(Poco::JSON::Object::Ptr params, const std::string& fieldName, int& intValue);
+	static Poco::AutoPtr<controller::Group> getTargetGroup(Poco::JSON::Object::Ptr params);
 
 	static Poco::JSON::Object* stateError(const char* msg, std::string details = "");
 	static Poco::JSON::Object* stateError(const char* msg, NotificationList* errorReciver);

@@ -139,6 +139,54 @@ Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream&
 	return Poco::Dynamic::Var();
 }
 
+void JsonRequestHandler::copyValueIfExist(Poco::JSON::Object::Ptr params, const std::string& fieldName, std::string& stringValue)
+{
+	auto obj = params->get(fieldName);
+	if (!obj.isEmpty()) {
+		obj.convert(stringValue);
+	}
+
+}
+
+void JsonRequestHandler::copyValueIfExist(Poco::JSON::Object::Ptr params, const std::string& fieldName, int& intValue)
+{
+	auto obj = params->get(fieldName);
+	if (!obj.isEmpty()) {
+		obj.convert(intValue);
+	}
+}
+
+Poco::AutoPtr<controller::Group> JsonRequestHandler::getTargetGroup(Poco::JSON::Object::Ptr params)
+{
+	try
+	{
+		int group_id = 0;
+		copyValueIfExist(params, "group_id", group_id);
+		if (group_id) {
+			auto group = controller::Group::load(group_id);
+			if (!group.isNull()) {
+				return group;
+			}
+		}
+		std::string group_alias;
+		copyValueIfExist(params, "group_alias", group_alias);
+		
+		
+		if(group_alias.size()) {
+			auto groups = controller::Group::load(group_alias);
+			if (groups.size() == 1) {
+				return groups[0];
+			}
+		}
+
+	}
+	catch (Poco::Exception& ex) {
+		return nullptr;
+	}
+	return nullptr;
+}
+
+
 Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string details)
 {
 	Poco::JSON::Object* result = new Poco::JSON::Object;

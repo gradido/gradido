@@ -70,7 +70,8 @@ namespace controller {
 		//! \return  0 matching entry found
 		int tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair = nullptr);
 
-		size_t load(const std::string& emailOrUsername);
+		size_t load(const std::string& email);
+		size_t load(const std::string& username, int group_id);
 		//! \brief try to load user from db via user_id
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }
