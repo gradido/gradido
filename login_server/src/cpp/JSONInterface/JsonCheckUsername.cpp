@@ -23,8 +23,7 @@ Poco::JSON::Object* JsonCheckUsername::handle(Poco::Dynamic::Var params)
 		auto group_alias_obj = paramJsonObject->get("group_alias");
 
 		try {
-			paramJsonObject->get("username").convert(username);
-
+			
 			if (!username_obj.isEmpty()) {
 				username_obj.convert(username);
 			}
@@ -38,7 +37,7 @@ Poco::JSON::Object* JsonCheckUsername::handle(Poco::Dynamic::Var params)
 
 		}
 		catch (Poco::Exception& ex) {
-			return stateError("username not found or invalid");
+			return stateError("Poco Exception", ex.displayText());
 		}
 		
 	}
