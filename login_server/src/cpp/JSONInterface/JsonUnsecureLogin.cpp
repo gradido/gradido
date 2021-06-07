@@ -77,7 +77,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 
 	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-	
+		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 		result->set("state", "error");
 		result->set("msg", pwd_errors.getLastError()->getString(false));
 		if (pwd_errors.errorCount()) {
