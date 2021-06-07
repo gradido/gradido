@@ -67,7 +67,9 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		getTargetGroup(params);
 	}
 	else {
-		mTargetGroup = controller::Group::load(user->getModel()->getGroupId());
+		if (!getTargetGroup(params)) {
+			mTargetGroup = controller::Group::load(user->getModel()->getGroupId());
+		}
 	}
 	if (transaction_type == "transfer") {
 		return transfer(params);
@@ -331,14 +333,29 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 
 bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
 {
-	std::string target_group_alias;
 	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 	try 
 	{
-		auto target_group = paramJsonObject->get("group");
-		if (!target_group.isEmpty()) {
-			target_group.convert(target_group_alias);
-			auto groups = controller::Group::load(target_group_alias);
+		auto group_id_obj = paramJsonObject->get("group_id");
+		
+		if (!group_id_obj.isEmpty()) {
+			int group_id = 0;
+			group_id_obj.convert(group_id);
+			if (!group_id) {
+				mTargetGroup = controller::Group::load(group_id);
+				if (!mTargetGroup.isNull()) {
+					return true;
+				}
+			}
+		}
+
+		auto group_alias_obj = paramJsonObject->get("group_alias");
+
+		if (!group_alias_obj.isEmpty()) {
+
+			std::string group_alias;
+			group_alias_obj.convert(group_alias);
+			auto groups = controller::Group::load(group_alias);
 			if (groups.size() == 1) {
 				mTargetGroup = groups[0];
 				return true;
