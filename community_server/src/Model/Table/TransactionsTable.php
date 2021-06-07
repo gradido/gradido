@@ -165,40 +165,7 @@ class TransactionsTable extends Table
         
         foreach($stateUserTransactions as $i => $su_transaction)
         {
-            /*echo "i: $i<br>";
-            echo "state user transaction: <br>";
-            var_dump($su_transaction);
-            echo "<br>";*/
-            //var_dump($su_transaction);
-            //die("step");
-            // add decay transactions 
-            $prev = null;
-            if($i > 0 ) {
-                $prev = $stateUserTransactions[$i-1];
-            }
-            if($prev && $decay == true) 
-            {
-                
-                if($prev->balance > 0) {
-                //    var_dump($stateUserTransactions);
-                    $current = $su_transaction;
-                    //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
-                    $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
-                    $balance = floatval($prev->balance - $calculated_decay['balance']);
-                    // skip small decays (smaller than 0,00 GDD)
-                    
-                    if(abs($balance) >= 100) {
-                        //echo $interval->format('%R%a days');
-                        //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
-                        $final_transactions[] = [ 
-                            'type' => 'decay',
-                            'balance' => $balance,
-                            'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
-                            'memo' => ''
-                        ];
-                    }
-                }
-            }
+            
             
             // sender or receiver when user has sended money
             // group name if creation
@@ -207,59 +174,74 @@ class TransactionsTable extends Table
             // date
             // balance
             $transaction = $transaction_indiced[$su_transaction->transaction_id];
-            /*echo "transaction: <br>";
-            var_dump($transaction);
-            echo "<br>";*/
+            
+            $final_transaction = [
+                'transaction_id' => $transaction->id,
+                'date' => $transaction->received,
+                'memo' => $transaction->memo
+            ];
+            
+            $prev = null;
+            if($i > 0 ) {
+                $prev = $stateUserTransactions[$i-1];
+            }
+            if($prev && $decay == true) 
+            {
+                if($prev->balance > 0) {
+                    $current = $su_transaction;
+                    $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
+                    $balance = floatval($prev->balance - $calculated_decay['balance']);
+                    
+                    // skip small decays (smaller than 0,00 GDD)
+                    if(abs($balance) >= 100) {
+                        $final_transaction['decay'] = [ 
+                            'balance' => $balance,
+                            'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds')
+                        ];
+                    }
+                }
+            }
+                    
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
                 $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);
                 
-                $final_transactions[] = [
-                  'name' => 'Gradido Akademie',
-                  'type' => 'creation',
-                  'transaction_id' => $transaction->id,
-                  'date' => $transaction->received,// $creation->target_date,
-                  'target_date' => $creation->target_date,
-                  'creation_amount' => $creation->amount,
-                  'balance' => $balance,
-                  'memo' => $transaction->memo
-                ];
+                $final_transaction['name'] = 'Gradido Akademie';
+                $final_transaction['type'] = 'creation';
+                $final_transaction['target_date'] = $creation->target_date;
+                $final_transaction['creation_amount'] = $creation->amount;
+                $final_transaction['balance'] = $balance;
+                
             } else if($su_transaction->transaction_type_id == 2) { // transfer or send coins
                 $sendCoins = $transaction->transaction_send_coin;
-                $type = '';
                 $otherUser = null;
+                $final_transaction['balance'] = $sendCoins->amount;
                 $other_user_public = '';
                 if ($sendCoins->state_user_id == $user['id']) {
-                    $type = 'send';
+                    $final_transaction['type'] = 'send';
 
                     if(isset($involved_users[$sendCoins->receiver_user_id])) {
                       $otherUser = $involved_users[$sendCoins->receiver_user_id];
                     }
-                    $other_user_public = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
+                    $final_transaction['pubkey'] = bin2hex(stream_get_contents($sendCoins->receiver_public_key));
                 } else if ($sendCoins->receiver_user_id == $user['id']) {
-                    $type = 'receive';
+                    $final_transaction['type'] = 'receive';
                     if(isset($involved_users[$sendCoins->state_user_id])) {
                       $otherUser = $involved_users[$sendCoins->state_user_id];
                     }
                     if($sendCoins->sender_public_key) {
-                      $other_user_public = bin2hex(stream_get_contents($sendCoins->sender_public_key));
+                      $final_transaction['pubkey'] = bin2hex(stream_get_contents($sendCoins->sender_public_key));
                     }
                 }
                 if(null == $otherUser) {
                   $otherUser = $stateUsersTable->newEntity();
                 }
-                $final_transactions[] = [
-                 'name' => $otherUser->first_name . ' ' . $otherUser->last_name,
-                 'email' => $otherUser->email,
-                 'type' => $type,
-                 'transaction_id' => $sendCoins->transaction_id,
-                 'date' => $transaction->received,
-                 'balance' => $sendCoins->amount,
-                 'memo' => $transaction->memo,
-                 'pubkey' => $other_user_public
-                ];
+                $final_transaction['name'] = $otherUser->first_name . ' ' . $otherUser->last_name;
+                $final_transaction['email'] = $otherUser->email;
             }
-
+           
+            $final_transactions[] = $final_transaction;
+            
             if($i == $stateUserTransactionsCount-1 && $decay == true) {
                 $calculated_decay = $stateBalancesTable->calculateDecay(
                         $su_transaction->balance, 
@@ -275,7 +257,6 @@ class TransactionsTable extends Table
                         'type' => 'decay',
                         'balance' => $balance,
                         'decay_duration' => $duration,
-                        'last_decay' => true,
                         'memo' => ''
                     ];
                 }
