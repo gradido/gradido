@@ -10,21 +10,21 @@ class TransactionBase {
     static $tables = [];
   
     public function getErrors() {
-      return $this->errors;
+        return $this->errors;
     }
     
     public function getWarnings() {
         return $this->warnings;
     }
     public function addError($functionName, $errorName) {
-      array_push($this->errors, [$functionName => $errorName]);
+        array_push($this->errors, [$functionName => $errorName]);
     }
     public function addWarning($functionName, $warningName) {
-        $this->warnings[] = [$functionName => $warningName];
+        array_push($this->warnings, [$functionName => $warningName]);
     }
     
     public function addErrors($errors) {
-      $this->errors = array_merge($this->errors, $errors);
+        $this->errors = array_merge($this->errors, $errors);
     }
     
     public function addWarnings($warnings) {
@@ -32,17 +32,17 @@ class TransactionBase {
     }
   
     public function hasErrors() {
-       return count($this->errors) > 0;
+        return count($this->errors) > 0;
     }
     
     public function hasWarnings() {
         return count($this->warnings) > 0;
     }
     public static function getTable($tableName) {
-      if(!isset(self::$tables[$tableName])) {
-        self::$tables[$tableName] = TableRegistry::getTableLocator()->get($tableName);
-      }
-      return self::$tables[$tableName];
+        if(!isset(self::$tables[$tableName])) {
+          self::$tables[$tableName] = TableRegistry::getTableLocator()->get($tableName);
+        }
+        return self::$tables[$tableName];
     }
 
 
