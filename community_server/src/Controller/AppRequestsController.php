@@ -25,7 +25,7 @@ class AppRequestsController extends AppController
         $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
+        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions', 'getGroupAlias']);
     }
     
   
@@ -393,6 +393,11 @@ class AppRequestsController extends AppController
         }
 
         $this->set('body', $body);       
+    }
+    
+    public function getGroupAlias()
+    {
+        return $this->returnJson(['success' => true, 'group_alias' => Configure::read('GroupAlias')]);
     }
     
     private function acquireAccessToken($session_id)
