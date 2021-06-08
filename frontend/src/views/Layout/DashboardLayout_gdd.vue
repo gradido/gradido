@@ -106,9 +106,13 @@ export default {
       this.$store.dispatch('logout')
       this.$router.push('/login')
     },
-    async updateTransactions() {
+    async updateTransactions(pagination) {
       this.pending = true
-      const result = await communityAPI.transactions(this.$store.state.sessionId)
+      const result = await communityAPI.transactions(
+        this.$store.state.sessionId,
+        pagination.firstPage,
+        pagination.items,
+      )
       if (result.success) {
         this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
@@ -129,7 +133,7 @@ export default {
     this.initScrollbar()
   },
   created() {
-    this.updateTransactions()
+    this.updateTransactions({ firstPage: 1, items: 5 })
   },
 }
 </script>

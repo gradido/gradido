@@ -202,16 +202,6 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('div').at(3).text()).toBe('decay')
         })
       })
-
-      describe('max property set to 2', () => {
-        beforeEach(async () => {
-          await wrapper.setProps({ max: 2 })
-        })
-
-        it('shows only 2 transactions', () => {
-          expect(wrapper.findAll('div.gdd-transaction-list-item')).toHaveLength(2)
-        })
-      })
     })
 
     describe('with invalid transaction type', () => {
@@ -232,6 +222,70 @@ describe('GddTransactionList', () => {
 
       it('throws an error', () => {
         expect(errorHandler).toHaveBeenCalled()
+      })
+    })
+
+    describe('pagination buttons', () => {
+      const transactions = Array.from({ length: 42 }, (_, idx) => {
+        return {
+          balance: '3.14',
+          date: '2021-04-29T17:26:40+00:00',
+          memo: 'Kreiszahl PI',
+          name: 'Euklid',
+          transaction_id: idx + 1,
+          type: 'receive',
+        }
+      })
+
+      let paginationButtons
+
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions,
+          transactionCount: 42,
+          showPagination: true,
+        })
+        paginationButtons = wrapper.find('div.pagination-buttons')
+      })
+
+      it('shows the pagination buttons', () => {
+        expect(paginationButtons.exists()).toBeTruthy()
+      })
+
+      it('has the previous button disabled', () => {
+        expect(paginationButtons.find('button.previous-page').attributes('disabled')).toBe(
+          'disabled',
+        )
+      })
+
+      it('shows the text "1 / 2"', () => {
+        expect(paginationButtons.find('p.text-center').text()).toBe('1 / 2')
+      })
+
+      it('emits update-transactions when next button is clicked', async () => {
+        paginationButtons.find('button.next-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(wrapper.emitted('update-transactions')[1]).toEqual([{ firstPage: 2, items: 25 }])
+      })
+
+      it('shows text "2 / 2" when next button is clicked', async () => {
+        paginationButtons.find('button.next-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(paginationButtons.find('p.text-center').text()).toBe('2 / 2')
+      })
+
+      it('has next-button disabled when next button is clicked', async () => {
+        paginationButtons.find('button.next-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(paginationButtons.find('button.next-page').attributes('disabled')).toBe('disabled')
+      })
+
+      it('emits update-transactions when preivous button is clicked after next buton', async () => {
+        paginationButtons.find('button.next-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        paginationButtons.find('button.previous-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(wrapper.emitted('update-transactions')[2]).toEqual([{ firstPage: 1, items: 25 }])
       })
     })
   })

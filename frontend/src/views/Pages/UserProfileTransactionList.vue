@@ -7,6 +7,7 @@
             :timestamp="timestamp"
             :transactionCount="transactionCount"
             :transactions="transactions"
+            :show-pagination="true"
             @update-transactions="updateTransactions"
           />
         </b-col>
@@ -33,8 +34,8 @@ export default {
     }
   },
   methods: {
-    updateTransactions() {
-      this.$emit('update-transactions')
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
     },
   },
 }

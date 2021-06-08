@@ -23,8 +23,7 @@ class CommunityProfilesFixture extends TestFixture
             'state_user_id' => ['type' => 'index', 'columns' => ['state_user_id'], 'length' => []],
         ],
         '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
-            'community_profiles_ibfk_1' => ['type' => 'foreign', 'columns' => ['state_user_id'], 'references' => ['state_users', 'id'], 'update' => 'restrict', 'delete' => 'restrict', 'length' => []],
+            'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []]
         ],
         '_options' => [
             'engine' => 'InnoDB',
