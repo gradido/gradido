@@ -198,8 +198,10 @@ class Transaction extends TransactionBase {
       
       $connection->commit();
       
-      $this->mTransactionBody->getSpecificTransaction()->sendNotificationEmail($this->mTransactionBody->getMemo());
+      $specificTransaction = $this->mTransactionBody->getSpecificTransaction();
       
+      $specificTransaction->sendNotificationEmail($this->mTransactionBody->getMemo());
+      $this->addWarnings($specificTransaction->getWarnings());
       return true;
     }
 

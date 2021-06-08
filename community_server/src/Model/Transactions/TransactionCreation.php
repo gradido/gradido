@@ -209,6 +209,7 @@ class TransactionCreation extends TransactionBase {
                 ->send();
         } catch(Exception $e) {
 //          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+            $this->addWarning('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
           return false;
         }
       return true;

@@ -204,13 +204,14 @@ class TransactionTransfer extends TransactionBase {
             $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
             return false;
           }
-        $email->setFrom([$serverAdminEmail => $senderUser->getNames() . ' via Gradido Community'])
+        $noReplyEmail = Configure::read('noReplyEmail');
+        $email->setFrom([$noReplyEmail => 'Gradido (nicht antworten)'])
               ->setTo([$receiverUser->email => $receiverUser->getNames()])
-              ->setReplyTo($senderUser->email)
               ->setSubject(__('Gradidos erhalten'))
               ->send();
       } catch(Exception $e) {
         //$this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+          $this->addWarning('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
         return false;
       }
       return true;
