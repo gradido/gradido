@@ -271,7 +271,7 @@ In case of success:
 		"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"first_name": "Max",
 		"last_name": "Musterman",
-		"email": "max.musterman@gmail.de"
+		"email": "max.musterman@gmail.de",
 		"disabled": 0,
 		"email_checked": 1
   	},
