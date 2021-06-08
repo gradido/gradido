@@ -134,7 +134,9 @@ class AppRequestsController extends AppController
         }
         $param['amount'] = $this->GradidoNumber->parseInputNumberToCentNumber($param['amount']);
         
-        if(isset($data->memo)) {
+        if(!isset($data->memo) || strlen($data->memo) < 5 || strlen($data->memo) > 150) {
+            return ['state' => 'error', 'msg' => 'memo is not set or not in expected range [5;150]'];
+        } else {
             $param['memo'] = $data->memo;
         }
         
