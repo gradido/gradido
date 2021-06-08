@@ -332,17 +332,6 @@ jobs:
         run: |
           docker run --network ${{ steps.network.outputs.id }} -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test
           cp -r ~/coverage ./coverage
-      ##########################################################################
-      # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
-      ##########################################################################
-      - name: backend community lcov | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Backend
-          type: lcov
-          result_path: ./coverage/coverage.info
-          min_coverage: 8
-          token: ${{ github.token }}
       #########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
       ##########################################################################
