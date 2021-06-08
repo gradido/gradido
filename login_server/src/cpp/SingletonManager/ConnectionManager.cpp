@@ -57,6 +57,7 @@ bool ConnectionManager::setConnectionsFromConfig(const Poco::Util::LayeredConfig
 	dbConfig << "user=" << config.getString(firstKeyPart + ".db.user", "root") << ";";
 	dbConfig << "password=" << config.getString(firstKeyPart + ".db.password", "") << ";";
 	dbConfig << "auto-reconnect=true";
+	std::clog << "try connect with: " << dbConfig.str() << std::endl;
 
 	setConnection(dbConfig.str(), type);
 

@@ -274,12 +274,66 @@ install(DIRECTORY src/LOCALE DESTINATION /etc/grd_login/
 
 endif(UNIX)
 
+#  ----------------------    Test -----------------------------------------
+
 enable_testing()
 
-#  ----------------------    Test -----------------------------------------
-#project(Gradido_LoginServer_Test C CXX)
+option(COLLECT_COVERAGE_DATA "Use cov to collect coverage informations" OFF)
+set(COVERAGE_TOOL "Coverage Tool (gcovr|lcov|fastcov)" CACHE STRING "gcovr")
+
+if(COLLECT_COVERAGE_DATA)
+	
+	include(cmake/CodeCoverage.cmake)
+	append_coverage_compiler_flags()
+	set(EXCLUDE_FOR_HTML_COV 
+		"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
+		"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
+		"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/include/gtest/internal/*"
+		"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/src/"
+	)
+	if("${COVERAGE_TOOL}" STREQUAL "gcovr")
+		setup_target_for_coverage_gcovr_html(
+			NAME coverage
+			EXECUTABLE Gradido_LoginServer_Test
+			EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+			GCOVR_ADDITIONAL_ARGS "--txt "
+			#DEPENDENCIES lib/libmariadb.so.3
+		)
+	endif()
+
+	set(EXCLUDE_FOR_COV 
+		${EXCLUDE_FOR_HTML_COV}
+		"/usr/include/*"
+	)
+	if("${COVERAGE_TOOL}" STREQUAL "lcov")
+		setup_target_for_coverage_lcov(
+			NAME coverage
+			EXECUTABLE Gradido_LoginServer_Test
+			EXCLUDE "${EXCLUDE_FOR_COV}"
+			#DEPENDENCIES lib/libmariadb.so.3
+		)
+	endif()
+	
+	if("${COVERAGE_TOOL}" STREQUAL "fastcov")
+		setup_target_for_coverage_fastcov(
+	     NAME coverage                    # New target name
+	     EXECUTABLE Gradido_LoginServer_Test -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
+	     #BASE_DIRECTORY "../"                        # Base directory for report
+	                                                 #  (defaults to PROJECT_SOURCE_DIR)
+	     EXCLUDE "${EXCLUDE_FOR_COV}"                # Patterns to exclude.
+	     NO_DEMANGLE                                 # Don't demangle C++ symbols
+	                                                 #  even if c++filt is found
+	     SKIP_HTML                                   # Don't create html report
+	 )
+	endif()
+
+endif()
+
+project(Gradido_LoginServer_Test C CXX)
 #_TEST_BUILD
-#find_package(gtest)
+#find_package(GTest CONFIG REQUIRED)
+#add_subdirectory("dependencies/protobuf/third_party/googletest")
 
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
@@ -292,7 +346,7 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium)
+	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

@@ -30,22 +30,16 @@ include_directories(
 find_package(Protobuf REQUIRED)
 include_directories(${Protobuf_INCLUDE_DIRS})
 
-FIND_PACKAGE(gRPC CONFIG REQUIRED)
-find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-
 set(PROTOBUF_LIBS protobuf::libprotobuf protobuf::libprotobuf-lite protobuf::libprotoc)
 
 ############################## parse proto files ###################################
 
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto GRADIDO_PROTO_MODEL_PATH)
-FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/hedera/hedera-protobuf/src/main/proto HEDERA_PROTO_MODEL_PATH)
 FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/proto PROTOBINDING_PATH)
 file(MAKE_DIRECTORY ${PROTOBINDING_PATH})
 file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/gradido)
-file(MAKE_DIRECTORY ${PROTOBINDING_PATH}/hedera)
 
 FILE(GLOB DATAMODEL_GRADIDO_PROTOS "${GRADIDO_PROTO_MODEL_PATH}/gradido/*.proto")
-FILE(GLOB DATAMODEL_HEDERA_PROTOS "${HEDERA_PROTO_MODEL_PATH}/*.proto")
 
 FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
    FILE(TO_NATIVE_PATH ${proto} proto_native)
@@ -69,31 +63,6 @@ FOREACH(proto ${DATAMODEL_GRADIDO_PROTOS})
 		ENDIF()
    ENDIF()
 
-ENDFOREACH(proto)
-
-FOREACH(proto ${DATAMODEL_HEDERA_PROTOS})
-   FILE(TO_NATIVE_PATH ${proto} proto_native)
-   get_filename_component(proto_parsed ${proto} NAME_WLE)
-   FILE(TO_NATIVE_PATH ${PROTOBINDING_PATH}/hedera/${proto_parsed}.pb.h proto_parsed_native)
-   IF(${proto_native} IS_NEWER_THAN ${proto_parsed_native})
-		EXECUTE_PROCESS(
-			COMMAND 
-			${PROTOBUF_PROTOC_EXECUTABLE} 
-			--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
-			--proto_path=${HEDERA_PROTO_MODEL_PATH} 
-			--proto_path=${GOOGLE_PROTOBUF_INCLUDES}
-			--cpp_out=${PROTOBINDING_PATH}/hedera 
-			--grpc_out ${PROTOBINDING_PATH}/hedera
-			${proto_native}
-			RESULT_VARIABLE rv
-		)
-		# Optional, but that can show the user if something have gone wrong with the proto generation 
-		IF(${rv})
-			MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
-		ELSE()
-			MESSAGE("Parsed: src/proto/hedera/hedera-protobuf/src/main/proto/${proto_parsed}.proto")
-		ENDIF()
-   ENDIF()
 ENDFOREACH(proto)
 
 ############################## parse cpsp Files ####################################
@@ -153,7 +122,6 @@ FILE(GLOB CRYPTO "src/cpp/Crypto/*.h" "src/cpp/Crypto/*.cpp")
 FILE(GLOB MAIN "src/cpp/*.cpp" "src/cpp/*.c"  "src/cpp/*.h")
 FILE(GLOB MYSQL "src/cpp/MySQL/*.cpp" "src/cpp/MySQL/*.h" "src/cpp/MySQL/Poco/*.h")
 FILE(GLOB PROTO_GRADIDO "${PROTOBINDING_PATH}/gradido/*.cc" "${PROTOBINDING_PATH}/gradido/*.h")
-FILE(GLOB PROTO_HEDERA "${PROTOBINDING_PATH}/hedera/*.cc" "${PROTOBINDING_PATH}/hedera/*.h")
 
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
@@ -204,5 +172,83 @@ set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO
 
 ############################## build login server ###################################
 
-target_link_libraries(Gradido_LoginServer gRPC::grpc++ ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread)
+target_link_libraries(Gradido_LoginServer ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread)
 
+############################## build login server test ###################################
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug") 
+	project(Gradido_LoginServer_Test C CXX)
+
+	enable_testing()
+
+	option(COLLECT_COVERAGE_DATA "Use cov to collect coverage informations" OFF)
+	set(COVERAGE_TOOL "Coverage Tool (gcovr|lcov|fastcov)" CACHE STRING "gcovr")
+
+
+	if(COLLECT_COVERAGE_DATA)
+		
+		include(cmake/CodeCoverage.cmake)
+		append_coverage_compiler_flags()
+		set(EXCLUDE_FOR_HTML_COV 
+			"${CMAKE_CURRENT_SOURCE_DIR}/build/proto/*" 
+			"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/*" 
+			"${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/test/*"
+			"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/include/gtest/internal/*"
+			"${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/src/"
+		)
+		if("${COVERAGE_TOOL}" STREQUAL "gcovr")
+			setup_target_for_coverage_gcovr_html(
+				NAME coverage
+				EXECUTABLE Gradido_LoginServer_Test
+				EXCLUDE ${EXCLUDE_FOR_HTML_COV}
+				GCOVR_ADDITIONAL_ARGS "--txt "
+				#DEPENDENCIES lib/libmariadb.so.3
+			)
+		endif()
+
+		set(EXCLUDE_FOR_COV 
+			${EXCLUDE_FOR_HTML_COV}
+			"/usr/include/*"
+		)
+		if("${COVERAGE_TOOL}" STREQUAL "lcov")
+			setup_target_for_coverage_lcov(
+				NAME coverage
+				EXECUTABLE Gradido_LoginServer_Test
+				EXCLUDE "${EXCLUDE_FOR_COV}"
+				#DEPENDENCIES lib/libmariadb.so.3
+			)
+		endif()
+		
+		if("${COVERAGE_TOOL}" STREQUAL "fastcov")
+			setup_target_for_coverage_fastcov(
+			NAME coverage                    # New target name
+			EXECUTABLE Gradido_LoginServer_Test -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
+			#BASE_DIRECTORY "coverage"                        # Base directory for report
+														#  (defaults to PROJECT_SOURCE_DIR)
+			EXCLUDE "${EXCLUDE_FOR_COV}"                # Patterns to exclude.
+			NO_DEMANGLE                                 # Don't demangle C++ symbols
+														#  even if c++filt is found
+			SKIP_HTML                                   # Don't create html report
+		)
+		endif()
+
+	endif()
+	#_TEST_BUILD
+
+	add_subdirectory("googletest")
+
+	add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
+	target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
+
+	target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} )
+
+	if(WIN32)
+		target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
+		#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
+		#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
+		#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
+	else()
+		target_link_libraries(Gradido_LoginServer_Test ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread gtest)
+	endif()
+
+	add_test(NAME main COMMAND Gradido_LoginServer_Test)
+ENDIF()

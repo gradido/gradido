@@ -11,5 +11,10 @@ cd build
 cmake -DWITH_SSL=OFF ..
 cd ../../
 
-
-
+if [! -d "./build" ] ; then
+  mkdir build
+fi
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make -j$(nproc) protoc PageCompiler
+cmake ..

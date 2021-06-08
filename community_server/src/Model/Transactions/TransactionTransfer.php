@@ -58,7 +58,7 @@ class TransactionTransfer extends TransactionBase {
         //$this->addError('TransactionTransfer::validate', 'not implemented yet');
         //return false;
         //$time = microtime(true);
-        static $functionName = 'TransactionCreation::validate';
+        static $functionName = 'TransactionTransfer::validate';
         
         $sigPubHexs = [];
         foreach($sigPairs as $sigPair) 
