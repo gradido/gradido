@@ -47,6 +47,8 @@ namespace controller {
 
 		static std::vector<User*> search(const std::string& searchString, const std::string& accountState = "all");
 
+		bool isUsernameAlreadyUsed(const std::string& username);
+
 		//! \brief go through whole db and search users with email_checked = false and schedule resend 7 days after email_opt_in created date
 		//! 
 		//! Should be only called by server start, later it aren't necessary, because register function schedule resend tasks by himself.
@@ -68,7 +70,7 @@ namespace controller {
 		//! \return  0 matching entry found
 		int tryLoadPassphraseUserBackup(KeyPairEd25519** createdKeyPair = nullptr);
 
-		inline size_t load(const std::string& email) { return getModel()->loadFromDB("email", email); }
+		size_t load(const std::string& emailOrUsername);
 		//! \brief try to load user from db via user_id
 		//! \return count of found rows, should be 1 or 0
 		inline size_t load(int user_id) { return getModel()->loadFromDB("id", user_id); }

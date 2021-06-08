@@ -7,7 +7,6 @@
 #include "../SingletonManager/ErrorManager.h"
 #include "../SingletonManager/SingletonTaskObserver.h"
 
-#include "NodeServer.h"
 #include "Group.h"
 
 #include "../lib/DataTypeConverter.h"
@@ -24,7 +23,7 @@ namespace controller {
 		: mPassword(nullptr), mGradidoKeyPair(nullptr), mCanDecryptPrivateKey(false), mGradidoCurrentBalance(0)
 	{
 		mDBModel = dbModel;
-		
+
 	}
 
 	User::~User()
@@ -49,20 +48,20 @@ namespace controller {
 		auto user = new User(db);
 		return Poco::AutoPtr<User>(user);
 	}
-	
+
 	std::vector<User*> User::search(const std::string& searchString, const std::string& accountState /* = "all" */)
 	{
-		
+
 		auto sm = SessionManager::getInstance();
 		auto cm = ConnectionManager::getInstance();
 		auto db = new model::table::User();
 		static const char* functionName = "User::search";
-		
+
 		std::string globalSearch = "%" + searchString + "%";
 
 		std::vector<model::table::UserTuple> resultFromDB;
 		if (accountState == "email not activated") {
-			
+
 			std::vector<std::string> fieldNames = { "first_name", "last_name", "email", "email_checked" };
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			std::vector<model::table::UserTuple> results;
@@ -106,6 +105,12 @@ namespace controller {
 
 	}
 
+	bool User::isUsernameAlreadyUsed(const std::string& username)
+	{
+		auto db = getModel();
+		return db->loadFromDB({ "username", "group_id" }, username, db->getGroupId(), model::table::MYSQL_CONDITION_AND) > 0;
+	}
+
 	int User::load(const unsigned char* pubkey_array)
 	{
 		Poco::Data::BLOB pubkey(pubkey_array, 32);
@@ -117,6 +122,14 @@ namespace controller {
 		Poco::Data::BLOB email_hash(*emailHash, crypto_generichash_BYTES);
 		return getModel()->loadFromDB("email_hash", email_hash);
 	}
+	size_t User::load(const std::string& emailOrUsername)
+	{
+		auto model = getModel();
+		if (1 == model->loadFromDB("email", emailOrUsername)) {
+			return 1;
+		}
+		return model->loadFromDB("username", emailOrUsername);
+	}
 	Poco::AutoPtr<User> User::sload(int user_id)
 	{
 		auto db = new model::table::User();
@@ -127,7 +140,7 @@ namespace controller {
 		auto user = new User(db);
 		return Poco::AutoPtr<User>(user);
 	}
-	
+
 	void User::reload()
 	{
 		getModel()->loadFromDB("id", getModel()->getID());
@@ -147,15 +160,15 @@ namespace controller {
 
 		auto pubkey = getModel()->getPublicKey();
 
-		if (pubkey) 
+		if (pubkey)
 		{
 			auto pubkeyHex = mm->getFreeMemory(65);
 			memset(*pubkeyHex, 0, 65);
 			sodium_bin2hex(*pubkeyHex, 65, pubkey, 32);
 			mPublicHex = (char*)*pubkeyHex;
-			mm->releaseMemory(pubkeyHex);	
+			mm->releaseMemory(pubkeyHex);
 		}
-		
+
 		unlock();
 		return mPublicHex;
 	}
@@ -185,7 +198,7 @@ namespace controller {
 			return 2;
 		}
 		auto observer = SingletonTaskObserver::getInstance();
-		
+
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		assert(mPassword.isNull());
 
@@ -201,7 +214,7 @@ namespace controller {
 
 		observer->removeTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
 
-		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed()) 
+		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed())
 		{
 		//	printf("[User::login] password key hashed is the same as saved password hash\n");
 			MemoryBin* clear_private_key = nullptr;
@@ -212,7 +225,7 @@ namespace controller {
 			if (!model->hasPrivateKeyEncrypted()) {
 				return 1;
 			}
-			else 
+			else
 			{
 				if (SecretKeyCryptography::AUTH_DECRYPT_OK == authenticated_encryption->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
 					if (mGradidoKeyPair) {
@@ -247,7 +260,7 @@ namespace controller {
 
 			}
 		}
-		
+
 		// password didn't match
 		//printf("password hashed key: %ull, model pwd hashed keys: %ull\n", authenticated_encryption->getKeyHashed(), model->getPasswordHashed());
 		//printf("password: %d\n", (int)(mPassword.get()));
@@ -285,12 +298,12 @@ namespace controller {
 	}
 
 
-	int User::setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd) 
+	int User::setNewPassword(Poco::AutoPtr<SecretKeyCryptography> passwd)
 	{
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 		auto model = getModel();
 
-		if (!mPassword.isNull() && !passwd.isNull()) 
+		if (!mPassword.isNull() && !passwd.isNull())
 		{
 			// if keys matched
 			if (mPassword->isTheSame(passwd)) {
@@ -301,16 +314,16 @@ namespace controller {
 				//if (!mGradidoKeyPair) mGradidoKeyPair = new KeyPairEd25519;
 				MemoryBin* clear_private_key = nullptr;
 				if (SecretKeyCryptography::AUTH_DECRYPT_OK == mPassword->decrypt(model->getPrivateKeyEncrypted(), &clear_private_key)) {
-					if (mGradidoKeyPair && mGradidoKeyPair->isTheSame(clear_private_key) != 0) 
+					if (mGradidoKeyPair && mGradidoKeyPair->isTheSame(clear_private_key) != 0)
 					{
-						delete mGradidoKeyPair; 
+						delete mGradidoKeyPair;
 						mGradidoKeyPair = nullptr;
 					}
-					if (!mGradidoKeyPair) 
+					if (!mGradidoKeyPair)
 					{
 						mGradidoKeyPair = new KeyPairEd25519(clear_private_key);
 					}
-					
+
 					// check if saved pubkey and from private key extracted pubkey match
 					if (*mGradidoKeyPair != model->getPublicKey()) {
 						delete mGradidoKeyPair;
@@ -358,7 +371,7 @@ namespace controller {
 				continue;
 			}
 			auto key_pair = user_backup->createGradidoKeyPair();
-			
+
 			if (key_pair->isTheSame(user_model->getPublicKey())) {
 				if (createdKeyPair) {
 					*createdKeyPair = key_pair;
@@ -425,7 +438,7 @@ namespace controller {
 			<< "LEFT JOIN email_opt_in as v ON(u.id = v.user_id) "
 			<< "where u.email_checked = ? "
 			<< "AND v.resend_count <= ? "
-			<< "ORDER BY u.id, v.created " , 
+			<< "ORDER BY u.id, v.created " ,
 			Poco::Data::Keywords::use(email_checked), Poco::Data::Keywords::use(resend_count), Poco::Data::Keywords::into(results)
 		;
 		int result_count = 0;
@@ -499,7 +512,7 @@ namespace controller {
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(session);
 		std::vector<Poco::Tuple<int, std::string>> results;
-		
+
 		select << "select id, email from users "
 			<< "where email_hash IS NULL "
 			, Poco::Data::Keywords::into(results)
@@ -553,42 +566,25 @@ namespace controller {
 			printf("[%s] return saved group base Url: %s\n", function_name, mGroupBaseUrl.data());
 			return mGroupBaseUrl;
 		}
-		
+
 		auto model = getModel();
 		if (!model->getGroupId()) {
 			printf("[%s] return ServerConfig::g_php_serverPath because no group id\n", function_name);
 			return ServerConfig::g_php_serverPath;
 		}
-		auto servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_COMMUNITY, model->getGroupId());
-		if (!servers.size()) {
-			auto group = controller::Group::load(model->getGroupId());
-			if (!group.isNull()) {
-				auto group_model = group->getModel();
-				if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
-					mGroupBaseUrl = "http://" + group_model->getUrl() + group_model->getHome();
-				}
-				else {
-					mGroupBaseUrl = "https://" + group_model->getUrl() + group_model->getHome();
-				}
-				printf("[%s] return group base Url: %s from Group\n", function_name, mGroupBaseUrl.data());
-				return mGroupBaseUrl;
-			}
-			return ServerConfig::g_php_serverPath;
-		}
-		if (servers.size() > 1) {
-			auto em = ErrorManager::getInstance();
-			em->addError(new ParamError(function_name, "error, more than one community server found for group", model->getGroupId()));
-			em->sendErrorsAsEmail();
-			return ServerConfig::g_php_serverPath;
-		}
-		if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
-			mGroupBaseUrl = "http://" + servers[0]->getBaseUri();
-		}
-		else {
-			mGroupBaseUrl = "https://" + servers[0]->getBaseUri();
-		}
-		printf("[%s] return group base Url: %s from NodeServer\n", function_name, mGroupBaseUrl.data());
-		return mGroupBaseUrl;
+		auto group = controller::Group::load(model->getGroupId());
+        if (!group.isNull()) {
+            auto group_model = group->getModel();
+            if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+                mGroupBaseUrl = "http://" + group_model->getUrl() + group_model->getHome();
+            }
+            else {
+                mGroupBaseUrl = "https://" + group_model->getUrl() + group_model->getHome();
+            }
+            printf("[%s] return group base Url: %s from Group\n", function_name, mGroupBaseUrl.data());
+            return mGroupBaseUrl;
+        }
+        return ServerConfig::g_php_serverPath;
 	}
 
 	Poco::AutoPtr<controller::Group> User::getGroup()

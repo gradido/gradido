@@ -3,6 +3,7 @@
 #include "Poco/Environment.h"
 #include <sodium.h>
 #include <math.h>
+#include <iostream>
 
 #include "Poco/Logger.h"
 #include "Poco/Path.h"
@@ -87,27 +88,41 @@ int TestTasks::init()
 
 int TestTasks::test()
 {
+	std::clog << "start with task test" << std::endl;
 	auto workerCount = Poco::Environment::processorCount() * 4;
 	auto taskCount = workerCount + workerCount * (randombytes_random() % 4);
-	printf("[TestTasks::test] taskCount: %d\n", taskCount);
+	std::clog << "worker count: " << std::to_string(workerCount) << ", task count: " << std::to_string(taskCount) << std::endl;
 	for (int i = 1; i <= taskCount; i++) {
 		Poco::AutoPtr<RandomCPUTask> task = new RandomCPUTask(&mTaskScheduler, this, i);
 		lock();
 		mTasks.insert(std::pair<int, RandomCPUTask*>(i, task));
 		unlock();
 		task->scheduleTask(task);
+		//std::clog << "start task: " << std::to_string(i) << std::endl;
 	}
+
+	std::clog << "all tasks started" << std::endl;
 	int maxWaitCylces = 3000;
 	bool finished = false;
 	do {
 		maxWaitCylces--;
 		Poco::Thread::sleep(5);
-		lock();
-		if (mTasks.size() == 0) {
-			finished = true;
+		if(mErrors.size() > 0) {
+			std::clog << std::to_string(mErrors.size()) << " errors" << std::endl;
 		}
-		unlock();
+		try {
+			lock();
+			if (mTasks.size() == 0) {
+				finished = true;
+			}
+			unlock();
+		} catch(Poco::Exception& ex) {
+			std::clog << "Poco Exception while waiting on tasks: " << ex.displayText() << std::endl;
+		} catch(std::exception& ex) {
+			std::clog << "std::exception while waiting on tasks: " << ex.what() << std::endl;
+		}
 	} while (!finished && maxWaitCylces > 0);
+	std::clog << "all tasks now finished" << std::endl;
 
 	lock();
 	bool hasErrors = false;
@@ -150,4 +165,5 @@ void TestTasks::releaseTask(int nr)
 		mErrors.push_back("[TestTasks] task entry not found" + std::to_string(nr));
 	}
 	unlock();
+
 }
