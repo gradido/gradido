@@ -62,10 +62,8 @@ export default {
       console.log('onSubmit', this.form.username)
       const result = await loginAPI.changeUsernameProfile(
         this.$store.state.sessionId,
-        this.$store.state.email,
-        {
-          username: this.form.username,
-        },
+        this.$store.state.email,      
+        this.form.username,
       )
       if (result.success) {
         this.$store.commit('username', this.form.username)
