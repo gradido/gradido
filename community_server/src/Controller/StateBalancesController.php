@@ -151,35 +151,6 @@ class StateBalancesController extends AppController
         $this->set('gdtSum', $gdtSum);
     }
 
-    public function ajaxGetBalance($session_id = 0)
-    {
-        if(!$session_id) {
-            return $this->returnJson(['state' => 'error', 'msg' => 'invalid session id']);
-        }
-        $login_result = $this->requestLogin($session_id, false);
-        if($login_result !== true) {
-            return $this->returnJson($login_result);
-        }
-        $session = $this->getRequest()->getSession();
-        $user = $session->read('StateUser');
-        
-        $this->StateBalances->updateBalances($user['id']);
-        
-        $state_balance = $this->StateBalances->find()->where(['state_user_id' => $user['id']])->first();
-
-        if(!$state_balance) {
-            return $this->returnJson(['state' => 'success', 'balance' => 0]);
-        }
-        $now = new FrozenTime();
-        
-        return $this->returnJson([
-            'state' => 'success',
-            'balance' => $state_balance->amount,
-            'decay' => $this->StateBalances->calculateDecay($state_balance->amount, $state_balance->record_date, $now),
-            'decay_date' => $now
-        ]);
-    }
-
     
     public function ajaxGdtOverview()
     {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container fluid class="p-lg-2 mt-lg-1">
+    <b-container fluid>
       <gdd-status
         v-if="showContext"
         :pending="pending"
@@ -31,10 +31,10 @@
       <gdd-transaction-list
         v-if="showContext"
         :transactions="transactions"
-        :max="5"
+        :page-size="5"
         :timestamp="timestamp"
-        :transactionCount="transactionCount"
-        @update-transactions="$emit('update-transactions')"
+        :transaction-count="transactionCount"
+        @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer v-if="showContext" :count="transactionCount" />
     </b-container>
@@ -115,6 +115,9 @@ export default {
     onReset() {
       this.transactionData = EMPTY_TRANSACTION_DATA
       this.currentTransactionStep = 0
+    },
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
     },
   },
 }

@@ -561,17 +561,21 @@ namespace model {
 			Poco::Net::NameValueCollection param;
 			param.set("transaction", base_64_message);
 			auto result = json_request.request("putTransaction", param);
-			if (JSON_REQUEST_RETURN_OK == result) {
+			json_request.getWarnings(&json_request);
+
+			if (JSON_REQUEST_RETURN_OK == result) 
+			{	
 				if (!json_request.errorCount()) {
 					finishSuccess();
 				}
 				else {
-					getErrors(&json_request);
+					getErrors(&json_request);		
 					return -1;
 				}
 				return 1;
 			}
 
+			json_request.getWarnings(&json_request);
 			getErrors(&json_request);
 
 			return -1;

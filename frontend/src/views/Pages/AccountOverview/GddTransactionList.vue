@@ -2,7 +2,7 @@
   <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
-        v-for="item in transactions.slice(0, max)"
+        v-for="item in transactions"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
@@ -66,6 +66,15 @@
           </b-card>
         </b-collapse>
       </b-list-group-item>
+      <pagination-buttons
+        v-if="showPagination && transactionCount > pageSize"
+        :has-next="hasNext"
+        :has-previous="hasPrevious"
+        :total-pages="totalPages"
+        :current-page="currentPage"
+        @show-next="showNext"
+        @show-previous="showPrevious"
+      ></pagination-buttons>
       <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
@@ -74,6 +83,8 @@
 </template>
 
 <script>
+import PaginationButtons from '../../../components/PaginationButtons'
+
 const iconsByType = {
   send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
   receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
@@ -83,11 +94,20 @@ const iconsByType = {
 
 export default {
   name: 'gdd-transaction-list',
+  components: {
+    PaginationButtons,
+  },
+  data() {
+    return {
+      currentPage: 1,
+    }
+  },
   props: {
     transactions: { default: () => [] },
-    max: { type: Number, default: 1000 },
+    pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+    showPagination: { type: Boolean, default: false },
   },
   watch: {
     timestamp: {
@@ -95,9 +115,23 @@ export default {
       handler: 'updateTransactions',
     },
   },
+  computed: {
+    hasNext() {
+      return this.currentPage * this.pageSize < this.transactionCount
+    },
+    hasPrevious() {
+      return this.currentPage > 1
+    },
+    totalPages() {
+      return Math.ceil(this.transactionCount / this.pageSize)
+    },
+  },
   methods: {
     updateTransactions() {
-      this.$emit('update-transactions')
+      this.$emit('update-transactions', {
+        firstPage: this.currentPage,
+        items: this.pageSize,
+      })
     },
     getProperties(item) {
       const type = iconsByType[item.type]
@@ -111,6 +145,14 @@ export default {
     },
     throwError(msg) {
       throw new Error(msg)
+    },
+    showNext() {
+      this.currentPage++
+      this.updateTransactions()
+    },
+    showPrevious() {
+      this.currentPage--
+      this.updateTransactions()
     },
   },
 }
