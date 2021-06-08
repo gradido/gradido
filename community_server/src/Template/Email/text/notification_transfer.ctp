@@ -15,7 +15,7 @@ $senderNames = $senderUser->first_name . ' ' . $senderUser->last_name;
  
 <?= $memo ?> 
  
-<?= __('Du kannst {0} eine Nachricht schreiben, indem du auf diese E-Mail antwortest', $senderNames); ?> 
+<?= __('Bitte antworte nicht auf diese E-Mail!'); ?> 
  
 <?= __('Mit freundlichen Grüßen'); ?> 
 Gradido Community Server

@@ -38,7 +38,7 @@ services:
       - ./login_server/dependencies:/code/dependencies
       - ./login_server/scripts:/code/scripts
       - ./configs/login_server:/etc/grd_login
-      - login_build_3:/code/build
+      - login_build_3.1:/code/build
 
 
   #########################################################
@@ -47,11 +47,8 @@ services:
   community-server:
     build: 
       context: .
+      target: community_server
       dockerfile: ./community_server/Dockerfile
-    environment:
-      - DB_PASSWORD=''
-      - DB_USER='root'
-      - DB_DATABASE='gradido_community'
     depends_on: 
       - mariadb
     networks: 
@@ -103,4 +100,4 @@ services:
    
 volumes:
   frontend_node_modules:
-  login_build_3:
+  login_build_3.1:

@@ -54,6 +54,11 @@ NotificationList::~NotificationList()
 		delete mErrorStack.top();
 		mErrorStack.pop();
 	}
+
+	while (mWarningStack.size() > 0) {
+		delete mWarningStack.top();
+		mWarningStack.pop();
+	}
 }
 
 void NotificationList::addError(Notification* error, bool log/* = true */)
@@ -61,10 +66,19 @@ void NotificationList::addError(Notification* error, bool log/* = true */)
 
 	if (log) {
 		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		mLogging.error("%s [ErrorList::addError] %s", dateTimeString, error->getString(false));
+		mLogging.error("%s [NotificationList::addError] %s", dateTimeString, error->getString(false));
 
 	}
 	mErrorStack.push(error);
+}
+
+void NotificationList::addWarning(Warning* warning, bool log/* = true*/)
+{
+	if (log) {
+		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
+		mLogging.warning("%s [NotificationList::addWarning] %s", dateTimeString, warning->getString(false));
+	}
+	mWarningStack.push(warning);
 }
 
 void NotificationList::addNotification(Notification* notification)
@@ -86,6 +100,20 @@ Notification* NotificationList::getLastError()
 	return error;
 }
 
+Warning* NotificationList::getLastWarning()
+{
+	if (mWarningStack.size() == 0) {
+		return nullptr;
+	}
+
+	Warning* warning = mWarningStack.top();
+	if (warning) {
+		mWarningStack.pop();
+	}
+
+	return warning;
+}
+
 void NotificationList::clearErrors()
 {
 	while (mErrorStack.size()) {
@@ -104,6 +132,17 @@ int NotificationList::getErrors(NotificationList* send)
 	int iCount = 0;
 	while (error = send->getLastError()) {
 		addError(error, false);
+		iCount++;
+	}
+	return iCount;
+}
+
+int NotificationList::getWarnings(NotificationList* send)
+{
+	Warning* warning = nullptr;
+	int iCount = 0;
+	while (warning = send->getLastWarning()) {
+		addWarning(warning, false);
 		iCount++;
 	}
 	return iCount;
@@ -130,6 +169,21 @@ std::vector<std::string> NotificationList::getErrorsArray()
 		//result->add(error->getString());
 		result.push_back(error->getString());
 		delete error;
+	}
+	return result;
+}
+
+std::vector<std::string> NotificationList::getWarningsArray()
+{
+	std::vector<std::string> result;
+	result.reserve(mWarningStack.size());
+
+	while (mWarningStack.size() > 0) {
+		auto warning = mWarningStack.top();
+		mWarningStack.pop();
+		//result->add(error->getString());
+		result.push_back(warning->getString());
+		delete warning;
 	}
 	return result;
 }
