@@ -52,11 +52,10 @@
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
-                       required: true,
-                       numeric: true,
-                       between: [0.01, balance],
+                  required: true,
+                  gddSendAmount: [0.01, balance],
                 }"
-                v-slot="{ errors }"
+                v-slot="{ errors, valid }"
               >
                 <b-row>
                   <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
@@ -77,12 +76,11 @@
                   <b-form-input
                     id="input-2"
                     v-model="form.amount"
-                    type="number"
-                    :lang="$i18n.locale"
+                    type="text"
+                    v-focus="amountFocused"
+                    @focus="amountFocused = !amountFocused"
+                    @blur="normalizeAmount(valid)"
                     :placeholder="$n(0.01)"
-                    min="0.01"
-                    :max="balance"
-                    step="0.01"
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>
                 </b-input-group>
@@ -154,18 +152,21 @@ export default {
   },
   data() {
     return {
+      amountFocused: false,
       form: {
         email: '',
         amount: '',
         memo: '',
+        amountValue: 0.0,
       },
     }
   },
   methods: {
     onSubmit() {
+      this.normalizeAmount()
       this.$emit('set-transaction', {
         email: this.form.email,
-        amount: this.form.amount,
+        amount: this.form.amountValue,
         memo: this.form.memo,
       })
     },
@@ -178,6 +179,12 @@ export default {
     setTransaction(data) {
       this.form.email = data.email
       this.form.amount = data.amount
+    },
+    normalizeAmount(isValid) {
+      this.amountFocused = !this.amountFocused
+      if (!isValid) return
+      this.form.amountValue = Number(this.form.amount.replace(',', '.'))
+      this.form.amount = this.$n(this.form.amountValue, 'decimal')
     },
   },
 }

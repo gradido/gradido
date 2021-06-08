@@ -48,7 +48,7 @@
     "send_transaction_success":"Deine Transaktion wurde erfolgreich ausgeführt",
     "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
     "validation": {
-      "double": "Das Feld {field} muss eine Dezimalzahl mit zwei Nachkommastellen sein",
+      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen"
     }
   },
