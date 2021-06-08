@@ -2,6 +2,7 @@
 Poco/1.9.4@pocoproject/stable
 libsodium/1.0.18@bincrafters/stable
 boost/1.71.0@conan/stable
+gtest/1.10.0
 
 [options]
 Poco:enable_pagecompiler=True

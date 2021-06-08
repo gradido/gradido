@@ -7,6 +7,7 @@
 
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonCheckSessionState.h"
+#include "JsonCheckUsername.h"
 #include "JsonAppLogin.h"
 #include "JsonAquireAccessToken.h"
 #include "JsonCreateTransaction.h"
@@ -73,6 +74,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
+	}
+	else if (url_first_part == "/checkUsername") {
+		return new JsonCheckUsername;
 	}
 	else if (url_first_part == "/createTransaction") {
 		return new JsonCreateTransaction;
