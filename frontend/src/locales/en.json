@@ -1,7 +1,7 @@
 {
   "message": "hello gradido !!",
   "welcome":"Welcome!",
-  "community": "Gemeinschaft",
+  "community": "Community",
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
@@ -23,14 +23,22 @@
     "cancel":"Cancel",
     "reset": "Reset",
     "close":"Close",
+    "edit": "Edit",
+    "save": "save",
     "receiver":"Receiver",
     "sender":"Sender",
+    "username":"Username",
     "firstname":"Firstname",
     "lastname":"Lastname",
+    "description": "Description",
     "email":"Email",
     "email_repeat":"Repeat Email",
     "password":"Password",
     "password_repeat":"Repeat password",
+    "password_old":"Old password",
+    "password_new":"New password",
+    "password_new_repeat":"Repeat new password",
+    "change": "change",
     "amount":"Amount",
     "memo":"Message for the recipient",
     "message":"Message",
@@ -50,7 +58,8 @@
     "validation": {
       "double": "The {field} field must be a decimal with two digits",
       "is-not": "You cannot send Gradidos to yourself"
-    }
+    },
+    "change_username_info": "Changing the username requires several steps."
   },
   "error": {
     "error":"Error"

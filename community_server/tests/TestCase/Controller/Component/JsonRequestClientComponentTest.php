@@ -51,19 +51,7 @@ class JsonRequestClientComponentTest extends TestCase
         $this->markTestIncomplete('Not implemented yet.');
     }
 
-    /**
-     * Test getLoginServerUrl method
-     *
-     * @return void
-     */
-    public function testGetLoginServerUrl()
-    {
-        //$this->markTestIncomplete('Not implemented yet.');
-      $serverUrl = $this->JsonRequestClientComponent->getLoginServerUrl();
-      $this->assertEquals($serverUrl, 'http://***REMOVED***');
-    }
-
-    /**
+      /**
      * Test is_base64 method
      *
      * @return void

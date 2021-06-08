@@ -340,12 +340,13 @@ class JsonRequestHandlerController extends AppController {
             return;
         }
         $transaction_body = $transaction->getTransactionBody();
-        $transaction_type_name = $transaction_body->getTransactionTypeName();
-        $senderUser = null;
-        if($transaction_type_name === 'transfer') {
-            $senderUser = $transaction_body->getSpecificTransaction()->getSenderUser();
-        } else if($transaction_type_name === 'creation') {
-            $senderUser = $transaction->getFirstSigningUser();
+        $senderUser = $transaction->getFirstSigningUser();
+        if($transaction_body != null) {
+            $transaction_type_name = $transaction_body->getTransactionTypeName();
+        
+            if($transaction_type_name === 'transfer') {
+                $senderUser = $transaction_body->getSpecificTransaction()->getSenderUser();
+            } 
         }
       // send notification email
         $noReplyEmail = Configure::read('noReplyEmail');
@@ -373,18 +374,21 @@ class JsonRequestHandlerController extends AppController {
   
     private function putTransaction($transactionBase64) {
       $transaction = new Transaction($transactionBase64);
-      //echo "after new transaction<br>";
+      
       if($transaction->hasErrors()) {
         $this->sendEMailTransactionFailed($transaction, 'parse');
         return $this->returnJson(['state' => 'error', 'msg' => 'error parsing transaction', 'details' => $transaction->getErrors()]);
       }
-      //echo "after check on errors<br>";
+      
       if(!$transaction->validate()) {
           //$transaction_details
         $this->sendEMailTransactionFailed($transaction, 'validate');
-        return $this->returnJsonSaveError($transaction, ['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
+        return $this->returnJsonSaveError($transaction, [
+            'state' => 'error',
+            'msg' => 'error validate transaction',
+            'details' => $transaction->getErrors()
+        ]);
       }
-      //echo "after validate <br>";
       
       if ($transaction->save()) {
           $result = ['state' => 'success'];

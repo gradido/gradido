@@ -27,6 +27,10 @@ use Cake\View\Exception\MissingTemplateException;
  */
 class PagesControllerTest extends IntegrationTestCase
 {
+    
+     public $fixtures = [
+        'app.Migrations2'
+    ];
     /**
      * testMultipleGet method
      *
@@ -35,9 +39,12 @@ class PagesControllerTest extends IntegrationTestCase
     public function testMultipleGet()
     {
         $this->get('/');
-        $this->assertRedirect('account/');
+        $locations = $this->_response->getHeader('Location');
+        $this->assertRegExp('%.*/account/$%', $locations[0]);
+        
         $this->get('/');
-        $this->assertRedirect('account/');
+        $locations = $this->_response->getHeader('Location');
+        $this->assertRegExp('%.*/account/$%', $locations[0]);
     }
 
     /**
@@ -64,7 +71,7 @@ class PagesControllerTest extends IntegrationTestCase
         $this->get('/pages/not_existing');
 
         $this->assertResponseError();
-        $this->assertResponseContains('Error');
+        $this->assertResponseContains('Not Found');
     }
 
     /**
@@ -78,8 +85,7 @@ class PagesControllerTest extends IntegrationTestCase
         $this->get('/pages/not_existing');
 
         $this->assertResponseFailure();
-        $this->assertResponseContains('Missing Template');
-        $this->assertResponseContains('Stacktrace');
+        $this->assertResponseContains('Template file \u0022Pages\/not_existing.ctp\u0022 is missing.');
         $this->assertResponseContains('not_existing.ctp');
     }
 

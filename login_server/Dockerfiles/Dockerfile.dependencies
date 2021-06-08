@@ -1,11 +1,8 @@
-#########################################################################################################
-# gcc 9 with libssl 
-#########################################################################################################
-FROM gcc:9 as gcc_9_libssl
-USER root
+##### BUILD-ENV #####
+FROM gcc:9 as gcc9_build
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libssl-dev libboost-dev && \
+    apt-get install -y --no-install-recommends libssl-dev libboost-dev gettext libsodium-dev lcov && \
 	apt-get autoclean && \
 	apt-get autoremove && \
     apt-get clean && \
@@ -15,79 +12,73 @@ RUN apt-get update && \
 #########################################################################################################
 # gcc 9 cmake
 #########################################################################################################
-FROM gcc_9_libssl as gcc_9_cmake 
-
-USER root
-ENV DOCKER_WORKDIR="/code"
-
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
+FROM gcc9_build as gcc_9_cmake 
 
 RUN git clone https://github.com/Kitware/CMake.git --branch=v3.19.8 && \
     cd CMake && \
 	 ./bootstrap --parallel=$(nproc) && \
 	make -j$(nproc) && \
-	make install && \
-	cd .. &&  \
-	rm -rf CMake
+	make install
+
+######### BUILD grpc ##############
+FROM gcc_9_cmake as gcc_9_protobuf
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/protocolbuffers/protobuf.git --recursive -j4 && \
+    cd protobuf && \
+	./autogen.sh && \
+	./configure && \
+	make -j$(nproc) && \
+ 	make install && \
+    ldconfig
+
+# protobuf libs missing after make install
+#RUN cp grpc/build/third_party/protobuf/*.a /usr/local/lib/
+
+######### BUILD poco ##############
+FROM gcc_9_cmake as gcc_9_poco
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/pocoproject/poco.git --recursive && \
+    cd poco && \
+    git checkout poco-1.9.4-release && \
+    mkdir cmake-build && cd cmake-build && \
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..  && make -j$(nproc) && \
+	make install 
+
+######### BUILD mariadb ###########
+FROM gcc_9_cmake as gcc_9_mariadb-connector
+
+ARG BUILD_TYPE=Debug
+
+RUN git clone https://github.com/mariadb-corporation/mariadb-connector-c.git && \
+	cd mariadb-connector-c && \
+    git checkout 159540f && \
+	mkdir build && cd build && \
+	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
+	make install 
 
 #########################################################################################################
-# debug build preparation
+# builded libs and binaries 
 #########################################################################################################
-FROM gcc_9_libssl as build_debug_dependencies
+FROM gcc9_build as gcc9_libs
 
-USER root 
-ENV DOCKER_WORKDIR="/code"
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
-# copy CMake from last stage 
+# copy CMake from cmake stage
 COPY --from=gcc_9_cmake /usr/local/bin/cmake /usr/local/bin/cmake
 COPY --from=gcc_9_cmake /usr/local/share/cmake-3.19/Modules /usr/local/share/cmake-3.19/Modules
 COPY --from=gcc_9_cmake /usr/local/share/cmake-3.19/Templates /usr/local/share/cmake-3.19/Templates
 
-COPY ./dependencies ./dependencies
-COPY ./scripts ./scripts
-COPY ./CMakeLists.txt .
-COPY ./src ./src
+# copy from grpc
+COPY --from=gcc_9_protobuf /usr/local /usr/local
+COPY --from=gcc_9_protobuf /protobuf/third_party/googletest /usr/local/googletest
 
+# COPY from poco 
+COPY --from=gcc_9_poco /usr/local /usr/local
 
-RUN cd scripts && \
-	chmod +x ./prepare_build.sh && \
-    ./prepare_build.sh && \
-	mkdir ../build && \
-	chmod +x ./build_debug.sh && \
-	./build_debug.sh
-
-# remove unneccessary stuff
-RUN rm -rf build/bin/Gradido_LoginServer
-
-#########################################################################################################
-# debug build 
-#########################################################################################################
-FROM gcc_9_libssl as build_debug
-
-USER root 
-ENV DOCKER_WORKDIR="/code"
-
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
-
-# copy CMake from last stage 
-COPY --from=build_debug_dependencies /usr/local/bin/cmake /usr/local/bin/cmake
-COPY --from=build_debug_dependencies /usr/local/share/cmake-3.19 /usr/local/share/cmake-3.19
-
-COPY --from=build_debug_dependencies /code/build/bin /code/build/bin
-COPY --from=build_debug_dependencies /code/build/lib /code/build/lib
-
-# grpc 
-COPY --from=build_debug_dependencies /code/build/dependencies/grpc/lib /build/dependencies/grpc/lib
-COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/protobuf/lib /build/dependencies/grpc/third_party/protobuf/lib
-COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/re2/lib /build/dependencies/grpc/third_party/re2/lib
-COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/zlib/lib /build/dependencies/grpc/third_party/zlib/lib
-COPY --from=build_debug_dependencies /code/build/dependencies/grpc/third_party/cares/cares/lib /build/dependencies/grpc/third_party/cares/cares/lib
-COPY --from=build_debug_dependencies /code/build/dependencies/mariadb-connector-c/libmariadb/lib /build/dependencies/mariadb-connector-c/libmariadb/lib
+# COPY from mariadb 
+COPY --from=gcc_9_mariadb-connector /usr/local /usr/local
 

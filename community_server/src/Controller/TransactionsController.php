@@ -7,6 +7,7 @@ use Model\Transactions\Transaction;
 use Model\Transactions\TransactionBody;
 
 use Cake\Core\Configure;
+use Cake\I18n\Time;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -24,7 +25,7 @@ class TransactionsController extends AppController
         parent::initialize();
         $this->loadComponent('GradidoNumber');
         $this->loadComponent('JsonRpcRequestClient');
-        $this->Auth->allow(['decode']);
+        $this->Auth->allow(['decode', 'manualTransaction']);
 
     }
     /**
@@ -168,6 +169,78 @@ class TransactionsController extends AppController
         ]);
 
         $this->set('transaction', $transaction);
+    }
+    
+    public function manualTransaction()
+    {
+      if ($this->request->is('post')) {
+            $data = $this->request->getData();
+            $type = $data['type'];
+            
+            $transaction = new \Proto\Gradido\GradidoTransaction();
+            $transactionBody = new \Proto\Gradido\TransactionBody();
+            $transactionBody->setMemo($data['memo']);
+            $created = new \Proto\Gradido\TimestampSeconds();
+            $now = new Time();
+            $created->setSeconds($now->getTimestamp());
+            $transactionBody->setCreated($created);
+            if($type == "creation") {
+                $creation = new \Proto\Gradido\GradidoCreation();
+                $target_date = new \Proto\Gradido\TimestampSeconds();
+                $target_time = new Time($data['target_date']);
+                $target_date->setSeconds($target_time->getTimestamp());
+                $creation->setTargetDate($target_date);
+                $receiver = new \Proto\Gradido\TransferAmount();
+                $receiver->setAmount(intval($data['amount']));
+                $receiver->setPubkey(hex2bin($data['target_public_key']));
+                $creation->setReceiver($receiver);        
+                $transactionBody->setCreation($creation);
+            } else if($type == "transfer") {
+                $transfer = new \Proto\Gradido\GradidoTransfer();
+                $local_transfer = new \Proto\Gradido\LocalTransfer();
+                $sender = new \Proto\Gradido\TransferAmount();
+                $sender->setAmount(intval($data['amount']));
+                $sender->setPubkey(hex2bin($data['sender_public_key']));
+                $local_transfer->setSender($sender);        
+                $local_transfer->setReceiver(hex2bin($data['receiver_public_key']));
+                $transfer->setLocal($local_transfer);
+                $transactionBody->setTransfer($transfer);
+            }
+            $body_bytes = $transactionBody->serializeToString();
+            $transaction->setBodyBytes($body_bytes);
+
+            $protoSigMap = new \Proto\Gradido\SignatureMap();
+            $sigPairs = $protoSigMap->getSigPair();
+            //echo "sigPairs: "; var_dump($sigPairs); echo "<br>";
+            //return null;
+
+            // sign with keys
+            //foreach($keys as $key) {
+              $sigPair = new \Proto\Gradido\SignaturePair();  
+              $sigPair->setPubKey(hex2bin($data['signer_public_key']));
+              
+              $signature = sodium_crypto_sign_detached($body_bytes, hex2bin($data['signer_private_key']));
+              echo "signature: " . bin2hex($signature). "<br>";
+              $sigPair->setEd25519($signature);
+
+              $sigPairs[] = $sigPair;
+              // SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING
+              // SODIUM_BASE64_VARIANT_ORIGINAL
+              $transaction->setSigMap($protoSigMap);
+              //var_dump($protoSigMap);
+              $transaction_bin = $transaction->serializeToString();
+//              $url_safe = sodium_bin2base64($transaction_bin, sodium_base64_VARIANT_ORIGINAL);
+              $base64 = [
+                  //'original' => sodium_bin2base64($transaction_bin, sodium_base64_VARIANT_ORIGINAL),
+                  //'original_nopadding' => sodium_bin2base64($transaction_bin, sodium_base64_VARIANT_ORIGINAL_NO_PADDING),
+                  //'urlsafe' => sodium_bin2base64($transaction_bin, sodium_base64_VARIANT_URLSAFE),
+                  'urlsafe_nopadding' => sodium_bin2base64($transaction_bin, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+                  'php' => base64_encode($transaction_bin)
+
+              ];
+              
+              $this->set('base64', $base64);
+        }  
     }
     
     public function decode()
