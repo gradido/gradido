@@ -66,7 +66,7 @@ Router::scope('/', function (RouteBuilder $routes) {
               return true;
             }
             $allowedIpLocalhost = ['127.0.0.1', 'localhost', '', '::1'];
-            if(in_array($clientIp, $allowedIpLocalhost)) {
+            if(in_array($request->clientIp(), $allowedIpLocalhost)) {
                 return true;
             }
             $allowedCaller = Configure::read('API.allowedCaller');

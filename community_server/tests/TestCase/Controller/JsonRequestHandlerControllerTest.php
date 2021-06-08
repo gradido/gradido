@@ -5,9 +5,9 @@ use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Controller\TransactionJsonRequestHandlerController Test Case
+ * App\Controller\JsonRequestHandlerController Test Case
  *
- * @uses \App\Controller\TransactionJsonRequestHandlerController
+ * @uses \App\Controller\JsonRequestHandlerController
  */
 class JsonRequestHandlerControllerTest extends TestCase
 {
@@ -22,6 +22,7 @@ class JsonRequestHandlerControllerTest extends TestCase
         'app.TransactionCreations',
         'app.Transactions',
         'app.StateUsers',
+        'app.StateUserTransactions',
         'app.StateErrors',
         'app.TransactionSignatures',
         'app.TransactionSendCoins',
@@ -30,13 +31,12 @@ class JsonRequestHandlerControllerTest extends TestCase
     ];
     
     public $transactions = [
-        'validCreation' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQJ8wF12eZo3hcMAlAKKJ9WLT-zuSkNmGh7D98UEqH4KoIysnCkXqEya9EBZl9o11_nJ8xmm_nOevuVjR-GfLMQ8qSQoOSGFsbG8gV2VsdCAxMjMSBgiZm4ruBUovCicKIJSuE1uTzZ8zdStOVcQZA6P6oTp1u5C_1BHqHUoaXnEfEKDakwEQtYntlgo',
-        'validCreation900' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQNVZ8Ae3Zbg3G0wZ840fzKan6N4KtTcSe0KYi17kQwFmsl18oFxXv8_s6j1xXFrIKjy1_1Olq0a7xYLErDMkjwYqORIGCNb5iu4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgNHKCBC1ie2WCg',
-        'validCreation1200' => 'GmYKZAogYbkjwhjLY6ZKjGLzhgEhKDuVd_N00KMVkLoCzcKRKZkSQEEey5QMAdldoOTP_jTETHgOQriGsixEY0cziQeRfT_J5YtbI_A6AizEYD-JcxmRmXzv1xjjTgsV39Y32ta2CQkqORIGCIeGi-4FSi8KJwoglK4TW5PNnzN1K05VxBkDo_qhOnW7kL_UEeodShpecR8QgOy4CxC1ie2WCg',
+        'validCreation' => 'CmYKZAog4zad42I86ERtBCTEAT56HXGiZxrj178eeY6_BmXRRfISQDnatUMvitiiP0-sY93JStYPhPKKPU4Vosv_EGrh77BVs48xhPgPj2QHWC3oyuuMh6nN8YNjBQZx20rKvdQ4uwMSRwoMQUdFIE1haSAyMDIxEgYI_c3ChQY6LwolCiD39KSaSsEDefi53ctzHE2exJXm7dFgdfUmcs0l4xefDxDQDxoGCPqbtIQG',
+        'validCreation900' => 'CmYKZAog9_SkmkrBA3n4ud3LcxxNnsSV5u3RYHX1JnLNJeMXnw8SQCaZHmvmvJOt336E3qst3rn1pptdAR5ZPzePaUT10x0_Yky8FnEiQtMGNy1yT94QErzwQudJZjJwDY2uyK4cTgkSOxIGCKb1vYUGOjEKJwog4zad42I86ERtBCTEAT56HXGiZxrj178eeY6_BmXRRfIQgNHKCBoGCIDMuf8F',
+        'validCreation1200' => 'CmYKZAog9_SkmkrBA3n4ud3LcxxNnsSV5u3RYHX1JnLNJeMXnw8SQF8jptIrosEyVmCf3WEIGVOK0NR8YCcO0j-s8v2yUyR5BKus0ciT6B7IA5LDtn7eQX6zHjg1v5WlsTiZuOpuNgwSRAoHVG8gbXVjaBIGCL3Jv4UGOjEKJwog4zad42I86ERtBCTEAT56HXGiZxrj178eeY6_BmXRRfIQgOy4CxoGCOG5toQG',
         'notBase64' => 'CgpIYWxsbyBXZW-0EgYIyfSG7gV_LwonCiCboKikqwjZfes9xuqgthFH3',
-        'validTransfer' => 'GmYKZAoggZC9pYXuXx2fv30G6B5p7BjhM3YQTP9Ut0V-t9PvcQ0SQDddHyKzAX3LBV0PuDiPc6lxkUipss5tyuLRpMtFJQnT30tsbYIkA1FXimjMKOoiuLswf4OLLV3bAIYehW-b9AgqYQoFSGFsbG8SBgiJlaPvBUJQCiYKIIGQvaWF7l8dn799BugeaewY4TN2EEz_VLdFfrfT73ENEICfSRImCiDtdleSLxhUgEbMW9DpqIwsykFj3-z_enKEOuGnXrmW8xCAn0k',
-        'errornusTransfer' => 'ClxGcm9oZXMgTmV1ZXMgSmFociB1bmQgREFOS0UsIGRhc3MgZHUgZGljaCBzbyBlaW5zZXR6dCBmw7xyIEdyYWRpZG8hIEhlcnpsaWNoZSBHcsO8w59lIFRlcmVzYRIGCPjjgvEFQlAKJgogUQwFYeVlGlfWDrkXNN7rHwejoCDJKt+YkYJfbJVyj3EQwIQ9EiYKIPXIRnUhVJ/zCs5+y/VaTBjTIoYizJNwS+JC//xsbQrHEMCEPQ==',
-        'creationValid' => 'GmYKZAogLtKKHPXhFtg2FUBrxXcVIiHC93SlZW9moOdUD3V21xsSQHpXYAGiVmSfhjB3o7OPx0ZJuPXrDk5eu1_AOhQBODU3KpUqBRA9yMX54S_mvGijGubCNRcMLcm7wiYbyAG-3AkqSwoQZWluIE1vbmF0c2dlaGFsdBIGCKqs5vEFSi8KJwoggZC9pYXuXx2fv30G6B5p7BjhM3YQTP9Ut0V-t9PvcQ0QgNrECRDKyd3uAQ'
+        'validTransfer' => 'CmYKZAog9_SkmkrBA3n4ud3LcxxNnsSV5u3RYHX1JnLNJeMXnw8SQA0ZVQ9T1qBabzmgDO1NAWNy2J6mlv0YjMP99CiV7bSR0zemt5XoM-kTviR1aTqKggzpSYSyTN5T6gIx2xa-hgkSYwoLTXkgQmlydGhkYXkSBgie0L-FBjJMCkoKJgog9_SkmkrBA3n4ud3LcxxNnsSV5u3RYHX1JnLNJeMXnw8QgIl6EiDjNp3jYjzoRG0EJMQBPnodcaJnGuPXvx55jr8GZdFF8g',
+        'errornusTransfer' => 'ClxGcm9oZXMgTmV1ZXMgSmFociB1bmQgREFOS0UsIGRhc3MgZHUgZGljaCBzbyBlaW5zZXR6dCBmw7xyIEdyYWRpZG8hIEhlcnpsaWNoZSBHcsO8w59lIFRlcmVzYRIGCPjjgvEFQlAKJgogUQwFYeVlGlfWDrkXNN7rHwejoCDJKt+YkYJfbJVyj3EQwIQ9EiYKIPXIRnUhVJ/zCs5+y/VaTBjTIoYizJNwS+JC//xsbQrHEMCEPQ=='
     ];
     
     /*public function setUp() {
@@ -51,7 +51,7 @@ class JsonRequestHandlerControllerTest extends TestCase
         $this->get('/JsonRequestHandler');
         $this->assertResponseOk();     
         
-        $expected = json_encode(['state' => 'error', 'msg' => 'no post']);
+        $expected = json_encode(['state' => 'error', 'msg' => 'unknown method for get', 'details' => null]);
         $this->assertEquals($expected, (string)$this->_response->getBody());
     }
     
@@ -87,7 +87,7 @@ class JsonRequestHandlerControllerTest extends TestCase
         //$this->post('/TransactionJsonRequestHandler', ['method' => 'putTransaction', 'transaction' => 'CgpIYWxsbyBXZWx0EgYIyfSG7gVKLwonCiCboKikqwjZfes9xuqgthFH3/cHHaWchkUhWiGhQjB23xCg2pMBELWJ7ZYK']);
         $this->postAndParse(
               ['method' => 'foobar', 'transaction' => $this->transactions['validCreation']], 
-              ['state' => 'error', 'msg' => 'unknown method', 'details' => 'foobar']
+              ['state' => 'error', 'msg' => 'unknown method for post', 'details' => 'foobar']
       );
       
     }
@@ -97,7 +97,8 @@ class JsonRequestHandlerControllerTest extends TestCase
       $this->postAndParse(
               ['method' => 'putTransaction', 'transaction' => $this->transactions['notBase64']],
               ['state' => 'error', 'msg' => 'error parsing transaction', 'details' => [
-                  ['Transaction' => 'invalid base64 string']
+                   ['Transaction' => 'invalid base64 string'], 
+                   ['base64' => 'CgpIYWxsbyBXZW-0EgYIyfSG7gV_LwonCiCboKikqwjZfes9xuqgthFH3']
               ]]
       );
     }
@@ -114,9 +115,10 @@ class JsonRequestHandlerControllerTest extends TestCase
     
     public function testToLargeCreationSum()
     {
+
       $this->postAndParse(
                 ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation900']],
-                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1000 gr per Month not allowed"}]}'
+                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'
         );
     }
     
@@ -124,49 +126,36 @@ class JsonRequestHandlerControllerTest extends TestCase
     {
       $this->postAndParse(
                 ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation1200']],
-                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1000 gr per Month not allowed"}]}'
+                '{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'
         );
     }
     
     public function testValidTransfer()
-    {
-      $this->postAndParse(
-        ['method' => 'putTransaction', 'transaction' => $this->transactions['validTransfer']],
-        ['state' => 'success']      
-      );
-    }
-    
-    /*public function testMissingPreviousTransaction() 
-    {
-      
-    }*/
-    
-    public function testValidTransaction() 
-    {
-      $this->postAndParse(
-                ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation']],
-                ['state' => 'success']
+    {        
+        $this->postAndParse(
+          ['method' => 'putTransaction', 'transaction' => $this->transactions['validTransfer']],
+          ['state' => 'success']      
         );
     }
-    
+       
     public function testValidCreation()
     {
       $this->postAndParse(
-              ['method' => 'putTransaction', 'transaction' => $this->transactions['creationValid']],
+              ['method' => 'putTransaction', 'transaction' => $this->transactions['validCreation']],
               ['state' => 'success']
         );
     }
     
     private function postAndParse($params, $expected) 
     {
-        //$this->enableCsrfToken();
+        $this->enableCsrfToken();
         //$this->enableSecurityToken();
         
-        $token = 'my-csrf-token';
-        $this->cookie('csrfToken', $token);
+        //$token = 'my-csrf-token';
+        //$this->cookie('csrfToken', $token);
 
         $this->configRequest([
-            'headers' => ['Accept' => 'application/json', 'X-CSRF-Token' => $token]
+            'headers' => ['Accept' => 'application/json']//, 'X-CSRF-Token' => $token]
         ]);
         
         $this->disableErrorHandlerMiddleware();

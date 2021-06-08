@@ -83,11 +83,11 @@ namespace model {
 
 		
 			if (mPasswordHashed) {
-				insert << "INSERT INTO users (email, first_name, last_name, username, description, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?,?);",
+				insert << "INSERT INTO users (email, first_name, last_name, username, description, password, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?,?,?);",
 					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mDescription), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 			else {
-				insert << "INSERT INTO users (email, first_name, last_name, username, description, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?);",
+				insert << "INSERT INTO users (email, first_name, last_name, username, description, email_hash, language, group_id) VALUES(?,?,?,?,?,?,?,?);",
 					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mDescription), use(mEmailHash), use(mLanguageKey), use(mGroupId);
 			}
 

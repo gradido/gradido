@@ -5,6 +5,12 @@
 
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/Environment.h"
+#include "Poco/Path.h"
+#include "Poco/AsyncChannel.h"
+#include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
+#include "Poco/ConsoleChannel.h"
+#include "Poco/SplitterChannel.h"
 
 #include "../SingletonManager/ConnectionManager.h"
 
@@ -16,7 +22,6 @@ std::list<Test*> gTests;
 void fillTests()
 {
 	gTests.push_back(new TestTasks());
-	gTests.push_back(new TestHash());
 	gTests.push_back(new TestRegExp());
 	gTests.push_back(new TestPassphrase());
 	//	gTests.push_back(new LoginTest());
@@ -37,12 +42,27 @@ void runMysql(std::string sqlQuery)
 	}
 }
 
-int load() {
+int load(int argc, char* argv[]) {
 	// init server config, init seed array
-
+	std::clog << "[load]" << std::endl;
 	Poco::AutoPtr<Poco::Util::LayeredConfiguration> test_config(new Poco::Util::LayeredConfiguration);
-	auto cfg = new Poco::Util::PropertyFileConfiguration("Gradido_LoginServer_Test.properties");
-	test_config->add(cfg);
+	std::string config_file_name = Poco::Path::config() + "grd_login/grd_login_test.properties";
+	if(argc > 1 && strlen(argv[1]) > 4) {
+		config_file_name = argv[1];
+	}
+
+	try {
+		auto cfg = new Poco::Util::PropertyFileConfiguration(config_file_name);
+		test_config->add(cfg);
+	}
+	catch (Poco::Exception& ex) {
+		std::clog 
+			<< "[load] error loading grd_login_test.properties, make sure this file exist! " 
+			<< ex.displayText().data()
+			<< std::endl;
+
+		return -3;
+	}
 
 	if (!ServerConfig::initServerCrypto(*test_config)) {
 		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
@@ -67,9 +87,67 @@ int load() {
 	auto conn = ConnectionManager::getInstance();
 	//conn->setConnection()
 	//printf("try connect login server mysql db\n");
-	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+	bool connected = false;
+	try {
+		if(conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER)) {
+			connected = true;
+		}
+	}
+	catch (Poco::Exception& ex) {
+		// maybe we in docker environment and db needs some time to start up
+		printf("Poco Exception by connecting to db: %s, let's try again\n", ex.displayText().data());
+	}
+	if(!connected) {
+		// let's wait 10 seconds
+		int count = 10;
+		while (count > 0) {
+			printf("\rwait on mysql/mariadb %d seconds...", count);
+			count--;
+			Poco::Thread::sleep(1000);
+		}
+		try {
+			if(conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER)) {
+				connected = true;
+			}
+		} catch(Poco::Exception& ex) {
+			printf("Poco Exception by connecting to db: %s, let's wait another 10 seconds\n", ex.displayText().data());
+		}
+	}
+	if(!connected) {
+		Poco::Thread::sleep(10000);
+		try {
+			conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
+		} catch(Poco::Exception& ex) {
+			printf("Poco Exception by connecting to db: %s, exit\n", ex.displayText().data());
+			return -4;
+		}
+	}
+	
+	std::string log_Path = "/var/log/grd_login/";
+//#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
+	log_Path = "./";
+#endif
+	
+	std::string filePath = log_Path + "errorLog.txt";
+	Poco::AutoPtr<Poco::ConsoleChannel> logConsoleChannel(new Poco::ConsoleChannel);
+	Poco::AutoPtr<Poco::FileChannel> logFileChannel(new Poco::FileChannel(filePath));
+	Poco::AutoPtr<Poco::SplitterChannel> logSplitter(new Poco::SplitterChannel);
+	logSplitter->addChannel(logConsoleChannel);
+	logSplitter->addChannel(logFileChannel);
+
+	Poco::AutoPtr<Poco::AsyncChannel> logAsyncChannel(new Poco::AsyncChannel(logSplitter));
+
+	Poco::Logger& log = Poco::Logger::get("errorLog");
+	log.setChannel(logAsyncChannel);
+	log.setLevel("information");
+
+	log.error("Test Error");
+
+	//errorLog
+	
 	//printf("try connect php server mysql \n");
-	conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
+	//conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_PHP_SERVER);
 
 	Profiler timeUsed;
 
@@ -109,6 +187,7 @@ int load() {
 	fillTests();
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
+		std::clog << "call init on test: " << (*it)->getName() << std::endl;
 		if ((*it)->init()) printf("Fehler bei Init test: %s\n", (*it)->getName());
 	}
 	return 0;
@@ -116,13 +195,16 @@ int load() {
 
 int run()
 {
-	//printf("running tests\n");
-	printf("running tests\n");
+	std::clog << "[Gradido_LoginServer_Test::run]" << std::endl;
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
 		//printf("running: %s\n", it->getName());
 		printf("running test: %s\n", (*it)->getName());
-		if (!(*it)->test()) printf("success\n");
+		try {
+			if (!(*it)->test()) printf("success\n");
+		} catch(std::exception& ex) {
+			std::clog << "exception in running test: " << ex.what() << std::endl;
+		}
 	}
 	return 0;
 }
@@ -134,15 +216,25 @@ void ende()
 		if (*it) {
 			delete *it;
 		}
-		
+
 	}
 	gTests.clear();
 }
 
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
-	load();
+	try {
+		if (load(argc, argv) < 0) {
+			printf("early exit\n");
+			return -42;
+		}
+	} catch(std::exception& ex) {
+		printf("no catched exception while loading: %s\n", ex.what());
+	}
+	
+  	//printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
+
 	run();
 	ende();
 	::testing::InitGoogleTest(&argc, argv);
