@@ -58,19 +58,27 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	}
 	
 	auto user = controller::User::create();
+	std::string message;
+	std::string details;
 	if (email.size()) {
 		if (!sm->isValid(email, VALIDATE_EMAIL)) {
-			return stateError("invalid email");
+			message = "invalid email";
 		}
 		if (1 != user->load(email)) {
-			return stateError("user with email not found", email);
+			message = "user with email not found";
+			details = email;
 		}
 	}
 	else if (username.size() > 0) {
 		if (1 != user->load(username)) {
-			return stateError("user with username not found", username);
+			message = "user with username not found";
+			details = username;
 		}
 		email = user->getModel()->getEmail();
+	}
+	if (message.size()) {
+		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+		return stateError(message.data(), details);
 	}
 
 	NotificationList pwd_errors;
