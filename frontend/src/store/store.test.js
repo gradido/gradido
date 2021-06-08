@@ -40,7 +40,7 @@ describe('Vuex store', () => {
           { commit, state },
           { sessionId: 1234, user: { email: 'someone@there.is', language: 'en' } },
         )
-        expect(commit).toHaveBeenCalledTimes(6)
+        expect(commit).toHaveBeenCalledTimes(7)
       })
 
       it('commits sessionId', () => {
@@ -74,7 +74,7 @@ describe('Vuex store', () => {
 
       it('calls two commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(5)
+        expect(commit).toHaveBeenCalledTimes(6)
       })
 
       it('commits sessionId', () => {

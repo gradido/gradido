@@ -52,10 +52,10 @@
               <small>{{ $t('form.description') }}</small>
             </b-col>
             <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-              {{ UserProfileTestData.desc }}
+              {{ form.description }}
             </b-col>
             <b-col v-else class="col-md-9 col-sm-10">
-              <b-textarea rows="3" max-rows="6" v-model="form.desc"></b-textarea>
+              <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
             </b-col>
           </b-row>
         </div>
@@ -78,7 +78,7 @@ export default {
       form: {
         firstName: this.$store.state.firstName,
         lastName: this.$store.state.lastName,
-        desc: this.UserProfileTestData.desc,
+        description: this.$store.state.description,
       },
     }
   },
@@ -90,11 +90,13 @@ export default {
         {
           firstName: this.form.firstName,
           lastName: this.form.lastName,
+          description: this.form.description,
         },
       )
       if (result.success) {
         this.$store.commit('firstName', this.form.firstName)
         this.$store.commit('lastName', this.form.lastName)
+        this.$store.commit('description', this.form.description)
         this.editUserdata = true
       } else {
         alert(result.result.message)

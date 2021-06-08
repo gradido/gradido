@@ -22,6 +22,9 @@ export const mutations = {
   lastName: (state, lastName) => {
     state.lastName = lastName
   },
+  description: (state, description) => {
+    state.description = description
+  },
 }
 
 export const actions = {
@@ -32,6 +35,7 @@ export const actions = {
     commit('username', data.user.username)
     commit('firstName', data.user.first_name)
     commit('lastName', data.user.last_name)
+    commit('description', data.user.description)
   },
   logout: ({ commit, state }) => {
     commit('sessionId', null)
@@ -39,6 +43,7 @@ export const actions = {
     commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
+    commit('description', '')
     sessionStorage.clear()
   },
 }
@@ -57,6 +62,7 @@ export const store = new Vuex.Store({
     firstName: '',
     lastName: '',
     username: '',
+    description: '',
   },
   getters: {},
   // Syncronous mutation of the state
