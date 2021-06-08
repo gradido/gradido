@@ -52,9 +52,9 @@
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
-                  required: true,
-                  double: [2, $i18n.locale === 'de' ? ',' : '.'],
-                  between: [0.01, balance],
+                       required: true,
+                       numeric: true,
+                       between: [0.01, balance],
                 }"
                 v-slot="{ errors }"
               >
@@ -80,6 +80,8 @@
                     type="number"
                     :lang="$i18n.locale"
                     :placeholder="$n(0.01)"
+                    min="0.01"
+                    :max="balance"
                     step="0.01"
                     style="font-size: xx-large; padding-left: 20px"
                   ></b-form-input>

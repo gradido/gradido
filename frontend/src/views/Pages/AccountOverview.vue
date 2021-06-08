@@ -97,7 +97,7 @@ export default {
   methods: {
     setTransaction(data) {
       data.target_date = new Date(Date.now()).toISOString()
-      this.transactionData = { ...data }
+      this.transactionData = data
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
