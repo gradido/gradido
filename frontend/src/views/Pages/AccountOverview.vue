@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container fluid class="p-lg-2 mt-lg-1">
+    <b-container fluid>
       <gdd-status
         v-if="showContext"
         :pending="pending"

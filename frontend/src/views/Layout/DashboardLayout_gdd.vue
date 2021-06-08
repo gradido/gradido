@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
         <sidebar-item
@@ -14,18 +14,12 @@
             path: '/transactions',
           }"
         ></sidebar-item>
-
-        <!--
-             <b-nav-item href="#!" to="/profile">
-             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
-             </b-nav-item>       
-             <b-nav-item href="#!" to="/profileedit">
-             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
-             </b-nav-item>
-             <b-nav-item href="#!" to="/activity">
-             <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
-             </b-nav-item>
-        -->
+        <sidebar-item
+          :link="{
+            name: $t('site.navbar.my-profil'),
+            path: '/profile',
+          }"
+        ></sidebar-item>
       </template>
     </side-bar>
     <div class="main-content">
@@ -39,6 +33,7 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :pending="pending"
+            :UserProfileTestData="UserProfileTestData"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -90,6 +85,11 @@ export default {
       bookedBalance: 0,
       transactionCount: 0,
       pending: true,
+      UserProfileTestData: {
+        username: 'Mustermax',
+        desc:
+          'Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. ',
+      },
     }
   },
   methods: {

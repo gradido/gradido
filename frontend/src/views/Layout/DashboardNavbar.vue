@@ -1,7 +1,7 @@
 <template>
   <base-nav
     container-classes="container-fluid"
-    class="navbar-top navbar-expand"
+    class="navbar-expand"
     :class="{ 'navbar-dark': type === 'default' }"
   >
     <!-- Navbar links -->
@@ -15,7 +15,7 @@
           <span class="pb-2 text-lg font-weight-bold">
             {{ $store.state.email }}
           </span>
-          <b-media-body class="ml-2 d-none d-lg-block d-md-block">
+          <b-media-body class="ml-2">
             <span class="avatar">
               <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
             </span>

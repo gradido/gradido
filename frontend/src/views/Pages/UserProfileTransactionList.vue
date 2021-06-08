@@ -1,17 +1,18 @@
 <template>
   <div>
-    <div
-      class="header pb-sm-1 pb-md-7 d-flex align-items-center profile-header"
-      style="max-height: 200px"
-    ></div>
-
-    <gdd-transaction-list
-      :timestamp="timestamp"
-      :transactionCount="transactionCount"
-      :transactions="transactions"
-      :show-pagination="true"
-      @update-transactions="updateTransactions"
-    />
+    <b-container fluid>
+      <b-row>
+        <b-col class="order-xl-1">
+          <gdd-transaction-list
+            :timestamp="timestamp"
+            :transactionCount="transactionCount"
+            :transactions="transactions"
+            :show-pagination="true"
+            @update-transactions="updateTransactions"
+          />
+        </b-col>
+      </b-row>
+    </b-container>
   </div>
 </template>
 <script>
