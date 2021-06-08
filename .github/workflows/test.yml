@@ -262,7 +262,7 @@ jobs:
       ##########################################################################
       # COVERAGE CHECK BACKEND LOGIN-SERVER ####################################
       ##########################################################################
-      - name: backend | Coverage check
+      - name: backend login | Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
           report_name: Coverage Backend
@@ -335,11 +335,22 @@ jobs:
       ##########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
       ##########################################################################
-      - name: backend | Coverage check
+      - name: backend community lcov | Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
           report_name: Coverage Backend
-          type: phpunit
+          type: lcov
+          result_path: ./coverage/coverage.info
+          min_coverage: 8
+          token: ${{ github.token }}
+      #########################################################################
+      # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
+      ##########################################################################
+      - name: backend community simplecov | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: simplecov
           result_path: ./coverage/coverage.info
           min_coverage: 8
           token: ${{ github.token }}
