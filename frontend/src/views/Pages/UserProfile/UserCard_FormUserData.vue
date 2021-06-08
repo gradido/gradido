@@ -1,4 +1,5 @@
 <template>
+<div class="userdata_form">
   <b-card id="userdata_form" class="bg-transparent" style="background-color: #ebebeba3 !important">
     <b-container>
       <b-row class="mb-4 text-right">
@@ -56,6 +57,7 @@
       </div>
     </b-container>
   </b-card>
+  </div>
 </template>
 <script>
 import loginAPI from '../../../apis/loginAPI'
