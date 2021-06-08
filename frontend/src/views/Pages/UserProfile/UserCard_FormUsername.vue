@@ -3,11 +3,11 @@
     <b-container>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
-          <a href="#formusername" v-if="edit_username" @click="edit_username = !edit_username">
+          <a href="#formusername" v-if="editUsername" @click="editUsername = !editUsername">
             <span>{{ $t('form.username') }} {{ $t('form.change') }}</span>
           </a>
           <div v-else>
-            <a href="#formusername" @click="edit_username = !edit_username">
+            <a href="#formusername" @click="editUsername = !editUsername">
               <span>
                 <b>{{ $t('form.cancel') }}</b>
               </span>
@@ -20,16 +20,16 @@
         <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
           <small>{{ $t('form.username') }}</small>
         </b-col>
-        <b-col v-if="edit_username" class="col-md-9 col-sm-10">@{{ $store.state.username }}</b-col>
+        <b-col v-if="editUsername" class="col-md-9 col-sm-10">@{{ username }}</b-col>
         <b-col v-else class="col-md-9 col-sm-10">
-          <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
-            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-              <b-form-input v-model="username" :placeholder="$store.state.username"></b-form-input>
+          <validation-observer ref="formValidator">
+            <b-form role="form">
+              <b-form-input v-model="form.username" :placeholder="username"></b-form-input>
               <div>
                 {{ $t('form.change_username_info') }}
               </div>
               <div class="text-center" ref="submitButton">
-                <b-button type="submit" class="mt-4">
+                <b-button type="button" @click="onSubmit" class="mt-4">
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -47,16 +47,29 @@ export default {
   name: 'FormUsername',
   data() {
     return {
-      edit_username: true,
-      username: '',
+      editUsername: true,
+      username: this.$store.state.username,
+      form: {
+        username: this.$store.state.username,
+      },
     }
+  },
+  props: {
+    UserProfileTestData: { type: Object },
   },
   methods: {
     async onSubmit() {
-      // console.log(this.data)
-      const result = await loginAPI.changeUsernameProfile(this.username)
+      console.log('onSubmit', this.form.username)
+      const result = await loginAPI.changeUsernameProfile(
+        this.$store.state.sessionId,
+        this.$store.state.email,
+        {
+          username: this.form.username,
+        },
+      )
       if (result.success) {
-        alert('changeUsername success')
+        this.$store.commit('username', this.form.username)
+        this.editUserdata = true
       } else {
         alert(result.result.message)
       }
