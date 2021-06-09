@@ -214,9 +214,8 @@ return [
             'timeout' => 30,
             'username' => null,
             'password' => null,
-            'client' => null,
-            'tls' => null,
-            'url' => env('EMAIL_TRANSPORT_DEFAULT_URL', null),
+            'className' => 'Smtp',
+            'tls' => true
         ],
     ],
 

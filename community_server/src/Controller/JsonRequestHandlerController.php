@@ -391,8 +391,12 @@ class JsonRequestHandlerController extends AppController {
       }
       
       if ($transaction->save()) {
+          $result = ['state' => 'success'];
+          if($transaction->hasWarnings()) {
+              $result['warnings'] = $transaction->getWarnings();
+          }
         // success
-        return $this->returnJson(['state' => 'success']);
+        return $this->returnJson($result);
       } else {
           
         $this->sendEMailTransactionFailed($transaction, 'save');

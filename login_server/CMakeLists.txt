@@ -170,6 +170,7 @@ FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
 FILE(GLOB TEST_MODEL "src/cpp/test/model/*.cpp" "src/cpp/test/model/*.h")
 FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/table/*.h")
 FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
+FILE(GLOB TEST_JSON_INTERFACE "src/cpp/test/JSONInterface/*.cpp" "src/cpp/test/JSONInterface/*.h")
 
 SET(LOCAL_SRCS 
 	${CONTROLLER} ${TINF} ${MAIN} ${HTTPInterface} ${COMPILED_PAGES}
@@ -179,7 +180,7 @@ SET(LOCAL_SRCS
 	${PROTO_GRADIDO} 
 )
 SET(LOCAL_TEST_SRC
-	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER}
+	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER} ${TEST_JSON_INTERFACE}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
@@ -204,6 +205,7 @@ if(MSVC)
 	source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
 	source_group("Test\\model" FILES ${TEST_MODEL})
 	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
+	source_group("Test\\Json-Interface" FILES ${TEST_JSON_INTERFACE})
 	source_group("Test" FILES ${TEST})
 endif()
 
@@ -341,7 +343,7 @@ target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} )
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} )
+	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
