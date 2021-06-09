@@ -268,7 +268,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./coverage/coverage.info
-          min_coverage: 6
+          min_coverage: 13
           token: ${{ github.token }}
 
   ##############################################################################
@@ -335,9 +335,9 @@ jobs:
       #########################################################################
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
       ##########################################################################
-      - name: backend community simplecov | Coverage check
+      - name: backend community | Coverage check
         run: |
-          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test vendor/bin/coverage-check ./webroot/coverage/clover.xml 5
+          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test vendor/bin/coverage-check ./webroot/coverage/clover.xml 14
       #  uses: webcraftmedia/coverage-check-action@master
       #  with:
       #    report_name: Coverage Backend
