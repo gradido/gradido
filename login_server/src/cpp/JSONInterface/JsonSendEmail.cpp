@@ -99,7 +99,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 			return stateError("invalid session");
 		}
 	}
-
+	Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 	auto receiver_user = controller::User::create();
 	if (1 != receiver_user->load(email)) {
 		return stateError("invalid email");
