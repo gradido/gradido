@@ -121,8 +121,6 @@ const loginAPI = {
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
   },
   changeUsernameProfile: async (sessionId, email, username) => {
-    console.log('changeUsernameProfile', username)
-
     const payload = {
       session_id: sessionId,
       email,
