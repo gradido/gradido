@@ -17,6 +17,8 @@
 
 #include "../lib/Profiler.h"
 
+#include "Crypto/SecretKeyCryptography.h"
+
 
 std::list<Test*> gTests;
 
@@ -85,6 +87,9 @@ int load(int argc, char* argv[]) {
 
 	ServerConfig::g_CPUScheduler = new UniLib::controller::CPUSheduler(worker_count, "Default Worker");
 	ServerConfig::g_CryptoCPUScheduler = new UniLib::controller::CPUSheduler(2, "Crypto Worker");
+	ServerConfig::g_disableEmail = true;
+
+	SessionManager::getInstance()->init();
 
 	// load up connection configs
 	// register MySQL connector
@@ -128,6 +133,13 @@ int load(int argc, char* argv[]) {
 			return -4;
 		}
 	}
+
+	printf("measure Time for secret key generation...\n");
+	Profiler timeForArgon2;
+	SecretKeyCryptography secret_cryptografie;
+	secret_cryptografie.createKey("test.email@gmx.de", "skaSI2WSEIs/");
+	ServerConfig::g_FakeLoginSleepTime = timeForArgon2.millis();
+	printf("time for secret key generation: %s\n", timeForArgon2.string().data());
 	
 	std::string log_Path = "/var/log/grd_login/";
 //#ifdef _WIN32
@@ -150,7 +162,6 @@ int load(int argc, char* argv[]) {
 
 	log.error("Test Error");
 
-	SessionManager::getInstance()->init();
 
 	//errorLog
 	
@@ -226,7 +237,7 @@ int run()
 	return 0;
 }
 
-void ende()
+void endegTests()
 {
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
@@ -236,7 +247,7 @@ void ende()
 
 	}
 	gTests.clear();
-	SessionManager::getInstance()->deinitalize();
+	
 }
 
 
@@ -254,10 +265,13 @@ int main(int argc, char** argv)
   	//printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
 
 	run();
-	ende();
-	::testing::InitGoogleTest(&argc, argv);
+	endegTests();
 
+	::testing::InitGoogleTest(&argc, argv);
 	auto result = RUN_ALL_TESTS();
+
+	SessionManager::getInstance()->deinitalize();
 	ServerConfig::unload();
+	
 	return result;
 }

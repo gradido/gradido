@@ -16,7 +16,7 @@ protected:
 	Poco::JSON::Object::Ptr chooseAccount(const Poco::JSON::Object::Ptr update);
 
 	Session* mUserSession;
-
+	std::string mEmail;
 
 };
 
