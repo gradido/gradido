@@ -149,14 +149,51 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.password isn't string");
 				}
 				else {
-					NotificationList errors; 
+					std::string old_password;
+					auto old_password_obj = updates->get("User.password_old");
+					if (old_password_obj.isEmpty()) {
+						jsonErrorsArray.add("User.password_old not found");
+					}
+					else if (!old_password_obj.isString()) {
+						jsonErrorsArray.add("User.password_old isn't a string");
+					}
+					else {
+						old_password_obj.convert(old_password);
+					}
+
+					bool old_password_valid = false;
+					NotificationList errors;
+					if (old_password.size()) {
+						if (!sm->checkPwdValidation(old_password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+							jsonErrorsArray.add("User.password_old didn't match");
+							Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+						}
+						else {
+							auto result = user->login(old_password);
+							if (result == 1) {
+								old_password_valid = true;
+							}
+							else if (result == -3) {
+								jsonErrorsArray.add("Password calculation for this user already running, please try again later");
+							}
+							else {
+								jsonErrorsArray.add("User.password_old didn't match");
+							}
+							
+							if (result == 2) {
+								Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+							}
+						}
+
+					}
+					
 					if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 						jsonErrorsArray.add("User.password isn't valid");
 						jsonErrorsArray.add(errors.getErrorsArray());
 					}
 					else {
 						auto result_new_password = user->setNewPassword(value.toString());
-						
+
 						switch (result_new_password) {
 							// 0 = new and current passwords are the same
 						case 0: jsonErrorsArray.add("new password is the same as old password"); break;
@@ -167,9 +204,11 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 							// -1 = stored pubkey and private key didn't match
 						case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
 						}
-						
-						
+
+
 					}
+					
+					
 				}
 			}
 		}
