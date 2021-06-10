@@ -12,7 +12,7 @@
               v-if="editUserdata"
               @click="editUserdata = !editUserdata"
               class="pointer"
-              icon="gear-fill"
+              icon="pencil"
             >
               {{ $t('form.change') }}
             </b-icon>
@@ -29,49 +29,57 @@
       </b-container>
 
       <b-container>
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
-            <small>{{ $t('form.firstname') }}</small>
-          </b-col>
-          <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-            {{ form.firstName }}
-          </b-col>
-          <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="form.firstName"></b-input>
-          </b-col>
-        </b-row>
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
-            <small>{{ $t('form.lastname') }}</small>
-          </b-col>
-          <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-            {{ form.lastName }}
-          </b-col>
-          <b-col v-else class="col-md-9 col-sm-10">
-            <b-input type="text" v-model="form.lastName"></b-input>
-          </b-col>
-        </b-row>
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-            <small>{{ $t('form.description') }}</small>
-          </b-col>
-          <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-            {{ form.description }}
-          </b-col>
-          <b-col v-else class="col-md-9 col-sm-10">
-            <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
-          </b-col>
-        </b-row>
+        <b-form @keyup.prevent="loadSubmitButton">
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
+              <small>{{ $t('form.firstname') }}</small>
+            </b-col>
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ form.firstName }}
+            </b-col>
+            <b-col v-else class="col-md-9 col-sm-10">
+              <b-input type="text" v-model="form.firstName"></b-input>
+            </b-col>
+          </b-row>
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
+              <small>{{ $t('form.lastname') }}</small>
+            </b-col>
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ form.lastName }}
+            </b-col>
+            <b-col v-else class="col-md-9 col-sm-10">
+              <b-input type="text" v-model="form.lastName"></b-input>
+            </b-col>
+          </b-row>
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+              <small>{{ $t('form.description') }}</small>
+            </b-col>
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ form.description }}
+            </b-col>
+            <b-col v-else class="col-sm-10 col-md-9">
+              <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
+            </b-col>
+          </b-row>
 
-        <b-row class="text-right" v-if="!editUserdata">
-          <b-col>
-            <div class="text-right" ref="submitButton">
-              <b-button variant="info" @click="onSubmit" class="mt-4">
-                {{ $t('form.save') }}
-              </b-button>
-            </div>
-          </b-col>
-        </b-row>
+          <b-row class="text-right" v-if="!editUserdata">
+            <b-col>
+              <div class="text-right" ref="submitButton">
+                <b-button
+                  variant="info"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="loading"
+                >
+                  {{ $t('form.save') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+        </b-form>
       </b-container>
     </b-card>
   </div>
@@ -93,9 +101,21 @@ export default {
         lastName: this.$store.state.lastName,
         description: this.$store.state.description,
       },
+      loading: true,
     }
   },
   methods: {
+    loadSubmitButton() {
+      if (
+        this.form.firstName !== this.$store.state.firstName ||
+        this.form.lastName !== this.$store.state.lastName ||
+        this.form.description !== this.$store.state.description
+      ) {
+        this.loading = false
+      } else {
+        this.loading = true
+      }
+    },
     async onSubmit() {
       const result = await loginAPI.updateUserInfos(
         this.$store.state.sessionId,

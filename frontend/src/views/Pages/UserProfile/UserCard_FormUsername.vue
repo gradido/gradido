@@ -7,7 +7,7 @@
             v-if="editUsername"
             @click="editUsername = !editUsername"
             class="pointer"
-            icon="gear-fill"
+            icon="pencil"
           >
             {{ $t('form.change') }}
           </b-icon>
@@ -32,6 +32,9 @@
     </b-container>
     <b-container v-else>
       <b-row class="mb-3">
+        <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+          <small>{{ $t('form.username') }}</small>
+        </b-col>
         <b-col class="col-md-9 col-sm-10">
           <validation-observer ref="formValidator">
             <b-form role="form">

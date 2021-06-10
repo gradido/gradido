@@ -2,24 +2,25 @@
   <div>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
-        <sidebar-item
-          :link="{
-            name: $t('send'),
-            path: '/overview',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('transactions'),
-            path: '/transactions',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('site.navbar.my-profil'),
-            path: '/profile',
-          }"
-        ></sidebar-item>
+          <p></p>
+          <sidebar-item
+            :link="{
+              name: $t('send'),
+              path: '/overview',
+            }"
+          ></sidebar-item>
+          <sidebar-item
+            :link="{
+              name: $t('transactions'),
+              path: '/transactions',
+            }"
+          ></sidebar-item>
+          <sidebar-item
+            :link="{
+              name: $t('site.navbar.my-profil'),
+              path: '/profile',
+            }"
+          ></sidebar-item>
       </template>
     </side-bar>
     <div class="main-content">
