@@ -68,7 +68,6 @@ TEST(TestJsonCheckUsername, UsernameWithoutGroup)
 	ASSERT_TRUE(msg.isString());
 	ASSERT_EQ(msg.toString(), "no group given");
 	
-
 	delete result;
 }
 
@@ -89,6 +88,8 @@ TEST(TestJsonCheckUsername, ExistingUsername)
 	ASSERT_FALSE(msg.isEmpty());
 	ASSERT_TRUE(msg.isString());
 	ASSERT_EQ(msg.toString(), "username already in use");
+
+	delete result;
 }
 
 TEST(TestJsonCheckUsername, NewUsername)
@@ -103,6 +104,8 @@ TEST(TestJsonCheckUsername, NewUsername)
 	ASSERT_FALSE(state.isEmpty());
 	ASSERT_TRUE(state.isString());
 	ASSERT_EQ(state.toString(), "success");
+
+	delete result;
 }
 
 TEST(TestJsonCheckUsername, UsernameExistInOtherGroup)
@@ -118,6 +121,7 @@ TEST(TestJsonCheckUsername, UsernameExistInOtherGroup)
 	ASSERT_TRUE(state.isString());
 	ASSERT_EQ(state.toString(), "success");
 
+	delete result;
 }
 
 
