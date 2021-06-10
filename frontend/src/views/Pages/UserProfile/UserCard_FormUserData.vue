@@ -35,7 +35,7 @@
               <small>{{ $t('form.firstname') }}</small>
             </b-col>
             <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
-              {{ form.firstName }}
+              {{ $store.state.firstName }}
             </b-col>
             <b-col v-else class="col-md-9 col-sm-10">
               <b-input type="text" v-model="form.firstName"></b-input>
@@ -46,7 +46,7 @@
               <small>{{ $t('form.lastname') }}</small>
             </b-col>
             <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
-              {{ form.lastName }}
+              {{ $store.state.lastName }}
             </b-col>
             <b-col v-else class="col-md-9 col-sm-10">
               <b-input type="text" v-model="form.lastName"></b-input>
@@ -57,7 +57,7 @@
               <small>{{ $t('form.description') }}</small>
             </b-col>
             <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
-              {{ form.description }}
+              {{ $store.state.description }}
             </b-col>
             <b-col v-else class="col-sm-10 col-md-9">
               <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
