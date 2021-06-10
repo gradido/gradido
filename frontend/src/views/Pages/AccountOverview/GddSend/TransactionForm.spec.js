@@ -56,8 +56,8 @@ describe('GddSend', () => {
       })
 
       describe('ammount field', () => {
-        it('has an input field of type number', () => {
-          expect(wrapper.find('#input-group-2').find('input').attributes('type')).toBe('number')
+        it('has an input field of type text', () => {
+          expect(wrapper.find('#input-group-2').find('input').attributes('type')).toBe('text')
         })
 
         it('has an GDD text icon', () => {

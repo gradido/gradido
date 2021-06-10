@@ -19,6 +19,7 @@ import StatsCard from '@/components/Cards/StatsCard.vue'
 import VueMoment from 'vue-moment'
 
 import clickOutside from '@/directives/click-ouside.js'
+import { focus } from 'vue-focus'
 
 global.localVue = createLocalVue()
 
@@ -47,3 +48,4 @@ global.localVue.component(BaseHeader.name, BaseHeader)
 global.localVue.component(StatsCard.name, StatsCard)
 
 global.localVue.directive('click-outside', clickOutside)
+global.localVue.directive('focus', focus)
