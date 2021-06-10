@@ -12,6 +12,7 @@
 #include "CheckEmailPage.h"
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
+#include "TestUserGenerator.h"
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
 #include "UserUpdatePasswordPage.h"
@@ -227,6 +228,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		else if (url_first_part == "/login") {
 			return basicSetup(new LoginPage(nullptr), request, timeUsed);
+		}
+	}
+	if (ServerConfig::g_ServerSetupType != ServerConfig::SERVER_TYPE_PRODUCTION) {
+		if (url_first_part == "/testUserGenerator") {
+			return basicSetup(new TestUserGenerator, request, timeUsed);
 		}
 	}
 	return basicSetup(new LoginPage(nullptr), request, timeUsed);
