@@ -163,12 +163,14 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 					bool old_password_valid = false;
 					NotificationList errors; 
-					if (old_password.size()) {
+					if (old_password.size()) 
+					{
 						if (!sm->checkPwdValidation(old_password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 							jsonErrorsArray.add("User.password_old didn't match");
 							Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 						}
-						else {
+						else 
+						{
 							auto result = user->login(old_password);
 							if (result == 1) {
 								old_password_valid = true;
@@ -186,12 +188,14 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						}
 
 					}
-					
+					if (old_password_valid) 
+					{
 					if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 						jsonErrorsArray.add("User.password isn't valid");
 						jsonErrorsArray.add(errors.getErrorsArray());
 					}
-					else {
+						else 
+						{
 						auto result_new_password = user->setNewPassword(value.toString());
 						
 						switch (result_new_password) {
@@ -205,9 +209,8 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
 						}
 						
-						
 					}
-					
+					}	
 					
 				}
 			}
