@@ -163,12 +163,14 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 					bool old_password_valid = false;
 					NotificationList errors;
-					if (old_password.size()) {
+					if (old_password.size()) 
+					{
 						if (!sm->checkPwdValidation(old_password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 							jsonErrorsArray.add("User.password_old didn't match");
 							Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 						}
-						else {
+						else 
+						{
 							auto result = user->login(old_password);
 							if (result == 1) {
 								old_password_valid = true;
@@ -186,28 +188,29 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						}
 
 					}
-					
-					if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-						jsonErrorsArray.add("User.password isn't valid");
-						jsonErrorsArray.add(errors.getErrorsArray());
-					}
-					else {
-						auto result_new_password = user->setNewPassword(value.toString());
-
-						switch (result_new_password) {
-							// 0 = new and current passwords are the same
-						case 0: jsonErrorsArray.add("new password is the same as old password"); break;
-							// 1 = password changed, private key re-encrypted and saved into db
-						//case 1: extractet_values++; break;
-							// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
-						case 2: jsonErrorsArray.add("password changed, couldn't load private key for re-encryption");  break;
-							// -1 = stored pubkey and private key didn't match
-						case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+					if (old_password_valid) 
+					{
+						if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+							jsonErrorsArray.add("User.password isn't valid");
+							jsonErrorsArray.add(errors.getErrorsArray());
 						}
+						else 
+						{
+							auto result_new_password = user->setNewPassword(value.toString());
 
+							switch (result_new_password) {
+								// 0 = new and current passwords are the same
+							case 0: jsonErrorsArray.add("new password is the same as old password"); break;
+								// 1 = password changed, private key re-encrypted and saved into db
+							//case 1: extractet_values++; break;
+								// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+							case 2: jsonErrorsArray.add("password changed, couldn't load private key for re-encryption");  break;
+								// -1 = stored pubkey and private key didn't match
+							case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+							}
 
-					}
-					
+						}
+					}	
 					
 				}
 			}
