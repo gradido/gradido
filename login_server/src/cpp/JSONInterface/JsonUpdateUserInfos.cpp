@@ -68,49 +68,46 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 
 		try {
-			if ( "User.first_name" == name && value.size() > 0) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("User.first_name isn't a string");
-				}
-				else {
-					user_model->setFirstName(value.toString());
+			if ( "User.first_name" == name) {
+				std::string str_val = validateString(value, "User.first_name", jsonErrorsArray);
+				
+				if (str_val.size() > 0) {
+					user_model->setFirstName(str_val);
 					extractet_values++;
 				}
 			}
-			else if ("User.last_name" == name && value.size() > 0) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("User.last_name isn't a string");
-				}
-				else {
-					user_model->setLastName(value.toString());
+			else if ("User.last_name" == name ) {
+				std::string str_val = validateString(value, "User.last_name", jsonErrorsArray);
+
+				if (str_val.size() > 0) {
+					user_model->setLastName(str_val);
 					extractet_values++;
 				}
+				
 			}
-			else if ("User.username" == name && value.size() > 3) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("User.username isn't a string");
-				}
-				else {
-					auto new_username = value.toString();
-					if (user_model->getUsername() != new_username) {
-						if (user->isUsernameAlreadyUsed(new_username)) {
+			else if ("User.username" == name) {
+				std::string str_val = validateString(value, "User.username", jsonErrorsArray);
+
+				if (str_val.size() > 0) {
+					if (user_model->getUsername() != str_val) {
+						if (user->isUsernameAlreadyUsed(str_val)) {
 							jsonErrorsArray.add("username already used");
 						}
 						else {
-							user_model->setUsername(new_username);
+							user_model->setUsername(str_val);
 							extractet_values++;
 						}
 					}
 				}
 			}
-			else if ("User.description" == name && value.size() > 3) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("description isn't a string");
-				}
-				else {
-					user_model->setDescription(value.toString());
+			else if ("User.description" == name) {
+				std::string str_val = validateString(value, "User.description", jsonErrorsArray);
+
+				if (str_val.size() > 0) {
+					user_model->setDescription(str_val);
 					extractet_values++;
 				}
+
 			}
 			else if ("User.disabled" == name) {
 				if (value.isBoolean()) {
@@ -130,11 +127,10 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 				}
 			}
 			else if ("User.language" == name && value.size() > 0) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("User.language isn't a string");
-				}
-				else {
-					auto lang = LanguageManager::languageFromString(value.toString());
+				std::string str_val = validateString(value, "User.language", jsonErrorsArray);
+
+				if (str_val.size() > 0) {
+					auto lang = LanguageManager::languageFromString(str_val);
 					if (LANG_NULL == lang) {
 						jsonErrorsArray.add("User.language isn't a valid language");
 					}
@@ -143,12 +139,13 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						extractet_values++;
 					}
 				}
+
 			}
-			else if ("User.password" == name && value.size() > 0 && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("User.password isn't string");
-				}
-				else {
+			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+				std::string str_val = validateString(value, "User.password", jsonErrorsArray);
+
+				if (str_val.size() > 0) {
+					
 					NotificationList errors; 
 					if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 						jsonErrorsArray.add("User.password isn't valid");
@@ -174,7 +171,9 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			}
 		}
 		catch (Poco::Exception& ex) {
-			jsonErrorsArray.add("update parameter invalid");
+			std::string error_message = "exception by parsing json: ";
+			error_message += ex.displayText();
+			jsonErrorsArray.add(error_message);
 		}
 	}
 	if (extractet_values > 0) {
@@ -189,4 +188,23 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	result->set("state", "success");
 
 	return result;
+}
+
+std::string JsonUpdateUserInfos::validateString(Poco::Dynamic::Var value, const char* fieldName, Poco::JSON::Array& errorArray)
+{
+	std::string errorMessage = fieldName;
+
+	if (!value.isString()) {
+		errorMessage += " isn't a string";
+		errorArray.add(errorMessage);
+		return "";
+	}
+	std::string string_value = value.toString();
+
+	if (string_value.size() == 0) {
+		errorMessage += " is empty";
+		errorArray.add(errorArray);
+		return "";
+	}
+	return string_value;
 }
