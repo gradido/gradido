@@ -12,7 +12,7 @@ import GlobalDirectives from './globalDirectives'
 import SideBar from '@/components/SidebarPlugin'
 
 // vue-bootstrap
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { BootstrapVue, IconsPlugin, ToastPlugin } from 'bootstrap-vue'
 
 // asset imports
 import '@/assets/scss/argon.scss'
@@ -49,6 +49,7 @@ export default {
     Vue.use(Notifications)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
+    Vue.use(ToastPlugin)
     Vue.use(VueGoodTablePlugin)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)

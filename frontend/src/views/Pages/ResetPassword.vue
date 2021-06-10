@@ -85,82 +85,86 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
-export default {
-  name: 'reset',
-  data() {
-    return {
-      password: '',
-      checkPassword: '',
-      passwordVisible: false,
-      submitted: false,
-      authenticated: false,
-      sessionId: null,
-      email: null,
-    }
-  },
-  methods: {
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
-    async onSubmit() {
-      const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
-      if (result.success) {
-        this.password = ''
-        /*
-         this.$store.dispatch('login', {
-           sessionId: result.result.data.session_id,
-           email: result.result.data.user.email,
+ import loginAPI from '../../apis/loginAPI'
+ export default {
+   name: 'reset',
+   data() {
+     return {
+       password: '',
+       checkPassword: '',
+       passwordVisible: false,
+       submitted: false,
+       authenticated: false,
+       sessionId: null,
+       email: null,
+     }
+   },
+   methods: {
+     togglePasswordVisibility() {
+       this.passwordVisible = !this.passwordVisible
+     },
+     async onSubmit() {
+       const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
+       if (result.success) {
+         this.password = ''
+         /*
+            this.$store.dispatch('login', {
+            sessionId: result.result.data.session_id,
+            email: result.result.data.user.email,
+            })
+          */
+         this.$router.push('/thx/reset')
+       } else {
+         this.$bvToast.toast(result.result.message, {
+           title: this.$t('error.error'),
          })
-         */
-        this.$router.push('/thx/reset')
-      } else {
-        alert(result.result.message)
-      }
-    },
-    async authenticate() {
-      const optin = this.$route.params.optin
-      const result = await loginAPI.loginViaEmailVerificationCode(optin)
-      if (result.success) {
-        this.authenticated = true
-        this.sessionId = result.result.data.session_id
-        this.email = result.result.data.user.email
-      } else {
-        alert(result.result.message)
-      }
-    },
-  },
-  computed: {
-    samePasswords() {
-      return this.password === this.checkPassword
-    },
-    passwordsFilled() {
-      return this.password !== '' && this.checkPassword !== ''
-    },
-    rules() {
-      return [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ]
-    },
-    passwordValidation() {
-      const errors = []
-      for (const condition of this.rules) {
-        if (!condition.regex.test(this.password)) {
-          errors.push(condition.message)
-        }
-      }
-      if (errors.length === 0) {
-        return { valid: true, errors }
-      }
-      return { valid: false, errors }
-    },
-  },
-  async created() {
-    this.authenticate()
-  },
-}
+       }
+     },
+     async authenticate() {
+       const optin = this.$route.params.optin
+       const result = await loginAPI.loginViaEmailVerificationCode(optin)
+       if (result.success) {
+         this.authenticated = true
+         this.sessionId = result.result.data.session_id
+         this.email = result.result.data.user.email
+       } else {
+         this.$bvToast.toast(result.result.message, {
+           title: this.$t('error.error'),
+         })
+       }
+     },
+   },
+   computed: {
+     samePasswords() {
+       return this.password === this.checkPassword
+     },
+     passwordsFilled() {
+       return this.password !== '' && this.checkPassword !== ''
+     },
+     rules() {
+       return [
+         { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+         { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+         { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+         { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+       ]
+     },
+     passwordValidation() {
+       const errors = []
+       for (const condition of this.rules) {
+         if (!condition.regex.test(this.password)) {
+           errors.push(condition.message)
+         }
+       }
+       if (errors.length === 0) {
+         return { valid: true, errors }
+       }
+       return { valid: false, errors }
+     },
+   },
+   async created() {
+     this.authenticate()
+   },
+ }
 </script>
 <style></style>

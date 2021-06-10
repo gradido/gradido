@@ -46,28 +46,31 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI.js'
+ import loginAPI from '../../apis/loginAPI.js'
 
-export default {
-  name: 'password',
-  data() {
-    return {
-      disable: 'disabled',
-      form: {
-        email: '',
-      },
-    }
-  },
-  methods: {
-    async onSubmit() {
-      const result = await loginAPI.sendEmail(this.form.email)
-      if (result.success) {
-        this.$router.push('/thx/password')
-      } else {
-        alert(result.result)
-      }
-    },
-  },
-}
+ export default {
+   name: 'password',
+   data() {
+     return {
+       disable: 'disabled',
+       form: {
+         email: '',
+       },
+     }
+   },
+   methods: {
+     async onSubmit() {
+       const result = await loginAPI.sendEmail(this.form.email)
+       if (result.success) {
+         this.$router.push('/thx/password')
+       } else {
+         this.$bvToast.toast(result.result.message, {
+           title: this.$t('error.error'),
+           noAutoHide: true,
+         })
+       }
+     },
+   },
+ }
 </script>
 <style></style>
