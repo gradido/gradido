@@ -144,9 +144,14 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					}
 				}
 			}
-			else if ("User.password" == name && value.size() > 0 && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+				
 				if (!value.isString()) {
 					jsonErrorsArray.add("User.password isn't string");
+				}
+				std::string value_str = value.toString();
+				if (!value_str.size()) {
+					jsonErrorsArray.add("User.password is empty");
 				}
 				else {
 					std::string old_password;
@@ -171,19 +176,15 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						}
 						else 
 						{
-							auto result = user->login(old_password);
-							if (result == 1) {
+							auto secret_key = user->createSecretKey(old_password);
+							if (secret_key->getKeyHashed() == user_model->getPasswordHashed()) {
 								old_password_valid = true;
 							}
-							else if (result == -3) {
+							else if (secret_key.isNull()) {
 								jsonErrorsArray.add("Password calculation for this user already running, please try again later");
 							}
 							else {
 								jsonErrorsArray.add("User.password_old didn't match");
-							}
-							
-							if (result == 2) {
-								Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 							}
 						}
 
@@ -228,7 +229,12 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	}
 	result->set("errors", jsonErrorsArray);
 	result->set("valid_values", extractet_values);
-	result->set("state", "success");
+	if (!jsonErrorsArray.size()) {
+		result->set("state", "success");
+	}
+	else {
+		result->set("state", "error");
+	}
 
 	return result;
 }
