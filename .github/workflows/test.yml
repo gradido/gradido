@@ -336,15 +336,15 @@ jobs:
       # COVERAGE CHECK BACKEND COMMUNITY-SERVER ####################################
       ##########################################################################
       - name: backend community | Coverage check
-        run: |
-          docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test vendor/bin/coverage-check ./webroot/coverage/clover.xml 14
-      #  uses: webcraftmedia/coverage-check-action@master
-      #  with:
-      #    report_name: Coverage Backend
-      #    type: simplecov
-      #    result_path: ./coverage/clover.xml
-      #    min_coverage: 8
-      #    token: ${{ github.token }}
+        #run: |
+         # docker run -v ~/coverage:/var/www/cakephp/webroot/coverage gradido/community_server:test vendor/bin/coverage-check ./webroot/coverage/clover.xml 14
+        uses: einhornimmond/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: phpunit
+          result_path: ./coverage/coverage.info
+          min_coverage: 10
+          token: ${{ github.token }}
 
   #test:
   #  runs-on: ubuntu-latest

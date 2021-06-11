@@ -23,7 +23,8 @@ RUN apt-get update \
 
 
 ENV XDEBUG_MODE=coverage
-RUN composer require --dev rregeer/phpunit-coverage-check
+#RUN composer require --dev rregeer/phpunit-coverage-check
 
-CMD ./vendor/bin/phpunit  --coverage-clover=./webroot/coverage/clover.xml
+#CMD ./vendor/bin/phpunit  --coverage-clover=./webroot/coverage/clover.xml
+CMD ./vendor/bin/phpunit  --coverage-text=./webroot/coverage/coverage.info
 
