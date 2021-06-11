@@ -20,7 +20,6 @@ import CollapseItem from './Collapse/CollapseItem.vue'
 import Modal from './Modal.vue'
 import BaseSlider from './BaseSlider.vue'
 
-import BasePagination from './BasePagination.vue'
 
 import SidebarPlugin from './SidebarPlugin'
 
@@ -28,7 +27,6 @@ export {
   BaseCheckbox,
   Badge,
   BaseProgress,
-  BasePagination,
   BaseRadio,
   BaseInput,
   Card,
