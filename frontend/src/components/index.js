@@ -1,6 +1,5 @@
 import BaseInput from './Inputs/BaseInput.vue'
 import Badge from './Badge'
-import BaseButton from './BaseButton.vue'
 
 import BaseTable from './BaseTable.vue'
 
@@ -14,7 +13,6 @@ import Tabs from './Tabs/Tabs.vue'
 import Collapse from './Collapse/Collapse.vue'
 import CollapseItem from './Collapse/CollapseItem.vue'
 import BaseSlider from './BaseSlider.vue'
-
 
 import SidebarPlugin from './SidebarPlugin'
 
@@ -30,7 +28,6 @@ export {
   TabPane,
   Tabs,
   BaseSlider,
-  BaseButton,
   Collapse,
   CollapseItem,
 }

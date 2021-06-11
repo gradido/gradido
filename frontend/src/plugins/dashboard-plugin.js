@@ -3,7 +3,7 @@ import '@/polyfills'
 // Notifications plugin. Used on Notifications page
 import Notifications from '@/components/NotificationPlugin'
 // Validation plugin used to validate forms
-import { configure, extend } from 'vee-validate'
+import { /* configure, */ extend, localize } from 'vee-validate'
 // A plugin file where you could register global components used across the app
 import GlobalComponents from './globalComponents'
 // A plugin file where you could register global directives
@@ -11,14 +11,11 @@ import GlobalDirectives from './globalDirectives'
 // Sidebar on the right. Used as a local plugin in DashboardLayout.vue
 import SideBar from '@/components/SidebarPlugin'
 
-// vue-bootstrap
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
 // asset imports
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
 import * as rules from 'vee-validate/dist/rules'
-import { messages } from 'vee-validate/dist/locale/en.json'
+import en, { messages } from 'vee-validate/dist/locale/en.json'
 
 import VueQrcodeReader from 'vue-qrcode-reader'
 import VueQrcode from 'vue-qrcode'
@@ -34,6 +31,11 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 // import the styles
 import 'vue-loading-overlay/dist/vue-loading.css'
+
+// vue-bootstrap
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+
+localize('en', en)
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
@@ -55,12 +57,12 @@ export default {
     Vue.use(VueQrcode)
     Vue.use(VueFlatPickr)
     Vue.use(Loading)
-    configure({
-      classes: {
-        valid: 'is-valid',
-        invalid: 'is-invalid',
-        dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
-      },
-    })
+    // configure({
+    //  classes: {
+    //    valid: 'is-valid',
+    //    invalid: 'is-invalid',
+    //    dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
+    //  },
+    // })
   },
 }

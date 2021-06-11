@@ -22,34 +22,68 @@
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('login') }}</small>
               </div>
-              <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
-                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <base-input
-                    alternative
-                    class="mb-3"
+
+              <validation-observer ref="observer" v-slot="{ handleSubmit }">
+                <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+                  <validation-provider
                     name="Email"
                     :rules="{ required: true, email: true }"
-                    prepend-icon="ni ni-email-83"
-                    placeholder="Email"
-                    v-model="model.email"
-                  ></base-input>
+                    v-slot="validationContext"
+                  >
+                    <b-form-group
+                      class="mb-3"
+                      id="example-input-group-1"
+                      label="Email"
+                      label-for="example-input-1"
+                    >
+                      <b-form-input
+                        id="example-input-1"
+                        name="example-input-1"
+                        v-model="model.email"
+                        placeholder="Email"
+                        :state="getValidationState(validationContext)"
+                        aria-describedby="input-1-live-feedback"
+                      ></b-form-input>
 
-                  <b-input-group>
-                    <b-form-input
-                      class="mb-0"
-                      v-model="model.password"
-                      name="Password"
-                      :type="passwordVisible ? 'text' : 'password'"
-                      prepend-icon="ni ni-lock-circle-open"
-                      :placeholder="$t('form.password')"
-                    ></b-form-input>
+                      <b-form-invalid-feedback id="input-1-live-feedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
 
-                    <b-input-group-append>
-                      <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                        <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                      </b-button>
-                    </b-input-group-append>
-                  </b-input-group>
+                  <validation-provider
+                    :name="$t('form.password')"
+                    :rules="{ required: true }"
+                    v-slot="validationContext"
+                  >
+                  <b-form-group
+                      class="mb-5"
+                      id="example-input-group-1"
+                      :label="$t('form.password')"
+                      label-for="example-input-1"
+                    >
+                    <b-input-group >
+                      <b-form-input
+                        id="input-pwd"
+                        name="input-pwd"
+                        v-model="model.password"
+                        :placeholder="$t('form.password')"
+                        :type="passwordVisible ? 'text' : 'password'"
+                        :state="getValidationState(validationContext)"
+                        aria-describedby="input-2-live-feedback"
+                      ></b-form-input>
+
+                      <b-input-group-append>
+                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                        </b-button>
+                      </b-input-group-append>
+                    </b-input-group>
+                    <b-form-invalid-feedback id="input-2-live-feedback">
+                      {{ validationContext.errors[0] }}
+                    </b-form-invalid-feedback>
+                  </b-form-group>
+                  </validation-provider>
 
                   <b-alert v-show="loginfail" show dismissible variant="warning">
                     <span class="alert-text bv-example-row">
@@ -62,12 +96,9 @@
                       </b-row>
                     </span>
                   </b-alert>
-
-                  <!-- <b-form-checkbox v-model="model.rememberMe">{{ $t('site.login.remember')}}</b-form-checkbox> -->
-                  <div class="text-center" ref="submitButton">
-                    <base-button type="secondary" native-type="submit" class="my-4">
-                      {{ $t('site.login.signin') }}
-                    </base-button>
+                  <div class="text-center">
+                      <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset')}}</b-button>
+                  <b-button type="submit" variant="primary" >{{ $t('form.save')}}</b-button>                
                   </div>
                 </b-form>
               </validation-observer>
@@ -109,6 +140,20 @@ export default {
     }
   },
   methods: {
+    getValidationState({ dirty, validated, valid = null }) {
+      return dirty || validated ? valid : null
+    },
+    resetForm() {
+      this.model = {
+        email: null,
+        password: null,
+      }
+
+      this.$nextTick(() => {
+        this.$refs.observer.reset()
+      })
+    },
+
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
