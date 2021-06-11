@@ -9,7 +9,6 @@ import BaseCheckbox from '@/components/Inputs/BaseCheckbox.vue'
 import BaseRadio from '@/components/Inputs/BaseRadio'
 import BaseProgress from '@/components/BaseProgress'
 import BasePagination from '@/components/BasePagination'
-import BaseAlert from '@/components/BaseAlert'
 import BaseNav from '@/components/Navbar/BaseNav'
 import { ValidationProvider, ValidationObserver } from 'vee-validate'
 
@@ -17,7 +16,6 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate'
 const GlobalComponents = {
   install(Vue) {
     Vue.component(Badge.name, Badge)
-    Vue.component(BaseAlert.name, BaseAlert)
     Vue.component(BaseButton.name, BaseButton)
     Vue.component(BaseCheckbox.name, BaseCheckbox)
     Vue.component(BaseInput.name, BaseInput)

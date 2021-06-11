@@ -1,5 +1,4 @@
 import BaseCheckbox from './Inputs/BaseCheckbox.vue'
-import BaseAlert from './BaseAlert.vue'
 import BaseRadio from './Inputs/BaseRadio.vue'
 import BaseInput from './Inputs/BaseInput.vue'
 import Badge from './Badge'
@@ -28,7 +27,6 @@ import SidebarPlugin from './SidebarPlugin'
 export {
   BaseCheckbox,
   Badge,
-  BaseAlert,
   BaseProgress,
   BasePagination,
   BaseRadio,
