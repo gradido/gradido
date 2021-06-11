@@ -6,31 +6,36 @@
       style="background-color: #ebebeba3 !important"
     >
       <b-container>
-        <b-row class="mb-4 text-right">
-          <b-col class="text-right">
-            <a href="#userdata_form" v-if="editUserdata" @click="editUserdata = !editUserdata">
-              <span>{{ $t('form.edit') }}</span>
-            </a>
-            <div v-else>
-              <a href="#userdata_form" @click="onSubmit">
-                <span class="mr-4 text-success display-4">{{ $t('form.save') }}</span>
-              </a>
-              <a href="#userdata_form" @click="editUserdata = !editUserdata">
-                <span>
-                  <b>{{ $t('form.cancel') }}</b>
-                </span>
-              </a>
-            </div>
+        <b-row class="text-right">
+          <b-col class="mb-3">
+            <b-icon
+              v-if="editUserdata"
+              @click="editUserdata = !editUserdata"
+              class="pointer"
+              icon="pencil"
+            >
+              {{ $t('form.change') }}
+            </b-icon>
+
+            <b-icon
+              v-else
+              @click="editUserdata = !editUserdata"
+              class="pointer"
+              icon="x-circle"
+              variant="danger"
+            ></b-icon>
           </b-col>
         </b-row>
+      </b-container>
 
-        <div>
+      <b-container>
+        <b-form @keyup.prevent="loadSubmitButton">
           <b-row class="mb-3">
             <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
               <small>{{ $t('form.firstname') }}</small>
             </b-col>
-            <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-              {{ form.firstName }}
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ $store.state.firstName }}
             </b-col>
             <b-col v-else class="col-md-9 col-sm-10">
               <b-input type="text" v-model="form.firstName"></b-input>
@@ -40,8 +45,8 @@
             <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
               <small>{{ $t('form.lastname') }}</small>
             </b-col>
-            <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-              {{ form.lastName }}
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ $store.state.lastName }}
             </b-col>
             <b-col v-else class="col-md-9 col-sm-10">
               <b-input type="text" v-model="form.lastName"></b-input>
@@ -51,14 +56,30 @@
             <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.description') }}</small>
             </b-col>
-            <b-col v-if="editUserdata" class="col-md-9 col-sm-10">
-              {{ form.description }}
+            <b-col v-if="editUserdata" class="col-sm-10 col-md-9">
+              {{ $store.state.description }}
             </b-col>
-            <b-col v-else class="col-md-9 col-sm-10">
+            <b-col v-else class="col-sm-10 col-md-9">
               <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
             </b-col>
           </b-row>
-        </div>
+
+          <b-row class="text-right" v-if="!editUserdata">
+            <b-col>
+              <div class="text-right" ref="submitButton">
+                <b-button
+                  variant="info"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="loading"
+                >
+                  {{ $t('form.save') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+        </b-form>
       </b-container>
     </b-card>
   </div>
@@ -80,9 +101,21 @@ export default {
         lastName: this.$store.state.lastName,
         description: this.$store.state.description,
       },
+      loading: true,
     }
   },
   methods: {
+    loadSubmitButton() {
+      if (
+        this.form.firstName !== this.$store.state.firstName ||
+        this.form.lastName !== this.$store.state.lastName ||
+        this.form.description !== this.$store.state.description
+      ) {
+        this.loading = false
+      } else {
+        this.loading = true
+      }
+    },
     async onSubmit() {
       const result = await loginAPI.updateUserInfos(
         this.$store.state.sessionId,
@@ -98,6 +131,7 @@ export default {
         this.$store.commit('lastName', this.form.lastName)
         this.$store.commit('description', this.form.description)
         this.editUserdata = true
+        alert('Deine Daten wurden gespeichert und sind geändert.')
       } else {
         alert(result.result.message)
       }
