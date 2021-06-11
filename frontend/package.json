@@ -59,6 +59,7 @@
     "sweetalert2": "^9.5.4",
     "vee-validate": "^3.4.5",
     "vue": "^2.6.11",
+    "vue-bootstrap-toasts": "^1.0.7",
     "vue-bootstrap-typeahead": "^0.2.6",
     "vue-chartjs": "^3.5.0",
     "vue-cli-plugin-i18n": "^1.0.1",

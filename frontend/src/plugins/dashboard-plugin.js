@@ -13,8 +13,10 @@ import SideBar from '@/components/SidebarPlugin'
 
 import PortalVue from 'portal-vue'
 
+import VueBootstrapToasts from 'vue-bootstrap-toasts'
+
 // vue-bootstrap
-import { BootstrapVue, IconsPlugin, ToastPlugin } from 'bootstrap-vue'
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
 // asset imports
 import '@/assets/scss/argon.scss'
@@ -52,7 +54,7 @@ export default {
     Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
-    Vue.use(ToastPlugin)
+    Vue.use(VueBootstrapToasts)
     Vue.use(VueGoodTablePlugin)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)

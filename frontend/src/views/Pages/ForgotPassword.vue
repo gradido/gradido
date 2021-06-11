@@ -58,16 +58,14 @@ export default {
       },
     }
   },
+  created() {},
   methods: {
     async onSubmit() {
       const result = await loginAPI.sendEmail(this.form.email)
       if (result.success) {
         this.$router.push('/thx/password')
       } else {
-        this.$bvToast.toast(result.result.message, {
-          title: this.$t('error.error'),
-          noAutoHide: true,
-        })
+        this.$toast.success(this.$t('error.error'))
       }
     },
   },
