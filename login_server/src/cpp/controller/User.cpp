@@ -194,20 +194,14 @@ namespace controller {
 		return json;
 	}
 
-	int User::login(const std::string& password)
+	Poco::AutoPtr<SecretKeyCryptography> User::createSecretKey(const std::string& password)
 	{
-		if (!mPassword.isNull() && mPassword->hasKey()) {
-			return 2;
-		}
 		auto observer = SingletonTaskObserver::getInstance();
-
-		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
-		assert(mPassword.isNull());
 
 		auto model = getModel();
 		auto email_hash = observer->makeHash(model->getEmail());
 		if (observer->getTaskCount(email_hash, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
-			return -3;
+			return nullptr;
 		}
 		observer->addTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
 		Poco::AutoPtr<SecretKeyCryptography> authenticated_encryption(new SecretKeyCryptography);
@@ -215,7 +209,23 @@ namespace controller {
 		authenticated_encryption->createKey(model->getEmail(), password);
 
 		observer->removeTask(email_hash, TASK_OBSERVER_PASSWORD_CREATION);
+		return authenticated_encryption;
+	}
 
+	int User::login(const std::string& password)
+	{
+		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
+
+		if (!mPassword.isNull() && mPassword->hasKey()) {
+			return 2;
+		}
+		assert(mPassword.isNull());
+		
+		auto authenticated_encryption = createSecretKey(password);
+		if (authenticated_encryption.isNull()) {
+			return -3;
+		}
+		auto model = getModel();
 		if (authenticated_encryption->getKeyHashed() == model->getPasswordHashed())
 		{
 		//	printf("[User::login] password key hashed is the same as saved password hash\n");
