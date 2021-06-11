@@ -56,33 +56,33 @@
                     :rules="{ required: true }"
                     v-slot="validationContext"
                   >
-                  <b-form-group
+                    <b-form-group
                       class="mb-5"
                       id="example-input-group-1"
                       :label="$t('form.password')"
                       label-for="example-input-1"
                     >
-                    <b-input-group >
-                      <b-form-input
-                        id="input-pwd"
-                        name="input-pwd"
-                        v-model="model.password"
-                        :placeholder="$t('form.password')"
-                        :type="passwordVisible ? 'text' : 'password'"
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="input-2-live-feedback"
-                      ></b-form-input>
+                      <b-input-group>
+                        <b-form-input
+                          id="input-pwd"
+                          name="input-pwd"
+                          v-model="model.password"
+                          :placeholder="$t('form.password')"
+                          :type="passwordVisible ? 'text' : 'password'"
+                          :state="getValidationState(validationContext)"
+                          aria-describedby="input-2-live-feedback"
+                        ></b-form-input>
 
-                      <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                    <b-form-invalid-feedback id="input-2-live-feedback">
-                      {{ validationContext.errors[0] }}
-                    </b-form-invalid-feedback>
-                  </b-form-group>
+                        <b-input-group-append>
+                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                          </b-button>
+                        </b-input-group-append>
+                      </b-input-group>
+                      <b-form-invalid-feedback id="input-2-live-feedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
                   </validation-provider>
 
                   <b-alert v-show="loginfail" show dismissible variant="warning">
@@ -97,8 +97,8 @@
                     </span>
                   </b-alert>
                   <div class="text-center">
-                      <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset')}}</b-button>
-                  <b-button type="submit" variant="primary" >{{ $t('form.save')}}</b-button>                
+                    <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
+                    <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
                   </div>
                 </b-form>
               </validation-observer>

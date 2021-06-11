@@ -3,7 +3,7 @@ import '@/polyfills'
 // Notifications plugin. Used on Notifications page
 import Notifications from '@/components/NotificationPlugin'
 // Validation plugin used to validate forms
-import { /* configure, */ extend, localize } from 'vee-validate'
+import { configure, extend, localize } from 'vee-validate'
 // A plugin file where you could register global components used across the app
 import GlobalComponents from './globalComponents'
 // A plugin file where you could register global directives
@@ -57,12 +57,12 @@ export default {
     Vue.use(VueQrcode)
     Vue.use(VueFlatPickr)
     Vue.use(Loading)
-    // configure({
-    //  classes: {
-    //    valid: 'is-valid',
-    //    invalid: 'is-invalid',
-    //    dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
-    //  },
-    // })
+    configure({
+      classes: {
+        valid: 'is-valid',
+        invalid: 'is-invalid',
+        dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
+      },
+    })
   },
 }
