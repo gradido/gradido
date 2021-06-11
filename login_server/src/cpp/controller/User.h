@@ -96,6 +96,9 @@ namespace controller {
 		//! - create authenticated encryption key from password and email
 		//! - compare hash with in db saved hash
 		int login(const std::string& password);
+
+		//! \brief simply check if password is correct, independent if user is already logged in or not
+		Poco::AutoPtr<SecretKeyCryptography> createSecretKey(const std::string& password);
 		
 		// ***********************************************************************************
 		// password related
