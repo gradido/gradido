@@ -11,11 +11,8 @@ import BaseProgress from '@/components/BaseProgress'
 import BasePagination from '@/components/BasePagination'
 import BaseAlert from '@/components/BaseAlert'
 import BaseNav from '@/components/Navbar/BaseNav'
-import BaseHeader from '@/components/BaseHeader'
 import { ValidationProvider, ValidationObserver } from 'vee-validate'
-/**
- * You can register global components here and use them as a plugin in your main Vue instance
- */
+
 
 const GlobalComponents = {
   install(Vue) {
@@ -23,7 +20,6 @@ const GlobalComponents = {
     Vue.component(BaseAlert.name, BaseAlert)
     Vue.component(BaseButton.name, BaseButton)
     Vue.component(BaseCheckbox.name, BaseCheckbox)
-    Vue.component(BaseHeader.name, BaseHeader)
     Vue.component(BaseInput.name, BaseInput)
     Vue.component(BaseDropdown.name, BaseDropdown)
     Vue.component(BaseNav.name, BaseNav)
