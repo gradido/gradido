@@ -230,7 +230,7 @@ with:
 		"User.description" : "Tischler",
 		"User.disabled": 0,
 		"User.language": "de",
-		"User.password": "1234"
+		"User.password": "1234",
 		"User.password_old": "4321"
   	}
 }
