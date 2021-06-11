@@ -2,7 +2,6 @@ import BaseCheckbox from './Inputs/BaseCheckbox.vue'
 import BaseRadio from './Inputs/BaseRadio.vue'
 import BaseInput from './Inputs/BaseInput.vue'
 import Badge from './Badge'
-import BaseProgress from './BaseProgress.vue'
 import BaseButton from './BaseButton.vue'
 
 import BaseDropdown from './BaseDropdown.vue'
@@ -26,7 +25,6 @@ import SidebarPlugin from './SidebarPlugin'
 export {
   BaseCheckbox,
   Badge,
-  BaseProgress,
   BaseRadio,
   BaseInput,
   Card,

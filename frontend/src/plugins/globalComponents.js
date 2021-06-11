@@ -7,7 +7,6 @@ import BaseButton from '@/components/BaseButton.vue'
 import Badge from '@/components/Badge.vue'
 import BaseCheckbox from '@/components/Inputs/BaseCheckbox.vue'
 import BaseRadio from '@/components/Inputs/BaseRadio'
-import BaseProgress from '@/components/BaseProgress'
 import BaseNav from '@/components/Navbar/BaseNav'
 import { ValidationProvider, ValidationObserver } from 'vee-validate'
 
@@ -20,7 +19,6 @@ const GlobalComponents = {
     Vue.component(BaseInput.name, BaseInput)
     Vue.component(BaseDropdown.name, BaseDropdown)
     Vue.component(BaseNav.name, BaseNav)
-    Vue.component(BaseProgress.name, BaseProgress)
     Vue.component(BaseRadio.name, BaseRadio)
     Vue.component(Card.name, Card)
     Vue.component(Modal.name, Modal)
