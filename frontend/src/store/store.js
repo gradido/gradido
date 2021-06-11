@@ -58,7 +58,6 @@ export const store = new Vuex.Store({
     sessionId: null,
     email: '',
     language: null,
-    modals: false,
     firstName: '',
     lastName: '',
     username: '',
