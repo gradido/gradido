@@ -89,7 +89,10 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 				std::string str_val = validateString(value, "User.username", jsonErrorsArray);
 
 				if (str_val.size() > 0) {
-					if (user_model->getUsername() != str_val) {
+					if (user_model->getUsername() != "") {
+						jsonErrorsArray.add("change username currently not supported!");
+					}
+					else if (user_model->getUsername() != str_val) {
 						if (user->isUsernameAlreadyUsed(str_val)) {
 							jsonErrorsArray.add("username already used");
 						}
