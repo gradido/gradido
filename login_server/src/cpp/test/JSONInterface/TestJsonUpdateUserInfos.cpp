@@ -11,7 +11,7 @@ void TestJsonUpdateUserInfos::SetUp()
 	//sm->init();	
 	mUserSession = sm->getNewSession();
 	auto user = controller::User::create();
-	user->getModel()->setEmail("Jeet_bb@gmail.com");
+	user->load("Jeet_bb@gmail.com");
 	mUserSession->setUser(user);
 }
 
@@ -41,7 +41,9 @@ TEST_F(TestJsonUpdateUserInfos, EmptyOldPassword)
 	update->set("User.password", "haLL1o_/%s");
 
 	auto params = chooseAccount(update);
+	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
+	ASSERT_LE(timeUsed.millis(), 300);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -56,6 +58,11 @@ TEST_F(TestJsonUpdateUserInfos, EmptyOldPassword)
 	ASSERT_EQ(error_array.size(), 1);
 	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password_old not found");
 
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+	ASSERT_EQ(state.toString(), "error");
+
 	delete result;
 }
 
@@ -67,7 +74,9 @@ TEST_F(TestJsonUpdateUserInfos, OnlyOldPassword)
 	update->set("User.password_old", "TestP4ssword&H");
 
 	auto params = chooseAccount(update);
+	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
+	ASSERT_LE(timeUsed.millis(), 200);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -79,13 +88,18 @@ TEST_F(TestJsonUpdateUserInfos, OnlyOldPassword)
 	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
 	ASSERT_EQ(error_array.size(), 0);
 
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+	ASSERT_EQ(state.toString(), "success");
+
 	delete result;
 }
 
 TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 {
 	JsonUpdateUserInfos jsonCall;
-	mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H");
+	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
 	update->set("User.password", "newPassword");
@@ -94,7 +108,7 @@ TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime-200);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -106,6 +120,77 @@ TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
 	ASSERT_EQ(error_array.size(), 1);
 	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password_old didn't match");
+
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+	ASSERT_EQ(state.toString(), "error");
+
+	delete result;
+}
+
+TEST_F(TestJsonUpdateUserInfos, EmptyPassword)
+{
+	JsonUpdateUserInfos jsonCall;
+	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+
+	update->set("User.password", "");
+	update->set("User.password_old", "TestP4sswordH");
+
+	auto params = chooseAccount(update);
+	Profiler timeUsed;
+	auto result = jsonCall.handle(params);
+	ASSERT_LE(timeUsed.millis(), 200);
+
+	auto errors = result->get("errors");
+	ASSERT_TRUE(errors.isArray());
+	auto valid_values_obj = result->get("valid_values");
+	ASSERT_TRUE(valid_values_obj.isInteger());
+	int valid_values = 0;
+	valid_values_obj.convert(valid_values);
+	ASSERT_EQ(valid_values, 0);
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	ASSERT_EQ(error_array.size(), 1);
+	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password is empty");
+
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+	ASSERT_EQ(state.toString(), "error");
+
+	delete result;
+}
+
+
+TEST_F(TestJsonUpdateUserInfos, CorrectPassword)
+{
+	JsonUpdateUserInfos jsonCall;
+	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
+
+	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+
+	update->set("User.password", "newPassword");
+	update->set("User.password_old", "TestP4ssword&H");
+
+	auto params = chooseAccount(update);
+	Profiler timeUsed;
+	auto result = jsonCall.handle(params);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+
+	auto errors = result->get("errors");
+	ASSERT_TRUE(errors.isArray());
+	auto valid_values_obj = result->get("valid_values");
+	ASSERT_TRUE(valid_values_obj.isInteger());
+	int valid_values = 0;
+	valid_values_obj.convert(valid_values);
+	EXPECT_EQ(valid_values, 1);
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	ASSERT_EQ(error_array.size(), 0);
+
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+	ASSERT_EQ(state.toString(), "success");
 
 	delete result;
 }

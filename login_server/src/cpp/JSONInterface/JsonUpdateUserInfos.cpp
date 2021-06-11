@@ -171,21 +171,17 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						}
 						else 
 						{
-							auto result = user->login(old_password);
-							if (result == 1) {
+							auto secret_key = user->createSecretKey(old_password);
+							if (secret_key->getKeyHashed() == user_model->getPasswordHashed()) {
 								old_password_valid = true;
 							}
-							else if (result == -3) {
+							else if (secret_key.isNull()) {
 								jsonErrorsArray.add("Password calculation for this user already running, please try again later");
 							}
 							else {
 								jsonErrorsArray.add("User.password_old didn't match");
 							}
-							
-							if (result == 2) {
-								Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 							}
-						}
 
 					}
 					if (old_password_valid) 
@@ -230,7 +226,12 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	}
 	result->set("errors", jsonErrorsArray);
 	result->set("valid_values", extractet_values);
+	if (!jsonErrorsArray.size()) {
 	result->set("state", "success");
+	}
+	else {
+		result->set("state", "error");
+	}
 
 	return result;
 }
