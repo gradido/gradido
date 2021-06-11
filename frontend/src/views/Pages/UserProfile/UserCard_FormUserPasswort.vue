@@ -1,62 +1,105 @@
 <template>
   <b-card id="change_pwd" class="bg-transparent" style="background-color: #ebebeba3 !important">
     <b-container>
-      <b-row class="mb-4 text-right">
-        <b-col class="text-right">
-          <a href="#change_pwd" v-if="edit_pwd" @click="edit_pwd = !edit_pwd">
-            <span>{{ $t('form.password') }} {{ $t('form.change') }}</span>
-          </a>
-          <div v-else>
-            <a href="#change_pwd" @click="onSubmit">
-              <span class="mr-4 text-success display-4">{{ $t('form.save') }}</span>
+      <b-form @keyup.prevent="loadSubmitButton">
+        <b-row class="mb-4 text-right">
+          <b-col class="text-right">
+            <a href="#change_pwd" v-if="edit_pwd" @click="edit_pwd = !edit_pwd">
+              <span>{{ $t('form.password') }} {{ $t('form.change') }}</span>
+              <b-icon class="pointer ml-3" icon="pencil" />
             </a>
-            <a href="#change_pwd" @click="edit_pwd = !edit_pwd">
-              <span>
-                <b>{{ $t('form.cancel') }}</b>
-              </span>
-            </a>
-          </div>
-        </b-col>
-      </b-row>
 
-      <div v-if="!edit_pwd">
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-            <small>{{ $t('form.password_old') }}</small>
-          </b-col>
-          <b-col class="col-md-9 col-sm-10">
-            <b-input
-              type="text"
-              :placeholder="$t('form.password_old')"
-              v-model="password"
-            ></b-input>
+            <b-icon
+              v-else
+              @click="edit_pwd = !edit_pwd"
+              class="pointer"
+              icon="x-circle"
+              variant="danger"
+            ></b-icon>
           </b-col>
         </b-row>
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-            <small>{{ $t('form.password_new') }}</small>
-          </b-col>
-          <b-col class="col-md-9 col-sm-10">
-            <b-input
-              type="text"
-              :placeholder="$t('form.password_new')"
-              v-model="passwordNew"
-            ></b-input>
-          </b-col>
-        </b-row>
-        <b-row class="mb-3">
-          <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-            <small>{{ $t('form.password_new_repeat') }}</small>
-          </b-col>
-          <b-col class="col-md-9 col-sm-10">
-            <b-input
-              type="text"
-              :placeholder="$t('form.password_new_repeat')"
-              v-model="passwordNew2"
-            ></b-input>
-          </b-col>
-        </b-row>
-      </div>
+
+        <div v-if="!edit_pwd">
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+              <small>{{ $t('form.password_old') }}</small>
+            </b-col>
+            <b-col class="col-md-9 col-sm-10">
+              <b-input-group>
+                <b-form-input
+                  class="mb-0"
+                  v-model="password"
+                  name="Password"
+                  :type="passwordVisibleOldPwd ? 'text' : 'password'"
+                  prepend-icon="ni ni-lock-circle-open"
+                  :placeholder="$t('form.password_old')"
+                ></b-form-input>
+
+                <b-input-group-append>
+                  <b-button variant="outline-primary" @click="togglePasswordVisibilityOldPwd">
+                    <b-icon :icon="passwordVisibleOldPwd ? 'eye' : 'eye-slash'" />
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+            </b-col>
+          </b-row>
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+              <small>{{ $t('form.password_new') }}</small>
+            </b-col>
+            <b-col class="col-md-9 col-sm-10">
+              <b-input-group>
+                <b-form-input
+                  class="mb-0"
+                  v-model="passwordNew"
+                  name="Password"
+                  :type="passwordVisibleNewPwd ? 'text' : 'password'"
+                  prepend-icon="ni ni-lock-circle-open"
+                  :placeholder="$t('form.password_new')"
+                ></b-form-input>
+
+                <b-input-group-append>
+                  <b-button variant="outline-primary" @click="togglePasswordVisibilityNewPwd">
+                    <b-icon :icon="passwordVisibleNewPwd ? 'eye' : 'eye-slash'" />
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+            </b-col>
+          </b-row>
+          <b-row class="mb-3">
+            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+              <small>{{ $t('form.password_new_repeat') }}</small>
+            </b-col>
+            <b-col class="col-md-9 col-sm-10">
+              <b-input-group>
+                <b-form-input
+                  class="mb-0"
+                  v-model="passwordNewRepeat"
+                  name="Password"
+                  :type="passwordVisibleNewPwdRepeat ? 'text' : 'password'"
+                  prepend-icon="ni ni-lock-circle-open"
+                  :placeholder="$t('form.password_new_repeat')"
+                ></b-form-input>
+
+                <b-input-group-append>
+                  <b-button variant="outline-primary" @click="togglePasswordVisibilityNewPwdRepeat">
+                    <b-icon :icon="passwordVisibleNewPwdRepeat ? 'eye' : 'eye-slash'" />
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+            </b-col>
+          </b-row>
+          <b-row class="text-right" v-if="!edit_pwd">
+            <b-col>
+              <div class="text-right" ref="submitButton">
+                <b-button variant="info" @click="onSubmit" class="mt-4">
+                  {{ $t('form.save') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+        </div>
+      </b-form>
     </b-container>
   </b-card>
 </template>
@@ -71,10 +114,30 @@ export default {
       email: null,
       password: '',
       passwordNew: '',
-      passwordNew2: '',
+      passwordNewRepeat: '',
+      passwordVisibleOldPwd: false,
+      passwordVisibleNewPwd: false,
+      passwordVisibleNewPwdRepeat: false,
+      loading: true,
     }
   },
   methods: {
+    togglePasswordVisibilityNewPwd() {
+      this.passwordVisibleNewPwd = !this.passwordVisibleNewPwd
+    },
+    togglePasswordVisibilityNewPwdRepeat() {
+      this.passwordVisibleNewPwdRepeat = !this.passwordVisibleNewPwdRepeat
+    },
+    togglePasswordVisibilityOldPwd() {
+      this.passwordVisibleOldPwd = !this.passwordVisibleOldPwd
+    },
+    loadSubmitButton() {
+      if (this.passwordVisibleNewPwd === this.passwordVisibleNewPwdRepeat) {
+        this.loading = false
+      } else {
+        this.loading = true
+      }
+    },
     async onSubmit() {
       // console.log(this.data)
       const result = await loginAPI.changePasswordProfile(
