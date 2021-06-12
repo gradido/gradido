@@ -6,7 +6,6 @@ import * as rules from 'vee-validate/dist/rules'
 
 import { messages } from 'vee-validate/dist/locale/en.json'
 import RegeneratorRuntime from 'regenerator-runtime'
-import Notifications from '@/components/NotificationPlugin'
 import SideBar from '@/components/SidebarPlugin'
 import VueRouter from 'vue-router'
 import VueQrcode from 'vue-qrcode'
@@ -29,7 +28,6 @@ global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
-global.localVue.use(Notifications)
 global.localVue.use(SideBar)
 global.localVue.use(VueRouter)
 global.localVue.use(VueQrcode)

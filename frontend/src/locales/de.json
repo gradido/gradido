@@ -106,7 +106,6 @@
     },
     "profil": {
       "activity": {
-        "chart":"Gemeinschaftsstunden Chart",
         "new":"Neue Gemeinschaftsstunden eintragen",
         "list":"Meine Gemeinschaftsstunden Liste"
       }      

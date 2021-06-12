@@ -1,7 +1,5 @@
 // Polyfills for js features used in the Dashboard but not supported in some browsers (mainly IE)
 import '@/polyfills'
-// Notifications plugin. Used on Notifications page
-import Notifications from '@/components/NotificationPlugin'
 // Validation plugin used to validate forms
 import { configure, extend, localize } from 'vee-validate'
 // A plugin file where you could register global components used across the app
@@ -48,7 +46,6 @@ export default {
     Vue.use(GlobalComponents)
     Vue.use(GlobalDirectives)
     Vue.use(SideBar)
-    Vue.use(Notifications)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueGoodTablePlugin)

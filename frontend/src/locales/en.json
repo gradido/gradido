@@ -107,7 +107,6 @@
     "profil": {
       "transactions":"transactions",
       "activity": {
-        "chart":"Community Hours Chart",
         "new":"Register new community hours",
         "list":"My Community Hours List"
       }      
