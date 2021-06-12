@@ -1,4 +1,3 @@
-import BaseInput from '@/components/Inputs/BaseInput.vue'
 import Card from '@/components/Cards/Card.vue'
 import StatsCard from '@/components/Cards/StatsCard.vue'
 import Badge from '@/components/Badge.vue'
@@ -8,7 +7,6 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate'
 const GlobalComponents = {
   install(Vue) {
     Vue.component(Badge.name, Badge)
-    Vue.component(BaseInput.name, BaseInput)
     Vue.component(BaseNav.name, BaseNav)
     Vue.component(Card.name, Card)
     Vue.component(StatsCard.name, StatsCard)

@@ -1,4 +1,3 @@
-import BaseInput from './Inputs/BaseInput.vue'
 import Badge from './Badge'
 
 import BaseTable from './BaseTable.vue'
@@ -18,7 +17,6 @@ import SidebarPlugin from './SidebarPlugin'
 
 export {
   Badge,
-  BaseInput,
   Card,
   StatsCard,
   BaseTable,
