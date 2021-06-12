@@ -10,7 +10,6 @@ import Notifications from '@/components/NotificationPlugin'
 import SideBar from '@/components/SidebarPlugin'
 import VueRouter from 'vue-router'
 import VueQrcode from 'vue-qrcode'
-import StatsCard from '@/components/Cards/StatsCard.vue'
 
 import VueMoment from 'vue-moment'
 
@@ -37,6 +36,5 @@ global.localVue.use(VueQrcode)
 global.localVue.use(VueMoment)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
-global.localVue.component(StatsCard.name, StatsCard)
 global.localVue.directive('click-outside', clickOutside)
 global.localVue.directive('focus', focus)

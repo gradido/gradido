@@ -2,8 +2,6 @@ import Badge from './Badge'
 
 import BaseTable from './BaseTable.vue'
 
-import Card from './Cards/Card.vue'
-import StatsCard from './Cards/StatsCard.vue'
 import BaseNav from './Navbar/BaseNav'
 import NavbarToggleButton from './Navbar/NavbarToggleButton'
 
@@ -17,8 +15,6 @@ import SidebarPlugin from './SidebarPlugin'
 
 export {
   Badge,
-  Card,
-  StatsCard,
   BaseTable,
   SidebarPlugin,
   BaseNav,
