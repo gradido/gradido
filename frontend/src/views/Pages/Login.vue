@@ -30,22 +30,17 @@
                     :rules="{ required: true, email: true }"
                     v-slot="validationContext"
                   >
-                    <b-form-group
-                      class="mb-3"
-                      id="example-input-group-1"
-                      label="Email"
-                      label-for="example-input-1"
-                    >
+                    <b-form-group class="mb-3" label="Email" label-for="input-login-email">
                       <b-form-input
-                        id="example-input-1"
+                        id="input-login-email"
                         name="example-input-1"
                         v-model="model.email"
                         placeholder="Email"
                         :state="getValidationState(validationContext)"
-                        aria-describedby="input-1-live-feedback"
+                        aria-describedby="login-email-live-feedback"
                       ></b-form-input>
 
-                      <b-form-invalid-feedback id="input-1-live-feedback">
+                      <b-form-invalid-feedback id="login-email-live-feedback">
                         {{ validationContext.errors[0] }}
                       </b-form-invalid-feedback>
                     </b-form-group>
@@ -97,7 +92,7 @@
                     </span>
                   </b-alert>
                   <div class="text-center">
-                    <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
+                    <!--<b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>-->
                     <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
                   </div>
                 </b-form>
@@ -143,16 +138,16 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    resetForm() {
-      this.model = {
-        email: null,
-        password: null,
-      }
-
-      this.$nextTick(() => {
-        this.$refs.observer.reset()
-      })
-    },
+    //resetForm() {
+    //  this.model = {
+    //    email: null,
+    //    password: null,
+    //  }
+    //
+    //  this.$nextTick(() => {
+    //    this.$refs.observer.reset()
+    //  })
+    //},
 
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
