@@ -30,9 +30,9 @@
                     :rules="{ required: true, email: true }"
                     v-slot="validationContext"
                   >
-                    <b-form-group class="mb-3" label="Email" label-for="input-login-email">
+                    <b-form-group class="mb-3" label="Email" label-for="login-email">
                       <b-form-input
-                        id="input-login-email"
+                        id="login-email"
                         name="example-input-1"
                         v-model="model.email"
                         placeholder="Email"
@@ -92,7 +92,6 @@
                     </span>
                   </b-alert>
                   <div class="text-center">
-                    <!--<b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>-->
                     <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
                   </div>
                 </b-form>
@@ -138,16 +137,7 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    //resetForm() {
-    //  this.model = {
-    //    email: null,
-    //    password: null,
-    //  }
-    //
-    //  this.$nextTick(() => {
-    //    this.$refs.observer.reset()
-    //  })
-    //},
+    
 
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
