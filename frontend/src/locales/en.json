@@ -34,7 +34,7 @@
     "email":"Email",
     "email_repeat":"Repeat Email",
     "password":"Password",
-    "password_repeat":"Repeat password",
+    "passwordRepeat":"Repeat password",
     "password_old":"Old password",
     "password_new":"New password",
     "password_new_repeat":"Repeat new password",

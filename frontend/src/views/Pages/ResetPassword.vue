@@ -43,10 +43,10 @@
                   </b-form-group>
 
                   <base-input
-                    :label="$t('form.password_repeat')"
+                    :label="$t('form.passwordRepeat')"
                     type="password"
                     name="password-repeat"
-                    :placeholder="$t('form.password_repeat')"
+                    :placeholder="$t('form.passwordRepeat')"
                     prepend-icon="ni ni-lock-circle-open"
                     v-model.lazy="checkPassword"
                     :class="{ valid: passwordValidation.valid }"

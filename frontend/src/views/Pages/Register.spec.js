@@ -53,16 +53,27 @@ describe('Register', () => {
         expect(wrapper.find('form').exists()).toBeTruthy()
       })
 
-      it('has 3 text input fields', () => {
-        expect(wrapper.findAll('input[type="text"]').length).toBe(3)
+      it('has firstname input fields', () => {
+        expect(wrapper.find('#registerFirstname').exists()).toBeTruthy()
+      })
+      it('has lastname input fields', () => {
+        expect(wrapper.find('#registerLastname').exists()).toBeTruthy()
       })
 
-      it('has 2 password input fields', () => {
-        expect(wrapper.findAll('input[type="password"]').length).toBe(2)
+      it('has email input fields', () => {
+        expect(wrapper.find('#registerEmail').exists()).toBeTruthy()
+      })
+
+      it('has password input fields', () => {
+        expect(wrapper.find('#registerPassword').exists()).toBeTruthy()
+      })
+
+      it('has password repeat input fields', () => {
+        expect(wrapper.find('#registerPasswordRepeat').exists()).toBeTruthy()
       })
 
       it('has 1 checkbox input fields', () => {
-        expect(wrapper.findAll('input[type="checkbox"]').length).toBe(1)
+        expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
       })
 
       it('has no submit button when not completely filled', () => {
@@ -70,9 +81,9 @@ describe('Register', () => {
       })
 
       it('shows a warning when no valid Email is entered', async () => {
-        wrapper.findAll('input[type="text"]').at(2).setValue('no_valid@Email')
+        wrapper.find('#registerEmail').setValue('no_valid@Email')
         await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
+        await expect(wrapper.find('#registerEmailLiveFeedback').text()).toEqual(
           'The Email field must be a valid email',
         )
       })

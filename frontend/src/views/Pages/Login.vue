@@ -34,7 +34,7 @@
                       <b-form-input
                         id="login-email"
                         name="example-input-1"
-                        v-model="model.email"
+                        v-model="form.email"
                         placeholder="Email"
                         :state="getValidationState(validationContext)"
                         aria-describedby="login-email-live-feedback"
@@ -61,7 +61,7 @@
                         <b-form-input
                           id="input-pwd"
                           name="input-pwd"
-                          v-model="model.password"
+                          v-model="form.password"
                           :placeholder="$t('form.password')"
                           :type="passwordVisible ? 'text' : 'password'"
                           :state="getValidationState(validationContext)"
@@ -123,7 +123,7 @@ export default {
   name: 'login',
   data() {
     return {
-      model: {
+      form: {
         email: '',
         password: '',
         // rememberMe: false
@@ -137,7 +137,6 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    
 
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
@@ -148,7 +147,7 @@ export default {
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
-      const result = await loginAPI.login(this.model.email, this.model.password)
+      const result = await loginAPI.login(this.form.email, this.form.password)
       if (result.success) {
         this.$store.dispatch('login', {
           sessionId: result.result.data.session_id,
