@@ -8,12 +8,4 @@ import CollapseItem from './Collapse/CollapseItem.vue'
 
 import SidebarPlugin from './SidebarPlugin'
 
-export {
-  SidebarPlugin,
-  BaseNav,
-  NavbarToggleButton,
-  TabPane,
-  Tabs,
-  Collapse,
-  CollapseItem,
-}
+export { SidebarPlugin, BaseNav, NavbarToggleButton, TabPane, Tabs, Collapse, CollapseItem }
