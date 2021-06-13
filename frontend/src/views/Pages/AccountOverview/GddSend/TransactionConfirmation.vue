@@ -16,10 +16,6 @@
             {{ memo ? memo : '-' }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
-            {{ $d($moment(date), 'long') }}
-            <b-badge variant="primary" pill>{{ $t('form.date') }}</b-badge>
-          </b-list-group-item>
         </b-list-group>
       </b-col>
     </b-row>
@@ -42,7 +38,6 @@ export default {
     email: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
-    date: { type: String, default: '' },
     loading: { type: Boolean, default: false },
   },
 }
