@@ -41,6 +41,7 @@
   </div>
 </template>
 <script>
+import GddStatus from './AccountOverview/GddStatus.vue'
 import GddSend from './AccountOverview/GddSend.vue'
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
@@ -59,6 +60,7 @@ const EMPTY_TRANSACTION_DATA = {
 export default {
   name: 'Overview',
   components: {
+    GddStatus,
     GddSend,
     GddTransactionList,
     GddTransactionListFooter,

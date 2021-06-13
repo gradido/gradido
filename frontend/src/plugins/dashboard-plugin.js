@@ -1,5 +1,5 @@
 import '@/polyfills'
-import { configure, extend, localize } from 'vee-validate'
+import { configure, extend } from 'vee-validate'
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 import SideBar from '@/components/SidebarPlugin'
@@ -7,7 +7,7 @@ import SideBar from '@/components/SidebarPlugin'
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
 import * as rules from 'vee-validate/dist/rules'
-import en, { messages } from 'vee-validate/dist/locale/en.json'
+import { messages } from 'vee-validate/dist/locale/en.json'
 
 import VueQrcodeReader from 'vue-qrcode-reader'
 import VueQrcode from 'vue-qrcode'
@@ -21,8 +21,6 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
-localize('en', en)
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
