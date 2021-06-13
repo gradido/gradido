@@ -1,15 +1,9 @@
-// Polyfills for js features used in the Dashboard but not supported in some browsers (mainly IE)
 import '@/polyfills'
-// Validation plugin used to validate forms
 import { configure, extend, localize } from 'vee-validate'
-// A plugin file where you could register global components used across the app
 import GlobalComponents from './globalComponents'
-// A plugin file where you could register global directives
 import GlobalDirectives from './globalDirectives'
-// Sidebar on the right. Used as a local plugin in DashboardLayout.vue
 import SideBar from '@/components/SidebarPlugin'
 
-// asset imports
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
 import * as rules from 'vee-validate/dist/rules'
@@ -18,19 +12,14 @@ import en, { messages } from 'vee-validate/dist/locale/en.json'
 import VueQrcodeReader from 'vue-qrcode-reader'
 import VueQrcode from 'vue-qrcode'
 
-import VueFlatPickr from 'vue-flatpickr-component'
-
-import VueGoodTablePlugin from 'vue-good-table'
-// import the styles
-import 'vue-good-table/dist/vue-good-table.css'
+import FlatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
 
 import VueMoment from 'vue-moment'
 
 import Loading from 'vue-loading-overlay'
-// import the styles
 import 'vue-loading-overlay/dist/vue-loading.css'
 
-// vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
 localize('en', en)
@@ -41,6 +30,7 @@ Object.keys(rules).forEach((rule) => {
     message: messages[rule], // assign message
   })
 })
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -48,11 +38,10 @@ export default {
     Vue.use(SideBar)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
-    Vue.use(VueGoodTablePlugin)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)
     Vue.use(VueQrcode)
-    Vue.use(VueFlatPickr)
+    Vue.use(FlatPickr)
     Vue.use(Loading)
     configure({
       classes: {

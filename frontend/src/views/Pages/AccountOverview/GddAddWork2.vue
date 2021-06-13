@@ -57,12 +57,8 @@
 </template>
 
 <script>
-import flatPickr from 'vue-flatpickr-component'
-import 'flatpickr/dist/flatpickr.css'
-
 export default {
   name: 'GDDAddWork2',
-  components: { flatPickr },
   data() {
     return {
       date: null,
