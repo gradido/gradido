@@ -43,7 +43,7 @@ describe('SideBar', () => {
 
     describe('balance', () => {
       it('shows em-dash as balance while loading', () => {
-        expect(wrapper.find('div.row.text-center').text()).toBe('— GDD')
+        expect(wrapper.find('.gddBalance').text()).toBe('— GDD')
       })
 
       it('shows the when loaded', async () => {
@@ -51,7 +51,7 @@ describe('SideBar', () => {
           pending: false,
         })
         await wrapper.vm.$nextTick()
-        expect(wrapper.find('div.row.text-center').text()).toBe('1234.56 GDD')
+        expect(wrapper.find('.gddBalance').text()).toBe('1234.56 GDD')
       })
     })
 

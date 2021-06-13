@@ -19,10 +19,6 @@ describe('AccountOverview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a status line', () => {
-      expect(wrapper.find('gdd-status-stub').exists()).toBeTruthy()
-    })
-
     it('has a send field', () => {
       expect(wrapper.find('gdd-send-stub').exists()).toBeTruthy()
     })

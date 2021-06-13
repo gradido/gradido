@@ -4,21 +4,24 @@
     id="sidenav-main"
   >
     <div class="container-fluid">
-      <!--Toggler-->
-      <navbar-toggle-button @click.native="showSidebar"></navbar-toggle-button>
-      <div class="navbar-brand">
-        <img :src="logo" class="navbar-brand-img" alt="..." />
+      <div class="text-center">
+        <div class="mb-2">
+          <img :src="logo" class="navbar-brand-img" alt="Gradido Logo" />
+        </div>
       </div>
-      <b-row class="text-center">
-        <b-col>{{ pending ? '—' : $n(balance, 'decimal') }} GDD</b-col>
-      </b-row>
+      <div class="gddBalance text-center">{{ pending ? '—' : $n(balance, 'decimal') }} GDD</div>
+
+      <div class="text-center">
+        <div class="avatar">
+          <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+        </div>
+      </div>
+
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
           <a slot="title-container" class="nav-link" role="button">
             <div class="media align-items-center">
-              <span class="avatar avatar-sm">
-                <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
-              </span>
+              <navbar-toggle-button @click.native="showSidebar"></navbar-toggle-button>
             </div>
           </a>
         </ul>
