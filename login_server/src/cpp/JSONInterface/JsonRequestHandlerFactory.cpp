@@ -100,7 +100,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		return new JsonGetUserInfos;
 	}
 	else if (url_first_part == "/updateUserInfos") {
-		return new JsonUpdateUserInfos;
+		return new JsonUpdateUserInfos(s);
 	}
 	else if (url_first_part == "/search") {
 		return new JsonSearch;

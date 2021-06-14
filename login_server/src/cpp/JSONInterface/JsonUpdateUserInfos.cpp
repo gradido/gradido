@@ -4,6 +4,13 @@
 #include "../SingletonManager/LanguageManager.h"
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 
+
+JsonUpdateUserInfos::JsonUpdateUserInfos(Session* session)
+	: JsonRequestHandler(session)
+{
+
+}
+
 Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
@@ -28,7 +35,11 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 		/// Throws InvalidAccessException if Var is empty.
 		try {
 			paramJsonObject->get("email").convert(email);
-			paramJsonObject->get("session_id").convert(session_id);
+
+			auto session_id_obj = paramJsonObject->get("session_id");
+			if (!session_id_obj.isEmpty()) {
+				session_id_obj.convert(session_id);
+			}
 			updates = paramJsonObject->getObject("update");
 		}
 		catch (Poco::Exception& ex) {
@@ -39,18 +50,21 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 		return stateError("parameter format unknown");
 	}
 
-	if (!session_id) {
+	if (!session_id && !mSession) {
 		return stateError("session_id invalid");
 	}
 	if (updates.isNull()) {
 		return stateError("update is zero or not an object");
 	}
 
-	auto session = sm->getSession(session_id);
-	if (!session) {
+	if (session_id) {
+		mSession = sm->getSession(session_id);
+	}
+	
+	if (!mSession) {
 		return customStateError("not found", "session not found");
 	}
-	auto user = session->getNewUser();
+	auto user = mSession->getNewUser();
 	auto user_model = user->getModel();
 	if (user_model->getEmail() != email) {
 		return customStateError("not same", "email don't belong to logged in user");
@@ -61,6 +75,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	Poco::JSON::Array  jsonErrorsArray;
 
 	int extractet_values = 0;
+	bool password_changed = false;
 	//['User.first_name' => 'first_name', 'User.last_name' => 'last_name', 'User.disabled' => 0|1, 'User.language' => 'de']
 	for (auto it = updates->begin(); it != updates->end(); it++) {
 		std::string name = it->first; 
@@ -154,43 +169,10 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.password is empty");
 				}
 				else {
-					std::string old_password;
-					auto old_password_obj = updates->get("User.password_old");
-					if (old_password_obj.isEmpty()) {
-						jsonErrorsArray.add("User.password_old not found");
-					}
-					else if (!old_password_obj.isString()) {
-						jsonErrorsArray.add("User.password_old isn't a string");
-					}
-					else {
-						old_password_obj.convert(old_password);
-					}
 
-					bool old_password_valid = false;
-					NotificationList errors;
-					if (old_password.size()) 
+					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
 					{
-						if (!sm->checkPwdValidation(old_password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-							jsonErrorsArray.add("User.password_old didn't match");
-							Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
-						}
-						else 
-						{
-							auto secret_key = user->createSecretKey(old_password);
-							if (secret_key->getKeyHashed() == user_model->getPasswordHashed()) {
-								old_password_valid = true;
-							}
-							else if (secret_key.isNull()) {
-								jsonErrorsArray.add("Password calculation for this user already running, please try again later");
-							}
-							else {
-								jsonErrorsArray.add("User.password_old didn't match");
-							}
-						}
-
-					}
-					if (old_password_valid) 
-					{
+						NotificationList errors;
 						if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 							jsonErrorsArray.add("User.password isn't valid");
 							jsonErrorsArray.add(errors.getErrorsArray());
@@ -203,9 +185,16 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 								// 0 = new and current passwords are the same
 							case 0: jsonErrorsArray.add("new password is the same as old password"); break;
 								// 1 = password changed, private key re-encrypted and saved into db
-							//case 1: extractet_values++; break;
+							case 1: 
+								extractet_values++; 
+								password_changed = true; 
+								break;
 								// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
-							case 2: jsonErrorsArray.add("password changed, couldn't load private key for re-encryption");  break;
+							case 2: 
+								jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
+								extractet_values++;
+								password_changed = true;
+								break;
 								// -1 = stored pubkey and private key didn't match
 							case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
 							}
@@ -220,7 +209,9 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			jsonErrorsArray.add("update parameter invalid");
 		}
 	}
-	if (extractet_values > 0) {
+	// if only password was changed, no need to call an additional db update
+	// password db entry will be updated inside of controller::User::setNewPassword method
+	if (extractet_values - (int)password_changed > 0) {
 		if (1 != user_model->updateFieldsFromCommunityServer()) {
 			user_model->addError(new Error("JsonUpdateUserInfos", "error by saving update to db"));
 			user_model->sendErrorsAsEmail();
@@ -237,4 +228,47 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	}
 
 	return result;
+}
+
+bool JsonUpdateUserInfos::isOldPasswordValid(Poco::JSON::Object::Ptr updates, Poco::JSON::Array& errors)
+{
+	auto sm = SessionManager::getInstance();
+	auto user = mSession->getNewUser();
+
+	std::string old_password;
+
+	auto old_password_obj = updates->get("User.password_old");
+	if (old_password_obj.isEmpty()) {
+		errors.add("User.password_old not found");
+	}
+	else if (!old_password_obj.isString()) {
+		errors.add("User.password_old isn't a string");
+	}
+	else {
+		old_password_obj.convert(old_password);
+	}
+
+	NotificationList local_errors;
+	if (old_password.size())
+	{	
+		if (!sm->checkPwdValidation(old_password, &local_errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+			errors.add("User.password_old didn't match");
+			Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+		}
+		else
+		{
+			auto secret_key = user->createSecretKey(old_password);
+			if (secret_key->getKeyHashed() == user->getModel()->getPasswordHashed()) {
+				return true;
+			}
+			else if (secret_key.isNull()) {
+				errors.add("Password calculation for this user already running, please try again later");
+			}
+			else {
+				errors.add("User.password_old didn't match");
+			}
+		}
+
+	}
+	return false;
 }
