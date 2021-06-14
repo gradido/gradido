@@ -102,7 +102,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 	Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 	auto receiver_user = controller::User::create();
 	if (1 != receiver_user->load(email)) {
-		return stateError("invalid email");
+		return stateSuccess();
 	}
 	auto receiver_user_id = receiver_user->getModel()->getID();
 	std::string checkEmailUrl = receiver_user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath;
