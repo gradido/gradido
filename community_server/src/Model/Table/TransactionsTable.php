@@ -184,12 +184,15 @@ class TransactionsTable extends Table
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
                     $balance = floatval($prev->balance - $calculated_decay['balance']);                 
                     
-                    $final_transactions[] = [ 
-                        'type' => 'decay',
-                        'balance' => $balance,
-                        'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
-                        'memo' => ''
-                    ];       
+                    if($balance) 
+                    {
+                      $final_transactions[] = [ 
+                          'type' => 'decay',
+                          'balance' => $balance,
+                          'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
+                          'memo' => ''
+                      ];       
+                    }
                 }
             }
             
@@ -262,13 +265,16 @@ class TransactionsTable extends Table
                 }
                 $balance = floatval($su_transaction->balance - $calculated_decay['balance']);
                 
-                $final_transactions[] = [
-                    'type' => 'decay',
-                    'balance' => $balance,
-                    'decay_duration' => $duration,
-                    'last_decay' => true,
-                    'memo' => ''
-                ];            
+                if($balance) 
+                {
+                  $final_transactions[] = [
+                      'type' => 'decay',
+                      'balance' => $balance,
+                      'decay_duration' => $duration,
+                      'last_decay' => true,
+                      'memo' => ''
+                  ];            
+                }
             }
         }
         
