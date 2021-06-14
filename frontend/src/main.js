@@ -9,6 +9,8 @@ import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
 // store
 import { store } from './store/store'
 
+import loginAPI from './apis/loginAPI'
+
 // router setup
 import router from './routes/router'
 
@@ -62,6 +64,21 @@ extend('gddSendAmount', {
     values.max = i18n.n(values.max)
     return i18n.t('form.validation.gddSendAmount', values)
   },
+})
+
+extend('gddUsernameUnique', {
+  async validate(value) {
+    const result = await loginAPI.checkUsername(value)
+    return result.result.data.state === 'success'
+  },
+  message: (_, values) => i18n.t('form.validation.usernmae-unique', values),
+})
+
+extend('gddUsernameRgex', {
+  validate(value) {
+    return !!value.match(/^[a-zA-Z][-_a-zA-Z0-9]{2,}$/)
+  },
+  message: (_, values) => i18n.t('form.validation.usernmae-regex', values),
 })
 
 // eslint-disable-next-line camelcase

@@ -15,7 +15,7 @@ const apiGet = async (url) => {
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
-    if (result.data.state !== 'success') {
+    if (!['success', 'warning'].includes(result.data.state)) {
       throw new Error(result.data.msg)
     }
     return { success: true, result }
@@ -138,6 +138,9 @@ const loginAPI = {
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  checkUsername: async (username, groupId = 1) => {
+    return apiGet(CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`)
   },
 }
 
