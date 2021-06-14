@@ -54,10 +54,14 @@ extend('max', {
 extend('gddSendAmount', {
   validate(value, { min, max }) {
     value = value.replace(',', '.')
-    return value.match(/^[0-9]+(\.[0-9]{1,2})?$/) && Number(value) >= min && Number(value) <= max
+    return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
   },
   params: ['min', 'max'],
-  message: (_, values) => i18n.t('form.validation.gddSendAmount', values),
+  message: (_, values) => {
+    values.min = i18n.n(values.min)
+    values.max = i18n.n(values.max)
+    return i18n.t('form.validation.gddSendAmount', values)
+  },
 })
 
 // eslint-disable-next-line camelcase
