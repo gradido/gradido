@@ -54,6 +54,20 @@ describe('SideBar', () => {
       })
     })
 
+    describe('balance', () => {
+      it('shows em-dash as balance while loading', () => {
+        expect(wrapper.find('div.row.text-center').text()).toBe('— GDD')
+      })
+
+      it('shows the when loaded', async () => {
+        wrapper.setProps({
+          pending: false,
+        })
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('div.row.text-center').text()).toBe('1234.56 GDD')
+      })
+    })
+
     describe('close siedbar', () => {
       it('calls closeSidebar when clicked', async () => {
         const spy = jest.spyOn(wrapper.vm.$sidebar, 'displaySidebar')
