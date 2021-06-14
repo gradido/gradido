@@ -164,37 +164,36 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 
 				if (str_val.size() > 0) {
 					
-
 					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
 					{
 						NotificationList errors;
-					if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-						jsonErrorsArray.add("User.password isn't valid");
-						jsonErrorsArray.add(errors.getErrorsArray());
-					}
+						if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+							jsonErrorsArray.add("User.password isn't valid");
+							jsonErrorsArray.add(errors.getErrorsArray());
+						}
 						else 
 						{
-						auto result_new_password = user->setNewPassword(value.toString());
+							auto result_new_password = user->setNewPassword(value.toString());
 						
-						switch (result_new_password) {
-							// 0 = new and current passwords are the same
-						case 0: jsonErrorsArray.add("new password is the same as old password"); break;
-							// 1 = password changed, private key re-encrypted and saved into db
-							case 1: 
-								extractet_values++; 
-								password_changed = true; 
-								break;
-							// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
-							case 2: 
-								jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
-								extractet_values++;
-								password_changed = true;
-								break;
-							// -1 = stored pubkey and private key didn't match
-						case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+							switch (result_new_password) {
+								// 0 = new and current passwords are the same
+							case 0: jsonErrorsArray.add("new password is the same as old password"); break;
+								// 1 = password changed, private key re-encrypted and saved into db
+								case 1: 
+									extractet_values++; 
+									password_changed = true; 
+									break;
+								// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+								case 2: 
+									jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
+									extractet_values++;
+									password_changed = true;
+									break;
+								// -1 = stored pubkey and private key didn't match
+							case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+							}
+						
 						}
-						
-					}
 					}	
 					
 				}
@@ -240,11 +239,11 @@ std::string JsonUpdateUserInfos::validateString(Poco::Dynamic::Var value, const 
 
 	if (string_value.size() == 0) {
 		errorMessage += " is empty";
-		errorArray.add(errorArray);
+		errorArray.add(errorMessage);
 		return "";
 	}
 	return string_value;
-}}
+}
 
 bool JsonUpdateUserInfos::isOldPasswordValid(Poco::JSON::Object::Ptr updates, Poco::JSON::Array& errors)
 {
