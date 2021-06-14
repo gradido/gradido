@@ -647,8 +647,8 @@ namespace model {
 
 			delete own_body_updated;
 
-			// if they are more than 100 seconds between transaction they consider as not the same
-			if (abs(timeDiff) > 100) {
+			// if they are more than 10 seconds between transaction they consider as not the same
+			if (abs(timeDiff) > 10) {
 				return false;
 			}
 
