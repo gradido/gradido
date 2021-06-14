@@ -44,6 +44,7 @@ bool SessionManager::init()
 		switch (i) {
 		//case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("/^[a-zA-Z_ -]{3,}$/"); break;
 		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[^<>&;]{3,}$"); break;
+		case VALIDATE_USERNAME: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z][a-zA-Z0-9_-]*$"); break;
 		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
 		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-_])[A-Za-z0-9@$!%*?&+-_]{8,}$"); break;
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
