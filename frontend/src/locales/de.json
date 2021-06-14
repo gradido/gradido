@@ -109,7 +109,10 @@
         "chart":"Gemeinschaftsstunden Chart",
         "new":"Neue Gemeinschaftsstunden eintragen",
         "list":"Meine Gemeinschaftsstunden Liste"
-      }      
+      },
+      "user-data": {
+        "change-success": "Deine Daten wurden gespeichert."
+      }
     },
     "navbar" : {
       "my-profil":"Mein Profil",

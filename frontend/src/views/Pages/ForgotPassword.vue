@@ -61,12 +61,9 @@ export default {
   created() {},
   methods: {
     async onSubmit() {
-      const result = await loginAPI.sendEmail(this.form.email)
-      if (result.success) {
-        this.$router.push('/thx/password')
-      } else {
-        this.$toast.success(this.$t('error.error'))
-      }
+      await loginAPI.sendEmail(this.form.email)
+      // always give success to avoid email spying
+      this.$router.push('/thx/password')
     },
   },
 }
