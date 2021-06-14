@@ -919,6 +919,17 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 }
 */
 
+bool Session::lastTransactionTheSame(Poco::AutoPtr<model::gradido::Transaction> newTransaction)
+{
+	assert(!newTransaction.isNull());
+	lock();
+	if (mLastTransaction.isNull()) {
+		return false;
+	}
+	bool result = mLastTransaction->isTheSameTransaction(newTransaction);
+	unlock();
+	return result;
+}
 
 bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 {
