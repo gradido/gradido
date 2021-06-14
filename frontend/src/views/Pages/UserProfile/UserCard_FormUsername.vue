@@ -26,7 +26,7 @@
         <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
           <small>{{ $t('form.username') }}</small>
         </b-col>
-        <b-col class="col-md-9 col-sm-10">@{{ form.username }}</b-col>
+        <b-col class="col-md-9 col-sm-10 display-username">@{{ username }}</b-col>
       </b-row>
     </b-container>
     <b-container v-else>
@@ -97,7 +97,10 @@ export default {
         this.showUsername = true
         this.$toast.success(this.$t('site.profil.user-data.change-success'))
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
+        this.showUsername = true
+        this.username = this.$store.state.username
+        this.form.username = this.$store.state.username
       }
     },
   },
