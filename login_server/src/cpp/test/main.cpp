@@ -41,7 +41,7 @@ int runMysql(std::string sqlQuery)
 		mysqlStatement.execute(true);
 	}
 	catch (Poco::Exception& ex) {
-		printf("exception in runMysql: %s\n", ex.displayText().data());
+		std::clog << "exception in runMysql: " << ex.displayText() << std::endl;
 		return -1;
 	}
 	return 0;
@@ -74,11 +74,11 @@ int load(int argc, char* argv[]) {
 
 	if (!ServerConfig::initServerCrypto(*test_config)) {
 		//printf("[Gradido_LoginServer::%s] error init server crypto\n", __FUNCTION__);
-		printf("[load] error init server crypto");
+		std::clog << "[load] error init server crypto" << std::endl;
 		return -1;
 	}
 	if (!ServerConfig::loadMnemonicWordLists()) {
-		printf("[load] error in loadMnemonicWordLists");
+		std::clog << "[load] error in loadMnemonicWordLists" << std::endl;
 		return -2;
 	}
 
@@ -106,7 +106,7 @@ int load(int argc, char* argv[]) {
 	}
 	catch (Poco::Exception& ex) {
 		// maybe we in docker environment and db needs some time to start up
-		printf("Poco Exception by connecting to db: %s, let's try again\n", ex.displayText().data());
+		std::clog << "Poco Exception by connecting to db: " << ex.displayText() << ", let's try again" << std::endl;
 	}
 	if(!connected) {
 		// let's wait 10 seconds
@@ -121,7 +121,7 @@ int load(int argc, char* argv[]) {
 				connected = true;
 			}
 		} catch(Poco::Exception& ex) {
-			printf("Poco Exception by connecting to db: %s, let's wait another 10 seconds\n", ex.displayText().data());
+			std::clog << "Poco Exception by connecting to db: " << ex.displayText() << ", let's wait another 10 seconds" << std::endl;
 		}
 	}
 	if(!connected) {
@@ -129,17 +129,17 @@ int load(int argc, char* argv[]) {
 		try {
 			conn->setConnectionsFromConfig(*test_config, CONNECTION_MYSQL_LOGIN_SERVER);
 		} catch(Poco::Exception& ex) {
-			printf("Poco Exception by connecting to db: %s, exit\n", ex.displayText().data());
+			std::clog << "Poco Exception by connecting to db: " << ex.displayText() << ", exit" << std::endl;
 			return -4;
 		}
 	}
 
-	printf("measure Time for secret key generation...\n");
+	std::clog << "measure Time for secret key generation..." << std::endl;
 	Profiler timeForArgon2;
 	SecretKeyCryptography secret_cryptografie;
 	secret_cryptografie.createKey("test.email@gmx.de", "skaSI2WSEIs/");
 	ServerConfig::g_FakeLoginSleepTime = timeForArgon2.millis();
-	printf("time for secret key generation: %s\n", timeForArgon2.string().data());
+	std::clog << "time for secret key generation: " << timeForArgon2.string() << std::endl;
 	
 	std::string log_Path = "/var/log/grd_login/";
 //#ifdef _WIN32
@@ -209,7 +209,7 @@ int load(int argc, char* argv[]) {
 
 	
 
-	printf("init db in : %s\n", timeUsed.string().data());
+	std::clog << "init db in : " << timeUsed.string() << std::endl;
 	
 	
 	fillTests();
@@ -226,10 +226,10 @@ int run()
 	std::clog << "[Gradido_LoginServer_Test::run]" << std::endl;
 	for (std::list<Test*>::iterator it = gTests.begin(); it != gTests.end(); it++)
 	{
-		//printf("running: %s\n", it->getName());
-		printf("running test: %s\n", (*it)->getName());
+		std::string name = (*it)->getName();
+		std::clog << "running test:  " << name << std::endl;
 		try {
-			if (!(*it)->test()) printf("success\n");
+			if (!(*it)->test()) std::clog << "Success" << std::endl;
 		} catch(std::exception& ex) {
 			std::clog << "exception in running test: " << ex.what() << std::endl;
 		}
@@ -255,11 +255,12 @@ int main(int argc, char** argv)
 {
 	try {
 		if (load(argc, argv) < 0) {
-			printf("early exit\n");
+			std::clog << "early exit" << std::endl;
 			return -42;
 		}
 	} catch(std::exception& ex) {
-		printf("no catched exception while loading: %s\n", ex.what());
+		std::string exception_text = ex.what();
+		std::clog << "no catched exception while loading: " << exception_text << std::endl;
 	}
 	
   	//printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
