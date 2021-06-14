@@ -4,6 +4,14 @@ import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 import SideBar from '@/components/SidebarPlugin'
 
+import PortalVue from 'portal-vue'
+
+import VueBootstrapToasts from 'vue-bootstrap-toasts'
+
+// vue-bootstrap
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+
+// asset imports
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
 import * as rules from 'vee-validate/dist/rules'
@@ -20,8 +28,6 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
     ...rules[rule], // copies rule configuration
@@ -34,8 +40,10 @@ export default {
     Vue.use(GlobalComponents)
     Vue.use(GlobalDirectives)
     Vue.use(SideBar)
+    Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
+    Vue.use(VueBootstrapToasts)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)
     Vue.use(VueQrcode)

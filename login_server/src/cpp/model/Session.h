@@ -19,6 +19,8 @@
 
 #include "../controller/EmailVerificationCode.h"
 
+#include "model/gradido/Transaction.h"
+
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
 #include "Poco/DateTime.h"
@@ -163,6 +165,8 @@ public:
 
 	// ------------------------ transactions functions ----------------------------
 
+	inline void setLastTransaction(Poco::AutoPtr<model::gradido::Transaction> lastTransaction) { lock(); mLastTransaction = lastTransaction; unlock(); }
+	bool lastTransactionTheSame(Poco::AutoPtr<model::gradido::Transaction> newTransaction);
 
 	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }
 	void setLanguage(Languages lang);
@@ -188,6 +192,7 @@ protected:
 
 
 private:
+
 	int mHandleId;
 	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
@@ -200,6 +205,7 @@ private:
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 	std::shared_mutex	 mSharedMutex;
 
+	Poco::AutoPtr<model::gradido::Transaction> mLastTransaction;
 
 	SessionStates mState;
 

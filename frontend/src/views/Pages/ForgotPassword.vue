@@ -70,17 +70,15 @@ export default {
       },
     }
   },
+  created() {},
   methods: {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
     async onSubmit() {
-      const result = await loginAPI.sendEmail(this.form.email)
-      if (result.success) {
-        this.$router.push('/thx/password')
-      } else {
-        alert(result.result)
-      }
+      await loginAPI.sendEmail(this.form.email)
+      // always give success to avoid email spying
+      this.$router.push('/thx/password')
     },
   },
 }

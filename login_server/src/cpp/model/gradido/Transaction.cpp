@@ -630,6 +630,31 @@ namespace model {
 
 		}
 
+		bool Transaction::isTheSameTransaction(Poco::AutoPtr<Transaction> other)
+		{
+			bool result = false;
+
+			auto other_proto = other->getTransactionBody()->getBody();
+			auto other_created = other_proto->created();
+			auto own_body_bytes = getTransactionBody()->getBodyBytes();
+			auto own_body_updated = new proto::gradido::TransactionBody;
+			own_body_updated->ParseFromString(own_body_bytes);
+			auto own_created = own_body_updated->mutable_created();
+			Poco::Int64 timeDiff = other_created.seconds() - own_created->seconds();
+			*own_created = other_created;
+
+			result = own_body_updated->SerializeAsString() == other_proto->SerializeAsString();
+
+			delete own_body_updated;
+
+			// if they are more than 10 seconds between transaction they consider as not the same
+			if (abs(timeDiff) > 10) {
+				return false;
+			}
+
+			return result;
+		}
+
 
 		/// TASK ////////////////////////
 		SendTransactionTask::SendTransactionTask(Poco::AutoPtr<Transaction> transaction)
