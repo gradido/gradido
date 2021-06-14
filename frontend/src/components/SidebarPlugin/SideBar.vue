@@ -4,19 +4,21 @@
     id="sidenav-main"
   >
     <div class="container-fluid">
-      <div class="text-center">
-        <div class="mb-2">
-          <img :src="logo" class="navbar-brand-img" alt="Gradido Logo" />
-        </div>
+      <!--Toggler-->
+      <navbar-toggle-button @click.native="showSidebar"></navbar-toggle-button>
+      <div class="navbar-brand">
+        <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
-
+      <b-row class="text-center">
+        <b-col>{{ pending ? '—' : $n(balance, 'decimal') }} GDD</b-col>
+      </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
-          <a slot="title-container" class="nav-link" role="button">
-            <div class="media align-items-center">
-              <navbar-toggle-button @click.native="showSidebar"></navbar-toggle-button>
-            </div>
-          </a>
+          <div class="media align-items-center">
+            <span class="avatar avatar-sm">
+              <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+            </span>
+          </div>
         </ul>
       </slot>
       <slot></slot>
@@ -68,12 +70,14 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import LanguageSwitch from '@/components/LanguageSwitch.vue'
+import VueQrcode from 'vue-qrcode'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
     LanguageSwitch,
+    VueQrcode,
   },
   props: {
     logo: {
