@@ -2,6 +2,7 @@
   <div>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
+        <p></p>
         <sidebar-item
           :link="{
             name: $t('send'),
@@ -23,7 +24,25 @@
       </template>
     </side-bar>
     <div class="main-content">
-      <dashboard-navbar :type="$route.meta.navbarType"></dashboard-navbar>
+      <div class="d-none d-md-block">
+        <b-navbar>
+          <b-navbar-nav class="ml-auto">
+            <b-nav-item>
+              <b-media no-body class="align-items-center">
+                <span class="pb-2 text-lg font-weight-bold">
+                  {{ $store.state.email }}
+                </span>
+                <b-media-body class="ml-2">
+                  <span class="avatar">
+                    <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+                  </span>
+                </b-media-body>
+              </b-media>
+            </b-nav-item>
+          </b-navbar-nav>
+        </b-navbar>
+      </div>
+
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
@@ -33,7 +52,6 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :pending="pending"
-            :UserProfileTestData="UserProfileTestData"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -48,11 +66,11 @@ import PerfectScrollbar from 'perfect-scrollbar'
 import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
 
-import DashboardNavbar from './DashboardNavbar.vue'
 import ContentFooter from './ContentFooter.vue'
 // import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
+import VueQrcode from 'vue-qrcode'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -72,9 +90,8 @@ function initScrollbar(className) {
 
 export default {
   components: {
-    DashboardNavbar,
     ContentFooter,
-    // DashboardContent,
+    VueQrcode,
     FadeTransition,
   },
   data() {
@@ -85,11 +102,6 @@ export default {
       bookedBalance: 0,
       transactionCount: 0,
       pending: true,
-      UserProfileTestData: {
-        username: 'Mustermax',
-        desc:
-          'Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. ',
-      },
     }
   },
   methods: {
@@ -137,4 +149,9 @@ export default {
   },
 }
 </script>
-<style lang="scss"></style>
+<style lang="scss">
+.xxx {
+  position: relative;
+  right: 0px;
+}
+</style>

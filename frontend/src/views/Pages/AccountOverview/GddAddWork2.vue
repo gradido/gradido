@@ -4,32 +4,32 @@
       <b-tab :title="names.thisMonth" active>
         <b-row>
           <b-col lg="3">
-            <base-input :label="$t('communitys.form.hours')">
+            <b-input :label="$t('communitys.form.hours')">
               <b-form-input
                 type="number"
                 size="lg"
                 placeholder="23"
                 style="font-size: xx-large; padding-left: 5px"
               />
-            </base-input>
-            <base-input :label="$t('communitys.form.date_period')">
+            </b-input>
+            <b-input :label="$t('communitys.form.date_period')">
               <flat-pickr
                 class="form-control"
                 v-model="date"
                 :config="config"
                 style="font-size: 0.5em; padding-left: 5px"
               ></flat-pickr>
-            </base-input>
+            </b-input>
           </b-col>
           <b-col lg="9">
-            <base-input :label="$t('communitys.form.hours_report')">
+            <b-input :label="$t('communitys.form.hours_report')">
               <textarea
                 class="form-control"
                 rows="5"
                 @focus="textFocus"
                 style="font-size: x-large; padding-left: 20px"
               ></textarea>
-            </base-input>
+            </b-input>
           </b-col>
         </b-row>
         <b-row>
@@ -57,12 +57,8 @@
 </template>
 
 <script>
-import flatPickr from 'vue-flatpickr-component'
-import 'flatpickr/dist/flatpickr.css'
-
 export default {
   name: 'GDDAddWork2',
-  components: { flatPickr },
   data() {
     return {
       date: null,
@@ -147,32 +143,32 @@ export default {
     newWorkForm() {
       this.formular = `  
           <b-col lg="3">
-            <base-input label="Stunden">
+            <b-input label="Stunden">
               <b-form-input
                 type="number"
                 size="lg"
                 placeholder="0"
                 style="font-size: xx-large; padding-left: 20px"
               />
-            </base-input>
-            <base-input label="Datum / Zeitraum">
+            </b-input>
+            <b-input label="Datum / Zeitraum">
               <flat-pickr
                 class="form-control"
                 v-model="date"
                 :config="config"
                 style="font-size: xx-large; padding-left: 20px"
               ></flat-pickr>
-            </base-input>
+            </b-input>
           </b-col>
           <b-col lg="9">
-            <base-input label="Arbeitsreport">
+            <b-input label="Arbeitsreport">
               <textarea
                 class="form-control"
                 rows="5"
                 @focus="textFocus"
                 style="font-size: x-large; padding-left: 20px"
               ></textarea>
-            </base-input>
+            </b-input>
           </b-col>
        `
 

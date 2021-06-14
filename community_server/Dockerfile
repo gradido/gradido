@@ -21,9 +21,10 @@ RUN apt-get update \
     && apt-get -y --no-install-recommends install php7.4-xdebug  \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-WORKDIR /var/www/cakephp
+
 ENV XDEBUG_MODE=coverage
+#RUN composer require --dev rregeer/phpunit-coverage-check
 
-CMD ./vendor/bin/phpunit --coverage-text=./webroot/coverage/coverage.info 
-
+#CMD ./vendor/bin/phpunit  --coverage-clover=./webroot/coverage/clover.xml
+CMD ./vendor/bin/phpunit  --coverage-text=./webroot/coverage/coverage.info
 

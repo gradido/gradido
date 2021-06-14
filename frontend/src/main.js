@@ -4,7 +4,7 @@ import App from './App.vue'
 import i18n from './i18n.js'
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
-import { required, email, min, between, double, is_not } from 'vee-validate/dist/rules'
+import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
 
 // store
 import { store } from './store/store'
@@ -46,14 +46,22 @@ extend('min', {
   message: (_, values) => i18n.t('validations.messages.min', values),
 })
 
-extend('double', {
-  ...double,
-  message: (_, values) => i18n.t('form.validation.double', values),
+extend('max', {
+  ...max,
+  message: (_, values) => i18n.t('validations.messages.max', values),
 })
 
-extend('between', {
-  ...between,
-  message: (_, values) => i18n.t('validations.messages.between', values),
+extend('gddSendAmount', {
+  validate(value, { min, max }) {
+    value = value.replace(',', '.')
+    return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
+  },
+  params: ['min', 'max'],
+  message: (_, values) => {
+    values.min = i18n.n(values.min)
+    values.max = i18n.n(values.max)
+    return i18n.t('form.validation.gddSendAmount', values)
+  },
 })
 
 // eslint-disable-next-line camelcase

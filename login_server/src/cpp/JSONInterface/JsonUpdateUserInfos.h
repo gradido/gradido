@@ -18,6 +18,8 @@ public:
 
 protected:
 
+	std::string validateString(Poco::Dynamic::Var value, const char* fieldName, Poco::JSON::Array& errorArray);
+
 
 };
 

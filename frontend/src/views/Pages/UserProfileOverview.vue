@@ -1,7 +1,7 @@
 <template>
   <b-container fluid>
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
-    <form-user-data :UserProfileTestData="UserProfileTestData" />
+    <form-user-data />
     <form-username />
     <form-user-passwort />
   </b-container>
@@ -22,7 +22,6 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
-    UserProfileTestData: { type: Object },
   },
 }
 </script>

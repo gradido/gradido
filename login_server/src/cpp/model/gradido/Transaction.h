@@ -86,6 +86,8 @@ namespace model {
 			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
 			inline Poco::AutoPtr<Transaction> getPairedTransaction() { return mPairedTransaction; }
 
+			bool isTheSameTransaction(Poco::AutoPtr<Transaction> other);
+
 
 		protected:
 

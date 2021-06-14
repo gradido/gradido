@@ -167,9 +167,9 @@ class AppRequestsController extends AppController
         if($result !== true) {
             return $this->returnJson($result);
         }
-        $required_fields = $this->checkAndCopyRequiredFields(['target_date'], $params, $data);
-        if($required_fields !== true) {
-            return $this->returnJson($required_fields);
+        
+        if(!isset($params['memo']) || strlen($params['memo']) < 5 || strlen($params['memo']) > 150) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'memo is not set or not in expected range [5;150]']);
         }
         $params['transaction_type'] = 'transfer';
         

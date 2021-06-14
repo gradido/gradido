@@ -139,6 +139,13 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		try {
 			auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 
+			if (mSession->lastTransactionTheSame(transaction)) {
+				return stateError("transaction are the same as the last (within 100 seconds)");
+			}
+			else {
+				mSession->setLastTransaction(transaction);
+			}
+
 			if (mAutoSign) {
 				Poco::JSON::Array errors;
 				transaction->sign(sender_user);

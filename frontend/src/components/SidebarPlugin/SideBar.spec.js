@@ -41,6 +41,19 @@ describe('SideBar', () => {
       expect(wrapper.find('#sidenav-main').exists()).toBeTruthy()
     })
 
+    describe('navbar button', () => {
+      it('has a navbar button', () => {
+        expect(wrapper.find('button.navbar-toggler').exists()).toBeTruthy()
+      })
+
+      it('calls showSidebar when clicked', async () => {
+        const spy = jest.spyOn(wrapper.vm.$sidebar, 'displaySidebar')
+        wrapper.find('button.navbar-toggler').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(spy).toHaveBeenCalledWith(true)
+      })
+    })
+
     describe('balance', () => {
       it('shows em-dash as balance while loading', () => {
         expect(wrapper.find('div.row.text-center').text()).toBe('— GDD')
@@ -52,19 +65,6 @@ describe('SideBar', () => {
         })
         await wrapper.vm.$nextTick()
         expect(wrapper.find('div.row.text-center').text()).toBe('1234.56 GDD')
-      })
-    })
-
-    describe('navbar button', () => {
-      it('has a navbar button', () => {
-        expect(wrapper.find('button.navbar-toggler').exists()).toBeTruthy()
-      })
-
-      it('calls showSidebar when clicked', async () => {
-        const spy = jest.spyOn(wrapper.vm.$sidebar, 'displaySidebar')
-        wrapper.find('button.navbar-toggler').trigger('click')
-        await wrapper.vm.$nextTick()
-        expect(spy).toHaveBeenCalledWith(true)
       })
     })
 
