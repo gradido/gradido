@@ -241,7 +241,7 @@ Notes:
 - User will be disabled if he wants his account deleted, but has transactions. Until transactions are saved in real blockchain, we need this data because the public key is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible.
 - Disabled Users can neither login nor receive transactions. 
 - It is not required to provide all fields of `update`, it can be a subset depending on what you intend to change.
-- `User.password`: to change user password, needed current passwort in `User.password_old` 
+- `User.password`: to change user password, needed current passwort in `User.password_old` (only if user was logged in with his password, not by reset password email code)
 
 ### Response
 In case of success:
@@ -254,7 +254,7 @@ In case of success:
 }
 ```
 
-- `valid_values`: should contain count of entries in update if no error occurred (User.password will not be counted)
+- `valid_values`: should contain count of entries in update if no error occurred (User.password will now be counted also)
 - `errors`: contain on error string for every entry in update, which type isn't like expected 
   - `password`: 
     - "new password is the same as old password": no change taking place
