@@ -144,7 +144,8 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					jsonErrorsArray.add("User.disabled isn't a boolean or integer");
 				}
 			}
-			else if ("User.language" == name && value.size() > 0) {
+			else if ("User.language" == name && value.size() > 0) 
+			{
 				std::string str_val = validateString(value, "User.language", jsonErrorsArray);
 
 				if (str_val.size() > 0) {
@@ -159,14 +160,13 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 				}
 
 			}
-			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) {
+			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) 
+			{
 				std::string str_val = validateString(value, "User.password", jsonErrorsArray);
 
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0) 
+				{
 					
-					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
-					{
-
 					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
 					{
 						NotificationList errors;
@@ -193,7 +193,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 									password_changed = true;
 									break;
 								// -1 = stored pubkey and private key didn't match
-							case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+								case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
 							}
 						
 						}
