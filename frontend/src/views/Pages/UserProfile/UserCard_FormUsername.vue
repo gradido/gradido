@@ -73,9 +73,6 @@ export default {
       },
     }
   },
-  props: {
-    UserProfileTestData: { type: Object },
-  },
   methods: {
     async onSubmit() {
       const result = await loginAPI.changeUsernameProfile(

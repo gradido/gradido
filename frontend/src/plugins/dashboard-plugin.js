@@ -11,6 +11,10 @@ import GlobalDirectives from './globalDirectives'
 // Sidebar on the right. Used as a local plugin in DashboardLayout.vue
 import SideBar from '@/components/SidebarPlugin'
 
+import PortalVue from 'portal-vue'
+
+import VueBootstrapToasts from 'vue-bootstrap-toasts'
+
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
@@ -47,8 +51,10 @@ export default {
     Vue.use(GlobalDirectives)
     Vue.use(SideBar)
     Vue.use(Notifications)
+    Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
+    Vue.use(VueBootstrapToasts)
     Vue.use(VueGoodTablePlugin)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)

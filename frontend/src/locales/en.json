@@ -110,7 +110,10 @@
         "chart":"Community Hours Chart",
         "new":"Register new community hours",
         "list":"My Community Hours List"
-      }      
+      },
+      "user-data": {
+        "change-success": "Your data has been saved."
+      }
     },
     "navbar" : {
       "my-profil":"My profile",

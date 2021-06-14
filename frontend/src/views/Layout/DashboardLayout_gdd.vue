@@ -34,7 +34,6 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :pending="pending"
-            :UserProfileTestData="UserProfileTestData"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
           ></router-view>
@@ -86,11 +85,6 @@ export default {
       bookedBalance: 0,
       transactionCount: 0,
       pending: true,
-      UserProfileTestData: {
-        username: 'Mustermax',
-        desc:
-          'Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. Max Mustermann seine Beschreibung. ',
-      },
     }
   },
   methods: {

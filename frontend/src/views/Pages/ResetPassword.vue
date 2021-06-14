@@ -108,14 +108,14 @@ export default {
       if (result.success) {
         this.password = ''
         /*
-         this.$store.dispatch('login', {
-           sessionId: result.result.data.session_id,
-           email: result.result.data.user.email,
-         })
-         */
+            this.$store.dispatch('login', {
+            sessionId: result.result.data.session_id,
+            email: result.result.data.user.email,
+            })
+          */
         this.$router.push('/thx/reset')
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
       }
     },
     async authenticate() {
@@ -126,7 +126,7 @@ export default {
         this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
       }
     },
   },
