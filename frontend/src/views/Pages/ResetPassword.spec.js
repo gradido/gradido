@@ -1,12 +1,8 @@
 import { mount } from '@vue/test-utils'
-import VueRouter from 'vue-router'
-import routes from '../../routes/routes'
 
 import ResetPassword from './ResetPassword'
 
 const localVue = global.localVue
-
-const router = new VueRouter({ routes })
 
 describe('ResetPassword', () => {
   let wrapper
@@ -21,10 +17,15 @@ describe('ResetPassword', () => {
     loginAPI: {
       loginViaEmailVerificationCode: emailVerification,
     },
+    $route: {
+      params: {
+        optin: '123',
+      },
+    },
   }
 
   const Wrapper = () => {
-    return mount(ResetPassword, { localVue, mocks, router })
+    return mount(ResetPassword, { localVue, mocks })
   }
 
   describe('mount', () => {
@@ -39,7 +40,7 @@ describe('ResetPassword', () => {
     })
     */
 
-    it('does not render the Reset Password form when not authenticated', async () => {
+    it('does not render the Reset Password form when not authenticated', () => {
       expect(wrapper.find('div.resetpwd-form').exists()).toBeFalsy()
     })
 
