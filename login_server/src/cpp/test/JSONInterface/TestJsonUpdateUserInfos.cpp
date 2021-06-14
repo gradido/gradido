@@ -224,7 +224,7 @@ TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
 	ASSERT_FALSE(state.isEmpty());
 	ASSERT_TRUE(state.isString());
 
-	if ((ServerConfig::g_AllowUnsecureFlags | ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		EXPECT_EQ(valid_values, 1);
 		ASSERT_EQ(error_array.size(), 0);
 		ASSERT_EQ(state.toString(), "success");
