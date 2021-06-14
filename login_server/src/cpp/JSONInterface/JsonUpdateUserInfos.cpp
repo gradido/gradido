@@ -86,7 +86,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			if ( "User.first_name" == name) {
 				std::string str_val = validateString(value, "User.first_name", jsonErrorsArray);
 				
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0 && user_model->getFirstName() != str_val) {
 					user_model->setFirstName(str_val);
 					extractet_values++;
 				}
@@ -94,7 +94,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			else if ("User.last_name" == name ) {
 				std::string str_val = validateString(value, "User.last_name", jsonErrorsArray);
 
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0 && user_model->getLastName() != str_val) {
 					user_model->setLastName(str_val);
 					extractet_values++;
 				}
@@ -103,13 +103,17 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			else if ("User.username" == name) {
 				std::string str_val = validateString(value, "User.username", jsonErrorsArray);
 
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0 && user_model->getUsername() != str_val) {
 					if (user_model->getUsername() != "") {
 						jsonErrorsArray.add("change username currently not supported!");
 					}
-					else if (user_model->getUsername() != str_val) {
+					else
+					{
 						if (user->isUsernameAlreadyUsed(str_val)) {
 							jsonErrorsArray.add("username already used");
+						}
+						else if (!sm->isValid(str_val, VALIDATE_USERNAME)) {
+							jsonErrorsArray.add("username must start with [a-z] or [A-Z] and than can contain also [0-9], - and _");
 						}
 						else {
 							user_model->setUsername(str_val);
@@ -121,34 +125,35 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 			else if ("User.description" == name) {
 				std::string str_val = validateString(value, "User.description", jsonErrorsArray);
 
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0 && str_val != user_model->getDescription()) {
 					user_model->setDescription(str_val);
 					extractet_values++;
 				}
 
 			}
 			else if ("User.disabled" == name) {
-				if (value.isBoolean()) {
-					bool disabled;
+				bool disabled;
+
+				if (value.isInteger()) {
+					int idisabled;
+					value.convert(idisabled);
+					disabled = static_cast<bool>(idisabled);
+				} else if (value.isBoolean()) {
 					value.convert(disabled);
-					user_model->setDisabled(disabled);
-					extractet_values++;
-				}
-				else if (value.isInteger()) {
-					int disabled;
-					value.convert(disabled);
-					user_model->setDisabled(static_cast<bool>(disabled));
-					extractet_values++;
 				}
 				else {
 					jsonErrorsArray.add("User.disabled isn't a boolean or integer");
+				}
+				if (user_model->isDisabled() != disabled) {
+					user_model->setDisabled(disabled);
+					extractet_values++;
 				}
 			}
 			else if ("User.language" == name && value.size() > 0) 
 			{
 				std::string str_val = validateString(value, "User.language", jsonErrorsArray);
 
-				if (str_val.size() > 0) {
+				if (str_val.size() > 0 && user_model->getLanguageKey() != str_val) {
 					auto lang = LanguageManager::languageFromString(str_val);
 					if (LANG_NULL == lang) {
 						jsonErrorsArray.add("User.language isn't a valid language");
@@ -180,20 +185,19 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 						
 							switch (result_new_password) {
 								// 0 = new and current passwords are the same
-							case 0: jsonErrorsArray.add("new password is the same as old password"); break;
 								// 1 = password changed, private key re-encrypted and saved into db
-								case 1: 
-									extractet_values++; 
-									password_changed = true; 
-									break;
-								// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
-								case 2: 
-									jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
-									extractet_values++;
-									password_changed = true;
-									break;
-								// -1 = stored pubkey and private key didn't match
-								case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+							case 1: 
+								extractet_values++; 
+								password_changed = true; 
+								break;
+							// 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+							case 2: 
+								jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
+								extractet_values++;
+								password_changed = true;
+								break;
+							// -1 = stored pubkey and private key didn't match
+							case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
 							}
 						
 						}
