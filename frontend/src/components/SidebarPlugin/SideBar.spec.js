@@ -41,20 +41,6 @@ describe('SideBar', () => {
       expect(wrapper.find('#sidenav-main').exists()).toBeTruthy()
     })
 
-    describe('balance', () => {
-      it('shows em-dash as balance while loading', () => {
-        expect(wrapper.find('.gddBalance').text()).toBe('— GDD')
-      })
-
-      it('shows the when loaded', async () => {
-        wrapper.setProps({
-          pending: false,
-        })
-        await wrapper.vm.$nextTick()
-        expect(wrapper.find('.gddBalance').text()).toBe('1234.56 GDD')
-      })
-    })
-
     describe('navbar button', () => {
       it('has a navbar button', () => {
         expect(wrapper.find('button.navbar-toggler').exists()).toBeTruthy()

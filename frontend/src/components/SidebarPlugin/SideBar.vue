@@ -9,13 +9,6 @@
           <img :src="logo" class="navbar-brand-img" alt="Gradido Logo" />
         </div>
       </div>
-      <div class="gddBalance text-center">{{ pending ? '—' : $n(balance, 'decimal') }} GDD</div>
-
-      <div class="text-center">
-        <div class="avatar">
-          <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
-        </div>
-      </div>
 
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
@@ -74,14 +67,12 @@
 </template>
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
-import VueQrcode from 'vue-qrcode'
 import LanguageSwitch from '@/components/LanguageSwitch.vue'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
-    VueQrcode,
     LanguageSwitch,
   },
   props: {
