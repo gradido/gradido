@@ -2,6 +2,7 @@
   <div>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
+        <p></p>
         <sidebar-item
           :link="{
             name: $t('send'),
