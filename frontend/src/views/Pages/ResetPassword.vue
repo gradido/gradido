@@ -20,37 +20,62 @@
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
-              <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
+              <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <b-form-group :label="$t('form.password')">
+                  <validation-provider
+                    :name="$t('form.password')"
+                    :rules="{ required: true }"
+                    v-slot="validationContext"
+                  >
+                    <b-form-group
+                      class="mb-5"
+                      :label="$t('form.password')"
+                      label-for="resetPassword"
+                    >
+                      <b-input-group>
+                        <b-form-input
+                          id="resetPassword"
+                          :name="$t('form.password')"
+                          v-model="form.password"
+                          :placeholder="$t('form.password')"
+                          :type="passwordVisible ? 'text' : 'password'"
+                          :state="getValidationState(validationContext)"
+                          aria-describedby="resetPasswordLiveFeedback"
+                        ></b-form-input>
+
+                        <b-input-group-append>
+                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                          </b-button>
+                        </b-input-group-append>
+                      </b-input-group>
+                      <b-form-invalid-feedback id="resetPasswordLiveFeedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
+
+                  <b-form-group
+                    class="mb-5"
+                    :label="$t('form.passwordRepeat')"
+                    label-for="resetPasswordRepeat"
+                  >
                     <b-input-group>
                       <b-form-input
-                        class="mb-0"
-                        v-model="password"
-                        name="password"
-                        :class="{ valid: passwordValidation.valid }"
-                        :type="passwordVisible ? 'text' : 'password'"
-                        prepend-icon="ni ni-lock-circle-open"
-                        :placeholder="$t('form.password')"
+                        id="resetPasswordRepeat"
+                        :name="$t('form.passwordRepeat')"
+                        v-model.lazy="form.passwordRepeat"
+                        :placeholder="$t('form.passwordRepeat')"
+                        :type="passwordVisibleRepeat ? 'text' : 'password'"
                       ></b-form-input>
 
                       <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                        <b-button variant="outline-primary" @click="togglePasswordRepeatVisibility">
+                          <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>
                     </b-input-group>
                   </b-form-group>
-
-                  <base-input
-                    :label="$t('form.password_repeat')"
-                    type="password"
-                    name="password-repeat"
-                    :placeholder="$t('form.password_repeat')"
-                    prepend-icon="ni ni-lock-circle-open"
-                    v-model.lazy="checkPassword"
-                    :class="{ valid: passwordValidation.valid }"
-                  />
 
                   <transition name="hint" appear>
                     <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
@@ -90,8 +115,11 @@ export default {
   name: 'reset',
   data() {
     return {
+      form: {
+        password: '',
+        passwordRepeat: '',
+      },
       password: '',
-      checkPassword: '',
       passwordVisible: false,
       submitted: false,
       authenticated: false,
@@ -100,22 +128,25 @@ export default {
     }
   },
   methods: {
+    getValidationState({ dirty, validated, valid = null }) {
+      return dirty || validated ? valid : null
+    },
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
     async onSubmit() {
-      const result = await loginAPI.changePassword(this.sessionId, this.email, this.password)
+      const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
       if (result.success) {
-        this.password = ''
+        this.form.password = ''
         /*
-         this.$store.dispatch('login', {
-           sessionId: result.result.data.session_id,
-           email: result.result.data.user.email,
-         })
-         */
+            this.$store.dispatch('login', {
+            sessionId: result.result.data.session_id,
+            email: result.result.data.user.email,
+            })
+          */
         this.$router.push('/thx/reset')
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
       }
     },
     async authenticate() {
@@ -126,16 +157,16 @@ export default {
         this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
       }
     },
   },
   computed: {
     samePasswords() {
-      return this.password === this.checkPassword
+      return this.form.password === this.form.passwordRepeat
     },
     passwordsFilled() {
-      return this.password !== '' && this.checkPassword !== ''
+      return this.form.password !== '' && this.form.passwordRepeat !== ''
     },
     rules() {
       return [
@@ -148,7 +179,7 @@ export default {
     passwordValidation() {
       const errors = []
       for (const condition of this.rules) {
-        if (!condition.regex.test(this.password)) {
+        if (!condition.regex.test(this.form.password)) {
           errors.push(condition.message)
         }
       }

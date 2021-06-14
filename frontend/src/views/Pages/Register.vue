@@ -23,64 +23,136 @@
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('signup') }}</small>
               </div>
-              <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
-                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <base-input
-                    :label="$t('form.firstname')"
-                    alternative
-                    class="mb-3"
-                    name="firstname"
-                    :rules="{ required: true, min: 3 }"
-                    v-model="model.firstname"
-                  ></base-input>
-                  <base-input
-                    :label="$t('form.lastname')"
-                    alternative
-                    class="mb-3"
-                    name="lastname"
-                    :rules="{ required: true, min: 2 }"
-                    v-model="model.lastname"
-                  ></base-input>
 
-                  <base-input
-                    :label="$t('form.email')"
-                    alternative
-                    class="mb-3"
+              <validation-observer ref="observer" v-slot="{ handleSubmit }">
+                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
+                  <validation-provider
+                    :name="$t('form.firstname')"
+                    :rules="{ required: true, min: 3 }"
+                    v-slot="validationContext"
+                  >
+                    <b-form-group
+                      class="mb-3"
+                      :label="$t('form.firstname')"
+                      label-for="registerFirstname"
+                    >
+                      <b-form-input
+                        id="registerFirstname"
+                        :name="$t('form.firstname')"
+                        v-model="form.firstname"
+                        :placeholder="$t('form.firstname')"
+                        :state="getValidationState(validationContext)"
+                        aria-describedby="registerFirstnameLiveFeedback"
+                      ></b-form-input>
+
+                      <b-form-invalid-feedback id="registerFirstnameLiveFeedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
+
+                  <validation-provider
+                    :name="$t('form.lastname')"
+                    :rules="{ required: true, min: 2 }"
+                    v-slot="validationContext"
+                  >
+                    <b-form-group
+                      class="mb-3"
+                      :label="$t('form.lastname')"
+                      label-for="registerLastname"
+                    >
+                      <b-form-input
+                        id="registerLastname"
+                        :name="$t('form.lastname')"
+                        v-model="form.lastname"
+                        :placeholder="$t('form.lastname')"
+                        :state="getValidationState(validationContext)"
+                        aria-describedby="registerLastnameLiveFeedback"
+                      ></b-form-input>
+
+                      <b-form-invalid-feedback id="registerLastnameLiveFeedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
+
+                  <validation-provider
                     name="Email"
                     :rules="{ required: true, email: true }"
-                    v-model="model.email"
-                  ></base-input>
+                    v-slot="validationContext"
+                  >
+                    <b-form-group class="mb-3" label="Email" label-for="registerEmail">
+                      <b-form-input
+                        id="registerEmail"
+                        name="Email"
+                        v-model="form.email"
+                        placeholder="Email"
+                        :state="getValidationState(validationContext)"
+                        aria-describedby="registerEmailLiveFeedback"
+                      ></b-form-input>
+
+                      <b-form-invalid-feedback id="registerEmailLiveFeedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
 
                   <hr />
-                  <b-form-group :label="$t('form.password')">
+
+                  <validation-provider
+                    :name="$t('form.password')"
+                    :rules="{ required: true }"
+                    v-slot="validationContext"
+                  >
+                    <b-form-group
+                      class="mb-5"
+                      :label="$t('form.password')"
+                      label-for="registerPassword"
+                    >
+                      <b-input-group>
+                        <b-form-input
+                          id="registerPassword"
+                          :name="$t('form.password')"
+                          v-model="form.password"
+                          :placeholder="$t('form.password')"
+                          :type="passwordVisible ? 'text' : 'password'"
+                          :state="getValidationState(validationContext)"
+                          aria-describedby="registerPasswordLiveFeedback"
+                        ></b-form-input>
+
+                        <b-input-group-append>
+                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                          </b-button>
+                        </b-input-group-append>
+                      </b-input-group>
+                      <b-form-invalid-feedback id="registerPasswordLiveFeedback">
+                        {{ validationContext.errors[0] }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </validation-provider>
+
+                  <b-form-group
+                    class="mb-5"
+                    :label="$t('form.passwordRepeat')"
+                    label-for="registerPasswordRepeat"
+                  >
                     <b-input-group>
                       <b-form-input
-                        class="mb-0"
-                        v-model="password"
-                        name="password"
-                        :class="{ valid: passwordValidation.valid }"
-                        :type="passwordVisible ? 'text' : 'password'"
-                        prepend-icon="ni ni-lock-circle-open"
-                        :placeholder="$t('form.password')"
+                        id="registerPasswordRepeat"
+                        :name="$t('form.passwordRepeat')"
+                        v-model.lazy="form.passwordRepeat"
+                        :placeholder="$t('form.passwordRepeat')"
+                        :type="passwordVisibleRepeat ? 'text' : 'password'"
                       ></b-form-input>
 
                       <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                          <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
+                        <b-button variant="outline-primary" @click="togglePasswordRepeatVisibility">
+                          <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>
                     </b-input-group>
                   </b-form-group>
-
-                  <base-input
-                    :label="$t('form.password_repeat')"
-                    type="password"
-                    name="password-repeat"
-                    :placeholder="$t('form.password_repeat')"
-                    prepend-icon="ni ni-lock-circle-open"
-                    v-model.lazy="checkPassword"
-                    :class="{ valid: passwordValidation.valid }"
-                  />
 
                   <transition name="hint" appear>
                     <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
@@ -99,14 +171,13 @@
                   </transition>
                   <b-row class="my-4">
                     <b-col cols="12">
-                      <base-input
-                        :rules="{ required: { allowFalse: false } }"
-                        name="Privacy Policy"
+                      <b-form-checkbox
+                        id="registerCheckbox"
+                        v-model="form.agree"
+                        :name="$t('site.signup.agree')"
                       >
-                        <b-form-checkbox v-model="model.agree">
-                          <span class="text-muted" v-html="$t('site.signup.agree')"></span>
-                        </b-form-checkbox>
-                      </base-input>
+                        <span class="text-muted" v-html="$t('site.signup.agree')"></span>
+                      </b-form-checkbox>
                     </b-col>
                   </b-row>
                   <b-alert
@@ -131,12 +202,13 @@
                       passwordValidation.valid &&
                       namesFilled &&
                       emailFilled &&
-                      model.agree
+                      form.agree
                     "
                   >
-                    <b-button type="submit" variant="secondary" class="mt-4">
-                      {{ $t('signup') }}
-                    </b-button>
+                    <div class="text-center">
+                      <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
+                      <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
+                    </div>
                   </div>
                 </b-form>
               </validation-observer>
@@ -157,41 +229,61 @@ export default {
   name: 'register',
   data() {
     return {
-      model: {
+      form: {
         firstname: '',
         lastname: '',
         email: '',
         agree: false,
+        password: '',
+        passwordRepeat: '',
       },
 
-      password: '',
-      checkPassword: '',
       passwordVisible: false,
+      passwordVisibleRepeat: false,
       submitted: false,
       showError: false,
       messageError: '',
     }
   },
   methods: {
+    getValidationState({ dirty, validated, valid = null }) {
+      return dirty || validated ? valid : null
+    },
+    resetForm() {
+      this.form = {
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: '',
+        passwordRepeat: '',
+      }
+      this.$nextTick(() => {
+        this.$refs.observer.reset()
+      })
+    },
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
     },
+    togglePasswordRepeatVisibility() {
+      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
+    },
     async onSubmit() {
       const result = await loginAPI.create(
-        this.model.email,
-        this.model.firstname,
-        this.model.lastname,
-        this.password,
+        this.form.email,
+        this.form.firstname,
+        this.form.lastname,
+        this.form.password,
       )
       if (result.success) {
         this.$store.dispatch('login', {
           sessionId: result.result.data.session_id,
-          email: this.model.email,
+          email: this.form.email,
         })
-        this.model.email = ''
-        this.model.firstname = ''
-        this.model.lastname = ''
+        this.form.email = ''
+        this.form.firstname = ''
+        this.form.lastname = ''
         this.password = ''
+        this.passwordVisibleRepeat = ''
         this.$router.push('/thx/register')
       } else {
         this.showError = true
@@ -201,29 +293,29 @@ export default {
     closeAlert() {
       this.showError = false
       this.messageError = ''
-      this.model.email = ''
-      this.model.firstname = ''
-      this.model.lastname = ''
-      this.password = ''
+      this.form.email = ''
+      this.form.firstname = ''
+      this.form.lastname = ''
+      this.form.password = ''
     },
   },
   computed: {
     samePasswords() {
-      return this.password === this.checkPassword
+      return this.form.password === this.form.passwordRepeat
     },
     passwordsFilled() {
-      return this.password !== '' && this.checkPassword !== ''
+      return this.form.password !== '' && this.form.passwordRepeat !== ''
     },
     namesFilled() {
       return (
-        this.model.firstname !== '' &&
-        this.model.firstname.length > 2 &&
-        this.model.lastname !== '' &&
-        this.model.lastname.length > 1
+        this.form.firstname !== '' &&
+        this.form.firstname.length > 2 &&
+        this.form.lastname !== '' &&
+        this.form.lastname.length > 1
       )
     },
     emailFilled() {
-      return this.model.email !== ''
+      return this.form.email !== ''
     },
     rules() {
       return [
@@ -236,7 +328,7 @@ export default {
     passwordValidation() {
       const errors = []
       for (const condition of this.rules) {
-        if (!condition.regex.test(this.password)) {
+        if (!condition.regex.test(this.form.password)) {
           errors.push(condition.message)
         }
       }

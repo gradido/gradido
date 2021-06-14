@@ -188,20 +188,28 @@ class TransactionsTable extends Table
             if($prev && $decay == true) 
             {
                 if($prev->balance > 0) {
-                    $current = $su_transaction;
+                    $current = $su_transaction;              
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
-                    $balance = floatval($prev->balance - $calculated_decay['balance']);
+                    $balance = floatval($prev->balance - $calculated_decay['balance']);                 
                     
-                    // skip small decays (smaller than 0,00 GDD)
-                    if(abs($balance) >= 100) {
-                        $final_transaction['decay'] = [ 
-                            'balance' => $balance,
-                            'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds')
-                        ];
+                    if($balance) 
+                    {
+                      $final_transactions['decay'] = [ 
+                          'balance' => $balance,
+                          'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds')
+                      ];       
                     }
                 }
             }
-                    
+            
+            // sender or receiver when user has sended money
+            // group name if creation
+            // type: gesendet / empfangen / geschöpft
+            // transaktion nr / id
+            // date
+            // balance
+            $transaction = $transaction_indiced[$su_transaction->transaction_id];
+           
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
                 $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);

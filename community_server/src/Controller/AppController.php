@@ -88,19 +88,8 @@ class AppController extends Controller
         // load current balance
         $session = $this->getRequest()->getSession();
         $state_user_id = $session->read('StateUser.id');
-        if ($state_user_id) {
-            $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
-            $stateBalanceQuery = $stateBalancesTable
-                  ->find('all')
-                  ->contain(false)
-                  ->where(['state_user_id' => $state_user_id]);
-            if ($stateBalanceQuery->count() == 1) {
-              //var_dump($stateBalanceEntry->first());
-                $session->write('StateUser.balance', $stateBalanceQuery->first()->decay);
-              //echo "stateUser.balance: " . $session->read('StateUser.balance');
-            }
-        }
-
+       
+        
         // load error count
         if ($state_user_id) {
             $stateErrorsTable = TableRegistry::getTableLocator()->get('stateErrors');
@@ -111,8 +100,6 @@ class AppController extends Controller
                   ->where(['state_user_id' => $state_user_id]);
             $session->write('StateUser.errorCount', $stateErrorQuery->count());
         }
-        //echo "initialize";
-
 
         // put current page into global for navi
         $GLOBALS["passed"] = null;

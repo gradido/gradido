@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container fluid class="p-lg-2 mt-lg-1">
+    <b-container fluid>
       <gdd-status
         v-if="showContext"
         :pending="pending"
@@ -17,7 +17,6 @@
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
-            :date="transactionData.target_date"
             :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
@@ -31,10 +30,10 @@
       <gdd-transaction-list
         v-if="showContext"
         :transactions="transactions"
-        :max="5"
+        :page-size="5"
         :timestamp="timestamp"
-        :transactionCount="transactionCount"
-        @update-transactions="$emit('update-transactions')"
+        :transaction-count="transactionCount"
+        @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer v-if="showContext" :count="transactionCount" />
     </b-container>
@@ -54,7 +53,6 @@ const EMPTY_TRANSACTION_DATA = {
   email: '',
   amount: 0,
   memo: '',
-  target_date: '',
 }
 
 export default {
@@ -96,8 +94,7 @@ export default {
   },
   methods: {
     setTransaction(data) {
-      data.target_date = new Date(Date.now()).toISOString()
-      this.transactionData = { ...data }
+      this.transactionData = data
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
@@ -115,6 +112,9 @@ export default {
     onReset() {
       this.transactionData = EMPTY_TRANSACTION_DATA
       this.currentTransactionStep = 0
+    },
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
     },
   },
 }

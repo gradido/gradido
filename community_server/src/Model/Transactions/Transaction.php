@@ -25,7 +25,7 @@ class Transaction extends TransactionBase {
         //$transactionBin = base64_decode($base64Data, true);
         //if($transactionBin == false) {
       //sodium_base64_VARIANT_URLSAFE_NO_PADDING
-      if(is_a($base64Data, '\Proto\Gradido\Transaction')) {
+      if(is_a($base64Data, '\Proto\Gradido\GradidoTransaction')) {
         $this->mProtoTransaction = $base64Data;
         $this->mTransactionBody = new TransactionBody($this->mProtoTransaction->getBodyBytes());
         return;
@@ -93,7 +93,11 @@ class Transaction extends TransactionBase {
       return $this->mTransactionBody;
     }
     
-    public function getFirstPublic() {
+    public function getFirstPublic() 
+    {
+      if(!$this->mProtoTransaction || !$this->mProtoTransaction->getSigMap()) {
+          return '';
+      }
       $sigPairs = $this->mProtoTransaction->getSigMap()->getSigPair();
       return $sigPairs[0]->getPubKey();
     }
@@ -111,6 +115,7 @@ class Transaction extends TransactionBase {
         $sigMap = $this->mProtoTransaction->getSigMap();
         if(!$sigMap) {
           $this->addError('Transaction', 'signature map is zero');
+          //var_dump($this->mProtoTransaction);
           return false;
         }
         //var_dump($sigMap);
@@ -193,8 +198,10 @@ class Transaction extends TransactionBase {
       
       $connection->commit();
       
-      $this->mTransactionBody->getSpecificTransaction()->sendNotificationEmail($this->mTransactionBody->getMemo());
+      $specificTransaction = $this->mTransactionBody->getSpecificTransaction();
       
+      $specificTransaction->sendNotificationEmail($this->mTransactionBody->getMemo());
+      $this->addWarnings($specificTransaction->getWarnings());
       return true;
     }
 

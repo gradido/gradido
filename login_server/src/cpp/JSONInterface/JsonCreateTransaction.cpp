@@ -135,9 +135,17 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 	else {
 		printf("user hasn't valid key pair set\n");
 	}
+	Poco::JSON::Array* json_warnings = nullptr;
 	if (!result) {
 		try {
 			auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+
+			if (mSession->lastTransactionTheSame(transaction)) {
+				return stateError("transaction are the same as the last (within 100 seconds)");
+			}
+			else {
+				mSession->setLastTransaction(transaction);
+			}
 
 			if (mAutoSign) {
 				Poco::JSON::Array errors;
@@ -148,6 +156,10 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 
 				if (errors.size() > 0) {
 					return stateError("error by signing transaction", errors);
+				}
+				if (transaction->warningCount() > 0) {
+					json_warnings = new Poco::JSON::Array;
+					json_warnings->add(transaction->getWarningsArray());
 				}
 			}
 		}
@@ -164,6 +176,10 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 			return stateError("exception");
 		}
 		result = stateSuccess();
+		if (json_warnings) {
+			result->set("warnings", json_warnings);
+			delete json_warnings;
+		}		
 	}
 	mm->releaseMemory(target_pubkey);
 	return result;

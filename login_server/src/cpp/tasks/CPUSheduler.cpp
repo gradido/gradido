@@ -11,7 +11,14 @@ namespace UniLib {
 		CPUSheduler::CPUSheduler(uint8_t threadCount, const char* name)
 			: mThreads(new CPUShedulerThread*[threadCount]), mThreadCount(threadCount), mName(name)
 		{
-			char nameBuffer[10]; memset(nameBuffer, 0, 10);
+			char static_nameBuffer[10]; memset(static_nameBuffer, 0, 10);
+			char* nameBuffer = static_nameBuffer;
+			if(threadCount > 99) {
+				int bufferSize = 7 + strlen(std::to_string(threadCount).data())+1;
+				nameBuffer = (char*)malloc(bufferSize);
+				memset(nameBuffer, 0, bufferSize);
+
+			}
 			//uint8_t len = std:: min(strlen(name), 7);
 			uint8_t len = strlen(name);
 			if(len > 7) len = 7;
@@ -23,6 +30,9 @@ namespace UniLib {
 			for(int i = 0; i < threadCount; i++) {
 				sprintf(&nameBuffer[len], "%.2d", i); 
 				mThreads[i] = new CPUShedulerThread(this, nameBuffer);
+			}
+			if(threadCount > 99) {
+				free(nameBuffer);
 			}
 		}
 
