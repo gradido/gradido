@@ -166,6 +166,9 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 					
 					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
 					{
+
+					if (!user->hasPassword() || isOldPasswordValid(updates, jsonErrorsArray))
+					{
 						NotificationList errors;
 						if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
 							jsonErrorsArray.add("User.password isn't valid");
