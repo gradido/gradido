@@ -115,9 +115,7 @@ export default {
           */
         this.$router.push('/thx/reset')
       } else {
-        this.$bvToast.toast(result.result.message, {
-          title: this.$t('error.error'),
-        })
+        this.$toast.error(result.result.message)
       }
     },
     async authenticate() {
@@ -128,9 +126,7 @@ export default {
         this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
-        this.$bvToast.toast(result.result.message, {
-          title: this.$t('error.error'),
-        })
+        this.$toast.error(result.result.message)
       }
     },
   },
