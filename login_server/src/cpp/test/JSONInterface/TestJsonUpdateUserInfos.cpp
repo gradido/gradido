@@ -191,9 +191,8 @@ TEST_F(TestJsonUpdateUserInfos, NewPasswordSameAsOldPassword)
 
 
 	EXPECT_EQ(valid_values, 0);
-	ASSERT_EQ(error_array.size(), 1);
-	ASSERT_EQ(state.toString(), "error");
-	ASSERT_EQ(error_array.getElement<std::string>(0), "new password is the same as old password");
+	ASSERT_EQ(error_array.size(), 0);
+	ASSERT_EQ(state.toString(), "success");
 
 	delete result;
 }
@@ -275,6 +274,40 @@ TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 	ASSERT_EQ(error_array.size(), 0);
 	ASSERT_EQ(state.toString(), "success");
 	
+
+	delete result;
+}
+
+TEST_F(TestJsonUpdateUserInfos, NoChanges)
+{
+	JsonUpdateUserInfos jsonCall(mUserSession);
+	
+	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+
+	update->set("User.first_name", "Darios");
+	update->set("User.last_name", "Bruder");
+
+	auto params = chooseAccount(update);
+	Profiler timeUsed;
+	auto result = jsonCall.handle(params);
+	
+	auto errors = result->get("errors");
+	ASSERT_TRUE(errors.isArray());
+	auto valid_values_obj = result->get("valid_values");
+	ASSERT_TRUE(valid_values_obj.isInteger());
+	int valid_values = 0;
+	valid_values_obj.convert(valid_values);
+
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+
+
+	EXPECT_EQ(valid_values, 0);
+	ASSERT_EQ(error_array.size(), 0);
+	ASSERT_EQ(state.toString(), "success");
+
 
 	delete result;
 }
