@@ -178,25 +178,18 @@ class TransactionsTable extends Table
             }
             if($prev && $decay == true) 
             {
-                
                 if($prev->balance > 0) {
-                //    var_dump($stateUserTransactions);
                     $current = $su_transaction;
-                    //echo "decay between " . $prev->transaction_id . " and " . $current->transaction_id . "<br>";
+                
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
-                    $balance = floatval($prev->balance - $calculated_decay['balance']);
-                    // skip small decays (smaller than 0,00 GDD)
+                    $balance = floatval($prev->balance - $calculated_decay['balance']);                 
                     
-                    if(abs($balance) >= 100) {
-                        //echo $interval->format('%R%a days');
-                        //echo "prev balance: " . $prev->balance . ", diff_amount: $diff_amount, summe: " . (-intval($prev->balance - $diff_amount)) . "<br>";
-                        $final_transactions[] = [ 
-                            'type' => 'decay',
-                            'balance' => $balance,
-                            'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
-                            'memo' => ''
-                        ];
-                    }
+                    $final_transactions[] = [ 
+                        'type' => 'decay',
+                        'balance' => $balance,
+                        'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
+                        'memo' => ''
+                    ];       
                 }
             }
             
@@ -207,9 +200,7 @@ class TransactionsTable extends Table
             // date
             // balance
             $transaction = $transaction_indiced[$su_transaction->transaction_id];
-            /*echo "transaction: <br>";
-            var_dump($transaction);
-            echo "<br>";*/
+           
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
                 $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);
@@ -270,15 +261,14 @@ class TransactionsTable extends Table
                     $duration = $decay_start_date->timeAgoInWords();
                 }
                 $balance = floatval($su_transaction->balance - $calculated_decay['balance']);
-                if($balance > 100) {
-                    $final_transactions[] = [
-                        'type' => 'decay',
-                        'balance' => $balance,
-                        'decay_duration' => $duration,
-                        'last_decay' => true,
-                        'memo' => ''
-                    ];
-                }
+                
+                $final_transactions[] = [
+                    'type' => 'decay',
+                    'balance' => $balance,
+                    'decay_duration' => $duration,
+                    'last_decay' => true,
+                    'memo' => ''
+                ];            
             }
         }
         
