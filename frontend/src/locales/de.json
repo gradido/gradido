@@ -34,7 +34,7 @@
     "email":"E-Mail",
     "email_repeat":"eMail wiederholen",
     "password":"Passwort",
-    "password_repeat":"Passwort wiederholen",
+    "passwordRepeat":"Passwort wiederholen",
     "password_old":"altes Passwort",
     "password_new":"neues Passwort",
     "password_new_repeat":"neues Passwort wiederholen",
@@ -106,7 +106,6 @@
     },
     "profil": {
       "activity": {
-        "chart":"Gemeinschaftsstunden Chart",
         "new":"Neue Gemeinschaftsstunden eintragen",
         "list":"Meine Gemeinschaftsstunden Liste"
       },

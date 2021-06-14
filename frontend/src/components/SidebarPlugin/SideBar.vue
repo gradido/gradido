@@ -14,13 +14,11 @@
       </b-row>
       <slot name="mobile-right">
         <ul class="nav align-items-center d-md-none">
-          <a slot="title-container" class="nav-link" role="button">
-            <div class="media align-items-center">
-              <span class="avatar avatar-sm">
-                <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
-              </span>
-            </div>
-          </a>
+          <div class="media align-items-center">
+            <span class="avatar avatar-sm">
+              <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+            </span>
+          </div>
         </ul>
       </slot>
       <slot></slot>
@@ -71,15 +69,15 @@
 </template>
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
-import VueQrcode from 'vue-qrcode'
 import LanguageSwitch from '@/components/LanguageSwitch.vue'
+import VueQrcode from 'vue-qrcode'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
-    VueQrcode,
     LanguageSwitch,
+    VueQrcode,
   },
   props: {
     logo: {
