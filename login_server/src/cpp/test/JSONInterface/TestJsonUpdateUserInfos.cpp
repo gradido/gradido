@@ -26,7 +26,6 @@ void TestJsonUpdateUserInfos::TearDown()
 Poco::JSON::Object::Ptr TestJsonUpdateUserInfos::chooseAccount(const Poco::JSON::Object::Ptr update)
 {
 	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("session_id", mUserSession->getHandle());
 	params->set("email", mUserSession->getNewUser()->getModel()->getEmail());
 	params->set("update", update);
 	return params;
@@ -35,7 +34,9 @@ Poco::JSON::Object::Ptr TestJsonUpdateUserInfos::chooseAccount(const Poco::JSON:
 
 TEST_F(TestJsonUpdateUserInfos, EmptyOldPassword)
 {
-	JsonUpdateUserInfos jsonCall;
+	JsonUpdateUserInfos jsonCall(mUserSession);
+	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
+
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 	
 	update->set("User.password", "haLL1o_/%s");
@@ -68,7 +69,7 @@ TEST_F(TestJsonUpdateUserInfos, EmptyOldPassword)
 
 TEST_F(TestJsonUpdateUserInfos, OnlyOldPassword)
 {
-	JsonUpdateUserInfos jsonCall;
+	JsonUpdateUserInfos jsonCall(mUserSession);
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
 	update->set("User.password_old", "TestP4ssword&H");
@@ -98,7 +99,7 @@ TEST_F(TestJsonUpdateUserInfos, OnlyOldPassword)
 
 TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 {
-	JsonUpdateUserInfos jsonCall;
+	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
@@ -131,7 +132,7 @@ TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 
 TEST_F(TestJsonUpdateUserInfos, EmptyPassword)
 {
-	JsonUpdateUserInfos jsonCall;
+	JsonUpdateUserInfos jsonCall(mUserSession);
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
 	update->set("User.password", "");
@@ -161,10 +162,45 @@ TEST_F(TestJsonUpdateUserInfos, EmptyPassword)
 	delete result;
 }
 
-
-TEST_F(TestJsonUpdateUserInfos, CorrectPassword)
+TEST_F(TestJsonUpdateUserInfos, NewPasswordSameAsOldPassword)
 {
-	JsonUpdateUserInfos jsonCall;
+	JsonUpdateUserInfos jsonCall(mUserSession);
+	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
+
+	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+
+	update->set("User.password", "TestP4ssword&H");
+	update->set("User.password_old", "TestP4ssword&H");
+
+	auto params = chooseAccount(update);
+	Profiler timeUsed;
+	auto result = jsonCall.handle(params);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+
+	auto errors = result->get("errors");
+	ASSERT_TRUE(errors.isArray());
+	auto valid_values_obj = result->get("valid_values");
+	ASSERT_TRUE(valid_values_obj.isInteger());
+	int valid_values = 0;
+	valid_values_obj.convert(valid_values);
+
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+
+
+	EXPECT_EQ(valid_values, 0);
+	ASSERT_EQ(error_array.size(), 1);
+	ASSERT_EQ(state.toString(), "error");
+	ASSERT_EQ(error_array.getElement<std::string>(0), "new password is the same as old password");
+
+	delete result;
+}
+
+TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
+{
+	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
@@ -183,14 +219,62 @@ TEST_F(TestJsonUpdateUserInfos, CorrectPassword)
 	ASSERT_TRUE(valid_values_obj.isInteger());
 	int valid_values = 0;
 	valid_values_obj.convert(valid_values);
-	EXPECT_EQ(valid_values, 1);
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	ASSERT_EQ(error_array.size(), 0);
 
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
 	auto state = result->get("state");
 	ASSERT_FALSE(state.isEmpty());
 	ASSERT_TRUE(state.isString());
+
+	if ((ServerConfig::g_AllowUnsecureFlags | ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
+		EXPECT_EQ(valid_values, 1);
+		ASSERT_EQ(error_array.size(), 0);
+		ASSERT_EQ(state.toString(), "success");
+	}
+	else {
+		EXPECT_EQ(valid_values, 0);
+
+		ASSERT_EQ(error_array.size(), 2);
+		ASSERT_EQ(error_array.getElement<std::string>(0), "User.password isn't valid");
+
+		ASSERT_EQ(state.toString(), "error");
+	}
+
+	delete result;
+}
+
+
+TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
+{
+	JsonUpdateUserInfos jsonCall(mUserSession);
+	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
+
+	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+
+	update->set("User.password", "uasjUs7ZS/as12");
+	update->set("User.password_old", "TestP4ssword&H");
+
+	auto params = chooseAccount(update);
+	Profiler timeUsed;
+	auto result = jsonCall.handle(params);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+
+	auto errors = result->get("errors");
+	ASSERT_TRUE(errors.isArray());
+	auto valid_values_obj = result->get("valid_values");
+	ASSERT_TRUE(valid_values_obj.isInteger());
+	int valid_values = 0;
+	valid_values_obj.convert(valid_values);
+
+	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	auto state = result->get("state");
+	ASSERT_FALSE(state.isEmpty());
+	ASSERT_TRUE(state.isString());
+
+	
+	EXPECT_EQ(valid_values, 1);
+	ASSERT_EQ(error_array.size(), 0);
 	ASSERT_EQ(state.toString(), "success");
+	
 
 	delete result;
 }
