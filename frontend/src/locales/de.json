@@ -57,9 +57,11 @@
     "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
     "validation": {
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
-      "is-not": "Du kannst dir selbst keine Gradidos überweisen"
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "usernmae-unique": "Der Username ist bereits vergeben.",
+      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen auf den mindestens zwei alfanumerische Zeichen folgen müssen."
     },
-    "change_username_info": "Das ändern des Usernamens bedarf mehrerer Schritte."
+    "change_username_info": "Einmal gespeichert, kann der Username ncht mehr geändert werden!"
   },
   "error": {
     "error":"Fehler"
