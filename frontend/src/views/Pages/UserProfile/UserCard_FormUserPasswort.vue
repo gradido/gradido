@@ -94,18 +94,12 @@
             <b-col></b-col>
             <b-col>
               <transition name="hint" appear>
-                <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
+                <div v-if="passwordValidation.errors.length > 0" class="hints">
                   <ul>
                     <li v-for="error in passwordValidation.errors" :key="error">
                       <small>{{ error }}</small>
                     </li>
                   </ul>
-                </div>
-                <div class="matches" v-else-if="!samePasswords">
-                  <p>
-                    {{ $t('site.signup.dont_match') }}
-                    <i class="ni ni-active-40" color="danger"></i>
-                  </p>
                 </div>
               </transition>
             </b-col>
@@ -147,6 +141,7 @@ export default {
       passwordVisibleNewPwd: false,
       passwordVisibleNewPwdRepeat: false,
       loading: true,
+
     }
   },
   methods: {
