@@ -34,7 +34,7 @@ const apiPost = async (url, payload) => {
       return { success: true, result: result.error }
     }
     if (result.data.state !== 'success') {
-      throw new Error(result.data.msg)
+      throw new Error(result.data.errors)
     }
     return { success: true, result }
   } catch (error) {
@@ -113,8 +113,8 @@ const loginAPI = {
       session_id: sessionId,
       email,
       update: {
-        'User.password': password,
-        'User.passwordNew': passwordNew,
+        'User.password_old': password,
+        'User.password': passwordNew,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
