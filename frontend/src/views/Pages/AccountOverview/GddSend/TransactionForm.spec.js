@@ -45,7 +45,7 @@ describe('GddSend', () => {
         })
 
         it('has a label form.receiver', () => {
-          expect(wrapper.findAll('div.text-left').at(0).text()).toBe('form.receiver')
+          expect(wrapper.find('label.input-1').text()).toBe('form.receiver')
         })
 
         it('has a placeholder "E-Mail"', () => {
@@ -61,11 +61,11 @@ describe('GddSend', () => {
         })
 
         it('has an GDD text icon', () => {
-          expect(wrapper.find('#input-group-2').find('div.h3').text()).toBe('GDD')
+          expect(wrapper.find('#input-group-2').find('div.h4').text()).toBe('GDD')
         })
 
         it('has a label form.amount', () => {
-          expect(wrapper.findAll('div.text-left').at(1).text()).toBe('form.amount')
+          expect(wrapper.find('label.input-2').text()).toBe('form.amount')
         })
 
         it('has a placeholder "0.01"', () => {
@@ -87,7 +87,7 @@ describe('GddSend', () => {
         })
 
         it('has a label form.memo', () => {
-          expect(wrapper.findAll('div.text-left').at(2).text()).toBe('form.memo')
+          expect(wrapper.find('label.input-3').text()).toBe('form.memo')
         })
       })
 
