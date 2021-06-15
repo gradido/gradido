@@ -26,7 +26,7 @@
                     <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
                   </b-col>
                 </b-row>
-                <label class="input-1"  for="input-1">{{ $t('form.receiver') }}</label>
+                <label class="input-1" for="input-1">{{ $t('form.receiver') }}</label>
                 <b-input-group
                   id="input-group-1"
                   description="We'll never share your email with anyone else."
@@ -94,7 +94,7 @@
                 :name="$t('form.memo')"
                 v-slot="{ errors }"
               >
-                <b-row>                   
+                <b-row>
                   <b-col v-if="errors" class="text-right p-3 p-sm-1">
                     <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                   </b-col>
@@ -104,7 +104,12 @@
                   <b-input-group-prepend class="d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-3 mr-3"></b-icon>
                   </b-input-group-prepend>
-                  <b-form-textarea id="input-3" rows="3" v-model="form.memo" class="pl-3"></b-form-textarea>
+                  <b-form-textarea
+                    id="input-3"
+                    rows="3"
+                    v-model="form.memo"
+                    class="pl-3"
+                  ></b-form-textarea>
                 </b-input-group>
               </validation-provider>
             </div>
