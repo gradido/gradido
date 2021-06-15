@@ -34,7 +34,7 @@ const apiPost = async (url, payload) => {
       return { success: true, result: result.error }
     }
     if (result.data.state !== 'success') {
-      throw new Error(result.data.errors)
+      throw new Error(result.data.msg)
     }
     return { success: true, result }
   } catch (error) {

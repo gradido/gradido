@@ -181,11 +181,10 @@ export default {
       )
       if (result.success) {
         this.$toast.success(this.$t('site.thx.reset'))
-        this.cancelEdit()
       } else {
         this.$toast.error(this.$t('error.change-password'))
-        this.cancelEdit()
       }
+      this.cancelEdit()
     },
   },
   computed: {
