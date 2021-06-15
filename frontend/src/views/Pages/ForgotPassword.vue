@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="forgot-password">
     <div class="header p-4">
       <b-container class="container">
         <div class="header-body text-center mb-7">
@@ -70,7 +70,6 @@ export default {
       },
     }
   },
-  created() {},
   methods: {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null

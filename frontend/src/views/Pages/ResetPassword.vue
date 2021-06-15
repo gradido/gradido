@@ -121,6 +121,7 @@ export default {
       },
       password: '',
       passwordVisible: false,
+      passwordVisibleRepeat: false,
       submitted: false,
       authenticated: false,
       sessionId: null,
@@ -133,6 +134,9 @@ export default {
     },
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
+    },
+    togglePasswordRepeatVisibility() {
+      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
     },
     async onSubmit() {
       const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
