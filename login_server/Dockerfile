@@ -48,15 +48,15 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN if [ ! -d "./build_cov" ] ; then mkdir build_cov; fi
 
 RUN cd build_cov && \
-	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=fastcov .. 
-	#make -j$(nproc) Gradido_LoginServer_Test
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=fastcov .. && \
+	make -j$(nproc) Gradido_LoginServer_Test
 
 #RUN chmod +x build_cov/bin/Gradido_LoginServer_Test
 #CMD gdb -ex run ./build_cov/bin/Gradido_LoginServer_Test
 #CMD ./build_cov/bin/Gradido_LoginServer_Test
 
 #ENTRYPOINT make -C build_cov coverage
-CMD cd build_cov && make -j$(nproc) Gradido_LoginServer_Test && make coverage && \
+CMD cd build_cov && make coverage && \
 	if [ ! -d "./coverage" ] ; then mkdir coverage; fi && \
 	cp coverage.info ./coverage/
 	

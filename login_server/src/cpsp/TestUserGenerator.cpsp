@@ -1,0 +1,102 @@
+<%@ page class="TestUserGenerator" %>
+<%@ page form="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="HTTPInterface/PageRequestMessagedHandler.h" %>
+<%!
+	#include "Crypto/SecretKeyCryptography.h"
+    #include "Crypto/KeyPairEd25519.h"
+    #include "ServerConfig.h"
+    #include "lib/DataTypeConverter.h"
+
+    #include "controller/User.h"
+%>
+<%%
+	const char* pageName = "Test User Generator";
+    // needed for header_large
+	auto user = controller::User::create();
+
+    std::string email;
+    std::string password_hashed;
+    std::string pubkey_hex;
+    std::string privkey_hex_encrypted;
+    std::string passphrase_str;
+
+    bool user_created = false;
+	// add 
+	if(!form.empty()) {
+		email = form.get("email", "");
+        auto password = form.get("password", "");
+		if(email == "") {
+			addError(new Error("Create User", "E-Mail is empty!"));
+		} 
+        else if(password == "") {
+            addError(new Error("Create User", "Password is empty!"));
+        }
+		else 
+		{
+            auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER]);
+            passphrase_str = passphrase->getString();
+            auto key_pair = KeyPairEd25519::create(passphrase);
+            Poco::AutoPtr<SecretKeyCryptography> secret_key = new SecretKeyCryptography;
+            secret_key->createKey(email, password);
+            password_hashed = std::to_string(secret_key->getKeyHashed());
+            auto privkey_encrypted = key_pair->getCryptedPrivKey(secret_key);
+            privkey_hex_encrypted = DataTypeConverter::binToHex(privkey_encrypted);
+            pubkey_hex = key_pair->getPublicKeyHex();
+            user_created = true;
+            delete key_pair;
+		}
+	}	
+	
+	// select all
+	auto groups = controller::Group::listAll();
+	//auto groups = controller::Group::load("gdd1");
+	//std::vector<Poco::SharedPtr<controller::Group>> groups;
+	
+%><%@ include file="include/header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+	<div class="center-form-title">
+	    <h3>Einen neuen User anlegen</h3>
+	</div>
+	<div class="center-form-form">
+		<form method="POST">
+			<label class="form-label" for="email">Email</label>
+			<input class="form-control" id="email" type="text" name="email"/>
+			<label class="form-label" for="password">Password</label>
+			<input class="form-control" id="password" type="text" name="password"/>
+			<input class="center-form-submit form-button" type="submit" name="submit" value="Create User">
+	    </form>
+    </div>
+    <% if(user_created) { %>
+        <div class="content-list">
+            <div class="content-list-title">
+                <h2>Generierte Daten</h2>
+            </div>	
+            <div class="content-list-table">
+                <div class="row">
+                    <div class="cell header-cell c4">E-Mail</div>
+                    <div class="cell c4"><%= email %></div>
+                </div>
+                <div class="row">
+                    <div class="cell header-cell c4">Password hash</div>
+                    <div class="cell c3"><%= password_hashed %></div>               
+                </div>
+                <div class="row">
+                    <div class="cell header-cell c4">public key</div>
+                    <div class="cell c5">0x<%= pubkey_hex %></div>
+                </div>
+                <div class="row">
+                    <div class="cell header-cell c4">private key encrypted</div>
+                    <div class="cell c6">0x<%= privkey_hex_encrypted %></div>
+                </div>
+                <div class="row">
+                    <div class="cell header-cell c4">Passphrase</div>
+                    <div class="cell c10"><%= passphrase_str %></div>
+                </div>
+            </div>
+        </div>
+        <pre>'<%= email %>', <%= password_hashed %>, 0x<%= pubkey_hex %>, 0x<%= privkey_hex_encrypted %></pre>
+    <% } %>
+</div>
+<%@ include file="include/footer.cpsp" %>
