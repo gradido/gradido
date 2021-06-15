@@ -68,7 +68,7 @@
             <b-col>
               <div class="text-right" ref="submitButton">
                 <b-button
-                  variant="info"
+                  :variant="loading ? 'default' : 'success'"
                   @click="onSubmit"
                   type="submit"
                   class="mt-4"
