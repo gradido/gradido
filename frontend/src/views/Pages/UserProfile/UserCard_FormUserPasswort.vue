@@ -89,10 +89,17 @@
               </b-input-group>
             </b-col>
           </b-row>
+
           <b-row class="text-right" v-if="!edit_pwd">
             <b-col>
               <div class="text-right" ref="submitButton">
-                <b-button variant="info" @click="onSubmit" class="mt-4">
+                <b-button
+                  :variant="loading ? 'default' : 'success'"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="loading"
+                >
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -132,7 +139,12 @@ export default {
       this.passwordVisibleOldPwd = !this.passwordVisibleOldPwd
     },
     loadSubmitButton() {
-      if (this.passwordVisibleNewPwd === this.passwordVisibleNewPwdRepeat) {
+      if (
+        this.password !== '' &&
+        this.passwordNew !== '' &&
+        this.passwordNewRepeat !== '' &&
+        this.passwordNew === this.passwordNewRepeat
+      ) {
         this.loading = false
       } else {
         this.loading = true
