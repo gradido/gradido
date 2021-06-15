@@ -21,7 +21,7 @@
 
         <div v-if="!edit_pwd">
           <b-row class="mb-5">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_old') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -45,7 +45,7 @@
           </b-row>
 
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_new') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -68,7 +68,7 @@
             </b-col>
           </b-row>
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_new_repeat') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -92,7 +92,7 @@
           </b-row>
           <b-row>
             <b-col></b-col>
-            <b-col>
+            <b-col class="col-12">
               <transition name="hint" appear>
                 <div v-if="passwordValidation.errors.length > 0" class="hints">
                   <ul>
