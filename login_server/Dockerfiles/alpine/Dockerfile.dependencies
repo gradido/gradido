@@ -1,3 +1,14 @@
+# Login-Server Build dependencies for alpine
+# Uploaded to hub.docker.com with the tag: 
+# gradido/login_dependencies:alpine-debug-3 for debug build 
+# and 
+# gradido/login_dependencies:alpine-release-3 for release build
+# Update tag when dependencies are added or removed
+
+# Control Build Type with ARG BUILD_TYPE
+# Valid values do you find here: https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
+# Default is set to Debug
+
 
 ##### BUILD-ENV #####
 FROM alpine:3.13.5 as alpine-build
