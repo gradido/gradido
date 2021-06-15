@@ -85,7 +85,7 @@ export default {
       default: 'img/brand/green.png',
       description: 'Gradido Sidebar app logo',
     },
-    value: { type: Array },
+    value: { type: String },
     autoClose: {
       type: Boolean,
       default: true,

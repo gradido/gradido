@@ -141,7 +141,6 @@ export default {
       passwordVisibleNewPwd: false,
       passwordVisibleNewPwdRepeat: false,
       loading: true,
-
     }
   },
   methods: {
