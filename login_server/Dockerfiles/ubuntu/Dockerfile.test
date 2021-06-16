@@ -1,0 +1,58 @@
+
+#########################################################################################################
+# Prepare debug 
+#########################################################################################################
+FROM gradido/login_dependencies:gcc9-debug-3 as prepare_debug
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
+
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
+
+COPY ./CMakeLists.txt.lib ./CMakeLists.txt
+RUN ln -s /usr/local/googletest ./googletest
+COPY ./src ./src
+COPY ./cmake/CodeCoverage.cmake ./cmake/CodeCoverage.cmake
+COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
+COPY ./dependencies/spirit-po ./dependencies/spirit-po
+COPY ./dependencies/tinf ./dependencies/tinf
+COPY ./scripts ./scripts
+
+
+#########################################################################################################
+# Install Coverage tool
+#########################################################################################################
+FROM prepare_debug as coverage
+
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-pip && \
+	apt-get autoclean && \
+	apt-get autoremove && \
+    apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
+# fastcov need gcovr to work
+RUN pip3 install gcovr setuptools wheel && \
+    pip3 install fastcov
+
+
+#########################################################################################################
+# Build test 
+#########################################################################################################
+FROM coverage as test 
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
+
+
+RUN if [ ! -d "./build_cov" ] ; then mkdir build_cov; fi
+
+RUN cd build_cov && \
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_COVERAGE_DATA=ON -DCOVERAGE_TOOL=fastcov .. && \
+	make -j$(nproc) Gradido_LoginServer_Test
+
+#ENTRYPOINT make -C build_cov coverage
+CMD cd build_cov && make coverage && \
+	if [ ! -d "./coverage" ] ; then mkdir coverage; fi && \
+	cp coverage.info ./coverage/
+	

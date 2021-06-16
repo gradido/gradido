@@ -50,13 +50,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `release` image
         run: |
-          docker build --target release -t "gradido/login_server:release" -f ./login_server/Dockerfile login_server/
-          #docker save "gradido/login_server:test" > /tmp/login_server.tar
-      #- name: Upload Artifact
-       # uses: actions/upload-artifact@v2
-        #with:
-         # name: docker-login-server-test
-          #path: /tmp/login_server.tar
+          docker build -t "gradido/login_server:release" -f ./login_server/Dockerfile login_server/
 
   ##############################################################################
   # JOB: DOCKER BUILD TEST COMMUNITY SERVER ####################################
@@ -251,7 +245,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
+          docker build -t "gradido/login_server:test" -f ./login_server/Dockerfiles/ubuntu/Dockerfile.test login_server/
       ##########################################################################
       # UNIT TESTS BACKEND LOGIN-SERVER  #######################################
       ##########################################################################
@@ -300,7 +294,7 @@ jobs:
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start Login-Server
-        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:default
+        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:with-config
       - name: get login-server container id
         run: echo "::set-output name=id::$(docker container ls | grep login_server | awk '{ print $1 }')"
         id: login_server_container
