@@ -359,7 +359,8 @@ namespace model {
 				//UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
 				//transaction_send_task->scheduleTask(transaction_send_task);
 				auto pt = PendingTasksManager::getInstance();
-				pt->removeTask(this);
+
+				pt->removeTask(Poco::AutoPtr<Transaction>(this, true));
 				return 1 == runSendTransaction();
 				//return true;
 			}
@@ -562,13 +563,13 @@ namespace model {
 			auto result = json_request.request("putTransaction", param);
 			json_request.getWarnings(&json_request);
 
-			if (JSON_REQUEST_RETURN_OK == result) 
-			{	
+			if (JSON_REQUEST_RETURN_OK == result)
+			{
 				if (!json_request.errorCount()) {
 					finishSuccess();
 				}
 				else {
-					getErrors(&json_request);		
+					getErrors(&json_request);
 					return -1;
 				}
 				return 1;
