@@ -57,17 +57,17 @@ bool SessionManager::init()
 		//case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$"); break;
 		case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/?"); break;
 		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[@$!%*?&+-].*"); break;
-		case VALIDATE_HAS_UPPERCASE_LETTER: 
-			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*"); 
+		case VALIDATE_HAS_UPPERCASE_LETTER:
+			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*");
 			ServerConfig::g_ServerKeySeed->put(i, DRRandom::r64());
 			break;
 		case VALIDATE_HAS_LOWERCASE_LETTER: mValidations[i] = new Poco::RegularExpression(".*[a-z].*"); break;
 		default: printf("[SessionManager::%s] unknown validation type\n", __FUNCTION__);
 		}
 	}
-	
 
-	mInitalized = true; 
+
+	mInitalized = true;
 	mWorkingMutex.unlock();
 	return true;
 }
@@ -98,7 +98,7 @@ void SessionManager::deinitalize()
 	}
 
 	printf("[SessionManager::deinitalize] count of dead locked sessions: %d\n", mDeadLockedSessionCount);
-	
+
 	mInitalized = false;
 	mWorkingMutex.unlock();
 }
@@ -142,7 +142,7 @@ Session* SessionManager::getNewSession(int* handle)
 	// first check if we have any timeouted session to directly reuse it
 	checkTimeoutSession();
 
-	// lock 
+	// lock
 	try {
 		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 		mWorkingMutex.tryLock(500);
@@ -156,8 +156,8 @@ Session* SessionManager::getNewSession(int* handle)
 	//UniLib::controller::TaskPtr checkSessionTimeout(new CheckSessionTimeouted);
 	//checkSessionTimeout->scheduleTask(checkSessionTimeout);
 
-	// check if we have an existing session ready to use 
-	while (mEmptyRequestStack.size() > 0) {	
+	// check if we have an existing session ready to use
+	while (mEmptyRequestStack.size() > 0) {
 		int local_handle = mEmptyRequestStack.top();
 		mEmptyRequestStack.pop();
 		auto resultIt = mRequestSessionMap.find(local_handle);
@@ -186,10 +186,10 @@ Session* SessionManager::getNewSession(int* handle)
 
 				mRequestSessionMap.erase(local_handle);
 			}
-			
+
 		}
 	}
-	
+
 	// else create new RequestSession Object
 	// calculate random handle
 	// check if already exist, if get new
@@ -211,7 +211,7 @@ Session* SessionManager::getNewSession(int* handle)
 	//printf("[SessionManager::getNewSession] handle: %ld, sum: %u\n", newHandle, mRequestSessionMap.size());
 	mWorkingMutex.unlock();
 	return requestSession;
-	
+
 
 	//return nullptr;
 }
@@ -231,7 +231,7 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		return false;
 	}
 	//mWorkingMutex.lock();
-	
+
 	auto it = mRequestSessionMap.find(requestHandleSession);
 	if (it == mRequestSessionMap.end()) {
 		//printf("[SessionManager::releaseRequestSession] requestSession with handle: %d not found\n", requestHandleSession);
@@ -242,16 +242,15 @@ bool SessionManager::releaseSession(int requestHandleSession)
 
 
 	// delete session, not reuse as workaround for server freeze bug
-	mRequestSessionMap.erase(requestHandleSession);
+	/*mRequestSessionMap.erase(requestHandleSession);
 	delete session;
 	mWorkingMutex.unlock();
 	return true;
-
+*/
 
 
 	// check if dead locked
-	if (session->tryLock()) {
-		session->unlock();
+	if (!session->isDeadLocked()) {
 		session->reset();
 		session->setActive(false);
 	}
@@ -264,9 +263,9 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		mWorkingMutex.unlock();
 		return true;
 	}
-	
+
 	// change request handle we don't want session hijacking
-	
+
 	// hardcoded disabled session max
 	if (mEmptyRequestStack.size() > 100) {
 		mRequestSessionMap.erase(requestHandleSession);
@@ -285,11 +284,11 @@ bool SessionManager::releaseSession(int requestHandleSession)
 		mWorkingMutex.unlock();
 		return true;
 	}
-	
+
 	session->setHandle(newHandle);
 	mRequestSessionMap.insert(std::pair<int, Session*>(newHandle, session));
 	mEmptyRequestStack.push(newHandle);
-	
+
 	mWorkingMutex.unlock();
 	return true;
 }
@@ -354,13 +353,11 @@ Session* SessionManager::getSession(int handle)
 	}
 	if (0 == handle) return nullptr;
 	Session* result = nullptr;
-	try {
-		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
-		mWorkingMutex.tryLock(500);
-	}
-	catch (Poco::TimeoutException &ex) {
-		printf("[SessionManager::getSession] exception timout mutex: %s\n", ex.displayText().data());
-		return result;
+
+
+    if(!mWorkingMutex.tryLock(500)) {
+        printf("[SessionManager::getSession] exception timout mutex: \n");
+        return result;
 	}
 	//mWorkingMutex.lock();
 	auto it = mRequestSessionMap.find(handle);
@@ -376,14 +373,12 @@ Session* SessionManager::getSession(int handle)
 			return nullptr;
 		}
 		if (0 == iResult) {
-			//printf("[SessionManager::getSession] session isn't active\n");
 			mWorkingMutex.unlock();
 			return nullptr;
 		}
 		//result->setActive(true);
 		result->updateTimeout();
 	}
-	//printf("[SessionManager::getSession] handle: %ld\n", handle);
 	mWorkingMutex.unlock();
 	return result;
 }
@@ -418,8 +413,8 @@ Session* SessionManager::findByUserId(int userId)
 	}
 	//mWorkingMutex.lock();
 	for (auto it = mRequestSessionMap.begin(); it != mRequestSessionMap.end(); it++) {
-		while (it->second->isDeadLocked()) 
-		{ 
+		while (it->second->isDeadLocked())
+		{
 			it = mRequestSessionMap.erase(it);
 			mDeadLockedSessionCount++;
 			auto em = ErrorManager::getInstance();
@@ -484,7 +479,7 @@ std::vector<Session*> SessionManager::findAllByUserId(int userId)
 Session* SessionManager::findByEmail(const std::string& email)
 {
 	assert(email.size() > 0);
-	
+
 	try {
 		//Poco::Mutex::ScopedLock _lock(mWorkingMutex, 500);
 		mWorkingMutex.tryLock(500);
@@ -605,23 +600,23 @@ bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList
 
 	if (!isValid(pwd, VALIDATE_PASSWORD)) {
 		errorReciver->addError(new Error(
-			lang->gettext("Password"), 
+			lang->gettext("Password"),
 			lang->gettext("Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character (@$!%*?&+-_)!")));
 
 		// @$!%*?&+-
 		if (pwd.size() < 8) {
 			errorReciver->addError(new Error(
-				lang->gettext("Password"), 
+				lang->gettext("Password"),
 				lang->gettext("Your password is to short!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_LOWERCASE_LETTER)) {
 			errorReciver->addError(new Error(
-				lang->gettext("Password"), 
+				lang->gettext("Password"),
 				lang->gettext("Your password does not contain lowercase letters!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_UPPERCASE_LETTER)) {
 			errorReciver->addError(new Error(
-				lang->gettext("Password"), 
+				lang->gettext("Password"),
 				lang->gettext("Your password does not contain any capital letters!")));
 		}
 		else if (!isValid(pwd, VALIDATE_HAS_NUMBER)) {

@@ -70,7 +70,11 @@ namespace model
 			{
 				SHARED_LOCK;
 				temp = mResultJsonString;
+				if(!mResultJsonString.size()) {
+                    return new Poco::JSON::Object;
+				}
 			}
+
 			Poco::JSON::Parser parser;
 			Poco::Dynamic::Var result;
 			try

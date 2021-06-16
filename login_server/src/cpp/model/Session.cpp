@@ -84,29 +84,30 @@ void Session::reset()
 int Session::isActive()
 {
 	int ret = 0;
-	try {
-		mWorkMutex.tryLock(100);
-	}
-	catch (Poco::TimeoutException &ex) {
-		return -1;
-	}
+
+    if(!mWorkMutex.tryLock(100)) {
+        return -1;
+    }
+
 	ret = (int)mActive;
-	unlock();
+
+	try {
+        unlock();
+    } catch(Poco::SystemException& ex) {
+        addError(new ParamError("Session::isActive", "exception unlocking mutex", ex.what()));
+        return -1;
+    }
 	return ret;
 
 }
 
 bool Session::isDeadLocked()
 {
-	try {
-		mWorkMutex.tryLock(200);
-		unlock();
-		return false;
-	}
-	catch (Poco::Exception& ex) {
-
-	}
-	return true;
+    if(!mWorkMutex.tryLock(200)) {
+        return true;
+    };
+    unlock();
+    return false;
 }
 
 bool Session::setActive(bool active)
@@ -922,12 +923,11 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 bool Session::lastTransactionTheSame(Poco::AutoPtr<model::gradido::Transaction> newTransaction)
 {
 	assert(!newTransaction.isNull());
-	lock();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	if (mLastTransaction.isNull()) {
 		return false;
 	}
 	bool result = mLastTransaction->isTheSameTransaction(newTransaction);
-	unlock();
 	return result;
 }
 
