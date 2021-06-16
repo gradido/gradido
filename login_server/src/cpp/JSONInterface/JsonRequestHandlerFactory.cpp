@@ -19,6 +19,7 @@
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
+#include "JsonResetPassword.h"
 #include "JsonSendEmail.h"
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
@@ -113,6 +114,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/sendEmail") {
 		return new JsonSendEmail;
+	}
+	else if (url_first_part == "/resetPassword") {
+		return new JsonResetPassword;
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
