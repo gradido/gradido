@@ -41,7 +41,7 @@
                     id="input-1"
                     v-model="form.email"
                     v-focus="emailFocused"
-                    @focus="emailFocused = !emailFocused"
+                    @focus="emailFocused = true"
                     @blur="normalizeEmail()"
                     type="email"
                     placeholder="E-Mail"
@@ -81,7 +81,7 @@
                     v-model="form.amount"
                     type="text"
                     v-focus="amountFocused"
-                    @focus="amountFocused = !amountFocused"
+                    @focus="amountFocused = true"
                     @blur="normalizeAmount(valid)"
                     :placeholder="$n(0.01)"
                     style="font-size: xx-large; padding-left: 20px"
@@ -185,13 +185,13 @@ export default {
       this.form.amount = data.amount
     },
     normalizeAmount(isValid) {
-      this.amountFocused = !this.amountFocused
+      this.amountFocused = false
       if (!isValid) return
       this.form.amountValue = Number(this.form.amount.replace(',', '.'))
       this.form.amount = this.$n(this.form.amountValue, 'decimal')
     },
     normalizeEmail() {
-      this.emailFocused = !this.emailFocused
+      this.emailFocused = false
       this.form.email = this.form.email.trim()
     },
   },
