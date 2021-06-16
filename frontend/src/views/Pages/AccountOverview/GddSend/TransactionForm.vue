@@ -1,7 +1,7 @@
 <template>
   <b-row class="transaction-form">
-    <b-col xl="12" md="12">
-      <b-card class="p-0 p-md-3" style="background-color: #ebebeba3 !important">
+    <b-col xl="12" md="12" class="p-0">
+      <b-card class="p-0 m-0" style="background-color: #ebebeba3 !important">
         <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
@@ -10,6 +10,7 @@
                  </div>
                  <br />
             -->
+
             <div>
               <validation-provider
                 name="Email"
@@ -21,20 +22,17 @@
                 v-slot="{ errors }"
               >
                 <b-row>
-                  <b-col class="text-left p-3 p-sm-1">{{ $t('form.receiver') }}</b-col>
                   <b-col v-if="errors" class="text-right p-3 p-sm-1">
                     <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
                   </b-col>
                 </b-row>
+                <label class="input-1" for="input-1">{{ $t('form.receiver') }}</label>
                 <b-input-group
                   id="input-group-1"
-                  label="Empfänger:"
-                  label-for="input-1"
                   description="We'll never share your email with anyone else."
                   size="lg"
-                  class="mb-3"
                 >
-                  <b-input-group-prepend class="p-3 d-none d-md-block">
+                  <b-input-group-prepend class="p-2 d-none d-md-block">
                     <b-icon icon="envelope" class="display-3"></b-icon>
                   </b-input-group-prepend>
                   <b-form-input
@@ -42,12 +40,15 @@
                     v-model="form.email"
                     type="email"
                     placeholder="E-Mail"
-                    style="font-size: xx-large; padding-left: 20px"
+                    style="font-size: large"
+                    class="pl-3"
                   ></b-form-input>
                 </b-input-group>
               </validation-provider>
             </div>
+
             <br />
+
             <div>
               <validation-provider
                 :name="$t('form.amount')"
@@ -58,21 +59,16 @@
                 v-slot="{ errors, valid }"
               >
                 <b-row>
-                  <b-col class="text-left p-3 p-sm-1">{{ $t('form.amount') }}</b-col>
-                  <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                  <b-col v-if="errors" class="col-12 text-right p-3 p-sm-1">
                     <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                   </b-col>
                 </b-row>
-                <b-input-group
-                  id="input-group-2"
-                  label="Betrag:"
-                  label-for="input-2"
-                  size="lg"
-                  class="mb-3"
-                >
+                <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
+                <b-input-group id="input-group-2" size="lg">
                   <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <div class="h3 pt-3 pr-3">GDD</div>
+                    <div class="h4 pt-2 pr-2">GDD</div>
                   </b-input-group-prepend>
+
                   <b-form-input
                     id="input-2"
                     v-model="form.amount"
@@ -81,10 +77,14 @@
                     @focus="amountFocused = !amountFocused"
                     @blur="normalizeAmount(valid)"
                     :placeholder="$n(0.01)"
-                    style="font-size: xx-large; padding-left: 20px"
+                    style="font-size: large"
+                    class="pl-3"
                   ></b-form-input>
                 </b-input-group>
               </validation-provider>
+            </div>
+
+            <div class="mt-4">
               <validation-provider
                 :rules="{
                   required: true,
@@ -95,20 +95,20 @@
                 v-slot="{ errors }"
               >
                 <b-row>
-                  <b-col class="text-left p-3 p-sm-1">{{ $t('form.memo') }}</b-col>
                   <b-col v-if="errors" class="text-right p-3 p-sm-1">
                     <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                   </b-col>
                 </b-row>
+                <label class="input-3" for="input-3">{{ $t('form.memo') }}</label>
                 <b-input-group id="input-group-3">
-                  <b-input-group-prepend class="p-3 d-none d-md-block">
-                    <b-icon icon="chat-right-text" class="display-3"></b-icon>
+                  <b-input-group-prepend class="d-none d-md-block">
+                    <b-icon icon="chat-right-text" class="display-3 mr-3"></b-icon>
                   </b-input-group-prepend>
                   <b-form-textarea
+                    id="input-3"
                     rows="3"
                     v-model="form.memo"
                     class="pl-3"
-                    style="font-size: x-large"
                   ></b-form-textarea>
                 </b-input-group>
               </validation-provider>
