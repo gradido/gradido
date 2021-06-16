@@ -124,14 +124,8 @@ namespace model {
 
 		void ModelBase::duplicate()
 		{
-			//Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			std::string stack_details = "[ModelBase::duplicate] table: ";
-			stack_details += getTableName();
-			lock(stack_details.data());
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			mReferenceCount++;
-			printf("[ModelBase::duplicate] new value: %d, table name: %s\n", mReferenceCount, getTableName());
-			unlock();
-			//printf("[ModelBase::duplicate] new value: %d\n", mReferenceCount);
 		}
 
 		void ModelBase::release()
@@ -139,21 +133,15 @@ namespace model {
             if(mReferenceCount <= 0) {
                 throw Poco::Exception("ModelBase already released", getTableName());
             }
-			std::string stack_details = "[ModelBase::release] table: ";
-			stack_details += getTableName();
-			stack_details += ", reference count: ";
-			stack_details += std::to_string(mReferenceCount);
-			lock(stack_details.data());
+
+            Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 
 			mReferenceCount--;
-			printf("[ModelBase::release]   new value: %d, table name: %s\n", mReferenceCount, getTableName());
+
 			if (0 == mReferenceCount) {
-                unlock();
 				delete this;
 				return;
 			}
-			unlock();
-
 		}
 
 		Poco::Data::Statement ModelBase::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
