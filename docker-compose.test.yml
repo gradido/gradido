@@ -26,7 +26,7 @@ services:
   login-server:
     build:
       context: ./login_server/
-      target: test
+      dockerfile: Dockerfiles/ubuntu/Dockerfile.test
     security_opt:
       - seccomp:unconfined
     cap_add:

@@ -294,7 +294,7 @@ jobs:
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start Login-Server
-        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:latest
+        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:with-config
       - name: get login-server container id
         run: echo "::set-output name=id::$(docker container ls | grep login_server | awk '{ print $1 }')"
         id: login_server_container
