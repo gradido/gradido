@@ -50,7 +50,6 @@ public:
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> getTransactionSomeoneMustSign(Poco::AutoPtr<controller::User> user);
 
-	void reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails);
 
 protected:
 	PendingTasksManager();

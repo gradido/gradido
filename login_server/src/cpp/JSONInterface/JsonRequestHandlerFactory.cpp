@@ -65,7 +65,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 
 	auto sm = SessionManager::getInstance();
 	Session*  s = nullptr;
-	if (!session_id) {
+	if (session_id) {
 		s = sm->getSession(session_id);
 	}
 

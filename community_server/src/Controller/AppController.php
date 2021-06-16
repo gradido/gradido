@@ -289,7 +289,7 @@ class AppController extends Controller
                             }
                         } else {
                             if(!$redirect) {
-                                return ['state' => 'not found', 'msg' => 'invalid session'];
+                                return ['state' => 'not found', 'msg' => 'invalid session', 'details' => $json];
                             }
                             if ($json['state'] === 'not found') {
                                 $this->Flash->error(__('invalid session'));
