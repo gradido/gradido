@@ -39,6 +39,7 @@
     "password_new":"New password",
     "password_new_repeat":"Repeat new password",
     "change": "change",
+    "change-password": "Change password",
     "amount":"Amount",
     "memo":"Message for the recipient",
     "message":"Message",
@@ -64,7 +65,8 @@
     "change_username_info": "Once saved, the username cannot be changed again!"
   },
   "error": {
-    "error":"Error"
+    "error":"Error",
+    "change-password": "Error while changing password"
   },
   "transaction":{
     "show_all":"View all <strong>{count}</strong> transactions.",

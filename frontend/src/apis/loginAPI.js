@@ -113,8 +113,8 @@ const loginAPI = {
       session_id: sessionId,
       email,
       update: {
-        'User.password': password,
-        'User.passwordNew': passwordNew,
+        'User.password_old': password,
+        'User.password': passwordNew,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)

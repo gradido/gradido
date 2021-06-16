@@ -4,14 +4,14 @@
       <b-form @keyup.prevent="loadSubmitButton">
         <b-row class="mb-4 text-right">
           <b-col class="text-right">
-            <a href="#change_pwd" v-if="edit_pwd" @click="edit_pwd = !edit_pwd">
-              <span>{{ $t('form.password') }} {{ $t('form.change') }}</span>
+            <a href="#change_pwd" v-if="!editPassword" @click="editPassword = !editPassword">
+              <span>{{ $t('form.change-password') }}</span>
               <b-icon class="pointer ml-3" icon="pencil" />
             </a>
 
             <b-icon
               v-else
-              @click="edit_pwd = !edit_pwd"
+              @click="cancelEdit()"
               class="pointer"
               icon="x-circle"
               variant="danger"
@@ -19,7 +19,7 @@
           </b-col>
         </b-row>
 
-        <div v-if="!edit_pwd">
+        <div v-if="editPassword">
           <b-row class="mb-5">
             <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_old') }}</small>
@@ -105,7 +105,7 @@
             </b-col>
           </b-row>
 
-          <b-row class="text-right" v-if="!edit_pwd">
+          <b-row class="text-right" v-if="editPassword">
             <b-col>
               <div class="text-right" ref="submitButton">
                 <b-button
@@ -132,7 +132,7 @@ export default {
   name: 'FormUserPasswort',
   data() {
     return {
-      edit_pwd: true,
+      editPassword: false,
       email: null,
       password: '',
       passwordNew: '',
@@ -144,6 +144,12 @@ export default {
     }
   },
   methods: {
+    cancelEdit() {
+      this.editPassword = false
+      this.password = ''
+      this.passwordNew = ''
+      this.passwordNewRepeat = ''
+    },
     togglePasswordVisibilityNewPwd() {
       this.passwordVisibleNewPwd = !this.passwordVisibleNewPwd
     },
@@ -165,19 +171,20 @@ export default {
         this.loading = true
       }
     },
-    async onSubmit() {
-      // console.log(this.data)
+    async onSubmit(event) {
+      event.preventDefault()
       const result = await loginAPI.changePasswordProfile(
         this.$store.state.sessionId,
-        this.email,
+        this.$store.state.email,
         this.password,
         this.passwordNew,
       )
       if (result.success) {
-        alert('changePassword success')
+        this.$toast.success(this.$t('site.thx.reset'))
       } else {
-        alert(result.result.message)
+        this.$toast.error(this.$t('error.change-password'))
       }
+      this.cancelEdit()
     },
   },
   computed: {
