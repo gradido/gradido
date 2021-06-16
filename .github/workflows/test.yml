@@ -268,7 +268,7 @@ jobs:
           report_name: Coverage Backend Login
           type: lcov
           result_path: ./coverage/coverage.info
-          min_coverage: 13
+          min_coverage: 25
           token: ${{ github.token }}
 
   ##############################################################################
@@ -341,7 +341,7 @@ jobs:
           report_name: Coverage Backend Community
           type: phpunit
           result_path: ./coverage/coverage.info
-          min_coverage: 10
+          min_coverage: 14
           token: ${{ github.token }}
 
   #test:
