@@ -109,9 +109,10 @@ class AppRequestControllerTest extends TestCase
                 'public_hex' => '8190bda585ee5f1d9fbf7d06e81e69ec18e13376104cff54b7457eb7d3ef710d'
             ]
         ]);
-   
+
         $this->getAndParse('/api/get-balance/' . 1211, 
-                ['state' => 'not found', 'msg' => 'invalid session']
+                ['state' => 'not found', 'msg' => 'invalid session', 
+                    'details' => ['msg' => 'session not found', 'state' => 'not found']]
         );
     }
     
