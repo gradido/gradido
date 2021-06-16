@@ -64,7 +64,8 @@
     "change_username_info": "Einmal gespeichert, kann der Username ncht mehr geändert werden!"
   },
   "error": {
-    "error":"Fehler"
+    "error":"Fehler",
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!"
   },
   "transaction":{
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",

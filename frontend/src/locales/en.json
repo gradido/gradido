@@ -64,7 +64,8 @@
     "change_username_info": "Once saved, the username cannot be changed again!"
   },
   "error": {
-    "error":"Error"
+    "error":"Error",
+    "no-account": "Unfortunately we could not find an account to the given data!"
   },
   "transaction":{
     "show_all":"View all <strong>{count}</strong> transactions.",

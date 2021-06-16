@@ -46,52 +46,25 @@
                     </b-form-group>
                   </validation-provider>
 
-                  <validation-provider
-                    :name="$t('form.password')"
-                    :rules="{ required: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group
-                      class="mb-5"
-                      id="example-input-group-1"
-                      :label="$t('form.password')"
-                      label-for="example-input-1"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          id="input-pwd"
-                          name="input-pwd"
-                          v-model="form.password"
-                          :placeholder="$t('form.password')"
-                          :type="passwordVisible ? 'text' : 'password'"
-                          :state="getValidationState(validationContext)"
-                          aria-describedby="input-2-live-feedback"
-                        ></b-form-input>
-
-                        <b-input-group-append>
-                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                      <b-form-invalid-feedback id="input-2-live-feedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
+                  <input-password
+                    name="password"
+                    :label="$t('form.password')"
+                    :placeholder="$t('form.password')"
+                    model="form.password"
+                  ></input-password>
 
                   <b-alert v-show="loginfail" show dismissible variant="warning">
                     <span class="alert-text bv-example-row">
                       <b-row>
                         <b-col class="col-9 text-left text-dark">
                           <strong>
-                            Leider konnten wir keinen Account finden mit diesen Daten!
+                            {{ $t('error.no-account') }}
                           </strong>
                         </b-col>
                       </b-row>
                     </span>
                   </b-alert>
-                  <div class="text-center">
+                  <div class="text-center mt-4">
                     <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
                   </div>
                 </b-form>
@@ -118,9 +91,13 @@
 <script>
 import loginAPI from '../../apis/loginAPI'
 import CONFIG from '../../config'
+import InputPassword from '../../components/Inputs/InputPassword'
 
 export default {
   name: 'login',
+  components: {
+    InputPassword,
+  },
   data() {
     return {
       form: {
@@ -137,12 +114,9 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
     async onSubmit() {
       // error info  ausschalten
+      console.log('submit', this.form.password)
       this.loginfail = false
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
