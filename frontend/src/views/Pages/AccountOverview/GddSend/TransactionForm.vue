@@ -188,7 +188,7 @@ export default {
       this.amountFocused = false
       if (!isValid) return
       this.form.amountValue = Number(this.form.amount.replace(',', '.'))
-      this.form.amount = this.$n(this.form.amountValue, 'decimal')
+      this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
     },
     normalizeEmail() {
       this.emailFocused = false
