@@ -72,12 +72,17 @@ TEST_F(TestJsonResetPassword, InvalidPassword)
 	auto state = result->get("state");
 	ASSERT_FALSE(state.isEmpty());
 	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
+		ASSERT_EQ(state.toString(), "success");
+	}
+	else {
+		ASSERT_EQ(state.toString(), "error");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "password isn't valid");
+		auto msg = result->get("msg");
+		ASSERT_FALSE(msg.isEmpty());
+		ASSERT_TRUE(msg.isString());
+		ASSERT_EQ(msg.toString(), "password isn't valid");
+	}
 }
 
 TEST_F(TestJsonResetPassword, ValidPassword)
