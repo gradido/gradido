@@ -60,8 +60,8 @@ extend('gddSendAmount', {
   },
   params: ['min', 'max'],
   message: (_, values) => {
-    values.min = i18n.n(values.min)
-    values.max = i18n.n(values.max)
+    values.min = i18n.n(values.min, 'ungroupedDecimal')
+    values.max = i18n.n(values.max, 'ungroupedDecimal')
     return i18n.t('form.validation.gddSendAmount', values)
   },
 })
