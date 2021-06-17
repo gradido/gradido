@@ -42,10 +42,12 @@ Poco::JSON::Object* JsonResetPassword::handle(Poco::Dynamic::Var params)
 		return stateError("password encryption is already running");
 	}
 
-	user->setNewPassword(password);
-	KeyPairEd25519* key_pair = NULL;
-	if (!user->tryLoadPassphraseUserBackup(&key_pair)) {
-		user->setGradidoKeyPair(key_pair);
+	auto update_password_result = user->setNewPassword(password);
+	if (update_password_result == 2) {
+		KeyPairEd25519* key_pair = NULL;
+		if (!user->tryLoadPassphraseUserBackup(&key_pair)) {
+			user->setGradidoKeyPair(key_pair);
+		}
 	}
 	return stateSuccess();
 }
