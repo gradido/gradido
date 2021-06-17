@@ -19,6 +19,7 @@ Poco::JSON::Object* JsonResetPassword::handle(Poco::Dynamic::Var params)
 			if (password_obj.isEmpty()) {
 				return stateError("password missing");
 			}
+			password_obj.convert(password);
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("error parsing json", ex.what());
@@ -37,7 +38,7 @@ Poco::JSON::Object* JsonResetPassword::handle(Poco::Dynamic::Var params)
 	auto observer = SingletonTaskObserver::getInstance();
 	auto email_hash = observer->makeHash(user->getModel()->getEmail());
 
-	if (observer->getTaskCount(email_hash, TASK_OBSERVER_PASSWORD_CREATION)) {
+	if (observer->getTaskCount(email_hash, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
 		return stateError("password encryption is already running");
 	}
 
