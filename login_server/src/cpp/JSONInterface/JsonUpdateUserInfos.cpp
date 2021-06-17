@@ -226,9 +226,10 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	result->set("errors", jsonErrorsArray);
 	result->set("valid_values", extractet_values);
 	if (!jsonErrorsArray.size()) {
-	result->set("state", "success");
+		result->set("state", "success");
 	}
 	else {
+		result->set("msg", jsonErrorsArray.get(0));
 		result->set("state", "error");
 	}
 
