@@ -505,6 +505,29 @@ The link can be modified in the Login-Server config:
 
 For the docker build, you can find the config here: `configs/login_server/grd_login.properties`
 
+### Request
+`POST http://localhost/login_api/resetPassword`
+
+with:
+
+```json
+{
+	"session_id": 12452361, 
+	"password":"hasu/282?sjS"
+}
+```
+
+### Response
+In case of success returns:
+
+```json 
+{
+	"state":"success"
+}
+```
+
+
+
 ## Check Running Transactions / password encryption
 Check if transactions on login-server for user are processed 
 

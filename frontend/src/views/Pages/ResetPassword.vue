@@ -154,6 +154,9 @@ export default {
       }
     },
     async authenticate() {
+      const loader = this.$loading.show({
+        container: this.$refs.submitButton,
+      })
       const optin = this.$route.params.optin
       const result = await loginAPI.loginViaEmailVerificationCode(optin)
       if (result.success) {
@@ -163,6 +166,7 @@ export default {
       } else {
         this.$toast.error(result.result.message)
       }
+      loader.hide()
     },
   },
   computed: {
