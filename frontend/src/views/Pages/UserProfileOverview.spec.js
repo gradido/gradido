@@ -27,9 +27,9 @@ describe('UserProfileOverview', () => {
       expect(wrapper.findComponent({ name: 'FormUserData' }).exists()).toBeTruthy()
     })
 
-    it('has a user name form', () => {
-      expect(wrapper.findComponent({ name: 'FormUsername' }).exists()).toBeTruthy()
-    })
+    // it('has a user name form', () => {
+    //  expect(wrapper.findComponent({ name: 'FormUsername' }).exists()).toBeTruthy()
+    // })
 
     it('has a user password form', () => {
       expect(wrapper.findComponent({ name: 'FormUserPasswort' }).exists()).toBeTruthy()

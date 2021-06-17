@@ -61,7 +61,7 @@ describe('GddSend', () => {
         })
 
         it('has an GDD text icon', () => {
-          expect(wrapper.find('#input-group-2').find('div.h4').text()).toBe('GDD')
+          expect(wrapper.find('#input-group-2').find('div.m-1').text()).toBe('GDD')
         })
 
         it('has a label form.amount', () => {
