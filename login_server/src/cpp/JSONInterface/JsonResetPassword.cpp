@@ -5,7 +5,7 @@
 
 Poco::JSON::Object* JsonResetPassword::handle(Poco::Dynamic::Var params)
 {
-	auto result_session_check = checkAndLoadSession(params, true);
+	auto result_session_check = checkAndLoadSession(params, false);
 	if (result_session_check) {
 		return result_session_check;
 	}
