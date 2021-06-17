@@ -102,9 +102,7 @@ const loginAPI = {
     const payload = {
       session_id: sessionId,
       email,
-      update: {
-        'User.password': password,
-      },
+      password,
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
   },
