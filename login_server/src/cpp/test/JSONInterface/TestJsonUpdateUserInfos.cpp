@@ -241,7 +241,7 @@ TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
 	delete result;
 }
 
-/*
+
 TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
@@ -277,7 +277,7 @@ TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 
 	delete result;
 }
-*/
+//*/
 TEST_F(TestJsonUpdateUserInfos, NoChanges)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
