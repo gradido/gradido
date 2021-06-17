@@ -29,11 +29,12 @@
                 <label class="input-1" for="input-1">{{ $t('form.receiver') }}</label>
                 <b-input-group
                   id="input-group-1"
+                  class="border border-default"
                   description="We'll never share your email with anyone else."
                   size="lg"
                 >
-                  <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <b-icon icon="envelope" class="display-3"></b-icon>
+                  <b-input-group-prepend class="d-none d-md-block">
+                    <b-icon icon="envelope" class="display-4 m-3"></b-icon>
                   </b-input-group-prepend>
                   <b-form-input
                     id="input-1"
@@ -67,9 +68,9 @@
                   </b-col>
                 </b-row>
                 <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
-                <b-input-group id="input-group-2" size="lg">
+                <b-input-group id="input-group-2" class="border border-default" size="lg">
                   <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <div class="h4 pt-2 pr-2">GDD</div>
+                    <div class="m-1 mt-2">GDD</div>
                   </b-input-group-prepend>
 
                   <b-form-input
@@ -103,9 +104,9 @@
                   </b-col>
                 </b-row>
                 <label class="input-3" for="input-3">{{ $t('form.memo') }}</label>
-                <b-input-group id="input-group-3">
+                <b-input-group id="input-group-3" class="border border-default">
                   <b-input-group-prepend class="d-none d-md-block">
-                    <b-icon icon="chat-right-text" class="display-3 mr-3"></b-icon>
+                    <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
                   </b-input-group-prepend>
                   <b-form-textarea
                     id="input-3"
@@ -188,7 +189,7 @@ export default {
       this.amountFocused = false
       if (!isValid) return
       this.form.amountValue = Number(this.form.amount.replace(',', '.'))
-      this.form.amount = this.$n(this.form.amountValue, 'decimal')
+      this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
     },
     normalizeEmail() {
       this.emailFocused = false

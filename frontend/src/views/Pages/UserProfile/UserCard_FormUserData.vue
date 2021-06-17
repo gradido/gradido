@@ -52,7 +52,7 @@
               <b-input type="text" v-model="form.lastName"></b-input>
             </b-col>
           </b-row>
-          <b-row class="mb-3">
+          <b-row class="mb-3" v-show="false">
             <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.description') }}</small>
             </b-col>
