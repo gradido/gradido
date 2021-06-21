@@ -361,6 +361,7 @@ namespace model {
 				auto pt = PendingTasksManager::getInstance();
 
 				pt->removeTask(Poco::AutoPtr<Transaction>(this, true));
+				deleteFromDB();
 				return 1 == runSendTransaction();
 				//return true;
 			}
