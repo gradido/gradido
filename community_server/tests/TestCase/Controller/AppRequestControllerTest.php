@@ -5,9 +5,9 @@ use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Controller\TransactionJsonRequestHandlerController Test Case
+ * App\Controller\AppRequestHandlerController Test Case
  *
- * @uses \App\Controller\TransactionJsonRequestHandlerController
+ * @uses \App\Controller\AppRequestHandlerController
  */
 class AppRequestControllerTest extends TestCase
 {
