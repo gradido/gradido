@@ -80,6 +80,7 @@ enum PageState {
 					// 
 					if(transaction && transaction->getModel()->getUserId() == user_model->getID()) 
 					{
+						pt->removeTask(pending_task);
 						transaction->deleteFromDB();
 						transaction = nullptr;
 					}
