@@ -111,7 +111,9 @@ class AppRequestControllerTest extends TestCase
         ]);
    
         $this->getAndParse('/api/get-balance/' . 1211, 
-                ['state' => 'not found', 'msg' => 'invalid session']
+                ['state' => 'not found', 'msg' => 'invalid session', 
+                    'details' => ['msg' => 'session not found', 'state' => 'not found']
+                ]
         );
     }
     
@@ -128,7 +130,9 @@ class AppRequestControllerTest extends TestCase
         ]);
         
         $this->getAndParse('/api/get-balance/' , 
-                ['state' => 'not found', 'msg' => 'invalid session']
+                ['state' => 'not found', 'msg' => 'invalid session',
+                    'details' => ['msg' => 'session not found', 'state' => 'not found']
+                ]
         );
     }
 
