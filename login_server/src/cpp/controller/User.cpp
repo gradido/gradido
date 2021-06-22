@@ -65,11 +65,11 @@ namespace controller {
 			std::vector<std::string> fieldNames = { "first_name", "last_name", "email", "email_checked" };
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			std::vector<model::table::UserTuple> results;
+			// Poco::Tuple<int, std::string, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
 
 			using namespace Poco::Data::Keywords;
 			Poco::Data::Statement select(session);
-			// 		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int> UserTuple;
-			select << "SELECT id, first_name, last_name, email, username, pubkey, created, email_checked, disabled, group_id FROM " << db->getTableName();
+			select << "SELECT id, first_name, last_name, email, username, description, pubkey, created, email_checked, disabled, group_id FROM " << db->getTableName();
 			select << " where email_checked = 0 ";
 			select, into(resultFromDB);
 			if (searchString != "") {
