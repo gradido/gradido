@@ -230,7 +230,8 @@ with:
 		"User.description" : "Tischler",
 		"User.disabled": 0,
 		"User.language": "de",
-		"User.password": "1234"
+		"User.password": "1234",
+		"User.password_old": "4321"
   	}
 }
 ```
@@ -240,6 +241,7 @@ Notes:
 - User will be disabled if he wants his account deleted, but has transactions. Until transactions are saved in real blockchain, we need this data because the public key is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible.
 - Disabled Users can neither login nor receive transactions. 
 - It is not required to provide all fields of `update`, it can be a subset depending on what you intend to change.
+- `User.password`: to change user password, needed current passwort in `User.password_old` (only if user was logged in with his password, not by reset password email code)
 
 ### Response
 In case of success:
@@ -252,7 +254,7 @@ In case of success:
 }
 ```
 
-- `valid_values`: should contain count of entries in update if no error occurred (User.password will not be counted)
+- `valid_values`: should contain count of entries in update if no error occurred (User.password will now be counted also)
 - `errors`: contain on error string for every entry in update, which type isn't like expected 
   - `password`: 
     - "new password is the same as old password": no change taking place
@@ -502,6 +504,29 @@ The link can be modified in the Login-Server config:
 `frontend.checkEmailPath = http://localhost/account/checkEmail`
 
 For the docker build, you can find the config here: `configs/login_server/grd_login.properties`
+
+### Request
+`POST http://localhost/login_api/resetPassword`
+
+with:
+
+```json
+{
+	"session_id": 12452361, 
+	"password":"hasu/282?sjS"
+}
+```
+
+### Response
+In case of success returns:
+
+```json 
+{
+	"state":"success"
+}
+```
+
+
 
 ## Check Running Transactions / password encryption
 Check if transactions on login-server for user are processed 

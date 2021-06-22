@@ -19,6 +19,7 @@
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
+#include "JsonResetPassword.h"
 #include "JsonSendEmail.h"
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
@@ -65,7 +66,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 
 	auto sm = SessionManager::getInstance();
 	Session*  s = nullptr;
-	if (!session_id) {
+	if (session_id) {
 		s = sm->getSession(session_id);
 	}
 
@@ -100,7 +101,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		return new JsonGetUserInfos;
 	}
 	else if (url_first_part == "/updateUserInfos") {
-		return new JsonUpdateUserInfos;
+		return new JsonUpdateUserInfos(s);
 	}
 	else if (url_first_part == "/search") {
 		return new JsonSearch;
@@ -113,6 +114,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/sendEmail") {
 		return new JsonSendEmail;
+	}
+	else if (url_first_part == "/resetPassword") {
+		return new JsonResetPassword;
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);

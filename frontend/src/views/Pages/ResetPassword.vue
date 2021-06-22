@@ -121,6 +121,7 @@ export default {
       },
       password: '',
       passwordVisible: false,
+      passwordVisibleRepeat: false,
       submitted: false,
       authenticated: false,
       sessionId: null,
@@ -133,6 +134,9 @@ export default {
     },
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible
+    },
+    togglePasswordRepeatVisibility() {
+      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
     },
     async onSubmit() {
       const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
@@ -150,6 +154,9 @@ export default {
       }
     },
     async authenticate() {
+      const loader = this.$loading.show({
+        container: this.$refs.submitButton,
+      })
       const optin = this.$route.params.optin
       const result = await loginAPI.loginViaEmailVerificationCode(optin)
       if (result.success) {
@@ -159,6 +166,7 @@ export default {
       } else {
         this.$toast.error(result.result.message)
       }
+      loader.hide()
     },
   },
   computed: {

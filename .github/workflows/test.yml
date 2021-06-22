@@ -50,13 +50,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `release` image
         run: |
-          docker build --target release -t "gradido/login_server:release" -f ./login_server/Dockerfile login_server/
-          #docker save "gradido/login_server:test" > /tmp/login_server.tar
-      #- name: Upload Artifact
-       # uses: actions/upload-artifact@v2
-        #with:
-         # name: docker-login-server-test
-          #path: /tmp/login_server.tar
+          docker build -t "gradido/login_server:release" -f ./login_server/Dockerfile login_server/
 
   ##############################################################################
   # JOB: DOCKER BUILD TEST COMMUNITY SERVER ####################################
@@ -212,7 +206,7 @@ jobs:
           report_name: Coverage Frontend
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 28
+          min_coverage: 32
           token: ${{ github.token }}
   
   ##############################################################################
@@ -251,7 +245,7 @@ jobs:
       ##########################################################################
       - name: login server | Build `test` image
         run: |
-          docker build --target test -t "gradido/login_server:test" -f ./login_server/Dockerfile login_server/
+          docker build -t "gradido/login_server:test" -f ./login_server/Dockerfiles/ubuntu/Dockerfile.test login_server/
       ##########################################################################
       # UNIT TESTS BACKEND LOGIN-SERVER  #######################################
       ##########################################################################
@@ -268,7 +262,7 @@ jobs:
           report_name: Coverage Backend Login
           type: lcov
           result_path: ./coverage/coverage.info
-          min_coverage: 13
+          min_coverage: 25
           token: ${{ github.token }}
 
   ##############################################################################
@@ -300,7 +294,7 @@ jobs:
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start Login-Server
-        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:default
+        run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:with-config
       - name: get login-server container id
         run: echo "::set-output name=id::$(docker container ls | grep login_server | awk '{ print $1 }')"
         id: login_server_container
@@ -341,7 +335,7 @@ jobs:
           report_name: Coverage Backend Community
           type: phpunit
           result_path: ./coverage/coverage.info
-          min_coverage: 10
+          min_coverage: 14
           token: ${{ github.token }}
 
   #test:

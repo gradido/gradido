@@ -15,7 +15,7 @@ const apiGet = async (url) => {
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
-    if (result.data.state !== 'success') {
+    if (!['success', 'warning'].includes(result.data.state)) {
       throw new Error(result.data.msg)
     }
     return { success: true, result }
@@ -102,19 +102,17 @@ const loginAPI = {
     const payload = {
       session_id: sessionId,
       email,
-      update: {
-        'User.password': password,
-      },
+      password,
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+    return apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
   },
   changePasswordProfile: async (sessionId, email, password, passwordNew) => {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.password': password,
-        'User.passwordNew': passwordNew,
+        'User.password_old': password,
+        'User.password': passwordNew,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
@@ -138,6 +136,9 @@ const loginAPI = {
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+  },
+  checkUsername: async (username, groupId = 1) => {
+    return apiGet(CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`)
   },
 }
 

@@ -39,6 +39,7 @@
     "password_new":"New password",
     "password_new_repeat":"Repeat new password",
     "change": "change",
+    "change-password": "Change password",
     "amount":"Amount",
     "memo":"Message for the recipient",
     "message":"Message",
@@ -57,12 +58,15 @@
     "send_transaction_error":"Unfortunately, the transaction could not be executed!",
     "validation": {
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits",
-      "is-not": "You cannot send Gradidos to yourself"
+      "is-not": "You cannot send Gradidos to yourself",
+      "usernmae-unique": "The username is already taken.",
+      "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters."
     },
-    "change_username_info": "Changing the username requires several steps."
+    "change_username_info": "Once saved, the username cannot be changed again!"
   },
   "error": {
-    "error":"Error"
+    "error":"Error",
+    "change-password": "Error while changing password"
   },
   "transaction":{
     "show_all":"View all <strong>{count}</strong> transactions.",

@@ -26,8 +26,7 @@ services:
   #########################################################
   login-server:
     build:
-      target: login_server_alpine_debug
-      dockerfile: Dockerfile.alpine-debug
+      dockerfile: Dockerfiles/alpine/Dockerfile.debug
     security_opt:
       - seccomp:unconfined
     cap_add:

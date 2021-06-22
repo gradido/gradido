@@ -4,14 +4,14 @@
       <b-form @keyup.prevent="loadSubmitButton">
         <b-row class="mb-4 text-right">
           <b-col class="text-right">
-            <a href="#change_pwd" v-if="edit_pwd" @click="edit_pwd = !edit_pwd">
-              <span>{{ $t('form.password') }} {{ $t('form.change') }}</span>
+            <a href="#change_pwd" v-if="!editPassword" @click="editPassword = !editPassword">
+              <span>{{ $t('form.change-password') }}</span>
               <b-icon class="pointer ml-3" icon="pencil" />
             </a>
 
             <b-icon
               v-else
-              @click="edit_pwd = !edit_pwd"
+              @click="cancelEdit()"
               class="pointer"
               icon="x-circle"
               variant="danger"
@@ -19,9 +19,9 @@
           </b-col>
         </b-row>
 
-        <div v-if="!edit_pwd">
-          <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+        <div v-if="editPassword">
+          <b-row class="mb-5">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_old') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -43,8 +43,9 @@
               </b-input-group>
             </b-col>
           </b-row>
+
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_new') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -67,7 +68,7 @@
             </b-col>
           </b-row>
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.password_new_repeat') }}</small>
             </b-col>
             <b-col class="col-md-9 col-sm-10">
@@ -89,10 +90,31 @@
               </b-input-group>
             </b-col>
           </b-row>
-          <b-row class="text-right" v-if="!edit_pwd">
+          <b-row>
+            <b-col></b-col>
+            <b-col class="col-12">
+              <transition name="hint" appear>
+                <div v-if="passwordValidation.errors.length > 0" class="hints">
+                  <ul>
+                    <li v-for="error in passwordValidation.errors" :key="error">
+                      <small>{{ error }}</small>
+                    </li>
+                  </ul>
+                </div>
+              </transition>
+            </b-col>
+          </b-row>
+
+          <b-row class="text-right" v-if="editPassword">
             <b-col>
               <div class="text-right" ref="submitButton">
-                <b-button variant="info" @click="onSubmit" class="mt-4">
+                <b-button
+                  :variant="loading ? 'default' : 'success'"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="loading"
+                >
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -110,7 +132,7 @@ export default {
   name: 'FormUserPasswort',
   data() {
     return {
-      edit_pwd: true,
+      editPassword: false,
       email: null,
       password: '',
       passwordNew: '',
@@ -122,6 +144,12 @@ export default {
     }
   },
   methods: {
+    cancelEdit() {
+      this.editPassword = false
+      this.password = ''
+      this.passwordNew = ''
+      this.passwordNewRepeat = ''
+    },
     togglePasswordVisibilityNewPwd() {
       this.passwordVisibleNewPwd = !this.passwordVisibleNewPwd
     },
@@ -132,25 +160,56 @@ export default {
       this.passwordVisibleOldPwd = !this.passwordVisibleOldPwd
     },
     loadSubmitButton() {
-      if (this.passwordVisibleNewPwd === this.passwordVisibleNewPwdRepeat) {
+      if (
+        this.password !== '' &&
+        this.passwordNew !== '' &&
+        this.passwordNewRepeat !== '' &&
+        this.passwordNew === this.passwordNewRepeat
+      ) {
         this.loading = false
       } else {
         this.loading = true
       }
     },
-    async onSubmit() {
-      // console.log(this.data)
+    async onSubmit(event) {
+      event.preventDefault()
       const result = await loginAPI.changePasswordProfile(
         this.$store.state.sessionId,
-        this.email,
+        this.$store.state.email,
         this.password,
         this.passwordNew,
       )
       if (result.success) {
-        alert('changePassword success')
+        this.$toast.success(this.$t('site.thx.reset'))
+        this.cancelEdit()
       } else {
-        alert(result.result.message)
+        this.$toast.error(result.result.message)
       }
+    },
+  },
+  computed: {
+    samePasswords() {
+      return this.password === this.passwordNew
+    },
+    rules() {
+      return [
+        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
+        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
+        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
+        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
+      ]
+    },
+    passwordValidation() {
+      const errors = []
+      for (const condition of this.rules) {
+        if (!condition.regex.test(this.passwordNew)) {
+          errors.push(condition.message)
+        }
+      }
+      if (errors.length === 0) {
+        return { valid: true, errors }
+      }
+      return { valid: false, errors }
     },
   },
 }

@@ -1,15 +1,11 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import VueRouter from 'vue-router'
 import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
-import routes from '../../routes/routes'
 import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
 
 const localVue = global.localVue
-
-const router = new VueRouter({ routes })
 
 const transitionStub = () => ({
   render(h) {
@@ -26,6 +22,14 @@ describe('DashboardLayoutGdd', () => {
     },
     $t: jest.fn((t) => t),
     $n: jest.fn(),
+    $route: {
+      meta: {
+        hideFooter: false,
+      },
+    },
+    $router: {
+      push: jest.fn(),
+    },
   }
 
   const state = {
@@ -40,6 +44,7 @@ describe('DashboardLayoutGdd', () => {
   const stubs = {
     RouterLink: RouterLinkStub,
     FadeTransition: transitionStub(),
+    RouterView: transitionStub(),
   }
 
   const store = new Vuex.Store({
@@ -50,7 +55,7 @@ describe('DashboardLayoutGdd', () => {
   })
 
   const Wrapper = () => {
-    return mount(DashboardLayoutGdd, { localVue, mocks, router, store, stubs })
+    return mount(DashboardLayoutGdd, { localVue, mocks, store, stubs })
   }
 
   describe('mount', () => {
