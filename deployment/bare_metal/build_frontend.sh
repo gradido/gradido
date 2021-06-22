@@ -11,3 +11,7 @@ export NVM_DIR="/root/.nvm"
 
 $NPM_BIN install
 $NPM_BIN run build
+# prezip for faster deliver throw nginx
+cd dist
+find . -type f -name "*.css" -exec gzip -9 -k {} \;
+find . -type f -name "*.js" -exec gzip -9 -k {} \;

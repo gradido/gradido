@@ -1,0 +1,73 @@
+server {
+        server_name _;
+        listen 80;
+        listen [::]:80;
+
+        include /etc/nginx/common/protect.conf;
+        include /etc/nginx/common/protect_add_header.conf;
+
+        root /var/www/html/gradido/community_server/webroot;
+        index index.php;
+
+        gzip_static  on;
+
+
+        location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+        }
+
+        location ~ /\.ht {
+          deny  all;
+        }
+
+        location /vue {
+          alias /var/www/html/gradido/frontend/dist;
+          index index.html;
+
+          location ~* \.(png)$ {
+            expires 39d;
+          }
+          try_files $uri $uri/ /index.html = 404;
+        }
+
+        location /account {
+                        proxy_http_version 1.1;
+                        proxy_set_header    Upgrade $http_upgrade;
+                        proxy_set_header    Connection 'upgrade';
+                        proxy_cache_bypass  $http_upgrade;
+                        proxy_set_header    X-Real-IP  $remote_addr;
+                        proxy_set_header    X-Forwarded-For $remote_addr;
+                        proxy_set_header    Host $host;
+                        rewrite  /account/(.*) /$1 break;
+
+                        proxy_pass          http://127.0.0.1:1200;
+                        proxy_redirect      off;
+
+
+        }
+
+        location /login_api {
+                        proxy_http_version 1.1;
+                        proxy_set_header    Upgrade $http_upgrade;
+                        proxy_set_header    Connection 'upgrade';
+                        proxy_cache_bypass  $http_upgrade;
+                        proxy_set_header    X-Real-IP  $remote_addr;
+                        proxy_set_header    X-Forwarded-For $remote_addr;
+                        proxy_set_header    Host $host;
+                        rewrite  /login_api/(.*) /$1 break;
+
+                        proxy_pass          http://127.0.0.1:1201;
+                        proxy_redirect      off;
+
+
+        }
+
+
+        location / {
+            try_files $uri $uri/ /index.php?$args;
+        }
+
+        access_log /var/log/nginx/access.log main;
+
+}

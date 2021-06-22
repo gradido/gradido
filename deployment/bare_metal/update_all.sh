@@ -1,10 +1,9 @@
 #!/bin/bash
 
-EMPTY_UPDATE_HTML=/var/www/html/admin/updating_original.html
-UPDATE_HTML=/var/www/html/admin/updating.html
+EMPTY_UPDATE_HTML=/var/www/html/updating_original.html
+UPDATE_HTML=/var/www/html/updating.html
 LOCK_FILE=/root/relay.lock
-#PROJECT_PATH=/var/www/html/gradido
-PROJECT_PATH=/root/code/gradido
+PROJECT_PATH=/var/www/html/gradido
 SITE_CONFIG=stage1
 UPDATE_SITE_CONFIG=stage1_updating
 
