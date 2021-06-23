@@ -17,6 +17,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string password;
 	bool subscribe_clicktipp = false;
 	std::string username;
+	std::string description;
 	std::string klicktipp_redirect_url;
 	bool login_after_register = false;
 	int emailType;

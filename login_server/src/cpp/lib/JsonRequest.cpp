@@ -129,19 +129,12 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 				return JSON_REQUEST_RETURN_ERROR;
 			}
 			else if (stateString == "success") {
-				auto warnings_obj = object.get("warnings");
+				auto warnings_obj = mResultJson->get("warnings");
 				if (!warnings_obj.isEmpty()) {
 					Poco::JSON::Object warnings = *parsedJson.extract<Poco::JSON::Object::Ptr>();
 					for (auto it = warnings.begin(); it != warnings.end(); it++) {
 						addWarning(new Warning(it->first, it->second.toString()));
 					}
-				}
-				for (auto it = object.begin(); it != object.end(); it++) {
-					if (it->first == "state") continue;
-					std::string index = it->first;
-					std::string value = it->second.toString();
-
-					//printf("[JsonRequest] %s: %s\n", index.data(), value.data());
 				}
 			}
 		}
