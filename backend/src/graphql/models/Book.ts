@@ -6,17 +6,17 @@ import { ObjectType, Field, ID } from 'type-graphql'
 export class Book extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
-  id: string;
+  id: string
 
   @Field(() => String)
   @Column()
-  title: string;
+  title: string
 
   @Field(() => String)
   @Column()
-  author: string;
+  author: string
 
   @Field(() => Boolean)
   @Column({ default: false })
-  isPublished: boolean;
+  isPublished: boolean
 }
