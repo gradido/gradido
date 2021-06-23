@@ -43,7 +43,13 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	//std::ostream& responseStream = _compressResponse ? _gzipStream : _responseStream;
 
 	mClientIp = request.clientAddress().host();
-
+	
+	if (request.secure()) {
+		mServerHost = "https://" + request.getHost();
+	}
+	else {
+		mServerHost = "http://" + request.getHost();
+	}
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
 	Poco::JSON::Object* json_result = nullptr;
@@ -219,6 +225,19 @@ Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var p
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("error parsing query params, Poco Error", ex.displayText());
+		}
+	}
+	else if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
+		try {
+			Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
+			auto session_id_obj = paramJsonObject->get("session_id");
+			if (session_id_obj.isEmpty()) {
+				return stateError("missing session_id");
+			}
+			session_id_obj.convert(session_id);
+		}
+		catch (Poco::Exception& ex) {
+			return stateError("Poco Exception by reading session_id", ex.what());
 		}
 	}
 

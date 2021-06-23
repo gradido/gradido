@@ -10,20 +10,20 @@ namespace model
 	namespace table
 	{
 		PendingTask::PendingTask()
-			: mUserId(0), mHederaId(0), mTaskTypeId(TASK_TYPE_NONE)
+			: mUserId(0), mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
 		{
 
 		}
 		PendingTask::PendingTask(int userId, std::string serializedProtoRequest, TaskType type)
-			: mUserId(userId), mHederaId(0), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
-			  mTaskTypeId(TASK_TYPE_NONE)
+			: mUserId(userId), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
+			  mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
 		{
-			
+
 		}
 		PendingTask::PendingTask(const PendingTaskTuple& tuple)
-			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()), mHederaId(tuple.get<2>()),
-			mRequest(tuple.get<3>()), mCreated(tuple.get<4>()), mFinished(tuple.get<5>()),
-			mResultJsonString(tuple.get<6>()), mParamJsonString(tuple.get<7>()), mTaskTypeId(tuple.get<8>()), mChildPendingTaskId(tuple.get<9>()), mParentPendingTaskId(tuple.get<10>())
+			: ModelBase(tuple.get<0>()), mUserId(tuple.get<1>()),
+			mRequest(tuple.get<2>()), mCreated(tuple.get<3>()), mFinished(tuple.get<4>()),
+			mResultJsonString(tuple.get<5>()), mParamJsonString(tuple.get<6>()), mTaskTypeId(tuple.get<7>()), mChildPendingTaskId(tuple.get<8>()), mParentPendingTaskId(tuple.get<9>())
 		{
 
 		}
@@ -37,7 +37,7 @@ namespace model
 			UNIQUE_LOCK;
 			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
 		}
-		
+
 		void PendingTask::setResultJson(Poco::JSON::Object::Ptr result)
 		{
 			UNIQUE_LOCK;
@@ -70,7 +70,11 @@ namespace model
 			{
 				SHARED_LOCK;
 				temp = mResultJsonString;
+				if(!mResultJsonString.size()) {
+                    return new Poco::JSON::Object;
+				}
 			}
+
 			Poco::JSON::Parser parser;
 			Poco::Dynamic::Var result;
 			try
@@ -186,7 +190,7 @@ namespace model
 			return false;
 		}
 
-		
+
 
 		std::string PendingTask::toString()
 		{
@@ -200,7 +204,7 @@ namespace model
 			return ss.str();
 		}
 
-		
+
 		const char* PendingTask::typeToString(TaskType type)
 		{
 			switch (type) {
@@ -208,9 +212,6 @@ namespace model
 			case TASK_TYPE_GROUP_ADD_MEMBER: return "group add member";
 			case TASK_TYPE_CREATION: return "creation";
 			case TASK_TYPE_TRANSFER: return "transfer";
-			case TASK_TYPE_HEDERA_TOPIC_CREATE: return "hedera topic create";
-			case TASK_TYPE_HEDERA_TOPIC_MESSAGE: return "hedera topic send message";
-			case TASK_TYPE_HEDERA_ACCOUNT_CREATE: return "hedera account create";
 			default: return "<unknown>";
 			}
 			return "<invalid>";
@@ -228,25 +229,17 @@ namespace model
 		};*/
 		bool PendingTask::isGradidoTransaction(TaskType type)
 		{
-			if (type && type < TASK_TYPE_HEDERA_TOPIC_CREATE)
-				return true;
-			return false;
+			return true;
 		}
 
-		bool PendingTask::isHederaTransaction(TaskType type)
-		{
-			if (type && type >= TASK_TYPE_HEDERA_TOPIC_CREATE)
-				return true;
-			return false;
-		}
-	
+
 		Poco::Data::Statement PendingTask::_loadFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName()
+			select << "SELECT id, user_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " << getTableName()
 				<< " where " << fieldName << " = ?"
-				, into(mID), into(mUserId), into(mHederaId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString), into(mParamJsonString),
+				, into(mID), into(mUserId), into(mRequest), into(mCreated), into(mFinished), into(mResultJsonString), into(mParamJsonString),
 				into(mTaskTypeId), into(mChildPendingTaskId), into(mParentPendingTaskId);
 
 			return select;
@@ -256,7 +249,7 @@ namespace model
 		{
 			Poco::Data::Statement select(session);
 
-			select << "SELECT id, user_id, hedera_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM " 
+			select << "SELECT id, user_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM "
 				   << getTableName() << " order by id";
 
 			return select;
@@ -268,12 +261,11 @@ namespace model
 
 			select << "SELECT id FROM " << getTableName()
 				<< " WHERE user_id = ? "
-				<< " AND hedera_id = ? "
 				<< " AND request = ?"
 				<< " AND TIMESTAMPDIFF(SECOND, created, ?) = 0 "
 				<< " AND task_type_id = ? "
-				, into(mID), use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mTaskTypeId);
-			
+				, into(mID), use(mUserId), use(mRequest), use(mCreated), use(mTaskTypeId);
+
 			return select;
 		}
 
@@ -283,9 +275,9 @@ namespace model
 			Poco::Data::Statement insert(session);
 
 			insert << "INSERT INTO " << getTableName()
-				<< " (user_id, hedera_id, request, created, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?,?,?)"
-				, use(mUserId), use(mHederaId), use(mRequest), use(mCreated), use(mResultJsonString), use(mParamJsonString), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
-			
+				<< " (user_id, request, created, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id) VALUES(?,?,?,?,?,?,?,?)"
+				, use(mUserId), use(mRequest), use(mCreated), use(mResultJsonString), use(mParamJsonString), use(mTaskTypeId), use(mChildPendingTaskId), use(mParentPendingTaskId);
+
 			return insert;
 		}
 	}

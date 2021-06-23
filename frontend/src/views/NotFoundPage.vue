@@ -2,10 +2,9 @@
   <div>
     <!-- Header -->
     <div class="header py-1 py-lg-1 pt-lg-3">
-      <b-container>xx</b-container>
       <b-container>
         <div class="header-body text-center mb-3">
-          <a href="/login" to="/login">
+          <a href="login" to="login">
             <div class="container">
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">

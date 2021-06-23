@@ -8,14 +8,19 @@
 $this->assign('title', __('Gradido Überweisung'));
 $receiverNames = $receiverUser->first_name . ' ' . $receiverUser->last_name;
 $senderNames = $senderUser->first_name . ' ' . $senderUser->last_name;
+$senderNamesEmail = $senderUser->getEmailWithName();
 ?><?= __('Hallo') ?> <?= $receiverNames ?>, 
  
-<?= __('Du hast soeben {0} von {1} erhalten.', $this->element('printGradido', ['number' => $gdd_cent, 'raw' => true]), $senderNames) ?> 
+<?= __('Du hast soeben {0} von {1} erhalten.', $this->element('printGradido', ['number' => $gdd_cent, 'raw' => true]), $senderNamesEmail) ?> 
 <?= __('{0} schreibt:', $senderNames) ?> 
  
 <?= $memo ?> 
  
-<?= __('Du kannst {0} eine Nachricht schreiben, indem du auf diese E-Mail antwortest', $senderNames); ?> 
+<?= __('Bitte antworte nicht auf diese E-Mail!'); ?> 
+<?= __('Wenn Du ') . $senderNames . __(' per E-Mail  antworten willst, schreibe stattdessen an die Adresse: '); ?>
+
+<?= $senderUser->email ?>
+
  
 <?= __('Mit freundlichen Grüßen'); ?> 
 Gradido Community Server

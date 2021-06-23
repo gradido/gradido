@@ -16,7 +16,7 @@ namespace controller {
 
 		~Group();
 
-		static Poco::AutoPtr<Group> create(const std::string& alias, const std::string& name, const std::string& url, const std::string& home, const std::string& description);
+		static Poco::AutoPtr<Group> create(const std::string& alias, const std::string& name, const std::string& url, const std::string& host, const std::string& home, const std::string& description);
 
 		static std::vector<Poco::AutoPtr<Group>> load(const std::string& alias);
 		static Poco::AutoPtr<Group> load(int id);

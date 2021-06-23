@@ -42,6 +42,7 @@ int PendingTasksManager::addTask(Poco::AutoPtr<controller::PendingTask> task)
 	if (task.isNull() || !task->getModel()) {
 		return -1;
 	}
+	
 	auto model = task->getModel();
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	auto pending_task_list = getTaskListForUser(model->getUserId());
@@ -180,30 +181,42 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTran
 
 void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 {
+	static const char* function_name = "PendingTasksManager::checkForFinishedTasks";
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	try {
 
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
-	{
-		auto list = map_it->second;
-		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+		for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
 		{
-			if ((*list_it)->getModel()->isGradidoTransaction()) {
-				auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
-				auto json = transaction->getModel()->getResultJson();
-				bool removeIt = false;
-				if (!json.isNull()) {
-					auto state = json->get("state");
-					if (!state.isEmpty() && state.toString() == "success") {
-						removeIt = true;
+			auto list = map_it->second;
+			for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+			{
+				if ((*list_it)->getModel()->isGradidoTransaction()) {
+					auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
+					auto json = transaction->getModel()->getResultJson();
+					bool removeIt = false;
+					if (!json.isNull()) {
+						auto state = json->get("state");
+						if (!state.isEmpty() && state.toString() == "success") {
+							removeIt = true;
+						}
 					}
-				}
-				if (removeIt) {
-					transaction->deleteFromDB();
-					list_it = list->erase(list_it);
-					if (!list->size()) break;
+					if (removeIt) {
+						transaction->deleteFromDB();
+						list_it = list->erase(list_it);
+						if (!list->size() || list_it == list->end()) break;
+					}
 				}
 			}
 		}
+	}
+	catch (Poco::Exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "poco exception", ex.displayText()));
+		errors.sendErrorsAsEmail();
+	} catch(std::exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "std::exception", ex.what()));
+		errors.sendErrorsAsEmail();
 	}
 }
 
@@ -223,30 +236,3 @@ Poco::AutoPtr<controller::PendingTask> PendingTasksManager::getPendingTask(int p
 	return nullptr;
 }
 
-
-void PendingTasksManager::reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails)
-{
-	// TODO: choose user specific server
-	JsonRequest phpServerRequest(ServerConfig::g_php_serverHost, ServerConfig::g_phpServerPort);
-	//Poco::Net::NameValueCollection payload;
-	Poco::JSON::Object payload;
-
-	auto task_model = task->getModel();
-	auto user_model = task->getUser()->getModel();
-
-	payload.set("created", task_model->getCreated());
-	payload.set("id", task_model->getID());
-	payload.set("type", task_model->getTaskTypeString());
-	payload.set("public_key", user_model->getPublicKeyHex());
-	payload.set("error", error);
-	payload.set("errorMessage", errorDetails);
-
-	auto ret = phpServerRequest.request("errorInTransaction", payload);
-	if (ret == JSON_REQUEST_RETURN_ERROR) 
-	{
-		auto em = ErrorManager::getInstance();
-		em->addError(new Error("PendingTasksManager::reportErrorToCommunityServer", "php server error"));
-		em->getErrors(&phpServerRequest);
-		em->sendErrorsAsEmail();
-	}
-}

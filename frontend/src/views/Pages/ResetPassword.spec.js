@@ -1,30 +1,74 @@
-import { mount } from '@vue/test-utils'
-import VueRouter from 'vue-router'
-import routes from '../../routes/routes'
-
+import { mount, RouterLinkStub } from '@vue/test-utils'
+import loginAPI from '../../apis/loginAPI'
 import ResetPassword from './ResetPassword'
+import flushPromises from 'flush-promises'
+
+jest.mock('../../apis/loginAPI')
 
 const localVue = global.localVue
 
-const router = new VueRouter({ routes })
+const successResponseObject = {
+  success: true,
+  result: {
+    data: {
+      session_id: 1,
+      user: {
+        email: 'user@example.org',
+      },
+    },
+  },
+}
+
+const emailVerificationMock = jest.fn()
+const changePasswordMock = jest.fn()
+const toasterMock = jest.fn()
+const routerPushMock = jest.fn()
+
+emailVerificationMock
+  .mockReturnValueOnce({ success: false, result: { message: 'error' } })
+  .mockReturnValueOnce({ success: false, result: { message: 'error' } })
+  .mockReturnValueOnce({ success: false, result: { message: 'error' } })
+  .mockReturnValue(successResponseObject)
+
+changePasswordMock
+  .mockReturnValueOnce({ success: false, result: { message: 'error' } })
+  .mockReturnValue({ success: true })
+
+loginAPI.loginViaEmailVerificationCode = emailVerificationMock
+loginAPI.changePassword = changePasswordMock
 
 describe('ResetPassword', () => {
   let wrapper
 
-  let emailVerification = jest.fn()
-
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-    loginAPI: {
-      loginViaEmailVerificationCode: emailVerification,
+    $route: {
+      params: {
+        optin: '123',
+      },
+    },
+    $toast: {
+      error: toasterMock,
+    },
+    $router: {
+      push: routerPushMock,
+    },
+    $loading: {
+      show: jest.fn(() => {
+        return { hide: jest.fn() }
+      }),
     },
   }
 
+  const stubs = {
+    RouterLink: RouterLinkStub,
+  }
+
   const Wrapper = () => {
-    return mount(ResetPassword, { localVue, mocks, router })
+    return mount(ResetPassword, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -32,84 +76,94 @@ describe('ResetPassword', () => {
       wrapper = Wrapper()
     })
 
-    /*
     it('calls the email verification when created', () => {
-      const spy = jest.spyOn(wrapper.vm, 'authenticate')
-      expect(spy).toBeCalled()
+      expect(emailVerificationMock).toHaveBeenCalledWith('123')
     })
-    */
 
-    it('does not render the Reset Password form when not authenticated', async () => {
+    it('does not render the Reset Password form when not authenticated', () => {
       expect(wrapper.find('div.resetpwd-form').exists()).toBeFalsy()
     })
 
-    it('renders the Reset Password form', async () => {
+    it('toasts an error when no valid optin is given', () => {
+      expect(toasterMock).toHaveBeenCalledWith('error')
+    })
+
+    it('renders the Reset Password form when authenticated', async () => {
       wrapper.setData({ authenticated: true })
       await wrapper.vm.$nextTick()
       expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
     })
 
-    //describe('Register header', () => {
-    //  it('has a welcome message', () => {
-    //    expect(wrapper.find('div.header').text()).toBe('site.signup.title site.signup.subtitle')
-    //  })
-    //})
+    describe('Register header', () => {
+      it('has a welcome message', () => {
+        expect(wrapper.find('div.header').text()).toBe('reset-password.title reset-password.text')
+      })
+    })
 
-    //describe('links', () => {
-    //  it('has a link "Back"', () => {
-    //    expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
-    //  })
+    /* there is no back button, why?
+    describe('links', () => {
+      it('has a link "Back"', () => {
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
+      })
 
-    //  it('links to /login when clicking "Back"', () => {
-    //    expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
-    //  })
-    //})
+      it('links to /login when clicking "Back"', () => {
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
+      })
+    })
+    */
 
-    //describe('Register form', () => {
-    //  it('has a register form', () => {
-    //    expect(wrapper.find('form').exists()).toBeTruthy()
-    //  })
+    describe('reset password form', () => {
+      it('has a register form', () => {
+        expect(wrapper.find('form').exists()).toBeTruthy()
+      })
 
-    //  it('has 3 text input fields', () => {
-    //    expect(wrapper.findAll('input[type="text"]').length).toBe(3)
-    //  })
+      it('has 2 password input fields', () => {
+        expect(wrapper.findAll('input[type="password"]').length).toBe(2)
+      })
 
-    //  it('has 2 password input fields', () => {
-    //    expect(wrapper.findAll('input[type="password"]').length).toBe(2)
-    //  })
+      it('has no submit button when not completely filled', () => {
+        expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
+      })
 
-    //  it('has 1 checkbox input fields', () => {
-    //    expect(wrapper.findAll('input[type="checkbox"]').length).toBe(1)
-    //  })
+      it('toggles the first input field to text when eye icon is clicked', async () => {
+        wrapper.findAll('button').at(0).trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(wrapper.findAll('input').at(0).attributes('type')).toBe('text')
+      })
 
-    //  it('has no submit button when not completely filled', () => {
-    //    expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
-    //  })
+      it('toggles the second input field to text when eye icon is clicked', async () => {
+        wrapper.findAll('button').at(1).trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(wrapper.findAll('input').at(1).attributes('type')).toBe('text')
+      })
+    })
 
-    //  it('shows a warning when no valid Email is entered', async () => {
-    //    wrapper.findAll('input[type="text"]').at(2).setValue('no_valid@Email')
-    //    await flushPromises()
-    //    await expect(wrapper.find('.invalid-feedback').text()).toEqual(
-    //      'The Email field must be a valid email',
-    //    )
-    //  })
+    describe('submit form', () => {
+      beforeEach(async () => {
+        wrapper.findAll('input').at(0).setValue('Aa123456')
+        wrapper.findAll('input').at(1).setValue('Aa123456')
+        await wrapper.vm.$nextTick()
+        await flushPromises()
+        wrapper.find('form').trigger('submit')
+      })
 
-    //  it('shows 4 warnings when no password is set', async () => {
-    //    const passwords = wrapper.findAll('input[type="password"]')
-    //    passwords.at(0).setValue('')
-    //    passwords.at(1).setValue('')
-    //    await flushPromises()
-    //    await expect(wrapper.find('div.hints').text()).toContain(
-    //      'site.signup.lowercase',
-    //      'site.signup.uppercase',
-    //      'site.signup.minimum',
-    //      'site.signup.one_number',
-    //    )
-    //  })
+      describe('server response with error', () => {
+        it('toasts an error message', async () => {
+          expect(toasterMock).toHaveBeenCalledWith('error')
+        })
+      })
 
-    //  //TODO test different invalid password combinations
-    //})
+      describe('server response with success', () => {
+        it('calls the API', async () => {
+          await wrapper.vm.$nextTick()
+          await flushPromises()
+          expect(changePasswordMock).toHaveBeenCalledWith(1, 'user@example.org', 'Aa123456')
+        })
 
-    // TODO test submit button
+        it('redirects to "/thx/reset"', () => {
+          expect(routerPushMock).toHaveBeenCalledWith('/thx/reset')
+        })
+      })
+    })
   })
 })

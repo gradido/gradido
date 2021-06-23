@@ -1,24 +1,42 @@
 <template>
   <div>
-    <div
-      class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center profile-header"
-      style="max-height: 200px"
-    ></div>
-    <b-container fluid class="mt--6">
+    <b-container fluid>
       <b-row>
         <b-col class="order-xl-1">
-          <gdd-table></gdd-table>
+          <gdd-transaction-list
+            :timestamp="timestamp"
+            :transactionCount="transactionCount"
+            :transactions="transactions"
+            :show-pagination="true"
+            @update-transactions="updateTransactions"
+          />
         </b-col>
       </b-row>
     </b-container>
   </div>
 </template>
 <script>
-import GddTable from '../../views/KontoOverview/GddTable.vue'
+import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 
 export default {
   components: {
-    GddTable,
+    GddTransactionList,
+  },
+  props: {
+    transactions: {
+      default: [],
+    },
+    transactionCount: { type: Number, default: 0 },
+  },
+  data() {
+    return {
+      timestamp: Date.now(),
+    }
+  },
+  methods: {
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
   },
 }
 </script>

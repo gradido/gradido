@@ -38,9 +38,12 @@ with:
 ```json
 {
 	"email": "max.musterman@gmail.de",
+	"username": "Maxilein", 
 	"password": "123abcDE&"
 }
 ```
+`username` or `email` must be present!
+If booth present, `email` will be used. 
 
 ### Response
 In case of success returns:
@@ -50,12 +53,14 @@ In case of success returns:
 	"state":"success",
 	"user": {
 		"created": 1614782270,
+		"description": "",
 		"disabled": false,
 		"email": "max.musterman@gmail.de",
 		"email_checked": true,
 		"first_name": "Max",
 		"group_alias": "gdd1",
 		"ident_hash": 323769895,
+		"language":"de",
 		"last_name": "Mustermann",
 		"public_hex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"role": "none",
@@ -68,12 +73,14 @@ In case of success returns:
 
 - `user`: contain user object
   - `created`: timestamp on which account was created
+  - `description`: description of user for other user 
   - `disabled`: true if account was disabled, if disabled no login or coin transfer is possible
   - `email`: email of user
   - `email_checked`: true if user has successfully clicked on activation link in email
   - `first_name`: first name of user
   - `group_alias`: alias of group/community to which user belong
   - `ident_hash`: currently hash of email, will be later a identification hash to prevent multiple accounts and therefore multiple creations per user
+  - `language`: language of user, currently only "de" or "en" 
   - `last_name`: last name of user
   - `public_hex`: public key of user in hex format
   - `role`: role of user currently only "none" or "admin"
@@ -81,6 +88,56 @@ In case of success returns:
 - `clientIP`: should be the same as where the js-client is running, else maybe a man-in-the-middle attacks is happening or 
 nginx was wrong configured.
 - `session_id`: can be also negative
+
+## Check username
+### Request 
+`GET http://localhost/login_api/checkUsername?username=<username>&group_id=<group_id>`
+
+`POST http://localhost/login_api/checkUsername`
+with
+```json
+{
+	"username": "Maxilein",
+	"group_id": 1,
+	"group_alias": "gdd1"
+}
+```
+
+group_id or group_alias, one of both is enough. 
+group_id is better, because one db request less
+
+### Response
+
+If username is not already taken
+```json
+{
+	"state":"success"
+}
+```
+
+If username is already taken
+```json
+{
+	"state":"warning",
+	"msg":"username already in use"
+}
+```
+
+If only group_alias was given and group with that alias was found in db
+```json
+{
+	"state":"success",
+	"group_id": 1
+}
+```
+
+If group_id or group_alias unknown
+```json
+{
+	"state":"error",
+	"msg": "unknown group"
+}
+```
 
 ## Create user
 Register a new User
@@ -94,7 +151,9 @@ with:
 {
 	"email":"max.musterman@gmail.de",
 	"first_name":"Max",
-	"last_name":"Musterman" ,
+	"last_name":"Musterman",
+	"username": "Maxilein",
+	"description": "Tischler",
     "emailType": 2,
 	"group_id": 1,
 	"password":"123abcDE&",
@@ -103,6 +162,8 @@ with:
 }
 ```
 
+- `username`: (optional), mindestens 4 Zeichen, return error if already used
+- `description`: (optional), mindestens 4 Zeichen
 - `emailType`: control email-text sended with email verification code
   - 2: default, if user has registered directly
   - 5: if user was registered by an admin 
@@ -183,9 +244,12 @@ with:
 	"update": {
 		"User.first_name": "Max",
 		"User.last_name" : "Musterman",
+		"User.username" : "Maxilein",
+		"User.description" : "Tischler",
 		"User.disabled": 0,
 		"User.language": "de",
-		"User.password": "1234"
+		"User.password": "1234",
+		"User.password_old": "4321"
   	}
 }
 ```
@@ -195,6 +259,7 @@ Notes:
 - User will be disabled if he wants his account deleted, but has transactions. Until transactions are saved in real blockchain, we need this data because the public key is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible.
 - Disabled Users can neither login nor receive transactions. 
 - It is not required to provide all fields of `update`, it can be a subset depending on what you intend to change.
+- `User.password`: to change user password, needed current passwort in `User.password_old` (only if user was logged in with his password, not by reset password email code)
 
 ### Response
 In case of success:
@@ -207,7 +272,7 @@ In case of success:
 }
 ```
 
-- `valid_values`: should contain count of entries in update if no error occurred (User.password will not be counted)
+- `valid_values`: should contain count of entries in update if no error occurred (User.password will now be counted also)
 - `errors`: contain on error string for every entry in update, which type isn't like expected 
   - `password`: 
     - "new password is the same as old password": no change taking place
@@ -253,6 +318,8 @@ with:
 		"user.pubkeyhex",
 		"user.first_name",
 		"user.last_name",
+		"user.username",
+		"user.description",
 		"user.disabled",
 		"user.email_checked",
 		"user.language"
@@ -287,6 +354,8 @@ Return only the fields which are defined in request
 - `user.pubkeyhex`: public key of user in hex-format
 - `user.first_name`: first name of user 
 - `user.last_name`: last name of user 
+- `user.username`: username of user (min 4 Character, unique per group)
+- `user.description`: profil text for user
 - `user.disabled`: User will be disabled if he wants a account delete but has transactions. Until transactions are saved in real blockchain, we need this data because the public key
 is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible. Disabled User cannot login and cannot receive transactions. 
 - `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1
@@ -314,12 +383,14 @@ In case of success returns:
 	"info":[],
 	"user": {
 		"created": 1614782270,
+		"description": "Tischler"
 		"disabled": false,
 		"email": "max.musterman@gmail.de",
 		"email_checked": true,
 		"first_name": "Max",
 		"group_alias": "gdd1",
 		"ident_hash": 323769895,
+		"language": "de",
 		"last_name": "Mustermann",
 		"public_hex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
 		"role": "none",
@@ -344,6 +415,7 @@ In case of success returns:
   - `first_name`: first name of user
   - `group_alias`: alias of group/community to which user belong
   - `ident_hash`: currently hash of email, will be later a identification hash to prevent multiple accounts and therefore multiple creations per user
+  - `language`: language of user, currently only "de" or "en"
   - `last_name`: last name of user
   - `public_hex`: public key of user in hex format
   - `role`: role of user currently only "none" or "admin"
@@ -450,6 +522,29 @@ The link can be modified in the Login-Server config:
 `frontend.checkEmailPath = http://localhost/account/checkEmail`
 
 For the docker build, you can find the config here: `configs/login_server/grd_login.properties`
+
+### Request
+`POST http://localhost/login_api/resetPassword`
+
+with:
+
+```json
+{
+	"session_id": 12452361, 
+	"password":"hasu/282?sjS"
+}
+```
+
+### Response
+In case of success returns:
+
+```json 
+{
+	"state":"success"
+}
+```
+
+
 
 ## Check Running Transactions / password encryption
 Check if transactions on login-server for user are processed 

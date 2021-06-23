@@ -23,13 +23,13 @@ Additional session can be provided as GET-Parameter
 ```json
 {
 	"state":"success",
-        "balance":15906078,
-        "decay":15873851,
+        "balance":1590.60,
+        "decay":1587.38,
         "decay_date":"2021-04-16T11:47:21+00:00"
 }
 ```
 
-- `balance`   : balance describes gradido cents which are 4 digits behind the separator. A balance value of 174500 equals therefor 17,45 GDD
+- `balance`   : balance describes gradido as float with max two decimal places
 - `decay`     : balance with decay on it at the time in decay_date, so it is the precise balance of user at time of calling this function
 - `decay_date`: date and time for decay amount, should be the time and date of function call 
 
@@ -59,16 +59,32 @@ Assuming: session is valid
 {
 	"state":"success",
 	"transactions": [
+		{ 
+			"type": "decay",
+			"balance": "14.74",
+			"decay_duration": "4 days, 2 hours ago",
+			"memo": ""
+		},
 		{
 			"name": "Max Mustermann",
 			"email": "Maxim Mustermann", 
 			"type": "send",
 			"transaction_id": 2,
 			"date": "2021-02-19T13:25:36+00:00",
-			"balance": 1920000,
+			"balance": 192.0,
 			"memo": "a piece of cake :)",
 			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
-		 }
+		 },
+		{ 
+			"name": "Gradido Akademie",
+			"type": "creation",
+			"transaction_id": 10,
+			"date": "2021-04-15T11:19:45+00:00",
+			"target_date": "2021-02-01T00:00:00+00:00",
+			"creation_amount": "1000.0",
+			"balance": "1000.0",    
+			"memo": "AGE Februar 2021" 
+		}
 	],
 	"transactionExecutingCount": 0,
 	"count": 1,
@@ -95,8 +111,11 @@ Transaction:
   - `receiver`: user has received gradidos from another user
 - `transaction_id`: id of transaction in db, in stage2 also the hedera sequence number of transaction 
 - `date`: date of ordering transaction (booking date)
-- `balance`: Gradido Cent, 4 Nachkommastellen (2 Reserve), 1920000 = 192,00 GDD
+- `balance`: Gradido as float, max 2 Nachkommastellen, by creation balance after subtract decay amount
 - `memo`: Details about transaction
+- `decay_duration`: only for decay, time duration for decay calculation in english text 
+- `creation_amount`: only for creation transaction, created account before decay
+- `target_date`: only by creation transaction, target date for creation, start time for decay calculation (if < as global decay start time)
 
 ## Creation transaction
 Makes a creation transaction to create new Gradido
@@ -117,7 +136,7 @@ with
 {
 	"session_id" : -127182,
 	"email": "max.musterman@gmail.de",
-	"amount": 10000000,
+	"amount": 1000.0,
 	"target_date":"2021-02-19T13:25:36+00:00", 
 	"memo":"AGE",
 	"auto_sign": true
@@ -128,7 +147,7 @@ with
 {
 	"session_id" : -127182,
 	"username": "Maxi_786",
-	"amount": 10000000,
+	"amount": 1000.0,
 	"target_date":"2021-02-19T13:25:36+00:00", 
 	"memo":"AGE",
 	"auto_sign": true
@@ -139,7 +158,7 @@ with
 {
 	"session_id" : -127182,
 	"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7",
-	"amount": 10000000,
+	"amount": 1000.0,
 	"target_date":"2021-02-19T13:25:36+00:00", 
 	"memo":"AGE",
 	"auto_sign": true
@@ -149,7 +168,7 @@ with
 
 - `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
 - `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
-- `amount`: gdd amount to transfer in gradido cent (10000000 = 1000,00 GDD)
+- `amount`: gdd amount to transfer in gradido as float
 - `memo`: text for receiver, currently saved as clear text in blockchain
 - `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there
              if set to false, transaction must be signed after on `http://localhost/account/checkTransactions`
@@ -185,7 +204,7 @@ with
 {
 	"session_id" : -127182,
 	"email": "max.musterman@gmail.de",
-	"amount": 1000000,
+	"amount": 100.0,
 	"memo":"a gift",
 	"auto_sign": true
 }
@@ -195,7 +214,7 @@ with
 {
 	"session_id" : -127182,
 	"username": "Maxi_786",
-	"amount": 1000000,
+	"amount": 100.0,
 	"memo":"a gift",
 	"auto_sign": true
 }
@@ -205,13 +224,13 @@ with
 {
 	"session_id" : -127182,
 	"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7",
-	"amount": 1000000,
+	"amount": 100.0,
 	"memo":"a gift",
 	"auto_sign": true
 }
 ```
 - `session_id`: optional, only used if cookie GRADIDO_LOGIN not exist and no sesion_id in php session
-- `amount`: amount to transfer, 2000000 = 200,00 GDD
+- `amount`: amount to transfer as float
 - `email` or `username` or `pubkey`: used to identify how gets the gradidos (email and username are only aliases for pubkey)
 - `memo`: text for receiver, currently saved as clear text in blockchain
 - `auto_sign`: if set to true, transaction will be directly signed on login-server and proceed if needed signs are there

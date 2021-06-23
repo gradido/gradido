@@ -11,11 +11,11 @@
 
 #pragma warning(disable:4800)
 
-#include "../lib/NotificationList.h"
-#include "../proto/gradido/BasicTypes.pb.h"
-#include "../SingletonManager/MemoryManager.h"
+#include "../../lib/NotificationList.h"
+#include "proto/gradido/BasicTypes.pb.h"
+#include "../../SingletonManager/MemoryManager.h"
 
-#include "../controller/User.h"
+#include "../../controller/User.h"
 
 namespace model {
 	namespace gradido {
@@ -29,9 +29,10 @@ namespace model {
 			TRANSACTION_VALID_INVALID_TARGET_DATE,
 			TRANSACTION_VALID_CREATION_OUT_OF_BORDER,
 			TRANSACTION_VALID_INVALID_AMOUNT,
-			TRANSCATION_VALID_INVALID_PUBKEY,
+			TRANSACTION_VALID_INVALID_PUBKEY,
 			TRANSACTION_VALID_INVALID_GROUP_ALIAS,
-			TRANSACTION_VALID_INVALID_SIGN
+			TRANSACTION_VALID_INVALID_SIGN,
+			TRANSACTION_VALID_INVALID_MEMO
 		};
 		const char* TransactionValidationToString(TransactionValidation result);
 
@@ -40,7 +41,7 @@ namespace model {
 		public:
 			TransactionBase(const std::string& memo);
 			virtual ~TransactionBase();
-			//! \return 0 if ok, < 0 if error, > 0 if not implemented 
+			//! \return 0 if ok, < 0 if error, > 0 if not implemented
 			virtual int prepare() = 0;
 			virtual TransactionValidation validate() = 0;
 

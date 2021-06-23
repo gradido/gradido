@@ -5,7 +5,7 @@
 
 #include "../gradido/TransactionBase.h"
 
-#include "../lib/DataTypeConverter.h"
+#include "../../lib/DataTypeConverter.h"
 
 namespace model {
 
@@ -169,7 +169,7 @@ Gradido Login-Server\n\
 		std::string content_string;
 
 		switch (mType) {
-		case EMAIL_DEFAULT: 
+		case EMAIL_DEFAULT:
 			mailMessage->addRecipient(adminRecipient);
 			mailMessage->setSubject(langCatalog->gettext_str("Default Email Subject"));
 			mailMessage->addContent(new Poco::Net::StringPartSource(langCatalog->gettext_str("Empty Email Content"), mt.toString()));
@@ -180,7 +180,7 @@ Gradido Login-Server\n\
 			mailMessage->setSubject(langCatalog->gettext_str("Error from Gradido Login Server"));
 			mailMessage->addContent(new Poco::Net::StringPartSource(mErrorHtml, mt.toString()));
 			break;
-		
+
 		case EMAIL_USER_VERIFICATION_CODE:
 		case EMAIL_USER_VERIFICATION_CODE_RESEND:
 		case EMAIL_USER_VERIFICATION_CODE_RESEND_AFTER_LONG_TIME:
@@ -284,7 +284,7 @@ Gradido Login-Server\n\
 	std::string Email::replaceUserNamesAndLink(
 		const char* src,
 		const std::string& first_name,
-		const std::string& last_name, 
+		const std::string& last_name,
 		const std::string& link,
 		Poco::UInt64 code
 	) {
@@ -300,7 +300,7 @@ Gradido Login-Server\n\
 		else {
 			addError(new Error(functionName, "no first_name placeholder found"));
 		}
-		
+
 		findPos = result.find("[last_name]", findCursor);
 		if (findPos != result.npos) {
 			findCursor = findPos + last_name.size();

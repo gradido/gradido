@@ -21,7 +21,7 @@
 ***************************************************************************/
 
 /*!
- 
+
  \brief Container Wrapper class for mutex protected container
    changed to poco mutex for gradido login server
    default mutex from poco is recursive so it is some heavy thing
@@ -47,7 +47,7 @@ namespace UniLib {
 			// \return false if mutex was locked from another thread
 			bool tryLock();
 
-			inline void unlock() { mLastSucceededLock = ""; mWorkMutex.unlock(); }
+			inline void unlock() { mWorkMutex.unlock(); mLastSucceededLock = ""; }
 
 			inline const std::string& getLastSucceededLock() { return mLastSucceededLock; }
 		protected:

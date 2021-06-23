@@ -1,0 +1,99 @@
+version: "3.4"
+
+services:
+
+  #########################################################
+  ## MARIADB ##############################################
+  #########################################################
+  mariadb:
+    build:
+      context: .
+      dockerfile: ./mariadb/Dockerfile
+      target: mariadb_server_test
+    environment:
+      - MARIADB_ALLOW_EMPTY_PASSWORD=1
+      - MARIADB_USER=root
+    networks: 
+      - internal-net
+    ports: 
+      - 3306:3306
+    volumes: 
+      - db_test_vol:/var/lib/mysql     
+
+  #########################################################
+  ## LOGIN SERVER #########################################
+  #########################################################
+  login-server:
+    build:
+      context: ./login_server/
+      dockerfile: Dockerfiles/ubuntu/Dockerfile.test
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
+    depends_on:
+      - mariadb
+    networks: 
+      - internal-net
+    volumes:
+      - ./logs:/var/log/grd_login 
+      - ./login_server/src:/code/src
+      - ./configs/login_server:/etc/grd_login
+      - login_build_cov:/code/build_cov
+      - ./coverage/login:/code/build_cov/coverage_html
+
+  #########################################################
+  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
+  #########################################################
+  community-server:
+    build: 
+      context: .
+      target: test
+      dockerfile: ./community_server/Dockerfile
+    depends_on: 
+      - mariadb
+    networks: 
+      - internal-net
+    volumes:
+      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
+      - ./community_server/src:/var/www/cakephp/src
+      - ./coverage/community:/var/www/cakephp/webroot/coverage
+
+        
+  #########################################################
+  ## PHPMYADMIN ###########################################
+  #########################################################
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+     - PMA_ARBITRARY=1
+    #restart: always
+    ports:
+     - 8074:80
+    networks: 
+     - internal-net
+     - external-net
+    volumes:
+     - /sessions
+     
+  #########################################################
+  ## skeema for updating dbs if changes happend ###########
+  #########################################################
+  skeema: 
+    build:
+      context: .
+      dockerfile: ./skeema/Dockerfile
+      target: skeema_run
+    depends_on:
+      - mariadb
+    networks: 
+      - internal-net
+
+networks:
+  external-net:
+  internal-net:
+    internal: true
+
+volumes:
+  db_test_vol: 
+  login_build_cov:

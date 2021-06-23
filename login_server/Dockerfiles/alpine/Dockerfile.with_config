@@ -1,0 +1,63 @@
+
+
+# Login Server build which contain the config file, found on docker hub with tag:
+# gradido/login_server:with-config
+# Used for community-server tests on staging
+
+#########################################################################################################
+# Build release 
+#########################################################################################################
+FROM gradido/login_dependencies:alpine-release-3 as release_default
+
+ENV DOCKER_WORKDIR="/code"
+WORKDIR ${DOCKER_WORKDIR}
+
+COPY ./login_server/CMakeLists.txt.lib ./CMakeLists.txt
+COPY ./login_server/src ./src
+COPY ./login_server/dependencies/cmake-modules ./dependencies/cmake-modules
+COPY ./login_server/dependencies/spirit-po ./dependencies/spirit-po
+COPY ./login_server/dependencies/tinf ./dependencies/tinf
+COPY ./login_server/scripts ./scripts
+
+RUN  mkdir build && \
+	cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Release .. && \
+	make -j$(nproc) Gradido_LoginServer
+
+RUN cd scripts &&  \
+	chmod +x compile_pot.sh && \
+	./compile_pot.sh
+
+	
+#########################################################################################################
+# run release with docker default config
+#########################################################################################################
+#From alpine:latest as login_server
+FROM alpine:3.13.5 as login_server_default
+
+USER root
+WORKDIR "/usr/bin"
+
+COPY --from=release_default /code/build/bin/Gradido_LoginServer /usr/bin/
+
+COPY --from=release_default /usr/local/lib/mariadb/libmariadb.so.3 /usr/local/lib/
+COPY --from=release_default  /usr/local/lib/libPoco* /usr/local/lib/ 
+COPY --from=release_default  /usr/lib/libsodium.so.23 /usr/lib/ 
+COPY --from=release_default  /usr/lib/libstdc++.so.6 /usr/lib/ 
+COPY --from=release_default  /usr/lib/libgcc_s.so.1 /usr/lib/ 
+
+COPY ./configs/login_server/grd_login.properties /etc/grd_login/
+COPY ./configs/login_server/cacert.pem /etc/grd_login/
+COPY ./configs/login_server/LOCALE /etc/grd_login/
+
+EXPOSE 1200
+EXPOSE 1201
+
+RUN chmod +x /usr/bin/Gradido_LoginServer
+ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
+#CMD Gradido_LoginServer
+
+
+
+
+

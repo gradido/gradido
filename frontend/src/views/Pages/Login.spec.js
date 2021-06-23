@@ -1,5 +1,4 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
 
 import Login from './Login'
@@ -9,27 +8,19 @@ const localVue = global.localVue
 describe('Login', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
   }
 
-  let state = {
-    loginfail: false,
-  }
-
-  let store = new Vuex.Store({
-    state,
-  })
-
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
   }
 
   const Wrapper = () => {
-    return mount(Login, { localVue, mocks, store, stubs })
+    return mount(Login, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

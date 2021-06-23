@@ -7,35 +7,29 @@
 
 #include "ConfigPage.h"
 #include "LoginPage.h"
-//#include "RegisterPage.h"
 #include "HandleFileRequest.h"
 #include "DashboardPage.h"
 #include "CheckEmailPage.h"
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
+#include "TestUserGenerator.h"
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
-#include "UpdateUserPasswordPage.h"
+#include "UserUpdatePasswordPage.h"
 #include "UserUpdateGroupPage.h"
 #include "Error500Page.h"
 #include "CheckTransactionPage.h"
-#include "ResetPassword.h"
+#include "ResetPasswordPage.h"
 #include "RegisterAdminPage.h"
 #include "DebugPassphrasePage.h"
 #include "DebugMnemonicPage.h"
-#include "AdminCheckUserBackup.h"
-#include "TranslatePassphrase.h"
-#include "PassphrasedTransaction.h"
-#include "AdminUserPasswordReset.h"
+#include "AdminCheckUserBackupPage.h"
+#include "TranslatePassphrasePage.h"
+#include "AdminUserPasswordResetPage.h"
 #include "RegisterDirectPage.h"
 #include "AdminGroupsPage.h"
-#include "AdminTopicPage.h"
-#include "AdminHederaAccountPage.h"
-#include "AdminNodeServerPage.h"
-#include "AdminNodeServerTestPage.h"
 
 #include "DecodeTransactionPage.h"
-#include "RepairDefectPassphrase.h"
 
 
 #include "../SingletonManager/SessionManager.h"
@@ -122,7 +116,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 
 	// TODO: count invalid session requests from IP and block IP for some time to prevent brute force session hijacking
 	// or use log file and configure fail2ban for this to do
-	
+
 	if (url_first_part == "/checkEmail") {
 		//return new CheckEmailPage(s);
 		//printf("url checkEmail\n");
@@ -141,19 +135,15 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		return basicSetup(new RegisterDirectPage, request, timeUsed);
 	}
 	if (url_first_part == "/resetPassword") {
-		return basicSetup(new ResetPassword, request, timeUsed);
+		return basicSetup(new ResetPasswordPage, request, timeUsed);
 	}
 
 	if (url_first_part == "/decode_transaction") {
 		mLogging.information(dateTimeString + " decode");
 		return basicSetup(new DecodeTransactionPage(s), request, timeUsed);
 	}
-	if (url_first_part == "/passphrased_transaction") {
-		return basicSetup(new PassphrasedTransaction, request, timeUsed);
-	}
-	if (url_first_part == "/adminNodeServerTest") {
-		return basicSetup(new AdminNodeServerTestPage, request, timeUsed);
-	}
+
+
 	if (s) {
 		if (externReferer != "") {
 
@@ -177,10 +167,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 
 		if (url_first_part == "/transform_passphrase") {
-			return basicSetup(new TranslatePassphrase(s), request, timeUsed);
-		}
-		if (url_first_part == "/repairPassphrase") {
-			return basicSetup(new RepairDefectPassphrase(s), request, timeUsed);
+			return basicSetup(new TranslatePassphrasePage(s), request, timeUsed);
 		}
 		if (userModel && userModel->getRole() == model::table::ROLE_ADMIN) {
 			if (url_first_part == "/adminRegister") {
@@ -193,29 +180,20 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 				return basicSetup(new DebugMnemonicPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/checkUserBackups") {
-				return basicSetup(new AdminCheckUserBackup(s), request, timeUsed);
+				return basicSetup(new AdminCheckUserBackupPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/adminUserPasswordReset") {
-				return basicSetup(new AdminUserPasswordReset(s), request, timeUsed);
+				return basicSetup(new AdminUserPasswordResetPage(s), request, timeUsed);
 			}
 			if (url_first_part == "/groups") {
 				return basicSetup(new AdminGroupsPage(s), request, timeUsed);
-			}
-			if (url_first_part == "/topic") {
-				return basicSetup(new AdminTopicPage(s), request, timeUsed);
-			}
-			if (url_first_part == "/hedera_account") {
-				return basicSetup(new AdminHederaAccountPage(s), request, timeUsed);
-			}
-			if (url_first_part == "/nodes") {
-				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
 			}
 		}
 
 		if(url_first_part == "/logout") {
 			sm->releaseSession(s);
 			// remove cookie(s)
-			
+
 			//printf("session released\n");
 			return basicSetup(new LoginPage(nullptr), request, timeUsed);
 		}
@@ -224,12 +202,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 				sm->releaseSession(s);
 
 				return basicSetup(new LoginPage(nullptr), request, timeUsed);
-			}			
+			}
 		}
 		auto sessionState = s->getSessionState();
 		//printf("session state: %s\n", s->getSessionStateString());
 		if (url_first_part == "/updateUserPassword") {
-			return basicSetup(new UpdateUserPasswordPage(s), request, timeUsed);
+			return basicSetup(new UserUpdatePasswordPage(s), request, timeUsed);
 		}
 		if (url_first_part == "/checkTransactions") {
 			return basicSetup(new CheckTransactionPage(s), request, timeUsed);
@@ -242,7 +220,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		if (url_first_part == "/login" || url_first_part == "/") {
 			return basicSetup(new LoginPage(s), request, timeUsed);
 		}
-		
+
 	} else {
 
 		if (url_first_part == "/config") {
@@ -250,6 +228,11 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 		}
 		else if (url_first_part == "/login") {
 			return basicSetup(new LoginPage(nullptr), request, timeUsed);
+		}
+	}
+	if (ServerConfig::g_ServerSetupType != ServerConfig::SERVER_TYPE_PRODUCTION) {
+		if (url_first_part == "/testUserGenerator") {
+			return basicSetup(new TestUserGenerator, request, timeUsed);
 		}
 	}
 	return basicSetup(new LoginPage(nullptr), request, timeUsed);
@@ -306,7 +289,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 			response.addCookie(Poco::Net::HTTPCookie("user", std::to_string(cookie_id)));
 			*/
 		}
-		else {	
+		else {
 			//sm->releaseSession(session);
 			return basicSetup(new CheckEmailPage(session), request, timeUsed);
 		}
@@ -318,7 +301,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		assert(session->getNewUser());
 		if (!session->getNewUser()->hasPassword()) {
 			// user has no password, maybe account created from elopage webhook
-			return basicSetup(new UpdateUserPasswordPage(session), request, timeUsed);
+			return basicSetup(new UserUpdatePasswordPage(session), request, timeUsed);
 		}
 		/*
 		//! \return 1 = konto already exist
@@ -326,7 +309,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		//!        -2 = critical error
 		//!         0 = ok
 		*/
-		// update session, mark as verified 
+		// update session, mark as verified
 		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
 		printf("[%s] return from update email verification: %d\n", __FUNCTION__, retUpdateEmailVerification);
 		if (0 == retUpdateEmailVerification) {
@@ -336,12 +319,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 				printf("return check email page\n");
 				pageRequestHandler = new CheckEmailPage(session);
 			} else if(SESSION_STATE_RESET_PASSWORD_REQUEST == session->getSessionState()) {
-				pageRequestHandler = new UpdateUserPasswordPage(session);
+				pageRequestHandler = new UserUpdatePasswordPage(session);
 			} else {
 				pageRequestHandler = new PassphrasePage(session);
 			}
 			return basicSetup(pageRequestHandler, request, timeUsed);
-			
+
 		}
 		else if (1 == retUpdateEmailVerification) {
 			//auto user = session->getUser();
@@ -359,7 +342,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		else if (-2 == retUpdateEmailVerification) {
 			return basicSetup(new Error500Page(session), request, timeUsed);
 		}
-		
+
 	}
 	if (session) {
 		sm->releaseSession(session);

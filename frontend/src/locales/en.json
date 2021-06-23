@@ -1,7 +1,7 @@
 {
   "message": "hello gradido !!",
   "welcome":"Welcome!",
-  "community": "Gemeinschaft",
+  "community": "Community",
   "logout":"Logout",
   "login":"Login",
   "signup": "Sign up",
@@ -13,23 +13,33 @@
   "back":"Back",
   "send":"Send",
   "transactions":"Transactions",
-  "language":"Sprache",
+  "language":"Language",
   "languages":{
     "de": "Deutsch",
     "en": "English"
   },
+  "decay": "Decay",
   "form": {
-    "attention": "Achtung! Bitte überprüfe alle deine Eingaben sehr genau. Du bist alleine Verantwortlich für deine Entscheidungen. Versendete Gradidos können nicht wieder zurück geholt werden.",
     "cancel":"Cancel",
+    "reset": "Reset",
     "close":"Close",
+    "edit": "Edit",
+    "save": "save",
     "receiver":"Receiver",
     "sender":"Sender",
+    "username":"Username",
     "firstname":"Firstname",
     "lastname":"Lastname",
+    "description": "Description",
     "email":"Email",
     "email_repeat":"Repeat Email",
     "password":"Password",
-    "password_repeat":"Repeat password",
+    "passwordRepeat":"Repeat password",
+    "password_old":"Old password",
+    "password_new":"New password",
+    "password_new_repeat":"Repeat new password",
+    "change": "change",
+    "change-password": "Change password",
     "amount":"Amount",
     "memo":"Message for the recipient",
     "message":"Message",
@@ -39,15 +49,28 @@
     "at":"at",
     "time":"Time",
     "send_now":"Send now",
-    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"maximale anzahl GDD zum versenden erreicht!",
-    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"THX",
-    "send_success":"Deine Zahlung wurde erfolgreich versendet."
+    "scann_code":"<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
+    "max_gdd_info":"Maximum number of GDDs to be sent has been reached!",
+    "send_check":"Confirm your payment. Please check all data again!",
+    "thx":"Thank you",
+    "sorry":"Sorry",
+    "send_transaction_success":"Your transaction was successfully completed",
+    "send_transaction_error":"Unfortunately, the transaction could not be executed!",
+    "validation": {
+      "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits",
+      "is-not": "You cannot send Gradidos to yourself",
+      "usernmae-unique": "The username is already taken.",
+      "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters."
+    },
+    "change_username_info": "Once saved, the username cannot be changed again!"
+  },
+  "error": {
+    "error":"Error",
+    "change-password": "Error while changing password"
   },
   "transaction":{
-    "show_part": "The last <strong>{count}</strong> transactions",
-    "show_all":"View all <strong>{count}</strong> transactions",
+    "show_all":"View all <strong>{count}</strong> transactions.",
+    "nullTransactions":"You don't have any transactions on your account yet.",
     "more": "more"
   },
   "site": {
@@ -75,7 +98,9 @@
     },
     "thx": {
       "title": "Thank you!",
-      "subtitle": "We have sent you an email."
+      "email": "We have sent you an email.",
+      "reset": "Your password has been changed.",
+      "register": "You are registred now."      
     },
     "overview":{
       "account_overview":"Account overview",
@@ -86,10 +111,12 @@
     "profil": {
       "transactions":"transactions",
       "activity": {
-        "chart":"Community Hours Chart",
         "new":"Register new community hours",
         "list":"My Community Hours List"
-      }      
+      },
+      "user-data": {
+        "change-success": "Your data has been saved."
+      }
     },
     "navbar" : {
       "my-profil":"My profile",
@@ -114,6 +141,6 @@
   },
   "reset-password": {
     "title": "Reset Password",
-    "text": "Now you can save a new password to login to the GRADIDO App in the future."
+    "text": "Now you can save a new password to login to the Gradido-App in the future."
   }
 }

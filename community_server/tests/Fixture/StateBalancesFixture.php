@@ -6,7 +6,7 @@ use Cake\TestSuite\Fixture\TestFixture;
 /**
  * StateBalancesFixture
  */
-class StateBalancesFixture extends TestFixture
+class StateBalancesFixture extends BaseTestFixture
 {
     /**
      * Fields
@@ -36,8 +36,11 @@ class StateBalancesFixture extends TestFixture
      */
     public function init()
     {
-        $this->records = [
+        $sql = [
+            [4, 4, '2021-05-27 17:47:50', '2021-05-27 17:47:50', 28808497],
+            [5, 1, '2021-05-27 17:47:51', '2021-05-27 17:47:50', 9823963]
         ];
+        $this->records = $this->sqlEntrysToRecords($sql, $this->fields);
         parent::init();
     }
 }

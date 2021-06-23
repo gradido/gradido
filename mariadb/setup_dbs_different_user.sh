@@ -3,12 +3,12 @@ COLOR_GREEN="\033[0;32m"
 COLOR_YELLOW="\e[33m"
 COLOR_NONE="\033[0m"
 
-LOGIN_DB_USER=gradido_login
-LOGIN_DB_NAME=gradido_login
+LOGIN_DB_USER=gradido_login_live
+LOGIN_DB_NAME=gradido_login_live
 LOGIN_DB_PASSWD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
 
-COMMUNITY_DB_USER=gradido_community
-COMMUNITY_DB_NAME=gradido_community
+COMMUNITY_DB_USER=gradido_community_live
+COMMUNITY_DB_NAME=gradido_community_live
 COMMUNITY_DB_PASSWD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
 
 # create table 
@@ -54,7 +54,7 @@ skeema push -p$LOGIN_DB_PASSWD
 
 cd ../../..
 # populate db of community-server
-cd community_server/skeema
+cd community_server/db/skeema
 sudo cat << EOF > .skeema
 [production]
 flavor=mariadb:10.3.25

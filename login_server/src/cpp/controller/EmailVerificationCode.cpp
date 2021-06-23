@@ -122,10 +122,7 @@ namespace controller {
 	std::string EmailVerificationCode::getLink()
 	{
 		std::string link = mBaseUrl;
-		if (ServerConfig::g_frontend_checkEmailPath.size() > 1 && ServerConfig::g_frontend_checkEmailPath.data()[0] != '/') {
-			link += '/';
-		}
-		link += ServerConfig::g_frontend_checkEmailPath;
+		
 		if (link.data()[link.size() - 1] != '/') {
 			link += '/';
 		}

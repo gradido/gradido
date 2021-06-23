@@ -7,7 +7,7 @@ const localVue = global.localVue
 describe('ContentFooter', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
@@ -98,6 +98,12 @@ describe('ContentFooter', () => {
         )
       })
 
+      it('links to the support', () => {
+        expect(wrapper.findAll('a.nav-link').at(4).attributes('href')).toEqual(
+          'https://gradido.net/en/contact/',
+        )
+      })
+
       describe('links are localized', () => {
         beforeEach(() => {
           mocks.$i18n.locale = 'de'
@@ -130,6 +136,12 @@ describe('ContentFooter', () => {
         it('links to the German whitepaper when locale is de', () => {
           expect(wrapper.findAll('a.nav-link').at(3).attributes('href')).toEqual(
             'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing',
+          )
+        })
+
+        it('links to the German support-page when locale is de', () => {
+          expect(wrapper.findAll('a.nav-link').at(4).attributes('href')).toEqual(
+            'https://gradido.net/de/contact/',
           )
         })
       })

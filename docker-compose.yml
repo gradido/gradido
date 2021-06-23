@@ -15,13 +15,13 @@ services:
       context: ./frontend
       target: production
     networks:
-      - external-net
+      - internal-net
     ports:
-      - 8080:8080
+      - 3000:3000
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT="8080"
+      # - PORT=3000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -38,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: ./mariadb/Dockerfile
-      target: mariadb_server
+      target: mariadb_server_test
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
@@ -47,7 +47,7 @@ services:
     ports: 
       - 3306:3306
     volumes: 
-      - db_vol:/var/lib/mysql      
+      - db_vol:/var/lib/mysql     
     
   #########################################################
   ## LOGIN SERVER #########################################
@@ -55,7 +55,6 @@ services:
   login-server:
     build: 
       context: ./login_server/
-      target: login_server
     depends_on:
       - mariadb
     networks: 
@@ -80,6 +79,7 @@ services:
     depends_on:
       - community-server
       - login-server
+      - frontend 
     ports:
       - 80:80
   
@@ -89,6 +89,7 @@ services:
   community-server:
     build: 
       context: .
+      target: community_server
       dockerfile: ./community_server/Dockerfile
     environment:
       - DB_PASSWORD=''

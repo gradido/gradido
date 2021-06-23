@@ -9,7 +9,6 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 #include "SingletonManager/PendingTasksManager.h"
-#include "SingletonManager/CronManager.h"
 
 #include "controller/User.h"
 
@@ -134,6 +133,9 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 #if defined(_WIN32) || defined(_WIN64)
 		log_Path = "./";
 #endif
+		if (mConfigPath != "") {
+			log_Path = "./";
+		}
 
 		// init speed logger
 		Poco::AutoPtr<Poco::SimpleFileChannel> speedLogFileChannel(new Poco::SimpleFileChannel(log_Path + "speedLog.txt"));
@@ -168,7 +170,11 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 
 		std::string cfg_Path = Poco::Path::config() + "grd_login/";
 		try {
-			loadConfiguration(cfg_Path + "grd_login.properties");
+				if(mConfigPath != "") {
+				    loadConfiguration(mConfigPath);
+ 				} else {
+					loadConfiguration(cfg_Path + "grd_login.properties");
+                }
 		}
 		catch (Poco::Exception& ex) {
 			errorLog.error("error loading config: %s", ex.displayText());
@@ -217,7 +223,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
                     errorLog.error("[Gradido_LoginServer::main] Poco Exception by register MySQL Connector: %s", ex.displayText());
                     return Application::EXIT_CONFIG;
 		}
-		
+
 		auto conn = ConnectionManager::getInstance();
 		//conn->setConnection()
 		//printf("try connect login server mysql db\n");
@@ -248,7 +254,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 			errorLog.error("[Gradido_LoginServer::main] error init server SSL Client");
 			return Application::EXIT_CONFIG;
 		}
-                
+
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 		controller::User::addMissingEmailHashes();
@@ -274,14 +280,12 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// load pending tasks not finished in last session
 		PendingTasksManager::getInstance()->load();
 		int php_server_ping = config().getInt("phpServer.ping", 600000);
-		CronManager::getInstance()->init(php_server_ping);
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
 
-		CronManager::getInstance()->stop();
 
 		// Stop the HTTPServer
 		srv.stop();

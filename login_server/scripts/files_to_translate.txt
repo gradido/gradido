@@ -1,0 +1,10 @@
+build/http_pages/LoginPage.cpp
+build/http_pages/CheckEmailPage.cpp
+build/http_pages/ResetPasswordPage.cpp
+build/http_pages/PassphrasePage.cpp
+src/cpp/model/Session.cpp
+src/cpp/model/email/Email.cpp
+src/cpp/model/email/EmailCustomReply.cpp
+src/cpp/model/email/EmailNotificationCreation.cpp
+src/cpp/model/email/EmailNotificationTransfer.cpp
+src/cpp/SingletonManager/SessionManager.cpp

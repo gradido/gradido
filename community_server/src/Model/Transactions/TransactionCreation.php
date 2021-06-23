@@ -72,7 +72,12 @@ class TransactionCreation extends TransactionBase {
       return $this->protoTransactionCreation->getReceiver()->getPubkey();
     }
     
-    
+    public function getReceiverUser() {
+        return $this->getStateUserFromPublickey($this->getReceiverPublic());
+    }
+    public function getTargetDate() {
+        return new FrozenDate($this->protoTransactionCreation->getTargetDate()->getSeconds());
+    }
     
     public function validate($sigPairs) {
       // check if receiver public is not in signature list
@@ -138,8 +143,9 @@ class TransactionCreation extends TransactionBase {
       return true;
     }
     
-    public function save($transaction_id, $firstPublic) 
+    public function save($transaction_id, $firstPublic, $received) 
     {
+      $stateBalancesTable = self::getTable('stateBalances');
       
       $transactionCreationEntity = $this->transactionCreationsTable->newEntity();
       $transactionCreationEntity->transaction_id = $transaction_id;
@@ -151,23 +157,27 @@ class TransactionCreation extends TransactionBase {
         $this->addError('TransactionCreation::save', 'couldn\'t get state user id');
         return false;
       }
+      
       $transactionCreationEntity->state_user_id = $receiverUserId;
       $transactionCreationEntity->amount = $this->getAmount();
       $transactionCreationEntity->target_date = $this->protoTransactionCreation->getTargetDate()->getSeconds();
       $target_date = new FrozenTime($transactionCreationEntity->target_date);
+      
+      $decayed_balance = $stateBalancesTable->calculateDecay($this->getAmount(), $target_date, $received);
+      
       if(!$this->transactionCreationsTable->save($transactionCreationEntity)) {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
         return false;
       }
       
       // update state balance
-      $final_balance = $this->updateStateBalance($receiverUserId, $this->getAmount(), $target_date);
+      $final_balance = $this->updateStateBalance($receiverUserId, $decayed_balance, $received);
       if(false === $final_balance) {
         return false;
       }
       
       // decay is a virtual field which is calculated from amount and now() - record_date
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $this->getAmount(), $target_date)) {
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $decayed_balance, $received)) {
           return false;
       }
       
@@ -199,6 +209,7 @@ class TransactionCreation extends TransactionBase {
                 ->send();
         } catch(Exception $e) {
 //          $this->addError('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+            $this->addWarning('TransactionCreation::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
           return false;
         }
       return true;

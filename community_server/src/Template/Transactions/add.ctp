@@ -35,7 +35,8 @@
         <?php
             echo $this->Form->control('state_group_id', ['options' => $stateGroups]);
             echo $this->Form->control('transaction_type_id', ['options' => $transactionTypes]);
-            echo $this->Form->control('received');
+            echo $this->Form->control('memo', ['type' => 'textarea']);
+            echo $this->Form->control('blockchain_type_id', ['options' => $blockchainTypes]);
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
