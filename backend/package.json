@@ -1,0 +1,17 @@
+{
+  "name": "gradido-backend",
+  "version": "0.0.1",
+  "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
+  "main": "index.js",
+  "repository": "https://github.com/gradido/gradido/backend",
+  "author": "Ulf Gebhardt",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-graphql": "^0.12.0",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.1.1",
+    "typeorm": "^0.2.34"
+  }
+}
