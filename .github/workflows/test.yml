@@ -335,7 +335,7 @@ jobs:
           report_name: Coverage Backend Community
           type: phpunit
           result_path: ./coverage/coverage.info
-          min_coverage: 14
+          min_coverage: 13
           token: ${{ github.token }}
 
   #test:
