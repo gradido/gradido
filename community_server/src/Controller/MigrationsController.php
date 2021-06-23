@@ -69,6 +69,14 @@ class MigrationsController extends AppController
                 [$stateBalancesTable, 'updateAllBalances']
             ];
             $new_db_version = 2;
+        } else if($current_db_version == 2) {
+            $commands = [
+                [$stateUserTransactionsTable, 'truncate'],
+                [$stateBalancesTable, 'truncate'],
+                [$transactionsTable, 'fillStateUserTransactions'],
+                [$stateBalancesTable, 'updateAllBalances']
+            ];
+            $new_db_version = 3;
         }
         
         $migration_result = $this->callFunctions($commands);

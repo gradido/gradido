@@ -151,7 +151,7 @@ class AppController extends Controller
         if($last_migration) {
             $current_db_version = $last_migration->db_version;
         }
-        $php_data_version = 2;
+        $php_data_version = 3;
         if($current_db_version < $php_data_version) {
             $this->redirect(['controller' => 'Migrations', 'action' => 'migrate', 'html' => $html, 'db_version' => $current_db_version]);
         }

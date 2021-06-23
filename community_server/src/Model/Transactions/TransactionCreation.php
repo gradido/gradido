@@ -163,7 +163,8 @@ class TransactionCreation extends TransactionBase {
       $transactionCreationEntity->target_date = $this->protoTransactionCreation->getTargetDate()->getSeconds();
       $target_date = new FrozenTime($transactionCreationEntity->target_date);
       
-      $decayed_balance = $stateBalancesTable->calculateDecay($this->getAmount(), $target_date, $received);
+      //$decayed_balance = $stateBalancesTable->calculateDecay($this->getAmount(), $target_date, $received);
+      $balance = $this->getAmount();
       
       if(!$this->transactionCreationsTable->save($transactionCreationEntity)) {
         $this->addError('TransactionCreation::save', 'error saving transactionCreation with errors: ' . json_encode($transactionCreationEntity->getErrors()));
@@ -171,13 +172,13 @@ class TransactionCreation extends TransactionBase {
       }
       
       // update state balance
-      $final_balance = $this->updateStateBalance($receiverUserId, $decayed_balance, $received);
+      $final_balance = $this->updateStateBalance($receiverUserId, $balance, $received);
       if(false === $final_balance) {
         return false;
       }
       
       // decay is a virtual field which is calculated from amount and now() - record_date
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $decayed_balance, $received)) {
+      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 1, $balance, $received)) {
           return false;
       }
       
