@@ -93,10 +93,10 @@ Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
 	result->set("state", "success");
 
 	//Poco::JSON::Object jsonResultObject;
-	Poco::JSON::Array  jsonUsersArray;
+	Poco::JSON::Array::Ptr jsonUsersArray = new Poco::JSON::Array;
 
 	for (auto it = results.begin(); it != results.end(); it++) {
-		jsonUsersArray.add((*it)->getJson());
+		jsonUsersArray->add((*it)->getJson());
 		(*it)->release();
 	}
 	results.clear();

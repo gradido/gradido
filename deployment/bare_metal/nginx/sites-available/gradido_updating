@@ -1,0 +1,29 @@
+
+server {
+        server_name _;
+        listen 80;
+        listen [::]:80;
+
+        include /etc/nginx/common/protect.conf;
+        include /etc/nginx/common/protect_add_header.conf;
+
+        root /var/www/html/;
+        index updating.html;
+
+        location /account {
+           alias /var/www/html/;
+           index updating.html; 
+        }
+        location /vue {
+           alias /var/www/html/;
+           index updating.html;
+        }
+
+        location ~ /\.ht {
+          deny  all;
+        }
+
+        access_log /var/log/nginx/access.log main;
+
+}
+

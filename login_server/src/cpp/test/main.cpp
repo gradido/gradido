@@ -177,9 +177,10 @@ int load(int argc, char* argv[]) {
 	// clean up and fill db
 	std::string tables[] = { 
 		"groups",
-		"users"
+		"users",
+		"user_roles"
 	};
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 3; i++) {
 		if (runMysql("TRUNCATE " + tables[i])) {
 			return -1;
 		}
@@ -204,7 +205,15 @@ int load(int argc, char* argv[]) {
 		<< "(4, 'Nikola_Tesla@email.de', 'Nikola', 'Tesla', 'Erfinder', 1914014100253540772, 0x1c199421a66070afb28cb7c37de98865b28924bff26161bb65faaf5695050ee3, 0xe38ca460ca748954b29d79f0e943eed3ba85e7e13b18f69349666e31a8e3b06c9df105171796b37b4201895a2f3fe8ec8bf58a181700caaa5752a94a968c50e90ebb6280002a056126b2055ff75d69d1, '2020-02-20 16:05:46', 1, 0, 'de', 0, 1), "
 		<< "(5, 'Elfenhausen@arcor.de', 'Thomas', 'Markuk', 'Elf', 8105871797752167168, 0x98d703f0ea1def3ef9e6265a76281d125a94c80665425bd7a844580ec1a2ce98, 0x63612a1d07d78a0c945d765a10a30d9de2be602e79e3f39268d731bc6f7fa945d7d04c638000bae089ac058263f52e7c1f2c3550b35b5727e41523f2f592781add65d12b8b8c0b3226f32174cfa1bcee, '2020-02-20 16:05:46', 1, 0, 'de', 0, 1), "
 		<< "(6, 'coin-info12@gradido.net', 'coin-info12', 'Test', 'Test Username', 9005874071610817324, 0xb3ee1c82a9877f664d05364106e259621b2e203bfbb5323edb7b597051efecc2, 0xa039da7d59e2475dd1aaa635f803ec1aeffc2506e7a96a934bf8d7cf4ac2a96dc962d4e1bdf8e11c5ce7e18189edc36014b89e9e72628004ec5901be6c407a955efb5142a1ee9a2f3aed888125a44aa2, '2020-02-20 16:05:47', 1, 0, 'de', 0, 1), "
-		<< "(7, 'AlexWesper@gmail.com', 'Alex', 'Wesper', 'Wespe', 7264393213873828644, 0x735a5c22ebe84ab1d6453991d50019b677b82b0663b023c30127ec906ee9b59a, 0xaec30051ad3ab2d2132a76e9dfe5a396d2dfbcc83a4eb27223b4da8803893959af9e29c6963f9e73eddc447cb3d3995527b94054e7fdecd7d5f8cb45c3954ff9bb2c9e0374f2124b3170301f990c5d7d, '2020-02-20 16:05:47', 1, 0, 'de', 0, 1); ";
+		<< "(7, 'AlexWesper@gmail.com', 'Alex', 'Wesper', 'Wespe', 7264393213873828644, 0x735a5c22ebe84ab1d6453991d50019b677b82b0663b023c30127ec906ee9b59a, 0xaec30051ad3ab2d2132a76e9dfe5a396d2dfbcc83a4eb27223b4da8803893959af9e29c6963f9e73eddc447cb3d3995527b94054e7fdecd7d5f8cb45c3954ff9bb2c9e0374f2124b3170301f990c5d7d, '2020-02-20 16:05:47', 0, 0, 'de', 0, 1); ";
+	if (runMysql(ss.str())) {
+		return -1;
+	}
+	ss.str(std::string());
+
+	ss << "INSERT INTO `user_roles` (`id`, `user_id`, `role_id`) VALUES"
+		<< "(1, 3, 1);";
+
 	if (runMysql(ss.str())) {
 		return -1;
 	}
