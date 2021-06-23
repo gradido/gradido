@@ -3,15 +3,12 @@ import express from 'express'
 import { graphqlHTTP } from 'express-graphql'
 import { createConnection } from 'typeorm'
 import { buildSchema } from 'type-graphql'
-// import resolvers from './graphql/resolvers'
-const resolvers: [string] = ['']
+import { BookResolver } from "./graphql/resolvers/BookResolver"
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
-  //const connection = await createConnection()
-  const schema = await buildSchema({
-      resolvers
-  })
+  const connection = await createConnection()
+  const schema = await buildSchema({ resolvers: [BookResolver]})
   const server = express();
 
   server.use('/api',
@@ -57,7 +54,7 @@ async function main() {
   // app.get("/playground", expressPlayground({ endpoint: "/graphql" }));
   server.listen(4000, () => {
     console.log(
-      `Server is running, GraphQL Playground available at http://localhost:4000/playground`,
+      `Server is running, GraphIQL available at http://localhost:4000/api`,
     );
   });
 }
