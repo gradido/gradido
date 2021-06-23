@@ -1,28 +1,29 @@
 import 'reflect-metadata'
 import express from 'express'
 import { graphqlHTTP } from 'express-graphql'
-import { createConnection } from 'typeorm'
+// import { createConnection } from 'typeorm'
 import { buildSchema } from 'type-graphql'
-import { BookResolver } from "./graphql/resolvers/BookResolver"
+import { BookResolver } from './graphql/resolvers/BookResolver'
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
-  const connection = await createConnection()
-  const schema = await buildSchema({ resolvers: [BookResolver]})
-  const server = express();
+  // const connection = await createConnection()
+  const schema = await buildSchema({ resolvers: [BookResolver] })
+  const server = express()
 
-  server.use('/api',
+  server.use(
+    '/api',
     graphqlHTTP({
       schema,
       graphiql: true,
       validationRules: [
-      /**
-       * This provides GraphQL query analysis to reject complex queries to your GraphQL server.
-       * This can be used to protect your GraphQL servers
-       * against resource exhaustion and DoS attacks.
-       * More documentation can be found (here)[https://github.com/ivome/graphql-query-complexity]
-       */
-      /*queryComplexity({
+        /**
+         * This provides GraphQL query analysis to reject complex queries to your GraphQL server.
+         * This can be used to protect your GraphQL servers
+         * against resource exhaustion and DoS attacks.
+         * More documentation can be found (here)[https://github.com/ivome/graphql-query-complexity]
+         */
+        /* queryComplexity({
         // The maximum allowed query complexity, queries above this threshold will be rejected
         maximumComplexity: 20,
         // The query variables. This is needed because the variables are not available
@@ -46,17 +47,15 @@ async function main() {
             defaultComplexity: 1,
           }),
         ],
-      }),*/
-    ],
-    })
+      }), */
+      ],
+    }),
   )
 
-  // app.get("/playground", expressPlayground({ endpoint: "/graphql" }));
   server.listen(4000, () => {
-    console.log(
-      `Server is running, GraphIQL available at http://localhost:4000/api`,
-    );
-  });
+    // eslint-disable-next-line no-console
+    console.log(`Server is running, GraphIQL available at http://localhost:4000/api`)
+  })
 }
 
 main()
