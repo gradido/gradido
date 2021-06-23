@@ -27,7 +27,7 @@ class AppRequestsController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow([
             'index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions',
-            'klicktippSubscribe', 'klicktippUnsubscribe'
+            'klicktippSubscribe', 'klicktippUnsubscribe', 'klicktippGetDetails'
         ]);
     }
     
@@ -393,7 +393,45 @@ class AppRequestsController extends AppController
     
     
     // ********************* klicktipp API ************************************
+    
+    private function klicktippLogin(&$klicktippConnector)
+    {
+        $klickTipp_config =  Configure::read('KlickTipp');
+        
+        $logged_in = $klicktippConnector->login($klickTipp_config['username'], $klickTipp_config['password']);
+        
+        if($logged_in) {
+            return true;
+        }
+        return false;
+    }
 
+    public function klicktippGetDetails($session_id = 0)
+    {
+        $login_result = $this->requestLogin($session_id, false);
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+        
+        $connector = new KlicktippConnector();
+        if(!$this->klicktippLogin($connector)) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'cannot login by klicktipp', 'details' => $connector->get_last_error()]);
+        }
+        $subscriber_id = $connector->subscriber_search($user['email']);
+        if(!$subscriber_id) {
+            return $this->returnJson(['state' => 'warning', 'msg' => 'not found', 'details' => $connector->get_last_error()]);
+        }
+        $subscriber = $connector->subscriber_get($subscriber_id);
+        if(!$subscriber) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'cannot get details', 'details' => $connector->get_last_error()]);
+        }
+        $connector->logout();
+        
+        return $this->returnJson(['state' => 'success', 'data' => $subscriber]);
+    }
+    
     public function klicktippSubscribe($session_id = 0)
     {
         $login_result = $this->requestLogin($session_id, false);
