@@ -15,7 +15,7 @@ module.exports = {
   // add your custom rules here
   rules: {
     'no-console': ['error'],
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': 'error',
     'prettier/prettier': [
       'error',
       {
