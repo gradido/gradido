@@ -5,12 +5,12 @@ import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'type-graphql'
 import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
-import LoginServerAPI = require('./graphql/datasources/loginServer')
+import { GroupResolver } from './graphql/resolvers/GroupResolver'
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
   // const connection = await createConnection()
-  const schema = await buildSchema({ resolvers: [BookResolver] })
+  const schema = await buildSchema({ resolvers: [BookResolver, GroupResolver] })
   const server = express()
 
   server.use(

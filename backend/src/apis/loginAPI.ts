@@ -1,7 +1,7 @@
 import axios from 'axios'
 import CONFIG from '../config'
 // eslint-disable-next-line no-unused-vars
-import regeneratorRuntime from 'regenerator-runtime'
+// import regeneratorRuntime from 'regenerator-runtime'
 
 // control email-text sended with email verification code
 const EMAIL_TYPE = {
@@ -24,14 +24,14 @@ const apiGet = async (url: string) => {
   }
 }
 
-const apiPost = async (url: string, payload: string) => {
+const apiPost = async (url: string, payload: any): Promise<any> => {
   try {
     const result = await axios.post(url, payload)
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
     if (result.data.state === 'warning') {
-      return { success: true, result: result.error }
+      return { success: true, result: result.data.errors }
     }
     if (result.data.state !== 'success') {
       throw new Error(result.data.msg)
@@ -39,6 +39,15 @@ const apiPost = async (url: string, payload: string) => {
     return { success: true, result }
   } catch (error) {
     return { success: false, result: error }
+  }
+}
+
+interface NetworkInfosResult {
+  state: string
+  msg?: string
+  errors: string[]
+  data: {
+    groups?: string[]
   }
 }
 
@@ -158,6 +167,9 @@ const loginAPI = {
   checkUsername: async (username: string, groupId = 1): Promise<any> => {
     return apiGet(CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`)
   },
+  getNetworkInfos: async (ask: string[]): Promise<NetworkInfosResult> => {
+    return (await apiPost(CONFIG.LOGIN_API_URL + `networkInfos`, { ask: ask })).result.data
+  },
 }
 
-export default loginAPI
+export { loginAPI, NetworkInfosResult }
