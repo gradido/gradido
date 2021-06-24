@@ -8,6 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "start": "node build/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts"
   },
