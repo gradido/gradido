@@ -1,5 +1,8 @@
 import { Resolver, Query, Mutation, Arg } from 'type-graphql'
 import { User } from '../models/User'
+import jwt from 'jsonwebtoken'
+import { LoginUserInput } from '../inputs/LoginUserInput'
+import { loginAPI, LoginResult } from '../../apis/loginAPI'
 // import { CreateBookInput } from '../inputs/CreateBookInput'
 // import { UpdateBookInput } from '../inputs/UpdateBookInput'
 
@@ -13,6 +16,12 @@ export class UserResolver {
   @Query(() => User)
   user(@Arg('id') id: string): Promise<User | undefined> {
     return User.findOne({ where: { id } })
+  }
+
+  @Mutation(() => User)
+  async login(@Arg('data') data: LoginUserInput): Promise<User> {
+    const loginResult: LoginResult = await loginAPI.login(data)
+    return loginResult.user ? loginResult.user : new User()
   }
 
   /*

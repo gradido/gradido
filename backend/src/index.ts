@@ -10,7 +10,7 @@ import { GroupResolver } from './graphql/resolvers/GroupResolver'
 
 async function main() {
   // const connection = await createConnection()
-  const schema = await buildSchema({ resolvers: [BookResolver, GroupResolver] })
+  const schema = await buildSchema({ resolvers: [BookResolver, GroupResolver, UserResolver] })
   const server = express()
 
   server.use(

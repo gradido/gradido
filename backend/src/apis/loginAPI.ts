@@ -1,5 +1,8 @@
 import axios from 'axios'
+import { graphql } from 'graphql'
 import CONFIG from '../config'
+import { User } from '../graphql/models/User'
+import { LoginUserInput } from '../graphql/inputs/LoginUserInput'
 // eslint-disable-next-line no-unused-vars
 // import regeneratorRuntime from 'regenerator-runtime'
 
@@ -51,13 +54,19 @@ interface NetworkInfosResult {
   }
 }
 
+interface LoginResult {
+  state: string
+  msg?: string
+  details?: number
+  info?: string
+  user?: User
+  // eslint-disable-next-line camelcase
+  session_id?: number
+}
+
 const loginAPI = {
-  login: async (email: string, password: string): Promise<any> => {
-    const payload: any = {
-      email,
-      password,
-    }
-    return apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', payload)
+  login: async (login: LoginUserInput): Promise<LoginResult> => {
+    return (await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', login)).result.data
   },
   logout: async (sessionId: number): Promise<any> => {
     const payload: any = { session_id: sessionId }
@@ -172,4 +181,4 @@ const loginAPI = {
   },
 }
 
-export { loginAPI, NetworkInfosResult }
+export { loginAPI, NetworkInfosResult, LoginResult }
