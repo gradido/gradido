@@ -47,7 +47,31 @@ services:
     ports: 
       - 3306:3306
     volumes: 
-      - db_vol:/var/lib/mysql     
+      - db_vol:/var/lib/mysql
+      
+  ########################################################
+  # BACKEND ##############################################
+  ########################################################
+  backend:
+    image: gradido/backend:latest
+    build:
+      context: ./backend
+      target: production
+    networks:
+      - internal-net
+    ports:
+      - 4000:4000
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      # Application only envs
+    #env_file:
+    #  - ./frontend/.env
     
   #########################################################
   ## LOGIN SERVER #########################################
