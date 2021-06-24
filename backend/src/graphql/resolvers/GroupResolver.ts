@@ -5,13 +5,10 @@ import { loginAPI, NetworkInfosResult } from '../../apis/loginAPI'
 export class GroupResolver {
   @Query(() => [Group])
   async groups(): Promise<Group[]> {
-    // eslint-disable-next-line no-console
-    console.log('group resolver')
     const result: NetworkInfosResult = await loginAPI.getNetworkInfos(['groups'])
     const groups: Group[] = []
 
     result.data.groups?.forEach((alias: string) => {
-      console.log("alias: ", alias)
       const group = new Group()
       group.alias = alias
       groups.push(group)
