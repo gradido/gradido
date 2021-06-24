@@ -7,7 +7,7 @@ on:
 
 jobs:
   ##############################################################################
-  # JOB: DOCKER BUILD COMMUNITY NEO4J ##########################################
+  # JOB: DOCKER BUILD PRODUCTION FRONTEND ######################################
   ##############################################################################
   build_production_frontend:
     name: Docker Build Production - Frontend
@@ -42,6 +42,43 @@ jobs:
         with:
           name: docker-frontend-production
           path: /tmp/frontend.tar
+
+  ##############################################################################
+  # JOB: DOCKER BUILD PRODUCTION BACKEND #######################################
+  ##############################################################################
+  build_production_backend:
+    name: Docker Build Production - Backend
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # SET ENVS ###############################################################
+      ##########################################################################
+      - name: ENV - VERSION
+        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
+      - name: ENV - BUILD_DATE
+        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      - name: ENV - BUILD_VERSION
+        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: ENV - BUILD_COMMIT
+        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+      ##########################################################################
+      # BACKEND ################################################################
+      ##########################################################################
+      - name: Backend | Build `production` image
+        run: |
+          docker build --target production -t "gradido/backend:latest" -t "gradido/backend:production" -t "gradido/backend:${VERSION}" -t "gradido/backend:${BUILD_VERSION}" backend/
+          docker save "gradido/backend" > /tmp/backend.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-backend-production
+          path: /tmp/backend.tar
 
   ##############################################################################
   # JOB: DOCKER BUILD PRODUCTION LOGIN SERVER ##################################
@@ -199,7 +236,7 @@ jobs:
   upload_to_dockerhub:
     name: Upload to Dockerhub
     runs-on: ubuntu-latest
-    needs: [build_production_frontend, build_production_login_server, build_production_community_server, build_production_mariadb, build_production_nginx]
+    needs: [build_production_frontend, build_production_backend, build_production_login_server, build_production_community_server, build_production_mariadb, build_production_nginx]
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -212,13 +249,20 @@ jobs:
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
-      - name: Download Docker Image (Neo4J)
+      - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v2
         with:
           name: docker-frontend-production
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
+      - name: Download Docker Image (Backend)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-backend-production
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/backend.tar
       - name: Download Docker Image (Login Server)
         uses: actions/download-artifact@v2
         with:
@@ -254,6 +298,8 @@ jobs:
         run: echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
       - name: Push frontend
         run: docker push --all-tags gradido/frontend
+      - name: Push backend
+        run: docker push --all-tags gradido/backend
       - name: Push login_server
         run: docker push --all-tags gradido/login_server
       - name: Push community_server
