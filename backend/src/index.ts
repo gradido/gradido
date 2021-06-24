@@ -4,6 +4,8 @@ import { graphqlHTTP } from 'express-graphql'
 // import { createConnection } from 'typeorm'
 import { buildSchema } from 'type-graphql'
 import { BookResolver } from './graphql/resolvers/BookResolver'
+import { UserResolver } from './graphql/resolvers/UserResolver'
+import LoginServerAPI = require('./graphql/datasources/loginServer')
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
