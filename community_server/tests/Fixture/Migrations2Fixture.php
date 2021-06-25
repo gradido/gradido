@@ -37,7 +37,7 @@ class Migrations2Fixture extends TestFixture
         $this->records = [
             [
                 'id' => 1,
-                'db_version' => 2,
+                'db_version' => 3,
             ],
         ];
         parent::init();
