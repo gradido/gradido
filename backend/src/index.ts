@@ -7,6 +7,8 @@ import CONFIG from './config'
 
 // TODO move to extern
 import { BookResolver } from './graphql/resolvers/BookResolver'
+import { ed25519Resolver } from './graphql/resolvers/ed25519AddressResolver'
+import { graphql } from 'graphql'
 // import { UserResolver } from './graphql/resolvers/UserResolver'
 // import { GroupResolver } from './graphql/resolvers/GroupResolver'
 // TODO implement
@@ -14,7 +16,9 @@ import { BookResolver } from './graphql/resolvers/BookResolver'
 
 async function main() {
   // const connection = await createConnection()
-  const schema = await buildSchema({ resolvers: [BookResolver /*, GroupResolver, UserResolver */] })
+  const schema = await buildSchema({
+    resolvers: [BookResolver, ed25519Resolver /*, GroupResolver, UserResolver */],
+  })
   const server = express()
   const validationRules: [] = [
     /**
