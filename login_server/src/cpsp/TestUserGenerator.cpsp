@@ -18,6 +18,7 @@
     std::string email;
     std::string password_hashed;
     std::string pubkey_hex;
+    std::string chaincode_hex;
     std::string privkey_hex_encrypted;
     std::string passphrase_str;
 
@@ -43,6 +44,7 @@
             auto privkey_encrypted = key_pair->getCryptedPrivKey(secret_key);
             privkey_hex_encrypted = DataTypeConverter::binToHex(privkey_encrypted);
             pubkey_hex = key_pair->getPublicKeyHex();
+            chaincode_hex = key_pair->getChainCodeHex();
             user_created = true;
             delete key_pair;
 		}
@@ -85,6 +87,10 @@
                 <div class="row">
                     <div class="cell header-cell c4">public key</div>
                     <div class="cell c5">0x<%= pubkey_hex %></div>
+                </div>
+                <div class="row">
+                    <div class="cell header-cell c4">chain code</div>
+                    <div class="cell c5">0x<%= chaincode_hex %></div>
                 </div>
                 <div class="row">
                     <div class="cell header-cell c4">private key encrypted</div>
