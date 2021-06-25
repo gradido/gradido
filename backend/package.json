@@ -21,6 +21,7 @@
     "graphql": "^15.5.1",
     "jsonwebtoken": "^8.5.1",
     "reflect-metadata": "^0.1.13",
+    "sbffi": "^1.0.4",
     "type-graphql": "^1.1.1",
     "typeorm": "^0.2.34"
   },

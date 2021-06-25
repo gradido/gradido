@@ -1,0 +1,15 @@
+[package]
+name = "gradido_ed25519_bip32"
+version = "0.1.0"
+edition = "2018"
+authors = ["Dario Rekowski <dario.rekowski@gmx.de>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["dylib"]
+
+[dependencies]
+libc = "0.2"
+ed25519-bip32 = "0.4.0"
+
