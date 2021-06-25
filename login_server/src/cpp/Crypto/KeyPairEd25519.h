@@ -40,7 +40,9 @@ public:
 	bool verify(const std::string& message, const std::string& signature) const;
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
+	inline MemoryBin* getChainCode() const { return mChainCode; }
 	inline std::string getPublicKeyHex() const { return DataTypeConverter::binToHex(mSodiumPublic, getPublicKeySize()); }
+	inline std::string getChainCodeHex() const { return DataTypeConverter::binToHex(mChainCode); }
 	const static size_t getPublicKeySize() { return crypto_sign_PUBLICKEYBYTES; }
 
 	inline bool isTheSame(const KeyPairEd25519& b) const {
@@ -86,6 +88,7 @@ private:
 	
 	//! TODO: replace MemoryBin by a memory obfuscation class which make it hard to steal the private key from memory
 	MemoryBin* mSodiumSecret;
+	MemoryBin* mChainCode;
 
 	// 32 Byte
 	//! \brief ed25519 libsodium public key

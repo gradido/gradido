@@ -9,7 +9,7 @@
 
 
 KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
-	: mSodiumSecret(privateKey)
+	: mSodiumSecret(privateKey), mChainCode(nullptr)
 {
 	//memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
 	// read pubkey from private key, so we are sure it is the correct pubkey for the private key
@@ -18,22 +18,27 @@ KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
 }
 
 KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey)
-	: mSodiumSecret(nullptr)
+	: mSodiumSecret(nullptr), mChainCode(nullptr)
 {
 	memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
 }
 
 KeyPairEd25519::KeyPairEd25519()
-	: mSodiumSecret(nullptr)
+	: mSodiumSecret(nullptr), mChainCode(nullptr)
 {
 	memset(mSodiumPublic, 0, crypto_sign_PUBLICKEYBYTES);
 }
 
 KeyPairEd25519::~KeyPairEd25519()
 {
+	auto mm = MemoryManager::getInstance();
 	if (mSodiumSecret) {
-		MemoryManager::getInstance()->releaseMemory(mSodiumSecret);
+		mm->releaseMemory(mSodiumSecret);
 		mSodiumSecret = nullptr;
+	}
+	if (mChainCode) {
+		mm->releaseMemory(mChainCode);
+		mChainCode = nullptr;
 	}
 }
 
@@ -94,8 +99,12 @@ KeyPairEd25519* KeyPairEd25519::create(const Poco::AutoPtr<Passphrase> passphras
 	if (!key_pair->mSodiumSecret) {
 		key_pair->mSodiumSecret = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
 	}
+	if (!key_pair->mChainCode) {
+		key_pair->mChainCode = mm->getFreeMemory(32);
+	}
 
 	crypto_sign_seed_keypair(key_pair->mSodiumPublic, *key_pair->mSodiumSecret, hash);
+	memcpy(key_pair->mChainCode->data(), &hash[32], 32);
 	
 	return key_pair;
 
