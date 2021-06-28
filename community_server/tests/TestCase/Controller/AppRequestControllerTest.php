@@ -288,9 +288,14 @@ class AppRequestControllerTest extends TestCase
             }
             // decay balance variy always
             if(isset($expected['transactions'])) {
+                $dynamic_transaction_fields = ['decay_duration', 'balance'];
                 foreach($expected['transactions'] as $i => $transaction) {
-                    if(isset($transaction['type']) && isset($transaction['balance']) && $transaction['type'] == 'decay') {
-                        $expected['transactions'][$i]['balance'] = $json->transactions[$i]['balance'];
+                    if(isset($transaction['type']) && $transaction['type'] == 'decay') {
+                        foreach($dynamic_transaction_fields as $field) {
+                            if(isset($transaction[$field])) {
+                                $expected['transactions'][$i][$field] = $json->transactions[$i][$field];
+                            }
+                        }
                     }
                 }
             }
