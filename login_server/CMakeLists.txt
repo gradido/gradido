@@ -13,6 +13,8 @@ ENDIF()
 set(INSTALL_BINDIR "bin")
 set(INSTALL_PLUGINDIR "bin")
 
+set(RUST_MODULES_ROOT "../backend/rust_modules")
+
 include_directories(
 	"dependencies" 
 	"dependencies/tinf/src/" 
@@ -24,6 +26,7 @@ include_directories(
 	"build/proto"
 	"build/http_pages"
 	"src/cpp"
+	"${RUST_MODULES_ROOT}/gradido_ed25519_bip32/include/"
 )
 
 IF(UNIX)
@@ -251,6 +254,14 @@ IF(UNIX)
 	set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
 ENDIF()
 
+############################## bind rust modules ###################################
+
+if(WIN32)
+	find_library(RUST_ED25519_BIP32_D gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/debug")
+	find_library(RUST_ED25519_BIP32 gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/release")
+else()
+
+endif()
 
 ############################## build login server ###################################
 
@@ -258,6 +269,8 @@ target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS})
+	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
+	target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
