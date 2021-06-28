@@ -6,8 +6,7 @@
 void TestEd25519Bip32::SetUp()
 {
 	for (int i = 0; i < 5; i++) {
-		std::string passphrase_temp;
-		Poco::AutoPtr<Passphrase> passphrase = new Passphrase(passphrase_temp, &ServerConfig::g_Mnemonic_WordLists[0]);
+		Poco::AutoPtr<Passphrase> passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[2]);
 		mED25519KeyPairs.push_back(KeyPairEd25519::create(passphrase));
 	}
 }
@@ -22,9 +21,12 @@ void TestEd25519Bip32::TearDown()
 
 TEST_F(TestEd25519Bip32, TestPrivateToPublic)
 {
+	auto mm = MemoryManager::getInstance();
+	auto public_key_temp = mm->getFreeMemory(crypto_sign_PUBLICKEYBYTES);
 	for (auto it = mED25519KeyPairs.begin(); it != mED25519KeyPairs.end(); it++) {
-		hello_world();
+
+		EXPECT_TRUE(getPublicFromPrivateKey((*it)->getPrivKey()->data(), public_key_temp->data()));
 		//const char* public_key = getPublicFromPrivateKey((const char*)(*it)->getPrivKey()->data());
-		//ASSERT_TRUE((*it)->isTheSame((const unsigned char*)public_key));
+		ASSERT_TRUE((*it)->isTheSame(*public_key_temp));
 	}
 }

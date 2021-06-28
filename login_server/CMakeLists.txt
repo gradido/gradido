@@ -257,8 +257,8 @@ ENDIF()
 ############################## bind rust modules ###################################
 
 if(WIN32)
-	find_library(RUST_ED25519_BIP32_D gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/debug")
-	find_library(RUST_ED25519_BIP32 gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/release")
+	find_library(RUST_ED25519_BIP32_D gradido_ed25519_bip32.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/debug")
+	find_library(RUST_ED25519_BIP32 gradido_ed25519_bip32.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/release")
 else()
 
 endif()
