@@ -8,6 +8,7 @@ authors = ["Dario Rekowski <dario.rekowski@gmx.de>"]
 
 [lib]
 crate-type = ["dylib"]
+# crate-type = ["staticlib"]
 
 [dependencies]
 libc = "0.2"

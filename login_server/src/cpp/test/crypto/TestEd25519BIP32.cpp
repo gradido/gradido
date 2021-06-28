@@ -22,5 +22,9 @@ void TestEd25519Bip32::TearDown()
 
 TEST_F(TestEd25519Bip32, TestPrivateToPublic)
 {
-
+	for (auto it = mED25519KeyPairs.begin(); it != mED25519KeyPairs.end(); it++) {
+		hello_world();
+		//const char* public_key = getPublicFromPrivateKey((const char*)(*it)->getPrivKey()->data());
+		//ASSERT_TRUE((*it)->isTheSame((const unsigned char*)public_key));
+	}
 }

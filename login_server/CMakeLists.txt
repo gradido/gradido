@@ -269,8 +269,8 @@ target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS})
-	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
-	target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
+	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32})
+	#target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
@@ -353,7 +353,7 @@ project(Gradido_LoginServer_Test C CXX)
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} )
+target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} ${RUST_ED25519_BIP32})
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf)

@@ -25,3 +25,8 @@ pub extern "C" fn derivePrivateKey(public_key: *const libc::c_char, chain_code: 
 pub extern "C" fn getPublicFromPrivateKey(private_key: *const libc::c_char) -> *const libc::c_char {
     CString::new("publicFromPrivate").unwrap().into_raw()
 }
+
+#[no_mangle]
+pub extern "C" fn helloWorld() {
+
+}

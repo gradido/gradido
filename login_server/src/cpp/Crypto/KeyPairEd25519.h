@@ -72,6 +72,7 @@ public:
 
 	//! \brief only way to get a private key.. encrypted
 	MemoryBin* getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const;
+	const MemoryBin* getPrivKey() const { return mSodiumSecret; }
 
 protected:	
 	
