@@ -194,7 +194,7 @@ class TransactionsTable extends Table
                     
                     if($balance > 100) 
                     {
-                      $final_transactions['decay'] = [ 
+                      $final_transaction['decay'] = [ 
                           'balance' => $balance,
                           'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds')
                       ];       
