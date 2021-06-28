@@ -1,9 +1,15 @@
 <template>
-  <validation-provider tag="div" :rules="rules" :name="name" v-slot="{ errors, valid, validated }">
+  <validation-provider
+    tag="div"
+    :rules="rules"
+    :name="name"
+    v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
+  >
     <b-form-group :label="label" :label-for="labelFor">
       <b-input-group>
         <b-form-input
           v-model="currentValue"
+          v-bind="ariaInput"
           :id="labelFor"
           :name="name"
           :placeholder="placeholder"
@@ -15,7 +21,7 @@
             <b-icon :icon="showPassword ? 'eye' : 'eye-slash'" />
           </b-button>
         </b-input-group-append>
-        <b-form-invalid-feedback>
+        <b-form-invalid-feedback v-bind="ariaMsg">
           {{ errors[0] }}
         </b-form-invalid-feedback>
       </b-input-group>
@@ -28,13 +34,15 @@ export default {
   props: {
     rules: {
       default: () => {
-        required: true
+        return {
+          required: true,
+        }
       },
     },
-    name: { default: '' },
-    label: { default: 'Password' },
-    placeholder: { default: 'Password' },
-    model: { required: true, type: String },
+    name: { type: String, default: 'password' },
+    label: { type: String, default: 'Password' },
+    placeholder: { type: String, default: 'Password' },
+    value: { required: true, type: String },
   },
   data() {
     return {
@@ -49,14 +57,12 @@ export default {
   },
   methods: {
     toggleShowPassword() {
-      console.log('toggleShowPassword', this.placeholder)
       this.showPassword = !this.showPassword
     },
   },
   watch: {
-    currentValue(val) {
-      console.log('currentValue', val)
-      this.$emit('input', val)
+    currentValue() {
+      this.$emit('input', this.currentValue)
     },
   },
 }

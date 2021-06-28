@@ -23,8 +23,8 @@
                 <small>{{ $t('login') }}</small>
               </div>
 
-              <validation-observer ref="observer" v-slot="{ handleSubmit }">
-                <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+              <validation-observer ref="observer" v-slot="{ passes }">
+                <b-form @submit.stop.prevent="passes(onSubmit)">
                   <validation-provider
                     name="Email"
                     :rules="{ required: true, email: true }"
@@ -47,10 +47,9 @@
                   </validation-provider>
 
                   <input-password
-                    name="password"
                     :label="$t('form.password')"
                     :placeholder="$t('form.password')"
-                    model="form.password"
+                    v-model="form.password"
                   ></input-password>
 
                   <b-alert v-show="loginfail" show dismissible variant="warning">
@@ -116,7 +115,6 @@ export default {
     },
     async onSubmit() {
       // error info  ausschalten
-      console.log('submit', this.form.password)
       this.loginfail = false
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
