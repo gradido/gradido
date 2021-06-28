@@ -171,13 +171,13 @@ Gradido Login-Server\n\
 		switch (mType) {
 		case EMAIL_DEFAULT:
 			mailMessage->addRecipient(adminRecipient);
-			mailMessage->setSubject(langCatalog->gettext_str("Default Email Subject"));
+			mailMessage->setSubject(langCatalog->gettext("Default Email Subject"));
 			mailMessage->addContent(new Poco::Net::StringPartSource(langCatalog->gettext_str("Empty Email Content"), mt.toString()));
 			break;
 
 		case EMAIL_ERROR:
 			mailMessage->addRecipient(adminRecipient);
-			mailMessage->setSubject(langCatalog->gettext_str("Error from Gradido Login Server"));
+			mailMessage->setSubject(langCatalog->gettext("Error from Gradido Login Server"));
 			mailMessage->addContent(new Poco::Net::StringPartSource(mErrorHtml, mt.toString()));
 			break;
 
@@ -197,7 +197,7 @@ Gradido Login-Server\n\
 				return false;
 			}
 			mailMessage->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mUser->getModel()->getEmail()));
-			mailMessage->setSubject(langCatalog->gettext_str("Gradido: E-Mail Verification"));
+			mailMessage->setSubject(langCatalog->gettext("Gradido: E-Mail Verification"));
 
 			messageTemplate = EmailText_emailVerification;
 			if (EMAIL_USER_VERIFICATION_CODE_RESEND == mType) {
@@ -243,7 +243,7 @@ Gradido Login-Server\n\
 				return false;
 			}
 			mailMessage->addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, mUser->getModel()->getEmail()));
-			mailMessage->setSubject(langCatalog->gettext_str(u8"Gradido: Passwort zurücksetzen"));
+			mailMessage->setSubject(langCatalog->gettext("Gradido: Reset Password"));
 
 			mailMessage->addContent(
 				new Poco::Net::StringPartSource(replaceUserNamesAndLink(
