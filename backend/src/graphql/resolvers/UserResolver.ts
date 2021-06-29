@@ -51,7 +51,12 @@ export class UserResolver {
     }
 
     // create and return the json web token
-    return jwt.sign({ result }, CONFIG.JWT_SECRET, { expiresIn: CONFIG.JWT_EXPIRES_IN })
+    // The expire doesn't help us here. The client needs to track when the token expires on its own,
+    // since every action prolongs the time the session is valid.
+    return jwt.sign(
+      { result, role: 'todo' },
+      CONFIG.JWT_SECRET /* , { expiresIn: CONFIG.JWT_EXPIRES_IN } */,
+    )
     // return (await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', login)).result.data
     // const loginResult: LoginResult = await loginAPI.login(data)
     // return loginResult.user ? loginResult.user : new User()
