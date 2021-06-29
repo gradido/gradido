@@ -151,7 +151,7 @@ class AppController extends Controller
         if($last_migration) {
             $current_db_version = $last_migration->db_version;
         }
-        $php_data_version = 2;
+        $php_data_version = 3;
         if($current_db_version < $php_data_version) {
             $this->redirect(['controller' => 'Migrations', 'action' => 'migrate', 'html' => $html, 'db_version' => $current_db_version]);
         }
@@ -289,7 +289,7 @@ class AppController extends Controller
                             }
                         } else {
                             if(!$redirect) {
-                                return ['state' => 'not found', 'msg' => 'invalid session'];
+                                return ['state' => 'not found', 'msg' => 'invalid session', 'details' => $json];
                             }
                             if ($json['state'] === 'not found') {
                                 $this->Flash->error(__('invalid session'));

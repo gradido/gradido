@@ -10,8 +10,6 @@
 
 Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 {
-	
-	int session_id = 0;
 	auto sm = SessionManager::getInstance();
 	auto pt = PendingTasksManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();

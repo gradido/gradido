@@ -56,9 +56,9 @@ namespace model {
 						try {
 							auto res = select.execute();
 							if (1 == res) { return true; }
-							
+
 						}
-						catch (Poco::Exception& ex) {							
+						catch (Poco::Exception& ex) {
 							addError(new ParamError(getTableName(), "mysql error by select id", ex.displayText().data()));
 							addError(new ParamError(getTableName(), "data set: ", toString().data()));
 						}
@@ -126,20 +126,22 @@ namespace model {
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			mReferenceCount++;
-			//printf("[ModelBase::duplicate] new value: %d\n", mReferenceCount);
 		}
 
 		void ModelBase::release()
 		{
-			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+            if(mReferenceCount <= 0) {
+                throw Poco::Exception("ModelBase already released", getTableName());
+            }
+
+            Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
 			mReferenceCount--;
-			//printf("[ModelBase::release] new value: %d\n", mReferenceCount);
+
 			if (0 == mReferenceCount) {
-				
 				delete this;
 				return;
 			}
-
 		}
 
 		Poco::Data::Statement ModelBase::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
@@ -180,7 +182,7 @@ namespace model {
 			Poco::Mutex& timeMutex = ServerConfig::g_TimeMutex;
 
 			int year, month, day, hour, minute, second;
-			// ex: 2009-10-29 
+			// ex: 2009-10-29
 			if (sscanf(decodedDateString.data(), "%d-%d-%dT%d:%dZ", &year, &month, &day, &hour, &minute) != EOF) {
 				time_t rawTime;
 				time(&rawTime);

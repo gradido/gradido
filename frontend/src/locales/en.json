@@ -39,6 +39,7 @@
     "password_new":"New password",
     "password_new_repeat":"Repeat new password",
     "change": "change",
+    "change-password": "Change password",
     "amount":"Amount",
     "memo":"Message for the recipient",
     "message":"Message",
@@ -65,7 +66,8 @@
   },
   "error": {
     "error":"Error",
-    "no-account": "Unfortunately we could not find an account to the given data!"
+    "no-account": "Unfortunately we could not find an account to the given data!",
+    "change-password": "Error while changing password"
   },
   "transaction":{
     "show_all":"View all <strong>{count}</strong> transactions.",

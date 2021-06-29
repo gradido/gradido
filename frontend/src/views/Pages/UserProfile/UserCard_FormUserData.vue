@@ -31,7 +31,7 @@
       <b-container>
         <b-form @keyup.prevent="loadSubmitButton">
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
               <small>{{ $t('form.firstname') }}</small>
             </b-col>
             <b-col v-if="showUserData" class="col-sm-10 col-md-9">
@@ -42,7 +42,7 @@
             </b-col>
           </b-row>
           <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
+            <b-col class="col-12 col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
               <small>{{ $t('form.lastname') }}</small>
             </b-col>
             <b-col v-if="showUserData" class="col-sm-10 col-md-9">
@@ -52,8 +52,8 @@
               <b-input type="text" v-model="form.lastName"></b-input>
             </b-col>
           </b-row>
-          <b-row class="mb-3">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+          <b-row class="mb-3" v-show="false">
+            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
               <small>{{ $t('form.description') }}</small>
             </b-col>
             <b-col v-if="showUserData" class="col-sm-10 col-md-9">

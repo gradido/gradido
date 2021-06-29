@@ -8,7 +8,7 @@
         <div class="card-profile-stats d-flex justify-content-center mt-md-5">
           <div>
             <span class="heading">
-              {{ $n(balance) }}
+              {{ $n(balance, 'decimal') }}
             </span>
             <span class="description">GDD</span>
           </div>

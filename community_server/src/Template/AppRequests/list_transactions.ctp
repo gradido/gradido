@@ -12,12 +12,15 @@ $body['gdtSum'] = $this->element('centToFloat', ['cent' => $body['gdtSum'], 'pre
 
 foreach($body['transactions'] as $i => $transaction) {
     $useCeil = false;
-    if(isset($transaction['last_decay']) && $transaction['last_decay']) {
+    if($transaction['type'] == 'decay') {
         $useCeil = true;
     }
     $body['transactions'][$i]['balance'] = $this->element('centToFloat', ['cent' => $transaction['balance'], 'precision' => 4, 'useCeil' => $useCeil]);
     if(isset($transaction['creation_amount'])) {
         $body['transactions'][$i]['creation_amount'] = $this->element('centToFloat', ['cent' => $transaction['creation_amount'], 'precision' => 4]);
+    }
+    if(isset($transaction['decay'])) {
+        $body['transactions'][$i]['decay']['balance'] = $this->element('centToFloat', ['cent' => $transaction['decay']['balance'], 'precision' => 4]);
     }
 }
 

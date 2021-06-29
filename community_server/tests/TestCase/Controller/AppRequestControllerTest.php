@@ -111,7 +111,9 @@ class AppRequestControllerTest extends TestCase
         ]);
    
         $this->getAndParse('/api/get-balance/' . 1211, 
-                ['state' => 'not found', 'msg' => 'invalid session']
+                ['state' => 'not found', 'msg' => 'invalid session', 
+                    'details' => ['msg' => 'session not found', 'state' => 'not found']
+                ]
         );
     }
     
@@ -128,7 +130,9 @@ class AppRequestControllerTest extends TestCase
         ]);
         
         $this->getAndParse('/api/get-balance/' , 
-                ['state' => 'not found', 'msg' => 'invalid session']
+                ['state' => 'not found', 'msg' => 'invalid session',
+                    'details' => ['msg' => 'session not found', 'state' => 'not found']
+                ]
         );
     }
 
@@ -158,81 +162,81 @@ class AppRequestControllerTest extends TestCase
 	"state": "success",
 	"transactions": [
 		{
-			"name": "Gradido Akademie",
-			"type": "creation",
 			"transaction_id": 2,
 			"date": "2021-04-12T00:00:00+00:00",
+			"memo": "AGE Januar 2021",
+			"name": "Gradido Akademie",
+			"type": "creation",
 			"target_date": "2021-01-01T00:00:00+00:00",
 			"creation_amount": 10000000,
-			"balance": 10000000,
-			"memo": "AGE Januar 2021"
+			"balance": 10000000
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "send",
 			"transaction_id": 3,
 			"date": "2021-04-12T00:00:00+00:00",
-			"balance": 1000000,
 			"memo": "test",
-			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2"
+			"balance": 1000000,
+			"type": "send",
+			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "send",
 			"transaction_id": 4,
 			"date": "2021-04-14T00:00:00+00:00",
-			"balance": 100000,
 			"memo": "test time",
-			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2"
+			"balance": 100000,
+			"type": "send",
+			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "send",
 			"transaction_id": 5,
 			"date": "2021-04-14T09:01:07+00:00",
-			"balance": 100000,
 			"memo": "test time",
-			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2"
+			"balance": 100000,
+			"type": "send",
+			"pubkey": "e3369de3623ce8446d0424c4013e7a1d71a2671ae3d7bf1e798ebf0665d145f2",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "receive",
 			"transaction_id": 6,
 			"date": "2021-04-14T09:02:28+00:00",
-			"balance": 100000,
 			"memo": "test time 3",
-			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000"
+			"balance": 100000,
+			"type": "receive",
+			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "receive",
 			"transaction_id": 7,
 			"date": "2021-04-14T09:28:46+00:00",
-			"balance": 100000,
 			"memo": "test login crash",
-			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000"
+			"balance": 100000,
+			"type": "receive",
+			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		},
 		{
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com",
-			"type": "receive",
 			"transaction_id": 8,
 			"date": "2021-04-14T09:31:28+00:00",
-			"balance": 100000,
 			"memo": "test login crash",
-			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000"
+			"balance": 100000,
+			"type": "receive",
+			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
 		}
 	],
 	"transactionExecutingCount": 0,
 	"count": 7,
 	"gdtSum": 180000,
-	"timeUsed": 0.5575470924377441,
-	"decay_date": "2021-05-28T09:35:02+00:00",
+	"timeUsed": 0.7237420082092285,
+	"decay_date": "2021-06-22T08:54:43+00:00",
 	"balance": 9100000,
 	"decay": 9100000
 }';

@@ -102,19 +102,17 @@ const loginAPI = {
     const payload = {
       session_id: sessionId,
       email,
-      update: {
-        'User.password': password,
-      },
+      password,
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+    return apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
   },
   changePasswordProfile: async (sessionId, email, password, passwordNew) => {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.password': password,
-        'User.passwordNew': passwordNew,
+        'User.password_old': password,
+        'User.password': passwordNew,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)

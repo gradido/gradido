@@ -1,4 +1,9 @@
 
+
+# Login Server build which contain the config file, found on docker hub with tag:
+# gradido/login_server:with-config
+# Used for community-server tests on staging
+
 #########################################################################################################
 # Build release 
 #########################################################################################################

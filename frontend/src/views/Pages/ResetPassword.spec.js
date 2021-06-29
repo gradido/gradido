@@ -56,6 +56,11 @@ describe('ResetPassword', () => {
     $router: {
       push: routerPushMock,
     },
+    $loading: {
+      show: jest.fn(() => {
+        return { hide: jest.fn() }
+      }),
+    },
   }
 
   const stubs = {

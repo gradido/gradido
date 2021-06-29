@@ -26,8 +26,7 @@ services:
   #########################################################
   login-server:
     build:
-      target: login_server_alpine_debug
-      dockerfile: Dockerfile.alpine-debug
+      dockerfile: Dockerfiles/ubuntu/Dockerfile.debug
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -38,7 +37,7 @@ services:
       - ./login_server/dependencies:/code/dependencies
       - ./login_server/scripts:/code/scripts
       - ./configs/login_server:/etc/grd_login
-      - login_build_3.1:/code/build
+      - login_build_ubuntu_3.1:/code/build
 
 
   #########################################################
@@ -100,4 +99,4 @@ services:
    
 volumes:
   frontend_node_modules:
-  login_build_3.1:
+  login_build_ubuntu_3.1:

@@ -144,9 +144,6 @@ export default {
   mounted() {
     this.initScrollbar()
   },
-  created() {
-    this.updateTransactions({ firstPage: 1, items: 5 })
-  },
 }
 </script>
 <style lang="scss">

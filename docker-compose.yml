@@ -55,7 +55,6 @@ services:
   login-server:
     build: 
       context: ./login_server/
-      target: login_server
     depends_on:
       - mariadb
     networks: 

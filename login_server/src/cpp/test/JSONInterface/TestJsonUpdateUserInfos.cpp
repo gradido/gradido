@@ -241,16 +241,22 @@ TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
 	delete result;
 }
 
-/*
+
 TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
-	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
-
 	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
 	update->set("User.password", "uasjUs7ZS/as12");
-	update->set("User.password_old", "TestP4ssword&H");
+
+	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
+		ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "newPassword"), USER_COMPLETE);
+		update->set("User.password_old", "newPassword");
+	}
+	else {
+		ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
+		update->set("User.password_old", "TestP4ssword&H");
+	}	
 
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
@@ -269,15 +275,13 @@ TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 	ASSERT_FALSE(state.isEmpty());
 	ASSERT_TRUE(state.isString());
 
-	
 	EXPECT_EQ(valid_values, 1);
 	ASSERT_EQ(error_array.size(), 0);
 	ASSERT_EQ(state.toString(), "success");
-	
 
 	delete result;
 }
-*/
+//*/
 TEST_F(TestJsonUpdateUserInfos, NoChanges)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);

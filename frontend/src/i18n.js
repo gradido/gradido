@@ -38,12 +38,24 @@ const numberFormats = {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
   },
   de: {
     decimal: {
       style: 'decimal',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
     },
   },
 }

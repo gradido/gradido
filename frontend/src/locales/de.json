@@ -39,6 +39,7 @@
     "password_new":"neues Passwort",
     "password_new_repeat":"neues Passwort wiederholen",
     "change": "ändern",
+    "change-password": "Passwort ändern",
     "amount":"Betrag",
     "memo":"Nachricht für den Empfänger",
     "message":"Nachricht",
@@ -65,7 +66,8 @@
   },
   "error": {
     "error":"Fehler",
-    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!"
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
+    "change-password": "Fehler beim Ändern des Passworts"
   },
   "transaction":{
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
