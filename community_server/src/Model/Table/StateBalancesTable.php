@@ -98,7 +98,12 @@ class StateBalancesTable extends AppTable
         // if start date for decay is after enddate, we also just return input
         if($decayStartDate === null || $decayStartDate >= $endDate) {
             if($withInterval) {
-                return ['balance' => $startBalance, 'interval' => new \DateInterval('PT0S')];
+                return [
+                    'balance' => $startBalance,
+                    'interval' => new \DateInterval('PT0S'),
+                    'start_date' => $startDate->getTimestamp(),
+                    'end_date' => $startDate->getTimestamp()
+                ];
             } else {
                 return $startBalance;
             }
@@ -118,7 +123,12 @@ class StateBalancesTable extends AppTable
         }
         $decay = $state_balance->partDecay($endDate);
         if($withInterval) {
-            return ['balance' => $decay, 'interval' => $interval];
+            return [
+                'balance' => $decay,
+                'interval' => $interval,
+                'start_date' => $state_balance->record_date->getTimestamp(),
+                'end_date' => $endDate->getTimestamp()
+            ];
         } else {
             return $decay;
         }
