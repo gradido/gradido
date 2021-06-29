@@ -63,6 +63,8 @@ Assuming: session is valid
 			"type": "decay",
 			"balance": "14.74",
 			"decay_duration": "4 days, 2 hours ago",
+                        "decay_start": 1618390948,
+			"decay_end": 1618392526,
 			"memo": ""
 		},
 		{
@@ -73,7 +75,13 @@ Assuming: session is valid
 			"date": "2021-02-19T13:25:36+00:00",
 			"balance": 192.0,
 			"memo": "a piece of cake :)",
-			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7"
+			"pubkey": "038a6f93270dc57b91d76bf110ad3863fcb7d1b08e7692e793fcdb4467e5b6a7",
+                        "decay": {
+                                "balance": 309,
+                                "decay_duration": "0 days, 00 hours, 26 minutes, 18 seconds",
+                                "decay_start": 1618390948,
+                                "decay_end": 1618392526
+			},
 		 },
 		{ 
 			"name": "Gradido Akademie",
