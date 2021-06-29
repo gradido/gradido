@@ -1,12 +1,12 @@
 <template>
-  <div class="gdd-transaction-list">
+  <div class="gdd-transaction-list"> 
     <b-list-group>
       <b-list-group-item
         v-for="item in transactions"
         :key="item.id"
         style="background-color: #ebebeba3 !important"
       >
-        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''">
+        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''" >
           <div style="width: 8%">
             <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
           </div>
@@ -26,43 +26,31 @@
         </div>
         <b-collapse :id="'a' + item.date + ''" class="mt-2">
           <b-card>
-            <b-list-group>
-              <b-list-group-item v-if="item.type === 'send'">
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
-              <b-list-group-item v-else>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.sender') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
+          <b-card-title>
+            <div class="display-4"> {{ item.type === "receive" ? "empfangen:" : "gesendet:" }}</div>
+          </b-card-title>
+             <b-card-body>
+               
+              <p class="display-2">   {{ $n(item.balance, 'decimal') }} GDD</p>
+              
+              <div> <div>am: </div><span class="display-4">{{ $d($moment(item.date), 'long') }}</span></div>
+              <div><div >an:</div> <span class="display-4">{{ item.name }}</span></div>
+               <div class="display-5"> {{ item.type === "receive" ? "Nachricht vom Absender:" : "Nachricht an Empfänger:" }}</div>
+              <div class="display-4">{{ item.memo }}</div>
+              <hr>
 
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>type</b-badge>
-                {{ item.type }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-5" variant="primary" pill>id</b-badge>
-                {{ item.transaction_id }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.date') }}</b-badge>
-                {{ item.date }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>gdd</b-badge>
-                {{ item.balance }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.memo') }}</b-badge>
-                {{ item.memo }}
-              </b-list-group-item>
-            </b-list-group>
+               <div>Seit deiner letzten Transaction sind </div>
+               <div>{{ item.decay.length }} vergangen.</div>
+               <div>{{ item.decay }} Verfall.</div>
+            </b-card-body>
+            
             <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
               {{ $t('transaction.more') }}
             </b-button>
             <b-collapse :id="'collapse-1-inner' + item.date" class="mt-2">
               <b-card>{{ item }}</b-card>
             </b-collapse>
+           
           </b-card>
         </b-collapse>
       </b-list-group-item>
@@ -83,14 +71,14 @@
 </template>
 
 <script>
-import PaginationButtons from '../../../components/PaginationButtons'
+ import PaginationButtons from '../../../components/PaginationButtons'
 
-const iconsByType = {
-  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
-  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
-  creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
-  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
-}
+  const iconsByType = {
+    send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
+    receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
+    creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
+    decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
+  }
 
 export default {
   name: 'gdd-transaction-list',
