@@ -205,6 +205,12 @@ class AppRequestControllerTest extends TestCase
 			"transaction_id": 7,
 			"date": "2021-04-14T09:02:28+00:00",
 			"memo": "test time 3",
+                        "decay": {
+				"balance": 6,
+				"decay_duration": "0 days, 00 hours, 00 minutes, 28 seconds",
+				"decay_start": 1618390920,
+				"decay_end": 1618390948
+			},
 			"balance": 100000,
 			"type": "receive",
 			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -231,6 +237,12 @@ class AppRequestControllerTest extends TestCase
 			"transaction_id": 9,
 			"date": "2021-04-14T09:31:28+00:00",
 			"memo": "test login crash",
+                        "decay": {
+				"balance": 33,
+				"decay_duration": "0 days, 00 hours, 02 minutes, 42 seconds",
+				"decay_start": 1618392526,
+				"decay_end": 1618392688
+			},
 			"balance": 100000,
 			"type": "receive",
 			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
