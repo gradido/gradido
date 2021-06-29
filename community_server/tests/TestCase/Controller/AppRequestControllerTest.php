@@ -217,7 +217,9 @@ class AppRequestControllerTest extends TestCase
 			"memo": "test login crash",
 			"decay": {
 				"balance": 309,
-				"decay_duration": "0 days, 00 hours, 26 minutes, 18 seconds"
+				"decay_duration": "0 days, 00 hours, 26 minutes, 18 seconds",
+				"decay_start": 1618390948,
+				"decay_end": 1618392526
 			},
 			"balance": 100000,
 			"type": "receive",
@@ -237,18 +239,20 @@ class AppRequestControllerTest extends TestCase
 		},
 		{
 			"type": "decay",
-			"balance": 1207829,
+			"balance": 1222493,
 			"decay_duration": "on 14.04.21",
+			"decay_start": 1618392688,
+			"decay_end": 1624956464,
 			"memo": ""
 		}
 	],
 	"transactionExecutingCount": 0,
 	"count": 7,
 	"gdtSum": 180000,
-	"timeUsed": 0.35933995246887209,
-	"decay_date": "2021-06-28T09:17:23+00:00",
+	"timeUsed": 0.6441609859466553,
+	"decay_date": "2021-06-29T08:47:44+00:00",
 	"balance": 9099652,
-	"decay": 7891823
+	"decay": 7877159
 }';
         $this->getAndParse('/api/list-transactions/', json_decode($expectedResult, true));
     }
@@ -288,7 +292,7 @@ class AppRequestControllerTest extends TestCase
             }
             // decay balance variy always
             if(isset($expected['transactions'])) {
-                $dynamic_transaction_fields = ['decay_duration', 'balance'];
+                $dynamic_transaction_fields = ['decay_duration', 'balance', 'decay_end'];
                 foreach($expected['transactions'] as $i => $transaction) {
                     if(isset($transaction['type']) && $transaction['type'] == 'decay') {
                         foreach($dynamic_transaction_fields as $field) {
