@@ -6,15 +6,17 @@ import { buildSchema } from 'type-graphql'
 import CONFIG from './config'
 
 // TODO move to extern
-import { BookResolver } from './graphql/resolvers/BookResolver'
-// import { UserResolver } from './graphql/resolvers/UserResolver'
+// import { BookResolver } from './graphql/resolvers/BookResolver'
+import { UserResolver } from './graphql/resolvers/UserResolver'
 // import { GroupResolver } from './graphql/resolvers/GroupResolver'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
   // const connection = await createConnection()
-  const schema = await buildSchema({ resolvers: [BookResolver /*, GroupResolver, UserResolver */] })
+  const schema = await buildSchema({
+    resolvers: [/* BookResolver , GroupResolver, */ UserResolver],
+  })
   const server = express()
   const validationRules: [] = [
     /**
