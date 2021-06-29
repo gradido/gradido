@@ -192,7 +192,7 @@ class TransactionsTable extends Table
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
                     $balance = floatval($prev->balance - $calculated_decay['balance']);                 
                     
-                    if($balance > 100) 
+                    if($balance) 
                     {
                       $final_transaction['decay'] = [ 
                           'balance' => $balance,
@@ -263,7 +263,7 @@ class TransactionsTable extends Table
                     $duration = $decay_start_date->timeAgoInWords();
                 }
                 $balance = floatval($su_transaction->balance - $calculated_decay['balance']);
-                if($balance > 100) {
+                if($balance) {
                     $final_transactions[] = [
                         'type' => 'decay',
                         'balance' => $balance,
