@@ -40,8 +40,9 @@
               <hr>
 
                <div>Seit deiner letzten Transaction sind </div>
-               <div>{{ item.decay.length }} vergangen.</div>
-               <div>{{ item.decay }} Verfall.</div>
+               <div>{{ item.decay }} vergangen.</div>
+               <div>{{ typeof(item.decay) }} vergangen.</div>
+               <div>{{ item.decay }} Vergänglichkeit.</div>
             </b-card-body>
             
             <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
