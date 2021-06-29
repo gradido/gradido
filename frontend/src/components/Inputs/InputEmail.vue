@@ -37,7 +37,7 @@ export default {
         }
       },
     },
-    name: { type: String, default: 'email' },
+    name: { type: String, default: 'Email' },
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
     value: { required: true, type: String },
