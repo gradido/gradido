@@ -185,7 +185,7 @@ class TransactionsTable extends Table
             if($i > 0 ) {
                 $prev = $stateUserTransactions[$i-1];
             }
-            if($prev && $decay == true) 
+            if($prev) 
             {
                 if($prev->balance > 0) {
                     $current = $su_transaction;              
@@ -252,7 +252,7 @@ class TransactionsTable extends Table
            
             $final_transactions[] = $final_transaction;
             
-            if($i == $stateUserTransactionsCount-1 && $decay == true) {
+            if($i == $stateUserTransactionsCount-1 && $decay) {
                 $now = new FrozenTime();
                 $calculated_decay = $stateBalancesTable->calculateDecay(
                         $su_transaction->balance, 

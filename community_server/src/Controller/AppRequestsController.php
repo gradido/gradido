@@ -333,16 +333,27 @@ class AppRequestsController extends AppController
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
         }
 
+        $limit = $count;
+        $offset = 0;
+        if($page == 1) {
+            $limit--;
+        } else {
+            $offset = (( $page - 1 ) * $count) - 1;
+        }
         
         $stateUserTransactionsQuery = $stateUserTransactionsTable
                                         ->find()
                                         ->where(['state_user_id' => $user['id']])
                                         ->order(['balance_date' => $orderDirection])
                                         ->contain([])
-                                        ->limit($count)
-                                        ->page($page)
+                                        ->limit($limit)
+                                        //->page($page)
+                                        ->offset($offset)
                                         ;
         $decay = true;
+        if($page > 1) {
+            $decay = false;
+        }
         $transactions = [];
         $transactions_from_db = $stateUserTransactionsQuery->toArray();
 
