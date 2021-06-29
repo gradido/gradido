@@ -257,8 +257,8 @@ ENDIF()
 ############################## bind rust modules ###################################
 
 if(WIN32)
-	find_library(RUST_ED25519_BIP32_D gradido_ed25519_bip32.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/debug")
-	find_library(RUST_ED25519_BIP32 gradido_ed25519_bip32.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/release")
+	find_library(RUST_ED25519_BIP32_D gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/debug")
+	find_library(RUST_ED25519_BIP32 gradido_ed25519_bip32.dll.lib PATHS "${RUST_MODULES_ROOT}/gradido_ed25519_bip32/target/release")
 else()
 
 endif()
@@ -269,7 +269,7 @@ target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS})
-	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32})
+	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
 	#target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
@@ -353,7 +353,7 @@ project(Gradido_LoginServer_Test C CXX)
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} ${RUST_ED25519_BIP32})
+target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS} ${RUST_ED25519_BIP32_D})
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf)
