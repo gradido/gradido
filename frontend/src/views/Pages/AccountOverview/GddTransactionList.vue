@@ -40,9 +40,11 @@
               <hr>
 
                <div>Seit deiner letzten Transaction sind </div>
-               <div>{{ item.decay }} vergangen.</div>
-               <div>{{ typeof(item.decay) }} vergangen.</div>
-               <div>{{ item.decay }} Vergänglichkeit.</div>
+                      <p> {{ $moment(getDecay(item.id).decay_start).format('DDD.MM,YYYY - mm:hh:ss') }}</p>
+                      <p> {{ $moment(getDecay(item.id).decay_end).format('DDD.MM,YYYY - mm:hh:ss') }}</p>
+               <div>{{  }} vergangen.</div>
+               <br>
+               <div>{{getDecay(item.id).balance }} Vergänglichkeit.</div>
             </b-card-body>
             
             <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
@@ -116,6 +118,9 @@ export default {
     },
   },
   methods: {
+    getDecay(id){
+      return this.transactions.find(t => t.id === id)
+    },
     updateTransactions() {
       this.$emit('update-transactions', {
         firstPage: this.currentPage,

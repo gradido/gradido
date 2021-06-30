@@ -128,6 +128,7 @@ export default {
       if (result.success) {
         this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
+        console.log("this.transactions => ", this.transactions[1].decay.decay_start)
         this.balance = Number(result.result.data.decay)
         this.bookedBalance = Number(result.result.data.balance)
         this.transactionCount = result.result.data.count
