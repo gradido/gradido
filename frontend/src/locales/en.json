@@ -66,6 +66,7 @@
   },
   "error": {
     "error":"Error",
+    "no-account": "Unfortunately we could not find an account to the given data!",
     "change-password": "Error while changing password"
   },
   "transaction":{

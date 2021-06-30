@@ -66,6 +66,7 @@
   },
   "error": {
     "error":"Fehler",
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
     "change-password": "Fehler beim Ändern des Passworts"
   },
   "transaction":{

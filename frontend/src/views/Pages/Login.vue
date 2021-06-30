@@ -13,7 +13,6 @@
         </div>
       </b-container>
     </div>
-    <!-- Page content -->
     <b-container class="mt--8">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
@@ -22,76 +21,15 @@
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('login') }}</small>
               </div>
-
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-                  <validation-provider
-                    name="Email"
-                    :rules="{ required: true, email: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group class="mb-3" label="Email" label-for="login-email">
-                      <b-form-input
-                        id="login-email"
-                        name="example-input-1"
-                        v-model="form.email"
-                        placeholder="Email"
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="login-email-live-feedback"
-                      ></b-form-input>
-
-                      <b-form-invalid-feedback id="login-email-live-feedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
-                  <validation-provider
-                    :name="$t('form.password')"
-                    :rules="{ required: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group
-                      class="mb-5"
-                      id="example-input-group-1"
-                      :label="$t('form.password')"
-                      label-for="example-input-1"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          id="input-pwd"
-                          name="input-pwd"
-                          v-model="form.password"
-                          :placeholder="$t('form.password')"
-                          :type="passwordVisible ? 'text' : 'password'"
-                          :state="getValidationState(validationContext)"
-                          aria-describedby="input-2-live-feedback"
-                        ></b-form-input>
-
-                        <b-input-group-append>
-                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                      <b-form-invalid-feedback id="input-2-live-feedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
-                  <b-alert v-show="loginfail" show dismissible variant="warning">
-                    <span class="alert-text bv-example-row">
-                      <b-row>
-                        <b-col class="col-9 text-left text-dark">
-                          <strong>
-                            Leider konnten wir keinen Account finden mit diesen Daten!
-                          </strong>
-                        </b-col>
-                      </b-row>
-                    </span>
-                  </b-alert>
-                  <div class="text-center">
+                  <input-email v-model="form.email"></input-email>
+                  <input-password
+                    :label="$t('form.password')"
+                    :placeholder="$t('form.password')"
+                    v-model="form.password"
+                  ></input-password>
+                  <div class="text-center mt-4">
                     <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
                   </div>
                 </b-form>
@@ -118,32 +56,27 @@
 <script>
 import loginAPI from '../../apis/loginAPI'
 import CONFIG from '../../config'
+import InputPassword from '../../components/Inputs/InputPassword'
+import InputEmail from '../../components/Inputs/InputEmail'
 
 export default {
   name: 'login',
+  components: {
+    InputPassword,
+    InputEmail,
+  },
   data() {
     return {
       form: {
         email: '',
         password: '',
-        // rememberMe: false
       },
-      loginfail: false,
       allowRegister: CONFIG.ALLOW_REGISTER,
       passwordVisible: false,
     }
   },
   methods: {
-    getValidationState({ dirty, validated, valid = null }) {
-      return dirty || validated ? valid : null
-    },
-
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
     async onSubmit() {
-      // error info  ausschalten
-      this.loginfail = false
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
@@ -157,7 +90,7 @@ export default {
         loader.hide()
       } else {
         loader.hide()
-        this.loginfail = true
+        this.$toast.error(this.$t('error.no-account'))
       }
     },
   },
