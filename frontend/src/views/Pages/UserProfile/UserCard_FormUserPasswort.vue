@@ -28,36 +28,8 @@
                 ></input-password>
               </b-col>
             </b-row>
-            <b-row class="mb-2">
-              <b-col>
-                <input-password
-                  :rules="{
-                    required: true,
-                    containsLowercaseCharacter: true,
-                    containsUppercaseCharacter: true,
-                    containsNumericCharacter: true,
-                    atLeastEightCharactera: true,
-                  }"
-                  :label="$t('form.password_new')"
-                  :showAllErrors="true"
-                  :immediate="true"
-                  :name="$t('form.password_new')"
-                  :placeholder="$t('form.password_new')"
-                  v-model="form.passwordNew"
-                ></input-password>
-              </b-col>
-            </b-row>
-            <b-row class="mb-2">
-              <b-col>
-                <input-password
-                  :rules="{ samePassword: form.passwordNew }"
-                  :label="$t('form.password_new_repeat')"
-                  :placeholder="$t('form.password_new_repeat')"
-                  v-model="form.passwordNewRepeat"
-                ></input-password>
-              </b-col>
-            </b-row>
-            <b-row class="text-right" v-if="editPassword">
+            <input-password-confirmation v-model="form.newPassword" />
+            <b-row class="text-right">
               <b-col>
                 <div class="text-right">
                   <b-button type="submit" variant="primary" class="mt-4">
@@ -75,11 +47,13 @@
 <script>
 import loginAPI from '../../../apis/loginAPI'
 import InputPassword from '../../../components/Inputs/InputPassword'
+import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
 
 export default {
   name: 'FormUserPasswort',
   components: {
     InputPassword,
+    InputPasswordConfirmation,
   },
   data() {
     return {
@@ -87,8 +61,10 @@ export default {
       email: null,
       form: {
         password: '',
-        passwordNew: '',
-        passwordNewRepeat: '',
+        newPassword: {
+          password: '',
+          passwordRepeat: '',
+        },
       },
     }
   },
@@ -104,7 +80,7 @@ export default {
         this.$store.state.sessionId,
         this.$store.state.email,
         this.form.password,
-        this.form.passwordNew,
+        this.form.newPassword.password,
       )
       if (result.success) {
         this.$toast.success(this.$t('site.thx.reset'))
