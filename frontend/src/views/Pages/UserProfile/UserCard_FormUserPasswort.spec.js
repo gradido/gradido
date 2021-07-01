@@ -1,13 +1,32 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
 import loginAPI from '../../../apis/loginAPI'
-// import flushPromises from 'flush-promises'
+import flushPromises from 'flush-promises'
+import { extend } from 'vee-validate'
+
+const rules = [
+  'containsLowercaseCharacter',
+  'containsUppercaseCharacter',
+  'containsNumericCharacter',
+  'atLeastEightCharactera',
+  'samePassword',
+]
+
+rules.forEach((rule) => {
+  extend(rule, {
+    validate(value) {
+      return true
+    },
+  })
+})
 
 jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
+changePasswordProfileMock.mockReturnValue({ success: true })
+
 loginAPI.changePasswordProfile = changePasswordProfileMock
 
 const toastSuccessMock = jest.fn()
@@ -59,8 +78,8 @@ describe('UserCardFormUserPasswort', () => {
       let form
 
       beforeEach(async () => {
-        wrapper.find('a').trigger('click')
-        await wrapper.vm.$nextTick()
+        await wrapper.find('a').trigger('click')
+        await flushPromises()
         form = wrapper.find('form')
       })
 
@@ -69,12 +88,11 @@ describe('UserCardFormUserPasswort', () => {
       })
 
       it('has a cancel button', () => {
-        expect(form.find('svg.bi-x-circle').exists()).toBeTruthy()
+        expect(wrapper.find('svg.bi-x-circle').exists()).toBeTruthy()
       })
 
       it('closes the form when cancel button is clicked', async () => {
-        form.find('svg.bi-x-circle').trigger('click')
-        await wrapper.vm.$nextTick()
+        await wrapper.find('svg.bi-x-circle').trigger('click')
         expect(wrapper.find('input').exists()).toBeFalsy()
       })
 
@@ -104,24 +122,52 @@ describe('UserCardFormUserPasswort', () => {
         expect(form.find('button[type="submit"]').exists()).toBeTruthy()
       })
 
-      /*
       describe('submit', () => {
-        beforeEach(async () => {
-          await form.findAll('input').at(0).setValue('1234')
-          await form.findAll('input').at(1).setValue('Aa123456')
-          await form.findAll('input').at(2).setValue('Aa123456')
-          form.trigger('submit')
-          await wrapper.vm.$nextTick()
-          await flushPromises()
+        describe('valid data', () => {
+          beforeEach(async () => {
+            await form.findAll('input').at(0).setValue('1234')
+            await form.findAll('input').at(1).setValue('Aa123456')
+            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.trigger('submit')
+            await flushPromises()
+          })
+
+          it('calls the API', () => {
+            expect(changePasswordProfileMock).toHaveBeenCalledWith(
+              1,
+              'user@example.org',
+              '1234',
+              'Aa123456',
+            )
+          })
+
+          it('toasts a success message', () => {
+            expect(toastSuccessMock).toBeCalledWith('site.thx.reset')
+          })
+
+          it('cancels the edit process', () => {
+            expect(wrapper.find('input').exists()).toBeFalsy()
+          })
         })
 
-        it('calls the API', async () => {
-          await wrapper.vm.$nextTick()
-          await flushPromises()
-expect(changePasswordProfileMock).toHaveBeenCalledWith(1, 'user@example.org', '1234', 'Aa123456')
+        describe('server response is error', () => {
+          beforeEach(async () => {
+            changePasswordProfileMock.mockReturnValue({
+              success: false,
+              result: { message: 'error' },
+            })
+            await form.findAll('input').at(0).setValue('1234')
+            await form.findAll('input').at(1).setValue('Aa123456')
+            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.trigger('submit')
+            await flushPromises()
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorMock).toBeCalledWith('error')
+          })
         })
       })
-      */
     })
   })
 })

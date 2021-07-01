@@ -3,6 +3,8 @@
     tag="div"
     :rules="rules"
     :name="name"
+    :bails="!showAllErrors"
+    :immediate="immediate"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
     <b-form-group :label="label" :label-for="labelFor">
@@ -22,7 +24,15 @@
           </b-button>
         </b-input-group-append>
         <b-form-invalid-feedback v-bind="ariaMsg">
-          {{ errors[0] }}
+          <div v-if="showAllErrors">
+            <span v-for="error in errors" :key="error">
+              {{ error }}
+              <br />
+            </span>
+          </div>
+          <div v-else>
+            {{ errors[0] }}
+          </div>
         </b-form-invalid-feedback>
       </b-input-group>
     </b-form-group>
@@ -43,6 +53,8 @@ export default {
     label: { type: String, default: 'Password' },
     placeholder: { type: String, default: 'Password' },
     value: { required: true, type: String },
+    showAllErrors: { type: Boolean, default: false },
+    immediate: { type: Boolean, default: false },
   },
   data() {
     return {
