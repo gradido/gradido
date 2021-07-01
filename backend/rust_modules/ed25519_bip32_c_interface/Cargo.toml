@@ -1,5 +1,5 @@
 [package]
-name = "gradido_ed25519_bip32"
+name = "ed25519_bip32_c_interface"
 version = "0.1.0"
 edition = "2018"
 authors = ["Dario Rekowski <dario.rekowski@gmx.de>"]
@@ -12,4 +12,5 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 libc = "0.2"
 ed25519-bip32 = "0.4.0"
+cryptoxide = "0.3.3"
 
