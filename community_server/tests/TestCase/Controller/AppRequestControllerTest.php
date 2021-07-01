@@ -57,8 +57,8 @@ class AppRequestControllerTest extends TestCase
         
         $response = $this->getAndParseWithoutCompare('/api/get-balance/' . $session_id);
         $this->assertEquals('success', $response->state);
-        $this->assertEquals(9100000, $response->balance);
-        $this->assertLessThan(9100000, $response->decay);
+        $this->assertEquals(9099652, $response->balance);
+        $this->assertLessThan(9099652, $response->decay);
         
     }
     
@@ -94,8 +94,8 @@ class AppRequestControllerTest extends TestCase
 
         $response = $this->getAndParseWithoutCompare('/api/get-balance/' . $session_id);
         $this->assertEquals('success', $response->state);
-        $this->assertEquals(10900000, $response->balance);
-        $this->assertLessThan(10900000, $response->decay);
+        $this->assertEquals(10899568, $response->balance);
+        $this->assertLessThan(10899568, $response->decay);
     }
     
     public function testGetBalanceInvalidSession()
@@ -202,19 +202,15 @@ class AppRequestControllerTest extends TestCase
 			"email": "test3.yahoo.com"
 		},
 		{
-			"transaction_id": 6,
+			"transaction_id": 7,
 			"date": "2021-04-14T09:02:28+00:00",
 			"memo": "test time 3",
-			"balance": 100000,
-			"type": "receive",
-			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
-			"name": "Samuel Schmied",
-			"email": "test3.yahoo.com"
-		},
-		{
-			"transaction_id": 7,
-			"date": "2021-04-14T09:28:46+00:00",
-			"memo": "test login crash",
+                        "decay": {
+				"balance": 6,
+				"decay_duration": "0 days, 00 hours, 00 minutes, 28 seconds",
+				"decay_start": 1618390920,
+				"decay_end": 1618390948
+			},
 			"balance": 100000,
 			"type": "receive",
 			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -223,22 +219,52 @@ class AppRequestControllerTest extends TestCase
 		},
 		{
 			"transaction_id": 8,
-			"date": "2021-04-14T09:31:28+00:00",
+			"date": "2021-04-14T09:28:46+00:00",
 			"memo": "test login crash",
+			"decay": {
+				"balance": 309,
+				"decay_duration": "0 days, 00 hours, 26 minutes, 18 seconds",
+				"decay_start": 1618390948,
+				"decay_end": 1618392526
+			},
 			"balance": 100000,
 			"type": "receive",
 			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
 			"name": "Samuel Schmied",
 			"email": "test3.yahoo.com"
+		},
+		{
+			"transaction_id": 9,
+			"date": "2021-04-14T09:31:28+00:00",
+			"memo": "test login crash",
+                        "decay": {
+				"balance": 33,
+				"decay_duration": "0 days, 00 hours, 02 minutes, 42 seconds",
+				"decay_start": 1618392526,
+				"decay_end": 1618392688
+			},
+			"balance": 100000,
+			"type": "receive",
+			"pubkey": "0000000000000000000000000000000000000000000000000000000000000000",
+			"name": "Samuel Schmied",
+			"email": "test3.yahoo.com"
+		},
+		{
+			"type": "decay",
+			"balance": 1222493,
+			"decay_duration": "on 14.04.21",
+			"decay_start": 1618392688,
+			"decay_end": 1624956464,
+			"memo": ""
 		}
 	],
 	"transactionExecutingCount": 0,
 	"count": 7,
 	"gdtSum": 180000,
-	"timeUsed": 0.7237420082092285,
-	"decay_date": "2021-06-22T08:54:43+00:00",
-	"balance": 9100000,
-	"decay": 9100000
+	"timeUsed": 0.6441609859466553,
+	"decay_date": "2021-06-29T08:47:44+00:00",
+	"balance": 9099652,
+	"decay": 7877159
 }';
         $this->getAndParse('/api/list-transactions/', json_decode($expectedResult, true));
     }
@@ -274,6 +300,19 @@ class AppRequestControllerTest extends TestCase
             foreach($dynamic_fields as $field) {
                 if(isset($expected[$field]) && isset($json->$field)) {
                     $expected[$field] = $json->$field;
+                }
+            }
+            // decay balance variy always
+            if(isset($expected['transactions'])) {
+                $dynamic_transaction_fields = ['decay_duration', 'balance', 'decay_end'];
+                foreach($expected['transactions'] as $i => $transaction) {
+                    if(isset($transaction['type']) && $transaction['type'] == 'decay') {
+                        foreach($dynamic_transaction_fields as $field) {
+                            if(isset($transaction[$field])) {
+                                $expected['transactions'][$i][$field] = $json->transactions[$i][$field];
+                            }
+                        }
+                    }
                 }
             }
           $expected = json_encode($expected);

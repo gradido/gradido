@@ -185,18 +185,20 @@ class TransactionsTable extends Table
             if($i > 0 ) {
                 $prev = $stateUserTransactions[$i-1];
             }
-            if($prev && $decay == true) 
+            if($prev) 
             {
                 if($prev->balance > 0) {
                     $current = $su_transaction;              
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
                     $balance = floatval($prev->balance - $calculated_decay['balance']);                 
                     
-                    if($balance > 100) 
+                    if($balance) 
                     {
-                      $final_transactions['decay'] = [ 
+                      $final_transaction['decay'] = [ 
                           'balance' => $balance,
-                          'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds')
+                          'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
+                          'decay_start' => $calculated_decay['start_date'],
+                          'decay_end' => $calculated_decay['end_date']
                       ];       
                     }
                 }
@@ -250,21 +252,24 @@ class TransactionsTable extends Table
            
             $final_transactions[] = $final_transaction;
             
-            if($i == $stateUserTransactionsCount-1 && $decay == true) {
+            if($i == $stateUserTransactionsCount-1 && $decay) {
+                $now = new FrozenTime();
                 $calculated_decay = $stateBalancesTable->calculateDecay(
                         $su_transaction->balance, 
-                        $su_transaction->balance_date, new FrozenTime(), true);
+                        $su_transaction->balance_date, $now, true);
                 $decay_start_date = $stateBalancesTable->getDecayStartDateCached();
                 $duration = $su_transaction->balance_date->timeAgoInWords();
                 if($decay_start_date > $su_transaction->balance_date) {
                     $duration = $decay_start_date->timeAgoInWords();
                 }
                 $balance = floatval($su_transaction->balance - $calculated_decay['balance']);
-                if($balance > 100) {
+                if($balance) {
                     $final_transactions[] = [
                         'type' => 'decay',
                         'balance' => $balance,
                         'decay_duration' => $duration,
+                        'decay_start' => $calculated_decay['start_date'],
+                        'decay_end' => $calculated_decay['end_date'],
                         'memo' => ''
                     ];
                 }
