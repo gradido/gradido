@@ -83,7 +83,7 @@ describe('ForgotPassword', () => {
         })
 
         it('displays an error', () => {
-          expect(form.find('#reset-pwd--live-feedback').text()).toEqual(
+          expect(form.find('div.invalid-feedback').text()).toEqual(
             'The Email field must be a valid email',
           )
         })
@@ -96,8 +96,7 @@ describe('ForgotPassword', () => {
       describe('valid Email', () => {
         beforeEach(async () => {
           await form.find('input').setValue('user@example.org')
-          form.trigger('submit')
-          await wrapper.vm.$nextTick()
+          await form.trigger('submit')
           await flushPromises()
         })
 
