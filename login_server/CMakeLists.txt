@@ -20,6 +20,7 @@ include_directories(
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
 	"dependencies/protobuf/src"
+	#"dependencies/googletest/googletest/include"
 	"build"
 	"build/proto"
 	"build/http_pages"
@@ -40,6 +41,7 @@ IF(UNIX)
 ENDIF()
 
 ############################## find protobuf  #########################################
+set(protobuf_BUILD_TESTS OFF)
 add_subdirectory(dependencies/protobuf/cmake)
 
 ############################## parse protobuf files ###################################
@@ -253,27 +255,32 @@ IF(UNIX)
 ENDIF()
 
 ############################## bind rust modules ###################################
-
 if(WIN32)
-	find_library(RUST_ED25519_BIP32_D ed25519_bip32_c_interface.lib PATHS "dependencies/ed25519_bip32_c_interface/target/debug")
-	find_library(RUST_ED25519_BIP32 ed25519_bip32_c_interface.lib PATHS "dependencies/ed25519_bip32_c_interface/target/release")
+	set(ED25519_LIB_NAME "ed25519_bip32_c_interface.lib")
 else()
-
+	set(ED25519_LIB_NAME "libed25519_bip32_c_interface.a")
 endif()
+
+message("library ${RUST_ED25519_BIP32_D}")
+
+find_library(RUST_ED25519_BIP32_D ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/debug")
+find_library(RUST_ED25519_BIP32   ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/release")
+
 
 
 ############################## build login server ###################################
 
-target_link_libraries(Gradido_LoginServer ${GRPC_LIBS})
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS})
-	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D} Userenv.lib)
+	# Userenv needed for RUST_ED25519_BIP32
+	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS} Userenv.lib)
+	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
 	target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
 	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium libprotobuf)
+	target_link_libraries(Gradido_LoginServer ${RUST_ED25519_BIP32})
 endif()
 
 # install 
@@ -290,6 +297,15 @@ endif(UNIX)
 
 #  ----------------------    Test -----------------------------------------
 
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+#add_subdirectory("dependencies/googletest")
 enable_testing()
 
 option(COLLECT_COVERAGE_DATA "Use cov to collect coverage informations" OFF)
@@ -352,16 +368,16 @@ project(Gradido_LoginServer_Test C CXX)
 add_executable(Gradido_LoginServer_Test ${LOCAL_SRCS} ${LOCAL_TEST_SRC})
 target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
-target_link_libraries(Gradido_LoginServer_Test ${GRPC_LIBS})
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf)
-	target_link_libraries(Gradido_LoginServer_Test debug ${RUST_ED25519_BIP32_D} Userenv.lib)
+	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf Userenv.lib)
+	target_link_libraries(Gradido_LoginServer_Test debug ${RUST_ED25519_BIP32_D})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest)
+	target_link_libraries(Gradido_LoginServer_Test ${RUST_ED25519_BIP32_D})
+	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest libprotobuf)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)

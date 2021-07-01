@@ -1,4 +1,4 @@
-#include "TestEd25519Bip32.h"
+#include "TestEd25519BIP32.h"
 #include "ServerConfig.h"
 #include "lib/Profiler.h"
 
