@@ -3,7 +3,7 @@
     <b-list-group>
       <b-list-group-item
         v-for="item in transactions"
-        :key="item.id"
+        v-bind:key="item.id"
         style="background-color: #ebebeba3 !important"
       >
         <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''" >
@@ -40,11 +40,15 @@
               <hr>
 
                <div>Seit deiner letzten Transaction sind </div>
-                      <p> {{ $moment(getDecay(item.id).decay_start).format('DDD.MM,YYYY - mm:hh:ss') }}</p>
-                      <p> {{ $moment(getDecay(item.id).decay_end).format('DDD.MM,YYYY - mm:hh:ss') }}</p>
+               
+                        <p> item.id: {{   item.decay  }}</p>  
+                        <p> decay_start: {{  getDuration(item.id)   }}</p>
+                       
+                      <!--<p> {{ $moment.unix(getDecay(item.decay)).format('D.MM.YYYY - HH:mm:ss') }}</p>
+                      <p> {{ $moment.unix(getDecay(item.decay)).format('D.MM.YYYY - HH:mm:ss') }}</p> -->
                <div>{{  }} vergangen.</div>
                <br>
-               <div>{{getDecay(item.id).balance }} Vergänglichkeit.</div>
+               <!-- <div>{{ getDecay(item.id).balance }} Vergänglichkeit.</div> -->
             </b-card-body>
             
             <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
@@ -118,8 +122,53 @@ export default {
     },
   },
   methods: {
+    getDuration(id) {
+      console.log("getDuration=>", id)
+      //console.log( id)
+      //console.log("this.transactions.find(t => t.decay === decay)>", this.transactions.find(t => t.id === id))
+      this.getDecay(this.transactions.find(t => t.id === id))
+    },
     getDecay(id){
-      return this.transactions.find(t => t.id === id)
+      //console.log("getDecay balance=>", id.balance)
+       //console.log("decay_duration=>", id.decay_duration)
+      let startDate =  new Date(id.decay_start)
+      startDate = this.$moment(startDate)
+      let endDate = new Date(id.decay_end)
+      endDate = this.$moment(endDate)
+      let diff = this.$moment.duration(endDate.diff(startDate))
+
+      console.log( "diff", diff )
+      console.log("day", this.$moment(endDate).diff(this.$moment(startDate), 'day'))
+      console.log("hour", this.$moment(endDate).diff(this.$moment(startDate), 'hour'))
+      console.log("minute", this.$moment(endDate).diff(this.$moment(startDate), 'minute'))
+      console.log("second", this.$moment(endDate).diff(startDate), 'second')
+
+      // console.log("  decay_start=>", startDate)
+      // console.log("this.$moment(decay_start)", this.$moment.unix(startDate).format("DD-MM-YYYY HH:mm:ss"))
+      // console.log("decay_end=>", endDate)
+      //  console.log("this.$moment(decay_start)", this.$moment.unix(endDate).format("DD-MM-YYYY HH:mm:ss"))
+      // 
+      // console.log("memo=>", id.memo)
+      // console.log("type=>", id.type)
+      
+
+     // console.log("this.transactions.find(t => t.decay === decay)>", this.transactions.find(t => t.id === id))
+    //  if (id) {
+    //     console.log("this.transactions.find(t => t.decay === decay)>", this.transactions.find(t => t.decay === decay))
+    //     const decay = this.transactions.find(t => t.decay === decay)
+    //     const now = this.decay.decay_start;
+    //     const then = this.decay.decay_end;
+    //     console.log( "decay",this.decay )
+    //     console.log( "now", this.now)
+    //     console.log( "then", this.then)
+    //     
+    //    // console.log(this.$moment().duration(this.now.diff(this.then)))
+    //     //return this.$moment.duration(now.diff(then))
+    //     // return this.transactions.find(t => t.decay === decay)
+    //  } else {
+    //     console.log("<<< KEIN DECAY >>>")
+    //  }
+     
     },
     updateTransactions() {
       this.$emit('update-transactions', {
