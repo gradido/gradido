@@ -38,9 +38,11 @@
           </b-card>
         </b-col>
       </b-row>
-      <div class="text-center py-lg-4">
-        <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
+      <b-row>
+        <b-col class="text-center py-lg-4">
+          <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+        </b-col>
+      </b-row>
     </b-container>
   </div>
 </template>
