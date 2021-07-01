@@ -13,8 +13,6 @@ ENDIF()
 set(INSTALL_BINDIR "bin")
 set(INSTALL_PLUGINDIR "bin")
 
-set(RUST_MODULES_ROOT "../backend/rust_modules")
-
 include_directories(
 	"dependencies" 
 	"dependencies/tinf/src/" 
@@ -26,7 +24,7 @@ include_directories(
 	"build/proto"
 	"build/http_pages"
 	"src/cpp"
-	"${RUST_MODULES_ROOT}/ed25519_bip32_c_interface/include/"
+	"dependencies/ed25519_bip32_c_interface/include/"
 )
 
 IF(UNIX)
@@ -257,11 +255,12 @@ ENDIF()
 ############################## bind rust modules ###################################
 
 if(WIN32)
-	find_library(RUST_ED25519_BIP32_D ed25519_bip32_c_interface.lib PATHS "${RUST_MODULES_ROOT}/ed25519_bip32_c_interface/target/debug")
-	find_library(RUST_ED25519_BIP32 ed25519_bip32_c_interface.lib PATHS "${RUST_MODULES_ROOT}/ed25519_bip32_c_interface/target/release")
+	find_library(RUST_ED25519_BIP32_D ed25519_bip32_c_interface.lib PATHS "dependencies/ed25519_bip32_c_interface/target/debug")
+	find_library(RUST_ED25519_BIP32 ed25519_bip32_c_interface.lib PATHS "dependencies/ed25519_bip32_c_interface/target/release")
 else()
 
 endif()
+
 
 ############################## build login server ###################################
 

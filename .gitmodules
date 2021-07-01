@@ -34,3 +34,6 @@
 [submodule "login_server/dependencies/protobuf"]
 	path = login_server/dependencies/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "login_server/dependencies/ed25519_bip32_c_interface"]
+	path = login_server/dependencies/ed25519_bip32_c_interface
+	url = https://github.com/gradido/ed25519_bip32_c_interface.git

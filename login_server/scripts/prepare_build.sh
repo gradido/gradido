@@ -9,7 +9,11 @@ fi
 mkdir build 
 cd build
 cmake -DWITH_SSL=OFF ..
-cd ../../
+
+cd ../../ed25519_bip32_c_interface
+cargo build 
+cargo build --release
+cd ../..
 
 if [! -d "./build" ] ; then
   mkdir build
