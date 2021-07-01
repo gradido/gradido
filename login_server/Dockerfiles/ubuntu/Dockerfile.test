@@ -2,7 +2,7 @@
 #########################################################################################################
 # Prepare debug 
 #########################################################################################################
-FROM gradido/login_dependencies:gcc9-debug-3 as prepare_debug
+FROM gradido/login_dependencies:gcc9-debug-3.1 as prepare_debug
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
@@ -16,6 +16,7 @@ COPY ./cmake/CodeCoverage.cmake ./cmake/CodeCoverage.cmake
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
+COPY ./dependencies/ed25519_bip32_c_interface ./dependencies/ed25519_bip32_c_interface
 COPY ./scripts ./scripts
 
 

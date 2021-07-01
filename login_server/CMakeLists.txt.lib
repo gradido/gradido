@@ -19,6 +19,7 @@ include_directories(
 	"dependencies" 
 	"dependencies/tinf/src" 
 	"dependencies/spirit-po/include"
+	"dependencies/ed25519_bip32_c_interface/include/"
 	"/usr/local/include/mariadb"
 	"build"
 	"build/proto"
@@ -172,8 +173,8 @@ set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO
 
 
 ############################## build login server ###################################
-
-target_link_libraries(Gradido_LoginServer ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread)
+find_library(RUST_ED25519_BIP32 libed25519_bip32_c_interface.a PATHS "/usr/local/lib" REQUIRED)
+target_link_libraries(Gradido_LoginServer ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread ${RUST_ED25519_BIP32} dl)
 
 ############################## build login server test ###################################
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug") 
@@ -248,7 +249,7 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 		#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 	else()
-		target_link_libraries(Gradido_LoginServer_Test ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread gtest)
+		target_link_libraries(Gradido_LoginServer_Test ${PROTOBUF_LIBS} ${MYSQL_LIBRARIES} ${POCO_LIBS} sodium pthread gtest ${RUST_ED25519_BIP32} dl) 
 	endif()
 
 	add_test(NAME main COMMAND Gradido_LoginServer_Test)

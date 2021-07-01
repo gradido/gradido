@@ -266,8 +266,6 @@ message("library ${RUST_ED25519_BIP32_D}")
 find_library(RUST_ED25519_BIP32_D ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/debug")
 find_library(RUST_ED25519_BIP32   ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/release")
 
-
-
 ############################## build login server ###################################
 
 

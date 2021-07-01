@@ -14,7 +14,7 @@
 FROM alpine:3.13.5 as alpine-build
 
 RUN apk add --update --no-cache icu-dev 
-RUN apk add --no-cache git openssl-dev make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev 
+RUN apk add --no-cache git openssl-dev glibc make gcc musl-dev g++ linux-headers libintl gettext-dev boost-dev libsodium-dev 
 
 
 #####  CMAKE #####
@@ -67,10 +67,24 @@ RUN git clone https://github.com/mariadb-corporation/mariadb-connector-c.git && 
 	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
 	make install 
 
+########## BUILD Rust Modules ##########################
+FROM alpine-gxx-cmake as alpine-rust
+
+ARG BUILD_TYPE=Debug 
+
+RUN apk add --no-cache rust cargo
+
+COPY dependencies/ed25519_bip32_c_interface ed25519_bip32_c_interface
+
+RUN cd ed25519_bip32_c_interface && \
+	if [ "$BUILD_TYPE" == "Debug" ]; then cargo build; else cargo build --release; fi
+
 #########################################################################################################
 # builded libs and binaries 
 #########################################################################################################
 FROM alpine-build as alpine-libs
+
+ARG BUILD_TYPE=Debug 
 
 # copy CMake from cmake stage
 COPY --from=alpine-gxx-cmake /usr/local/bin/cmake /usr/local/bin/cmake
@@ -85,6 +99,10 @@ COPY --from=alpine-gxx-poco /usr/local /usr/local
 
 # COPY from mariadb 
 COPY --from=alpine-gxx-mariadb-connector /usr/local /usr/local
+
+# COPY from ed25519_bip32_c_interface
+COPY --from=alpine-rust /ed25519_bip32_c_interface/target/debug/libed25519_bip32_c_interface.a /usr/local/lib/
+COPY --from=alpine-rust /ed25519_bip32_c_interface/target/release/libed25519_bip32_c_interface.a /usr/local/lib/
 
 #########################################################################################################
 # COPY Things only needed for testing

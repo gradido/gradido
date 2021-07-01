@@ -69,6 +69,31 @@ RUN git clone https://github.com/mariadb-corporation/mariadb-connector-c.git && 
 	cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j$(nproc) && \
 	make install 
 
+########## BUILD Rust Modules ##########################
+### debug
+FROM gcc_9_cmake as gcc-rust-debug 
+
+
+COPY dependencies/ed25519_bip32_c_interface ed25519_bip32_c_interface
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh && \ 
+    chmod +x rustup-init.sh && ./rustup-init.sh -y 
+	
+RUN cd ed25519_bip32_c_interface && \
+	~/.cargo/bin/cargo build
+
+### release
+FROM gcc_9_cmake as gcc-rust-release
+
+
+COPY dependencies/ed25519_bip32_c_interface ed25519_bip32_c_interface
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh && \ 
+    chmod +x rustup-init.sh && ./rustup-init.sh -y 
+	
+RUN cd ed25519_bip32_c_interface && \
+	~/.cargo/bin/cargo build --release
+
 #########################################################################################################
 # builded libs and binaries 
 #########################################################################################################
@@ -91,3 +116,6 @@ COPY --from=gcc_9_poco /usr/local /usr/local
 # COPY from mariadb 
 COPY --from=gcc_9_mariadb-connector /usr/local /usr/local
 
+# COPY from ed25519_bip32_c_interface
+COPY --from=gcc-rust-debug /ed25519_bip32_c_interface/target/debug/libed25519_bip32_c_interface.a /usr/local/lib/
+COPY --from=gcc-rust-release /ed25519_bip32_c_interface/target/release/libed25519_bip32_c_interface.a /usr/local/lib/
