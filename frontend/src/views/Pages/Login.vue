@@ -27,6 +27,7 @@
                   <input-password
                     :label="$t('form.password')"
                     :placeholder="$t('form.password')"
+                    :name="$t('form.password')"
                     v-model="form.password"
                   ></input-password>
                   <div class="text-center mt-4">
