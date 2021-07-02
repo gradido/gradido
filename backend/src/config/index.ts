@@ -12,6 +12,9 @@ const server = {
   // COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://localhost/api/',
 }
 
+// This is needed by graphql-directive-auth
+process.env.APP_SECRET = server.JWT_SECRET
+
 const CONFIG = { ...server }
 
 export default CONFIG

@@ -11,6 +11,7 @@ import CONFIG from '../../config'
 const apiPost = async (url: string, payload: any): Promise<any> => {
   try {
     const result = await axios.post(url, payload)
+    console.log(result)
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
@@ -44,7 +45,6 @@ export class UserResolver {
 
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
-    console.log(result)
     // if there is no user, throw an authentication error
     if (!result.success) {
       throw new Error(result.result)

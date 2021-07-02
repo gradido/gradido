@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import express from 'express'
-import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'type-graphql'
+import { ApolloServer } from 'apollo-server-express'
 // import { createConnection } from 'typeorm'
 import CONFIG from './config'
 
@@ -17,66 +17,28 @@ async function main() {
   const schema = await buildSchema({
     resolvers: [/* BookResolver , GroupResolver, */ UserResolver],
   })
-  const server = express()
-  const validationRules: [] = [
-    /**
-     * This provides GraphQL query analysis to reject complex queries to your GraphQL server.
-     * This can be used to protect your GraphQL servers
-     * against resource exhaustion and DoS attacks.
-     * More documentation can be found (here)[https://github.com/ivome/graphql-query-complexity]
-     */
-    /* queryComplexity({
-    // The maximum allowed query complexity, queries above this threshold will be rejected
-    maximumComplexity: 20,
-    // The query variables. This is needed because the variables are not available
-    // in the visitor of the graphql-js library
-    variables: params!.variables!,
-    // Optional callback function to retrieve the determined query complexity
-    // Will be invoked weather the query is rejected or not
-    // This can be used for logging or to implement rate limiting
-    onComplete: (complexity: number) => {
-      console.log("Query Complexity:", complexity);
-    },
-    // Add any number of estimators. The estimators are invoked in order, the first
-    // numeric value that is being returned by an estimator is used as the field complexity.
-    // If no estimator returns a value, an exception is raised.
-    estimators: [
-      fieldConfigEstimator(),
-      // Add more estimators here...
-      // This will assign each field a complexity of 1 if no other estimator
-      // returned a value.
-      simpleEstimator({
-        defaultComplexity: 1,
-      }),
-    ],
-  }), */
-  ]
-
-  // TODO Versioning?
-  server.use(
-    '/api',
-    graphqlHTTP({
-      schema,
-      graphiql: false,
-      validationRules,
-    }),
-  )
 
   // Graphiql interface
+  let playground = false
   if (CONFIG.GRAPHIQL) {
-    server.use(
-      '/graphiql',
-      graphqlHTTP({
-        schema,
-        graphiql: true,
-        validationRules,
-      }),
-    )
+    playground = true
   }
 
+  // Express Server
+  const server = express()
+
+  // Apollo Server
+  const apollo = new ApolloServer({ schema, playground })
+  apollo.applyMiddleware({ app: server })
+
+  // Start Server
   server.listen(CONFIG.PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`Server is running, GraphIQL available at http://localhost:${CONFIG.PORT}/graphiql`)
+    console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
+    if (CONFIG.GRAPHIQL) {
+      // eslint-disable-next-line no-console
+      console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}/graphql`)
+    }
   })
 }
 
