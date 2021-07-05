@@ -7,6 +7,8 @@ FROM gradido/login_dependencies:gcc9-release-3.1 as release
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}
 
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
+
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 COPY ./src ./src
 RUN ln -s /usr/local/googletest ./googletest
@@ -25,7 +27,9 @@ RUN cd scripts &&  \
 	chmod +x compile_pot.sh && \
 	./compile_pot.sh
 
-	
+#RUN ls -la /usr/lib
+#RUN ls -la /usr/local/lib
+
 #########################################################################################################
 # run release 
 #########################################################################################################
@@ -35,15 +39,28 @@ FROM ubuntu:latest as login_server
 USER root
 WORKDIR "/usr/bin"
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libsodium23 libssl1.1 && \
+	apt-get autoclean && \
+	apt-get autoremove && \
+    apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
+
 COPY --from=release /code/build/bin/Gradido_LoginServer /usr/bin/
 
 COPY --from=release /usr/local/lib/mariadb/libmariadb.so.3 /usr/local/lib/
 COPY --from=release /usr/local/lib/libPoco* /usr/local/lib/ 
-COPY --from=release /usr/local/lib/libproto* /usr/local/lib/
-COPY --from=release /usr/lib/libsodium.so.23 /usr/lib/ 
-COPY --from=release /usr/lib/libstdc++.so.6 /usr/lib/ 
-COPY --from=release /usr/lib/libgcc_s.so.1 /usr/lib/ 
+#COPY --from=release /usr/local/lib/libproto* /usr/local/lib/
+COPY --from=release /usr/local/lib/libprotobuf.so.28 /usr/lib/
+COPY --from=release /usr/local/lib/libprotobuf-lite.so.28 /usr/lib/ 
+COPY --from=release /usr/local/lib/libprotoc.so.28 /usr/lib/
+#COPY --from=release /usr/local/lib/libsodium.so.23 /usr/lib/
+#COPY --from=release /usr/lib/libsodium.so.23 /usr/lib/ 
+#COPY --from=release /usr/lib/libstdc++.so.6 /usr/lib/ 
+#COPY --from=release /usr/lib/libgcc_s.so.1 /usr/lib/ 
 
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
+RUN ls -la /usr/local/lib/
 
 RUN chmod +x /usr/bin/Gradido_LoginServer
 ENTRYPOINT ["/usr/bin/Gradido_LoginServer"]
