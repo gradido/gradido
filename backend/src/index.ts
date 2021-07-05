@@ -2,6 +2,10 @@ import 'reflect-metadata'
 import express from 'express'
 import { graphqlHTTP } from 'express-graphql'
 import { buildSchema } from 'type-graphql'
+import { ClientBuilder } from '@iota/client'
+import atob from 'atob'
+// import { Blob } from 'node-blob'
+
 // import { createConnection } from 'typeorm'
 import CONFIG from './config'
 
@@ -80,6 +84,24 @@ async function main() {
     // eslint-disable-next-line no-console
     console.log(`Server is running, GraphIQL available at http://localhost:${CONFIG.PORT}/graphiql`)
   })
+
+  // listening on iota messages
+  // client connects to a node that has MQTT enabled
+  const client = new ClientBuilder().node('https://api.hornet-0.testnet.chrysalis2.com').build()
+
+  client
+    .subscriber()
+    .topics(['messages/indexation/GRADIDO.gdd1'])
+    .subscribe((err: any, data: any) => {
+      if (err) {
+        // eslint-disable-next-line no-console
+        console.log('err: %o', err)
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(String.fromCharCode.apply(null, JSON.parse(data.payload).payload.data.data))
+      }
+      // To get the message id `client.getMessageId(data.payload)` can be used
+    })
 }
 
 main()

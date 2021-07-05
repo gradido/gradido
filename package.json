@@ -10,6 +10,7 @@
     "release": "yarn version --no-git-tag-version --no-commit-hooks --no-commit && auto-changelog --latest-version $(node -p -e \"require('./package.json').version\") && cd frontend && yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version $(node -p -e \"require('./../package.json').version\")"
   },
   "dependencies": {
+    "@iota/client": "^0.6.2",
     "auto-changelog": "^2.2.1"
   }
 }
