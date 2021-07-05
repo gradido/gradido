@@ -2,7 +2,7 @@
 #########################################################################################################
 # Build release 
 #########################################################################################################
-FROM gradido/login_dependencies:ubuntu-release-3.1 as release
+FROM gradido/login_dependencies:gcc9-release-3.1 as release
 
 ENV DOCKER_WORKDIR="/code"
 WORKDIR ${DOCKER_WORKDIR}

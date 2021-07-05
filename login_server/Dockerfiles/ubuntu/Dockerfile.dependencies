@@ -1,6 +1,6 @@
 # Login-Server Build dependencies for ubuntu
 # Uploaded to hub.docker.com with the tag: 
-# gradido/login_dependencies:gcc9-debug-3 for debug build 
+# gradido/login_dependencies:gcc9-debug-3.1 for debug build 
 # Update tag when dependencies are added or removed
 
 # Control Build Type with ARG BUILD_TYPE
