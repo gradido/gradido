@@ -1,0 +1,16 @@
+[package]
+name = "iota_client"
+version = "0.1.0"
+edition = "2018"
+authors = ["Dario Rekowski <dario.rekowski@gmx.de>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+libc = "0.2"
+iota-client = "1.0.1"
+tokio = "1.8.0"
+

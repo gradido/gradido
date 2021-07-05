@@ -26,6 +26,7 @@ include_directories(
 	"build/http_pages"
 	"src/cpp"
 	"dependencies/ed25519_bip32_c_interface/include/"
+	"dependencies/iota_client/include/"
 )
 
 IF(UNIX)
@@ -170,6 +171,7 @@ FILE(GLOB PROTO_GRADIDO "build/proto/gradido/*.cc" "build/proto/gradido/*.h")
 # used only for test project 
 FILE(GLOB TEST "src/cpp/test/*.cpp" "src/cpp/test/*.h")
 FILE(GLOB TEST_CRYPTO "src/cpp/test/crypto/*.cpp" "src/cpp/test/crypto/*.h")
+FILE(GLOB TEST_IOTA "src/cpp/test/iota/*.cpp" "src/cpp/test/iota/*.h")
 FILE(GLOB TEST_MODEL "src/cpp/test/model/*.cpp" "src/cpp/test/model/*.h")
 FILE(GLOB TEST_MODEL_TABLE "src/cpp/test/model/table/*.cpp" "src/cpp/test/model/table/*.h")
 FILE(GLOB TEST_CONTROLLER "src/cpp/test/controller/*.cpp" "src/cpp/test/controller/*.h")
@@ -183,7 +185,7 @@ SET(LOCAL_SRCS
 	${PROTO_GRADIDO} 
 )
 SET(LOCAL_TEST_SRC
-	${TEST} ${TEST_CRYPTO} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER} ${TEST_JSON_INTERFACE}
+	${TEST} ${TEST_CRYPTO} ${TEST_IOTA} ${TEST_MODEL} ${TEST_MODEL_TABLE} ${TEST_CONTROLLER} ${TEST_JSON_INTERFACE}
 )
 aux_source_directory("src/cpp" LOCAL_SRCS)
 
@@ -205,6 +207,7 @@ if(MSVC)
 	source_group("HTTP-Interface" FILES ${HTTPInterface})
 	source_group("Json-Interface" FILES ${JSONInterface})
 	source_group("Test\\crypto" FILES ${TEST_CRYPTO})
+	source_group("Test\\iota" FILES ${TEST_IOTA})
 	source_group("Test\\model\\table" FILES ${TEST_MODEL_TABLE})
 	source_group("Test\\model" FILES ${TEST_MODEL})
 	source_group("Test\\controller" FILES ${TEST_CONTROLLER})
@@ -257,6 +260,7 @@ ENDIF()
 ############################## bind rust modules ###################################
 if(WIN32)
 	set(ED25519_LIB_NAME "ed25519_bip32_c_interface.lib")
+	set(IOTA_CLIENT_LIB_NAME "iota_client.dll.lib")
 else()
 	set(ED25519_LIB_NAME "libed25519_bip32_c_interface.a")
 endif()
@@ -266,19 +270,22 @@ message("library ${RUST_ED25519_BIP32_D}")
 find_library(RUST_ED25519_BIP32_D ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/debug")
 find_library(RUST_ED25519_BIP32   ${ED25519_LIB_NAME} PATHS "dependencies/ed25519_bip32_c_interface/target/release")
 
+find_library(RUST_IOTA_CLIENT_D ${IOTA_CLIENT_LIB_NAME} PATHS "dependencies/iota_client/target/debug")
+find_library(RUST_IOTA_CLIENT ${IOTA_CLIENT_LIB_NAME} PATHS "dependencies/iota_client/target/release")
+
 ############################## build login server ###################################
 
 
 if(WIN32)
 	# Userenv needed for RUST_ED25519_BIP32
 	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS} Userenv.lib)
-	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
-	target_link_libraries(Gradido_LoginServer optimized ${RUST_ED25519_BIP32})
+	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
+	target_link_libraries(Gradido_LoginServer optimized ${RUST_ED25519_BIP32} ${RUST_IOTA_CLIENT})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
 	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium libprotobuf)
-	target_link_libraries(Gradido_LoginServer ${RUST_ED25519_BIP32})
+	target_link_libraries(Gradido_LoginServer ${RUST_ED25519_BIP32} ${RUST_IOTA_CLIENT})
 endif()
 
 # install 
@@ -369,12 +376,12 @@ target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 if(WIN32)
 	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf Userenv.lib)
-	target_link_libraries(Gradido_LoginServer_Test debug ${RUST_ED25519_BIP32_D})
+	target_link_libraries(Gradido_LoginServer_Test debug ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${RUST_ED25519_BIP32_D})
+	target_link_libraries(Gradido_LoginServer_Test ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
 	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest libprotobuf)
 endif()
 
