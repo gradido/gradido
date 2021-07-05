@@ -18,16 +18,15 @@
             {{ item.name ? item.name : $t('decay') }}
             <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
             <!-- <p>{{ item.decay }}</p> -->
-            <p>{{ getTransaction(item.transaction_id) }} GDD</p>
-            <p>{{ getTransaction(item.transaction_id).decay }} GDD</p>
+            <decay-information :decay="getTransaction(item.transaction_id).decay" form="short" />
           </div>
-          <div class="text-right" style="width: 5%">
+          <div v-if="item.type != 'decay'" class="text-right" style="width: 5%">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
         </div>
-        <b-collapse :id="'a' + item.date + ''" class="mt-2">
+        <b-collapse v-if="item.type != 'decay'" :id="'a' + item.date + ''" class="mt-2">
           <b-card>
             <b-card-title>
               <div class="display-4">
@@ -42,7 +41,7 @@
                 <span class="display-4">{{ $d($moment(item.date), 'long') }}</span>
               </div>
               <div>
-                <div>an:</div>
+                <div>{{ item.type === 'receive' ? 'von:' : 'an:' }}</div>
                 <span class="display-4">{{ item.name }}</span>
               </div>
               <div class="display-5">
@@ -51,31 +50,9 @@
                 }}
               </div>
               <div class="display-4">{{ item.memo }}</div>
-              <hr />
-              Seit deiner letzten Transaction sind
 
-              <div v-if="getTransaction(item.transaction_id).decay">
-                <decay-information :decay="getTransaction(item.transaction_id).decay" />
-              </div>
-
-              {{
-                getTransaction(item.transaction_id).decay
-                  ? getTransaction(item.transaction_id).decay.balance
-                  : 'missing'
-              }}
-              <!-- <p> {{ $moment.unix(getTransaction(item.transaction_id).descay_start).format('D.MM.YYYY - HH:mm:ss') }}</p>
-                   <p> {{ $moment.unix(getTransaction(item.transaction_id).decay_end).format('D.MM.YYYY - HH:mm:ss') }}</p> -->
-              <div>{{}} vergangen.</div>
-              <br />
-              <!-- <div>{{ getTransaction(item.id).balance }} Vergänglichkeit.</div> -->
+              <decay-information :decay="getTransaction(item.transaction_id).decay" form="long" />
             </b-card-body>
-
-            <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
-              {{ $t('transaction.more') }}
-            </b-button>
-            <b-collapse :id="'collapse-1-inner' + item.date" class="mt-2">
-              <b-card>{{ item }}</b-card>
-            </b-collapse>
           </b-card>
         </b-collapse>
       </b-list-group-item>

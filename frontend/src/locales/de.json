@@ -19,6 +19,8 @@
     "en": "English"
   },
   "decay": "Vergänglichkeit",
+  "resieve": "",
+  
   "form": {
     "cancel": "Abbrechen",
     "reset": "Zurücksetzen",
