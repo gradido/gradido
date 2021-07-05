@@ -273,7 +273,7 @@ if(WIN32)
 	# Userenv needed for RUST_ED25519_BIP32
 	target_link_libraries(Gradido_LoginServer mariadbclient libprotobuf ${CONAN_LIBS} Userenv.lib)
 	target_link_libraries(Gradido_LoginServer debug ${RUST_ED25519_BIP32_D})
-	target_link_libraries(Gradido_LoginServer release ${RUST_ED25519_BIP32})
+	target_link_libraries(Gradido_LoginServer optimized ${RUST_ED25519_BIP32})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
