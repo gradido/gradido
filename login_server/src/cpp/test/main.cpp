@@ -14,6 +14,7 @@
 
 #include "../SingletonManager/ConnectionManager.h"
 #include "../SingletonManager/SessionManager.h"
+#include "ServerConfig.h"
 
 #include "../lib/Profiler.h"
 
@@ -139,8 +140,9 @@ int load(int argc, char* argv[]) {
 
 	std::clog << "measure Time for secret key generation..." << std::endl;
 	Profiler timeForArgon2;
-	SecretKeyCryptography secret_cryptografie;
-	secret_cryptografie.createKey("Jeet_bb@gmail.com", "TestP4ssword&H");
+	Poco::AutoPtr<SecretKeyCryptography> secret_cryptografie(new SecretKeyCryptography);
+	secret_cryptografie->createKey("Jeet_bb@gmail.com", "TestP4ssword&H");
+	
 	ServerConfig::g_FakeLoginSleepTime = timeForArgon2.millis();
 
 	std::clog << "time for secret key generation: " << timeForArgon2.string() << std::endl;
@@ -178,7 +180,8 @@ int load(int argc, char* argv[]) {
 	std::string tables[] = { 
 		"groups",
 		"users",
-		"user_roles"
+		"user_roles",
+		"user_backups"
 	};
 	for (int i = 0; i < 3; i++) {
 		if (runMysql("TRUNCATE " + tables[i])) {
@@ -192,15 +195,28 @@ int load(int argc, char* argv[]) {
 	std::stringstream ss;
 	// password = TestP4ssword&H
 	ss << "INSERT INTO `users` (`id`, `email`, `first_name`, `last_name`, `username`, `password`, `pubkey`, `privkey`, `created`, `email_checked`, `passphrase_shown`, `language`, `disabled`, `group_id`) VALUES "
-		<< "(1, 'd_schultz32@gmx.de', 'DDD', 'Schultz', 'Diddel', 18242007140018938940, 0x69f2fefd6fa6947a370b9f8d3147f6617cf67416517ce25cb2d63901c666933c, 0x567f3e623a1899d1f8d69190c5799433c134ce0137c0c38cc0347874586d6234a19f2a0b484e6cc1863502e580ae6c17db1131f29a35eba45a46be29c7ee592940a3bd3ad519075fdeed6e368f0eb818, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), ";
+		<< "(1, 'd_schultz32@gmx.de', 'DDD', 'Schultz', 'Diddel', 18242007140018938940, 0x69f2fefd6fa6947a370b9f8d3147f6617cf67416517ce25cb2d63901c666933c, 0x567f3e623a1899d1f8d69190c5799433c134ce0137c0c38cc0347874586d6234a19f2a0b484e6cc1863502e580ae6c17db1131f29a35eba45a46be29c7ee592940a3bd3ad519075fdeed6e368f0eb818, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), " << std::endl;
 
-	// if this isn't the same, some tests will fail, so we update the test data here.
-	if (secret_cryptografie.getKeyHashed() != precalculated_password_hash) {
-		ss << "(2, 'Jeet_bb@gmail.com', 'Darios', 'Bruder', 'Jeet', " << secret_cryptografie.getKeyHashed() << ", 0, 0, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), ";
+	auto passphrase = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[2]);
+	auto key_pair = KeyPairEd25519::create(passphrase);
+	auto priv_key = key_pair->getCryptedPrivKey(secret_cryptografie);
+	auto priv_key_hex = DataTypeConverter::binToHex(priv_key);
+
+	ss << "(2, 'Jeet_bb@gmail.com', 'Darios', 'Bruder', 'Jeet', " 
+		<< secret_cryptografie->getKeyHashed() << ", " 
+		// why data? binToHex add \0 to the end of string and mysql has a problem with that
+		<< "0x" << key_pair->getPublicKeyHex().data() << ", "
+		<< "0x" << priv_key_hex.data()
+		<< ", '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), " << std::endl;
+	
+	// 0x6afd24f46eb79a839281fe537a1888155b102d4fbe0613ea92d51845bd8036cb
+	// 0xe7aed71cd4ae2d1aba9343ffb3822b759f972e41b63a6032b7f6c69f566217784c2e7bcdaeaa2f7dd16bf3b6f1540b22afa65fc054550a9296454c6ecdbd4131eac7f9c703318a867e666691e1808a6e
+	//	ss << "(2, 'Jeet_bb@gmail.com', 'Darios', 'Bruder', 'Jeet', 10417562666175322069, 0, 0, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), ";
+	
+	if(priv_key) {
+		MemoryManager::getInstance()->releaseMemory(priv_key);
 	}
-	else {
-		ss << "(2, 'Jeet_bb@gmail.com', 'Darios', 'Bruder', 'Jeet', 10417562666175322069, 0x6afd24f46eb79a839281fe537a1888155b102d4fbe0613ea92d51845bd8036cb, 0xe7aed71cd4ae2d1aba9343ffb3822b759f972e41b63a6032b7f6c69f566217784c2e7bcdaeaa2f7dd16bf3b6f1540b22afa65fc054550a9296454c6ecdbd4131eac7f9c703318a867e666691e1808a6e, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), ";
-	}
+
 	ss	<< "(3, 'Tiger_231@yahoo.com', 'Dieter', 'Schultz', 'Tiger', 13790258844849208764, 0x9a79a5daea92218608fa1e3a657d78961dc04c97ff996cc0ea17d6896b5368e6, 0x4993a156a120728f0fa93fc63ab01482ed85ecf433c729c8426c4bb93f0b7ce6142fda531b11f5d5e925acd1d2e55fdfef94fe07dbb78d43322f7df1234c7251aa58946c96ec6e551395f0fb5e87decf, '2020-02-20 16:05:45', 1, 0, 'de', 0, 1), "
 		<< "(4, 'Nikola_Tesla@email.de', 'Nikola', 'Tesla', 'Erfinder', 1914014100253540772, 0x1c199421a66070afb28cb7c37de98865b28924bff26161bb65faaf5695050ee3, 0xe38ca460ca748954b29d79f0e943eed3ba85e7e13b18f69349666e31a8e3b06c9df105171796b37b4201895a2f3fe8ec8bf58a181700caaa5752a94a968c50e90ebb6280002a056126b2055ff75d69d1, '2020-02-20 16:05:46', 1, 0, 'de', 0, 1), "
 		<< "(5, 'Elfenhausen@arcor.de', 'Thomas', 'Markuk', 'Elf', 8105871797752167168, 0x98d703f0ea1def3ef9e6265a76281d125a94c80665425bd7a844580ec1a2ce98, 0x63612a1d07d78a0c945d765a10a30d9de2be602e79e3f39268d731bc6f7fa945d7d04c638000bae089ac058263f52e7c1f2c3550b35b5727e41523f2f592781add65d12b8b8c0b3226f32174cfa1bcee, '2020-02-20 16:05:46', 1, 0, 'de', 0, 1), "

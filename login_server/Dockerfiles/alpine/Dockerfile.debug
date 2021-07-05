@@ -1,4 +1,4 @@
-FROM gradido/login_dependencies:alpine-debug-3 as login_server_alpine_debug
+FROM gradido/login_dependencies:alpine-debug-3.1 as login_server_alpine_debug
 
 ENV DOCKER_WORKDIR="/code"
 

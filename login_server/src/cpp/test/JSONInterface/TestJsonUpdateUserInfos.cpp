@@ -109,7 +109,7 @@ TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.5);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -175,7 +175,7 @@ TEST_F(TestJsonUpdateUserInfos, NewPasswordSameAsOldPassword)
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.5);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -210,7 +210,7 @@ TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.5);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
@@ -261,7 +261,7 @@ TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 	auto params = chooseAccount(update);
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
+	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.5);
 
 	auto errors = result->get("errors");
 	ASSERT_TRUE(errors.isArray());
