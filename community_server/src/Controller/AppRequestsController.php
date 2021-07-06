@@ -393,6 +393,16 @@ class AppRequestsController extends AppController
         $this->set('body', $body);       
     }
     
+    public function getDecayStartBlock()
+    {
+        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
+        $decayStartBlock = $transactionsTable->find()->where(['transaction_type_id' => 9]);
+        if(!$decayStartBlock->count()) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'not found']);
+        }
+        return $this->returnJson(['state' => 'success', 'decay_start' => $decayStartBlock->first()->received]);
+    }
+    
     private function acquireAccessToken($session_id)
     {
       
