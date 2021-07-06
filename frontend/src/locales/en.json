@@ -142,6 +142,7 @@
   },
   "reset-password": {
     "title": "Reset Password",
-    "text": "Now you can save a new password to login to the Gradido-App in the future."
+    "text": "Now you can save a new password to login to the Gradido-App in the future.",
+    "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support."
   }
 }

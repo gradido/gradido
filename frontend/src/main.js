@@ -2,8 +2,7 @@ import Vue from 'vue'
 import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
-// eslint-disable-next-line no-unused-vars
-import validationRules from './validation-rules'
+import './validation-rules'
 
 import { store } from './store/store'
 
