@@ -105,6 +105,57 @@ describe('UserCardFormUserPasswort', () => {
         expect(form.find('button[type="submit"]').exists()).toBeTruthy()
       })
 
+      describe('validation', () => {
+        it('displays all password requirements', () => {
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(5)
+          expect(feedbackArray.at(0).text()).toBe('validations.messages.required')
+          expect(feedbackArray.at(1).text()).toBe('site.signup.lowercase')
+          expect(feedbackArray.at(2).text()).toBe('site.signup.uppercase')
+          expect(feedbackArray.at(3).text()).toBe('site.signup.one_number')
+          expect(feedbackArray.at(4).text()).toBe('site.signup.minimum')
+        })
+
+        it('removes first message when a character is given', async () => {
+          await wrapper.findAll('input').at(1).setValue('@')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(4)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.lowercase')
+        })
+
+        it('removes first and second message when a lowercase character is given', async () => {
+          await wrapper.findAll('input').at(1).setValue('a')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(3)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.uppercase')
+        })
+
+        it('removes the first three messages when a lowercase and uppercase characters are given', async () => {
+          await wrapper.findAll('input').at(1).setValue('Aa')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(2)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.one_number')
+        })
+
+        it('removes the first four messages when a lowercase, uppercase and numeric characters are given', async () => {
+          await wrapper.findAll('input').at(1).setValue('Aa1')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(1)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.minimum')
+        })
+
+        it('removes all messages when all rules are fulfilled', async () => {
+          await wrapper.findAll('input').at(1).setValue('Aa123456')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(0)
+        })
+      })
+
       describe('submit', () => {
         describe('valid data', () => {
           beforeEach(async () => {

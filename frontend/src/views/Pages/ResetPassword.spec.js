@@ -3,6 +3,8 @@ import loginAPI from '../../apis/loginAPI'
 import ResetPassword from './ResetPassword'
 import flushPromises from 'flush-promises'
 
+// validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
+
 jest.mock('../../apis/loginAPI')
 
 const localVue = global.localVue

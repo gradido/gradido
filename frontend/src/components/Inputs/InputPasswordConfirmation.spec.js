@@ -4,6 +4,8 @@ import InputPasswordConfirmation from './InputPasswordConfirmation'
 
 const localVue = global.localVue
 
+// validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
+
 describe('InputPasswordConfirmation', () => {
   let wrapper
 
