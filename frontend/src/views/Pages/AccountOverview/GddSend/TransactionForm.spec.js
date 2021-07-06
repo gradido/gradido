@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
+import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -19,8 +20,12 @@ describe('GddSend', () => {
     },
   }
 
+  const propsData = {
+    balance: 100.0,
+  }
+
   const Wrapper = () => {
-    return mount(TransactionForm, { localVue, mocks })
+    return mount(TransactionForm, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
@@ -53,6 +58,18 @@ describe('GddSend', () => {
             'E-Mail',
           )
         })
+
+        it('flushes an error message when no valid email is given', async () => {
+          await wrapper.find('#input-group-1').find('input').setValue('a')
+          await flushPromises()
+          expect(wrapper.find('span.errors').text()).toBe('validations.messages.email')
+        })
+
+        it('trims the email after blur', async () => {
+          await wrapper.find('#input-group-1').find('input').setValue('  valid@email.com  ')
+          await flushPromises()
+          expect(wrapper.vm.form.email).toBe('valid@email.com')
+        })
       })
 
       describe('ammount field', () => {
@@ -73,6 +90,24 @@ describe('GddSend', () => {
             '0.01',
           )
         })
+
+        it('flushes an error message when no valid amount is given', async () => {
+          await wrapper.find('#input-group-2').find('input').setValue('a')
+          await flushPromises()
+          expect(wrapper.find('span.errors').text()).toBe('form.validation.gddSendAmount')
+        })
+
+        it('flushes an error message when amount is too high', async () => {
+          await wrapper.find('#input-group-2').find('input').setValue('123.34')
+          await flushPromises()
+          expect(wrapper.find('span.errors').text()).toBe('form.validation.gddSendAmount')
+        })
+
+        it('flushes no errors when amount is valid', async () => {
+          await wrapper.find('#input-group-2').find('input').setValue('87.34')
+          await flushPromises()
+          expect(wrapper.find('span.errors').exists()).toBeFalsy()
+        })
       })
 
       describe('message text box', () => {
@@ -89,6 +124,18 @@ describe('GddSend', () => {
         it('has a label form.memo', () => {
           expect(wrapper.find('label.input-3').text()).toBe('form.memo')
         })
+
+        it('flushes an error message when memo is less than 5 characters', async () => {
+          await wrapper.find('#input-group-3').find('textarea').setValue('a')
+          await flushPromises()
+          expect(wrapper.find('span.errors').text()).toBe('validations.messages.min')
+        })
+
+        it('flushes no error message when memo is valid', async () => {
+          await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
+          await flushPromises()
+          expect(wrapper.find('span.errors').exists()).toBeFalsy()
+        })
       })
 
       describe('cancel button', () => {
@@ -100,11 +147,42 @@ describe('GddSend', () => {
           expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
         })
 
-        it.skip('clears the email field on click', async () => {
-          wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
-          wrapper.find('button[type="reset"]').trigger('click')
-          await wrapper.vm.$nextTick()
-          expect(wrapper.vm.form.email).toBeNull()
+        it('clears all fields on click', async () => {
+          await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
+          await wrapper.find('#input-group-2').find('input').setValue('87.23')
+          await wrapper.find('#input-group-3').find('textarea').setValue('Long enugh')
+          await flushPromises()
+          expect(wrapper.vm.form.email).toBe('someone@watches.tv')
+          expect(wrapper.vm.form.amount).toBe('87.23')
+          expect(wrapper.vm.form.memo).toBe('Long enugh')
+          await wrapper.find('button[type="reset"]').trigger('click')
+          await flushPromises()
+          expect(wrapper.vm.form.email).toBe('')
+          expect(wrapper.vm.form.amount).toBe('')
+          expect(wrapper.vm.form.memo).toBe('')
+        })
+      })
+
+      describe('submit', () => {
+        beforeEach(async () => {
+          await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
+          await wrapper.find('#input-group-2').find('input').setValue('87.23')
+          await wrapper.find('#input-group-3').find('textarea').setValue('Long enugh')
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('emits set-transaction', async () => {
+          expect(wrapper.emitted('set-transaction')).toBeTruthy()
+          expect(wrapper.emitted('set-transaction')).toEqual([
+            [
+              {
+                email: 'someone@watches.tv',
+                amount: 87.23,
+                memo: 'Long enugh',
+              },
+            ],
+          ])
         })
       })
     })
