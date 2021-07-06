@@ -1,23 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { extend } from 'vee-validate'
 
 import InputPasswordConfirmation from './InputPasswordConfirmation'
-
-const rules = [
-  'containsLowercaseCharacter',
-  'containsUppercaseCharacter',
-  'containsNumericCharacter',
-  'atLeastEightCharactera',
-  'samePassword',
-]
-
-rules.forEach((rule) => {
-  extend(rule, {
-    validate(value) {
-      return true
-    },
-  })
-})
 
 const localVue = global.localVue
 

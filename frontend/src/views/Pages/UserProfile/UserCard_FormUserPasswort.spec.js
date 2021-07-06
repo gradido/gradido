@@ -2,23 +2,6 @@ import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
 import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-import { extend } from 'vee-validate'
-
-const rules = [
-  'containsLowercaseCharacter',
-  'containsUppercaseCharacter',
-  'containsNumericCharacter',
-  'atLeastEightCharactera',
-  'samePassword',
-]
-
-rules.forEach((rule) => {
-  extend(rule, {
-    validate(value) {
-      return true
-    },
-  })
-})
 
 jest.mock('../../../apis/loginAPI')
 

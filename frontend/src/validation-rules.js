@@ -9,6 +9,11 @@ export const loadAllRules = (i18nCallback) => {
       values._field_ = i18nCallback.t(`fields.${field}`)
       return i18nCallback.t(`validations.messages.${values._rule_}`, values)
     },
+    classes: {
+      valid: 'is-valid',
+      invalid: 'is-invalid',
+      dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
+    },
   })
 
   extend('email', {
