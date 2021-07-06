@@ -2,7 +2,6 @@ import Vue from 'vue'
 import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
-import './validation-rules'
 import { loadAllRules } from './validation-rules'
 
 import { store } from './store/store'
