@@ -131,7 +131,7 @@ describe('Login', () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
           expect(wrapper.findAll('div.invalid-feedback').at(1).text()).toBe(
-            'The password field is required',
+            'The form.password field is required',
           )
         })
       })
