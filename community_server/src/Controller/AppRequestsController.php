@@ -341,9 +341,12 @@ class AppRequestsController extends AppController
         } else {
             $offset = (( $page - 1 ) * $count) - 1;
         }
-        if($offset) {
+        if($offset && $orderDirection == 'ASC') {
             // move cursor one step backwards to able to load one transaction previous last which will be shown for decay calculation
             $offset--;
+            $limit++;
+            $skip_first_transaction = true;
+        } else if($orderDirection == 'DESC') {
             $limit++;
             $skip_first_transaction = true;
         }
