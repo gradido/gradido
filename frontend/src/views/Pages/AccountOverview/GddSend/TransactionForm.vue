@@ -168,7 +168,7 @@ export default {
   },
   methods: {
     onSubmit() {
-      this.normalizeAmount()
+      this.normalizeAmount(true)
       this.$emit('set-transaction', {
         email: this.form.email,
         amount: this.form.amountValue,
@@ -181,10 +181,11 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
     },
-    setTransaction(data) {
-      this.form.email = data.email
-      this.form.amount = data.amount
-    },
+    /*
+     setTransaction(data) {
+       this.form.email = data.email
+       this.form.amount = data.amount
+     }, */
     normalizeAmount(isValid) {
       this.amountFocused = false
       if (!isValid) return

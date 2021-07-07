@@ -84,7 +84,7 @@ describe('Register', () => {
         wrapper.find('#registerEmail').setValue('no_valid@Email')
         await flushPromises()
         await expect(wrapper.find('#registerEmailLiveFeedback').text()).toEqual(
-          'The Email field must be a valid email',
+          'validations.messages.email',
         )
       })
 
