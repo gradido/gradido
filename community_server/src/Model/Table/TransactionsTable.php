@@ -133,7 +133,7 @@ class TransactionsTable extends Table
     }
 
     
-    public function listTransactionsHumanReadable($stateUserTransactions, array $user, $decay = true) 
+    public function listTransactionsHumanReadable($stateUserTransactions, array $user, $decay = true, $skip_first_transaction = false) 
     {
         
         $stateUsersTable    = TableRegistry::getTableLocator()->get('StateUsers');
@@ -267,8 +267,9 @@ class TransactionsTable extends Table
                 $final_transaction['name'] = $otherUser->first_name . ' ' . $otherUser->last_name;
                 $final_transaction['email'] = $otherUser->email;
             }
-           
-            $final_transactions[] = $final_transaction;
+            if($i > 0 || !$skip_first_transaction) {
+                $final_transactions[] = $final_transaction;
+            }
             
             if($i == $stateUserTransactionsCount-1 && $decay) {
                 $now = new FrozenTime();

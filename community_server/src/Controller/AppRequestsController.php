@@ -25,7 +25,7 @@ class AppRequestsController extends AppController
         $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
+        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions', 'getDecayStartBlock']);
     }
     
   
@@ -335,10 +335,17 @@ class AppRequestsController extends AppController
 
         $limit = $count;
         $offset = 0;
+        $skip_first_transaction = false;
         if($page == 1) {
             $limit--;
         } else {
             $offset = (( $page - 1 ) * $count) - 1;
+        }
+        if($offset) {
+            // move cursor one step backwards to able to load one transaction previous last which will be shown for decay calculation
+            $offset--;
+            $limit++;
+            $skip_first_transaction = true;
         }
         
         $stateUserTransactionsQuery = $stateUserTransactionsTable
@@ -362,7 +369,7 @@ class AppRequestsController extends AppController
                 $transactions_from_db = array_reverse($transactions_from_db);
             }
             
-            $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay);
+            $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay, $skip_first_transaction);
             
             if($orderDirection == 'DESC') {
                 $transactions = array_reverse($transactions);
