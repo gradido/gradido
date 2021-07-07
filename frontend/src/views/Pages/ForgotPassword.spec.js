@@ -83,9 +83,7 @@ describe('ForgotPassword', () => {
         })
 
         it('displays an error', () => {
-          expect(form.find('div.invalid-feedback').text()).toEqual(
-            'The Email field must be a valid email',
-          )
+          expect(form.find('div.invalid-feedback').text()).toEqual('validations.messages.email')
         })
 
         it('does not call the API', () => {

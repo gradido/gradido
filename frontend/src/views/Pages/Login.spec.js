@@ -123,7 +123,7 @@ describe('Login', () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
           expect(wrapper.findAll('div.invalid-feedback').at(0).text()).toBe(
-            'The Email field is required',
+            'validations.messages.required',
           )
         })
 
@@ -131,7 +131,7 @@ describe('Login', () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
           expect(wrapper.findAll('div.invalid-feedback').at(1).text()).toBe(
-            'The form.password field is required',
+            'validations.messages.required',
           )
         })
       })

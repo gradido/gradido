@@ -1,27 +1,22 @@
 import { mount } from '@vue/test-utils'
-import { extend } from 'vee-validate'
 import UserCardFormUsername from './UserCard_FormUsername'
 import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
+import { extend } from 'vee-validate'
 
 jest.mock('../../../apis/loginAPI')
-
-extend('gddUsernameRgex', {
-  validate(value) {
-    return true
-  },
-})
-
-extend('gddUsernameUnique', {
-  validate(value) {
-    return true
-  },
-})
 
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn((args) => {
   return { success: true }
+})
+
+// override this rule to avoid API call
+extend('gddUsernameUnique', {
+  validate(value) {
+    return true
+  },
 })
 
 const toastErrorMock = jest.fn()
