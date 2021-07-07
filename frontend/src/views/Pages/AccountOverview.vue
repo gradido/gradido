@@ -94,7 +94,7 @@ export default {
   },
   methods: {
     setTransaction(data) {
-      this.transactionData = data
+      this.transactionData = { ...data }
       this.currentTransactionStep = 1
     },
     async sendTransaction() {

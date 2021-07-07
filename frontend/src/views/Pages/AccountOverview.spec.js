@@ -51,13 +51,13 @@ describe('AccountOverview', () => {
     })
 
     describe('transaction form', () => {
-      it('steps forward in the dialog', () => {
-        wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
+      it('steps forward in the dialog', async () => {
+        await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
         })
-        expect(wrapper.vm.currentTransactionStep).toBe(1)
+        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBeTruthy()
       })
     })
 
@@ -75,7 +75,7 @@ describe('AccountOverview', () => {
 
       it('resets the transaction process when on-reset is emitted', async () => {
         await wrapper.findComponent({ name: 'TransactionConfirmation' }).vm.$emit('on-reset')
-        expect(wrapper.vm.currentTransactionStep).toBe(0)
+        expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
         expect(wrapper.vm.transactionData).toEqual({
           email: '',
           amount: 0,
