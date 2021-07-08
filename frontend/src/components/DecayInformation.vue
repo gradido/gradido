@@ -74,10 +74,11 @@ export default {
         : ''
     },
     duration() {
-      const startDate = this.$moment.unix(new Date(this.decay.decay_start))
-      const endDate = this.$moment.unix(new Date(this.decay.decay_end))
-      const diff = this.$moment.duration(endDate.diff(startDate))
-      return diff._data
+      return this.$moment.duration(
+        this.$moment
+          .unix(new Date(this.decay.decay_end))
+          .diff(this.$moment.unix(new Date(this.decay.decay_start))),
+      )._data
     },
   },
 }
