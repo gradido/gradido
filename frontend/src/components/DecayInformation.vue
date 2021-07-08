@@ -56,42 +56,30 @@
   </div>
 </template>
 <script>
-export default {
-  name: 'DecayInformation',
-  props: {
-    decay: {
-      balance: '',
-      decay_duration: '',
-      decay_start: 0,
-      decay_end: 0,
-      decay_start_block: 0,
-    },
-    decaytyp: { type: String, default: '' },
-  },
-  data() {
-    return {
-      a: 0,
-      b: 0,
-      duration: {},
-      diff: {},
-    }
-  },
-  computed: {
-    decayStartBlockTextShort() {
-      return this.decay.decay_start_block
-        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
-        : ''
-    },
-  },
-  methods: {
-    getDuration(start, end) {
-      this.a = new Date(start)
-      this.b = new Date(end)
-      this.a = this.$moment.unix(this.a)
-      this.b = this.$moment.unix(this.b)
-      this.diff = this.$moment.duration(this.a.diff(this.b))
-      this.duration = this.diff._data
-    },
-  },
-}
+ export default {
+   name: 'DecayInformation',
+   props: {
+     decay: {
+       balance: '',
+       decay_duration: '',
+       decay_start: 0,
+       decay_end: 0,
+       decay_start_block: 0,
+     },
+     decaytyp: { type: String, default: '' },
+   },
+   computed: {
+     decayStartBlockTextShort() {
+       return this.decay.decay_start_block
+            ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
+            : ''
+     },
+     getDuration() {
+       const startDate = new Date(this.decay.decay_start)
+       const endDate = new Date(this.decay.decay_end)
+       const diff = this.$moment.duration(startDate.diff(endDate))
+       return diff._data
+     },
+   },
+ }
 </script>
