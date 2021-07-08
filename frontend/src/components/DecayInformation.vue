@@ -52,14 +52,20 @@ export default {
       diff: {},
     }
   },
+  created() {
+    console.log("start", start)
+  },
   methods: {
-    getDuration(start, end) {
-      this.a = new Date(start)
-      this.b = new Date(end)
-      this.a = this.$moment.unix(this.a)
-      this.b = this.$moment.unix(this.b)
-      this.diff = this.$moment.duration(this.a.diff(this.b))
-      this.duration = this.diff._data
+    getDuration(start, end) {    
+      console.log("start", start)
+      console.log("end", end)
+        this.a = new Date(start)
+        this.b = new Date(end)
+        this.a = this.$moment.unix(this.a)
+        this.b = this.$moment.unix(this.b)
+        this.diff = this.$moment.duration(this.a.diff(this.b))
+        this.duration = this.diff._data   
+     
     },
   },
 }
