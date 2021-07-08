@@ -135,7 +135,7 @@ describe('DashboardLayoutGdd', () => {
           await flushPromises()
         })
 
-        it('calls the API', () => {
+        it('calls the API', async () => {
           expect(logoutMock).toBeCalledWith(1)
         })
 
