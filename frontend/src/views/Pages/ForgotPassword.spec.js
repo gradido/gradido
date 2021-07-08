@@ -83,9 +83,7 @@ describe('ForgotPassword', () => {
         })
 
         it('displays an error', () => {
-          expect(form.find('#reset-pwd--live-feedback').text()).toEqual(
-            'The Email field must be a valid email',
-          )
+          expect(form.find('div.invalid-feedback').text()).toEqual('validations.messages.email')
         })
 
         it('does not call the API', () => {
@@ -96,8 +94,7 @@ describe('ForgotPassword', () => {
       describe('valid Email', () => {
         beforeEach(async () => {
           await form.find('input').setValue('user@example.org')
-          form.trigger('submit')
-          await wrapper.vm.$nextTick()
+          await form.trigger('submit')
           await flushPromises()
         })
 

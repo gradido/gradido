@@ -1,28 +1,27 @@
 import { mount } from '@vue/test-utils'
-import { extend } from 'vee-validate'
 import UserCardFormUsername from './UserCard_FormUsername'
 import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
+import { extend } from 'vee-validate'
 
 jest.mock('../../../apis/loginAPI')
-
-extend('gddUsernameRgex', {
-  validate(value) {
-    return true
-  },
-})
-
-extend('gddUsernameUnique', {
-  validate(value) {
-    return true
-  },
-})
 
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn((args) => {
   return { success: true }
 })
+
+// override this rule to avoid API call
+extend('gddUsernameUnique', {
+  validate(value) {
+    return true
+  },
+})
+
+const toastErrorMock = jest.fn()
+const toastSuccessMock = jest.fn()
+const storeCommitMock = jest.fn()
 
 loginAPI.changeUsernameProfile = mockAPIcall
 
@@ -37,10 +36,11 @@ describe('UserCard_FormUsername', () => {
         email: 'user@example.org',
         username: '',
       },
-      commit: jest.fn(),
+      commit: storeCommitMock,
     },
     $toast: {
-      success: jest.fn(),
+      success: toastSuccessMock,
+      error: toastErrorMock,
     },
   }
 
@@ -111,8 +111,41 @@ describe('UserCard_FormUsername', () => {
             expect(wrapper.find('div.display-username').text()).toEqual('@username')
           })
 
+          it('commits the username to the store', () => {
+            expect(storeCommitMock).toBeCalledWith('username', 'username')
+          })
+
+          it('toasts an success message', () => {
+            expect(toastSuccessMock).toBeCalledWith('site.profil.user-data.change-success')
+          })
+
           it('has no edit button anymore', () => {
             expect(wrapper.find('svg.bi-pencil').exists()).toBeFalsy()
+          })
+        })
+
+        describe('submit retruns error', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            mockAPIcall.mockReturnValue({
+              success: false,
+              result: { message: 'Error' },
+            })
+            await wrapper.find('input[placeholder="Username"]').setValue('username')
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('calls the loginAPI', () => {
+            expect(mockAPIcall).toHaveBeenCalledWith(1, 'user@example.org', 'username')
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorMock).toBeCalledWith('Error')
+          })
+
+          it('renders an empty username', () => {
+            expect(wrapper.find('div.display-username').text()).toEqual('@')
           })
         })
       })

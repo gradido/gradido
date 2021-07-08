@@ -247,10 +247,12 @@ export default {
     showNext() {
       this.currentPage++
       this.updateTransactions()
+      window.scrollTo(0, 0)
     },
     showPrevious() {
       this.currentPage--
       this.updateTransactions()
+      window.scrollTo(0, 0)
     },
   },
 }

@@ -19,27 +19,7 @@
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <validation-provider
-                    name="Email"
-                    :rules="{ required: true, email: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group class="mb-3" label="Email" label-for="input-reset-pwd">
-                      <b-form-input
-                        id="input-reset-pwd"
-                        name="input-reset-pwd"
-                        v-model="form.email"
-                        placeholder="Email"
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="reset-pwd--live-feedback"
-                      ></b-form-input>
-
-                      <b-form-invalid-feedback id="reset-pwd--live-feedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
+                  <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
                       {{ $t('site.password.reset_now') }}
@@ -59,9 +39,13 @@
 </template>
 <script>
 import loginAPI from '../../apis/loginAPI.js'
+import InputEmail from '../../components/Inputs/InputEmail'
 
 export default {
   name: 'password',
+  components: {
+    InputEmail,
+  },
   data() {
     return {
       disable: 'disabled',
@@ -71,9 +55,6 @@ export default {
     }
   },
   methods: {
-    getValidationState({ dirty, validated, valid = null }) {
-      return dirty || validated ? valid : null
-    },
     async onSubmit() {
       await loginAPI.sendEmail(this.form.email)
       // always give success to avoid email spying
