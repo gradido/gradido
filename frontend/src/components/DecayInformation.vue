@@ -39,8 +39,7 @@
             </div>
             <div style="width: 60%">
               <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
-              <i>{{ getDuration(decay.decay_end, decay.decay_start) }}</i>
-              <span v-if="this.duration != {}">
+              <span v-if="duration">
                 <b v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</b>
                 <b v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</b>
                 <b v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</b>
@@ -68,29 +67,18 @@ export default {
     },
     decaytyp: { type: String, default: '' },
   },
-  data() {
-    return {
-      a: 0,
-      b: 0,
-      duration: {},
-      diff: {},
-    }
-  },
   computed: {
     decayStartBlockTextShort() {
       return this.decay.decay_start_block
         ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
         : ''
     },
-  },
-  methods: {
-    getDuration(start, end) {
-      this.a = new Date(start)
-      this.b = new Date(end)
-      this.a = this.$moment.unix(this.a)
-      this.b = this.$moment.unix(this.b)
-      this.diff = this.$moment.duration(this.a.diff(this.b))
-      this.duration = this.diff._data
+    duration() {
+      return this.$moment.duration(
+        this.$moment
+          .unix(new Date(this.decay.decay_end))
+          .diff(this.$moment.unix(new Date(this.decay.decay_start))),
+      )._data
     },
   },
 }
