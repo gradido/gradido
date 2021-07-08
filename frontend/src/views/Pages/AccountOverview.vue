@@ -69,7 +69,7 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      transactionData: EMPTY_TRANSACTION_DATA,
+      transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
       currentTransactionStep: 0,
       loading: false,
@@ -94,7 +94,7 @@ export default {
   },
   methods: {
     setTransaction(data) {
-      this.transactionData = data
+      this.transactionData = { ...data }
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
@@ -110,7 +110,7 @@ export default {
       this.loading = false
     },
     onReset() {
-      this.transactionData = EMPTY_TRANSACTION_DATA
+      this.transactionData = { ...EMPTY_TRANSACTION_DATA }
       this.currentTransactionStep = 0
     },
     updateTransactions(pagination) {
