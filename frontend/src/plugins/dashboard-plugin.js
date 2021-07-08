@@ -40,8 +40,14 @@ export default {
     Vue.use(Loading)
     Vue.use(Toasted, {
       position: 'top-center',
-      duration: 2500,
+      duration: 5000,
       fullWidth: true,
+      action: {
+        text: 'x',
+        onClick: (e, toastObject) => {
+          toastObject.goAway(0)
+        },
+      },
     })
   },
 }
