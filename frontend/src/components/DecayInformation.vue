@@ -1,7 +1,7 @@
 <template>
-  <div v-if="decay">
+  <div>
     <span v-if="decaytyp === 'short'">
-      <small>{{ decay ? ' ' + decay.balance + ' ' + decay_start_block_text_short : '' }}</small>
+      <small>{{ decay ? ' ' + decay.balance + ' ' + decayStartBlockTextShort : '' }}</small>
     </span>
 
     <div v-if="decaytyp === 'new'">
@@ -66,7 +66,7 @@ export default {
       decay_end: 0,
       decay_start_block: 0,
     },
-    decaytyp: '',
+    decaytyp: { type: String, default: '' },
   },
   data() {
     return {
@@ -74,10 +74,14 @@ export default {
       b: 0,
       duration: {},
       diff: {},
-      decay_start_block_text_short: this.decay.decay_start_block
-        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
-        : '',
     }
+  },
+  computed: {
+    decayStartBlockTextShort() {
+      return this.decay.decay_start_block
+        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
+        : ''
+    },
   },
   methods: {
     getDuration(start, end) {
