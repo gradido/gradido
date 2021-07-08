@@ -7,6 +7,10 @@ const errorHandler = jest.fn()
 
 localVue.config.errorHandler = errorHandler
 
+const scrollToMock = jest.fn()
+
+global.scrollTo = scrollToMock
+
 describe('GddTransactionList', () => {
   let wrapper
 
@@ -263,29 +267,30 @@ describe('GddTransactionList', () => {
       })
 
       it('emits update-transactions when next button is clicked', async () => {
-        paginationButtons.find('button.next-page').trigger('click')
-        await wrapper.vm.$nextTick()
+        await paginationButtons.find('button.next-page').trigger('click')
         expect(wrapper.emitted('update-transactions')[1]).toEqual([{ firstPage: 2, items: 25 }])
       })
 
       it('shows text "2 / 2" when next button is clicked', async () => {
-        paginationButtons.find('button.next-page').trigger('click')
-        await wrapper.vm.$nextTick()
+        await paginationButtons.find('button.next-page').trigger('click')
         expect(paginationButtons.find('p.text-center').text()).toBe('2 / 2')
       })
 
       it('has next-button disabled when next button is clicked', async () => {
-        paginationButtons.find('button.next-page').trigger('click')
-        await wrapper.vm.$nextTick()
+        await paginationButtons.find('button.next-page').trigger('click')
         expect(paginationButtons.find('button.next-page').attributes('disabled')).toBe('disabled')
       })
 
+      it('scrolls to top after loading next page', async () => {
+        await paginationButtons.find('button.next-page').trigger('click')
+        expect(scrollToMock).toBeCalled()
+      })
+
       it('emits update-transactions when preivous button is clicked after next buton', async () => {
-        paginationButtons.find('button.next-page').trigger('click')
-        await wrapper.vm.$nextTick()
-        paginationButtons.find('button.previous-page').trigger('click')
-        await wrapper.vm.$nextTick()
+        await paginationButtons.find('button.next-page').trigger('click')
+        await paginationButtons.find('button.previous-page').trigger('click')
         expect(wrapper.emitted('update-transactions')[2]).toEqual([{ firstPage: 1, items: 25 }])
+        expect(scrollToMock).toBeCalled()
       })
     })
   })
