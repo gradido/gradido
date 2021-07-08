@@ -203,7 +203,7 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(3).text()).toBe('decay')
+          expect(transaction.findAll('div').at(3).text()).toBe('decay.decay_since_last_transaction')
         })
       })
     })
