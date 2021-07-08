@@ -93,7 +93,7 @@ const loginAPI = {
       update: {
         'User.first_name': data.firstName,
         'User.last_name': data.lastName,
-        //'User.description': data.description,
+        // 'User.description': data.description,
       },
     }
     return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
