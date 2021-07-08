@@ -12,7 +12,6 @@ RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 COPY ./CMakeLists.txt.lib ./CMakeLists.txt
 RUN ln -s /usr/local/googletest ./googletest
 COPY ./src ./src
-COPY ./cmake/CodeCoverage.cmake ./cmake/CodeCoverage.cmake
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
@@ -35,5 +34,5 @@ RUN cd scripts &&  \
 	chmod +x compile_pot.sh && \
 	./compile_pot.sh
 
-CMD cd build && cmake .. && make -j$(nproc) Gradido_LoginServer && ./bin/Gradido_LoginServer
+CMD cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j$(nproc) Gradido_LoginServer && ./bin/Gradido_LoginServer
 

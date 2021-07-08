@@ -6,7 +6,7 @@
           <b-icon icon="chevron-left" variant="primary"></b-icon>
         </b-button>
       </b-col>
-      <b-col cols="2">
+      <b-col cols="3">
         <p class="text-center pt-2">{{ currentPage }} / {{ totalPages }}</p>
       </b-col>
       <b-col>

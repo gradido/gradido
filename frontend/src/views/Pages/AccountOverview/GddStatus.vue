@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="gdd-status">
     <b-row>
       <b-col class="p-0">
         <b-card class="p-0" style="background-color: #ebebeba3 !important">

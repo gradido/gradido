@@ -1,10 +1,11 @@
 import { createLocalVue } from '@vue/test-utils'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import Vuex from 'vuex'
+
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import * as rules from 'vee-validate/dist/rules'
-
 import { messages } from 'vee-validate/dist/locale/en.json'
+
 import RegeneratorRuntime from 'regenerator-runtime'
 import SideBar from '@/components/SidebarPlugin'
 import VueQrcode from 'vue-qrcode'
@@ -14,7 +15,7 @@ import VueMoment from 'vue-moment'
 import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
-global.localVue = createLocalVue()
+import { loadAllRules } from '../src/validation-rules'
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
@@ -22,6 +23,15 @@ Object.keys(rules).forEach((rule) => {
     message: messages[rule], // assign message
   })
 })
+
+const i18nMock = {
+  t: (identifier, values) => identifier,
+  n: (value, format) => value,
+}
+
+loadAllRules(i18nMock)
+
+global.localVue = createLocalVue()
 
 global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)

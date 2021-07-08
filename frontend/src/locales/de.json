@@ -84,6 +84,7 @@
   },
   "error": {
     "error":"Fehler",
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
     "change-password": "Fehler beim Ändern des Passworts"
   },
   "transaction":{
@@ -158,6 +159,7 @@
   },
   "reset-password": {
     "title": "Passwort zurücksetzen",
-    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
+    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst.",
+    "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support."
   }
 }

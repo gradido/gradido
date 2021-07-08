@@ -3,6 +3,8 @@ import loginAPI from '../../apis/loginAPI'
 import ResetPassword from './ResetPassword'
 import flushPromises from 'flush-promises'
 
+// validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
+
 jest.mock('../../apis/loginAPI')
 
 const localVue = global.localVue
@@ -25,6 +27,7 @@ const toasterMock = jest.fn()
 const routerPushMock = jest.fn()
 
 emailVerificationMock
+  .mockReturnValueOnce({ success: false, result: { message: 'error' } })
   .mockReturnValueOnce({ success: false, result: { message: 'error' } })
   .mockReturnValueOnce({ success: false, result: { message: 'error' } })
   .mockReturnValueOnce({ success: false, result: { message: 'error' } })
@@ -81,36 +84,39 @@ describe('ResetPassword', () => {
     })
 
     it('does not render the Reset Password form when not authenticated', () => {
-      expect(wrapper.find('div.resetpwd-form').exists()).toBeFalsy()
+      expect(wrapper.find('form').exists()).toBeFalsy()
     })
 
     it('toasts an error when no valid optin is given', () => {
       expect(toasterMock).toHaveBeenCalledWith('error')
     })
 
+    it('has a message suggesting to contact the support', () => {
+      expect(wrapper.find('div.header').text()).toContain('reset-password.title')
+      expect(wrapper.find('div.header').text()).toContain('reset-password.not-authenticated')
+    })
+
     it('renders the Reset Password form when authenticated', async () => {
-      wrapper.setData({ authenticated: true })
-      await wrapper.vm.$nextTick()
+      await wrapper.setData({ authenticated: true })
       expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
     })
 
     describe('Register header', () => {
       it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('reset-password.title reset-password.text')
+        expect(wrapper.find('div.header').text()).toContain('reset-password.title')
+        expect(wrapper.find('div.header').text()).toContain('reset-password.text')
       })
     })
 
-    /* there is no back button, why?
     describe('links', () => {
       it('has a link "Back"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
       })
 
       it('links to /login when clicking "Back"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/Login')
       })
     })
-    */
 
     describe('reset password form', () => {
       it('has a register form', () => {
@@ -119,10 +125,6 @@ describe('ResetPassword', () => {
 
       it('has 2 password input fields', () => {
         expect(wrapper.findAll('input[type="password"]').length).toBe(2)
-      })
-
-      it('has no submit button when not completely filled', () => {
-        expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
       })
 
       it('toggles the first input field to text when eye icon is clicked', async () => {
@@ -140,23 +142,20 @@ describe('ResetPassword', () => {
 
     describe('submit form', () => {
       beforeEach(async () => {
-        wrapper.findAll('input').at(0).setValue('Aa123456')
-        wrapper.findAll('input').at(1).setValue('Aa123456')
-        await wrapper.vm.$nextTick()
+        await wrapper.findAll('input').at(0).setValue('Aa123456')
+        await wrapper.findAll('input').at(1).setValue('Aa123456')
         await flushPromises()
-        wrapper.find('form').trigger('submit')
+        await wrapper.find('form').trigger('submit')
       })
 
       describe('server response with error', () => {
-        it('toasts an error message', async () => {
+        it('toasts an error message', () => {
           expect(toasterMock).toHaveBeenCalledWith('error')
         })
       })
 
       describe('server response with success', () => {
-        it('calls the API', async () => {
-          await wrapper.vm.$nextTick()
-          await flushPromises()
+        it('calls the API', () => {
           expect(changePasswordMock).toHaveBeenCalledWith(1, 'user@example.org', 'Aa123456')
         })
 
