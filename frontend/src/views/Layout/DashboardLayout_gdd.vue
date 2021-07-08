@@ -67,11 +67,11 @@ import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
 
 import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
 
+// start: why do we need this?
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
 }
@@ -87,6 +87,7 @@ function initScrollbar(className) {
     }, 100)
   }
 }
+// end: why do we need this
 
 export default {
   components: {
@@ -105,6 +106,7 @@ export default {
     }
   },
   methods: {
+    // what is this method for???
     initScrollbar() {
       const isWindows = navigator.platform.startsWith('Win')
       if (isWindows) {
@@ -142,6 +144,7 @@ export default {
     },
   },
   mounted() {
+    // why? which scrollBar????
     this.initScrollbar()
   },
 }
