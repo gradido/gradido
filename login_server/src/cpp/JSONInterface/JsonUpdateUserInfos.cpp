@@ -123,13 +123,18 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 				}
 			}
 			else if ("User.description" == name) {
-				std::string str_val = validateString(value, "User.description", jsonErrorsArray);
+				std::string errorMessage = "User.description";
 
-				if (str_val.size() > 0 && str_val != user_model->getDescription()) {
+				if (!value.isString()) {
+					errorMessage += " isn't a string";
+					jsonErrorsArray.add(errorMessage);
+				}
+				std::string str_val = value.toString();
+
+				if (str_val != user_model->getDescription()) {
 					user_model->setDescription(str_val);
 					extractet_values++;
 				}
-
 			}
 			else if ("User.disabled" == name) {
 				bool disabled;
