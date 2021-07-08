@@ -32,7 +32,7 @@ describe('UserCard_FormUsername', () => {
       },
       commit: storeCommitMock,
     },
-    $toast: {
+    $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
     },

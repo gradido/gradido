@@ -53,7 +53,7 @@ describe('ResetPassword', () => {
         optin: '123',
       },
     },
-    $toast: {
+    $toasted: {
       error: toasterMock,
     },
     $router: {

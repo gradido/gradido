@@ -80,7 +80,7 @@ export default {
           */
         this.$router.push('/thx/reset')
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
     },
     async authenticate() {
@@ -94,7 +94,7 @@ export default {
         this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
       loader.hide()
       this.pending = false
