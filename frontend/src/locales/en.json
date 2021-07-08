@@ -18,7 +18,25 @@
     "de": "Deutsch",
     "en": "English"
   },
-  "decay": "Decay",
+  "decay": {
+    "decay": "Decay",
+    "decay_since_last_transaction":"Decay since the last transaction",
+    "calculation_decay": "Calculation of Decay",
+    "Starting_block_decay": "Starting Block Decay",
+    "decay_introduced": "Decay was Introduced on",
+    "last_transaction": "Last transaction:",
+    "past_time": "Past time",
+    "since_introduction": "Since the introduction of Decay",
+    "year": "Years",
+    "months": "Months",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "received":"received",
+    "sent":"sent",
+    "created":"created"
+  },
   "form": {
     "cancel":"Cancel",
     "reset": "Reset",

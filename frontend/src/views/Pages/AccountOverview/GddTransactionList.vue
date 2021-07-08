@@ -6,11 +6,13 @@
         v-bind:key="item.transaction_id"
         :style="item.type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
+        <!-- ROW Start -->
         <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''">
+          <!-- ICON -->
           <div style="width: 8%">
             <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
           </div>
-
+          <!-- Text Links -->
           <div class="font1_2em pr-2 text-right" style="width: 32%">
             <span>{{ getProperties(item).operator }}</span>
             <small v-if="item.type === 'decay'">{{ $n(item.balance, 'decimal') }}</small>
@@ -22,43 +24,75 @@
               <b-icon v-if="item.type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
             </div>
           </div>
-
+          <!-- Text Rechts -->
           <div class="font1_2em text-left pl-2" style="width: 55%">
             {{ item.name ? item.name : '' }}
             <span v-if="item.type === 'decay'">
-              <small>Vergänglichkeit seit der letzten Transaktion</small>
+              <small>{{ $t('decay.decay_since_last_transaction') }}</small>
             </span>
             <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
             <decay-information
-              :decay="getTransaction(item.transaction_id).decay"
               decaytyp="short"
+              :decay="getTransaction(item.transaction_id).decay"
             />
           </div>
-
+          <!-- Collaps Toggle Button -->
           <div v-if="item.type != 'decay'" class="text-right" style="width: 5%">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
         </div>
-
+        <!-- ROW End -->
+        <!-- Collaps Start -->
         <b-collapse v-if="item.type != 'decay'" :id="'a' + item.date + ''">
+          <b-list-group v-if="item.type === 'receive' || item.type === 'send'">
+            <b-list-group-item style="border: 0px; background-color: #f1f1f1">
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">
+                  {{ item.type === 'receive' ? 'von:' : 'an:' }}
+                </div>
+                <div style="width: 60%">
+                  {{ item.name }}
+                  <b-avatar class="mr-3"></b-avatar>
+                </div>
+              </div>
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">
+                  {{ item.type === 'receive' ? 'Nachricht:' : 'Nachricht:' }}
+                </div>
+                <div style="width: 60%">
+                  {{ item.memo }}
+                </div>
+              </div>
+            </b-list-group-item>
+          </b-list-group>
+          <b-list-group v-if="item.type === 'creation'">
+            <b-list-group-item style="border: 0px">
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">Schöpfung</div>
+                <div style="width: 60%">Aus der Community</div>
+              </div>
+            </b-list-group-item>
+          </b-list-group>
+          <decay-information decaytyp="new" :decay="getTransaction(item.transaction_id).decay" />
+          <!--
           <b-card>
             <b-card-title>
               <div class="display-4" v-if="item.type === 'receive' || item.type === 'send'">
                 <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
 
-                {{ item.type === 'receive' ? 'empfangen:' : 'gesendet:' }}
+                {{ item.type === 'receive' ? $t('decay.received') : $t('decay.sent') }}
               </div>
               <div class="display-4" v-if="item.type === 'creation'">
                 <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
 
-                {{ item.type === 'creation' ? 'geschöpft:' : '' }}
+                {{ item.type === 'creation' ? $t('decay.created') : '' }}
               </div>
             </b-card-title>
             <b-card-body>
               <p class="display-2">{{ $n(item.balance, 'decimal') }} GDD</p>
-
+              <! -- Card receive and send -- >
               <div v-if="item.type != 'creation'">
                 <div>am:</div>
 
@@ -86,6 +120,7 @@
                   </b-list-group-item>
                 </b-list-group>
               </div>
+              <! -- Card Creation -- >
               <div v-else>
                 <div>Dein Eintrag aus der Community wurde bestätigt.</div>
 
@@ -114,13 +149,14 @@
                 <div>{{ $n(item.balance, 'decimal') }} GDD geschöpft</div>
               </div>
 
-              <decay-information
-                :decay="getTransaction(item.transaction_id).decay"
-                decay_typ="short"
+              <decay-information decaytyp="long"
+                :decay="getTransaction(item.transaction_id).decay"                
               />
             </b-card-body>
           </b-card>
+          -->
         </b-collapse>
+        <!-- Collaps End -->
       </b-list-group-item>
       <pagination-buttons
         v-if="showPagination && transactionCount > pageSize"
@@ -158,6 +194,7 @@ export default {
   data() {
     return {
       currentPage: 1,
+      startDecay: 0,
     }
   },
   props: {
@@ -188,7 +225,6 @@ export default {
     getTransaction(id) {
       return this.transactions.find((t) => t.transaction_id === id)
     },
-
     updateTransactions() {
       this.$emit('update-transactions', {
         firstPage: this.currentPage,
