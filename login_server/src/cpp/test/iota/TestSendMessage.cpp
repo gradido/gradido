@@ -6,9 +6,10 @@
 
 TEST(TestSendMessage, SendIotaMessage)
 {
-	std::string message = "Ich bin eine Gradido-Transaktion! ;)";
+	std::string message = "Gradido Transaktion from Login-Server, ";
+	srand(time(NULL));
 	message += std::to_string(rand());
-	std::string index = "GRADIDO.gdd1";
+	std::string index = "GRADIDO.gdd2";
 	auto mm = MemoryManager::getInstance();
 	auto message_id = mm->getFreeMemory(32);
 
