@@ -39,20 +39,13 @@
             </div>
             <div style="width: 60%">
               <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
-              <i>{{ getDuration }}</i>
-              <span v-if="getDuration != {}">
-                <b v-if="getDuration.years > 0">{{ getDuration.years }} {{ $t('decay.year') }},</b>
-                <b v-if="getDuration.months > 0">
-                  {{ getDuration.months }} {{ $t('decay.months') }},
-                </b>
-                <b v-if="getDuration.days > 0">{{ getDuration.days }} {{ $t('decay.days') }},</b>
-                <b v-if="getDuration.hours > 0">{{ getDuration.hours }} {{ $t('decay.hours') }},</b>
-                <b v-if="getDuration.minutes > 0">
-                  {{ getDuration.minutes }} {{ $t('decay.minutes') }},
-                </b>
-                <b v-if="getDuration.seconds > 0">
-                  {{ getDuration.seconds }} {{ $t('decay.seconds') }}
-                </b>
+              <span v-if="duration">
+                <b v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</b>
+                <b v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</b>
+                <b v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</b>
+                <b v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</b>
+                <b v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</b>
+                <b v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</b>
               </span>
             </div>
           </div>
@@ -80,10 +73,10 @@ export default {
         ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
         : ''
     },
-    getDuration() {
+    duration() {
       const startDate = this.$moment.unix(new Date(this.decay.decay_start))
       const endDate = this.$moment.unix(new Date(this.decay.decay_end))
-      const diff = this.$moment.duration(startDate.diff(endDate))
+      const diff = this.$moment.duration(endDate.diff(startDate))
       return diff._data
     },
   },
