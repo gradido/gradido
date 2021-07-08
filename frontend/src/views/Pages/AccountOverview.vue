@@ -30,7 +30,7 @@
       <gdd-transaction-list
         v-if="showContext"
         :transactions="transactions"
-        :page-size="5"
+        :pageSize="5"
         :timestamp="timestamp"
         :transaction-count="transactionCount"
         @update-transactions="updateTransactions"

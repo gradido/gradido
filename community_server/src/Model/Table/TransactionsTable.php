@@ -133,11 +133,12 @@ class TransactionsTable extends Table
     }
 
     
-    public function listTransactionsHumanReadable($stateUserTransactions, array $user, $decay = true) 
+    public function listTransactionsHumanReadable($stateUserTransactions, array $user, $decay = true, $skip_first_transaction = false) 
     {
         
         $stateUsersTable    = TableRegistry::getTableLocator()->get('StateUsers');
         $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
+        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
         
         $transaction_ids = [];
         $involved_user_ids = [];
@@ -162,11 +163,15 @@ class TransactionsTable extends Table
         
         $state_balance = $stateBalancesTable->newEntity();
         $final_transactions = [];
+        $decay_start_transaction = $transactionsTable->find()->where(['transaction_type_id' => 9]);
+        $decay_start_transaction_id = 0;
+        if($decay_start_transaction->count()) {
+            $decay_start_transaction_id = $decay_start_transaction->first()->id;
+        }
+        $decay_start_time = $stateBalancesTable->getDecayStartDateCached()->getTimestamp();
         
         foreach($stateUserTransactions as $i => $su_transaction)
         {
-            
-            
             // sender or receiver when user has sended money
             // group name if creation
             // type: gesendet / empfangen / geschöpft
@@ -187,7 +192,8 @@ class TransactionsTable extends Table
             }
             if($prev) 
             {
-                if($prev->balance > 0) {
+                if($prev->balance > 0) 
+                {
                     $current = $su_transaction;              
                     $calculated_decay = $stateBalancesTable->calculateDecay($prev->balance, $prev->balance_date, $current->balance_date, true);
                     $balance = floatval($prev->balance - $calculated_decay['balance']);                 
@@ -199,7 +205,19 @@ class TransactionsTable extends Table
                           'decay_duration' => $calculated_decay['interval']->format('%a days, %H hours, %I minutes, %S seconds'),
                           'decay_start' => $calculated_decay['start_date'],
                           'decay_end' => $calculated_decay['end_date']
-                      ];       
+                      ]; 
+                      if($prev->transaction_id < $decay_start_transaction_id && 
+                         $current->transaction_id > $decay_start_transaction_id) {
+                         $final_transaction['decay']['decay_start_block'] = $decay_start_time;
+                      }
+                      // hint: use transaction id
+                      /*if($calculated_decay['start_date'] < $decay_start_time && $calculated_decay['end_date'] > $decay_start_time) {
+                          $final_transaction['decay']['decay_start_block'] = $decay_start_time;
+                      } else {
+                          echo "start block: " . $decay_start_time . "<br>";
+                          echo "start date:  " . $calculated_decay['start_date'] . "<br>";
+                          echo "end date:    " . $calculated_decay['end_date']. "<hr>";
+                      }*/
                     }
                 }
             }
@@ -249,8 +267,9 @@ class TransactionsTable extends Table
                 $final_transaction['name'] = $otherUser->first_name . ' ' . $otherUser->last_name;
                 $final_transaction['email'] = $otherUser->email;
             }
-           
-            $final_transactions[] = $final_transaction;
+            if($i > 0 || !$skip_first_transaction) {
+                $final_transactions[] = $final_transaction;
+            }
             
             if($i == $stateUserTransactionsCount-1 && $decay) {
                 $now = new FrozenTime();

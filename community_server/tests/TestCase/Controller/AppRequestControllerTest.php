@@ -205,11 +205,12 @@ class AppRequestControllerTest extends TestCase
 			"transaction_id": 7,
 			"date": "2021-04-14T09:02:28+00:00",
 			"memo": "test time 3",
-                        "decay": {
+			"decay": {
 				"balance": 6,
 				"decay_duration": "0 days, 00 hours, 00 minutes, 28 seconds",
 				"decay_start": 1618390920,
-				"decay_end": 1618390948
+				"decay_end": 1618390948,
+				"decay_start_block": 1618390920
 			},
 			"balance": 100000,
 			"type": "receive",
@@ -237,7 +238,7 @@ class AppRequestControllerTest extends TestCase
 			"transaction_id": 9,
 			"date": "2021-04-14T09:31:28+00:00",
 			"memo": "test login crash",
-                        "decay": {
+			"decay": {
 				"balance": 33,
 				"decay_duration": "0 days, 00 hours, 02 minutes, 42 seconds",
 				"decay_start": 1618392526,
@@ -251,20 +252,20 @@ class AppRequestControllerTest extends TestCase
 		},
 		{
 			"type": "decay",
-			"balance": 1222493,
+			"balance": 1345726,
 			"decay_duration": "on 14.04.21",
 			"decay_start": 1618392688,
-			"decay_end": 1624956464,
+			"decay_end": 1625673853,
 			"memo": ""
 		}
 	],
 	"transactionExecutingCount": 0,
 	"count": 7,
 	"gdtSum": 180000,
-	"timeUsed": 0.6441609859466553,
-	"decay_date": "2021-06-29T08:47:44+00:00",
+	"timeUsed": 0.44154810905456545,
+	"decay_date": "2021-07-07T16:04:13+00:00",
 	"balance": 9099652,
-	"decay": 7877159
+	"decay": 7753926
 }';
         $this->getAndParse('/api/list-transactions/', json_decode($expectedResult, true));
     }

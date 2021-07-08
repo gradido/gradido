@@ -18,7 +18,25 @@
     "de": "Deutsch",
     "en": "English"
   },
-  "decay": "Vergänglichkeit",
+  "decay": {
+    "decay": "Vergänglichkeit",
+    "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",
+    "calculation_decay":"Berechnung der Vergänglichkeit",
+    "Starting_block_decay":"Startblock Vergänglichkeit",
+    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am",
+    "last_transaction":"Letzte Transaktion",
+    "past_time":"Vergangene Zeit",
+    "since_introduction":"seit Einführung der Vergänglichkeit",
+    "year":"Jahre",
+    "months":"Monate",
+    "days":"Tage",
+    "hours":"Stunden",
+    "minutes":"Minuten",
+    "seconds":"Sekunden",
+    "received":"empfangen",
+    "sent":"gesendet",
+    "created":"geschöpft"
+  }, 
   "form": {
     "cancel": "Abbrechen",
     "reset": "Zurücksetzen",
