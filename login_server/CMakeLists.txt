@@ -27,6 +27,7 @@ include_directories(
 	"src/cpp"
 	"dependencies/ed25519_bip32_c_interface/include/"
 	"dependencies/iota_client/include/"
+	"/usr/local/include/cjson"
 )
 
 IF(UNIX)
@@ -38,6 +39,7 @@ IF(UNIX)
 		"dependencies/poco/JSON/include"
 		"dependencies/poco/Net/include"
 		"dependencies/poco/NetSSL_OpenSSL/include"
+		"dependencies/iota.c/src"
 	)
 ENDIF()
 
@@ -296,7 +298,9 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 else() # unix
-	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} libmariadb sodium libprotobuf)
+	find_library(LIBSODIUM_LIB sodium)
+    #target_link_libraries(Gradido_LoginServer INTERFACE sodium)
+	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} ${LIBSODIUM_LIB} libmariadb libprotobuf)
 	target_link_libraries(Gradido_LoginServer ${RUST_ED25519_BIP32} ${RUST_IOTA_CLIENT})
 endif()
 
@@ -393,8 +397,10 @@ if(WIN32)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${GRPC_LIBS} ${PROTOBUF_DEBUG_LIBS})
 else()
-	target_link_libraries(Gradido_LoginServer_Test ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
-	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} libmariadb sodium gtest libprotobuf)
+	target_link_libraries(Gradido_LoginServer_Test iota_client ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
+	find_library(LIBSODIUM_LIB sodium)
+	#add_dependencies(iota_client)
+	target_link_libraries(Gradido_LoginServer_Test ${POCO_LIBS} ${LIBSODIUM_LIB} libmariadb gtest libprotobuf)
 endif()
 
 add_test(NAME main COMMAND Gradido_LoginServer_Test)
