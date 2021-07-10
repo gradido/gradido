@@ -26,6 +26,7 @@ namespace model {
 			BLOCKCHAIN_NULL,
 			BLOCKCHAIN_MYSQL,
 			BLOCKCHAIN_HEDERA,
+			BLOCKCHAIN_IOTA,
 			BLOCKCHAIN_UNKNOWN
 
 		};
@@ -85,6 +86,7 @@ namespace model {
 			inline void setBlockchainType(BlockchainType blockchainType) { mBlockchainType = blockchainType;}
 			inline bool isHederaBlockchain() { return mBlockchainType == BLOCKCHAIN_HEDERA; }
 			inline bool isMysqlBlockchain() { return mBlockchainType == BLOCKCHAIN_MYSQL; }
+			inline bool isIotaBlockchain() { return mBlockchainType == BLOCKCHAIN_IOTA; }
 			const char* getBlockchainTypeString() const;
 
 		protected:

@@ -1,4 +1,5 @@
-#include "gtest/gtest.h"
+#include "TestSendMessage.h"
+
 
 #include "SingletonManager/MemoryManager.h"
 #include "lib/Profiler.h"
@@ -9,7 +10,17 @@
 #include "client/api/v1/send_message.h"
 #endif
 
-TEST(TestSendMessage, SendIotaMessage)
+void TestSendMessage::SetUp()
+{
+#ifdef __linux__
+    std::string iota_host = "api.lb-0.testnet.chrysalis2.com";
+    strcpy(mIotaClientConfig.host, iota_host.data());
+    mIotaClientConfig.port = 443;
+    mIotaClientConfig.use_tls = true;
+#endif
+}
+
+TEST_F(TestSendMessage, SendIotaMessage)
 {
 	std::string message_begin = "Gradido Transaktion from Login-Server, ";
 	srand(time(NULL));
@@ -21,14 +32,6 @@ TEST(TestSendMessage, SendIotaMessage)
 	auto message_id = mm->getFreeMemory(32);
 #else
     int err = 0;
-
-    iota_client_conf_t ctx;
-    std::string iota_host = "api.lb-0.testnet.chrysalis2.com";
-    strcpy(ctx.host, iota_host.data());
-    //ctx.host = "api.lb-0.testnet.chrysalis2.com";
-    ctx.port = 443;
-    ctx.use_tls = true;
-
     res_send_message_t res = {};
 
 #endif
@@ -40,7 +43,7 @@ TEST(TestSendMessage, SendIotaMessage)
 		sendIotaMessage((const unsigned char*)message.data(), message.size(), (const unsigned char*)index.data(), index.size(), *message_id);
 #else
         // send out index
-        err = send_indexation_msg(&ctx, index.data(), message.data(), &res);
+        err = send_indexation_msg(&mIotaClientConfig, index.data(), message.data(), &res);
         if (res.is_error) {
             printf("Err response: %s\n", res.u.error->msg);
             res_err_free(res.u.error);

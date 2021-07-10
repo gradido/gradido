@@ -9,6 +9,9 @@
 #include "../../lib/Profiler.h"
 #include "../../lib/JsonRequest.h"
 
+#ifdef __linux__
+#include "client/api/v1/send_message.h"
+#endif
 
 #include <google/protobuf/util/json_util.h>
 
@@ -518,8 +521,35 @@ namespace model {
 			else
 			{
 
+                std::string raw_message = mProtoTransaction.SerializeAsString();
+                if (raw_message == "") {
+                    addError(new Error(function_name, "error serializing final transaction"));
+                    return -6;
+                }
+
+                // finale to base64
+                auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+
+                if (base_64_message == "") {
+                    addError(new Error(function_name, "error convert final transaction to base64"));
+                    return -7;
+                }
+
+                auto user = getUser();
+                if (user.isNull()) {
+                    addError(new Error(function_name, "user is zero"));
+                    return -8;
+                }
+                auto group = user->getGroup();
+                if (group.isNull()) {
+                    addError(new Error(function_name, "group is zero"));
+                    return -9;
+                }
+
 				if (mTransactionBody->isMysqlBlockchain()) {
-					return runSendTransactionMysql();
+					return runSendTransactionMysql(base_64_message, group);
+				} else if(mTransactionBody->isIotaBlockchain()) {
+                    return runSendTransactionIota(base_64_message, group);
 				}
 				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
 				return -10;
@@ -527,40 +557,15 @@ namespace model {
 
 		}
 
-		int Transaction::runSendTransactionMysql()
+		int Transaction::runSendTransactionMysql(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group)
 		{
 			static const char* function_name = "Transaction::runSendTransactionMysql";
-			auto mm = MemoryManager::getInstance();
-			std::string raw_message = mProtoTransaction.SerializeAsString();
-			if (raw_message == "") {
-				addError(new Error("SigningTransaction", "error serializing final transaction"));
-				return -6;
-			}
-
-			// finale to base64
-			auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-
-			if (base_64_message == "") {
-				addError(new Error(function_name, "error convert final transaction to base64"));
-				return -7;
-			}
-
 
 			// create json request
-			auto user = getUser();
-			if (user.isNull()) {
-				addError(new Error(function_name, "user is zero"));
-				return -8;
-			}
-			auto group = user->getGroup();
-			if (group.isNull()) {
-				addError(new Error(function_name, "group is zero"));
-				return -9;
-			}
 			auto json_request = group->createJsonRequest();
 
 			Poco::Net::NameValueCollection param;
-			param.set("transaction", base_64_message);
+			param.set("transaction", transaction_base64);
 			auto result = json_request.request("putTransaction", param);
 			json_request.getWarnings(&json_request);
 
@@ -581,6 +586,30 @@ namespace model {
 
 			return -1;
 		}
+
+		int Transaction::runSendTransactionIota(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group)
+		{
+            static const char* function_name = "Transaction::runSendTransactionIota";
+            //#ifdef __linux__
+            res_send_message_t res = {};
+            int err = 0;
+            // send out index
+            err = send_indexation_msg(&ServerConfig::g_IotaClientConfig, group->getModel()->getAlias().data(), transaction_base64.data(), &res);
+
+            if (res.is_error) {
+                //printf("Err response: %s\n", res.u.error->msg);
+                addError(new ParamError(function_name, "error sending transaction", res.u.error->msg));
+                res_err_free(res.u.error);
+                return -1;
+            }
+
+            if(!err) {
+               setResult("message_id", std::string(res.u.msg_id), true);
+            }
+
+            return 1;
+            //#endif
+        }
 
 		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
 		{

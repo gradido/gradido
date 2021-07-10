@@ -13,6 +13,10 @@
 #include "SingletonManager/LanguageManager.h"
 #include "SingletonManager/MemoryManager.h"
 
+#ifdef __unix__
+#include "client/client_service.h"
+#endif
+
 #define DISABLE_EMAIL
 
 namespace ServerConfig {
@@ -77,12 +81,15 @@ namespace ServerConfig {
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
-
+#ifdef __linux__
+    extern iota_client_conf_t g_IotaClientConfig;
+#endif
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
+	bool initIota(const Poco::Util::LayeredConfiguration& cfg);
 
 
 	void writeToFile(std::istream& datas, std::string fileName);

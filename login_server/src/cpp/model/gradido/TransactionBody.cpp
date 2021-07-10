@@ -3,7 +3,7 @@
 
 namespace model {
 	namespace gradido {
-	
+
 		TransactionBody::TransactionBody()
 			: mTransactionSpecific(nullptr), mType(TRANSACTION_NONE), mBlockchainType(BLOCKCHAIN_NULL)
 		{
@@ -39,34 +39,34 @@ namespace model {
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::create(
-			const std::string& memo, 
-			Poco::AutoPtr<controller::User> sender, 
-			const MemoryBin* receiverPublicKey, 
-			Poco::UInt32 amount, 
+			const std::string& memo,
+			Poco::AutoPtr<controller::User> sender,
+			const MemoryBin* receiverPublicKey,
+			Poco::UInt32 amount,
 			BlockchainType blockchainType,
-			Poco::Timestamp pairedTransactionId, 
+			Poco::Timestamp pairedTransactionId,
 			Poco::AutoPtr<controller::Group> group/* = nullptr*/)
 		{
 			if (sender.isNull() || !sender->getModel()) {
 				return nullptr;
 			}
 			auto sender_model = sender->getModel();
-			
+
 
 			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
 			obj->mTransactionBody.set_memo(memo);
 			auto gradido_transfer = obj->mTransactionBody.mutable_transfer();
 			proto::gradido::TransferAmount* transfer_amount = nullptr;
 			std::string* receiver = nullptr;
-			
 
-			if (group.isNull()) 
+
+			if (group.isNull())
 			{
 				auto local = gradido_transfer->mutable_local();
 				transfer_amount = local->mutable_sender();
 				receiver = local->mutable_receiver();
-			} 
-			else 
+			}
+			else
 			{
 				auto group_model = group->getModel();
 				proto::gradido::CrossGroupTransfer* cross_group_transfer = nullptr;
@@ -112,13 +112,13 @@ namespace model {
 			proto::gradido::CrossGroupTransfer* cross_group_transfer = nullptr;
 
 			cross_group_transfer = gradido_transfer->mutable_inbound();
-			
+
 			transfer_amount = cross_group_transfer->mutable_sender();
 			sender = transfer_amount->mutable_pubkey();
 			auto paired_transaction_id = cross_group_transfer->mutable_paired_transaction_id();
 			DataTypeConverter::convertToProtoTimestamp(pairedTransactionId, paired_transaction_id);
 			cross_group_transfer->set_other_group(group_model->getAlias());
-			
+
 			transfer_amount->set_amount(amount);
 			transfer_amount->set_pubkey(senderPublicKey, KeyPairEd25519::getPublicKeySize());
 			cross_group_transfer->set_receiver(receiver_model->getPublicKey(), receiver_model->getPublicKeySize());
@@ -155,7 +155,7 @@ namespace model {
 				break;
 			case TRANSFER_LOCAL:
 				local_transfer = gradido_transfer->mutable_local();
-				break;			
+				break;
 			}
 
 
@@ -171,7 +171,7 @@ namespace model {
 
 				cross_group_transfer->set_receiver((const char*)receiverPublicKey->data(), receiverPublicKey->size());
 			}
-			
+
 
 			transfer_amount->set_amount(amount);
 			transfer_amount->set_pubkey((const unsigned char*)senderPublicKey->data(), senderPublicKey->size());
@@ -184,9 +184,9 @@ namespace model {
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::create(
-			const std::string& memo, 
-			Poco::AutoPtr<controller::User> receiver, 
-			Poco::UInt32 amount, 
+			const std::string& memo,
+			Poco::AutoPtr<controller::User> receiver,
+			Poco::UInt32 amount,
 			Poco::DateTime targetDate,
 			BlockchainType blockchainType
 			)
@@ -214,7 +214,7 @@ namespace model {
 			obj->mTransactionSpecific->prepare();
 
 			return obj;
-			
+
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::load(const std::string& protoMessageBin)
@@ -248,7 +248,7 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mTransactionBody.IsInitialized()) {
 				std::string result(mTransactionBody.memo());
-				
+
 				return result;
 			}
 			return "<uninitalized>";
@@ -290,7 +290,7 @@ namespace model {
 			return "<unknown>";
 		}
 
-		
+
 
 		TransactionCreation* TransactionBody::getCreationTransaction()
 		{
@@ -320,6 +320,7 @@ namespace model {
 			else if (blockainTypeString == "hedera") {
 				return BLOCKCHAIN_HEDERA;
 			}
+			else if(blockainTypeString == "iota")
 			return BLOCKCHAIN_UNKNOWN;
 		}
 
@@ -328,6 +329,7 @@ namespace model {
 			switch (mBlockchainType) {
 			case BLOCKCHAIN_HEDERA: return "hedera";
 			case BLOCKCHAIN_MYSQL: return "mysql";
+			case BLOCKCHAIN_IOTA: return "iota";
 			case BLOCKCHAIN_UNKNOWN: return "unknown";
 			}
 			return "invalid";

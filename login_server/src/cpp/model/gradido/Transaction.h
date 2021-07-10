@@ -93,7 +93,8 @@ namespace model {
 
 			bool ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user);
 
-			int runSendTransactionMysql();
+			int runSendTransactionMysql(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group);
+			int runSendTransactionIota(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group);
 
 			Poco::AutoPtr<Transaction> mPairedTransaction;
 

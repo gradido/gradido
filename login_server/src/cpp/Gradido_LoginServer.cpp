@@ -208,6 +208,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::initEMailAccount(config());
 		EmailManager::getInstance()->init(config());
 
+		ServerConfig::initIota(config());
+
 		// start cpu scheduler
 		uint8_t worker_count = (uint8_t)config().getInt("cpu_worker", Poco::Environment::processorCount() * 2);
 
