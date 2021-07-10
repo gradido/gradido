@@ -6,7 +6,8 @@ use iota_client::{Client, Result};
 use std::convert::TryInto;
 use std::ptr;
 
-
+use futures::executor::block_on;
+use tokio::task;
 // ***************  helper functions ************************************
 
 pub fn c_pointer_to_rust_array(c_pointer: *const u8) -> &'static[u8; 32]
@@ -35,21 +36,45 @@ pub extern fn sendIotaMessage(
     index_name: *const u8,
     index_size: usize,
     message_id: *mut u8
-) {
+) -> bool {
     let message_slice = unsafe { std::slice::from_raw_parts(message, message_size) };
     let index_name_slice = unsafe {std::slice::from_raw_parts(index_name, index_size) };
-    
-    let future = async move {
+
+  /*  let join_handle: task::JoinHandle<_> = task::spawn_blocking(move|| {
+        // some blocking work here
+        send_message(message_slice, index_name_slice);
+    });
+    block_on(join_handle);
+    return true;
+    */
+
+    //let result = tokio::task::spawn_blocking(send_message(message_slice, index_name_slice));
+    //let result = send_message(message_slice, index_name_slice).await;
+  /*  let result = send_message(message_slice, index_name_slice);
+    match result {
+        Ok(_) => true,
+        Err(_) => false
+    }
+//  */  
+
+  /*  let future = async move {
         println!("*** future starting!!");
         let res = send_message(message_slice, index_name_slice).await;
-        
+        println!(" future finished!! ***");
     };
-    
-    let res = tokio::runtime::Builder::new_current_thread()
+    */
+    let res = tokio::runtime::Builder::new_multi_thread()//new_current_thread()
+            .worker_threads(1)
             .enable_all()
             .build()
             .unwrap()
-            .block_on(future);
+            .block_on(send_message(message_slice, index_name_slice));
+
+    match res {
+        Ok(_) => true,
+        Err(_) => false
+    }
+  // */
     
 }
 

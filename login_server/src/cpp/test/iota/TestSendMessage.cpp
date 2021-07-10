@@ -6,16 +6,21 @@
 
 TEST(TestSendMessage, SendIotaMessage)
 {
-	std::string message = "Gradido Transaktion from Login-Server, ";
+	std::string message_begin = "Gradido Transaktion from Login-Server, ";
 	srand(time(NULL));
-	message += std::to_string(rand());
-	std::string index = "GRADIDO.gdd2";
+	
+	std::string index = "GRADIDO.gdd1";
 	auto mm = MemoryManager::getInstance();
 	auto message_id = mm->getFreeMemory(32);
 
 	Profiler timeUsed;
-	sendIotaMessage((const unsigned char*)message.data(), message.size(), (const unsigned char*)index.data(), index.size(), *message_id);
-	printf("time for sending message with iota: %s\n", timeUsed.string().data());
+	int i = 0;
+	for (; i < 4; i++) {
+		std::string message = message_begin += std::to_string(rand());
+		//sendIotaMessage((const unsigned char*)message.data(), message.size(), (const unsigned char*)index.data(), index.size(), *message_id);
+	}
+	
+	printf("time for sending %d message with iota: %s\n", i, timeUsed.string().data());
 
 	//Poco::Thread::sleep(10000);
 
