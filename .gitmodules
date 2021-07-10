@@ -37,3 +37,9 @@
 [submodule "login_server/dependencies/ed25519_bip32_c_interface"]
 	path = login_server/dependencies/ed25519_bip32_c_interface
 	url = https://github.com/gradido/ed25519_bip32_c_interface.git
+[submodule "login_server/dependencies/iota.c"]
+	path = login_server/dependencies/iota.c
+	url = https://github.com/iotaledger/iota.c.git
+[submodule "login_server/dependencies/curl"]
+	path = login_server/dependencies/curl
+	url = https://github.com/curl/curl.git

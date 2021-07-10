@@ -257,7 +257,18 @@ IF(UNIX)
 	set(POCO_LIBS PocoFoundation PocoUtil PocoNet PocoNetSSL PocoData)
 ENDIF()
 
+############################## bind iota c lib   ###################################
+
+if(WIN32) 
+    set(CURL_INCLUDE_DIR "dependencies/curl/include")
+	find_library(CURL_LIBRARY libcurl_imp.lib PATHS "dependencies/curl/build/lib/Release" REQUIRED)
+else()
+endif()
+add_subdirectory("dependencies/iota.c")
+
 ############################## bind rust modules ###################################
+
+
 if(WIN32)
 	set(ED25519_LIB_NAME "ed25519_bip32_c_interface.lib")
 	set(IOTA_CLIENT_LIB_NAME "iota_client.dll.lib")
@@ -376,7 +387,7 @@ target_compile_definitions(Gradido_LoginServer_Test PUBLIC "_TEST_BUILD")
 
 
 if(WIN32)
-	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} libmariadb libprotobuf Userenv.lib)
+	target_link_libraries(Gradido_LoginServer_Test ${CONAN_LIBS} iota_client libmariadb libprotobuf Userenv.lib)
 	target_link_libraries(Gradido_LoginServer_Test debug ${RUST_ED25519_BIP32_D} ${RUST_IOTA_CLIENT_D})
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test optimized  ${MYSQL_LIBRARIES} Shlwapi)
 	#TARGET_LINK_LIBRARIES(Gradido_LoginServer_Test debug ${COMPILED_MARIADB_CLIENT_DEBUG} Shlwapi)
