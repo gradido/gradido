@@ -263,6 +263,7 @@ if(WIN32)
 	set(IOTA_CLIENT_LIB_NAME "iota_client.dll.lib")
 else()
 	set(ED25519_LIB_NAME "libed25519_bip32_c_interface.a")
+	set(IOTA_CLIENT_LIB_NAME "libiota_client.a")
 endif()
 
 message("library ${RUST_ED25519_BIP32_D}")
