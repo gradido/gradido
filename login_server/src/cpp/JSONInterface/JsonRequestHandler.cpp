@@ -3,7 +3,6 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#include "Poco/URI.h"
 #include "Poco/DeflatingStream.h"
 
 #include "Poco/JSON/Parser.h"
@@ -14,6 +13,10 @@
 #include "../SingletonManager/SessionManager.h"
 
 #include "../SingletonManager/SessionManager.h"
+
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 
 JsonRequestHandler::JsonRequestHandler()
 	: mSession(nullptr)
@@ -53,16 +56,21 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
 	Poco::JSON::Object* json_result = nullptr;
+	rapidjson::Document rapid_json_result;
+	rapidjson::Document rapidjson_params;
 	if (method == "POST" || method == "PUT") {
 		// extract parameter from request
-		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream);
-	
+		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream, rapidjson_params);
+	    
 		if (parsedResult.size() != 0) {
-			try {
-				json_result = handle(parsedResult);
-			}
-			catch (Poco::Exception& ex) {
-				json_result = stateError("poco Exception in handle POST Request", ex.displayText());
+			rapid_json_result = handle(rapidjson_params);
+			if (rapid_json_result.IsNull()) {
+				try {
+					json_result = handle(parsedResult);
+				}
+				catch (Poco::Exception& ex) {
+					json_result = stateError("poco Exception in handle POST Request", ex.displayText());
+				}
 			}
 		}
 		else {
@@ -71,15 +79,29 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 	else if(method == "GET") {		
 		Poco::URI uri(request.getURI());
-		auto queryParameters = uri.getQueryParameters();
-		try {
-			json_result = handle(queryParameters);
-		}
-		catch (Poco::Exception& ex) {
-			json_result = stateError("poco Exception in handle GET Request", ex.displayText());
+		parseQueryParametersToRapidjson(uri, rapidjson_params);
+		
+		rapid_json_result = handle(rapidjson_params);
+		if (rapid_json_result.IsNull()) {
+			try {
+				auto queryParameters = uri.getQueryParameters();
+				json_result = handle(queryParameters);
+			}
+			catch (Poco::Exception& ex) {
+				json_result = stateError("poco Exception in handle GET Request", ex.displayText());
+			}
 		}
 	}
 
+	if (!rapid_json_result.IsNull()) {
+		// 3. Stringify the DOM
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		rapid_json_result.Accept(writer);
+
+		// Output {"project":"rapidjson","stars":11}
+		responseStream << buffer.GetString() << std::endl;
+	}
 	if (json_result) {
 		NotificationList errors;
 		if (!json_result->isNull("session_id")) {
@@ -111,8 +133,26 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	//if (_compressResponse) _gzipStream.close();
 }
 
+bool JsonRequestHandler::parseQueryParametersToRapidjson(const Poco::URI& uri, rapidjson::Document& rapidParams)
+{
+	auto queryParameters = uri.getQueryParameters();
+	rapidParams.SetObject();
+	for (auto it = queryParameters.begin(); it != queryParameters.end(); it++) {
+		int tempi = 0;
+		rapidjson::Value name_field(it->first.data(), rapidParams.GetAllocator());
+		if (DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(it->second, tempi)) {
+			//rapidParams[it->first.data()] = rapidjson::Value(tempi, rapidParams.GetAllocator());
+			rapidParams.AddMember(name_field.Move(), tempi, rapidParams.GetAllocator());
+		}
+		else {
+			rapidParams.AddMember(name_field.Move(), rapidjson::Value(it->second.data(), rapidParams.GetAllocator()), rapidParams.GetAllocator());
+		}
+	}
+	
+	return true;
+}
 
-Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
+Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, rapidjson::Document& rapidParams, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
 {
 	// debugging answer
 
@@ -120,6 +160,8 @@ Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream&
 	for (std::string line; std::getline(request_stream, line); ) {
 		responseStringStream << line << std::endl;
 	}
+
+	rapidParams.Parse(responseStringStream.str().data());
 
 	// extract parameter from request
 	Poco::JSON::Parser jsonParser;
@@ -157,6 +199,22 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string 
 	}
 	return result;
 }
+
+rapidjson::Document JsonRequestHandler::rstateError(const char* msg, std::string details)
+{
+	rapidjson::Document obj;
+	obj.SetObject();
+	obj.AddMember("state", "error", obj.GetAllocator());
+	obj.AddMember("msg", rapidjson::Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	
+	if (details.size()) {
+		obj.AddMember("details", rapidjson::Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+	}
+
+	return obj;
+}
+
+
 Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, const Poco::JSON::Array& details)
 {
 	Poco::JSON::Object* result = new Poco::JSON::Object;
@@ -166,6 +224,7 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, const Poco::
 
 	return result;
 }
+
 
 Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, NotificationList* errorReciver)
 {
@@ -185,6 +244,15 @@ Poco::JSON::Object* JsonRequestHandler::stateSuccess()
 	return result;
 }
 
+rapidjson::Document JsonRequestHandler::rstateSuccess()
+{
+	rapidjson::Document obj;
+	obj.SetObject();
+	obj.AddMember("state", "success", obj.GetAllocator());
+
+	return obj;
+}
+
 Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, const char* msg, std::string details/* = ""*/)
 {
 	Poco::JSON::Object* result = new Poco::JSON::Object;
@@ -194,6 +262,19 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 		result->set("details", details);
 	}
 	return result;
+}
+
+rapidjson::Document JsonRequestHandler::rcustomStateError(const char* state, const char* msg, std::string details /* = "" */ )
+{
+	rapidjson::Document obj;
+	obj.SetObject();
+	obj.AddMember("state", rapidjson::Value(state, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("msg", rapidjson::Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	
+	if (details.size()) {
+		obj.AddMember("details", rapidjson::Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+	}
+	return obj;
 }
 
 Poco::JSON::Object* JsonRequestHandler::stateWarning(const char* msg, std::string details/* = ""*/)
