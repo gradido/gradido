@@ -34,7 +34,11 @@
                 </span>
                 <b-media-body class="ml-2">
                   <span class="avatar">
-                    <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+                    <vue-qrcode
+                      v-if="$store.state.email"
+                      :value="$store.state.email"
+                      type="image/png"
+                    ></vue-qrcode>
                   </span>
                 </b-media-body>
               </b-media>
