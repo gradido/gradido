@@ -62,7 +62,8 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 		em->sendErrorsAsEmail();
 		return customStateError("code error", "user is zero");
 	}
-	
+
+	mBlockchainType = model::gradido::BLOCKCHAIN_IOTA;
 	if (mBlockchainType == model::gradido::BLOCKCHAIN_HEDERA) {
 		getTargetGroup(params);
 	}
@@ -115,7 +116,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		mm->releaseMemory(target_pubkey);
 		return result;
 	}
-	
+
 	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
 		auto receiver_user_model = mReceiverUser->getModel();
 		if (receiver_user_model->isDisabled()) {
@@ -125,7 +126,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 			result = stateError("user not in group", "receiver user isn't in target group");
 		}
 	}
-	
+
 	auto gradido_key_pair = sender_user->getGradidoKeyPair();
 	if (gradido_key_pair) {
 		if (gradido_key_pair->isTheSame(*target_pubkey)) {
@@ -168,7 +169,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
 			errors.sendErrorsAsEmail();
 			return stateError("exception");
-		} 
+		}
 		catch (std::exception& ex) {
 			NotificationList errors;
 			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
@@ -179,7 +180,7 @@ Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
 		if (json_warnings) {
 			result->set("warnings", json_warnings);
 			delete json_warnings;
-		}		
+		}
 	}
 	mm->releaseMemory(target_pubkey);
 	return result;
@@ -190,14 +191,14 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return customStateError("not found", "receiver not found");
-	} 
+	}
 
 	Poco::UInt32 amount = 0;
 	Poco::DateTime target_date;
 	auto mm = MemoryManager::getInstance();
 	Poco::JSON::Object* result = nullptr;
 
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) 
+	if (params.type() == typeid(Poco::JSON::Object::Ptr))
 	{
 		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 		try {
@@ -208,11 +209,11 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 			result = stateError("json exception", ex.displayText());
 		}
 	}
-	else 
+	else
 	{
 		result = stateError("parameter format unknown");
 	}
-	
+
 	if (amount <= 0 || amount > 10000000) {
 		result = customStateError("invalid parameter", "invalid amount", "GDD amount in GDD cent ]0,10000000]");
 	}
@@ -229,10 +230,10 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 		mm->releaseMemory(target_pubkey);
 		return result;
 	}
-	
+
 	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
 		auto receiver_user_model = mReceiverUser->getModel();
-		
+
 		if (receiver_user_model->isDisabled()) {
 			result = customStateError("disabled", "receiver is disabled");
 		}
@@ -243,7 +244,7 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 			result = stateError("user not in group", "target user is in another group");
 		}
 	}
-	
+
 	if(!result) {
 		try {
 			auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
@@ -252,24 +253,24 @@ Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
 					return stateError("error by signing transaction", transaction);
 				}
 			}
-		} 
+		}
 		catch (Poco::Exception& ex) {
 			NotificationList errors;
 			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
 			errors.sendErrorsAsEmail();
 			return stateError("exception");
-		} 
+		}
 		catch (std::exception& ex) {
 			NotificationList errors;
 			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
 			errors.sendErrorsAsEmail();
 			return stateError("exception");
 		}
-		
+
 		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
-	
+
 	return result;
 
 }
@@ -295,7 +296,7 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 	std::string email;
 	std::string target_username;
 	std::string target_pubkey_hex;
-	
+
 	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
 	auto fields = paramJsonObject->getNames();
 	try {
@@ -319,7 +320,7 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 	}
 	mReceiverUser = controller::User::create();
 	int result_count = 0;
-	
+
 	MemoryBin* result = nullptr;
 	if (email != "") {
 		result_count = mReceiverUser->load(email);
@@ -349,7 +350,7 @@ bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
 {
 	std::string target_group_alias;
 	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-	try 
+	try
 	{
 		auto target_group = paramJsonObject->get("group");
 		if (!target_group.isEmpty()) {
@@ -360,7 +361,7 @@ bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
 				return true;
 			}
 		}
-	
+
 	}
 	catch (Poco::Exception& ex) {
 		return false;

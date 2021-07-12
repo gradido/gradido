@@ -6,6 +6,7 @@
 #include "lib/DataTypeConverter.h"
 #include "sodium.h"
 
+#include "SingletonManager/Iota.h"
 
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Net/KeyConsoleHandler.h"
@@ -20,8 +21,6 @@
 #include "Poco/DateTimeFormat.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Environment.h"
-
-
 
 using Poco::Net::SSLManager;
 using Poco::Net::Context;
@@ -63,7 +62,6 @@ namespace ServerConfig {
 	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
 
 #ifdef __linux__
-    iota_client_conf_t g_IotaClientConfig;
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -331,16 +329,9 @@ namespace ServerConfig {
 	{
         std::string iota_host = cfg.getString("iota.host", "api.lb-0.testnet.chrysalis2.com");
         int iota_port = cfg.getInt("iota.port", 443);
-        bool use_tls = true;
-        if(iota_port != 443) {
-            use_tls = false;
-        }
-#ifdef __linux__
-        strcpy(g_IotaClientConfig.host, iota_host.data());
-        g_IotaClientConfig.port = iota_port;
-        g_IotaClientConfig.use_tls = use_tls;
 
-#endif
+        auto iota = Iota::getInstance();
+        iota->setConfig(iota_host.data(), iota_port);
         return true;
 	}
 

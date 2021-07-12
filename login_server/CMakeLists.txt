@@ -27,6 +27,7 @@ include_directories(
 	"src/cpp"
 	"dependencies/ed25519_bip32_c_interface/include/"
 	"dependencies/iota_client/include/"
+	"dependencies/iota-wrapper/src"
 	"/usr/local/include/cjson"
 )
 
@@ -253,6 +254,7 @@ IF(UNIX)
 	SET(ENABLE_MONGODB OFF CACHE BOOL "" FORCE) 
 	SET(ENABLE_DATA_SQLITE OFF CACHE BOOL "" FORCE) 
 	SET(ENABLE_REDIS OFF CACHE BOOL "" FORCE)
+	#SET(ENABLE_JSON OFF CACHE BOOL "" FORCE)
 	SET(ENABLE_PAGECOMPILER_FILE2PAGE OFF CACHE BOOL "" FORCE)
 	add_subdirectory("dependencies/poco")
 
@@ -261,12 +263,8 @@ ENDIF()
 
 ############################## bind iota c lib   ###################################
 
-if(WIN32) 
-    set(CURL_INCLUDE_DIR "dependencies/curl/include")
-	find_library(CURL_LIBRARY libcurl_imp.lib PATHS "dependencies/curl/build/lib/Release" REQUIRED)
-else()
-endif()
-add_subdirectory("dependencies/iota.c")
+#add_subdirectory("dependencies/iota-wrapper")
+#add_subdirectory("dependencies/iota.c")
 
 ############################## bind rust modules ###################################
 
@@ -300,7 +298,10 @@ if(WIN32)
 else() # unix
 	find_library(LIBSODIUM_LIB sodium)
     #target_link_libraries(Gradido_LoginServer INTERFACE sodium)
-	target_link_libraries(Gradido_LoginServer iota_client ${RUST_ED25519_BIP32})
+	#add_dependencies(Gradido_LoginServer iota_client)
+	#find_library(IOTAC_CLIENT_LIB libiota_client.a PATHS "dependencies/iota.c/build/src/client" REQUIRED)
+	#find_library(IOTAC_CJSON libcjson.a PATHS "build/dependencies/iota.c/cjson/src/ext_cjson" REQUIRED)
+	target_link_libraries(Gradido_LoginServer ${IOTAC_CJSON} ${RUST_ED25519_BIP32})
 	target_link_libraries(Gradido_LoginServer ${POCO_LIBS} ${LIBSODIUM_LIB} libmariadb libprotobuf)
 endif()
 

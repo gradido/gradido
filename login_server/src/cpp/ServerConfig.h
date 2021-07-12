@@ -14,7 +14,8 @@
 #include "SingletonManager/MemoryManager.h"
 
 #ifdef __unix__
-#include "client/client_service.h"
+//#include "client/client_service.h"
+#include "iotaWrapper.h"
 #endif
 
 #define DISABLE_EMAIL
@@ -81,9 +82,6 @@ namespace ServerConfig {
 	extern std::string g_gRPCRelayServerFullURL;
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
-#ifdef __linux__
-    extern iota_client_conf_t g_IotaClientConfig;
-#endif
 
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);

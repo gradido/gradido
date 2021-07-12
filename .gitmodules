@@ -43,3 +43,6 @@
 [submodule "login_server/dependencies/curl"]
 	path = login_server/dependencies/curl
 	url = https://github.com/curl/curl.git
+[submodule "login_server/dependencies/iota-wrapper/dependencies/iota.c"]
+	path = login_server/dependencies/iota-wrapper/dependencies/iota.c
+	url = https://github.com/iotaledger/iota.c.git

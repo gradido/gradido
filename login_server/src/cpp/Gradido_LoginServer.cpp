@@ -9,6 +9,7 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 #include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/Iota.h"
 
 #include "controller/User.h"
 
@@ -21,6 +22,7 @@
 #include "Poco/Environment.h"
 #include "Poco/Logger.h"
 #include "Poco/Path.h"
+#include "Poco/File.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/FileChannel.h"
@@ -208,7 +210,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::initEMailAccount(config());
 		EmailManager::getInstance()->init(config());
 
-		ServerConfig::initIota(config());
+
 
 		// start cpu scheduler
 		uint8_t worker_count = (uint8_t)config().getInt("cpu_worker", Poco::Environment::processorCount() * 2);
@@ -260,6 +262,31 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// schedule email verification resend
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 		controller::User::addMissingEmailHashes();
+
+		auto iota = Iota::getInstance();
+		std::string iota_wrapper_path = "/usr/local/lib/";
+		std::string iota_wrapper_name = "libiotaWrapper.so";
+#if defined(_WIN32) || defined(_WIN64)
+        iota_wrapper_path = "./";
+        iota_wrapper_name = "iotaWrapper.dll";
+#endif
+        Poco::File iota_file(iota_wrapper_path + iota_wrapper_name);
+        if(!iota_file.exists()) {
+            iota_wrapper_path = "./";
+        }
+        iota_file = Poco::File(iota_wrapper_path + iota_wrapper_name);
+        if(!iota_file.exists()) {
+            iota_wrapper_path = "../dependencies/iota-wrapper/lib/";
+        }
+#ifdef __linux__
+		if(!iota->init(iota_wrapper_path + iota_wrapper_name)) {
+            errorLog.error("[Gradido_LoginServer::main] error by loading iota wrapper");
+            return Application::EXIT_CONFIG;
+		}
+#endif
+        ServerConfig::initIota(config());
+        unsigned char message_id[32];
+        iota->sendMessage("Gradido Test ", "GRADIDO:gdd1", message_id);
 
 		// HTTP Interface Server
 		// set-up a server socket

@@ -1,17 +1,16 @@
 #include "Transaction.h"
-#include "../../SingletonManager/ErrorManager.h"
-#include "../../SingletonManager/PendingTasksManager.h"
-#include "../../SingletonManager/LanguageManager.h"
-#include "../../ServerConfig.h"
+#include "SingletonManager/ErrorManager.h"
+#include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/LanguageManager.h"
+#include "SingletonManager/Iota.h"
+#include "ServerConfig.h"
 
 
-#include "../../lib/DataTypeConverter.h"
-#include "../../lib/Profiler.h"
-#include "../../lib/JsonRequest.h"
+#include "lib/DataTypeConverter.h"
+#include "lib/Profiler.h"
+#include "lib/JsonRequest.h"
 
-#ifdef __linux__
-#include "client/api/v1/send_message.h"
-#endif
+
 
 #include <google/protobuf/util/json_util.h>
 
@@ -119,11 +118,8 @@ namespace model {
 
 			auto sender_model = sender->getModel();
 
-
-			if (blockchainType == BLOCKCHAIN_MYSQL) {
-				transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
-				transaction = new Transaction(transaction_body);
-			}
+            transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
+            transaction = new Transaction(transaction_body);
 
 			transaction->setParam("blockchain_type", (int)blockchainType);
 			transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
@@ -590,25 +586,33 @@ namespace model {
 		int Transaction::runSendTransactionIota(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group)
 		{
             static const char* function_name = "Transaction::runSendTransactionIota";
-            //#ifdef __linux__
-            res_send_message_t res = {};
-            int err = 0;
-            // send out index
-            err = send_indexation_msg(&ServerConfig::g_IotaClientConfig, group->getModel()->getAlias().data(), transaction_base64.data(), &res);
+            auto mm = MemoryManager::getInstance();
+            auto message_id = mm->getFreeMemory(32);
 
-            if (res.is_error) {
-                //printf("Err response: %s\n", res.u.error->msg);
-                addError(new ParamError(function_name, "error sending transaction", res.u.error->msg));
-                res_err_free(res.u.error);
+            std::string transaction_detailed;
+            transaction_detailed += "{\"json\":\"";
+            transaction_detailed += getTransactionAsJson(true);
+            transaction_detailed += "\", \"base64\":\"";
+            transaction_detailed += transaction_base64;
+            transaction_detailed += "\"}";
+
+            printf("transaction: %s\n", transaction_detailed.data());
+
+            // Iota_sendMessage(const char* message, const char* indexName, uint8_t* messageId)
+            std::string topicName = "GRADIDO." + group->getModel()->getAlias();
+            auto iota = Iota::getInstance();
+            int result = iota->sendMessage(transaction_detailed.data(), topicName.data(), *message_id);
+            std::string message_id_string((const char*)*message_id, 32);
+            mm->releaseMemory(message_id);
+
+            if(!result) {
+                setResult("message_id", message_id_string, true);
+            } else {
+                addError(new ParamError(function_name, "error sending transaction", result));
                 return -1;
             }
 
-            if(!err) {
-               setResult("message_id", std::string(res.u.msg_id), true);
-            }
-
             return 1;
-            //#endif
         }
 
 		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
