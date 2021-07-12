@@ -23,10 +23,18 @@ describe('UserProfileTransactionList', () => {
       expect(wrapper.findComponent({ name: 'GddTransactionList' }).exists()).toBeTruthy()
     })
 
-    it('emist update-transactions when update-transactions is called', async () => {
-      wrapper.findComponent({ name: 'GddTransactionList' }).vm.$emit('update-transactions')
+    it('emits update-transactions after creation', () => {
       expect(wrapper.emitted('update-transactions')).toEqual(
         expect.arrayContaining([expect.arrayContaining([{ firstPage: 1, items: 25 }])]),
+      )
+    })
+
+    it('emist update-transactions when update-transactions is called', () => {
+      wrapper
+        .findComponent({ name: 'GddTransactionList' })
+        .vm.$emit('update-transactions', { firstPage: 2, items: 25 })
+      expect(wrapper.emitted('update-transactions')).toEqual(
+        expect.arrayContaining([expect.arrayContaining([{ firstPage: 2, items: 25 }])]),
       )
     })
   })
