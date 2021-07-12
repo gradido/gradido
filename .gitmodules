@@ -34,3 +34,6 @@
 [submodule "login_server/dependencies/protobuf"]
 	path = login_server/dependencies/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "login_server/dependencies/rapidjson"]
+	path = login_server/dependencies/rapidjson
+	url = https://github.com/Tencent/rapidjson.git

@@ -3,6 +3,8 @@
 #include "../lib/DataTypeConverter.h"
 #include "../SingletonManager/SessionManager.h"
 
+#include "rapidjson/document.h"
+
 Poco::JSON::Object* JsonCheckSessionState::handle(Poco::Dynamic::Var params)
 {
 	int session_id = 0;
@@ -50,4 +52,27 @@ Poco::JSON::Object* JsonCheckSessionState::handle(Poco::Dynamic::Var params)
 		return customStateError("not found", "session not found");
 	}
 
+}
+
+rapidjson::Document JsonCheckSessionState::handle(const rapidjson::Document& params)
+{
+	printf("rapidjson\n");
+	
+	rapidjson::Value::ConstMemberIterator itr = params.FindMember("session_id");
+	if (itr == params.MemberEnd()) {
+		return rstateError("session_id not found");
+	}
+	
+	if (!itr->value.IsInt()) {
+		return rstateError("session_id invalid");
+	}
+	auto sm = SessionManager::getInstance();
+	auto session = sm->getSession(itr->value.GetInt());
+	if (session) {
+		return rstateSuccess();
+	}
+	else {
+		return rcustomStateError("not found", "session not found");
+	}
+	
 }
