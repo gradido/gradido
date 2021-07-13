@@ -10,8 +10,9 @@ import CONFIG from '../../config'
 
 const apiPost = async (url: string, payload: any): Promise<any> => {
   try {
+    console.log(url, payload)
     const result = await axios.post(url, payload)
-    console.log(result)
+    console.log('-----', result)
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
@@ -23,6 +24,7 @@ const apiPost = async (url: string, payload: any): Promise<any> => {
     }
     return { success: true, result }
   } catch (error) {
+    console.log(error)
     return { success: false, result: error }
   }
 }
@@ -42,7 +44,7 @@ export class UserResolver {
   @Query(() => String)
   async login(@Arg('email') email: string, @Arg('password') password: string): Promise<string> {
     email = email.trim().toLowerCase()
-
+    console.log(email, password, CONFIG.LOGIN_API_URL)
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
     // if there is no user, throw an authentication error
