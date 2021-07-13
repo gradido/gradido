@@ -83,10 +83,10 @@ export default {
         this.form.newPassword.password,
       )
       if (result.success) {
-        this.$toast.success(this.$t('site.thx.reset'))
+        this.$toasted.success(this.$t('site.thx.reset'))
         this.cancelEdit()
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
     },
   },

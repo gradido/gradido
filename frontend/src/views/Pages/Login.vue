@@ -91,7 +91,7 @@ export default {
         loader.hide()
       } else {
         loader.hide()
-        this.$toast.error(this.$t('error.no-account'))
+        this.$toasted.error(this.$t('error.no-account'))
       }
     },
   },

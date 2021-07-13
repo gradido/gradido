@@ -135,9 +135,9 @@ export default {
         this.$store.commit('lastName', this.form.lastName)
         this.$store.commit('description', this.form.description)
         this.showUserData = true
-        this.$toast.success(this.$t('site.profil.user-data.change-success'))
+        this.$toasted.success(this.$t('site.profil.user-data.change-success'))
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
     },
   },

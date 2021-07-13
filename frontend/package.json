@@ -59,7 +59,6 @@
     "sweetalert2": "^9.5.4",
     "vee-validate": "^3.4.5",
     "vue": "^2.6.11",
-    "vue-bootstrap-toasts": "^1.0.7",
     "vue-bootstrap-typeahead": "^0.2.6",
     "vue-chartjs": "^3.5.0",
     "vue-cli-plugin-i18n": "^1.0.1",
@@ -75,6 +74,7 @@
     "vue-qrcode": "^0.3.5",
     "vue-qrcode-reader": "^2.3.16",
     "vue-router": "^3.0.6",
+    "vue-toasted": "^1.1.28",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
     "vuex-persistedstate": "^4.0.0-beta.3"
