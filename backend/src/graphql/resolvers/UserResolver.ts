@@ -1,18 +1,18 @@
-import jwt from 'jsonwebtoken'
+// import jwt from 'jsonwebtoken'
 import axios from 'axios'
 import { Resolver, Query, /* Mutation, */ Arg } from 'type-graphql'
 import CONFIG from '../../config'
-// import { User } from '../models/User'
+import { LoginResponse } from '../models/User'
 // import { LoginUserInput } from '../inputs/LoginUserInput'
 // import { loginAPI, LoginResult } from '../../apis/loginAPI'
 // import { CreateBookInput } from '../inputs/CreateBookInput'
 // import { UpdateBookInput } from '../inputs/UpdateBookInput'
 
-const apiPost = async (url: string, payload: any): Promise<any> => {
+const apiPost = async (url: string, payload: unknown): Promise<unknown> => {
   try {
-    console.log(url, payload)
+    // console.log(url, payload)
     const result = await axios.post(url, payload)
-    console.log('-----', result)
+    // console.log('-----', result)
     if (result.status !== 200) {
       throw new Error('HTTP Status Error ' + result.status)
     }
@@ -24,7 +24,7 @@ const apiPost = async (url: string, payload: any): Promise<any> => {
     }
     return { success: true, result }
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     return { success: false, result: error }
   }
 }
@@ -41,10 +41,9 @@ export class UserResolver {
     return User.findOne({ where: { id } })
   } */
 
-  @Query(() => String)
-  async login(@Arg('email') email: string, @Arg('password') password: string): Promise<string> {
+  @Query(() => LoginResponse)
+  async login(@Arg('email') email: string, @Arg('password') password: string): Promise<unknown> {
     email = email.trim().toLowerCase()
-    console.log(email, password, CONFIG.LOGIN_API_URL)
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
     // if there is no user, throw an authentication error
@@ -52,13 +51,29 @@ export class UserResolver {
       throw new Error(result.result)
     }
 
+    // temporary solution until we have JWT implemented
+    // console.log(result.result.data)
+    return {
+      sessionId: result.result.data.session_id,
+      user: {
+        email: result.result.data.user.email,
+        language: result.result.data.user.language,
+        username: result.result.data.user.username,
+        firstName: result.result.data.user.first_name,
+        lastName: result.result.data.user.last_name,
+        description: result.result.data.user.description,
+      },
+    }
+
     // create and return the json web token
     // The expire doesn't help us here. The client needs to track when the token expires on its own,
     // since every action prolongs the time the session is valid.
+    /*
     return jwt.sign(
       { result, role: 'todo' },
-      CONFIG.JWT_SECRET /* , { expiresIn: CONFIG.JWT_EXPIRES_IN } */,
+      CONFIG.JWT_SECRET, // * , { expiresIn: CONFIG.JWT_EXPIRES_IN } ,
     )
+    */
     // return (await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', login)).result.data
     // const loginResult: LoginResult = await loginAPI.login(data)
     // return loginResult.user ? loginResult.user : new User()
