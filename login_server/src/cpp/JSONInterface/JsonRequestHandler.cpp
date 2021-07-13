@@ -17,6 +17,8 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+using namespace rapidjson;
+
 
 JsonRequestHandler::JsonRequestHandler()
 	: mSession(nullptr)
@@ -56,8 +58,8 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	auto method = request.getMethod();
 	std::istream& request_stream = request.stream();
 	Poco::JSON::Object* json_result = nullptr;
-	rapidjson::Document rapid_json_result;
-	rapidjson::Document rapidjson_params;
+	Document rapid_json_result;
+	Document rapidjson_params;
 	if (method == "POST" || method == "PUT") {
 		// extract parameter from request
 		Poco::Dynamic::Var parsedResult = parseJsonWithErrorPrintFile(request_stream, rapidjson_params);
@@ -95,8 +97,8 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 
 	if (!rapid_json_result.IsNull()) {
 		// 3. Stringify the DOM
-		rapidjson::StringBuffer buffer;
-		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
 		rapid_json_result.Accept(writer);
 
 		// Output {"project":"rapidjson","stars":11}
@@ -125,26 +127,26 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	//if (_compressResponse) _gzipStream.close();
 }
 
-bool JsonRequestHandler::parseQueryParametersToRapidjson(const Poco::URI& uri, rapidjson::Document& rapidParams)
+bool JsonRequestHandler::parseQueryParametersToRapidjson(const Poco::URI& uri, Document& rapidParams)
 {
 	auto queryParameters = uri.getQueryParameters();
 	rapidParams.SetObject();
 	for (auto it = queryParameters.begin(); it != queryParameters.end(); it++) {
 		int tempi = 0;
-		rapidjson::Value name_field(it->first.data(), rapidParams.GetAllocator());
+		Value name_field(it->first.data(), rapidParams.GetAllocator());
 		if (DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(it->second, tempi)) {
 			//rapidParams[it->first.data()] = rapidjson::Value(tempi, rapidParams.GetAllocator());
 			rapidParams.AddMember(name_field.Move(), tempi, rapidParams.GetAllocator());
 		}
 		else {
-			rapidParams.AddMember(name_field.Move(), rapidjson::Value(it->second.data(), rapidParams.GetAllocator()), rapidParams.GetAllocator());
+			rapidParams.AddMember(name_field.Move(), Value(it->second.data(), rapidParams.GetAllocator()), rapidParams.GetAllocator());
 		}
 	}
 	
 	return true;
 }
 
-Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, rapidjson::Document& rapidParams, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
+Poco::Dynamic::Var JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_stream, Document& rapidParams, NotificationList* errorHandler /* = nullptr*/, const char* functionName /* = nullptr*/)
 {
 	// debugging answer
 
@@ -192,15 +194,15 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string 
 	return result;
 }
 
-rapidjson::Document JsonRequestHandler::rstateError(const char* msg, std::string details)
+Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 {
-	rapidjson::Document obj;
+	Document obj;
 	obj.SetObject();
 	obj.AddMember("state", "error", obj.GetAllocator());
-	obj.AddMember("msg", rapidjson::Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
 	
 	if (details.size()) {
-		obj.AddMember("details", rapidjson::Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+		obj.AddMember("details", Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
 	}
 
 	return obj;
@@ -236,9 +238,9 @@ Poco::JSON::Object* JsonRequestHandler::stateSuccess()
 	return result;
 }
 
-rapidjson::Document JsonRequestHandler::rstateSuccess()
+Document JsonRequestHandler::rstateSuccess()
 {
-	rapidjson::Document obj;
+	Document obj;
 	obj.SetObject();
 	obj.AddMember("state", "success", obj.GetAllocator());
 
@@ -256,12 +258,12 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 	return result;
 }
 
-rapidjson::Document JsonRequestHandler::rcustomStateError(const char* state, const char* msg, std::string details /* = "" */ )
+Document JsonRequestHandler::rcustomStateError(const char* state, const char* msg, std::string details /* = "" */ )
 {
-	rapidjson::Document obj;
+	Document obj;
 	obj.SetObject();
-	obj.AddMember("state", rapidjson::Value(state, obj.GetAllocator()), obj.GetAllocator());
-	obj.AddMember("msg", rapidjson::Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("state", Value(state, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
 	
 	if (details.size()) {
 		obj.AddMember("details", rapidjson::Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
@@ -350,4 +352,75 @@ Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var p
 	mSession = session;
 	return nullptr;
 	
+}
+
+Document JsonRequestHandler::getIntParameter(const Document& params, const char* fieldName, int& iparameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (!itr->value.IsInt()) {
+		message = "invalid " + message;
+		return rstateError(message.data());
+	}
+	iparameter = itr->value.GetInt();
+	return Document();
+}
+Document JsonRequestHandler::getStringParameter(const Document& params, const char* fieldName, std::string& strParameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (!itr->value.IsString()) {
+		message = "invalid " + message;
+		return rstateError(message.data());
+	}
+	strParameter = itr->value.GetString();
+	return Document();
+}
+
+Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
+{
+	int session_id = 0;
+	auto session_id_result = getIntParameter(params, "session_id", session_id);
+	if (session_id_result.IsObject()) {
+		return session_id_result;
+	}
+
+	if (!session_id) {
+		return rstateError("empty session id");
+	}
+
+	auto sm = SessionManager::getInstance();
+	auto session = sm->getSession(session_id);
+	if (!session) {
+		return rcustomStateError("not found", "session not found");
+	}
+	// doesn't work perfect, must be debugged first
+	bool checkIp = false;
+	if (checkIp) {
+		if (mClientIp.isLoopback()) {
+			return rstateError("client ip is loop back ip");
+		}
+		if (!session->isIPValid(mClientIp)) {
+			return rstateError("client ip differ from login client ip");
+		}
+	}
+	auto userNew = session->getNewUser();
+	//auto user = session->getUser();
+	if (userNew.isNull()) {
+		return rcustomStateError("not found", "Session didn't contain user");
+	}
+	auto userModel = userNew->getModel();
+	if (userModel.isNull()) {
+		return rcustomStateError("not found", "User is empty");
+	}
+	mSession = session;
+	return Document();
 }

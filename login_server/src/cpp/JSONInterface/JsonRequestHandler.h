@@ -20,7 +20,7 @@ public:
 
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 
-	virtual Poco::JSON::Object* handle(Poco::Dynamic::Var params) = 0;
+	virtual Poco::JSON::Object* handle(Poco::Dynamic::Var params) { return stateError("not longer implemented"); };
 	virtual rapidjson::Document handle(const rapidjson::Document& params) { return rapidjson::Document(); };
 
 	static Poco::Dynamic::Var parseJsonWithErrorPrintFile(std::istream& request_stream, rapidjson::Document& rapidParams, NotificationList* errorHandler = nullptr, const char* functionName = nullptr);
@@ -35,6 +35,10 @@ protected:
 	Session*			 mSession;
 
 	Poco::JSON::Object* checkAndLoadSession(Poco::Dynamic::Var params, bool checkIp = false);
+	rapidjson::Document rcheckAndLoadSession(const rapidjson::Document& params);
+
+	rapidjson::Document getIntParameter(const rapidjson::Document& params, const char* fieldName, int& iParameter);
+	rapidjson::Document getStringParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter);
 
 	static Poco::JSON::Object* stateError(const char* msg, std::string details = "");
 	static rapidjson::Document rstateError(const char* msg, std::string details = "");
