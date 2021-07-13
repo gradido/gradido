@@ -8,7 +8,8 @@ import { LoginResponse } from '../models/User'
 // import { CreateBookInput } from '../inputs/CreateBookInput'
 // import { UpdateBookInput } from '../inputs/UpdateBookInput'
 
-const apiPost = async (url: string, payload: unknown): Promise<unknown> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const apiPost = async (url: string, payload: unknown): Promise<any> => {
   try {
     // console.log(url, payload)
     const result = await axios.post(url, payload)
@@ -42,7 +43,8 @@ export class UserResolver {
   } */
 
   @Query(() => LoginResponse)
-  async login(@Arg('email') email: string, @Arg('password') password: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async login(@Arg('email') email: string, @Arg('password') password: string): Promise<any> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
