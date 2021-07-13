@@ -27,7 +27,10 @@ enum PageState
 
 	PageState state = ASK_VERIFICATION_CODE;
 
-	if(mSession && model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType())
+	if(mSession && (
+		model::table::EMAIL_OPT_IN_REGISTER_DIRECT == mSession->getEmailVerificationType() ||
+		model::table::EMAIL_OPT_IN_REGISTER == mSession->getEmailVerificationType())
+	)
 	{
 		state = EMAIL_ACTIVATED;
 	}
