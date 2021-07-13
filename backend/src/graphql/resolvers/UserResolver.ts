@@ -1,34 +1,11 @@
 // import jwt from 'jsonwebtoken'
-import axios from 'axios'
-import { Resolver, Query, /* Mutation, */ Arg } from 'type-graphql'
+import { Resolver, Query, /* Mutation, */ Args } from 'type-graphql'
 import CONFIG from '../../config'
 import { LoginResponse } from '../models/User'
-// import { LoginUserInput } from '../inputs/LoginUserInput'
-// import { loginAPI, LoginResult } from '../../apis/loginAPI'
+import { UnsecureLoginArgs } from '../inputs/LoginUserInput'
+import { apiPost } from '../../apis/loginAPI'
 // import { CreateBookInput } from '../inputs/CreateBookInput'
 // import { UpdateBookInput } from '../inputs/UpdateBookInput'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const apiPost = async (url: string, payload: unknown): Promise<any> => {
-  try {
-    // console.log(url, payload)
-    const result = await axios.post(url, payload)
-    // console.log('-----', result)
-    if (result.status !== 200) {
-      throw new Error('HTTP Status Error ' + result.status)
-    }
-    if (result.data.state === 'warning') {
-      return { success: true, result: result.data.errors }
-    }
-    if (result.data.state !== 'success') {
-      throw new Error(result.data.msg)
-    }
-    return { success: true, result }
-  } catch (error) {
-    // console.log(error)
-    return { success: false, result: error }
-  }
-}
 
 @Resolver()
 export class UserResolver {
@@ -44,7 +21,7 @@ export class UserResolver {
 
   @Query(() => LoginResponse)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async login(@Arg('email') email: string, @Arg('password') password: string): Promise<any> {
+  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<any> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -54,7 +31,6 @@ export class UserResolver {
     }
 
     // temporary solution until we have JWT implemented
-    // console.log(result.result.data)
     return {
       sessionId: result.result.data.session_id,
       user: {
@@ -88,16 +64,8 @@ export class UserResolver {
     await book.save()
     return book
   }
+  */
 
-  @Mutation(() => Book)
-  async updateBook(@Arg('id') id: string, @Arg('data') data: UpdateBookInput) {
-    const book = await Book.findOne({ where: { id } })
-    if (!book) throw new Error('Book not found!')
-    Object.assign(book, data)
-    await book.save()
-    return book
-  }
-*/
   /* @Mutation(() => Boolean)
   async deleteUser(@Arg('id') id: string): Promise<boolean> {
     const user = await User.findOne({ where: { id } })
