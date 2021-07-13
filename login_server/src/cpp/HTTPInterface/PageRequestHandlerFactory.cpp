@@ -299,7 +299,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		auto user_host = request.clientAddress().host();
 		session->setClientIp(user_host);
 		assert(session->getNewUser());
-		if (!session->getNewUser()->hasPassword()) {
+		if (!session->getNewUser()->getModel()->getPasswordHashed()) {
 			// user has no password, maybe account created from elopage webhook
 			return basicSetup(new UserUpdatePasswordPage(session), request, timeUsed);
 		}
@@ -315,8 +315,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		if (0 == retUpdateEmailVerification) {
 			//printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
 			SessionHTTPRequestHandler* pageRequestHandler = nullptr;
-			if (model::table::EMAIL_OPT_IN_REGISTER_DIRECT == session->getEmailVerificationType()) {
-				printf("return check email page\n");
+			if (model::table::EMAIL_OPT_IN_REGISTER_DIRECT == session->getEmailVerificationType() ||
+				model::table::EMAIL_OPT_IN_REGISTER == session->getEmailVerificationType()) {
+				//printf("return check email page\n");
 				pageRequestHandler = new CheckEmailPage(session);
 			} else if(SESSION_STATE_RESET_PASSWORD_REQUEST == session->getSessionState()) {
 				pageRequestHandler = new UserUpdatePasswordPage(session);
