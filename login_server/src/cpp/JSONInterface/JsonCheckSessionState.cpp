@@ -56,8 +56,6 @@ Poco::JSON::Object* JsonCheckSessionState::handle(Poco::Dynamic::Var params)
 
 rapidjson::Document JsonCheckSessionState::handle(const rapidjson::Document& params)
 {
-	printf("rapidjson\n");
-	
 	rapidjson::Value::ConstMemberIterator itr = params.FindMember("session_id");
 	if (itr == params.MemberEnd()) {
 		return rstateError("session_id not found");
