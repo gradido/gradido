@@ -1,102 +1,34 @@
 <template>
-  <div class="resetpwd-form" v-if="authenticated">
-    <!-- Header -->
-    <div class="header p-4">
-      <b-container class="container">
+  <div class="resetpwd-form">
+    <b-container>
+      <div class="header p-4" ref="header">
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>{{ $t('reset-password.title') }}</h1>
-              <div class="pb-4">{{ $t('reset-password.text') }}</div>
+              <div class="pb-4" v-if="!pending">
+                <span v-if="authenticated">
+                  {{ $t('reset-password.text') }}
+                </span>
+                <span v-else>
+                  {{ $t('reset-password.not-authenticated') }}
+                </span>
+              </div>
             </b-col>
           </b-row>
         </div>
-      </b-container>
-    </div>
-    <!-- Page content -->
+      </div>
+    </b-container>
     <b-container class="mt--8 p-1">
-      <!-- Table -->
-      <b-row class="justify-content-center">
+      <b-row class="justify-content-center" v-if="authenticated">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <validation-provider
-                    :name="$t('form.password')"
-                    :rules="{ required: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group
-                      class="mb-5"
-                      :label="$t('form.password')"
-                      label-for="resetPassword"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          id="resetPassword"
-                          :name="$t('form.password')"
-                          v-model="form.password"
-                          :placeholder="$t('form.password')"
-                          :type="passwordVisible ? 'text' : 'password'"
-                          :state="getValidationState(validationContext)"
-                          aria-describedby="resetPasswordLiveFeedback"
-                        ></b-form-input>
-
-                        <b-input-group-append>
-                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                      <b-form-invalid-feedback id="resetPasswordLiveFeedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
-                  <b-form-group
-                    class="mb-5"
-                    :label="$t('form.passwordRepeat')"
-                    label-for="resetPasswordRepeat"
-                  >
-                    <b-input-group>
-                      <b-form-input
-                        id="resetPasswordRepeat"
-                        :name="$t('form.passwordRepeat')"
-                        v-model.lazy="form.passwordRepeat"
-                        :placeholder="$t('form.passwordRepeat')"
-                        :type="passwordVisibleRepeat ? 'text' : 'password'"
-                      ></b-form-input>
-
-                      <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordRepeatVisibility">
-                          <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                  </b-form-group>
-
-                  <transition name="hint" appear>
-                    <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
-                      <ul>
-                        <li v-for="error in passwordValidation.errors" :key="error">
-                          <small>{{ error }}</small>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="matches" v-else-if="!samePasswords">
-                      <p>
-                        {{ $t('site.signup.dont_match') }}
-                        <i class="ni ni-active-40" color="danger"></i>
-                      </p>
-                    </div>
-                  </transition>
-                  <div
-                    class="text-center"
-                    v-if="passwordsFilled && samePasswords && passwordValidation.valid"
-                  >
-                    <b-button type="submit" variant="secondary" class="mt-4">
+                  <input-password-confirmation v-model="form" />
+                  <div class="text-center">
+                    <b-button type="submit" variant="primary" class="mt-4">
                       {{ $t('reset') }}
                     </b-button>
                   </div>
@@ -106,38 +38,36 @@
           </b-card>
         </b-col>
       </b-row>
+      <b-row>
+        <b-col class="text-center py-lg-4">
+          <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+        </b-col>
+      </b-row>
     </b-container>
   </div>
 </template>
 <script>
 import loginAPI from '../../apis/loginAPI'
+import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
+
 export default {
-  name: 'reset',
+  name: 'ResetPassword',
+  components: {
+    InputPasswordConfirmation,
+  },
   data() {
     return {
       form: {
         password: '',
         passwordRepeat: '',
       },
-      password: '',
-      passwordVisible: false,
-      passwordVisibleRepeat: false,
-      submitted: false,
       authenticated: false,
       sessionId: null,
       email: null,
+      pending: true,
     }
   },
   methods: {
-    getValidationState({ dirty, validated, valid = null }) {
-      return dirty || validated ? valid : null
-    },
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
-    togglePasswordRepeatVisibility() {
-      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
-    },
     async onSubmit() {
       const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
       if (result.success) {
@@ -150,12 +80,12 @@ export default {
           */
         this.$router.push('/thx/reset')
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
     },
     async authenticate() {
       const loader = this.$loading.show({
-        container: this.$refs.submitButton,
+        container: this.$refs.header,
       })
       const optin = this.$route.params.optin
       const result = await loginAPI.loginViaEmailVerificationCode(optin)
@@ -164,40 +94,13 @@ export default {
         this.sessionId = result.result.data.session_id
         this.email = result.result.data.user.email
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
       }
       loader.hide()
+      this.pending = false
     },
   },
-  computed: {
-    samePasswords() {
-      return this.form.password === this.form.passwordRepeat
-    },
-    passwordsFilled() {
-      return this.form.password !== '' && this.form.passwordRepeat !== ''
-    },
-    rules() {
-      return [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ]
-    },
-    passwordValidation() {
-      const errors = []
-      for (const condition of this.rules) {
-        if (!condition.regex.test(this.form.password)) {
-          errors.push(condition.message)
-        }
-      }
-      if (errors.length === 0) {
-        return { valid: true, errors }
-      }
-      return { valid: false, errors }
-    },
-  },
-  async created() {
+  mounted() {
     this.authenticate()
   },
 }

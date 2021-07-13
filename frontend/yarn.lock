@@ -13268,11 +13268,6 @@ vm-browserify@^1.0.1:
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
 
-vue-bootstrap-toasts@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/vue-bootstrap-toasts/-/vue-bootstrap-toasts-1.0.7.tgz#111c38855941e8eb0538e21f41c173e2af67dd53"
-  integrity sha512-JhurJOAwdNcINQ/QlT701sx0r447YTGpvtxtmZNC9pwDvEqp2I0Pyv15jS4neWwYHkA1gXB42nBsDRcWcj1hlg==
-
 vue-bootstrap-typeahead@^0.2.6:
   version "0.2.6"
   resolved "https://registry.yarnpkg.com/vue-bootstrap-typeahead/-/vue-bootstrap-typeahead-0.2.6.tgz#8c1999a00bf4bf9fc906bae3a462482482cbc297"
@@ -13474,6 +13469,11 @@ vue-template-es2015-compiler@^1.6.0, vue-template-es2015-compiler@^1.9.0:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
+
+vue-toasted@^1.1.28:
+  version "1.1.28"
+  resolved "https://registry.yarnpkg.com/vue-toasted/-/vue-toasted-1.1.28.tgz#dbabb83acc89f7a9e8765815e491d79f0dc65c26"
+  integrity sha512-UUzr5LX51UbbiROSGZ49GOgSzFxaMHK6L00JV8fir/CYNJCpIIvNZ5YmS4Qc8Y2+Z/4VVYRpeQL2UO0G800Raw==
 
 vue2-transitions@^0.2.3:
   version "0.2.3"

@@ -2,69 +2,79 @@
   <div class="gdd-transaction-list">
     <b-list-group>
       <b-list-group-item
-        v-for="item in transactions"
-        :key="item.id"
-        style="background-color: #ebebeba3 !important"
+        v-for="{ decay, transaction_id, type, date, balance, name, memo } in transactions"
+        :key="transaction_id"
+        :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + item.date + ''">
+        <!-- ROW Start -->
+        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
+          <!-- ICON -->
           <div style="width: 8%">
-            <b-icon :icon="getProperties(item).icon" :class="getProperties(item).class" />
+            <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
           </div>
+          <!-- Text Links -->
           <div class="font1_2em pr-2 text-right" style="width: 32%">
-            <span>{{ getProperties(item).operator }}</span>
-            {{ $n(item.balance, 'decimal') }}
+            <span>{{ getProperties(type).operator }}</span>
+            <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
+
+            <span v-else>{{ $n(balance, 'decimal') }}</span>
+
+            <div v-if="decay">
+              <br />
+              <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
+            </div>
           </div>
+          <!-- Text Rechts -->
           <div class="font1_2em text-left pl-2" style="width: 55%">
-            {{ item.name ? item.name : $t('decay') }}
-            <div v-if="item.date" class="text-sm">{{ $d($moment(item.date), 'long') }}</div>
+            {{ name ? name : '' }}
+            <span v-if="type === 'decay'">
+              <small>{{ $t('decay.decay_since_last_transaction') }}</small>
+            </span>
+            <div v-if="date" class="text-sm">{{ $d($moment(date), 'long') }}</div>
+            <decay-information v-if="decay" decaytyp="short" :decay="decay" />
           </div>
-          <div class="text-right" style="width: 5%">
+          <!-- Collaps Toggle Button -->
+          <div v-if="type != 'decay'" class="text-right" style="width: 5%">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
         </div>
-        <b-collapse :id="'a' + item.date + ''" class="mt-2">
-          <b-card>
-            <b-list-group>
-              <b-list-group-item v-if="item.type === 'send'">
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
-              <b-list-group-item v-else>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.sender') }}</b-badge>
-                {{ item.name }}
-              </b-list-group-item>
-
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>type</b-badge>
-                {{ item.type }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-5" variant="primary" pill>id</b-badge>
-                {{ item.transaction_id }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.date') }}</b-badge>
-                {{ item.date }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>gdd</b-badge>
-                {{ item.balance }}
-              </b-list-group-item>
-              <b-list-group-item>
-                <b-badge class="mr-4" variant="primary" pill>{{ $t('form.memo') }}</b-badge>
-                {{ item.memo }}
-              </b-list-group-item>
-            </b-list-group>
-            <b-button v-b-toggle="'collapse-1-inner' + item.date" variant="secondary">
-              {{ $t('transaction.more') }}
-            </b-button>
-            <b-collapse :id="'collapse-1-inner' + item.date" class="mt-2">
-              <b-card>{{ item }}</b-card>
-            </b-collapse>
-          </b-card>
+        <!-- ROW End -->
+        <!-- Collaps Start -->
+        <b-collapse v-if="type != 'decay'" :id="'a' + date + ''">
+          <b-list-group v-if="type === 'receive' || type === 'send'">
+            <b-list-group-item style="border: 0px; background-color: #f1f1f1">
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">
+                  {{ type === 'receive' ? 'von:' : 'an:' }}
+                </div>
+                <div style="width: 60%">
+                  {{ name }}
+                  <b-avatar class="mr-3"></b-avatar>
+                </div>
+              </div>
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">
+                  {{ type === 'receive' ? 'Nachricht:' : 'Nachricht:' }}
+                </div>
+                <div style="width: 60%">
+                  {{ memo }}
+                </div>
+              </div>
+            </b-list-group-item>
+          </b-list-group>
+          <b-list-group v-if="type === 'creation'">
+            <b-list-group-item style="border: 0px">
+              <div class="d-flex">
+                <div style="width: 40%" class="text-right pr-3 mr-2">Schöpfung</div>
+                <div style="width: 60%">Aus der Community</div>
+              </div>
+            </b-list-group-item>
+          </b-list-group>
+          <decay-information v-if="decay" decaytyp="new" :decay="decay" />
         </b-collapse>
+        <!-- Collaps End -->
       </b-list-group-item>
       <pagination-buttons
         v-if="showPagination && transactionCount > pageSize"
@@ -84,6 +94,7 @@
 
 <script>
 import PaginationButtons from '../../../components/PaginationButtons'
+import DecayInformation from '../../../components/DecayInformation'
 
 const iconsByType = {
   send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
@@ -96,10 +107,12 @@ export default {
   name: 'gdd-transaction-list',
   components: {
     PaginationButtons,
+    DecayInformation,
   },
   data() {
     return {
       currentPage: 1,
+      startDecay: 0,
     }
   },
   props: {
@@ -133,8 +146,8 @@ export default {
         items: this.pageSize,
       })
     },
-    getProperties(item) {
-      const type = iconsByType[item.type]
+    getProperties(givenType) {
+      const type = iconsByType[givenType]
       if (type)
         return {
           icon: type.icon,
@@ -149,10 +162,12 @@ export default {
     showNext() {
       this.currentPage++
       this.updateTransactions()
+      window.scrollTo(0, 0)
     },
     showPrevious() {
       this.currentPage--
       this.updateTransactions()
+      window.scrollTo(0, 0)
     },
   },
 }

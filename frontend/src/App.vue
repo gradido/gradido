@@ -3,7 +3,6 @@
     <div class="">
       <particles-bg type="custom" :config="config" :bg="true" />
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
-      <Toasts></Toasts>
     </div>
   </div>
 </template>

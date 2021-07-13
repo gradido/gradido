@@ -25,7 +25,7 @@ class AppRequestsController extends AppController
         $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions']);
+        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions', 'getDecayStartBlock']);
     }
     
   
@@ -333,16 +333,37 @@ class AppRequestsController extends AppController
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
         }
 
+        $limit = $count;
+        $offset = 0;
+        $skip_first_transaction = false;
+        if($page == 1) {
+            $limit--;
+        } else {
+            $offset = (( $page - 1 ) * $count) - 1;
+        }
+        if($offset && $orderDirection == 'ASC') {
+            // move cursor one step backwards to able to load one transaction previous last which will be shown for decay calculation
+            $offset--;
+            $limit++;
+            $skip_first_transaction = true;
+        } else if($orderDirection == 'DESC') {
+            $limit++;
+            $skip_first_transaction = true;
+        }
         
         $stateUserTransactionsQuery = $stateUserTransactionsTable
                                         ->find()
                                         ->where(['state_user_id' => $user['id']])
                                         ->order(['balance_date' => $orderDirection])
                                         ->contain([])
-                                        ->limit($count)
-                                        ->page($page)
+                                        ->limit($limit)
+                                        //->page($page)
+                                        ->offset($offset)
                                         ;
         $decay = true;
+        if($page > 1) {
+            $decay = false;
+        }
         $transactions = [];
         $transactions_from_db = $stateUserTransactionsQuery->toArray();
 
@@ -351,7 +372,7 @@ class AppRequestsController extends AppController
                 $transactions_from_db = array_reverse($transactions_from_db);
             }
             
-            $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay);
+            $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay, $skip_first_transaction);
             
             if($orderDirection == 'DESC') {
                 $transactions = array_reverse($transactions);
@@ -380,6 +401,16 @@ class AppRequestsController extends AppController
         }
 
         $this->set('body', $body);       
+    }
+    
+    public function getDecayStartBlock()
+    {
+        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
+        $decayStartBlock = $transactionsTable->find()->where(['transaction_type_id' => 9]);
+        if(!$decayStartBlock->count()) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'not found']);
+        }
+        return $this->returnJson(['state' => 'success', 'decay_start' => $decayStartBlock->first()->received]);
     }
     
     private function acquireAccessToken($session_id)

@@ -1,12 +1,11 @@
 import '@/polyfills'
-import { configure, extend } from 'vee-validate'
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 import SideBar from '@/components/SidebarPlugin'
 
 import PortalVue from 'portal-vue'
 
-import VueBootstrapToasts from 'vue-bootstrap-toasts'
+import Toasted from 'vue-toasted'
 
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
@@ -14,8 +13,6 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 // asset imports
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
-import * as rules from 'vee-validate/dist/rules'
-import { messages } from 'vee-validate/dist/locale/en.json'
 
 import VueQrcodeReader from 'vue-qrcode-reader'
 import VueQrcode from 'vue-qrcode'
@@ -28,13 +25,6 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
-Object.keys(rules).forEach((rule) => {
-  extend(rule, {
-    ...rules[rule], // copies rule configuration
-    message: messages[rule], // assign message
-  })
-})
-
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -43,17 +33,20 @@ export default {
     Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
-    Vue.use(VueBootstrapToasts)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)
     Vue.use(VueQrcode)
     Vue.use(FlatPickr)
     Vue.use(Loading)
-    configure({
-      classes: {
-        valid: 'is-valid',
-        invalid: 'is-invalid',
-        dirty: ['is-dirty', 'is-dirty'], // multiple classes per flag!
+    Vue.use(Toasted, {
+      position: 'top-center',
+      duration: 5000,
+      fullWidth: true,
+      action: {
+        text: 'x',
+        onClick: (e, toastObject) => {
+          toastObject.goAway(0)
+        },
       },
     })
   },
