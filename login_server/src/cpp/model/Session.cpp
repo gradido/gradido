@@ -425,7 +425,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	auto email_verification_model = mEmailVerificationCodeObject->getModel();
 	if (email_already_send) {
 		auto time_elapsed = Poco::DateTime() - email_verification_model->getUpdated();
-		if (time_elapsed.totalHours() < 1) {
+		if (time_elapsed.totalMinutes() < 10) {
 			frequent_resend = true;
 		}
 	}

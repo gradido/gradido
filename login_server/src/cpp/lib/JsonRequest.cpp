@@ -36,6 +36,10 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 	// send post request via https
 	// 443 = HTTPS Default
 	// TODO: adding port into ServerConfig
+	if (mServerHost.empty() || !mServerPort) {
+		addError(new Error(functionName, "server host or server port not given"));
+		return JSON_REQUEST_PARAMETER_ERROR;
+	}
 	try {
 		Profiler phpRequestTime;
 		
