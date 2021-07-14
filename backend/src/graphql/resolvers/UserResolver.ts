@@ -1,5 +1,5 @@
 // import jwt from 'jsonwebtoken'
-import { Resolver, Query, /* Mutation, */ Args } from 'type-graphql'
+import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
 import { LoginResponse } from '../models/User'
 import { UnsecureLoginArgs } from '../inputs/LoginUserInput'
@@ -42,6 +42,16 @@ export class UserResolver {
         description: result.result.data.user.description,
       },
     }
+
+    // forgot password request
+    /*
+    @Query(() => null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async sendEmail(@Arg() email: String): Promise<any> {
+      const result = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', { email })
+      return
+    }
+    */
 
     // create and return the json web token
     // The expire doesn't help us here. The client needs to track when the token expires on its own,
