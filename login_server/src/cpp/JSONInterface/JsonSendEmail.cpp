@@ -115,7 +115,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 				return stateWarning("email already sended");
 			}
 			else if (2 == r) {
-				return stateError("email already send less than a hour before");
+				return stateError("email already sent less than a 10 minutes before");
 			}
 		}
 		else if (emailType == model::EMAIL_CUSTOM_TEXT) {
