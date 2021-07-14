@@ -163,6 +163,10 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTran
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_to_sign;
 
+	if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
+		return transactions_to_sign;
+	}
+
 	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
 	{
 		auto list = map_it->second;
