@@ -73,15 +73,14 @@ enum PageState {
 			
 			
 			pt->lock("userUpdateGroup Page");
-			auto has_pending_group_add_member_task = pt->hasPendingTask(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+			auto has_pending_group_add_member_task = pt->hasPendingGradidoTransaction(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
 			auto referer_was_checkTransaction = refererString.find("checkTransactions") != std::string::npos;
 			if(has_pending_group_add_member_task) {
 				state = PAGE_STATE_REQUEST_IS_RUNNING;
-				std::vector<Poco::AutoPtr<controller::PendingTask>> tasks = pt->getPendingTasks(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
+				auto tasks = pt->getPendingGradidoTransactions(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
 				// should be only one
-				Poco::AutoPtr<model::gradido::Transaction> transaction = tasks[0].cast<model::gradido::Transaction>();
+				auto transaction = tasks[0];
 				if(transaction->getSignCount() == 0) {
-					
 					pt->unlock();
 					response.redirect(getBaseUrl() + "/checkTransactions");
 					return;
