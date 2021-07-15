@@ -16,7 +16,7 @@ namespace model {
 			AppAccessToken(int user_id, const Poco::UInt64& code);
 			AppAccessToken(const AppAccessCodeTuple& tuple);
 			AppAccessToken();
-			~AppAccessToken();
+			
 
 			// generic db operations
 			const char* getTableName() const { return "app_access_tokens"; }
@@ -32,6 +32,8 @@ namespace model {
 			size_t update();
 
 		protected:
+			~AppAccessToken();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);
