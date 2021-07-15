@@ -274,7 +274,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
-	email_verification->setBaseUrl(baseUrl);
+	email_verification->setBaseUrl(baseUrl + "/checkEmail");
 	email_verification->getModel()->insertIntoDB(false);
 	mEmailVerificationCodeObject = email_verification;
 
