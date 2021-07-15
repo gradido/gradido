@@ -43,11 +43,7 @@
     "close":"Close",
     "edit": "Edit",
     "save": "save",
-<<<<<<< HEAD
     "recipient":"Recipient",
-=======
-    "receiver":"Recipient",
->>>>>>> 86e253ac0495b36b1ce3a07eeb9d35dae9abced2
     "sender":"Sender",
     "username":"Username",
     "firstname":"Firstname",
