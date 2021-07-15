@@ -1,7 +1,7 @@
 <template>
   <div>
     <span v-if="decaytyp === 'short'">
-      <small>{{ decay ? ' ' + decay.balance + ' ' + decayStartBlockTextShort : '' }}</small>
+      <small>{{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}</small>
     </span>
 
     <div v-if="decaytyp === 'new'">
@@ -28,7 +28,7 @@
                 </div>
               </div>
               <div>
-                <span>{{ $d($moment.unix(decay.decay_start), 'long') }} Uhr</span>
+                <span>{{ $d($moment.unix(decay.decay_start), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</span>
               </div>
             </div>
           </div>

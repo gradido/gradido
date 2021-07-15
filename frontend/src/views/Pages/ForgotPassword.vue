@@ -22,7 +22,7 @@
                   <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
-                      {{ $t('site.password.reset_now') }}
+                      {{ $t('site.password.send_now') }}
                     </b-button>
                   </div>
                 </b-form>

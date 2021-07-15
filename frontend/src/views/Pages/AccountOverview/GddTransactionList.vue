@@ -15,10 +15,14 @@
           <!-- Text Links -->
           <div class="font1_2em pr-2 text-right" style="width: 32%">
             <span>{{ getProperties(type).operator }}</span>
+          
             <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
 
             <span v-else>{{ $n(balance, 'decimal') }}</span>
-
+  <div><small >
+                  {{ $t('form.message') }}
+                </small>
+             </div>
             <div v-if="decay">
               <br />
               <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
@@ -27,10 +31,14 @@
           <!-- Text Rechts -->
           <div class="font1_2em text-left pl-2" style="width: 55%">
             {{ name ? name : '' }}
+             <div><small >
+                  {{ memo }}
+                </small>
+             </div>
             <span v-if="type === 'decay'">
               <small>{{ $t('decay.decay_since_last_transaction') }}</small>
             </span>
-            <div v-if="date" class="text-sm">{{ $d($moment(date), 'long') }}</div>
+            <div v-if="date" class="text-sm">{{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</div>
             <decay-information v-if="decay" decaytyp="short" :decay="decay" />
           </div>
           <!-- Collaps Toggle Button -->
@@ -47,7 +55,8 @@
             <b-list-group-item style="border: 0px; background-color: #f1f1f1">
               <div class="d-flex">
                 <div style="width: 40%" class="text-right pr-3 mr-2">
-                  {{ type === 'receive' ? 'von:' : 'an:' }}
+                  {{ type === 'receive' ? $t('form.from') : $t('form.to1') }}:
+                    
                 </div>
                 <div style="width: 60%">
                   {{ name }}
@@ -56,7 +65,7 @@
               </div>
               <div class="d-flex">
                 <div style="width: 40%" class="text-right pr-3 mr-2">
-                  {{ type === 'receive' ? 'Nachricht:' : 'Nachricht:' }}
+                   {{$t('form.message')}}  
                 </div>
                 <div style="width: 60%">
                   {{ memo }}
