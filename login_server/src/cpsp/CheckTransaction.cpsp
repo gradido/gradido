@@ -134,7 +134,7 @@ enum PageState {
 	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
 	bool transaction_removeable = false;
 	int transaction_to_sign_index = 0;
-	if(!transaction.isNull()) 
+	if(transaction.isNull()) 
 	{
 		if(transactions_user_must_sign.size() > skip_count) {
 			transactions_to_sign = transactions_user_must_sign;
@@ -143,7 +143,7 @@ enum PageState {
 			transactions_to_sign = transactions_someone_must_sign;
 			transaction_to_sign_index = skip_count - transactions_user_must_sign.size();
 		}
-		
+
 		if(transactions_to_sign.size() > transaction_to_sign_index) 
 		{
 			transaction = transactions_to_sign[transaction_to_sign_index];
@@ -200,7 +200,7 @@ enum PageState {
 		}
 	}
 	
-	
+	std::clog << "state: " << std::to_string(state) << std::endl;
 
 %><%@ include file="include/header_navi_chr.cpsp" %>
 <%= getErrorsHtml() %>
@@ -267,18 +267,19 @@ enum PageState {
 				  </div>
 				</div>
 		     <% } else if(PAGE_TRANSACTION_GROUP_ADD_MEMBER == state) { 
-				auto groupMemberUpdateTransaction = transaction_body->getGroupMemberUpdate();
-				auto groups = controller::Group::load(groupMemberUpdateTransaction->getTargetGroupAlias());
-				Poco::AutoPtr<model::table::Group> group_model;
-				Poco::AutoPtr<controller::User> user;
-				if(groups.size() == 1 && !groups[0].isNull()) group_model = groups[0]->getModel();
-				auto user_id = transaction->getModel()->getUserId();
-				if(user_id == user_model->getID()) {
-					user = account_user;
-				} else {
-					user = controller::User::sload(user_id);
-				}
-			 %>
+					auto groupMemberUpdateTransaction = transaction_body->getGroupMemberUpdate();
+					auto groups = controller::Group::load(groupMemberUpdateTransaction->getTargetGroupAlias());
+					Poco::AutoPtr<model::table::Group> group_model;
+					Poco::AutoPtr<controller::User> user;
+					if(groups.size() == 1 && !groups[0].isNull()) group_model = groups[0]->getModel();
+					auto user_id = transaction->getModel()->getUserId();
+					if(user_id == user_model->getID()) {
+						user = account_user;
+					} else {
+						user = controller::User::sload(user_id);
+					}
+
+			 	%>
 			 <p><%= gettext("Benutzer zu einer Gruppe hinzufügen") %></p>
 			 <div class="content-table">
 				<p><% if(!user.isNull()) { %>
