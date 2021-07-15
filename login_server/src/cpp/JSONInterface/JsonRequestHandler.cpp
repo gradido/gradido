@@ -207,10 +207,10 @@ Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 	Document obj;
 	obj.SetObject();
 	obj.AddMember("state", "error", obj.GetAllocator());
-	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
 	
 	if (details.size()) {
-		obj.AddMember("details", Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+		obj.AddMember("details", Value(details.data(), obj.GetAllocator()).Move(), obj.GetAllocator());
 	}
 
 	return obj;
@@ -237,6 +237,23 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, Notification
 	result->set("details", errorReciver->getErrorsArray());
 
 	return result;
+}
+
+rapidjson::Document JsonRequestHandler::rstateError(const char* msg, NotificationList* errorReciver)
+{
+	Document obj;
+	obj.SetObject();
+	obj.AddMember("state", "error", obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
+	Value details;
+	details.SetArray();
+	auto error_vec = errorReciver->getErrorsArray();
+	for (auto it = error_vec.begin(); it != error_vec.end(); it++) {
+		details.PushBack(Value(it->data(), obj.GetAllocator()).Move(), obj.GetAllocator());
+	}
+	obj.AddMember("details", details.Move(), obj.GetAllocator());
+
+	return obj;
 }
 
 Poco::JSON::Object* JsonRequestHandler::stateSuccess()
@@ -270,11 +287,11 @@ Document JsonRequestHandler::rcustomStateError(const char* state, const char* ms
 {
 	Document obj;
 	obj.SetObject();
-	obj.AddMember("state", Value(state, obj.GetAllocator()), obj.GetAllocator());
-	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	obj.AddMember("state", Value(state, obj.GetAllocator()).Move(), obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
 	
 	if (details.size()) {
-		obj.AddMember("details", rapidjson::Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+		obj.AddMember("details", Value(details.data(), obj.GetAllocator()).Move(), obj.GetAllocator());
 	}
 	return obj;
 }
@@ -290,6 +307,19 @@ Poco::JSON::Object* JsonRequestHandler::stateWarning(const char* msg, std::strin
 	return result;
 }
 
+Document JsonRequestHandler::rstateWarning(const char* msg, std::string details/* = ""*/)
+{
+	Document obj;
+	obj.SetObject();
+	obj.AddMember("state", "warning", obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
+
+	if (details.size()) {
+		obj.AddMember("details", Value(details.data(), obj.GetAllocator()).Move(), obj.GetAllocator());
+	}
+
+	return obj;
+}
 
 Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var params, bool checkIp/* = false*/)
 {
@@ -377,6 +407,54 @@ Document JsonRequestHandler::getIntParameter(const Document& params, const char*
 	iparameter = itr->value.GetInt();
 	return Document();
 }
+
+Document JsonRequestHandler::getBoolParameter(const rapidjson::Document& params, const char* fieldName, bool& bParameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (!itr->value.IsBool()) {
+		message = "invalid " + message;
+		return rstateError(message.data());
+	}
+	bParameter = itr->value.GetBool();
+	return Document();
+}
+
+Document JsonRequestHandler::getUIntParameter(const Document& params, const char* fieldName, unsigned int& iParameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (!itr->value.IsUint()) {
+		message = "invalid " + message;
+		return rstateError(message.data());
+	}
+	iParameter = itr->value.GetUint();
+	return Document();
+}
+
+Document JsonRequestHandler::getUInt64Parameter(const Document& params, const char* fieldName, Poco::UInt64& iParameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (!itr->value.IsUint64()) {
+		message = "invalid " + message;
+		return rstateError(message.data());
+	}
+	iParameter = itr->value.GetUint64();
+	return Document();
+}
 Document JsonRequestHandler::getStringParameter(const Document& params, const char* fieldName, std::string& strParameter)
 {
 	Value::ConstMemberIterator itr = params.FindMember(fieldName);
@@ -395,19 +473,21 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 
 Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
 {
-	int session_id = 0;
-	auto session_id_result = getIntParameter(params, "session_id", session_id);
-	if (session_id_result.IsObject()) {
-		return session_id_result;
-	}
+	if (!mSession) {
+		int session_id = 0;
+		auto session_id_result = getIntParameter(params, "session_id", session_id);
+		if (session_id_result.IsObject()) {
+			return session_id_result;
+		}
 
-	if (!session_id) {
-		return rstateError("empty session id");
-	}
+		if (!session_id) {
+			return rstateError("empty session id");
+		}
 
-	auto sm = SessionManager::getInstance();
-	auto session = sm->getSession(session_id);
-	if (!session) {
+		auto sm = SessionManager::getInstance();
+		mSession = sm->getSession(session_id);
+	}
+	if (!mSession) {
 		return rcustomStateError("not found", "session not found");
 	}
 	// doesn't work perfect, must be debugged first
@@ -416,11 +496,11 @@ Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
 		if (mClientIp.isLoopback()) {
 			return rstateError("client ip is loop back ip");
 		}
-		if (!session->isIPValid(mClientIp)) {
+		if (!mSession->isIPValid(mClientIp)) {
 			return rstateError("client ip differ from login client ip");
 		}
 	}
-	auto userNew = session->getNewUser();
+	auto userNew = mSession->getNewUser();
 	//auto user = session->getUser();
 	if (userNew.isNull()) {
 		return rcustomStateError("not found", "Session didn't contain user");
@@ -429,6 +509,6 @@ Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
 	if (userModel.isNull()) {
 		return rcustomStateError("not found", "User is empty");
 	}
-	mSession = session;
+
 	return Document();
 }
