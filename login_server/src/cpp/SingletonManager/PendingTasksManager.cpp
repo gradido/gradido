@@ -162,13 +162,10 @@ std::vector<Poco::AutoPtr<model::gradido::Transaction>> PendingTasksManager::get
 	// TODO: don't use cast here, because can lead to errors
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
-<<<<<<< HEAD
 
 	if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
 		return transactions_to_sign;
 	}
-=======
->>>>>>> Remove dynamic cast because it lead to errors again and agin (Poco::AutoPtr don't work correct with that)
 
 	for (auto map_it = mPendingGradidoTransactions.begin(); map_it != mPendingGradidoTransactions.end(); map_it++)
 	{
