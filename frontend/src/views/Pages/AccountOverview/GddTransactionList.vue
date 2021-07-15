@@ -19,10 +19,11 @@
             <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
 
             <span v-else>{{ $n(balance, 'decimal') }}</span>
-  <div><small >
-                  {{ $t('form.message') }}
-                </small>
-             </div>
+            <div>
+              <small >
+                {{ $t('form.message') }}
+              </small>
+            </div>
             <div v-if="decay">
               <br />
               <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
@@ -61,14 +62,6 @@
                 <div style="width: 60%">
                   {{ name }}
                   <b-avatar class="mr-3"></b-avatar>
-                </div>
-              </div>
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                   {{$t('form.message')}}  
-                </div>
-                <div style="width: 60%">
-                  {{ memo }}
                 </div>
               </div>
             </b-list-group-item>
