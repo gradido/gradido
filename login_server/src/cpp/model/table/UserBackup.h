@@ -15,8 +15,7 @@ namespace model {
 			UserBackup(int user_id, const std::string& passphrase, ServerConfig::Mnemonic_Types type);
 			UserBackup(const UserBackupsTuple& tuple);
 			UserBackup();
-			~UserBackup();
-
+			
 			// generic db operations
 			const char* getTableName() const { return "user_backups"; }
 			std::string toString();
@@ -29,6 +28,7 @@ namespace model {
 
 
 		protected:
+			~UserBackup();
 
 			//! \brief call from constructor if mMnemonicType -1
 			//! 
