@@ -168,7 +168,11 @@ class TransactionsTable extends Table
         if($decay_start_transaction->count()) {
             $decay_start_transaction_id = $decay_start_transaction->first()->id;
         }
-        $decay_start_time = $stateBalancesTable->getDecayStartDateCached()->getTimestamp();
+        $decay_start_date = $stateBalancesTable->getDecayStartDateCached();
+        $decay_start_time = 0;
+        if($decay_start_date) {
+            $decay_start_time = $decay_start_date->getTimestamp();
+        }
         
         foreach($stateUserTransactions as $i => $su_transaction)
         {
@@ -206,7 +210,7 @@ class TransactionsTable extends Table
                           'decay_start' => $calculated_decay['start_date'],
                           'decay_end' => $calculated_decay['end_date']
                       ]; 
-                      if($prev->transaction_id < $decay_start_transaction_id && 
+                      if($decay_start_time && $prev->transaction_id < $decay_start_transaction_id && 
                          $current->transaction_id > $decay_start_transaction_id) {
                          $final_transaction['decay']['decay_start_block'] = $decay_start_time;
                       }
