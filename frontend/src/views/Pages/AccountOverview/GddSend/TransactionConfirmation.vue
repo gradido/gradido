@@ -6,7 +6,7 @@
         <b-list-group>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ email }}
-            <b-badge variant="primary" pill>{{ $t('form.receiver') }}</b-badge>
+            <b-badge variant="primary" pill>{{ $t('form.recipient') }}</b-badge>
           </b-list-group-item>
           <b-list-group-item class="d-flex justify-content-between align-items-center">
             {{ $n(amount, 'decimal') }} GDD

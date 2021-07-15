@@ -50,7 +50,7 @@ describe('GddSend', () => {
         })
 
         it('has a label form.receiver', () => {
-          expect(wrapper.find('label.input-1').text()).toBe('form.receiver')
+          expect(wrapper.find('label.input-1').text()).toBe('form.recipient')
         })
 
         it('has a placeholder "E-Mail"', () => {
@@ -121,8 +121,8 @@ describe('GddSend', () => {
           )
         })
 
-        it('has a label form.memo', () => {
-          expect(wrapper.find('label.input-3').text()).toBe('form.memo')
+        it('has a label form.message', () => {
+          expect(wrapper.find('label.input-3').text()).toBe('form.message')
         })
 
         it('flushes an error message when memo is less than 5 characters', async () => {

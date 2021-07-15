@@ -21,8 +21,7 @@
                 }"
                 v-slot="{ errors }"
               >
-             
-                <label class="input-1" for="input-1">{{ $t('form.receiver') }}</label>
+                <label class="input-1" for="input-1">{{ $t('form.recipient') }}</label>
                 <b-input-group
                   id="input-group-1"
                   class="border border-default"
@@ -44,9 +43,9 @@
                     class="pl-3"
                   ></b-form-input>
                 </b-input-group>
-                  <b-col v-if="errors" class="text-right p-3 p-sm-1">
-                    <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
-                  </b-col>
+                <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                  <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
+                </b-col>
               </validation-provider>
             </div>
 
@@ -60,7 +59,7 @@
                   gddSendAmount: [0.01, balance],
                 }"
                 v-slot="{ errors, valid }"
-              >              
+              >
                 <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
                 <b-input-group id="input-group-2" class="border border-default" size="lg">
                   <b-input-group-prepend class="p-2 d-none d-md-block">
@@ -79,9 +78,9 @@
                     class="pl-3"
                   ></b-form-input>
                 </b-input-group>
-                 <b-col v-if="errors" class="col-12 text-right p-3 p-sm-1">
-                    <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-                  </b-col>
+                <b-col v-if="errors" class="col-12 text-right p-3 p-sm-1">
+                  <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+                </b-col>
               </validation-provider>
             </div>
 
@@ -94,7 +93,7 @@
                 }"
                 :name="$t('form.message')"
                 v-slot="{ errors }"
-              >              
+              >
                 <label class="input-3" for="input-3">{{ $t('form.message') }}</label>
                 <b-input-group id="input-group-3" class="border border-default">
                   <b-input-group-prepend class="d-none d-md-block">
@@ -107,9 +106,9 @@
                     class="pl-3"
                   ></b-form-textarea>
                 </b-input-group>
-                 <b-col v-if="errors" class="text-right p-3 p-sm-1">
-                    <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-                  </b-col>
+                <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                  <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+                </b-col>
               </validation-provider>
             </div>
 

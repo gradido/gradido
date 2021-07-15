@@ -28,7 +28,10 @@
                 </div>
               </div>
               <div>
-                <span>{{ $d($moment.unix(decay.decay_start), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</span>
+                <span>
+                  {{ $d($moment.unix(decay.decay_start), 'long') }}
+                  {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+                </span>
               </div>
             </div>
           </div>

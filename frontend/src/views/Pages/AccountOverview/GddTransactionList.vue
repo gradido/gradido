@@ -9,18 +9,18 @@
         <!-- ROW Start -->
         <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- ICON -->
-          <div style="width: 8%">
+          <div class="tap1" style="width: 8%">
             <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
           </div>
           <!-- Text Links -->
-          <div class="font1_2em pr-2 text-right" style="width: 32%">
+          <div class="font1_2em pr-2 text-right tap2" style="width: 32%">
             <span>{{ getProperties(type).operator }}</span>
-          
+
             <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
 
             <span v-else>{{ $n(balance, 'decimal') }}</span>
             <div>
-              <small >
+              <small>
                 {{ $t('form.message') }}
               </small>
             </div>
@@ -30,20 +30,23 @@
             </div>
           </div>
           <!-- Text Rechts -->
-          <div class="font1_2em text-left pl-2" style="width: 55%">
+          <div class="font1_2em text-left pl-2 tap3" style="width: 55%">
             {{ name ? name : '' }}
-             <div><small >
-                  {{ memo }}
-                </small>
-             </div>
+            <div>
+              <small>
+                {{ memo }}
+              </small>
+            </div>
             <span v-if="type === 'decay'">
               <small>{{ $t('decay.decay_since_last_transaction') }}</small>
             </span>
-            <div v-if="date" class="text-sm">{{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</div>
+            <div v-if="date" class="text-sm">
+              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            </div>
             <decay-information v-if="decay" decaytyp="short" :decay="decay" />
           </div>
           <!-- Collaps Toggle Button -->
-          <div v-if="type != 'decay'" class="text-right" style="width: 5%">
+          <div v-if="type != 'decay'" class="text-right tap4" style="width: 5%">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
@@ -57,7 +60,6 @@
               <div class="d-flex">
                 <div style="width: 40%" class="text-right pr-3 mr-2">
                   {{ type === 'receive' ? $t('form.from') : $t('form.to1') }}:
-                    
                 </div>
                 <div style="width: 60%">
                   {{ name }}
