@@ -38,7 +38,7 @@ namespace model {
 			User();
 			User(UserTuple tuple);
 			User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
-			~User();
+			
 
 			// generic db operations
 			const char* getTableName() const { return "users"; }
@@ -97,6 +97,7 @@ namespace model {
 			Poco::JSON::Object getJson();			
 
 		protected:
+			~User();
 
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
