@@ -200,8 +200,6 @@ enum PageState {
 		}
 	}
 	
-	std::clog << "state: " << std::to_string(state) << std::endl;
-
 %><%@ include file="include/header_navi_chr.cpsp" %>
 <%= getErrorsHtml() %>
 <div class="col-md-10 equel-grid mb-3">
