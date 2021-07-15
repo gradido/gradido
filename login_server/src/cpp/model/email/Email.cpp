@@ -86,7 +86,7 @@ Dario, Gradido Server Admin\n\
 const static char EmailText_emailResetPassword[] = { u8"\
 Hallo [first_name] [last_name],\n\
 \n\
-Du oder jemand anderes hat für dieses Konto ein Passwort Reset angefordert.\n\
+Du oder jemand anderes hat für dieses Konto ein Zurücksetzen des Passworts angefordert.\n\
 Wenn du es warst, klicke bitte auf den Link: [link]\n\
 oder kopiere den obigen Link in Dein Browserfenster.\n\
 \n\

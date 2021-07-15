@@ -26,7 +26,7 @@ describe('UserCardFormUserPasswort', () => {
         email: 'user@example.org',
       },
     },
-    $toast: {
+    $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
     },

@@ -49,7 +49,7 @@ describe('Login', () => {
     $router: {
       push: mockRouterPush,
     },
-    $toast: {
+    $toasted: {
       error: toastErrorMock,
     },
   }

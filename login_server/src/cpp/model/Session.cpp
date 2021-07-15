@@ -274,7 +274,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
-	email_verification->setBaseUrl(baseUrl);
+	email_verification->setBaseUrl(baseUrl + "/checkEmail");
 	email_verification->getModel()->insertIntoDB(false);
 	mEmailVerificationCodeObject = email_verification;
 
@@ -425,7 +425,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	auto email_verification_model = mEmailVerificationCodeObject->getModel();
 	if (email_already_send) {
 		auto time_elapsed = Poco::DateTime() - email_verification_model->getUpdated();
-		if (time_elapsed.totalHours() < 1) {
+		if (time_elapsed.totalMinutes() < 10) {
 			frequent_resend = true;
 		}
 	}

@@ -15,8 +15,7 @@ namespace model {
 			Group();
 			Group(const std::string& alias, const std::string& name, const std::string& url, const std::string& host, const std::string& home, const std::string& description);
 			Group(GroupTuple userTuple);
-			~Group();
-
+			
 			// generic db operations
 			const char* getTableName() const { return "groups"; }
 			std::string toString();
@@ -35,6 +34,8 @@ namespace model {
 			inline void setHome(const std::string& home) { UNIQUE_LOCK; mHome = home; }
 
 		protected:
+			~Group();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadAllFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);

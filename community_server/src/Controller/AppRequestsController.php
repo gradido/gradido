@@ -333,6 +333,7 @@ class AppRequestsController extends AppController
           $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
         }
 
+        //echo "count: $count, page: $page<br>";
         $limit = $count;
         $offset = 0;
         $skip_first_transaction = false;
@@ -341,16 +342,15 @@ class AppRequestsController extends AppController
         } else {
             $offset = (( $page - 1 ) * $count) - 1;
         }
-        if($offset && $orderDirection == 'ASC') {
-            // move cursor one step backwards to able to load one transaction previous last which will be shown for decay calculation
-            $offset--;
+        if($offset) {
             $limit++;
             $skip_first_transaction = true;
-        } else if($orderDirection == 'DESC') {
-            $limit++;
-            $skip_first_transaction = true;
+            if($orderDirection == 'ASC') {
+                $offset--;
+            }
         }
         
+        //echo "limit: $limit, offset: $offset, skip first transaction: $skip_first_transaction<br>";
         $stateUserTransactionsQuery = $stateUserTransactionsTable
                                         ->find()
                                         ->where(['state_user_id' => $user['id']])
@@ -373,7 +373,7 @@ class AppRequestsController extends AppController
             }
             
             $transactions = $transactionsTable->listTransactionsHumanReadable($transactions_from_db, $user, $decay, $skip_first_transaction);
-            
+            //echo "transactions count: " .  count($transactions) . "<br>";
             if($orderDirection == 'DESC') {
                 $transactions = array_reverse($transactions);
             }

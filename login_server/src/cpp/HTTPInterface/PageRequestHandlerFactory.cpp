@@ -311,7 +311,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::handleCheckEmail(Sessi
 		*/
 		// update session, mark as verified
 		int retUpdateEmailVerification = session->updateEmailVerification(verificationCode);
-		printf("[%s] return from update email verification: %d\n", __FUNCTION__, retUpdateEmailVerification);
+		//printf("[%s] return from update email verification: %d\n", __FUNCTION__, retUpdateEmailVerification);
 		if (0 == retUpdateEmailVerification) {
 			//printf("[PageRequestHandlerFactory::handleCheckEmail] timeUsed: %s\n", timeUsed.string().data());
 			SessionHTTPRequestHandler* pageRequestHandler = nullptr;

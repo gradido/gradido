@@ -19,12 +19,13 @@
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 
 export default {
+  name: 'UserProfileTransactionList',
   components: {
     GddTransactionList,
   },
   props: {
     transactions: {
-      default: [],
+      default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
   },

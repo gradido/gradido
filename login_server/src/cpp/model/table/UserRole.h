@@ -23,7 +23,6 @@ namespace model {
 			UserRole(int user_id, RoleType type);
 			UserRole(const UserRolesTuple& tuple);
 			UserRole();
-			~UserRole();
 
 			// generic db operations
 			const char* getTableName() const { return "user_roles"; }
@@ -35,7 +34,9 @@ namespace model {
 			inline void setUserId(int user_Id) { mUserId = user_Id; }
 
 			static const char* typeToString(RoleType type);
-			protected:
+		protected:
+			~UserRole();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);

@@ -5,7 +5,7 @@ import SideBar from '@/components/SidebarPlugin'
 
 import PortalVue from 'portal-vue'
 
-import VueBootstrapToasts from 'vue-bootstrap-toasts'
+import Toasted from 'vue-toasted'
 
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
@@ -33,11 +33,21 @@ export default {
     Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
-    Vue.use(VueBootstrapToasts)
     Vue.use(VueMoment)
     Vue.use(VueQrcodeReader)
     Vue.use(VueQrcode)
     Vue.use(FlatPickr)
     Vue.use(Loading)
+    Vue.use(Toasted, {
+      position: 'top-center',
+      duration: 5000,
+      fullWidth: true,
+      action: {
+        text: 'x',
+        onClick: (e, toastObject) => {
+          toastObject.goAway(0)
+        },
+      },
+    })
   },
 }

@@ -95,9 +95,9 @@ export default {
         this.$store.commit('username', this.form.username)
         this.username = this.form.username
         this.showUsername = true
-        this.$toast.success(this.$t('site.profil.user-data.change-success'))
+        this.$toasted.success(this.$t('site.profil.user-data.change-success'))
       } else {
-        this.$toast.error(result.result.message)
+        this.$toasted.error(result.result.message)
         this.showUsername = true
         this.username = this.$store.state.username
         this.form.username = this.$store.state.username
