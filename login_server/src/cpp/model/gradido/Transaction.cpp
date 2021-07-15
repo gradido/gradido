@@ -360,8 +360,8 @@ namespace model {
 				//transaction_send_task->scheduleTask(transaction_send_task);
 				auto pt = PendingTasksManager::getInstance();
 
-				pt->removeTask(Poco::AutoPtr<Transaction>(this, true));
-				deleteFromDB();
+				// pt->removeTask(Poco::AutoPtr<Transaction>(this, true));
+				// deleteFromDB();
 				return 1 == runSendTransaction();
 				//return true;
 			}
