@@ -28,7 +28,6 @@ namespace model {
 			PendingTask(int userId, std::string serializedProtoRequest, TaskType type);
 			PendingTask(const PendingTaskTuple& tuple);
 
-			~PendingTask();
 
 			// generic db operations
 			const char* getTableName() const { return "pending_tasks"; }
@@ -65,6 +64,8 @@ namespace model {
 
 			static const char* typeToString(TaskType type);
 		protected:
+			~PendingTask();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadAllFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);

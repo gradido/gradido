@@ -31,14 +31,15 @@ namespace model {
 		{
 		public:
 			ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData);
-			~ElopageBuy();
-
+			
 			// generic db operations
 			const char* getTableName() const { return "elopage_buys"; }
 			
 			std::string toString();
 			
 		protected:
+			~ElopageBuy();
+
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _insertIntoDB(Poco::Data::Session session);

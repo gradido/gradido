@@ -32,7 +32,7 @@ namespace model {
 		public:
 			ModelBase(int id) :mID(id), mReferenceCount(1) {}
 			ModelBase() : mID(0), mReferenceCount(1) {}
-			virtual ~ModelBase();
+			
 
 			virtual const char* getTableName() const = 0;
 			//! called from within of some catch to give more information for debugging, don't lock mutex!
@@ -90,6 +90,8 @@ namespace model {
 			void duplicate();
 			void release();
 		protected:
+			virtual ~ModelBase();
+
 			virtual Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
@@ -104,6 +106,9 @@ namespace model {
 			int mReferenceCount;	
 
 			mutable std::shared_mutex mSharedMutex;
+
+		private:
+			
 
 		};
 

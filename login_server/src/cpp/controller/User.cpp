@@ -136,7 +136,7 @@ namespace controller {
 	{
 		auto db = new model::table::User();
 		if (0 == db->loadFromDB("id", user_id)) {
-			delete db;
+			db->release();
 			return nullptr;
 		}
 		auto user = new User(db);
