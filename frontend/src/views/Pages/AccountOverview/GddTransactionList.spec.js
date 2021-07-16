@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import GddTransactionList from './GddTransactionList'
+import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -18,6 +19,9 @@ describe('GddTransactionList', () => {
     $n: jest.fn((n) => n),
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
+    $i18n: {
+      locale: () => 'en',
+    },
   }
 
   const Wrapper = () => {
@@ -81,6 +85,7 @@ describe('GddTransactionList', () => {
           ],
           transactionCount: 12,
         })
+        await flushPromises()
       })
 
       it('renders 4 transactions', () => {
