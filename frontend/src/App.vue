@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="font-sans text-gray-800">
+  <div id="app" class="font-sans text-gray-800 ttt">
     <div class="">
       <particles-bg type="custom" :config="config" :bg="true" />
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
