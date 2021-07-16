@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import GddTransactionList from './GddTransactionList'
-import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -85,7 +84,6 @@ describe('GddTransactionList', () => {
           ],
           transactionCount: 12,
         })
-        await flushPromises()
       })
 
       it('renders 4 transactions', () => {
