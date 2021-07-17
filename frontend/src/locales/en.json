@@ -8,7 +8,7 @@
   "reset": "Reset password",
   "imprint":"Legal notice",
   "privacy_policy":"Privacy policy",
-  "members_area": "Members area",
+  "members_area": "Member´s area",
   "whitepaper": "Whitepaper",
   "back":"Back",
   "send":"Send",
@@ -35,7 +35,8 @@
     "seconds": "Seconds",
     "received":"received",
     "sent":"sent",
-    "created":"created"
+    "created":"reated",
+    "fromCommunity":"From the community"
   },
   "form": {
     "cancel":"Cancel",

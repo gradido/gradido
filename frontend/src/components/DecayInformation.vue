@@ -8,11 +8,10 @@
       <b-list-group style="border: 0px">
         <b-list-group-item style="border: 0px; background-color: #f1f1f1">
           <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
-              {{ $t('decay.calculation_decay') }}
+            <div style="width: 100%" class="text-center pb-3">
               <b-icon icon="droplet-half" height="12" class="mb-2" />
+              {{ $t('decay.calculation_decay') }}
             </div>
-            <div style="width: 60%"></div>
           </div>
 
           <div class="d-flex">

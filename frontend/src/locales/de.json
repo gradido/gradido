@@ -35,7 +35,8 @@
     "seconds":"Sekunden",
     "received":"empfangen",
     "sent":"gesendet",
-    "created":"geschöpft"
+    "created":"geschöpft",
+    "fromCommunity":"Aus der Community"
   }, 
   "form": {
     "cancel": "Abbrechen",
