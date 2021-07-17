@@ -121,7 +121,11 @@
                         ></b-form-input>
 
                         <b-input-group-append>
-                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
+                          <b-button
+                            variant="outline-light"
+                            @click="togglePasswordVisibility"
+                            class="border-left-0"
+                          >
                             <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
                           </b-button>
                         </b-input-group-append>
@@ -147,7 +151,11 @@
                       ></b-form-input>
 
                       <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordRepeatVisibility">
+                        <b-button
+                          variant="outline-light"
+                          @click="togglePasswordRepeatVisibility"
+                          class="border-left-0"
+                        >
                           <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
                         </b-button>
                       </b-input-group-append>

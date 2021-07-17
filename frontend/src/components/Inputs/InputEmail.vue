@@ -6,22 +6,20 @@
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
     <b-form-group :label="label" :label-for="labelFor">
-      <b-input-group>
-        <b-form-input
-          v-model="currentValue"
-          v-bind="ariaInput"
-          :id="labelFor"
-          :name="name"
-          :placeholder="placeholder"
-          type="email"
-          :state="validated ? valid : false"
-          trim
-          class="email-form-input"
-        ></b-form-input>
-        <b-form-invalid-feedback v-bind="ariaMsg">
-          {{ errors[0] }}
-        </b-form-invalid-feedback>
-      </b-input-group>
+      <b-form-input
+        v-model="currentValue"
+        v-bind="ariaInput"
+        :id="labelFor"
+        :name="name"
+        :placeholder="placeholder"
+        type="email"
+        :state="validated ? valid : false"
+        trim
+        class="email-form-input"
+      ></b-form-input>
+      <b-form-invalid-feedback v-bind="ariaMsg">
+        {{ errors[0] }}
+      </b-form-invalid-feedback>
     </b-form-group>
   </validation-provider>
 </template>
