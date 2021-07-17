@@ -118,7 +118,7 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('div').at(0).text()).toContain('Bob der Baumeister')
         })
 
-        it('shows the memo of the receiver', () => {
+        it('shows the message of the transaction', () => {
           expect(transaction.findAll('div').at(5).text()).toContain('Alles Gute zum Geburtstag')
         })
 
@@ -180,11 +180,11 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('div').at(2).text()).toContain('+ 314.98')
         })
 
-        it('shows the name of the receiver', () => {
+        it('shows the name of the recipient', () => {
           expect(transaction.findAll('div').at(0).text()).toContain('Jan Ulrich')
         })
 
-        it('shows the memo of the receiver', () => {
+        it('shows the message of the transaction', () => {
           expect(transaction.findAll('div').at(5).text()).toContain('Für das Fahrrad!')
         })
 
