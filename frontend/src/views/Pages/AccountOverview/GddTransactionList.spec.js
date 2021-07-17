@@ -55,7 +55,7 @@ describe('GddTransactionList', () => {
           transactions: [
             {
               balance: '19.93',
-              date: '2021-05-25T17:38:13+00:00',
+              date: 'Tue May 25 2021',
               memo: 'Alles Gute zum Geburtstag',
               name: 'Bob der Baumeister',
               transaction_id: 29,
@@ -64,7 +64,7 @@ describe('GddTransactionList', () => {
             },
             {
               balance: '1000',
-              date: '2021-04-29T15:34:49+00:00',
+              date: '2021-04-29',
               memo: 'Gut das du da bist!',
               name: 'Gradido Akademie',
               transaction_id: 3,
@@ -72,7 +72,7 @@ describe('GddTransactionList', () => {
             },
             {
               balance: '314.98',
-              date: '2021-04-29T17:26:40+00:00',
+              date: '2021-04-29',
               memo: 'Für das Fahrrad!',
               name: 'Jan Ulrich',
               transaction_id: 8,
@@ -123,9 +123,7 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(8).text()).toContain(
-            'Tue May 25 2021 19:38:13 GMT+0200',
-          )
+          expect(transaction.findAll('div').at(8).text()).toContain('Tue May 25 2021')
         })
 
         it('shows the decay calculation', () => {
@@ -191,9 +189,7 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(8).text()).toContain(
-            'Thu Apr 29 2021 19:26:40 GMT+0200',
-          )
+          expect(transaction.findAll('div').at(8).text()).toContain('Thu Apr 29 2021')
         })
 
         it('shows the decay calculation', () => {
