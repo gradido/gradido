@@ -144,7 +144,7 @@ describe('GddSend', () => {
         })
 
         it('has the text "form.cancel"', () => {
-          expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
+          expect(wrapper.find('button[type="reset"]').find('svg').attributes('aria-label')).toBe('trash')
         })
 
         it('clears all fields on click', async () => {

@@ -43,7 +43,7 @@
                     class="pl-3"
                   ></b-form-input>
                 </b-input-group>
-                <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                <b-col v-if="errors">
                   <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
                 </b-col>
               </validation-provider>
@@ -78,7 +78,7 @@
                     class="pl-3"
                   ></b-form-input>
                 </b-input-group>
-                <b-col v-if="errors" class="col-12 text-right p-3 p-sm-1">
+                <b-col v-if="errors">
                   <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                 </b-col>
               </validation-provider>
@@ -106,7 +106,7 @@
                     class="pl-3"
                   ></b-form-textarea>
                 </b-input-group>
-                <b-col v-if="errors" class="text-right p-3 p-sm-1">
+                <b-col v-if="errors">
                   <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                 </b-col>
               </validation-provider>
@@ -116,7 +116,7 @@
             <b-row>
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.reset') }}
+                  <b-icon icon="trash" class="mb-2" />
                 </b-button>
               </b-col>
               <b-col class="text-right">
