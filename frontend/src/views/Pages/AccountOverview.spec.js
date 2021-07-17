@@ -118,8 +118,8 @@ describe('AccountOverview', () => {
             .vm.$emit('send-transaction')
         })
 
-        it('shows the error page', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_error')
+        it('shows the error page', async () => {
+          expect(wrapper.find('div.card.card-body').text()).toContain('form.send_transaction_error')
         })
       })
     })
