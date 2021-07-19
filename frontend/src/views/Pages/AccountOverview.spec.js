@@ -112,7 +112,7 @@ describe('AccountOverview', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockReturnValue({ success: false })
+          sendMock.mockReturnValue({ success: false, result: { message: 'receiver not found' } })
           await wrapper
             .findComponent({ name: 'TransactionConfirmation' })
             .vm.$emit('send-transaction')
@@ -120,6 +120,10 @@ describe('AccountOverview', () => {
 
         it('shows the error page', () => {
           expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_error')
+        })
+
+        it('shows recipient not found', () => {
+          expect(wrapper.text()).toContain('transaction.receiverNotFound')
         })
       })
     })

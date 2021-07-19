@@ -75,7 +75,7 @@ export default {
       timestamp: Date.now(),
       transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
-      errorResult: false,
+      errorResult: '',
       currentTransactionStep: 0,
       loading: false,
     }
