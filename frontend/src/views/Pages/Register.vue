@@ -79,24 +79,8 @@
                   <input-email v-model="form.email" id="registerEmail"></input-email>
 
                   <hr />
-                  <input-password v-model="form.password" id="registerPassword" />
-                  <input-password v-model="form.passwordRepeat" id="registerPasswordRepeat" />
+                  <input-password-confirmation v-model="form.password" />
 
-                  <transition name="hint" appear>
-                    <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
-                      <ul>
-                        <li v-for="error in passwordValidation.errors" :key="error">
-                          <small>{{ error }}</small>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="matches" v-else-if="!samePasswords">
-                      <p>
-                        {{ $t('site.signup.dont_match') }}
-                        <i class="ni ni-active-40" color="danger"></i>
-                      </p>
-                    </div>
-                  </transition>
                   <b-row class="my-4">
                     <b-col cols="12">
                       <b-form-checkbox
@@ -122,17 +106,7 @@
                     </span>
                   </b-alert>
 
-                  <div
-                    class="text-center"
-                    v-if="
-                      passwordsFilled &&
-                      samePasswords &&
-                      passwordValidation.valid &&
-                      namesFilled &&
-                      emailFilled &&
-                      form.agree
-                    "
-                  >
+                  <div class="text-center" v-if="namesFilled && emailFilled && form.agree">
                     <div class="text-center">
                       <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
                       <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
@@ -153,10 +127,10 @@
 <script>
 import loginAPI from '../../apis/loginAPI'
 import InputEmail from '../../components/Inputs/InputEmail.vue'
-import InputPassword from '../../components/Inputs/InputPassword.vue'
+import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 
 export default {
-  components: { InputPassword, InputEmail },
+  components: { InputPasswordConfirmation, InputEmail },
   name: 'register',
   data() {
     return {
@@ -165,12 +139,11 @@ export default {
         lastname: '',
         email: '',
         agree: false,
-        password: '',
-        passwordRepeat: '',
+        password: {
+          password: '',
+          passwordRepeat: '',
+        },
       },
-
-      passwordVisible: false,
-      passwordVisibleRepeat: false,
       submitted: false,
       showError: false,
       messageError: '',
@@ -186,17 +159,11 @@ export default {
         lastname: '',
         email: '',
         password: '',
-        passwordRepeat: '',
+        agree: false,
       }
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
-    },
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
-    togglePasswordRepeatVisibility() {
-      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
     },
     async onSubmit() {
       const result = await loginAPI.create(
@@ -231,12 +198,6 @@ export default {
     },
   },
   computed: {
-    samePasswords() {
-      return this.form.password === this.form.passwordRepeat
-    },
-    passwordsFilled() {
-      return this.form.password !== '' && this.form.passwordRepeat !== ''
-    },
     namesFilled() {
       return (
         this.form.firstname !== '' &&
@@ -255,18 +216,6 @@ export default {
         { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
         { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
       ]
-    },
-    passwordValidation() {
-      const errors = []
-      for (const condition of this.rules) {
-        if (!condition.regex.test(this.form.password)) {
-          errors.push(condition.message)
-        }
-      }
-      if (errors.length === 0) {
-        return { valid: true, errors }
-      }
-      return { valid: false, errors }
     },
   },
 }

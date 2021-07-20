@@ -13,7 +13,7 @@
           :label="$t('form.password_new')"
           :showAllErrors="true"
           :immediate="true"
-          :name="$t('form.password_new')"
+          :name="createId($t('form.password_new'))"
           :placeholder="$t('form.password_new')"
           v-model="password"
         ></input-password>
@@ -24,6 +24,7 @@
         <input-password
           :rules="{ samePassword: value.password }"
           :label="$t('form.password_new_repeat')"
+          :name="createId($t('form.password_new_repeat'))"
           :placeholder="$t('form.password_new_repeat')"
           v-model="passwordRepeat"
         ></input-password>
@@ -50,6 +51,11 @@ export default {
       password: '',
       passwordRepeat: '',
     }
+  },
+  methods: {
+    createId(text) {
+      return text.replace(/ +/g, '-')
+    },
   },
   computed: {
     passwordObject() {

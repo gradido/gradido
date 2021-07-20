@@ -65,11 +65,11 @@ describe('Register', () => {
       })
 
       it('has password input fields', () => {
-        expect(wrapper.find('#registerPassword').exists()).toBeTruthy()
+        expect(wrapper.find('input[name="form.password_new"]').exists()).toBeTruthy()
       })
 
       it('has password repeat input fields', () => {
-        expect(wrapper.find('#registerPasswordRepeat').exists()).toBeTruthy()
+        expect(wrapper.find('input[name="form.password_new_repeat"]').exists()).toBeTruthy()
       })
 
       it('has 1 checkbox input fields', () => {
@@ -103,33 +103,8 @@ describe('Register', () => {
           'validations.messages.required',
         )
       })
-
-      /**
-       * it('shows a warning when no valid Email is entered', async () => {
-        wrapper.find('#registerEmail').setValue('no_valid@Email')
-        await flushPromises()
-        await expect(wrapper.find('#registerEmailLiveFeedback').text()).toEqual(
-          'validations.messages.email',
-        )
-      })
-      */
-
-      it('shows 4 warnings when no password is set', async () => {
-        const passwords = wrapper.findAll('input[type="password"]')
-        passwords.at(0).setValue('')
-        passwords.at(1).setValue('')
-        await flushPromises()
-        await expect(wrapper.find('div.hints').text()).toContain(
-          'site.signup.lowercase',
-          'site.signup.uppercase',
-          'site.signup.minimum',
-          'site.signup.one_number',
-        )
-      })
-
-      // TODO test different invalid password combinations
     })
 
-    // TODO test submit button
+    // To Do: Test lines 156-197,210-213
   })
 })
