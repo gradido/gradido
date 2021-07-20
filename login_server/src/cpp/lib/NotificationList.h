@@ -20,6 +20,8 @@
 #include "Poco/Net/StringPartSource.h"
 #include "Poco/Logger.h"
 
+#include "rapidjson/document.h"
+
 class NotificationList : public INotificationCollection
 {
 public:
@@ -51,7 +53,11 @@ public:
 	std::string getErrorsHtml();
 	std::string getErrorsHtmlNewFormat();
 	std::vector<std::string> getErrorsArray();
+	rapidjson::Value getErrorsArray(rapidjson::Document::AllocatorType& alloc);
 	std::vector<std::string> getWarningsArray();
+	rapidjson::Value getWarningsArray(rapidjson::Document::AllocatorType& alloc);
+	
+
 
 	void sendErrorsAsEmail(std::string rawHtml = "", bool copy = false);
 

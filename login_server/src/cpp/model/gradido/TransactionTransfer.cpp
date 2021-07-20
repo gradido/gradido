@@ -189,6 +189,23 @@ namespace model {
 				addError(new Error(function_name, "memo is not set or not in expected range [5;150]"));
 				return TRANSACTION_VALID_INVALID_MEMO;
 			}
+			auto recipiant_user = controller::User::create();
+			recipiant_user->load((const unsigned char*)receiver_pubkey->data());
+			if (!recipiant_user.isNull() && recipiant_user->getModel()) {
+				auto recipiant_user_model = recipiant_user->getModel();
+				if (recipiant_user_model->isDisabled()) {
+					addError(new Error(function_name, "receiver is disabled"));
+					return TRANSACTION_VALID_INVALID_USER_ACCOUNT_STATE;
+				}
+				auto target_groups = controller::Group::load(mTargetGroupAlias);
+				if (target_groups.size() == 1) {
+					if (!target_groups[0].isNull() && recipiant_user_model->getGroupId() != target_groups[0]->getModel()->getID()) {
+						addError(new Error(function_name, "receiver user isn't in target group"));
+						return TRANSACTION_VALID_INVALID_USER_ACCOUNT_STATE;
+					}
+				}
+			}
+
 			return TRANSACTION_VALID_OK;
 		}
 

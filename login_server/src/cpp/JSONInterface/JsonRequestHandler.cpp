@@ -392,6 +392,40 @@ Poco::JSON::Object* JsonRequestHandler::checkAndLoadSession(Poco::Dynamic::Var p
 	
 }
 
+bool JsonRequestHandler::getTargetGroup(const Document& params)
+{
+	std::string group_alias;
+	int group_id = 0;
+	Value::ConstMemberIterator itr = params.FindMember("group");
+	if (itr != params.MemberEnd()) {
+		if (itr->value.IsString()) {
+			group_alias = itr->value.GetString();
+		}
+		else if (itr->value.IsInt()) {
+			group_id = itr->value.GetInt();
+		}
+	}
+	if (!group_alias.size() && !group_id) {
+		getStringParameter(params, "group_alias", group_alias);
+		if (!group_alias.size()) {
+			getIntParameter(params, "group_id", group_id);
+		}
+	}
+	std::vector<Poco::AutoPtr<controller::Group>> groups;
+	if (group_alias.size()) {
+		groups = controller::Group::load(group_alias);
+		if (groups.size() == 1) {
+			mTargetGroup = groups[0];
+			return true;
+		}
+	}
+	else if (group_id) {
+		mTargetGroup = controller::Group::load(group_id);
+		return true;
+	}
+	return false;
+}
+
 Document JsonRequestHandler::getIntParameter(const Document& params, const char* fieldName, int& iparameter)
 {
 	Value::ConstMemberIterator itr = params.FindMember(fieldName);
@@ -468,6 +502,23 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 		return rstateError(message.data());
 	}
 	strParameter = itr->value.GetString();
+	return Document();
+}
+
+Document JsonRequestHandler::getArrayParameter(const Document& params, const char* fieldName, Value& jsonArray)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	
+	if (!itr->value.IsArray()) {
+		message += " is not a array";
+		return rstateError(message.data());
+	}
+	jsonArray = itr->value.GetArray();
 	return Document();
 }
 
