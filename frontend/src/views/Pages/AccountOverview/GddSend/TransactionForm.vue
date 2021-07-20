@@ -116,7 +116,7 @@
             <b-row>
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  <b-icon icon="trash" class="mb-2" />
+                  {{ $t('form.reset') }}
                 </b-button>
               </b-col>
               <b-col class="text-right">
