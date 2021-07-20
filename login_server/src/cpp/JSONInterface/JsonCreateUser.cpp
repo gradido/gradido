@@ -34,7 +34,7 @@ Document JsonCreateUser::handle(const Document& params)
 	if (password.size()) {
 		NotificationList errors;
 		if (!sm->checkPwdValidation(password, &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-			Document result; result.SetObject();
+			Document result(kObjectType);
 			auto alloc = result.GetAllocator();
 			result.AddMember("state", "error", alloc);
 			result.AddMember("msg", Value(errors.getLastError()->getString(false).data(), alloc), alloc);
@@ -110,7 +110,7 @@ Document JsonCreateUser::handle(const Document& params)
 
 	getBoolParameter(params, "login_after_register", loginAfterRegister);
 
-	Document result; result.SetObject();
+	Document result(kObjectType); 
 	auto alloc = result.GetAllocator();
 	result.AddMember("state", "success", alloc);
 

@@ -16,8 +16,7 @@ Document JsonAquireAccessToken::handle(const Document& params)
 		return session_result;
 	}
 	
-	Document result;
-	result.SetObject();
+	Document result(kObjectType);
 	result.AddMember("state", "success", result.GetAllocator());
 	auto user = mSession->getNewUser();
 	auto user_id = user->getModel()->getID();

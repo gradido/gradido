@@ -78,12 +78,10 @@ Document JsonCreateTransaction::transfer(const Document& params)
 	if (param_error.IsObject()) { return param_error; }
 
 	auto sender_user = mSession->getNewUser();
-	Document result;
-	result.SetObject();
+	Document result(kObjectType);
 	auto alloc = result.GetAllocator();
 
-	Value warnings;
-	warnings.SetArray();
+	Value warnings(kArrayType);
 
 	try {
 		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
@@ -97,8 +95,7 @@ Document JsonCreateTransaction::transfer(const Document& params)
 		}
 
 		if (mAutoSign) {
-			Value errors;
-			errors.SetArray();
+			Value errors(kArrayType);
 			transaction->sign(sender_user);
 			if (transaction->errorCount() > 0) {
 				errors = transaction->getErrorsArray(alloc);
@@ -156,7 +153,7 @@ Document JsonCreateTransaction::creation(const Document& params)
 	}
 
 	auto mm = MemoryManager::getInstance();
-	Document result;
+	
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return rcustomStateError("not found", "recipient not found");

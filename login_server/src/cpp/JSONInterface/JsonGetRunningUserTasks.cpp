@@ -15,7 +15,7 @@ Document JsonGetRunningUserTasks::handle(const Document& params)
 
 	auto ob = SingletonTaskObserver::getInstance();
 	auto tasks = ob->getTasksCount(email);
-	Document result; result.SetObject();
+	Document result(kObjectType);
 	auto alloc = result.GetAllocator();
 	Value tasksJson; tasksJson.SetObject();
 	if (tasks.size() > 0) {

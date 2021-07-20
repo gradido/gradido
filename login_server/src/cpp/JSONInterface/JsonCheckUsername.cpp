@@ -48,8 +48,7 @@ Document JsonCheckUsername::handle(const Document& params)
 	auto user = controller::User::create();
 	user->getModel()->setGroupId(group_id);
 	if (username == "") {
-		Document result;
-		result.SetObject();
+		Document result(kObjectType);
 		
 		result.AddMember("state", "success", result.GetAllocator());
 		result.AddMember("group_id", group_id, result.GetAllocator());
