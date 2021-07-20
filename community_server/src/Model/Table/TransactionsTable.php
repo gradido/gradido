@@ -236,13 +236,12 @@ class TransactionsTable extends Table
            
             if($su_transaction->transaction_type_id == 1) { // creation
                 $creation = $transaction->transaction_creation;
-                $balance = $stateBalancesTable->calculateDecay($creation->amount, $creation->target_date, $transaction->received);
                 
                 $final_transaction['name'] = 'Gradido Akademie';
                 $final_transaction['type'] = 'creation';
                 $final_transaction['target_date'] = $creation->target_date;
-                $final_transaction['creation_amount'] = $creation->amount;
-                $final_transaction['balance'] = $balance;
+                //$final_transaction['creation_amount'] = $creation->amount;
+                $final_transaction['balance'] = $creation->amount;
                 
             } else if($su_transaction->transaction_type_id == 2) { // transfer or send coins
                 $sendCoins = $transaction->transaction_send_coin;
