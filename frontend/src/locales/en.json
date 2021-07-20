@@ -90,7 +90,8 @@
   "transaction":{
     "show_all":"View all <strong>{count}</strong> transactions.",
     "nullTransactions":"You don't have any transactions on your account yet.",
-    "more": "more"
+    "more": "more",
+    "receiverNotFound":"Recipient not found"
   },
   "site": {
     "login": {

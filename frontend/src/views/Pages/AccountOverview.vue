@@ -23,7 +23,11 @@
           ></transaction-confirmation>
         </template>
         <template #transaction-result>
-          <transaction-result :error="error" @on-reset="onReset"></transaction-result>
+          <transaction-result
+            :error="error"
+            :errorResult="errorResult"
+            @on-reset="onReset"
+          ></transaction-result>
         </template>
       </gdd-send>
       <hr />
@@ -71,6 +75,7 @@ export default {
       timestamp: Date.now(),
       transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
+      errorResult: '',
       currentTransactionStep: 0,
       loading: false,
     }
@@ -104,6 +109,7 @@ export default {
         this.error = false
         this.$emit('update-balance', this.transactionData.amount)
       } else {
+        this.errorResult = result.result.message
         this.error = true
       }
       this.currentTransactionStep = 2
