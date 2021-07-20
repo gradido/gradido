@@ -499,7 +499,7 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 	return Document();
 }
 
-Document JsonRequestHandler::getArrayParameter(const Document& params, const char* fieldName, Value& jsonArray)
+Document JsonRequestHandler::checkArrayParameter(const Document& params, const char* fieldName)
 {
 	
 	Value::ConstMemberIterator itr = params.FindMember(fieldName);
@@ -514,8 +514,6 @@ Document JsonRequestHandler::getArrayParameter(const Document& params, const cha
 		return rstateError(message.data());
 	}
 
-	jsonArray = itr->value.GetArray();
-	
 	return Document();
 }
 

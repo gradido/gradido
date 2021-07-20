@@ -43,7 +43,7 @@ protected:
 	rapidjson::Document getBoolParameter(const rapidjson::Document& params, const char* fieldName, bool& bParameter);
 	rapidjson::Document getUInt64Parameter(const rapidjson::Document& params, const char* fieldName, Poco::UInt64& iParameter);
 	rapidjson::Document getStringParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter);
-	rapidjson::Document getArrayParameter(const rapidjson::Document& params, const char* fieldName, rapidjson::Value& jsonArray);
+	rapidjson::Document checkArrayParameter(const rapidjson::Document& params, const char* fieldName);
 
 	static Poco::JSON::Object* stateError(const char* msg, std::string details = "");
 	static rapidjson::Document rstateError(const char* msg, std::string details = "");

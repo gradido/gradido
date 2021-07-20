@@ -40,9 +40,11 @@ Document JsonGetUserInfos::handle(const Document& params)
 	paramError = getStringParameter(params, "email", email);
 	if (!paramError.IsNull()) { return paramError; }
 
-	Value ask;
-	paramError = getArrayParameter(params, "ask", ask);
+	
+	paramError = checkArrayParameter(params, "ask");
 	if (!paramError.IsNull()) { return paramError; }
+	auto itr = params.FindMember("ask");
+	const Value& ask = itr->value;
 
 	auto session_user = mSession->getNewUser();
 	auto session_user_model = session_user->getModel();
