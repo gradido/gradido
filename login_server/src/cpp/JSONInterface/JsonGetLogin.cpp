@@ -22,7 +22,7 @@ Document JsonGetLogin::handle(const Document& params)
 		return session_check_result;
 	}
 
-	Document result; result.SetObject();
+	Document result(kObjectType);
 	auto alloc = result.GetAllocator();
 	result.AddMember("state", "success", alloc);
 	//result->set("clientIP", mSession->getClientIp().toString());

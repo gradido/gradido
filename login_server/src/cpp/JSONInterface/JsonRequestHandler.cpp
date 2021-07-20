@@ -204,8 +204,7 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, std::string 
 
 Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 {
-	Document obj;
-	obj.SetObject();
+	Document obj(kObjectType);
 	obj.AddMember("state", "error", obj.GetAllocator());
 	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
 	
@@ -241,12 +240,10 @@ Poco::JSON::Object* JsonRequestHandler::stateError(const char* msg, Notification
 
 rapidjson::Document JsonRequestHandler::rstateError(const char* msg, NotificationList* errorReciver)
 {
-	Document obj;
-	obj.SetObject();
+	Document obj(kObjectType);
 	obj.AddMember("state", "error", obj.GetAllocator());
 	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
-	Value details;
-	details.SetArray();
+	Value details(kArrayType);
 	auto error_vec = errorReciver->getErrorsArray();
 	for (auto it = error_vec.begin(); it != error_vec.end(); it++) {
 		details.PushBack(Value(it->data(), obj.GetAllocator()).Move(), obj.GetAllocator());
@@ -265,8 +262,7 @@ Poco::JSON::Object* JsonRequestHandler::stateSuccess()
 
 Document JsonRequestHandler::rstateSuccess()
 {
-	Document obj;
-	obj.SetObject();
+	Document obj(kObjectType);
 	obj.AddMember("state", "success", obj.GetAllocator());
 
 	return obj;
@@ -285,8 +281,7 @@ Poco::JSON::Object* JsonRequestHandler::customStateError(const char* state, cons
 
 Document JsonRequestHandler::rcustomStateError(const char* state, const char* msg, std::string details /* = "" */ )
 {
-	Document obj;
-	obj.SetObject();
+	Document obj(kObjectType);
 	obj.AddMember("state", Value(state, obj.GetAllocator()).Move(), obj.GetAllocator());
 	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
 	
@@ -309,8 +304,7 @@ Poco::JSON::Object* JsonRequestHandler::stateWarning(const char* msg, std::strin
 
 Document JsonRequestHandler::rstateWarning(const char* msg, std::string details/* = ""*/)
 {
-	Document obj;
-	obj.SetObject();
+	Document obj(kObjectType);
 	obj.AddMember("state", "warning", obj.GetAllocator());
 	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
 
@@ -507,6 +501,7 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 
 Document JsonRequestHandler::getArrayParameter(const Document& params, const char* fieldName, Value& jsonArray)
 {
+	
 	Value::ConstMemberIterator itr = params.FindMember(fieldName);
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
@@ -518,7 +513,9 @@ Document JsonRequestHandler::getArrayParameter(const Document& params, const cha
 		message += " is not a array";
 		return rstateError(message.data());
 	}
+
 	jsonArray = itr->value.GetArray();
+	
 	return Document();
 }
 

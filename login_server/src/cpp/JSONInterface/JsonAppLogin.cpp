@@ -36,8 +36,7 @@ Document JsonAppLogin::handle(const Document& params)
 	}
 	session->setUser(user);
 
-	Document result;
-	result.SetObject();
+	Document result(kObjectType);
 	result.AddMember("state", "success", result.GetAllocator());
 	result.AddMember("session_id", session->getHandle(), result.GetAllocator());
 
