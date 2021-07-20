@@ -15,6 +15,7 @@ class JsonGetUserInfos : public JsonRequestHandler
 {
 public:
 	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
 	Poco::UInt64 readOrCreateEmailVerificationCode(int user_id, model::table::EmailOptInType type);

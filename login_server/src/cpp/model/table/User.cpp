@@ -10,6 +10,7 @@
 #include "../../controller/Group.h"
 
 using namespace Poco::Data::Keywords;
+using namespace rapidjson;
 
 namespace model {
 	namespace table {
@@ -439,6 +440,40 @@ namespace model {
 			auto group = controller::Group::load(mGroupId);
 			if (!group.isNull()) {
 				userObj.set("group_alias", group->getModel()->getAlias());
+			}
+			unlock();
+
+			return userObj;
+		}
+
+		Value User::getJson(Document::AllocatorType& alloc)
+		{
+			lock("User::getJson rapid");
+			Value userObj; userObj.SetObject();
+
+			userObj.AddMember("first_name", Value(mFirstName.data(), alloc), alloc);
+			userObj.AddMember("last_name", Value(mLastName.data(), alloc), alloc);
+			userObj.AddMember("email", Value(mEmail.data(), alloc), alloc);
+			userObj.AddMember("username", Value(mUsername.data(), alloc), alloc);
+			userObj.AddMember("description", Value(mDescription.data(), alloc), alloc);
+
+			//userObj.set("state", userStateToString(mState));
+			auto createTimeStamp = mCreated.timestamp();
+			userObj.AddMember("email_checked", mEmailChecked, alloc);
+			userObj.AddMember("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()), alloc);
+			userObj.AddMember("language", Value(mLanguageKey.data(), alloc), alloc);
+			userObj.AddMember("disabled", mDisabled, alloc);
+			try {
+				std::string role_name = UserRole::typeToString(getRole());
+				userObj.AddMember("role", Value(role_name.data(), alloc), alloc);
+			}
+			catch (Poco::Exception ex) {
+				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
+				sendErrorsAsEmail();
+			}
+			auto group = controller::Group::load(mGroupId);
+			if (!group.isNull()) {
+				userObj.AddMember("group_alias", Value(group->getModel()->getAlias().data(), alloc), alloc);
 			}
 			unlock();
 

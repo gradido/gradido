@@ -17,6 +17,7 @@
 
 #include "Poco/Timestamp.h"
 
+using namespace rapidjson;
 
 namespace controller {
 	User::User(model::table::User* dbModel)
@@ -190,6 +191,16 @@ namespace controller {
 		//printf("[controller::User::getJson] this: %d\n", (int)this);
 		if (pubkey != "") {
 			json.set("public_hex", pubkey);
+		}
+		return json;
+	}
+
+	Value User::getJson(Document::AllocatorType& alloc)
+	{
+		auto json = getModel()->getJson(alloc);
+		auto pubkey = getPublicHex();
+		if (pubkey != "") {
+			json.AddMember("public_hex", Value(pubkey.data(), alloc), alloc);
 		}
 		return json;
 	}

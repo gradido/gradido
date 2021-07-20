@@ -64,108 +64,10 @@ Document JsonCreateTransaction::handle(const Document& params)
 
 }
 
-Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
-{
-	static const char* function_name = "JsonCreateTransaction::transfer";
-	auto target_pubkey = getTargetPubkey(params);
-	if (!target_pubkey) {
-		return customStateError("not found", "receiver not found");
-	}
-
-	auto sender_user = mSession->getNewUser();
-	Poco::UInt32 amount = 0;
-	auto mm = MemoryManager::getInstance();
-	Poco::JSON::Object* result = nullptr;
-
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		try {
-			paramJsonObject->get("amount").convert(amount);
-		}
-		catch (Poco::Exception& ex) {
-			result = stateError("json exception", ex.displayText());
-		}
-	}
-	else {
-		result = stateError("parameter format unknown");
-	}
-	
-	if (result) {
-		mm->releaseMemory(target_pubkey);
-		return result;
-	}
-	
-	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
-		auto receiver_user_model = mReceiverUser->getModel();
-		if (receiver_user_model->isDisabled()) {
-			result = customStateError("disabled", "receiver is disabled");
-		}
-		if (!mTargetGroup.isNull() && receiver_user_model->getGroupId() != mTargetGroup->getModel()->getID()) {
-			result = stateError("user not in group", "receiver user isn't in target group");
-		}
-	}
-	
-	auto gradido_key_pair = sender_user->getGradidoKeyPair();
-	if (gradido_key_pair) {
-		if (gradido_key_pair->isTheSame(*target_pubkey)) {
-			result = stateError("sender and receiver are the same");
-		}
-	}
-	else {
-		printf("user hasn't valid key pair set\n");
-	}
-	Poco::JSON::Array* json_warnings = nullptr;
-	if (!result) {
-		try {
-			auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
-
-			if (mSession->lastTransactionTheSame(transaction)) {
-				return stateError("transaction are the same as the last (within 100 seconds)");
-			}
-			else {
-				mSession->setLastTransaction(transaction);
-			}
-
-			if (mAutoSign) {
-				Poco::JSON::Array errors;
-				transaction->sign(sender_user);
-				if (transaction->errorCount() > 0) {
-					errors.add(transaction->getErrorsArray());
-				}
-
-				if (errors.size() > 0) {
-					return stateError("error by signing transaction", errors);
-				}
-				if (transaction->warningCount() > 0) {
-					json_warnings = new Poco::JSON::Array;
-					json_warnings->add(transaction->getWarningsArray());
-				}
-			}
-		}
-		catch (Poco::Exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		} 
-		catch (std::exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		}
-		result = stateSuccess();
-		if (json_warnings) {
-			result->set("warnings", json_warnings);
-			delete json_warnings;
-		}		
-	}
-	mm->releaseMemory(target_pubkey);
-	return result;
-}
-
 Document JsonCreateTransaction::transfer(const Document& params)
 {
+	static const char* function_name = "JsonCreateTransaction::transfer";
+	auto mm = MemoryManager::getInstance();
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return rcustomStateError("not found", "receiver not found");
@@ -175,7 +77,65 @@ Document JsonCreateTransaction::transfer(const Document& params)
 	auto param_error = getUIntParameter(params, "amount", amount);
 	if (param_error.IsObject()) { return param_error; }
 
+	auto sender_user = mSession->getNewUser();
+	Document result;
+	result.SetObject();
+	auto alloc = result.GetAllocator();
+
+	Value warnings;
+	warnings.SetArray();
+
+	try {
+		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		mm->releaseMemory(target_pubkey);
+		target_pubkey = nullptr;
+		if (mSession->lastTransactionTheSame(transaction)) {
+			return rstateError("transaction are the same as the last (within 100 seconds)");
+		}
+		else {
+			mSession->setLastTransaction(transaction);
+		}
+
+		if (mAutoSign) {
+			Value errors;
+			errors.SetArray();
+			transaction->sign(sender_user);
+			if (transaction->errorCount() > 0) {
+				errors = transaction->getErrorsArray(alloc);
+			}
+
+			if (transaction->warningCount() > 0) {
+				warnings = transaction->getWarningsArray(alloc);
+				result.AddMember("warnings", warnings, alloc);
+			} 
+
+			if (errors.Size() > 0) {
+				result.AddMember("state", "error", alloc);
+				result.AddMember("msg", "error by signing transaction", alloc);
+				result.AddMember("details", errors, alloc);
+				return result;
+			}
+			
+		}
+	}
+	catch (Poco::Exception& ex) {
+		mm->releaseMemory(target_pubkey);
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
+		errors.sendErrorsAsEmail();
+		return rstateError("exception");
+	}
+	catch (std::exception& ex) {
+		mm->releaseMemory(target_pubkey);
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
+		errors.sendErrorsAsEmail();
+		return rstateError("exception");
+	}
+	result.AddMember("state", "success", alloc);
+	return result;
 }
+
 
 Document JsonCreateTransaction::creation(const Document& params)
 {
@@ -218,7 +178,7 @@ Document JsonCreateTransaction::creation(const Document& params)
 		}
 	}
 
-	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
+	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType, false);
 	auto creation_transaction = transaction->getTransactionBody()->getCreationTransaction();
 	if (creation_transaction->prepare()) {
 		return rstateError("error in transaction details", creation_transaction);
@@ -232,7 +192,6 @@ Document JsonCreateTransaction::creation(const Document& params)
 		}
 	}
 	return rstateSuccess();
-
 }
 
 Document JsonCreateTransaction::groupMemberUpdate(const Document& params)
@@ -288,36 +247,4 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(const Document& params)
 	return result;
 }
 
-bool JsonCreateTransaction::getTargetGroup(const Document& params)
-{
-	std::string group_alias;
-	int group_id = 0;
-	Value::ConstMemberIterator itr = params.FindMember("group");
-	if (itr != params.MemberEnd()) {
-		if (itr->value.IsString()) {
-			group_alias = itr->value.GetString();
-		}
-		else if (itr->value.IsInt()) {
-			group_id = itr->value.GetInt();
-		}
-	}
-	if (!group_alias.size() && !group_id) {
-		getStringParameter(params, "group_alias", group_alias);
-		if (!group_alias.size()) {
-			getIntParameter(params, "group_id", group_id);
-		}
-	}
-	std::vector<Poco::AutoPtr<controller::Group>> groups;
-	if (group_alias.size()) {
-		groups = controller::Group::load(group_alias);
-		if (groups.size() == 1) {
-			mTargetGroup = groups[0];
-			return true;
-		}
-	}
-	else if (group_id) {
-		mTargetGroup = controller::Group::load(group_id);
-		return true;
-	}
-	return false;
-}
+

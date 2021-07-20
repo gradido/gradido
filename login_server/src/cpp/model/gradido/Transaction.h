@@ -56,7 +56,8 @@ namespace model {
 				Poco::UInt32 amount,
 				Poco::DateTime targetDate,
 				const std::string& memo,
-				BlockchainType blockchainType);
+				BlockchainType blockchainType,
+				bool addToPendingTaskManager = true);
 
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
 

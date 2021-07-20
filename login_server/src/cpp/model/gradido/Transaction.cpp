@@ -72,7 +72,8 @@ namespace model {
 			Poco::UInt32 amount,
 			Poco::DateTime targetDate,
 			const std::string& memo,
-			BlockchainType blockchainType
+			BlockchainType blockchainType,
+			bool addToPendingTaskManager/* = true*/
 			)
 		{
 			auto em = ErrorManager::getInstance();
@@ -89,9 +90,10 @@ namespace model {
 			result->setParam("blockchain_type", (int)blockchainType);
 			auto model = result->getModel();
 
-
-			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
-			PendingTasksManager::getInstance()->addTask(result);
+			if (addToPendingTaskManager) {
+				result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
+				PendingTasksManager::getInstance()->addTask(result);
+			}
 			return result;
 		}
 

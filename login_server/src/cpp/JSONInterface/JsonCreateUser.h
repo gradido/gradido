@@ -7,7 +7,7 @@ class JsonCreateUser : public JsonRequestHandler
 {
 public:
 	JsonCreateUser(Poco::Net::IPAddress ip) : mClientIP(ip) {}
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
 	Poco::Net::IPAddress mClientIP;
