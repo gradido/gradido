@@ -76,91 +76,11 @@
                     </b-form-group>
                   </validation-provider>
 
-                  <validation-provider
-                    name="Email"
-                    :rules="{ required: true, email: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group class="mb-3" label="Email" label-for="registerEmail">
-                      <b-form-input
-                        id="registerEmail"
-                        name="Email"
-                        v-model="form.email"
-                        placeholder="Email"
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="registerEmailLiveFeedback"
-                      ></b-form-input>
-
-                      <b-form-invalid-feedback id="registerEmailLiveFeedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
+                  <input-email v-model="form.email" id="registerEmail"></input-email>
 
                   <hr />
-
-                  <validation-provider
-                    :name="$t('form.password')"
-                    :rules="{ required: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group
-                      class="mb-5"
-                      :label="$t('form.password')"
-                      label-for="registerPassword"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          id="registerPassword"
-                          :name="$t('form.password')"
-                          v-model="form.password"
-                          :placeholder="$t('form.password')"
-                          :type="passwordVisible ? 'text' : 'password'"
-                          :state="getValidationState(validationContext)"
-                          aria-describedby="registerPasswordLiveFeedback"
-                        ></b-form-input>
-
-                        <b-input-group-append>
-                          <b-button
-                            variant="outline-light"
-                            @click="togglePasswordVisibility"
-                            class="border-left-0"
-                          >
-                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                      <b-form-invalid-feedback id="registerPasswordLiveFeedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
-                  <b-form-group
-                    class="mb-5"
-                    :label="$t('form.passwordRepeat')"
-                    label-for="registerPasswordRepeat"
-                  >
-                    <b-input-group>
-                      <b-form-input
-                        id="registerPasswordRepeat"
-                        :name="$t('form.passwordRepeat')"
-                        v-model.lazy="form.passwordRepeat"
-                        :placeholder="$t('form.passwordRepeat')"
-                        :type="passwordVisibleRepeat ? 'text' : 'password'"
-                      ></b-form-input>
-
-                      <b-input-group-append>
-                        <b-button
-                          variant="outline-light"
-                          @click="togglePasswordRepeatVisibility"
-                          class="border-left-0"
-                        >
-                          <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                  </b-form-group>
+                  <input-password v-model="form.password" id="registerPassword"></input-password>
+                  <input-password-confirmation v-model="form.passwordRepeat" id="registerPasswordRepeat"></input-password-confirmation>
 
                   <transition name="hint" appear>
                     <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
@@ -232,8 +152,12 @@
 </template>
 <script>
 import loginAPI from '../../apis/loginAPI'
+import InputEmail from '../../components/Inputs/InputEmail.vue'
+import InputPassword from '../../components/Inputs/InputPassword.vue'
+import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 
 export default {
+  components: { InputPassword, InputPasswordConfirmation, InputEmail },
   name: 'register',
   data() {
     return {
