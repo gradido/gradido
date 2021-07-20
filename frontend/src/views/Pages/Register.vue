@@ -79,8 +79,8 @@
                   <input-email v-model="form.email" id="registerEmail"></input-email>
 
                   <hr />
-                  <input-password v-model="form.password" id="registerPassword"></input-password>
-                  <input-password-confirmation v-model="form.passwordRepeat" id="registerPasswordRepeat"></input-password-confirmation>
+                  <input-password v-model="form.password" id="registerPassword" />
+                  <input-password v-model="form.passwordRepeat" id="registerPasswordRepeat" />
 
                   <transition name="hint" appear>
                     <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
@@ -154,10 +154,9 @@
 import loginAPI from '../../apis/loginAPI'
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPassword from '../../components/Inputs/InputPassword.vue'
-import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 
 export default {
-  components: { InputPassword, InputPasswordConfirmation, InputEmail },
+  components: { InputPassword, InputEmail },
   name: 'register',
   data() {
     return {

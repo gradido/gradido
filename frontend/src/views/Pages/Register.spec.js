@@ -80,13 +80,39 @@ describe('Register', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
       })
 
-      it('shows a warning when no valid Email is entered', async () => {
+      it('displays a message that Email is required', async () => {
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+        expect(wrapper.findAll('div.invalid-feedback').at(0).text()).toBe(
+          'validations.messages.required',
+        )
+      })
+
+      it('displays a message that password is required', async () => {
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+        expect(wrapper.findAll('div.invalid-feedback').at(1).text()).toBe(
+          'validations.messages.required',
+        )
+      })
+
+      it('displays a message that passwordConfirm is required', async () => {
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+        expect(wrapper.findAll('div.invalid-feedback').at(2).text()).toBe(
+          'validations.messages.required',
+        )
+      })
+
+      /**
+       * it('shows a warning when no valid Email is entered', async () => {
         wrapper.find('#registerEmail').setValue('no_valid@Email')
         await flushPromises()
         await expect(wrapper.find('#registerEmailLiveFeedback').text()).toEqual(
           'validations.messages.email',
         )
       })
+      */
 
       it('shows 4 warnings when no password is set', async () => {
         const passwords = wrapper.findAll('input[type="password"]')
