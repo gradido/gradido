@@ -35,7 +35,8 @@
     "seconds": "Seconds",
     "received":"received",
     "sent":"sent",
-    "created":"created"
+    "created":"reated",
+    "fromCommunity":"From the community"
   },
   "form": {
     "cancel":"Cancel",
@@ -43,7 +44,7 @@
     "close":"Close",
     "edit": "Edit",
     "save": "save",
-    "receiver":"Receiver",
+    "recipient":"Recipient",
     "sender":"Sender",
     "username":"Username",
     "firstname":"Firstname",
@@ -59,11 +60,12 @@
     "change": "change",
     "change-password": "Change password",
     "amount":"Amount",
-    "memo":"Message for the recipient",
+    "memo":"Message",
     "message":"Message",
     "date":"Date",
     "from":"from",
     "to":"to",
+    "to1":"to",
     "at":"at",
     "time":"Time",
     "send_now":"Send now",
@@ -114,7 +116,7 @@
     "password": {
       "title": "Reset password",
       "subtitle": "If you have forgotten your password, you can reset it here.",
-      "reset_now": "Reset now"
+      "send_now": "Send now"
     },
     "thx": {
       "title": "Thank you!",

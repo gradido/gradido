@@ -8,7 +8,7 @@
   "reset": "Passwort zurücksetzen",
   "imprint":"Impressum",
   "privacy_policy":"Datenschutzerklärung",
-  "members_area": "Mitgliedsbereich",
+  "members_area": "Mitgliederbereich",
   "whitepaper": "Whitepaper",
   "back":"Zurück",
   "send":"Senden",
@@ -35,7 +35,8 @@
     "seconds":"Sekunden",
     "received":"empfangen",
     "sent":"gesendet",
-    "created":"geschöpft"
+    "created":"geschöpft",
+    "fromCommunity":"Aus der Community"
   }, 
   "form": {
     "cancel": "Abbrechen",
@@ -43,7 +44,7 @@
     "close": "schließen",
     "edit": "bearbeiten",
     "save": "speichern",
-    "receiver":"Empfänger",
+    "recipient":"Empfänger",
     "sender":"Absender",
     "username":"Username",
     "firstname":"Vorname",
@@ -59,14 +60,15 @@
     "change": "ändern",
     "change-password": "Passwort ändern",
     "amount":"Betrag",
-    "memo":"Nachricht für den Empfänger",
+    "memo":"Nachricht",
     "message":"Nachricht",
     "date":"Datum",
     "from":"von",
     "to":"bis",
+    "to1":"an",
     "at":"am",
     "time":"Zeit",
-    "send_now":"Jetzt versenden",
+    "send_now":"Jetzt senden",
     "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
     "max_gdd_info":"Maximale anzahl GDD zum versenden erreicht!",
     "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
@@ -114,7 +116,7 @@
     "password": {
       "title": "Passwort zurücksetzen",
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
-      "reset_now": "Jetzt zurücksetzen"
+      "send_now": "Jetzt senden"
     },
     "thx": {
       "title": "Danke!",

@@ -15,10 +15,15 @@
           <!-- Text Links -->
           <div class="font1_2em pr-2 text-right" style="width: 32%">
             <span>{{ getProperties(type).operator }}</span>
+
             <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
 
             <span v-else>{{ $n(balance, 'decimal') }}</span>
-
+            <div v-if="type !== 'decay' && type !== 'creation'">
+              <small>
+                {{ $t('form.memo') }}
+              </small>
+            </div>
             <div v-if="decay">
               <br />
               <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
@@ -26,11 +31,18 @@
           </div>
           <!-- Text Rechts -->
           <div class="font1_2em text-left pl-2" style="width: 55%">
-            {{ name ? name : '' }}
+            <div>{{ name ? name : '' }}</div>
+            <div>
+              <small>
+                {{ memo }}
+              </small>
+            </div>
             <span v-if="type === 'decay'">
               <small>{{ $t('decay.decay_since_last_transaction') }}</small>
             </span>
-            <div v-if="date" class="text-sm">{{ $d($moment(date), 'long') }}</div>
+            <div v-if="date" class="text-sm">
+              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            </div>
             <decay-information v-if="decay" decaytyp="short" :decay="decay" />
           </div>
           <!-- Collaps Toggle Button -->
@@ -43,32 +55,11 @@
         <!-- ROW End -->
         <!-- Collaps Start -->
         <b-collapse v-if="type != 'decay'" :id="'a' + date + ''">
-          <b-list-group v-if="type === 'receive' || type === 'send'">
-            <b-list-group-item style="border: 0px; background-color: #f1f1f1">
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                  {{ type === 'receive' ? 'von:' : 'an:' }}
-                </div>
-                <div style="width: 60%">
-                  {{ name }}
-                  <b-avatar class="mr-3"></b-avatar>
-                </div>
-              </div>
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                  {{ type === 'receive' ? 'Nachricht:' : 'Nachricht:' }}
-                </div>
-                <div style="width: 60%">
-                  {{ memo }}
-                </div>
-              </div>
-            </b-list-group-item>
-          </b-list-group>
           <b-list-group v-if="type === 'creation'">
             <b-list-group-item style="border: 0px">
               <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">Schöpfung</div>
-                <div style="width: 60%">Aus der Community</div>
+                <div style="width: 40%" class="text-right pr-3 mr-2">{{ $t('decay.created') }}</div>
+                <div style="width: 60%">{{ $t('decay.fromCommunity') }}</div>
               </div>
             </b-list-group-item>
           </b-list-group>
