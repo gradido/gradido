@@ -6,12 +6,10 @@
 class JsonLogout : public JsonRequestHandler
 {
 public:
-	JsonLogout(Poco::Net::IPAddress ip) : mClientIP(ip) {}
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	JsonLogout(Poco::Net::IPAddress ip) : JsonRequestHandler(ip) {}
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
-	Poco::Net::IPAddress mClientIP;
-
 
 };
 

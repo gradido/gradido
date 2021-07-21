@@ -32,6 +32,17 @@ JsonRequestHandler::JsonRequestHandler(Session* session)
 
 }
 
+JsonRequestHandler::JsonRequestHandler(Poco::Net::IPAddress clientIp)
+	: mSession(nullptr), mClientIp(clientIp)
+{
+
+}
+JsonRequestHandler::JsonRequestHandler(Session* session, Poco::Net::IPAddress clientIp)
+	: mSession(session), mClientIp(clientIp)
+{
+
+}
+
 void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
 {
 	response.setChunkedTransferEncoding(false);
@@ -487,7 +498,29 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 		message = "invalid " + message;
 		return rstateError(message.data());
 	}
-	strParameter = itr->value.GetString();
+	strParameter = std::string(itr->value.GetString(), itr->value.GetStringLength());
+	return Document();
+}
+
+Document JsonRequestHandler::getStringIntParameter(const Document& params, const char* fieldName, std::string& strParameter, int& iParameter)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+	if (itr->value.IsString()) {
+		strParameter = std::string(itr->value.GetString(), itr->value.GetStringLength());
+	}
+	else if (itr->value.IsInt()) {
+		iParameter = itr->value.GetInt();
+	}
+	else {
+		message += " isn't neither int or string"; 
+		return rstateError(message.data());
+	}
+	
 	return Document();
 }
 
@@ -503,6 +536,23 @@ Document JsonRequestHandler::checkArrayParameter(const Document& params, const c
 	
 	if (!itr->value.IsArray()) {
 		message += " is not a array";
+		return rstateError(message.data());
+	}
+
+	return Document();
+}
+
+Document JsonRequestHandler::checkObjectParameter(const Document& params, const char* fieldName)
+{
+	Value::ConstMemberIterator itr = params.FindMember(fieldName);
+	std::string message = fieldName;
+	if (itr == params.MemberEnd()) {
+		message += " not found";
+		return rstateError(message.data());
+	}
+
+	if (!itr->value.IsObject()) {
+		message += " is not a object";
 		return rstateError(message.data());
 	}
 

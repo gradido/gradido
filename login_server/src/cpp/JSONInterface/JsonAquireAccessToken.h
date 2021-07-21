@@ -6,6 +6,7 @@
 class JsonAquireAccessToken : public JsonRequestHandler
 {
 public:
+	JsonAquireAccessToken(Session* s) : JsonRequestHandler(s) {}
 	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:

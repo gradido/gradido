@@ -9,7 +9,7 @@
 class JsonCreateTransaction : public JsonRequestHandler
 {
 public:
-	JsonCreateTransaction() : mSession(nullptr), mAutoSign(false), mBlockchainType(model::gradido::BLOCKCHAIN_MYSQL) {}
+	JsonCreateTransaction() : mAutoSign(false), mBlockchainType(model::gradido::BLOCKCHAIN_MYSQL) {}
 	rapidjson::Document handle(const rapidjson::Document& params);
 	
 protected:
@@ -18,7 +18,6 @@ protected:
 	rapidjson::Document groupMemberUpdate(const rapidjson::Document& params);
 	MemoryBin* getTargetPubkey(const rapidjson::Document& params);
 	
-	Session* mSession;
 	std::string mMemo;
 	
 	Poco::AutoPtr<controller::User> mReceiverUser;

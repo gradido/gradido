@@ -8,55 +8,28 @@
 
 #include "../lib/DataTypeConverter.h"
 
-Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
-{
+using namespace rapidjson;
 
+Document JsonUnsecureLogin::handle(const Document& params)
+{
 	auto sm = SessionManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();
 	auto em = ErrorManager::getInstance();
 
-	/*
-		'username', 'password'
-	*/
-	// incoming
-
 	std::string email;
+	getStringParameter(params, "email", email);
+	
 	std::string username;
+	getStringParameter(params, "username", username);
+
 	std::string password;
-
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		try {
-			//paramJsonObject->get("email").convert(email);
-			paramJsonObject->get("password").convert(password);
-			auto email_obj = paramJsonObject->get("email");
-			auto username_obj = paramJsonObject->get("username");
-
-			if (!email_obj.isEmpty()) {
-				email_obj.convert(email);
-			}
-			if (!username_obj.isEmpty()) {
-				username_obj.convert(username);
-			}
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
-		}
-	}
-	else {
-		return stateError("parameter format unknown");
-	}
+	auto paramError = getStringParameter(params, "password", password);
+	if(paramError.IsObject()) return paramError;
 
 	if (!email.size() && !username.size()) {
-		return stateError("no email or username given");
+		return rstateError("no email or username given");
 	}
-	
+
 	auto user = controller::User::create();
 	std::string message;
 	std::string details;
@@ -78,21 +51,14 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	}
 	if (message.size()) {
 		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
-		return stateError(message.data(), details);
+		return rstateError(message.data(), details);
 	}
 
 	NotificationList pwd_errors;
-	Poco::JSON::Object* result = new Poco::JSON::Object;
+	Document result(kObjectType);
+	auto alloc = result.GetAllocator();
 
-	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
-		result->set("state", "error");
-		result->set("msg", "password incorrect");
-		
-		return result;
-	}
-	
-	auto session = sm->getNewSession();
+	mSession = sm->getNewSession();
 	/*
 		USER_EMPTY,
 		USER_LOADED_FROM_DB,
@@ -105,50 +71,51 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		USER_COMPLETE,
 		USER_DISABLED
 	*/
-	auto user_state = session->loadUser(email, password);
-	auto user_model = session->getNewUser()->getModel();
-	Poco::JSON::Array infos;
-	
+	auto user_state = mSession->loadUser(email, password);
+	auto user_model = mSession->getNewUser()->getModel();
+	Value infos(kArrayType);
+
 	switch (user_state) {
 	case USER_EMPTY:
 	case USER_PASSWORD_INCORRECT:
-		result->set("state", "error");
-		result->set("msg", "password incorrect");
+		result.AddMember("state", "error", alloc);
+		result.AddMember("msg", "password incorrect", alloc);
 		break;
 	case USER_PASSWORD_ENCRYPTION_IN_PROCESS:
-		result->set("state", "processing");
-		result->set("msg", "password encryption in process");
+		result.AddMember("state", "processing", alloc);
+		result.AddMember("msg", "password encryption in process", alloc);
 		break;
 	case USER_KEYS_DONT_MATCH:
-		result->set("state", "error");
-		result->set("msg", "saved keys mismatch");
+		result.AddMember("state", "error", alloc);
+		result.AddMember("msg", "saved keys mismatch", alloc);
 		break;
 	case USER_DISABLED:
-		result->set("state", "disabled");
-		result->set("msg", "user is disabled");
+		result.AddMember("state", "disabled", alloc);
+		result.AddMember("msg", "user is disabled", alloc);
 		break;
-	case USER_NO_GROUP: 
+	case USER_NO_GROUP:
 		user_model->setGroupId(1);
 		user_model->updateIntoDB("group_id", 1);
-		infos.add("set user.group_id to default group_id = 1");
+		infos.PushBack("set user.group_id to default group_id = 1", alloc);
 	case USER_NO_PRIVATE_KEY:
 	case USER_COMPLETE:
 	case USER_EMAIL_NOT_ACTIVATED:
-		result->set("state", "success");
-		result->set("user", session->getNewUser()->getJson());
-		result->set("session_id", session->getHandle());
-		session->setClientIp(mClientIP);
-		if(infos.size() > 0) {
-			result->set("info", infos);
+		result.AddMember("state", "success", alloc);
+		result.AddMember("user", mSession->getNewUser()->getJson(alloc), alloc);
+		result.AddMember("session_id", mSession->getHandle(), alloc);
+		mSession->setClientIp(mClientIp);
+		if (infos.Size()) {
+			result.AddMember("info", infos, alloc);
 		}
 		return result;
-	default: 
-		result->set("state", "error");
-		result->set("msg", "unknown user state");
-		result->set("details", user_state);
+	default:
+		result.AddMember("state", "error", alloc);
+		result.AddMember("msg", "unknown user state", alloc);
+		result.AddMember("details", user_state, alloc);
 	}
-	
-	sm->releaseSession(session);
-	
+
+	sm->releaseSession(mSession);
+
 	return result;
+	
 }

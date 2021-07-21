@@ -14,7 +14,7 @@
 class JsonUpdateUserInfos : public JsonRequestHandler
 {
 public:
-	JsonUpdateUserInfos(Session* session);
+	JsonUpdateUserInfos(Session* session) : JsonRequestHandler(session) {};
 	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
 
 protected:

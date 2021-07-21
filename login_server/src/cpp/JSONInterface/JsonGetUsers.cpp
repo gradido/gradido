@@ -7,100 +7,51 @@
 
 #include "../lib/DataTypeConverter.h"
 
-Poco::JSON::Object* JsonGetUsers::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+Document JsonGetUsers::handle(const Document& params)
 {
-
-	int session_id = 0;
-	std::string searchString;
-	std::string accountState = "";
 	static std::string emptySearchString = "... empty ...";
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		try {
-			paramJsonObject->get("search").convert(searchString);
-			if (paramJsonObject->has("account_state")) {
-				paramJsonObject->get("account_state").convert(accountState);
-			}
-			paramJsonObject->get("session_id").convert(session_id);
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
-		}
-	}
-	else if (params.isStruct()) {
-		session_id = params["session_id"];
-		searchString = params["search"].toString();
-		//std::string miau = params["miau"];
-	}
-	else if (params.isVector()) {
-		try {
-			const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
-			for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
-				if (it->first == "session_id") {
-					auto numberParseResult = DataTypeConverter::strToInt(it->second, session_id);
-					if (DataTypeConverter::NUMBER_PARSE_OKAY != numberParseResult) {
-						return stateError("error parsing session_id", DataTypeConverter::numberParseStateToString(numberParseResult));
-					}
-				}
-				else if (it->first == "search") {
-					searchString = it->second;
-				}
-			}
-			//auto var = params[0];
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("error parsing query params, Poco Error", ex.displayText());
-		}
-	}
 
-	if (!session_id) {
-		return stateError("empty session id");
-	}
+	auto paramError = rcheckAndLoadSession(params);
+	if (paramError.IsObject()) return paramError;
 
-	
-	auto sm = SessionManager::getInstance();
-	auto session = sm->getSession(session_id);
-	if (!session) {
-		return customStateError("not found", "Session not found");
-	}
-	
-	auto user = session->getNewUser();
+	std::string searchString;
+	paramError = getStringParameter(params, "search", searchString);
+	if (paramError.IsObject()) return paramError;
+
+	std::string accountState;
+	getStringParameter(params, "account_state", accountState);
+
+	auto user = mSession->getNewUser();
 	if (searchString == emptySearchString) {
 		searchString = "";
 	}
-	if (user.isNull()) {
-		return customStateError("not found", "Session didn't contain user");
-	}
-	else if (searchString == "" && (accountState == "" || accountState == "all")) {
-		return customStateError("not found", "Search string is empty and account_state is all or empty");
+	
+	if (searchString == "" && (accountState == "" || accountState == "all")) {
+		return rcustomStateError("not found", "Search string is empty and account_state is all or empty");
 	}
 	else if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
-		return customStateError("wrong role", "User hasn't correct role");
+		return rcustomStateError("wrong role", "User hasn't correct role");
 	}
 
 	auto results = controller::User::search(searchString, accountState);
 	if (!results.size()) {
-		return stateSuccess();
+		return rstateSuccess();
 	}
-	
-	Poco::JSON::Object* result = new Poco::JSON::Object;
-	result->set("state", "success");
+	Document result(kObjectType);
+	auto alloc = result.GetAllocator();
+	result.AddMember("state", "success", alloc);
 
-	//Poco::JSON::Object jsonResultObject;
-	Poco::JSON::Array::Ptr jsonUsersArray = new Poco::JSON::Array;
+	Value jsonUsers(kArrayType);
 
 	for (auto it = results.begin(); it != results.end(); it++) {
-		jsonUsersArray->add((*it)->getJson());
+		jsonUsers.PushBack((*it)->getJson(alloc), alloc);
 		(*it)->release();
 	}
 	results.clear();
-	result->set("users", jsonUsersArray);
+	result.AddMember("users", jsonUsers, alloc);
 
 	return result;
+
 }

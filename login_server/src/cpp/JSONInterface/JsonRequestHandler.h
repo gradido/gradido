@@ -16,6 +16,8 @@ class JsonRequestHandler : public Poco::Net::HTTPRequestHandler
 public:
 
 	JsonRequestHandler();
+	JsonRequestHandler(Poco::Net::IPAddress clientIp);
+	JsonRequestHandler(Session* session, Poco::Net::IPAddress clientIp);
 	JsonRequestHandler(Session* session);
 
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
@@ -29,7 +31,6 @@ public:
 	inline void setSession(Session* session) { mSession = session; }
 
 protected:
-	Poco::JSON::Object* mResultJson;
 	Poco::Net::IPAddress mClientIp;
 	std::string			mServerHost;
 	Session*			 mSession;
@@ -43,7 +44,9 @@ protected:
 	rapidjson::Document getBoolParameter(const rapidjson::Document& params, const char* fieldName, bool& bParameter);
 	rapidjson::Document getUInt64Parameter(const rapidjson::Document& params, const char* fieldName, Poco::UInt64& iParameter);
 	rapidjson::Document getStringParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter);
+	rapidjson::Document getStringIntParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter, int& iParameter);
 	rapidjson::Document checkArrayParameter(const rapidjson::Document& params, const char* fieldName);
+	rapidjson::Document checkObjectParameter(const rapidjson::Document& params, const char* fieldName);
 
 	static Poco::JSON::Object* stateError(const char* msg, std::string details = "");
 	static rapidjson::Document rstateError(const char* msg, std::string details = "");

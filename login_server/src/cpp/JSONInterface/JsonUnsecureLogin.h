@@ -6,13 +6,12 @@
 class JsonUnsecureLogin : public JsonRequestHandler
 {
 public:
-	JsonUnsecureLogin(Poco::Net::IPAddress ip) : mClientIP(ip) {}
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	JsonUnsecureLogin(Poco::Net::IPAddress ip) : JsonRequestHandler(ip) {}
+
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
-	Poco::Net::IPAddress mClientIP;
-
-
+	
 };
 
 #endif // __JSON_INTERFACE_JSON_UNSECURE_LOGIN_

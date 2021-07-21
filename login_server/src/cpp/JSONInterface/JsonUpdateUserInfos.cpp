@@ -5,12 +5,6 @@
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 
 
-JsonUpdateUserInfos::JsonUpdateUserInfos(Session* session)
-	: JsonRequestHandler(session)
-{
-
-}
-
 Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*

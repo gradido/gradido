@@ -11,111 +11,80 @@
 
 #include "../lib/DataTypeConverter.h"
 
-Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
+
+using namespace rapidjson;
+
+Document JsonSendEmail::handle(const Document& params)
 {
-	int session_id = 0;
+	rcheckAndLoadSession(params);
+	
 	std::string email;
+	auto paramError = getStringParameter(params, "email", email);
+	if (paramError.IsObject()) return paramError;
+
 	model::EmailType emailType = model::EMAIL_DEFAULT;
-	model::table::EmailOptInType emailVerificationCodeType;
+	std::string semailType;
+	int iemailType = 0;
+	paramError = getStringIntParameter(params, "email_text", semailType, iemailType);
+	if (paramError.IsObject()) return paramError;
+
+	if (iemailType > 0 && iemailType < model::EMAIL_MAX) {
+		emailType = (model::EmailType)iemailType;
+	}
+	else if (semailType != "") {
+		emailType = model::Email::emailType(semailType);
+	}
+	if (emailType == model::EMAIL_MAX) {
+		return rstateError("invalid email type");
+	}
+
 	std::string emailCustomText;
 	std::string emailCustomSubject;
-	std::string languageCode;
+	if (emailType == model::EMAIL_CUSTOM_TEXT) {
+		paramError = getStringParameter(params, "email_custom_text", emailCustomText);
+		if (paramError.IsObject()) return paramError;
 
-	std::string email_verification_code_type_string;
-	std::string email_type_string;
-	int email_type_int = 0;
-	
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		try {
+		paramError = getStringParameter(params, "email_custom_subject", emailCustomSubject);
+		if (paramError.IsObject()) return paramError;
+	}
 
-			if (paramJsonObject->has("session_id")) {
-				paramJsonObject->get("session_id").convert(session_id);
-			}
-			
-			if (paramJsonObject->has("email_custom_text")) {
-				paramJsonObject->get("email_custom_text").convert(emailCustomText);
-			}
-			if (paramJsonObject->has("email_custom_subject")) {
-				paramJsonObject->get("email_custom_subject").convert(emailCustomSubject);
-			}
-			if (paramJsonObject->has("language")) {
-				paramJsonObject->get("language").convert(languageCode);
-			}
-			paramJsonObject->get("email").convert(email);
-			
-			paramJsonObject->get("email_verification_code_type").convert(email_verification_code_type_string);
-			auto email_text = paramJsonObject->get("email_text");
-			if (email_text.isString()) {
-				email_text.convert(email_type_string);
-			}
-			else if (email_text.isInteger()) {
-				email_text.convert(email_type_int);
-			}
-			
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
-		}
-	}
-	// convert types into enum
-	if (email_type_int > 0 && email_type_int < model::EMAIL_MAX) {
-		emailType = (model::EmailType)email_type_int;
-	}
-	else if (email_type_string != "") {
-		emailType = model::Email::emailType(email_type_string);
-	}
-	emailVerificationCodeType = model::table::EmailOptIn::stringToType(email_verification_code_type_string);
+	model::table::EmailOptInType emailVerificationCodeType;
+	std::string emailVerificationCodeTypeString;
+	paramError = getStringParameter(params, "email_verification_code_type", emailVerificationCodeTypeString);
+	if (paramError.IsObject()) return paramError;
+
+	emailVerificationCodeType = model::table::EmailOptIn::stringToType(emailVerificationCodeTypeString);
 	if (model::table::EMAIL_OPT_IN_EMPTY == emailVerificationCodeType) {
-		return stateError("invalid verification code type");
+		return rstateError("invalid verification code type");
 	}
 
-	switch (emailType) {
-	case model::EMAIL_DEFAULT:
-	case model::EMAIL_ERROR:
-	case model::EMAIL_MAX: return stateError("invalid email type");
-	}
-
-	if (0 == session_id &&
+	if (!mSession &&
 		(model::table::EMAIL_OPT_IN_REGISTER == emailVerificationCodeType || model::table::EMAIL_OPT_IN_REGISTER_DIRECT == emailVerificationCodeType)
-	   ){
-		return stateError("login needed");
+		) {
+		return rstateError("login needed");
 	}
 
 	auto sm = SessionManager::getInstance();
 	auto em = EmailManager::getInstance();
 	auto lm = LanguageManager::getInstance();
 
-	Session* session = nullptr;
-	if (session_id != 0) {
-		session = sm->getSession(session_id);
-		if (nullptr == session) {
-			return stateError("invalid session");
-		}
-	}
 	Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 	auto receiver_user = controller::User::create();
 	if (1 != receiver_user->load(email)) {
-		return stateSuccess();
+		return rstateSuccess();
 	}
 	auto receiver_user_id = receiver_user->getModel()->getID();
 	std::string checkEmailUrl = receiver_user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath;
-	if (emailVerificationCodeType == model::table::EMAIL_OPT_IN_RESET_PASSWORD) 
+	if (emailVerificationCodeType == model::table::EMAIL_OPT_IN_RESET_PASSWORD)
 	{
-		session = sm->getNewSession();
+		mSession = sm->getNewSession();
 		if (emailType == model::EMAIL_USER_RESET_PASSWORD) {
-			auto r = session->sendResetPasswordEmail(receiver_user, true, checkEmailUrl);
+			auto r = mSession->sendResetPasswordEmail(receiver_user, true, checkEmailUrl);
 			if (1 == r) {
-				return stateWarning("email already sended");
+				return rstateWarning("email already sended");
 			}
 			else if (2 == r) {
-				return stateError("email already sent less than a 10 minutes before");
+				return rstateError("email already sent less than a 10 minutes before");
 			}
 		}
 		else if (emailType == model::EMAIL_CUSTOM_TEXT) {
@@ -125,16 +94,16 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 			em->addEmail(email);
 		}
 		else {
-			return stateError("not supported email type");
-		} 
-		return stateSuccess();
-	} 
-	else 
-	{
-		if (session->getNewUser()->getModel()->getRole() != model::table::ROLE_ADMIN) {
-			return stateError("admin needed");
+			return rstateError("not supported email type");
 		}
-		
+		return rstateSuccess();
+	}
+	else
+	{
+		if (mSession->getNewUser()->getModel()->getRole() != model::table::ROLE_ADMIN) {
+			return rstateError("admin needed");
+		}
+
 		auto email_verification_code_object = controller::EmailVerificationCode::loadOrCreate(receiver_user_id, emailVerificationCodeType);
 		email_verification_code_object->setBaseUrl(checkEmailUrl);
 		model::Email* email = nullptr;
@@ -145,7 +114,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 			email = new model::Email(email_verification_code_object, receiver_user, emailType);
 		}
 		em->addEmail(email);
-		return stateSuccess();
+		return rstateSuccess();
 	}
 
 }
