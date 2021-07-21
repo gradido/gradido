@@ -18,3 +18,19 @@ export const apiPost = async (url: string, payload: unknown): Promise<any> => {
     return { success: false, result: error }
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const apiGet = async (url: string): Promise<any> => {
+  try {
+    const result = await axios.get(url)
+    if (result.status !== 200) {
+      throw new Error('HTTP Status Error ' + result.status)
+    }
+    if (!['success', 'warning'].includes(result.data.state)) {
+      throw new Error(result.data.msg)
+    }
+    return { success: true, result }
+  } catch (error) {
+    return { success: false, result: error }
+  }
+}

@@ -1,11 +1,9 @@
 // import jwt from 'jsonwebtoken'
 import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
-import { LoginResponse } from '../models/User'
+import { LoginResponse, LoginViaVerificationCode } from '../models/User'
 import { UnsecureLoginArgs } from '../inputs/LoginUserInput'
-import { apiPost } from '../../apis/loginAPI'
-// import { CreateBookInput } from '../inputs/CreateBookInput'
-// import { UpdateBookInput } from '../inputs/UpdateBookInput'
+import { apiPost, apiGet } from '../../apis/loginAPI'
 
 @Resolver()
 export class UserResolver {
@@ -43,16 +41,6 @@ export class UserResolver {
       },
     }
 
-    // forgot password request
-    /*
-    @Query(() => null)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async sendEmail(@Arg() email: String): Promise<any> {
-      const result = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', { email })
-      return
-    }
-    */
-
     // create and return the json web token
     // The expire doesn't help us here. The client needs to track when the token expires on its own,
     // since every action prolongs the time the session is valid.
@@ -67,20 +55,33 @@ export class UserResolver {
     // return loginResult.user ? loginResult.user : new User()
   }
 
-  /*
-  @Mutation(() => User)
-  async createBook(@Arg('data') data: CreateBookInput) {
-    const book = User.create(data)
-    await book.save()
-    return book
+  // forgot password request
+  @Query(() => String)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async sendEmail(@Arg('email') email: string): Promise<any> {
+    const payload = {
+      email,
+      email_text: 7,
+      email_verification_code_type: 'resetPassword',
+    }
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
+    if (result.success) return result.result.data.state
+    return result.result
   }
-  */
 
-  /* @Mutation(() => Boolean)
-  async deleteUser(@Arg('id') id: string): Promise<boolean> {
-    const user = await User.findOne({ where: { id } })
-    if (!user) throw new Error('User not found!')
-    await user.remove()
-    return true
-  } */
+  @Query(() => LoginViaVerificationCode)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async loginViaEmailVerificationCode(@Arg('optin') optin: string): Promise<any> {
+    // I cannot use number as type here.
+    // The value received is not the same as sent by the query
+    const result = await apiGet(
+      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
+    )
+    if (result.success)
+      return {
+        sessionId: result.result.data.session_id,
+        email: result.result.data.user.email,
+      }
+    return result.result
+  }
 }

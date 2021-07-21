@@ -83,3 +83,15 @@ export class LoginResponse extends BaseEntity {
   @Column()
   user: User
 }
+
+@Entity()
+@ObjectType()
+export class LoginViaVerificationCode extends BaseEntity {
+  @Field(() => Number)
+  @Column()
+  sessionId: number
+
+  @Field(() => String)
+  @Column()
+  email: string
+}
