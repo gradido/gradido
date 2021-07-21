@@ -87,6 +87,15 @@ Document JsonCreateTransaction::transfer(const Document& params)
 		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 		mm->releaseMemory(target_pubkey);
 		target_pubkey = nullptr;
+
+		auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
+		if (transfer_transaction->prepare()) {
+			return rstateError("error in transaction details", transaction);
+		}
+		if (transfer_transaction->validate()) {
+			return rstateError("error in validate transaction", transaction);
+		}
+
 		if (mSession->lastTransactionTheSame(transaction)) {
 			return rstateError("transaction are the same as the last (within 100 seconds)");
 		}
@@ -183,6 +192,12 @@ Document JsonCreateTransaction::creation(const Document& params)
 	if (creation_transaction->validate()) {
 		return rstateError("error in validate transaction", creation_transaction);
 	}
+	if (mSession->lastTransactionTheSame(transaction)) {
+		return rstateError("transaction are the same as the last (within 100 seconds)");
+	}
+	else {
+		mSession->setLastTransaction(transaction);
+	}
 	if (mAutoSign) {
 		if (!transaction->sign(mSession->getNewUser())) {
 			return rstateError("error by signing transaction", transaction);
@@ -200,6 +215,19 @@ Document JsonCreateTransaction::groupMemberUpdate(const Document& params)
 		return rstateError("group not found");
 	}
 	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
+	auto group_member_update_transaction = transaction->getTransactionBody()->getGroupMemberUpdate();
+	if (group_member_update_transaction->prepare()) {
+		return rstateError("error in transaction details", group_member_update_transaction);
+	}
+	if (group_member_update_transaction->validate()) {
+		return rstateError("error in validate transaction", group_member_update_transaction);
+	}
+	if (mSession->lastTransactionTheSame(transaction)) {
+		return rstateError("transaction are the same as the last (within 100 seconds)");
+	}
+	else {
+		mSession->setLastTransaction(transaction);
+	}
 	if (mAutoSign) {
 		if (!transaction->sign(mSession->getNewUser())) {
 			return rstateError("error by signing transaction", transaction);

@@ -23,6 +23,8 @@ namespace model {
 			auto sm = SessionManager::getInstance();
 			auto mm = MemoryManager::getInstance();
 
+			if (mIsPrepared) return 0;
+
 			if (mProtoMemberUpdate.user_pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				return -1;
 			}

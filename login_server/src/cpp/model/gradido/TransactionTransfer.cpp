@@ -67,6 +67,8 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			const static char functionName[] = { "TransactionTransfer::prepare" };
 
+			if (mIsPrepared) return 0;
+
 			mKontoTable.reserve(2);
 
 			proto::gradido::TransferAmount* sender = nullptr;
