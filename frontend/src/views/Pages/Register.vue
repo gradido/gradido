@@ -79,8 +79,8 @@
                   <input-email v-model="form.email" id="registerEmail"></input-email>
 
                   <hr />
-                  <input-password v-model="form.password" id="registerPassword"></input-password>
-                  <input-password-confirmation v-model="form.passwordRepeat" id="registerPasswordRepeat"></input-password-confirmation>
+                  <!--<input-password v-model="form.password" id="registerPassword"></input-password>-->
+                  <input-password-confirmation v-model="form.passwordRepeat" ></input-password-confirmation>
 
                   <transition name="hint" appear>
                     <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">

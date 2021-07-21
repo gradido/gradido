@@ -80,6 +80,7 @@ describe('Register', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
       })
 
+
       it('shows a warning when no valid Email is entered', async () => {
         wrapper.find('#registerEmail').setValue('no_valid@Email')
         await flushPromises()
