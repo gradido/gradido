@@ -168,7 +168,6 @@ class AppRequestControllerTest extends TestCase
 			"name": "Gradido Akademie",
 			"type": "creation",
 			"target_date": "2021-01-01T00:00:00+00:00",
-			"creation_amount": 10000000,
 			"balance": 10000000
 		},
 		{
