@@ -13,8 +13,7 @@
 class JsonResetPassword : public JsonRequestHandler
 {
 public:
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
-
+	rapidjson::Document handle(const rapidjson::Document& params);
 };
 
 #endif // __JSON_INTERFACE_JSON_RESET_PASSWORD_

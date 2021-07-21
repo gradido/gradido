@@ -93,7 +93,7 @@ Document JsonCreateUser::handle(const Document& params)
 		session = sm->getNewSession();
 		session->setUser(user);
 		session->generateKeys(true, true);
-		session->setClientIp(mClientIP);
+		session->setClientIp(mClientIp);
 
 		// calculate encryption key, could need some time, will save encrypted privkey to db
 		UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
