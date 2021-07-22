@@ -28,7 +28,7 @@
                 ></input-password>
               </b-col>
             </b-row>
-            <input-password-confirmation v-model="form.newPassword" :register="register"/>
+            <input-password-confirmation v-model="form.newPassword" :register="register" />
             <b-row class="text-right">
               <b-col>
                 <div class="text-right">

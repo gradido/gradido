@@ -65,11 +65,11 @@ describe('Register', () => {
       })
 
       it('has password input fields', () => {
-        expect(wrapper.find('input[name="form.password_new"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[name="form.password"]').exists()).toBeTruthy()
       })
 
       it('has password repeat input fields', () => {
-        expect(wrapper.find('input[name="form.password_new_repeat"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
       })
 
       it('has 1 checkbox input fields', () => {

@@ -12,9 +12,9 @@
           }"
           :label="register ? $t('form.password') : $t('form.password_new')"
           :showAllErrors="true"
-          :immediate="true" 
+          :immediate="true"
           :name="createId(register ? $t('form.password') : $t('form.password_new'))"
-          :placeholder="register ? $t('form.password') : $t('form.password_new')" 
+          :placeholder="register ? $t('form.password') : $t('form.password_new')"
           v-model="password"
         ></input-password>
       </b-col>
@@ -22,6 +22,7 @@
     <b-row class="mb-2">
       <b-col>
         <input-password
+          :rules="{ samePassword: value.password }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
@@ -47,7 +48,7 @@ export default {
     register: {
       type: Boolean,
       required: false,
-    }
+    },
   },
   data() {
     return {

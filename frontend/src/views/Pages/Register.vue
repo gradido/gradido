@@ -76,10 +76,10 @@
                     </b-form-group>
                   </validation-provider>
 
-                  <input-email v-model="form.email" ></input-email>
+                  <input-email v-model="form.email"></input-email>
 
                   <hr />
-                  <input-password-confirmation                    
+                  <input-password-confirmation
                     v-model="form.password"
                     :register="register"
                   ></input-password-confirmation>
@@ -180,15 +180,21 @@ export default {
         this.form.password.password,
       )
       if (result.success) {
-        this.$store.dispatch('login', {
+        /* this.$store.dispatch('login', {
           sessionId: result.result.data.session_id,
-          email: this.form.email,
+          user: {
+            email: this.form.email,
+            firstName: this.form.firstname,
+            lastName: this.form.lastname
+          }
+
         })
+        */
         this.form.email = ''
         this.form.firstname = ''
         this.form.lastname = ''
         this.form.password.password = ''
- 
+
         this.$router.push('/thx/register')
       } else {
         this.showError = true
