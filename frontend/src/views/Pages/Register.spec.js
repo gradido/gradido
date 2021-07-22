@@ -61,15 +61,15 @@ describe('Register', () => {
       })
 
       it('has email input fields', () => {
-        expect(wrapper.find('#registerEmail').exists()).toBeTruthy()
+        expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
       })
 
       it('has password input fields', () => {
-        expect(wrapper.find('#registerPassword').exists()).toBeTruthy()
+        expect(wrapper.find('#inputPassword').exists()).toBeTruthy()
       })
 
       it('has password repeat input fields', () => {
-        expect(wrapper.find('#registerPasswordRepeat').exists()).toBeTruthy()
+        expect(wrapper.find('#inputPasswordRepeat').exists()).toBeTruthy()
       })
 
       it('has 1 checkbox input fields', () => {
@@ -80,11 +80,10 @@ describe('Register', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
       })
 
-
       it('shows a warning when no valid Email is entered', async () => {
-        wrapper.find('#registerEmail').setValue('no_valid@Email')
+        wrapper.find('#Email-input-field').setValue('no_valid@Email')
         await flushPromises()
-        await expect(wrapper.find('#registerEmailLiveFeedback').text()).toEqual(
+        await expect(wrapper.find('#Email-input-field b-form-invalid-feedback').text()).toEqual(
           'validations.messages.email',
         )
       })

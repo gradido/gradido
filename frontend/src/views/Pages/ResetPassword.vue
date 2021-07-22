@@ -26,7 +26,7 @@
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <input-password-confirmation v-model="form" />
+                  <input-password-confirmation v-model="form" :register="register"/>
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
                       {{ $t('reset') }}
@@ -65,6 +65,7 @@ export default {
       sessionId: null,
       email: null,
       pending: true,
+      register: false,
     }
   },
   methods: {
