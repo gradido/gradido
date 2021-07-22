@@ -30,14 +30,15 @@ public:
 	JsonRequest(const std::string& serverHost, int serverPort);
 	~JsonRequest();
 
-	JsonRequestReturn request(const char* methodName, const Poco::Net::NameValueCollection& payload);
-	JsonRequestReturn request(const char* methodName, const Poco::JSON::Object& payload);
 	JsonRequestReturn request(const char* methodName);
+	JsonRequestReturn request(const char* methodName, rapidjson::Value payload);
+
+	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); } 
 
 protected:
 	int mServerPort;
 	std::string mServerHost;
-	
+	rapidjson::Document mJsonDocument;
 };
 
 

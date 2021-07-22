@@ -2,24 +2,28 @@
 #include "JsonRequest.h"
 #include "Profiler.h"
 
+#include "JSONInterface/JsonRequestHandler.h"
 
 #include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
-#include "Poco/JSON/Parser.h"
 
 #include "sodium.h"
 #include "../SingletonManager/MemoryManager.h"
 #include "DataTypeConverter.h"
 #include "Warning.h"
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
+
 JsonRequest::JsonRequest(const std::string& serverHost, int serverPort)
-	: mServerHost(serverHost), mServerPort(serverPort)
+	: mServerHost(serverHost), mServerPort(serverPort), mJsonDocument(kObjectType)
 {
 	if (mServerHost.data()[mServerHost.size() - 1] == '/') {
 		mServerHost = mServerHost.substr(0, mServerHost.size() - 1);
 	}
-
 }
 
 JsonRequest::~JsonRequest()
@@ -27,22 +31,32 @@ JsonRequest::~JsonRequest()
 
 }
 
-JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON::Object& requestJson)
+JsonRequestReturn JsonRequest::request(const char* methodName, rapidjson::Value payload)
+{
+	auto alloc = mJsonDocument.GetAllocator();
+	if (payload.IsObject()) {
+
+		for (auto it = payload.MemberBegin(); it != payload.MemberEnd(); it++) {
+			mJsonDocument.AddMember(it->name, it->value, alloc);
+		}
+	}
+	return request(methodName);
+}
+
+JsonRequestReturn JsonRequest::request(const char* methodName)
 {
 	static const char* functionName = "JsonRequest::request";
-	
-	//requestJson.set("user", std::string(mSessionUser->getPublicKeyHex()));
 
-	// send post request via https
-	// 443 = HTTPS Default
-	// TODO: adding port into ServerConfig
+	auto alloc = mJsonDocument.GetAllocator();
+	mJsonDocument.AddMember("method", Value(methodName, alloc), alloc);
+
 	if (mServerHost.empty() || !mServerPort) {
 		addError(new Error(functionName, "server host or server port not given"));
 		return JSON_REQUEST_PARAMETER_ERROR;
 	}
 	try {
 		Profiler phpRequestTime;
-		
+
 		Poco::SharedPtr<Poco::Net::HTTPClientSession> clientSession;
 		if (mServerPort == 443) {
 			clientSession = new Poco::Net::HTTPSClientSession(mServerHost, mServerPort);
@@ -54,7 +68,11 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 
 		request.setChunkedTransferEncoding(true);
 		std::ostream& request_stream = clientSession->sendRequest(request);
-		requestJson.stringify(request_stream);
+
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		mJsonDocument.Accept(writer);
+		request_stream << std::string(buffer.GetString(), buffer.GetSize());
 
 		Poco::Net::HTTPResponse response;
 		std::istream& response_stream = clientSession->receiveResponse(response);
@@ -70,13 +88,13 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 		speedLog.information("[%s] php server time: %s", method_name, phpRequestTime.string());
 
 		// extract parameter from request
-		Poco::JSON::Parser jsonParser;
-		Poco::Dynamic::Var parsedJson;
-		try {
-			parsedJson = jsonParser.parse(responseStringStream.str());
-		}
-		catch (Poco::Exception& ex) {
-			addError(new ParamError(functionName, "error parsing request answer", ex.displayText().data()));
+		Document resultJson;
+		resultJson.Parse(responseStringStream.str().data());
+		
+		if(resultJson.HasParseError()) 
+		{
+			addError(new ParamError(functionName, "error parsing request answer", resultJson.GetParseError()));
+			addError(new ParamError(functionName, "position of last parsing error", resultJson.GetErrorOffset()));
 			std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d%m%yT%H%M%S");
 			std::string log_Path = "/var/log/grd_login/";
 			//#ifdef _WIN32
@@ -98,51 +116,56 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 			return JSON_REQUEST_RETURN_PARSE_ERROR;
 		}
 
-		Poco::JSON::Object object = *parsedJson.extract<Poco::JSON::Object::Ptr>();
-		auto state = object.get("state");
-		auto message = object.get("message");
-		if (state.isEmpty() && !message.isEmpty()) {
+		if (!resultJson.HasMember("state") && resultJson.HasMember("message")) {
 			// than we have maybe get an cakephp exception as result
-			
-			addError(new ParamError(functionName, "cakePHP Exception: ", message.toString()));
+			std::string message;
+			JsonRequestHandler::getStringParameter(resultJson, "message", message);
+			addError(new ParamError(functionName, "cakePHP Exception: ", message));
 			addError(new ParamError(functionName, "calling: ", methodName));
 			addError(new ParamError(functionName, "for server host: ", mServerHost));
 			std::string fields[] = { "url", "code", "file", "line" };
 			for (int i = 0; i < 4; i++) {
 				auto field = fields[i];
 				std::string field_name = field + ": ";
-				addError(new ParamError(functionName, field_name.data(), object.get(field).toString()));
+				std::string value;
+				JsonRequestHandler::getStringParameter(resultJson, field.data(), value);
+				addError(new ParamError(functionName, field_name.data(), value));
 			}
 			sendErrorsAsEmail("", true);
 			return JSON_REQUEST_RETURN_ERROR;
 		}
 		else {
-			std::string stateString = state.convert<std::string>();
+			std::string stateString;
+			JsonRequestHandler::getStringParameter(resultJson, "state", stateString);
 			if (stateString == "error") {
 				addError(new Error(functionName, "php server return error"));
-				if (!object.isNull("msg")) {
-					addError(new ParamError(functionName, "msg:", object.get("msg").convert<std::string>().data()));
+				std::string msg;
+				JsonRequestHandler::getStringParameter(resultJson, "msg", msg);
+				if (msg != "") {
+					addError(new ParamError(functionName, "msg:", msg));
 				}
-				if (!object.isNull("details")) {
-					addError(new ParamError(functionName, "details:", object.get("details").convert<std::string>().data()));
+
+				std::string details;
+				JsonRequestHandler::getStringParameter(resultJson, "details", details);
+				if (details != "") {
+					addError(new ParamError(functionName, "details:", details));
 				}
 				sendErrorsAsEmail("", true);
 				return JSON_REQUEST_RETURN_ERROR;
 			}
 			else if (stateString == "success") {
-				auto warnings_obj = object.get("warnings");
-				if (!warnings_obj.isEmpty()) {
-					Poco::JSON::Object warnings = *parsedJson.extract<Poco::JSON::Object::Ptr>();
-					for (auto it = warnings.begin(); it != warnings.end(); it++) {
-						addWarning(new Warning(it->first, it->second.toString()));
+				auto it = resultJson.FindMember("warnings");
+				if (it != resultJson.MemberEnd()) {
+					const Value& warnings = it->value;
+					for (auto it = warnings.MemberBegin(); it != warnings.MemberEnd(); it++) {
+						if (!it->name.IsString() || !it->value.IsString()) {
+							continue;
+						}
+						std::string name(it->name.GetString(), it->name.GetStringLength());
+						std::string value(it->value.GetString(), it->value.GetStringLength());
+						
+						addWarning(new Warning(name, value));
 					}
-				}
-				for (auto it = object.begin(); it != object.end(); it++) {
-					if (it->first == "state") continue;
-					std::string index = it->first;
-					std::string value = it->second.toString();
-
-					//printf("[JsonRequest] %s: %s\n", index.data(), value.data());
 				}
 			}
 		}
@@ -158,25 +181,6 @@ JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::JSON:
 	return JSON_REQUEST_RETURN_OK;
 }
 
-
-
-JsonRequestReturn JsonRequest::request(const char* methodName, const Poco::Net::NameValueCollection& payload)
-{
-	Poco::JSON::Object requestJson;
-	requestJson.set("method", methodName);
-
-	for (auto it = payload.begin(); it != payload.end(); it++) {
-		requestJson.set(it->first, it->second);
-	}
-	return request(methodName, requestJson);
-}
-
-JsonRequestReturn JsonRequest::request(const char* methodName)
-{
-	Poco::JSON::Object requestJson;
-	requestJson.set("method", methodName);
-	return request(methodName, requestJson);
-}
 
 
 

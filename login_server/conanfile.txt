@@ -6,6 +6,7 @@ gtest/1.10.0
 
 [options]
 Poco:enable_pagecompiler=True
+Poco:enable_json=False
 
 [generators]
 cmake

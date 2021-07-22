@@ -79,7 +79,6 @@ namespace controller {
 		int load(const unsigned char* pubkey_array);
 		int load(MemoryBin* emailHash);
 
-		Poco::JSON::Object getJson();
 		rapidjson::Value getJson(rapidjson::Document::AllocatorType& alloc);
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }

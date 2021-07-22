@@ -184,16 +184,6 @@ namespace controller {
 		return ss.str();
 	}
 
-	Poco::JSON::Object User::getJson()
-	{
-		auto json = getModel()->getJson();
-		auto pubkey = getPublicHex();
-		//printf("[controller::User::getJson] this: %d\n", (int)this);
-		if (pubkey != "") {
-			json.set("public_hex", pubkey);
-		}
-		return json;
-	}
 
 	Value User::getJson(Document::AllocatorType& alloc)
 	{

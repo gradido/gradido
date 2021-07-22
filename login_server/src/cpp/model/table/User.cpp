@@ -410,42 +410,6 @@ namespace model {
 			return privkeyHexString;
 		}
 
-
-		Poco::JSON::Object User::getJson()
-		{
-
-			lock("User::getJson");
-			Poco::JSON::Object userObj;
-
-			userObj.set("first_name", mFirstName);
-			userObj.set("last_name", mLastName);
-			userObj.set("email", mEmail);
-			userObj.set("username", mUsername);
-			userObj.set("description", mDescription);
-
-			//userObj.set("state", userStateToString(mState));
-			auto createTimeStamp = mCreated.timestamp();
-			userObj.set("created", createTimeStamp.raw() / createTimeStamp.resolution());
-			userObj.set("email_checked", mEmailChecked);
-			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
-			userObj.set("language", mLanguageKey);
-			userObj.set("disabled", mDisabled);
-			try {
-				userObj.set("role", UserRole::typeToString(getRole()));
-			}
-			catch (Poco::Exception ex) {
-				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
-				sendErrorsAsEmail();
-			}
-			auto group = controller::Group::load(mGroupId);
-			if (!group.isNull()) {
-				userObj.set("group_alias", group->getModel()->getAlias());
-			}
-			unlock();
-
-			return userObj;
-		}
-
 		Value User::getJson(Document::AllocatorType& alloc)
 		{
 			lock("User::getJson rapid");

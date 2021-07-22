@@ -94,7 +94,6 @@ namespace model {
 			inline void setDisabled(bool disabled) { UNIQUE_LOCK; mDisabled = disabled; }
 			inline void setGroupId(int groupId) { UNIQUE_LOCK; mGroupId = groupId; }
 
-			Poco::JSON::Object getJson();		
 			rapidjson::Value getJson(rapidjson::Document::AllocatorType& alloc);
 
 		protected:
