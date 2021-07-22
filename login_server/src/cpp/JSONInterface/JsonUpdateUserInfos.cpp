@@ -46,8 +46,8 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		}
 		std::string name(it->name.GetString(), it->name.GetStringLength());
 		std::string str_value;
-		bool b_value;
-		int i_value;
+		bool b_value = false;
+		int i_value = 0;
 		if (it->value.IsString()) {
 			str_value = std::string(it->value.GetString(), it->value.GetStringLength());
 		}
