@@ -130,7 +130,8 @@ namespace model {
 					user_model->updateIntoDB("group_id", group_model->getID());
 
 					JsonRequest request(group_model->getUrl(), 443);
-					request.request("addUser", user->getJson());
+					
+					request.request("addUser", user->getJson(request.getJsonAllocator()));
 					
 					printf("[GroupMemberUpdate::transactionAccepted] finished\n");
 				}

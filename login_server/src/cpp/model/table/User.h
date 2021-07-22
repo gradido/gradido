@@ -109,7 +109,6 @@ namespace model {
 			inline void setGroupId(int groupId) { UNIQUE_LOCK; mGroupId = groupId; }
 			inline void setPublisherId(int publisherId) { UNIQUE_LOCK; mPublisherId = publisherId; }
 
-			Poco::JSON::Object getJson();		
 			rapidjson::Value getJson(rapidjson::Document::AllocatorType& alloc);
 
 		protected:

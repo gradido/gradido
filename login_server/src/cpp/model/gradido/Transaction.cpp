@@ -9,13 +9,11 @@
 #include "../../lib/Profiler.h"
 #include "../../lib/JsonRequest.h"
 
-
 #include <google/protobuf/util/json_util.h>
-
-#include "Poco/JSON/Parser.h"
 
 #include <inttypes.h>
 
+using namespace rapidjson;
 
 namespace model {
 	namespace gradido {
