@@ -109,16 +109,7 @@
                     </span>
                   </b-alert>
 
-                  <div
-                    class="text-center"
-                    v-if="
-                      passwordsFilled &&
-                      samePasswords &&
-                      namesFilled &&
-                      emailFilled &&
-                      form.agree
-                    "
-                  >
+                  <div class="text-center" v-if="namesFilled && emailFilled && form.agree">
                     <div class="text-center">
                       <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
                       <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
@@ -175,12 +166,12 @@ export default {
           password: '',
           passwordRepeat: '',
         },
+        agree: false,
       }
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
     },
-   
     async onSubmit() {
       const result = await loginAPI.create(
         this.form.email,
@@ -214,12 +205,6 @@ export default {
     },
   },
   computed: {
-    samePasswords() {
-      return this.form.password.password === this.form.password.passwordRepeat
-    },
-    passwordsFilled() {
-      return this.form.password.password !== '' && this.form.password.passwordRepeat !== ''
-    },
     namesFilled() {
       return (
         this.form.firstname !== '' &&
