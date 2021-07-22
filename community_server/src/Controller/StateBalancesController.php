@@ -113,12 +113,12 @@ class StateBalancesController extends AppController
         if($stateUserTransactionsQuery->count() > 0) {
             $transactions_with_decay = $transactionsTable->listTransactionsHumanReadable($stateUserTransactionsQuery->toArray(), $user, $decay);
             foreach($transactions_with_decay as $tr) {
-                $transactions[] = $tr;
                 if(isset($tr['decay'])) {
                     $tr['decay']['type'] = 'decay';
                     $tr['decay']['memo'] = '';
                     $transactions[] = $tr['decay'];
                 }
+                $transactions[] = $tr;
             }
         }
         
