@@ -17,7 +17,6 @@ public:
 	JsonUpdateUserInfos(Session* session) : JsonRequestHandler(session) {};
 
 	rapidjson::Document handle(const rapidjson::Document& params);
-	//Poco::JSON::Object* handle(Poco::Dynamic::Var params);
 
 protected:	
 	bool isOldPasswordValid(const rapidjson::Value& updates, rapidjson::Value& errors, rapidjson::Document::AllocatorType& alloc);

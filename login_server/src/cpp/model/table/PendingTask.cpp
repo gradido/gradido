@@ -42,7 +42,7 @@ namespace model
 			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
 		}
 
-		void PendingTask::setResultJson(Document result)
+		void PendingTask::setResultJson(Document& result)
 		{
 			
 			StringBuffer buffer;
@@ -53,7 +53,7 @@ namespace model
 			mResultJsonString = std::string(buffer.GetString(), buffer.GetSize());
 		}
 
-		void PendingTask::setParamJson(Document param)
+		void PendingTask::setParamJson(Document& param)
 		{
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);

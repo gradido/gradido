@@ -10,7 +10,6 @@
 
 #include "NotificationList.h"
 #include "Poco/Net/NameValueCollection.h"
-#include "Poco/JSON/Object.h"
 
 #ifndef __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
 #define __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
@@ -31,7 +30,7 @@ public:
 	~JsonRequest();
 
 	JsonRequestReturn request(const char* methodName);
-	JsonRequestReturn request(const char* methodName, rapidjson::Value payload);
+	JsonRequestReturn request(const char* methodName, rapidjson::Value& payload);
 
 	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); } 
 

@@ -6,12 +6,17 @@
 #include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
-#include "Poco/JSON/Parser.h"
 
 #include "sodium.h"
-#include "../SingletonManager/MemoryManager.h"
+#include "SingletonManager/MemoryManager.h"
 #include "DataTypeConverter.h"
+#include "JSONInterface/JsonRequestHandler.h"
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/pointer.h"
+
+using namespace rapidjson;
 
 JsonRPCRequest::JsonRPCRequest(const std::string& serverHost, int serverPort)
 	: JsonRequest(serverHost, serverPort)
@@ -30,7 +35,7 @@ JsonRPCRequest::~JsonRPCRequest()
 
 }
 
-Poco::JSON::Object::Ptr JsonRPCRequest::request(const char* methodName, const Poco::JSON::Object& params)
+Document JsonRPCRequest::request(const char* methodName, Value& params)
 {
 	static const char* functionName = "JsonRequest::request";
 
@@ -53,16 +58,20 @@ Poco::JSON::Object::Ptr JsonRPCRequest::request(const char* methodName, const Po
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/", "HTTP/1.1");
 		//request.setContentType("application/json");
 
-		Poco::JSON::Object requestJson;
+		Document requestJson(kObjectType);
+		auto alloc = requestJson.GetAllocator();
 
-		requestJson.set("jsonrpc", "2.0");
-		requestJson.set("id", rand());
-		requestJson.set("method", methodName);
-		requestJson.set("params", params);
+		requestJson.AddMember("jsonrpc", "2.0", alloc);
+		requestJson.AddMember("id", rand(), alloc);
+		requestJson.AddMember("method", Value(methodName, alloc), alloc);
+		requestJson.AddMember("params", params, alloc);
 
 		request.setChunkedTransferEncoding(true);
 		std::ostream& request_stream = clientSession->sendRequest(request);
-		requestJson.stringify(request_stream);
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		requestJson.Accept(writer);
+		request_stream << buffer.GetString(); 
 
 		Poco::Net::HTTPResponse response;
 		std::istream& response_stream = clientSession->receiveResponse(response);
@@ -87,13 +96,12 @@ Poco::JSON::Object::Ptr JsonRPCRequest::request(const char* methodName, const Po
 		}
 
 		// extract parameter from request
-		Poco::JSON::Parser jsonParser;
-		Poco::Dynamic::Var parsedJson;
-		try {
-			parsedJson = jsonParser.parse(responseStringStream.str());
-		}
-		catch (Poco::Exception& ex) {
-			addError(new ParamError(functionName, "error parsing request answer", ex.displayText().data()));
+		Document jsonAnswear;
+		jsonAnswear.Parse(responseStringStream.str().data());
+		if(jsonAnswear.HasParseError())
+		{
+			addError(new ParamError(functionName, "error parsing request answer", jsonAnswear.GetParseError()));
+			addError(new ParamError(functionName, "parsing error offset", jsonAnswear.GetErrorOffset()));
 
 			std::string fileName = "node_response_";
 			fileName += methodName;
@@ -110,29 +118,29 @@ Poco::JSON::Object::Ptr JsonRPCRequest::request(const char* methodName, const Po
 			return nullptr;
 		}
 
-		auto object = parsedJson.extract<Poco::JSON::Object::Ptr>();
-		auto result = object->getObject("result");
-		auto state = result->get("state");
-		
-		std::string stateString = state.convert<std::string>();
-		if (stateString == "error") {
+		std::string state;		
+		JsonRequestHandler::getStringParameter(jsonAnswear, "state", state);
+				
+		if (state == "error") {
 			addError(new Error(functionName, "node server return error"));
-			if (!result->isNull("msg")) {
-				addError(new ParamError(functionName, "msg:", result->get("msg").convert<std::string>().data()));
+			Value& msg = Pointer("/result/msg").GetWithDefault(jsonAnswear, "");
+			if (msg.GetStringLength()) {
+				addError(new ParamError(functionName, "msg:", msg.GetString()));
 			}
-			if (!result->isNull("details")) {
-				addError(new ParamError(functionName, "details:", result->get("details").convert<std::string>().data()));
+			Value& details = Pointer("/result/details").GetWithDefault(jsonAnswear, "");
+			if (details.GetStringLength()) {
+				addError(new ParamError(functionName, "details:", details.GetString()));
 			}
 			sendErrorsAsEmail();
 			return nullptr;
 		}
-		else if (stateString == "success") {
+		else if (state == "success") {
 			/*for (auto it = result->begin(); it != result->end(); it++) {
 				std::string index = it->first;
 				std::string value = it->second.toString();
 				printf("[JsonRequest] %s: %s\n", index.data(), value.data());
 			}*/
-			return object;
+			return jsonAnswear;
 		}
 	}
 	catch (Poco::Exception& e) {

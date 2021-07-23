@@ -158,8 +158,7 @@ namespace controller {
 
 		auto mm = MemoryManager::getInstance();
 
-		lock("User::getJson");
-		Poco::JSON::Object userObj;
+		lock("User::getPublicHex");
 
 		auto pubkey = getModel()->getPublicKey();
 

@@ -11,13 +11,13 @@
  * 
  */
 
-#include "../lib/DRHashList.h"
+#include "lib/DRHashList.h"
 #include <string>
 #include <shared_mutex>
 #include <map>
 #include <list>
+#include <vector>
 
-#include "Poco/JSON/Array.h"
 
 #define PHRASE_WORD_COUNT 24
 
@@ -41,7 +41,7 @@ public:
 
 	std::string getCompleteWordListSorted();
 
-	Poco::JSON::Array getSortedWordList();
+	std::string getSortedWordListJsonString();
 
 	void printToFile(const char* filename);
 
