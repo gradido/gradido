@@ -18,14 +18,14 @@ vorgesehen, die als Unterverzeichnisse mit folgenden Nameskonventionen angelegt 
 
 Die **Testfälle** selbst werden in einzelnen Dateien beschrieben. Die Namen der Testfall-Dateien folgen dem Namenspattern:
 
-* Prefix-Pattern: "C", dreistellige laufende Nr, "-", zweistellig laufende Nr, "-", Testfallbezeichnung
-* Beispiel: C001-01-Benutzerregistrierung
+* Prefix-Pattern: "Prefix des Verzeichnisses"-"C", dreistellige laufende Nr, "-", zweistellig laufende Nr, "-", Testfallbezeichnung
+* Beispiel: T02-C001-01-Benutzerregistrierung
 * die dreistellige Nummer wird mit der Testfallbezeichnung in Bezug gesetzt
 * die zweistellige Nummer dient als optionale Untergliederung für einen Testfall
 * Beispiel:
-  * C001-01-Benutzerregistrierung: Schritt 1 - Registrierungslink
-  * C001-02-Benutzerregistrierung: Schritt 2 - Datenerfassung
-  * C001-03-Benutzerregistrierung: Schritt 3 - ...
+  * T02-C001-01-Benutzerregistrierung: Schritt 1 - Registrierungslink
+  * T02-C001-02-Benutzerregistrierung: Schritt 2 - Datenerfassung
+  * T02-C001-03-Benutzerregistrierung: Schritt 3 - ...
 
 Um Dialog-Masken als **Bilder** in die Testfallbeschreibungen einzubinden, gibt es das Verzeichnis Testfallkatalog/image. Dieses enthält alle Bilder aller Testfälle nach folgenden Konventionen:
 
@@ -34,7 +34,6 @@ Um Dialog-Masken als **Bilder** in die Testfallbeschreibungen einzubinden, gibt 
 * In der Testfall-Beschreibung können diese Bilder mit folgender Notation eingebunden werden:
   * `![alternativer Text](../image/<Name der Bilddatei>)`
 * Wie man direkt DrawIO-Bilder einhängen kann, ist noch nicht klar (notfalls muss eben ein PNG-Bild davon gemacht werden)
-
 
 ## Testfall-Vorlage
 
