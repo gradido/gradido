@@ -20,7 +20,7 @@ public:
 	JsonRPCRequest(const std::string& serverHost, int serverPort);
 	~JsonRPCRequest();
 
-	Poco::JSON::Object::Ptr request(const char* methodName, const Poco::JSON::Object& params);
+	rapidjson::Document request(const char* methodName, rapidjson::Value& params);
 
 protected:
 

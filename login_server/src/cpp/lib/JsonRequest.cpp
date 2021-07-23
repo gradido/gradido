@@ -31,7 +31,7 @@ JsonRequest::~JsonRequest()
 
 }
 
-JsonRequestReturn JsonRequest::request(const char* methodName, rapidjson::Value payload)
+JsonRequestReturn JsonRequest::request(const char* methodName, rapidjson::Value& payload)
 {
 	auto alloc = mJsonDocument.GetAllocator();
 	if (payload.IsObject()) {

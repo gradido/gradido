@@ -320,77 +320,42 @@ namespace DataTypeConverter
 	}
 
 
-	int replaceBase64WithHex(Poco::JSON::Object::Ptr json)
+
+	int replaceBase64WithHex(rapidjson::Value& json, rapidjson::Document::AllocatorType& alloc)
 	{
-		//g_rexExpBase64
-		auto mm = MemoryManager::getInstance();
 		int count_replacements = 0;
 
-		for (Poco::JSON::Object::ConstIterator it = json->begin(); it != json->end(); it++)
-		{
-			if (json->isObject(it)) {
-				auto local_json = it->second.extract<Poco::JSON::Object::Ptr>();
-				count_replacements += replaceBase64WithHex(local_json);
-				json->set(it->first, local_json);
-			}
-			else if (json->isArray(it)) {
-				auto local_json = it->second.extract<Poco::JSON::Array::Ptr>();
-				count_replacements += replaceBase64WithHex(local_json);
-				json->set(it->first, local_json);
-			}
-			else if (it->second.isString())
+		if (json.IsObject()) {
+			for (auto it = json.MemberBegin(); it != json.MemberEnd(); it++) 
 			{
-				if (it->first == "amount") continue;
-				auto field_value = it->second.extract<std::string>();
-				if(!g_rexExpBase64.match(field_value)) continue;
-
-				auto bin = base64ToBin(field_value);
-				if(!bin) continue;
-
-				auto hex = binToHex(bin);
-				mm->releaseMemory(bin);
-				json->set(it->first, hex.substr(0, hex.size()-1));
-				count_replacements++;
+				if (it->value.IsString()) {
+					std::string name(it->name.GetString(), it->name.GetStringLength());
+					if ("amount" == name) continue;
+				}
+				
+				count_replacements += replaceBase64WithHex(it->value, alloc);
 			}
 		}
-
-		return count_replacements;
-	}
-
-	int replaceBase64WithHex(Poco::JSON::Array::Ptr json)
-	{
-		auto mm = MemoryManager::getInstance();
-		int count_replacements = 0;
-		int count = 0;
-		for (Poco::JSON::Array::ValueVec::const_iterator it = json->begin(); it != json->end(); it++)
-		{
-			if (json->isObject(it)) {
-
-				auto local_json = it->extract<Poco::JSON::Object::Ptr>();
-				count_replacements += replaceBase64WithHex(local_json);
-				json->set(count, local_json);
+		else if (json.IsArray()) {
+			for (auto it = json.Begin(); it != json.End(); it++) {
+				count_replacements += replaceBase64WithHex(*it, alloc);
 			}
-			else if (json->isArray(it)) {
-				auto local_json = it->extract<Poco::JSON::Array::Ptr>();
-				count_replacements += replaceBase64WithHex(local_json);
-				json->set(count, local_json);
-			}
-			else if (it->isString())
-			{
-				auto field_value = it->extract<std::string>();
-				if (!g_rexExpBase64.match(field_value)) continue;
-
-				auto bin = base64ToBin(field_value);
-				if (!bin) continue;
-
-				auto hex = binToHex(bin);
-				mm->releaseMemory(bin);
-				json->set(count, hex.substr(0, hex.size()-1));
-				count_replacements++;
-			}
-			count++;
 		}
+		else if (json.IsString()) 
+		{
+			std::string field_value(json.GetString(), json.GetStringLength());
+			if (!g_rexExpBase64.match(field_value)) return 0;
 
+			auto bin = base64ToBin(field_value);
+			if (!bin) return 0;
+
+			auto mm = MemoryManager::getInstance();
+
+			auto hex = binToHex(bin);
+			mm->releaseMemory(bin);
+			json.SetString(hex.data(), hex.size() - 1, alloc);
+			return 1;
+		}
 		return count_replacements;
 	}
 
@@ -410,5 +375,54 @@ namespace DataTypeConverter
 			in.replace(pos, 1, "&nbsp;");
 		}
 		return in;
+	}
+
+	bool PocoDynVarToRapidjsonValue(const Poco::Dynamic::Var& pocoVar, rapidjson::Value& rapidjsonValue, rapidjson::Document::AllocatorType& alloc)
+	{
+		if (pocoVar.isString()) {
+			std::string str;
+			pocoVar.convert(str);
+			rapidjsonValue.SetString(str.data(), str.size(), alloc);
+			return true;
+		} 
+		else if (pocoVar.isInteger()) 
+		{
+			if (pocoVar.isSigned()) {
+				Poco::Int64 i = 0;
+				pocoVar.convert(i);
+				if (i == (Poco::Int64)((Poco::Int32)i)) {
+					rapidjsonValue.SetInt(i);
+				}
+				else {
+					rapidjsonValue.SetInt64(i);
+				}
+				return true;
+			}
+			else {
+				Poco::UInt64 i = 0;
+				pocoVar.convert(i);
+				if (i == (Poco::UInt64)((Poco::UInt32)i)) {
+					rapidjsonValue.SetUint(i);
+				}
+				else {
+					rapidjsonValue.SetUint64(i);
+				}
+				return true;
+			}
+		} 
+		else if (pocoVar.isBoolean()) {
+			bool b = false;
+			pocoVar.convert(b);
+			rapidjsonValue.SetBool(b);
+			return true;
+		}
+		else if (pocoVar.isNumeric()) {
+			double d = 0.0;
+			pocoVar.convert(d);
+			rapidjsonValue.SetDouble(d);
+			return true;
+		}
+
+		return false;
 	}
 }

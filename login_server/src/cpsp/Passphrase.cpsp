@@ -213,7 +213,7 @@ enum PageState
 		  </div>
 		</div>
 		<script type="text/javascript">
-			var mnemonicWords = <% wordSource->getSortedWordList().stringify(responseStream); %>;
+			var mnemonicWords = <% wordSource->getSortedWordListJsonString(); %>;
 			var passphrase = "<%= mSession->getPassphrase()->getString() %>";
 			language = "<%= lm->keyForLanguage(lang) %>";
 		</script>

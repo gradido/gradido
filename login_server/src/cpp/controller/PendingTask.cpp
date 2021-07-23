@@ -1,11 +1,17 @@
 #include "PendingTask.h"
 
-#include "../model/gradido/Transaction.h"
+#include "model/gradido/Transaction.h"
 
-#include "../SingletonManager/PendingTasksManager.h"
-#include "../SingletonManager/ErrorManager.h"
+#include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/ErrorManager.h"
+
+#include "lib/DataTypeConverter.h"
+
+#include "JSONInterface/JsonRequestHandler.h"
 
 namespace controller {
+
+	using namespace rapidjson;
 
 	PendingTask::PendingTask(model::table::PendingTask* dbModel)
 	{
@@ -158,7 +164,12 @@ namespace controller {
 	{
 		auto model = getModel();
 		auto param = model->getParamJson();
-		param->set(key, value);
+		auto alloc = param.GetAllocator();
+
+		Value rapidJsonValue;
+		DataTypeConverter::PocoDynVarToRapidjsonValue(value, rapidJsonValue, param.GetAllocator());
+
+		param.AddMember(Value(key.data(), alloc), rapidJsonValue, param.GetAllocator());
 		model->setParamJson(param);
 		if (saveIntoDB) {
 			return model->updateParam();
@@ -176,7 +187,12 @@ namespace controller {
 	{
 		auto model = getModel();
 		auto param = model->getResultJson();
-		param->set(key, value);
+		auto alloc = param.GetAllocator();
+
+		Value rapidJsonValue;
+		DataTypeConverter::PocoDynVarToRapidjsonValue(value, rapidJsonValue, param.GetAllocator());
+
+		param.AddMember(Value(key.data(), alloc), rapidJsonValue, param.GetAllocator());
 		model->setResultJson(param);
 		if (saveIntoDB) {
 			return model->updateFinishedAndResult();
@@ -189,17 +205,8 @@ namespace controller {
 	{
 		auto model = getModel();
 		auto param = model->getParamJson();
-		auto paramVar = param->get(key);
-		if (!paramVar.isEmpty() && paramVar.isInteger()) {
-			try {
-				return paramVar.extract<Poco::Int64>();
-			}
-			catch (Poco::Exception& ex) {
-				NotificationList error;
-				error.addError(new ParamError("PendingTask::getIntParam", "poco exception: ", ex.displayText()));
-				return -2;
-			}
-		}
-		return -1;
+		int iparam = -1;
+		JsonRequestHandler::getIntParameter(param, key.data(), iparam);	
+		return iparam;
 	}
 }

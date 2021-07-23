@@ -9,6 +9,9 @@
 #include "../../lib/Profiler.h"
 #include "../../lib/JsonRequest.h"
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 #include <google/protobuf/util/json_util.h>
 
 #include <inttypes.h>
@@ -198,10 +201,8 @@ namespace model {
 			// check if transaction was already finished
 			auto json = transaction->getModel()->getResultJson();
 			bool finished = false;
-			if (!json.isNull()) {
-				if (!json->get("state").isEmpty()) {
-					finished = true;
-				}
+			if (json.IsObject() && json.HasMember("state")) {
+				finished = true;
 			}
 			// try not finished but signed transactions again
 			if (!finished) {
@@ -558,10 +559,10 @@ namespace model {
 				return -9;
 			}
 			auto json_request = group->createJsonRequest();
-
-			Poco::Net::NameValueCollection param;
-			param.set("transaction", base_64_message);
-			auto result = json_request.request("putTransaction", param);
+			auto alloc = json_request.getJsonAllocator();
+			Value param(kObjectType);
+			param.AddMember("transaction", Value(base_64_message.data(), base_64_message.size(), alloc), alloc);
+			auto result = json_request.request("putTransaction", param.Move());
 			json_request.getWarnings(&json_request);
 
 			if (JSON_REQUEST_RETURN_OK == result)
@@ -611,19 +612,20 @@ namespace model {
 			//printf("json: %s\n", json_message.data());
 
 			if (replaceBase64WithHex) {
-				Poco::JSON::Parser json_parser;
-				try {
-					auto json = json_parser.parse(json_message);
-					Poco::JSON::Object::Ptr object = json.extract<Poco::JSON::Object::Ptr>();
-					if (DataTypeConverter::replaceBase64WithHex(object)) {
-						std::ostringstream oss;
-						Poco::JSON::Stringifier::stringify(json, oss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER);
-						json_message = oss.str();
-					}
+				Document parsed_json;
+				parsed_json.Parse(json_message.data(), json_message.size());
+				if (parsed_json.HasParseError()) {
+					addError(new ParamError(function_name, "error by parsing or printing json", parsed_json.GetParseError()));
+					addError(new ParamError(function_name, "parsing error offset ", parsed_json.GetErrorOffset()));
 				}
-				catch (Poco::Exception& ex) {
-					addError(new ParamError(function_name, "exception by parsing or printing json", ex.message()));
-					addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+				else {
+					if (DataTypeConverter::replaceBase64WithHex(parsed_json, parsed_json.GetAllocator())) {
+						StringBuffer buffer;
+						Writer<StringBuffer> writer(buffer);
+						parsed_json.Accept(writer);
+
+						json_message = std::string(parsed_json.GetString(), parsed_json.GetStringLength());
+					}
 				}
 			}
 
@@ -686,9 +688,10 @@ namespace model {
 			// delete because of error
 			if (-1 == result) {
 				//mTransaction->deleteFromDB();
-				Poco::JSON::Object::Ptr errors = new Poco::JSON::Object;
-				errors->set("errors", mTransaction->getErrorsArray());
-				errors->set("state", "error");
+				Document errors(kObjectType);
+				auto alloc = errors.GetAllocator();
+				errors.AddMember("errors", mTransaction->getErrorsArray(alloc), alloc);
+				errors.AddMember("state", "error", alloc);
 				auto model = mTransaction->getModel();
 				model->setResultJson(errors);
 				model->updateFinishedAndResult();

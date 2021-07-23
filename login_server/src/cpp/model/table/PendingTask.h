@@ -53,8 +53,8 @@ namespace model {
 			inline void setUserId(int userId) { UNIQUE_LOCK;  mUserId = userId; }
 			void setRequest(const std::string& serializedProto);
 			inline void setFinished(Poco::DateTime date) { UNIQUE_LOCK; mFinished = date; }
-			void setResultJson(rapidjson::Document result);
-			void setParamJson(rapidjson::Document param);
+			void setResultJson(rapidjson::Document& result);
+			void setParamJson(rapidjson::Document& param);
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
 			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
 			inline void setParentPendingTaskId(int parentPendingTaskId) { UNIQUE_LOCK; mParentPendingTaskId = parentPendingTaskId; }
