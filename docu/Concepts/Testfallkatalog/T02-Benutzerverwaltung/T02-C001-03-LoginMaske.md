@@ -8,7 +8,7 @@
 
 Es wird in der Login-Maske die Funktion des Links "Passwort vergessen?"geprüft:
 
-![Login Maske](../image/C001-01-LoginMaske.png)
+![Login Maske](../image/T02-C001-01-LoginMaske.png)
 
 **Nicht enthalten in diesem Testfall:**
 
@@ -37,7 +37,7 @@ aufgerufen und die Login-Maske wird angezeigt.
   * der Produktionsumgebung: https://gradido.net/vue/password
 * folgende Maske angezeigt:
 
-![1te Passwort zurücksetzen Maske](../image/C001-03-LoginMaske1.png)
+![1te Passwort zurücksetzen Maske](../image/T02-C001-03-LoginMaske1.png)
 
 1. **Prüfung der Anzeige-Elemente, Layout und Eingabevalidierungen des Eingabefeldes, Text, Rechtschreibung und Layout von:**
 
@@ -88,20 +88,18 @@ aufgerufen und die Login-Maske wird angezeigt.
    3. *Gibt es noch weitere Prüfschritte (LOG-Ausgaben auf Login-, Community-Server o.ä.) die hier überprüft werden sollten?*
    4. Sobald der Prozess die Zurücksetzen-Email abgeschickt hat, wird die folgende Maske angezeigt:
 
-![Email-Versandmakse](../image/C001-03-LoginMaske2.png)
+![Email-Versandmakse](../image/T02-C001-03-LoginMaske2.png)
 
 5. **In dem angegebenen Email-Postfach wird eine Email empfangen, die ein Zurücksetzen-Link enthält:**
    1. Testumgebung: https://stage1.gradido.net/vue/reset/'erzeugter rest-code'
    2. Produktionsumgebung: https://gradido.net/vue/reset/'erzeugter reset-code'
 6. **Mit Betätigen des Reset-Links bzw. Aufruf des Rest-Links im Browser wird folgende Maske angezeigt:**
 
-![2te Passwort zurücksetzen Maske](../image/C001-03-LoginMaske3.png)
-
-
+![2te Passwort zurücksetzen Maske](../image/T02-C001-03-LoginMaske3.png)
 
 7. **Prüfung der Anzeige-Elemente, Layout und Eingabevalidierungen der Eingabefelder**
+8. Text, Rechtschreibung und Layout von:
 
-1. Text, Rechtschreibung und Layout von:
    * Maskenüberschrift "Passwort zurücksetzen"
    * Maskentext "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
    * Label "neues Passwort"
@@ -119,11 +117,7 @@ aufgerufen und die Login-Maske wird angezeigt.
      * "Mitgliederbereich"
      * "Whitepaper"
      * "Support"
-
-
-
-
-8. **Prüfung der Eingabedynamik in der 2ten Passwort-Zurücksetzen-Maske:**
+9. **Prüfung der Eingabedynamik in der 2ten Passwort-Zurücksetzen-Maske:**
 
    1. Eingabefeld "Neues Passwort":
 
@@ -153,7 +147,6 @@ aufgerufen und die Login-Maske wird angezeigt.
       5. "Mitgliederbereich" reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://elopage.com/s/gradido/sign_in?locale=de"
       6. "Whitepaper" reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing"
       7. "Support"reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://gradido.net/de/contact/"
-
 
 Bei erfolgreichem Passwort-Reset wird eine Email an der die URL angezeigt
 

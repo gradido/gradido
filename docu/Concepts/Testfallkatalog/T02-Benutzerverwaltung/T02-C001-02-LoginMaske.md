@@ -8,20 +8,18 @@
 
 Es wird in der Login-Maske die Funktion des Buttons "Anmeldung"geprüft:
 
-![Login Maske](../image/C001-01-LoginMaske.png)
-
+![Login Maske](../image/T02-C001-01-LoginMaske.png)
 
 **Nicht enthalten in diesem Testfall:**
 
-* die Anzeige, Layout und Validierung der Login-Maske; siehe dazu Testfall: [C001-01-LoginMaske](file::./C001-01-LoginMakse.md)
-* die Funktion hinter dem Link "Passwort vergessen"; siehe dazu Testfall: [C001-03-LoginMaske](C001-03-LoginMaske.md)
+* die Anzeige, Layout und Validierung der Login-Maske; siehe dazu Testfall: [T02-C001-01-LoginMaske.md](./T02-C001-01-LoginMakse.md)
+* die Funktion hinter dem Link "Passwort vergessen"; siehe dazu Testfall: [T02-C001-03-LoginMaske.md](./T02-C001-03-LoginMaske.md)
 
 ## Vorraussetzungen:
 
 *Welche Vorraussetzungen (Daten/Anwendungschritte, etc.) müssen erfüllt sein, um den Testfall durchführen zu können?*
 
 Die Eingabefelder Email und Passwort sind mit validen Inhalten gefüllt.
-
 
 ## Testfall-Schritte:
 
@@ -37,8 +35,6 @@ Prüfung auf korrekten Funktionsweise des Buttons "Anmeldung":
    * Produktionsumgebung: "https://gradido.net/vue/overview"
 4. Bei fehlerhaftem Login wird eine entsprechend aussagekräftige Fehlermeldung angezeigt und die Anzeige verbleibt auf der Login-Maske.
 
-
-
 ## Ende-Bedingungen:
 
 *Welche Bedingungen werden am Ende des Testfalles bei positivem Ergebnis erwartet? (Daten/ GUI/ Zustände/ etc)*
@@ -48,7 +44,6 @@ Der Login-Prozess wurde erfolgreich durchlaufen.
 Alle zu überprüfende Schritte des Login-Prozesses sind erfolgreich abgeschlossen.
 
 Es wird die Übersichtseite des angemeldeten Mitglieds angezeigt.
-
 
 ## erwartete Fehlerfälle:
 

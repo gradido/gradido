@@ -10,7 +10,7 @@ Es wird die Anzeige der Login-Maske geprüft auf:
 
 * Vorhandensein aller geforderten Elemente gemäß Entwurf:
 
-![Login Maske](../image/C001-01-LoginMaske.png)
+![Login Maske](../image/T02-C001-01-LoginMaske.png)
 
 * Layoutprüfung der statischen und dynamischen Elemente
 * formelle Validierung von Eingaben in die Eingabefelder mit entsprechenden Fehlermeldungen
@@ -19,8 +19,8 @@ Es wird die Anzeige der Login-Maske geprüft auf:
 
 **Nicht enthalten in diesem Testfall:**
 
-* die Funktion hinter dem Button "Anmelden"; siehe dazu Testfall: [C001-02-LoginMaske]()
-* die Funktion hinter dem Link "Passwort vergessen"; siehe dazu Testfall: [C001-03-LoginMaske]()
+* die Funktion hinter dem Button "Anmelden"; siehe dazu Testfall: [T02-C001-02-LoginMaske.md](./T02-C002-02-LoginMaske.md)
+* die Funktion hinter dem Link "Passwort vergessen"; siehe dazu Testfall: [T02-C001-03-LoginMaske.md](./T02-C001-03-LoginMaske.md)
 
 ## Vorraussetzungen:
 
@@ -32,7 +32,6 @@ Es wird die URL
 * Produktionsumgebung: https://gradido.net/vue/login
 
 aufgerufen und die Login-Maske wird angezeigt.
-
 
 ## Testfall-Schritte:
 
@@ -82,7 +81,6 @@ aufgerufen und die Login-Maske wird angezeigt.
       6. "Whitepaper" reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing"
       7. "Support"reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://gradido.net/de/contact/"
 
-
 ## Ende-Bedingungen:
 
 *Welche Bedingungen werden am Ende des Testfalles bei positivem Ergebnis erwartet? (Daten/ GUI/ Zustände/ etc)*
@@ -95,8 +93,7 @@ Die Format-Validierungen der Eingabefelder erfüllen die vorgegebenen Regeln
 
 Alle Links reagieren gemäß den Vorgaben
 
-Die Eingabefelder sind mit validen Inhalten gefüllt, so dass der Button "Anmeldung" betätigt werden könnte. Dies ist aber Teil des nächsten Testfalls unter [C001-02-LoginMaske]()
-
+Die Eingabefelder sind mit validen Inhalten gefüllt, so dass der Button "Anmeldung" betätigt werden könnte. Dies ist aber Teil des nächsten Testfalls unter [T02-C001-02-LoginMaske.md](./T02-C001-02-LoginMakse.md)
 
 ## erwartete Fehlerfälle:
 
