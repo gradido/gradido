@@ -18,6 +18,8 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "backgroundAnimationON": "Animierter Hintergrund",
+  "backgroundAnimationOFF": "Animierter Hintergrund abgeschaltet",
   "decay": {
     "decay": "Vergänglichkeit",
     "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",

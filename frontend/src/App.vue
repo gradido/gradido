@@ -1,17 +1,18 @@
 <template>
   <div id="app" class="font-sans text-gray-800">
     <div class="">
-      <particles-bg type="custom" :config="config" :bg="true" />
+      <particles-bg v-show="checked" type="custom" :config="config" :bg="true" />
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
     </div>
+    <input-checkox v-model="checked" />
   </div>
 </template>
-
 <script>
 import { ParticlesBg } from 'particles-bg-vue'
 import icon from './icon.js'
 import DashboardLayout from '@/views/Layout/DashboardLayout_gdd.vue'
 import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
+import InputCheckox from '@/components/Inputs/InputCheckox.vue'
 
 export default {
   name: 'app',
@@ -19,11 +20,12 @@ export default {
     ParticlesBg,
     DashboardLayout,
     AuthLayoutGDD,
+    InputCheckox,
   },
   data() {
     return {
       config: {
-        num: [1, 7],
+        num: [1, 9],
         rps: 15,
         radius: [5, 50],
         life: [6.5, 15],
@@ -36,6 +38,7 @@ export default {
         cross: 'dead',
         random: 2,
       },
+      checked: true,
     }
   },
 }
