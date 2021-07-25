@@ -2,6 +2,11 @@
 
 #include "JSONInterface/JsonCreateTransaction.h"
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
+
 void TestJsonCreateTransaction::SetUp()
 {
 	auto sm = SessionManager::getInstance();
@@ -22,13 +27,14 @@ void TestJsonCreateTransaction::TearDown()
 }
 
 
-Poco::JSON::Object::Ptr TestJsonCreateTransaction::basisSetup()
+Document TestJsonCreateTransaction::basisSetup()
 {
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("session_id", mUserSession->getHandle());
-	params->set("blockchain_type", "mysql");
-	params->set("memo", "Placolder for memo for test");
-	params->set("auto_sign", true);
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("session_id", mUserSession->getHandle(), alloc);
+	params.AddMember("blockchain_type", "mysql", alloc);
+	params.AddMember("memo", "Placeholder for memo for test", alloc);
+	params.AddMember("auto_sign", true, alloc);
 
 	return params;
 }
@@ -38,14 +44,17 @@ TEST_F(TestJsonCreateTransaction, Creation)
 	JsonCreateTransaction jsonCall;
 	
 	auto params = basisSetup();
-	params->set("transaction_type", "creation");
-	params->set("target_email", "Elfenhausen@arcor.de");
-	params->set("amount", 10000000);
-	params->set("target_date", "2021-07-13T13:00:00");
+	auto alloc = params.GetAllocator();
+	params.AddMember("transaction_type", "creation", alloc);
+	params.AddMember("target_email", "Elfenhausen@arcor.de", alloc);
+	params.AddMember("amount", 10000000, alloc);
+	params.AddMember("target_date", "2021-07-13T13:00:00", alloc);
 	
 	auto result = jsonCall.handle(params);
-	std::stringstream ss;
-	result->stringify(ss);
-	printf("result: %s\n", ss.str().data());
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	result.Accept(writer);
+
+	printf("result: %s\n", buffer.GetString());
 	//*/
 }

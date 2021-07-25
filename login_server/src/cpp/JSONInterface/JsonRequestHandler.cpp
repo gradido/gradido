@@ -162,10 +162,10 @@ Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 {
 	Document obj(kObjectType);
 	obj.AddMember("state", "error", obj.GetAllocator());
-	obj.AddMember("msg", Value(msg, obj.GetAllocator()).Move(), obj.GetAllocator());
+	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
 	
 	if (details.size()) {
-		obj.AddMember("details", Value(details.data(), obj.GetAllocator()).Move(), obj.GetAllocator());
+		obj.AddMember("details", Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
 	}
 
 	return obj;

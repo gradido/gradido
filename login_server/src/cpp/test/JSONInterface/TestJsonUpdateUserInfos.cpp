@@ -4,6 +4,9 @@
 #include "TestJsonUpdateUserInfos.h"
 #include "lib/Profiler.h"
 
+#include "rapidjson/pointer.h"
+
+using namespace rapidjson;
 
 void TestJsonUpdateUserInfos::SetUp()
 {
@@ -23,11 +26,13 @@ void TestJsonUpdateUserInfos::TearDown()
 	}
 }
 
-Poco::JSON::Object::Ptr TestJsonUpdateUserInfos::chooseAccount(const Poco::JSON::Object::Ptr update)
+Document TestJsonUpdateUserInfos::chooseAccount(Value& update)
 {
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("email", mUserSession->getNewUser()->getModel()->getEmail());
-	params->set("update", update);
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	auto email = mUserSession->getNewUser()->getModel()->getEmail();
+	params.AddMember("email", Value(email.data(), alloc), alloc);
+	params.AddMember("update", update, alloc);
 	return params;
 }
 
@@ -37,129 +42,109 @@ TEST_F(TestJsonUpdateUserInfos, EmptyOldPassword)
 	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
-	
-	update->set("User.password", "haLL1o_/%s");
-
+	Value update(kObjectType);	
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password", "haLL1o_/%s", alloc);
+
+	
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_LE(timeUsed.millis(), 300);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
-	ASSERT_EQ(valid_values, 0);
-	//User.password_old not found
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
+	Value& first_error = Pointer("/errors/0").GetWithDefault(params, "");
+	ASSERT_TRUE(first_error.IsString());
+	ASSERT_EQ(std::string(first_error.GetString(), first_error.GetStringLength()), "User.password_old not found");
 
-	ASSERT_EQ(error_array.size(), 1);
-	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password_old not found");
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
-
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "error");
 }
 
 TEST_F(TestJsonUpdateUserInfos, OnlyOldPassword)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
-	update->set("User.password_old", "TestP4ssword&H");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password_old", "TestP4ssword&H", alloc);
+
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_LE(timeUsed.millis(), 200);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
-	ASSERT_EQ(valid_values, 0);
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	ASSERT_EQ(error_array.size(), 0);
+	auto errors_it = result.FindMember("errors");
+	ASSERT_NE(errors_it, result.MemberEnd());
+	ASSERT_TRUE(errors_it->value.IsArray());
+	ASSERT_EQ(errors_it->value.Size(), 0);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
-
-	delete result;
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
+	
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 }
 
 TEST_F(TestJsonUpdateUserInfos, WrongPassword)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
 
-	update->set("User.password", "newPassword");
-	update->set("User.password_old", "TestP4sswordH");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password", "newPassword", alloc);
+	update.AddMember("User.password_old", "TestP4sswordH", alloc);
+
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
-	ASSERT_EQ(valid_values, 0);
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	ASSERT_EQ(error_array.size(), 1);
-	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password_old didn't match");
+		
+	Value& first_error = Pointer("/errors/0").GetWithDefault(params, "");
+	ASSERT_TRUE(first_error.IsString());
+	ASSERT_EQ(std::string(first_error.GetString(), first_error.GetStringLength()), "User.password_old didn't match");
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
-
-	delete result;
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
+	
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "error");
 }
 
 TEST_F(TestJsonUpdateUserInfos, EmptyPassword)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
-
-	update->set("User.password", "");
-	update->set("User.password_old", "TestP4sswordH");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password", "", alloc);
+	update.AddMember("User.password_old", "TestP4sswordH",alloc);
+		
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_LE(timeUsed.millis(), 200);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
-	ASSERT_EQ(valid_values, 0);
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	ASSERT_EQ(error_array.size(), 1);
-	ASSERT_EQ(error_array.getElement<std::string>(0), "User.password is empty");
+	Value& first_error = Pointer("/errors/0").GetWithDefault(params, "");
+	ASSERT_TRUE(first_error.IsString());
+	ASSERT_EQ(std::string(first_error.GetString(), first_error.GetStringLength()), "User.password is empty");
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
 
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "error");
 }
 
 TEST_F(TestJsonUpdateUserInfos, NewPasswordSameAsOldPassword)
@@ -167,34 +152,28 @@ TEST_F(TestJsonUpdateUserInfos, NewPasswordSameAsOldPassword)
 	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
-
-	update->set("User.password", "TestP4ssword&H");
-	update->set("User.password_old", "TestP4ssword&H");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password", "TestP4ssword&H", alloc);
+	update.AddMember("User.password_old", "TestP4ssword&H", alloc);
+	
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
+	auto errors_it = result.FindMember("errors");
+	ASSERT_NE(errors_it, result.MemberEnd());
+	ASSERT_TRUE(errors_it->value.IsArray());
+	ASSERT_EQ(errors_it->value.Size(), 0);
 
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
 
-
-	EXPECT_EQ(valid_values, 0);
-	ASSERT_EQ(error_array.size(), 0);
-	ASSERT_EQ(state.toString(), "success");
-
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 }
 
 TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
@@ -202,116 +181,105 @@ TEST_F(TestJsonUpdateUserInfos, PasswordNotSecureEnough)
 	JsonUpdateUserInfos jsonCall(mUserSession);
 	ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
 
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
-
-	update->set("User.password", "newPassword");
-	update->set("User.password_old", "TestP4ssword&H");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.password", "newPassword", alloc);
+	update.AddMember("User.password_old", "TestP4ssword&H", alloc);
+	
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
+	auto errors_it = result.FindMember("errors");
+	ASSERT_NE(errors_it, result.MemberEnd());
+	ASSERT_TRUE(errors_it->value.IsArray());
 
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
 
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		EXPECT_EQ(valid_values, 1);
-		ASSERT_EQ(error_array.size(), 0);
-		ASSERT_EQ(state.toString(), "success");
+		ASSERT_EQ(errors_it->value.Size(), 0);
+		ASSERT_EQ(state, "success");
 	}
 	else {
 		EXPECT_EQ(valid_values, 0);
 
-		ASSERT_EQ(error_array.size(), 2);
-		ASSERT_EQ(error_array.getElement<std::string>(0), "User.password isn't valid");
+		ASSERT_EQ(errors_it->value.Size(), 2);
+		std::string first_error(errors_it->value.Begin()->GetString(), errors_it->value.Begin()->GetStringLength());
+		ASSERT_EQ(first_error, "User.password isn't valid");
 
-		ASSERT_EQ(state.toString(), "error");
+		ASSERT_EQ(state, "error");
 	}
 
-	delete result;
 }
 
 
 TEST_F(TestJsonUpdateUserInfos, PasswordCorrect)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
+	Value update(kObjectType);
 
-	update->set("User.password", "uasjUs7ZS/as12");
+	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
 
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "newPassword"), USER_COMPLETE);
-		update->set("User.password_old", "newPassword");
+		update.AddMember("User.password_old", "newPassword", alloc);
 	}
 	else {
 		ASSERT_EQ(mUserSession->loadUser("Jeet_bb@gmail.com", "TestP4ssword&H"), USER_COMPLETE);
-		update->set("User.password_old", "TestP4ssword&H");
+		update.AddMember("User.password_old", "TestP4ssword&H", alloc);
 	}	
 
-	auto params = chooseAccount(update);
+	
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
 	ASSERT_GE(timeUsed.millis(), ServerConfig::g_FakeLoginSleepTime * 0.75);
 
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
+	auto errors_it = result.FindMember("errors");
+	ASSERT_NE(errors_it, result.MemberEnd());
+	ASSERT_TRUE(errors_it->value.IsArray());
+	ASSERT_EQ(errors_it->value.Size(), 0);
 
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 1);
 
-	EXPECT_EQ(valid_values, 1);
-	ASSERT_EQ(error_array.size(), 0);
-	ASSERT_EQ(state.toString(), "success");
-
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
+	
 }
 //*/
 TEST_F(TestJsonUpdateUserInfos, NoChanges)
 {
 	JsonUpdateUserInfos jsonCall(mUserSession);
 	
-	Poco::JSON::Object::Ptr update = new Poco::JSON::Object;
-
-	update->set("User.first_name", "Darios");
-	update->set("User.last_name", "Bruder");
-
+	Value update(kObjectType);
 	auto params = chooseAccount(update);
+	auto alloc = params.GetAllocator();
+	update.AddMember("User.first_name", "Darios", alloc);
+	update.AddMember("User.last_name", "Bruder", alloc);
+
 	Profiler timeUsed;
 	auto result = jsonCall.handle(params);
-	
-	auto errors = result->get("errors");
-	ASSERT_TRUE(errors.isArray());
-	auto valid_values_obj = result->get("valid_values");
-	ASSERT_TRUE(valid_values_obj.isInteger());
-	int valid_values = 0;
-	valid_values_obj.convert(valid_values);
 
-	Poco::JSON::Array error_array = errors.extract<Poco::JSON::Array>();
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
+	auto errors_it = result.FindMember("errors");
+	ASSERT_NE(errors_it, result.MemberEnd());
+	ASSERT_TRUE(errors_it->value.IsArray());
+	ASSERT_EQ(errors_it->value.Size(), 0);
 
+	Value& valid_values = Pointer("/valid_values").GetWithDefault(params, 0);
+	ASSERT_TRUE(valid_values.IsInt());
+	ASSERT_EQ(valid_values.GetInt(), 0);
 
-	EXPECT_EQ(valid_values, 0);
-	ASSERT_EQ(error_array.size(), 0);
-	ASSERT_EQ(state.toString(), "success");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 
-
-	delete result;
 }
