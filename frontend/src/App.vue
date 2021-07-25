@@ -4,7 +4,7 @@
       <particles-bg v-show="checked" type="custom" :config="config" :bg="true" />
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
     </div>
-    <input-checkox v-model="checked" />
+    <input-checkox v-model="checked" v-on:changeChecked="changeChecked" />
   </div>
 </template>
 <script>
@@ -39,6 +39,11 @@ export default {
         random: 2,
       },
       checked: true,
+    }
+  },
+  methods: {
+    changeChecked(check){
+      this.checked = this.check
     }
   },
 }

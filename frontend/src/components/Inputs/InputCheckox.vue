@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     updateChecked() {
-      this.$emit('changeChecked', this.checked)
+      this.$emit('input', this.checked)
     },
   },
 }
