@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include "SingletonManager/SessionManager.h"
 
-#include "Poco/JSON/Object.h"
-
 #include "JSONInterface/JsonGetUsers.h"
+
+using namespace rapidjson;
 
 TEST(TestJsonGetUsers, NO_ADMIN)
 {
@@ -14,20 +14,19 @@ TEST(TestJsonGetUsers, NO_ADMIN)
 	session->setUser(user);
 
 	JsonGetUsers jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("search", "b");
-	params->set("session_id", session->getHandle());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("search", "b", alloc);
+	params.AddMember("session_id", session->getHandle(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "wrong role");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "wrong role");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "User hasn't correct role");
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "User hasn't correct role");
 
 	sm->releaseSession(session);
 }
@@ -36,20 +35,19 @@ TEST(TestJsonGetUsers, INVALID_SESSION)
 {
 	
 	JsonGetUsers jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("search", "");
-	params->set("session_id", rand());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("search", "", alloc);
+	params.AddMember("session_id", rand(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "not found");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "not found");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "Session not found");
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "Session not found");
 }
 
 TEST(TestJsonGetUsers, EMPTY_SEARCH)
@@ -61,20 +59,19 @@ TEST(TestJsonGetUsers, EMPTY_SEARCH)
 	session->setUser(user);
 
 	JsonGetUsers jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("search", "");
-	params->set("session_id", session->getHandle());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("search", "", alloc);
+	params.AddMember("session_id", session->getHandle(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "not found");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "not found");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "Search string is empty and account_state is all or empty");
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "Search string is empty and account_state is all or empty");
 
 	sm->releaseSession(session);
 }
@@ -88,24 +85,24 @@ TEST(TestJsonGetUsers, VALID_SEARCH)
 	session->setUser(user);
 
 	JsonGetUsers jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("search", "a");
-	params->set("session_id", session->getHandle());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("search", "a", alloc);
+	params.AddMember("session_id", session->getHandle(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 
-	auto msg = result->get("msg");
-	ASSERT_TRUE(msg.isEmpty());
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "");
 
-	EXPECT_TRUE(result->isArray("users"));
-	auto users = result->getArray("users");
-	ASSERT_FALSE(users.isNull());
-		
-	ASSERT_EQ(users->size(), 6);
+	
+	EXPECT_FALSE(jsonCall.checkArrayParameter(params, "users").IsObject());
+	auto users = params.FindMember("users");	
+	ASSERT_EQ(users->value.Size(), 6);
 
 	sm->releaseSession(session);
 }
@@ -119,25 +116,25 @@ TEST(TestJsonGetUsers, VALID_STATE_SEARCH)
 	session->setUser(user);
 
 	JsonGetUsers jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("search", "");
-	params->set("account_state", "email not activated");
-	params->set("session_id", session->getHandle());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+
+	params.AddMember("search", "", alloc);
+	params.AddMember("account_state", "email not activated", alloc);
+	params.AddMember("session_id", session->getHandle(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 
-	auto msg = result->get("msg");
-	ASSERT_TRUE(msg.isEmpty());
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "");
 
-	EXPECT_TRUE(result->isArray("users"));
-	auto users = result->getArray("users");
-	ASSERT_FALSE(users.isNull());
-
-	ASSERT_EQ(users->size(), 1);
+	EXPECT_FALSE(jsonCall.checkArrayParameter(params, "users").IsObject());
+	auto users = params.FindMember("users");
+	ASSERT_EQ(users->value.Size(), 1);
 
 	sm->releaseSession(session);
 }

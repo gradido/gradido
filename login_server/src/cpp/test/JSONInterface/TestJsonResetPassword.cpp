@@ -4,6 +4,7 @@
 #include "TestJsonResetPassword.h"
 #include "lib/Profiler.h"
 
+using namespace rapidjson;
 
 void TestJsonResetPassword::SetUp()
 {
@@ -27,74 +28,72 @@ void TestJsonResetPassword::TearDown()
 TEST_F(TestJsonResetPassword, WithoutSession)
 {
 	JsonResetPassword jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("password", "ashze_Sja/63");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("password", "ashze_Sja/63", alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "error");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "missing session_id");
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "missing session_id");
 
 }
 
 TEST_F(TestJsonResetPassword, WithoutPassword)
 {
 	JsonResetPassword jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("session_id", mUserSession->getHandle());
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("session_id", mUserSession->getHandle(), alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "error");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "password missing");
+	std::string msg;
+	jsonCall.getStringParameter(params, "msg", msg);
+	ASSERT_EQ(msg, "password missing");
 }
 
 TEST_F(TestJsonResetPassword, InvalidPassword)
 {
 	JsonResetPassword jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("session_id", mUserSession->getHandle());
-	params->set("password", "ash");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("session_id", mUserSession->getHandle(), alloc);
+	params.AddMember("password", "ash", alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
-		ASSERT_EQ(state.toString(), "success");
+		ASSERT_EQ(state, "success");
 	}
 	else {
-		ASSERT_EQ(state.toString(), "error");
+		ASSERT_EQ(state, "error");
 
-		auto msg = result->get("msg");
-		ASSERT_FALSE(msg.isEmpty());
-		ASSERT_TRUE(msg.isString());
-		ASSERT_EQ(msg.toString(), "password isn't valid");
+		std::string msg;
+		jsonCall.getStringParameter(params, "msg", msg);
+		ASSERT_EQ(msg, "password isn't valid");
 	}
 }
 
 TEST_F(TestJsonResetPassword, ValidPassword)
 {
 	JsonResetPassword jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("session_id", mUserSession->getHandle());
-	params->set("password", "hath6/&Sja");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("session_id", mUserSession->getHandle(), alloc);
+	params.AddMember("password", "hath6/&Sja", alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
+	std::string state;
+	jsonCall.getStringParameter(params, "state", state);
+	ASSERT_EQ(state, "success");
 }

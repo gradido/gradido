@@ -4,8 +4,6 @@
 #include "gtest/gtest.h"
 #include "SingletonManager/SessionManager.h"
 
-#include "Poco/JSON/Object.h"
-
 class TestJsonUpdateUserInfos : public ::testing::Test
 {
 
@@ -13,7 +11,7 @@ protected:
 	void SetUp() override;
 	void TearDown() override;
 
-	Poco::JSON::Object::Ptr chooseAccount(const Poco::JSON::Object::Ptr update);
+	rapidjson::Document chooseAccount(rapidjson::Value& update);
 
 	Session* mUserSession;
 	std::string mEmail;

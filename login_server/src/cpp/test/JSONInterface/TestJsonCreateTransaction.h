@@ -4,7 +4,6 @@
 #include "gtest/gtest.h"
 #include "SingletonManager/SessionManager.h"
 
-#include "Poco/JSON/Object.h"
 
 class TestJsonCreateTransaction : public ::testing::Test
 {
@@ -13,7 +12,7 @@ protected:
 	void SetUp() override;
 	void TearDown() override;
 
-	Poco::JSON::Object::Ptr basisSetup();
+	rapidjson::Document basisSetup();
 
 	Session* mUserSession;
 	std::string mEmail;
