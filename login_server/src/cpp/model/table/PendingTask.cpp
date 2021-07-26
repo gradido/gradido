@@ -71,7 +71,7 @@ namespace model
 				SHARED_LOCK;
 				temp = mResultJsonString;
 				if (!mResultJsonString.size()) {
-					return Document();
+					return Document(kObjectType);
 				}
 			}
 			Document result;
@@ -86,7 +86,7 @@ namespace model
 				SHARED_LOCK;
 				temp = mParamJsonString;
 				if (!mResultJsonString.size()) {
-					return Document();
+					return Document(kObjectType);
 				}
 			}
 			Document result;

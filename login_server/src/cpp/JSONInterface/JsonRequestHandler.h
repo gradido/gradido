@@ -30,7 +30,7 @@ public:
 	static rapidjson::Document getIntParameter(const rapidjson::Document& params, const char* fieldName, int& iParameter);
 	static rapidjson::Document getUIntParameter(const rapidjson::Document& params, const char* fieldName, unsigned int& iParameter);
 	static rapidjson::Document getBoolParameter(const rapidjson::Document& params, const char* fieldName, bool& bParameter);
-	static 	rapidjson::Document getUInt64Parameter(const rapidjson::Document& params, const char* fieldName, Poco::UInt64& iParameter);
+	static rapidjson::Document getUInt64Parameter(const rapidjson::Document& params, const char* fieldName, Poco::UInt64& iParameter);
 	static rapidjson::Document getStringParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter);
 	static rapidjson::Document getStringIntParameter(const rapidjson::Document& params, const char* fieldName, std::string& strParameter, int& iParameter);
 	static rapidjson::Document checkArrayParameter(const rapidjson::Document& params, const char* fieldName);

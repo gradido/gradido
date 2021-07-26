@@ -34,12 +34,12 @@ TEST_F(TestJsonResetPassword, WithoutSession)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "error");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
-	ASSERT_EQ(msg, "missing session_id");
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "session_id not found");
 
 }
 
@@ -52,12 +52,12 @@ TEST_F(TestJsonResetPassword, WithoutPassword)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "error");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
-	ASSERT_EQ(msg, "password missing");
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "password not found");
 }
 
 TEST_F(TestJsonResetPassword, InvalidPassword)
@@ -70,7 +70,7 @@ TEST_F(TestJsonResetPassword, InvalidPassword)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	
 	if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) == ServerConfig::UNSECURE_ALLOW_ALL_PASSWORDS) {
 		ASSERT_EQ(state, "success");
@@ -79,8 +79,8 @@ TEST_F(TestJsonResetPassword, InvalidPassword)
 		ASSERT_EQ(state, "error");
 
 		std::string msg;
-		jsonCall.getStringParameter(params, "msg", msg);
-		ASSERT_EQ(msg, "password isn't valid");
+		jsonCall.getStringParameter(result, "msg", msg);
+		ASSERT_EQ(msg, "Password: Your password is to short!");
 	}
 }
 
@@ -94,6 +94,6 @@ TEST_F(TestJsonResetPassword, ValidPassword)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "success");
 }

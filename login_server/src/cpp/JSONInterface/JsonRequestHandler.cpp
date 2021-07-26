@@ -161,11 +161,12 @@ void JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_strea
 Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 {
 	Document obj(kObjectType);
-	obj.AddMember("state", "error", obj.GetAllocator());
-	obj.AddMember("msg", Value(msg, obj.GetAllocator()), obj.GetAllocator());
+	auto alloc = obj.GetAllocator();
+	obj.AddMember("state", "error", alloc);
+	obj.AddMember("msg", Value(msg, alloc), alloc);
 	
 	if (details.size()) {
-		obj.AddMember("details", Value(details.data(), obj.GetAllocator()), obj.GetAllocator());
+		obj.AddMember("details", Value(details.data(), alloc), alloc);
 	}
 
 	return obj;
