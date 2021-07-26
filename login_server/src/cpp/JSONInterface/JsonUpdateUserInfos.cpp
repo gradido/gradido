@@ -13,7 +13,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 
 	
 	
-	paramError = checkObjectParameter(params, "ask");
+	paramError = checkObjectParameter(params, "update");
 	if (paramError.IsObject()) { return paramError; }
 	auto itr = params.FindMember("update");
 	const Value& updates = itr->value;
@@ -23,10 +23,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		
 	Document result(kObjectType);
 	auto alloc = result.GetAllocator();
-	result.AddMember("state", "success", alloc);
-
 	auto sm = SessionManager::getInstance();
-
 	Value jsonErrors(kArrayType);
 
 	int extractet_values = 0;
@@ -53,9 +50,11 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		
 		if ("User.first_name" == name) 
 		{
-			if (str_value.size() > 0 && user_model->getFirstName() != str_value) {
-				user_model->setFirstName(str_value);
-				extractet_values++;
+			if (str_value.size() > 0) {
+				if (user_model->getFirstName() != str_value) {
+					user_model->setFirstName(str_value);
+					extractet_values++;
+				}
 			}
 			else {
 				jsonErrors.PushBack("User.first_name value isn't valid string", alloc);
@@ -63,9 +62,11 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		}
 		else if ("User.last_name" == name) 
 		{	
-			if (str_value.size() > 0 && user_model->getLastName() != str_value) {
-				user_model->setLastName(str_value);
-				extractet_values++;
+			if (str_value.size() > 0) {
+				if (user_model->getLastName() != str_value) {
+					user_model->setLastName(str_value);
+					extractet_values++;
+				}
 			}
 			else {
 				jsonErrors.PushBack("User.last_name value isn't valid string", alloc);
@@ -204,7 +205,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		result.AddMember("state", "success", alloc);
 	}
 	else if (jsonErrors.Size() == 1) {
-		result.AddMember("msg", jsonErrors.PopBack().Move(), alloc);
+		result.AddMember("msg", *(jsonErrors.Begin()), alloc);
 		result.AddMember("state", "error", alloc);
 	}
 	else {

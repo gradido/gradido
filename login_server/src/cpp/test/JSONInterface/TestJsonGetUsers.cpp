@@ -21,19 +21,18 @@ TEST(TestJsonGetUsers, NO_ADMIN)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "wrong role");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
+	jsonCall.getStringParameter(result, "msg", msg);
 	ASSERT_EQ(msg, "User hasn't correct role");
 
 	sm->releaseSession(session);
 }
 
 TEST(TestJsonGetUsers, INVALID_SESSION)
-{
-	
+{	
 	JsonGetUsers jsonCall;
 	Document params(kObjectType);
 	auto alloc = params.GetAllocator();
@@ -42,12 +41,12 @@ TEST(TestJsonGetUsers, INVALID_SESSION)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "not found");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
-	ASSERT_EQ(msg, "Session not found");
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "session not found");
 }
 
 TEST(TestJsonGetUsers, EMPTY_SEARCH)
@@ -66,11 +65,11 @@ TEST(TestJsonGetUsers, EMPTY_SEARCH)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "not found");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
+	jsonCall.getStringParameter(result, "msg", msg);
 	ASSERT_EQ(msg, "Search string is empty and account_state is all or empty");
 
 	sm->releaseSession(session);
@@ -92,16 +91,16 @@ TEST(TestJsonGetUsers, VALID_SEARCH)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "success");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
+	jsonCall.getStringParameter(result, "msg", msg);
 	ASSERT_EQ(msg, "");
 
 	
-	EXPECT_FALSE(jsonCall.checkArrayParameter(params, "users").IsObject());
-	auto users = params.FindMember("users");	
+	EXPECT_FALSE(jsonCall.checkArrayParameter(result, "users").IsObject());
+	auto users = result.FindMember("users");
 	ASSERT_EQ(users->value.Size(), 6);
 
 	sm->releaseSession(session);
@@ -125,15 +124,15 @@ TEST(TestJsonGetUsers, VALID_STATE_SEARCH)
 	auto result = jsonCall.handle(params);
 
 	std::string state;
-	jsonCall.getStringParameter(params, "state", state);
+	jsonCall.getStringParameter(result, "state", state);
 	ASSERT_EQ(state, "success");
 
 	std::string msg;
-	jsonCall.getStringParameter(params, "msg", msg);
+	jsonCall.getStringParameter(result, "msg", msg);
 	ASSERT_EQ(msg, "");
 
-	EXPECT_FALSE(jsonCall.checkArrayParameter(params, "users").IsObject());
-	auto users = params.FindMember("users");
+	EXPECT_FALSE(jsonCall.checkArrayParameter(result, "users").IsObject());
+	auto users = result.FindMember("users");
 	ASSERT_EQ(users->value.Size(), 1);
 
 	sm->releaseSession(session);
