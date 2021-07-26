@@ -94,7 +94,6 @@ class StateBalancesController extends AppController
 
         $gdtSum = 0;        
         $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
