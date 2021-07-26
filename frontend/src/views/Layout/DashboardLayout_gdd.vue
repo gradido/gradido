@@ -23,7 +23,7 @@
         ></sidebar-item>
       </template>
     </side-bar>
-    <div class="main-content">
+    <div class="main-content" style="max-width:1000px">
       <div class="d-none d-md-block">
         <b-navbar>
           <b-navbar-nav class="ml-auto">
