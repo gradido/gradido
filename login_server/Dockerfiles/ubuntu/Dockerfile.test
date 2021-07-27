@@ -16,6 +16,7 @@ COPY ./cmake/CodeCoverage.cmake ./cmake/CodeCoverage.cmake
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
+COPY ./dependencies/rapidjson ./dependencies/rapidjson
 COPY ./scripts ./scripts
 
 
