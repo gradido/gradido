@@ -131,7 +131,7 @@ namespace model {
 
 					JsonRequest request(group_model->getUrl(), 443);
 					
-					request.request("addUser", user->getJson(request.getJsonAllocator()));
+					request.request("addUser", user->getJson(request.getJsonAllocator()).Move());
 					
 					printf("[GroupMemberUpdate::transactionAccepted] finished\n");
 				}

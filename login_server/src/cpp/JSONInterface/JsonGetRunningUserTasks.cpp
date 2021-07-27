@@ -22,7 +22,7 @@ Document JsonGetRunningUserTasks::handle(const Document& params)
 		for (int i = 0; i < TASK_OBSERVER_COUNT; i++) {
 			if (tasks[i] > 0) {
 				std::string typeName = SingletonTaskObserver::TaskObserverTypeToString(static_cast<TaskObserverType>(i));
-				tasksJson.AddMember(Value(typeName.data(), alloc), tasks[i], alloc);
+				tasksJson.AddMember(Value(typeName.data(), alloc).Move(), tasks[i], alloc);
 			}
 		}
 	}
