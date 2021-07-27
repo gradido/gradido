@@ -1,7 +1,5 @@
 # Benutzer-Verwaltung
 
-
-
 Benutzer
 
 * *
@@ -14,6 +12,13 @@ Benutzer
   * Emailadresse
   * Konto
   * Trustlevel (Zukunft)
+
+
+Gradido-ID als Ersatz für Email-Adresse : server/nutzername
+
+Nutzername ist pro server eindeutig
+
+Nutzerprofil mit Bild und persönlichen Angeboten
 
 
 ## Anwendungsfälle
