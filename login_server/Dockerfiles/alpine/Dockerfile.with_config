@@ -17,6 +17,7 @@ COPY ./login_server/src ./src
 COPY ./login_server/dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./login_server/dependencies/spirit-po ./dependencies/spirit-po
 COPY ./login_server/dependencies/tinf ./dependencies/tinf
+COPY ./login_server/dependencies/rapidjson ./dependencies/rapidjson
 COPY ./login_server/scripts ./scripts
 
 RUN  mkdir build && \
