@@ -1,26 +1,22 @@
-# Testfall: "*Dateiname*"
+# Testfall: "*T03-C001-01-CreateActiveBasicIncome*"
 
-## Thema: "*Name des Verzeichnisses*"
+## Thema: "*T03-Schoepfung-Vergaenglichkeit*"
 
-## ## Beschreibung:
+## Beschreibung:
 
 *Welche(n) Anwendungsschritt/Oberfläche/Logik ist durch den Testfall betroffen?*
-
 
 ## Vorraussetzungen:
 
 *Welche Vorraussetzungen (Daten/Anwendungschritte, etc.) müssen erfüllt sein, um den Testfall durchführen zu können?*
 
-
 ## Testfall-Schritte:
 
 *Welche Schritte müssen zur Durchführung des Testfalles getätigt werden?  (Dateneingaben/ Navigationen/ Link- o Button-Klicks/ Schritte der Anwendungslogik/ etc.)*
 
-
 ## Ende-Bedingungen:
 
 *Welche Bedingungen werden am Ende des Testfalles bei positivem Ergebnis erwartet? (Daten/ GUI/ Zustände/ etc)*
-
 
 ## erwartete Fehlerfälle:
 

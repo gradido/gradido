@@ -41,8 +41,6 @@ Das nachfolgende Bild zeigt einen ersten Eindruck über die unterschiedlichen Co
 
 ![CommunityModell](./image/CommunityModell.png)
 
-
-
 ##### Eigenständige Community
 
 Eine eigenständige Community zeichnet sich darin aus, dass sie keine Beziehung zu einer anderen Community aufgebaut hat. Das heißt sie hat weder eine vertrauenswürdige Verknüpfung mit einer zweiten Community, noch hat sie eine Verbindung zu einer Parent-Community und besitzt auch selbst keine Verbindung zu einer Child-Community. Somit kann diese Community für ihre Mitglieder nur Community intern wirksame Prozesse anbieten. Das heißt es ist kein Community übergreifender Handel bzw. Austausch von Gradido möglich. Andererseits werden in dieser Community die Prozesse freigeschaltet, dass ein Aufbau eines vertrauenswürdiges Verhältnis zu einer anderen Community erlaubt, der Aufbau einer Parent-Beziehung und auch der Aufbau einer Child-Beziehung ermöglicht. Die zugehörigen Abbau-Prozesse dagegen sind nicht freigeschalten. Der Community übegreifende Überprüfungsprozess bei der Mitglieder-Registrierung zur eindeutigen Identifikation in der Mitglieder-Verwaltung zählt dabei nicht als vertrauenswürdige Verbindung zwischen Communities.
@@ -51,35 +49,56 @@ Eine eigenständige Community zeichnet sich darin aus, dass sie keine Beziehung 
 
 *Hier soll beschrieben werden, was den Unterschied auszeichnet zu einer "Eigenständigen Community", wie man das gegenseitige Vertrauen (sprich Verknüpfung) zwischen zwei oder mehreren Communities auf- und wieder abbaut, was bedarf es an Vorraussetzungen für einen Vertrauens-Auf/Abbau und welche Konsequenzen der Auf- und Abbau des gegenseitigen Vertrauens haben soll.*
 
-Das Modell der sich "gegenseitig vertrauenden Communities" entspringt der Idee des sich miteinander Vernetzens und damit das Handeln und Agieren mit Gradido-Mitgliedern, die nicht in der eigenen Community als Mitglied registriert sind. Um dies zu ermöglichen bedarf es einem Aufbau-Prozess zwischen zwei Communities, die sich zukünftig gegenseitig ein enges Vertrauen schenken. Auf der Basis dieses Vertrauens tauschen die beiden Communities Informationen untereinander aus, so dass für die Mitglieder beider Communities die Funktionalitäten auf der Gradido-Plattform so transparent erscheinen, als ob sie alle Mitglied einer Community wären. Das würde sich beispielsweise bei der Suche nach einem bestimmten Community-Mitglied auswirken, da nun alle Mitgleider beider Communities in einer Liste zu Anzeige gebracht werden können. Oder der Transfer von Gradidos von einem Mitglied zu einem anderen Mitglied ist über dieses Community-Verhältnis nun auch Community übergreifend möglich. Auch weitere Angebote, die bisher nur in einer Community zur Verfügung standen, sind nun auch den Mitgliedern der anderen Community zugänglich.
+Das Modell der sich *gegenseitig vertrauenden Communities* entspringt der Idee des sich miteinander Vernetzens und damit das Handeln und Agieren mit Gradido-Mitgliedern, die nicht in der eigenen Community als Mitglied registriert sind. Um dies zu ermöglichen bedarf es einem Aufbau-Prozess zwischen zwei Communities, die sich zukünftig gegenseitig ein enges Vertrauen schenken. Auf der Basis dieses Vertrauens tauschen die beiden Communities Informationen untereinander aus, so dass für die Mitglieder beider Communities die Funktionalitäten auf der Gradido-Plattform so transparent erscheinen, als ob sie alle Mitglied einer Community wären. Das würde sich beispielsweise bei der Suche nach einem bestimmten Community-Mitglied auswirken, da nun alle Mitgleider beider Communities in einer Liste zur Anzeige gebracht werden können. Oder der Transfer von Gradidos von einem Mitglied zu einem anderen Mitglied ist über dieses Community-Verhältnis nun auch Community übergreifend möglich. Auch weitere Angebote, die bisher nur in einer Community zur Verfügung standen, sind nun auch den Mitgliedern der anderen Community zugänglich.
 
-Während des Aufbau-Prozesses werden neben den eigentlichen Security relevanten Informationen für den Aufbau und die Sicherstellung des Vertrauensverhältnisses auch fachliche Informationen ausgetauscht. Unter fachlichen Informationen sind die nun freigeschaltenen Angebote beider Communities gemeint. Somit werden in der einen Community nun auch die fachlichen Prozesse und Angebote der anderen Community zugänglich und freigeschalten und umgekehrt. Wie feingranular die Prozesse und Angebote dabei ausgetauscht und freigeschaltet werden unterliegt einer administrativen Konfiguration der jeweiligen Community. Das heißt der Administrator jeder Community kann im Vorfeld selektiv konfigurieren welche Angebote und Prozesse beim Aufbau-Prozess für ein Vertrauensverhältnis mit einer anderen Community übertragen und freigeschaltet werden. Diese Konfiguration sollte zuvor Community intern abgestimmt sein, um nicht schon zu Beginn der Zusammenarbeit der beiden Communities irgendwelche Missstimmungen unter den Mitgliedern zu verursachen. Die Details des "Vertrauensverhältnis Aufbau-Prozesses" sind weiter unten im Kaptiel Anwendungsfälle beschrieben.
+Während des Aufbau-Prozesses werden neben den eigentlichen Security relevanten Informationen für den Aufbau und die Sicherstellung des Vertrauensverhältnisses auch fachliche Informationen ausgetauscht. Unter fachlichen Informationen sind die nun freigeschaltenen Angebote beider Communities gemeint. Somit werden in der einen Community nun auch die fachlichen Prozesse und Angebote der anderen Community zugänglich und freigeschalten und umgekehrt. Wie feingranular die Prozesse und Angebote dabei ausgetauscht und freigeschaltet werden unterliegt einer administrativen Konfiguration der jeweiligen Community. Das heißt der Administrator jeder Community kann im Vorfeld selektiv konfigurieren welche Angebote und Prozesse beim Aufbau-Prozess für ein Vertrauensverhältnis mit einer anderen Community übertragen und freigeschaltet werden. Diese Konfiguration sollte zuvor Community intern abgestimmt sein, um nicht schon zu Beginn der Zusammenarbeit der beiden Communities irgendwelche Missstimmungen unter den Mitgliedern zu verursachen. Die Details des *Vertrauensverhältnis Aufbau-Prozesses* sind weiter unten im Kapitel **Anwendungsfälle** beschrieben.
 
 ##### Abhängige Communities
 
 *Hier soll beschrieben werden, was den Unterschied zu eigenständigen und sich gegenseitig vertrauenden Communities zu den hier abhängigen  (sprich vererbten) Communities auszeichnet, welche Vorraussetzungen bedarf der Auf/Abbau einer abhängigen Community und welche Konsequenzen hat der Auf- und Abbau von abhängigen Communities.*
 
-Parent-Child Beziehung aufbauen:
+Das Modell der *abhängigen Communities* findet seinen Ursprung den Föderalismus von Deutschland in einer Community-Struktur abbilden zu können. Das bedeutet, dass eine baumartige Struktur von Communities aufgebaut werden kann, wie nachfolgendes Bild schemenhaft zeigt:
 
-keine Änderung der Schöpfungsprozesse
+![hierarchisches Community-Modell](./image/HierarchischesCommunityModell.png)
 
-- jede Community schöpft für ihre Benutzer die 3 Empfängerkonto die jeweils 1000 GDD
+Es wird somit zwischen zwei Communities aus benachbarten Ebenen eine Parent-Child-Beziehung erzeugt. Dadurch gehen diese beiden Communities eine besondere Beziehung untereinander ein, die zu folgenden veränderten Eigenschaften und Verhalten der Parent- und der Child-Community führen:
 
-eine Child-Community kann immer nur zu einer Parent-Community gehören
+###### Parent-Community
 
-ein Benutzer kann immer nur zu einer Community gehören
+* kann 1 bis n Child-Communities besitzen
+* verwaltet keine Mitglieder mit AGE-Konto
+* verwaltet nur noch Community eigenes Allgemeinwohl-Konto und AUF-Konto
+* benötigt in der Parent-Child-Beziehung einen besonderen Verteilungsschlüssel für das geschöpfte Geld  auf die beiden Allgemeinwohl- und AUF-Konten in Richtung Child- nach Parent-Community
+* bedarf spezieller Administrations-Rechte und Rollen zum Auf- und Abbau der Child-Community-Beziehungen
+* bedarf spezieller Administrationsprozesse zur Verwaltung der Parent-Aufgaben:
+  * Auf- und Abbau der Parent-Child-Beziehung
+  * Verschiebung aller Mitglieder von der Parent- in die Child-Community
+  * Stoppen des Sicherstellungsprozesses, dass eine *natürliche Person* nur Mitglied einer einzigen Community ist, sobald die erste Child-Beziehung aufgebaut ist und alle Mitglieder dahin verschoben sind
+  * Prozess zur Aufnahme der geschöpften Allgemeinwohl- und AUF-Gelder aus den Child-Communities
+  * stoppt den Schöpfungsprozess sobald eine Child-Beziehung aufgebaut ist
+  * startet den Schöpfungsprozess sobald die letzte Child-Beziehung aufgelöst ist
+  * Aufnahmeprozess von Mitgliedern aus einer Child-Community, bevor dessen Beziehung aufgelöst wird
+  * starten des Sicherstellungsprozesses, dass eine *natürliche Person* nur Mitglied einer einzigen Community ist, sobald die letzte Child-Beziehung aufgelöst ist
 
-Schöpfen kann immer nur eine natürliche Person
+###### Child-Community
 
-Projekt-Konto entspricht "nicht natürliche Person" und kann nicht schöpfen
+* besitzt genau eine Parent-Community
+* **sofern es eine Community der untersten Ebene ist:**
+  * verwaltet die Mitglieder mit AGE-Konto
+  * nimmt die *natürliche Personen*-Mitglieder aus der Parent-Community auf
+  * bietet einen Wechsel-Prozess für ein Mitglied aus dieser Community in eine andere (Child)-Community
+  * läuft hier der automatische 3-fach-Schöpfungsprozess inklusive der Verteilung des geschöpften Geldes gemäß dem zuvor definierten Verteilungsschlüssel innerhalb der Community
+  * wird hier sicher gestellt, dass nur auf PersonalAccounts von *natürlichen Personen* und nicht auf ImpersonalAccounts von *Projekten/Vereine/Firmen* Geld geschöpft wird
+* **sofern es eine Parent-Community gibt:**
+  * läuft hier der Verteilungsprozess aus der Schöpfung auf das Allgemeinwohl- und AUF-Konto gemäß des Verteilungsschlüssels in Richtung von Child nach Parent also von unten nach oben
+* hier läuft der Prozess zur Sicherstellung, dass eine *natürliche Person* nur Mitglied einer einzigen (Child)-Community ist
+*
 
-Benutzerkonto kann von einer Community in eine andere Community wechseln
 
-Gradido-ID als Ersatz für Email-Adresse : server/nutzername
 
-Nutzername ist pro server eindeutig
 
-Nutzerprofil mit Bild und persönlichen Angeboten
+
+
 
 ##### Mischung aus den vorherigen Modellen
 
@@ -107,55 +126,52 @@ In diesem Kapitel werden die Attribute beschrieben, die in einer Community zu sp
 
 #### Name
 
-Das Attribut Name dient zur möglichst eindeutigen Benennung der Community. Er wird als Menschen lesbare Anzeige und als Unterscheidungskriterium bei mehreren Communities eingesetzt. Nur der Community Administrator kann diesen setzen und verändern.
+Das Attribut *Name* dient zur möglichst eindeutigen Benennung der Community. Er wird als Menschen lesbare Anzeige und als Unterscheidungskriterium bei mehreren Communities eingesetzt. Nur der Community Administrator kann diesen setzen und verändern.
 
 #### Bild
 
-Das Attribut Bild wird für die Anzeige einer Community verwendet und kann nur vom Community-Administrator gesetzt werden.
+Das Attribut *Bild* wird für die Anzeige einer Community verwendet und kann nur vom Community-Administrator gesetzt werden.
 
 #### Beschreibung
 
-Das Attribut Beschreibung ist ein Text, der die Philosophie der Community ausdrücken soll. Hier können sich die Community-Mitglieder eine gemeinsame Formulierung ausdenken, die nach ihrer Vorstellung den Kern und die Grundregeln ihrer Gemeinschaft am besten ausdrücken. Dies könnte wie eine Art Aussendarstellung für neue Mitglieder dienen. Aber nur der Community-Administrator hat die Schreib-Rechte für dieses Attribut.
+Das Attribut *Beschreibung* ist ein Text, der die Philosophie der Community ausdrücken soll. Hier können sich die Community-Mitglieder eine gemeinsame Formulierung ausdenken, die nach ihrer Vorstellung den Kern und die Grundregeln ihrer Gemeinschaft am besten ausdrücken. Dies könnte wie eine Art Aussendarstellung für neue Mitglieder dienen. Aber nur der Community-Administrator hat die Schreib-Rechte für dieses Attribut.
 
 #### Serverzuordnung
 
-Das Attribut Serverzuordnung ist technisch motiviert und dient zusammen mit dem Attribut Name der eindeutigen Identifikation einer Community. Bei der Gründung einer neuen Community muss festgelegt werden auf welchem Server diese Community gehostet wird - auf einem schon vorhandenen Server oder ein extra für diese Community neu aufgesetzter Server. Das Attribut Serverzuordnung muss aber für eine Virtualisierung und technische Skalierung auf mehrere Server-Instanzen vorbereitet sein, sodass keine direkte physische Hardware-Serverzuordnung hierdurch fixiert ist. Aber auch ein eventueller Umzug der Community von einem Server auf einen anderen Server muss möglich sein. Der Community-Administrator hat alleiniges Zugriffrecht auf dieses Attribut.
+Das Attribut *Serverzuordnung* ist technisch motiviert und dient zusammen mit dem Attribut Name der eindeutigen Identifikation einer Community. Bei der Gründung einer neuen Community muss festgelegt werden auf welchem Server diese Community gehostet wird - auf einem schon vorhandenen Server oder ein extra für diese Community neu aufgesetzter Server. Das Attribut Serverzuordnung muss aber für eine Virtualisierung und technische Skalierung auf mehrere Server-Instanzen vorbereitet sein, sodass keine direkte physische Hardware-Serverzuordnung hierdurch fixiert ist. Aber auch ein eventueller Umzug der Community von einem Server auf einen anderen Server muss möglich sein. Der Community-Administrator hat alleiniges Zugriffsrecht auf dieses Attribut.
 
 #### Liste von Benutzer
 
-Dieses Listenattribut beinhaltet Benutzer-Elemente, die erfolgreich als Mitglied der Community registriert sind. Die Details eines Benutzer-Elements werden in dem Dokument [BenutzerVerwaltung](./BenutzerVerwaltung.md) beschrieben.
+Dieses Listenattribut beinhaltet Benutzer-Elemente, die erfolgreich als Mitglied der Community registriert sind. Die Details eines Benutzer-Elements werden in dem Dokument [BenutzerVerwaltung](./BenutzerVerwaltung.md) beschrieben. Ein Benutzer-Element besitzt wiederum ein Konto, das für die Community als Ziel der Schöpfung für das AGE des Mitglieds dient. Gleichzeitig wird für ein Benutzer-Element aber auch unterschieden zwischen einem Menschkonto (PersonalAccount) und einem Sachkonto (ImpersonalAccount). Denn nur für ein Benutzerelement mit PersonalAccount, sprich für eine *natürliche Person*, darf Geld für das AGE geschöpft werden, wohingegen für ein Benutzerelement mit ImpersonalAccount, sprich für ein *Projekt/Verein/Sache*, kein Geld geschöpft werden darf.
 
 #### Gemeinwohlkonto
 
-Das Attribut Gemeinwohlkonto dient als ein Konto-Element, das den Kontotyp Gemeinwohlkonto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das Gemeinwohl dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
+Das Attribut *Gemeinwohlkonto* dient als ein Konto-Element, das den Kontotyp Gemeinwohlkonto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das Gemeinwohl dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
 
 #### Ausgleichs- und Umweltkonto AUF-Konto
 
-Das Attribut Ausgleichs- und Umweltkonto dient als ein Konto-Element, das den Kontotyp AUF-Konto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das AUF-Konto dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
+Das Attribut *Ausgleichs- und Umweltkonto* dient als ein Konto-Element, das den Kontotyp AUF-Konto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das AUF-Konto dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
 
 #### Verteilungsschlüssel der Dreifachen-Schöpfung
 
-Im Attribut Verteilungsschlüssel der Dreifach-Schöpfung werden die für die Community festgelegten Verteilschlüssel konfiguriert. Diese Werte dienen als Grundlage für die Geldschöpfung dieser Community. Nut der Administrator hat Zugriffrechte auf diese Attribut.
+Im Attribut *Verteilungsschlüssel* der Dreifach-Schöpfung werden die für die Community festgelegten Verteilschlüssel konfiguriert. Diese Werte dienen als Grundlage für die Geldschöpfung innerhalb dieser Community. Nur der Administrator hat Zugriffsrechte auf dieses Attribut.
+
+Sobald die Community in einer Parent-Child-Beziehung steht, muss das Attribut *Verteilungsschlüssel* ebenfalls die Verteilung der Allgemeinwohl- und AUF-Gelder zwischen Child und Parent-Community definieren. Die erweiterte Konfiguration des Verteilungsschlüssel muss Teil des Aufbau-Prozesses einer Parent-Child-Beziehung sein bzw. währenddessen geprüft und konfiguriert werden.
 
 #### Parent
 
-Das Attribut Parent dient für den hierarchischen Aufbau von Communities. Es enthält den Bezug auf die Community, die für diese Community als Eltern-Community eingerichtet ist. Eine Child-Community kann maximal eine Parent-Community haben. Durch diesen Bezug zu der Parent-Community werden einzelne Prozesse zwischen der Parent- und der Child-Community freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern oder eine veränderte Verteiltung der Gemeinwohl- und AUF-Schöpfung, etc.. Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer Parent-Child-Beziehung zwischen zwei Communities steuern. Diese können nur durch den Adminitrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist weiter unten im Kapitel **Anwendungsfälle auf einer Community** zu finden.
+Das Attribut *Parent* dient für den hierarchischen Aufbau von Communities. Es enthält den Bezug auf die Community, die für diese Community als Eltern-Community eingerichtet ist. Eine Child-Community kann maximal eine Parent-Community haben. Durch diesen Bezug zu der Parent-Community werden einzelne Prozesse zwischen der Parent- und der Child-Community freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern oder eine veränderte Verteiltung der Gemeinwohl- und AUF-Schöpfung, etc.. Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer Parent-Child-Beziehung zwischen zwei Communities steuern. Diese können nur durch den Adminitrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist weiter unten im Kapitel **Anwendungsfälle auf einer Community** zu finden.
 
 #### Liste Children
 
-Das Attribut Liste Children dient ebenfalls dem hierarchischen Aufbau von Communities. Es enthält die Bezüge auf die Communities, die für diese Community als Child-Community eingerichtet sind. Eine Parent-Community kann mehrere Child-Communities haben. Durch diesen Bezug zu den Child-Communities werden einzelne Prozesse zwischen der Parent- und den Child-Communities freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern oder eine veränderte Verteiltung der Gemeinwohl- und AUF-Schöpfung, etc.. Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer Parent-Child-Beziehung zwischen zwei Communities steuern. Diese können nur durch den Adminitrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist weiter unten im Kapitel **Anwendungsfälle auf einer Community** zu finden.
+Das Attribut *Liste Children* dient ebenfalls dem hierarchischen Aufbau von Communities. Es enthält die Bezüge auf die Communities, die für diese Community als Child-Community eingerichtet sind. Eine Parent-Community kann mehrere Child-Communities haben. Durch diesen Bezug zu den Child-Communities werden einzelne Prozesse zwischen der Parent- und den Child-Communities freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern oder eine veränderte Verteiltung der Gemeinwohl- und AUF-Schöpfung, etc.. Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer Parent-Child-Beziehung zwischen zwei Communities steuern. Diese können nur durch den Administrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist weiter unten im Kapitel **Anwendungsfälle auf einer Community** zu finden.
 
 #### Liste Trusted Communities
 
-Das Attribut Liste Trusted Communities dient dem Aufbau von gleichberechtigten Community-Gruppierungen. Es enthält die Bezüge auf die Communities, die für diese Community als vertrauenswürdige Communities eingerichtet sind. Eine vertrauenswürdige Community-Gruppierung kann mehrere gleichberechtigte Communities haben. Durch diesen Bezug zu den vertrauenswürdigen Communities werden einzelne Prozesse zwischen den sich gegenseitig vertrauenden Communities freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern, etc.. Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer vertrauenswürdigen Beziehung zwischen zwei Communities steuern. Diese können nur durch den Adminitrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist weiter unten im Kapitel **Anwendungsfälle auf einer Community** zu finden.
+Das Attribut *Liste Trusted Communities* dient dem Aufbau von gleichberechtigten Community-Gruppierungen. Es enthält die Referenzen auf die Communities, die für diese Community als vertrauenswürdige Communities eingerichtet sind. Eine vertrauenswürdige Community-Gruppierung kann mehrere gleichberechtigte Communities haben. Durch diesen Bezug zu den vertrauenswürdigen Communities werden einzelne Prozesse zwischen den sich gegenseitig vertrauenden Communities freigeschalten. Damit ergeben sich erweiterte Möglichkeiten u.a. für die Community-Mitglieder beider Communities, wie beispielsweise das Community übergreifende Handeln zwischen den Community-Mitgliedern, etc.. Zwischen zwei *Trusted Communities* erfolgt keine Verteilung gemäß einem Verteilungsschlüssel von geschöpftem Geld das für das Allgemeinwohl- bzw. AUF-Konto bestimmt ist. Dies bleibt Eigentum jeder Community trotz vertrauenswürdiger Beziehung untereinander.
 
-Verteilung (automatische Tx) von unten nach oben an Parent Community für zukünftig angedacht
+Die Administration dieses Attributes erfolgt implizit über die fachlichen Prozesse, die den Auf- und Abbau einer vertrauenswürdigen Beziehung zwischen zwei Communities steuern. Diese können nur durch den Adminitrator und seiner Berechtigung ausgelöst werden. Die Beschreibung dieser Prozesse ist im nachfolgenden Kapitel **Anwendungsfälle auf einer Community** zu finden.
 
-keine Verteilung zwischen TrustedCommunities
-
-Transaktionen auf Gemeinwohlkonto und AUF-Konto
-
-Menschkonto (HumanAccount, PersonalAccount) vs Sachkonto (ItemAccount, ImpersonalAccount )
 
 ## Anwendungsfälle auf einer Community
 
@@ -197,7 +213,7 @@ Die nachfolgenden Anwendungsfälle beschreiben die fachlichen Vorraussetzungen, 
 
 #### Fehlerfälle
 
-### Community-Verknüpfen erstellen
+### Trusted Community verbinden
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
 
@@ -209,7 +225,7 @@ Die nachfolgenden Anwendungsfälle beschreiben die fachlichen Vorraussetzungen, 
 
 #### Fehlerfälle
 
-### Community-Verknüpfung löschen
+### Trusted Community lösen
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
 
@@ -221,7 +237,7 @@ Die nachfolgenden Anwendungsfälle beschreiben die fachlichen Vorraussetzungen, 
 
 #### Fehlerfälle
 
-### Community-Vererbung erstellen
+### Parent Community einrichten
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
 
@@ -233,7 +249,7 @@ Die nachfolgenden Anwendungsfälle beschreiben die fachlichen Vorraussetzungen, 
 
 #### Fehlerfälle
 
-### Community-Vererbung löschen
+### Parent Community löschen
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
 

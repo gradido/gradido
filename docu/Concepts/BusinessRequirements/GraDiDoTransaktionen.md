@@ -8,6 +8,7 @@ Im Kontext von GraDiDo gibt es unterschiedliche Arten von Transaktionen:
 * das Schöpfen von GraDiDo-Transform (GDT)
 * das Übertragen von GDT
 * das Umwandeln von GDT in GDD
+* Campagnen-Transaktion auf GDT (Prozent Aufschlag auf aktuellen GDT-Saldo)
 
 Dieses Konzept beschreibt für jede Art der Transaktion ihre fachliche Bedeutung, die notwendigen Vorraussetzungen, der fachliche Ablauf und den Ende-Status nach erfolgreicher Transaktionsbearbeitung. Desweiteren werden für jede Transaktionsart alle fachlich möglichen Fehlerfälle aufgeführt und welchen Endstatus die abgebrochene Transaktion dann hinterläßt.
 
@@ -63,7 +64,9 @@ In Variante 2 taucht nun die Frage auf, wie man mit offenen Transaktionen aus El
 
 In Variante 3 ist aber zu sehen, dass ein nicht berücksichtigen der offenen Transaktion einen weiteren Effekt nach sich zieht. Denn eine offene Transaktion könnte ja auch nicht erfolgreich committet, sondern könnte aus welchem Grund auch immer gecancelt werden. Das würde bedeuten, dass die 21%-Transaktion erst abgeschlossen werden kann, sobald die offene Transaktion erfolgreich beendet ist.
 
+### Beschluß vom 27.01.2021:
 
+Die aktuell implementierte Lösung des eigenständigen GDT-Servers sowie die GDT-Kontoführung ohne Amount und stetiger Berechnung des GDT-Saldos aus der Liste der Transaktionen bleibt vorerst bestehen, um die geplante 21%-Campagne für den 21.09.2021 nicht zu gefährden. Die Anzeige des GDT-Kontos in die neue GUI der Gradido-Anwendung wird gegen die neu eingeführte Apollo-Server-Instanz gehen, die aber wiederum die GDT-Requests nur an den GDT-Server durchreicht. Eine  Migration der GDT-Serverlogik in die Gradido-Anwendung des Apollo-Server wird auf später verschoben.
 
 
 ### Vorraussetzungen
@@ -87,6 +90,19 @@ In Variante 3 ist aber zu sehen, dass ein nicht berücksichtigen der offenen Tra
 ### Fehlerfälle
 
 ## Umwandeln von GDT in GDD
+
+*Hier erfolgt die fachliche Beschreibung der Transaktion*
+
+### Vorraussetzungen
+
+### Ablauf
+
+### Ende Status
+
+### Fehlerfälle
+
+
+## Campagnen-Transaktion auf GDT
 
 *Hier erfolgt die fachliche Beschreibung der Transaktion*
 

@@ -19,25 +19,25 @@ vorgesehen, die als Unterverzeichnisse mit folgenden Nameskonventionen angelegt 
 Die **Testfälle** selbst werden in einzelnen Dateien beschrieben. Die Namen der Testfall-Dateien folgen dem Namenspattern:
 
 * Prefix-Pattern: "Prefix des Verzeichnisses"-"C", dreistellige laufende Nr, "-", zweistellig laufende Nr, "-", Testfallbezeichnung
-* Beispiel: T02-C001-01-Benutzerregistrierung
+* Beispiel: T02-C002-01-Benutzerregistrierung
 * die dreistellige Nummer wird mit der Testfallbezeichnung in Bezug gesetzt
 * die zweistellige Nummer dient als optionale Untergliederung für einen Testfall
 * Beispiel:
-  * T02-C001-01-Benutzerregistrierung: Schritt 1 - Registrierungslink
-  * T02-C001-02-Benutzerregistrierung: Schritt 2 - Datenerfassung
-  * T02-C001-03-Benutzerregistrierung: Schritt 3 - ...
+  * T02-C002-01-Benutzerregistrierung: Schritt 1 - Registrierungslink
+  * T02-C002-02-Benutzerregistrierung: Schritt 2 - Datenerfassung
+  * T02-C002-03-Benutzerregistrierung: Schritt 3 - ...
 
 Um Dialog-Masken als **Bilder** in die Testfallbeschreibungen einzubinden, gibt es das Verzeichnis Testfallkatalog/image. Dieses enthält alle Bilder aller Testfälle nach folgenden Konventionen:
 
 * Die Bild-Dateien werden so benannt, wie die Testfalldatei, die sie einbindet.
-* Sollten mehrere Bilder pro Testfall-Beschreisbung notwendig sein, dann wird am Ende des Dateinamens, aber vor der Extension eine laufende Nummer vergeben.
+* Sollten mehrere Bilder pro Testfall-Beschreibung notwendig sein, dann wird am Ende des Dateinamens, aber vor der Extension eine laufende Nummer vergeben.
 * In der Testfall-Beschreibung können diese Bilder mit folgender Notation eingebunden werden:
   * `![alternativer Text](../image/<Name der Bilddatei>)`
-* Wie man direkt DrawIO-Bilder einhängen kann, ist noch nicht klar (notfalls muss eben ein PNG-Bild davon gemacht werden)
+* *Wie man direkt DrawIO-Bilder einhängen kann, ist noch nicht klar (notfalls muss eben ein PNG-Bild davon exportiert werden)*
 
 ## Testfall-Vorlage
 
-Im Verzeichnis Testfallkatalog liegt eine Testfall-Vorlage, die als Kopie für das Anlegen eines neuen Testfalles herangezogen werden kann. Die Kopie der Testfallvorlage im Test-Thema-Verzeichnis ist dann gemäß den oben beschriebenen Namenskonventionen für die Testfall-Datei umzubenennen.
+Im Verzeichnis Testfallkatalog liegt eine Datei *Testfall-Vorlage.md*, die als Kopie für das Anlegen eines neuen Testfalles herangezogen werden kann. Die Kopie der Testfallvorlage im Test-Thema-Verzeichnis ist dann gemäß den oben beschriebenen Namenskonventionen für die Testfall-Datei umzubenennen.
 
 In der Testfall-Vorlage sind die Gliederungen und Themen benannt, was eine Testfallbeschreibung beinhalten sollte.
 
