@@ -13,6 +13,8 @@ RUN ln -s /usr/local/googletest ./googletest
 COPY ./dependencies/cmake-modules ./dependencies/cmake-modules
 COPY ./dependencies/spirit-po ./dependencies/spirit-po
 COPY ./dependencies/tinf ./dependencies/tinf
+COPY ./dependencies/rapidjson ./dependencies/rapidjson
+
 COPY ./scripts ./scripts
 
 RUN mkdir build && \
