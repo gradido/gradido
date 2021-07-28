@@ -29,21 +29,21 @@ Document JsonCheckUsername::handle(const Document& params)
 	}
 	
 	if (!group_id && group_alias == "") {
-		return rstateError("no group given");
+		return stateError("no group given");
 	}
 	if (!group_id) {
 		auto groups = controller::Group::load(group_alias);
 		if (groups.size() > 1) {
-			return rstateError("group is ambiguous");
+			return stateError("group is ambiguous");
 		}
 		if (!groups.size()) {
-			return rstateError("unknown group");
+			return stateError("unknown group");
 		}
 		group_id = groups[0]->getModel()->getID();
 	}
 	auto group = controller::Group::load(group_id);
 	if (group.isNull()) {
-		return rstateError("unknown group");
+		return stateError("unknown group");
 	}
 	auto user = controller::User::create();
 	user->getModel()->setGroupId(group_id);
@@ -55,8 +55,8 @@ Document JsonCheckUsername::handle(const Document& params)
 		return result;
 	}
 	if (user->isUsernameAlreadyUsed(username)) {
-		return rstateWarning("username already in use");
+		return stateWarning("username already in use");
 	}
-	return rstateSuccess();
+	return stateSuccess();
 
 }

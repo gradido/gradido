@@ -6,13 +6,13 @@ using namespace rapidjson;
 
 Document JsonLogout::handle(const Document& params)
 {
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (paramError.IsObject()) return paramError;
 
 	auto sm = SessionManager::getInstance();
 	if (sm->releaseSession(mSession->getHandle())) {
 		mSession = nullptr;
-		return rstateSuccess();
+		return stateSuccess();
 	}
-	return rstateError("error by releasing session");
+	return stateError("error by releasing session");
 }

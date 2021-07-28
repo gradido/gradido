@@ -25,7 +25,7 @@ Document JsonSearch::handle(const Document& params)
 	for (auto it = ask.MemberBegin(); it != ask.MemberEnd(); it++)
 	{
 		if (!it->name.IsString()) {
-			return rstateError("ask array member isn't a string");
+			return stateError("ask array member isn't a string");
 		}
 		std::string ask_name(it->name.GetString(), it->name.GetStringLength());
 		std::string string_value;

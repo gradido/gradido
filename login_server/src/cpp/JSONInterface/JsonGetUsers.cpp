@@ -13,7 +13,7 @@ Document JsonGetUsers::handle(const Document& params)
 {
 	static std::string emptySearchString = "... empty ...";
 
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (paramError.IsObject()) return paramError;
 
 	std::string searchString;
@@ -29,15 +29,15 @@ Document JsonGetUsers::handle(const Document& params)
 	}
 	
 	if (searchString == "" && (accountState == "" || accountState == "all")) {
-		return rcustomStateError("not found", "Search string is empty and account_state is all or empty");
+		return customStateError("not found", "Search string is empty and account_state is all or empty");
 	}
 	else if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
-		return rcustomStateError("wrong role", "User hasn't correct role");
+		return customStateError("wrong role", "User hasn't correct role");
 	}
 
 	auto results = controller::User::search(searchString, accountState);
 	if (!results.size()) {
-		return rstateSuccess();
+		return stateSuccess();
 	}
 	Document result(kObjectType);
 	auto alloc = result.GetAllocator();

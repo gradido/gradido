@@ -17,7 +17,7 @@ Document JsonGetLogin::handle(const Document& params)
 	auto observer = SingletonTaskObserver::getInstance();
 
 	//if(!mClientIp.isLoopback())
-	auto session_check_result = rcheckAndLoadSession(params);
+	auto session_check_result = checkAndLoadSession(params);
 	if (!session_check_result.IsNull()) {
 		return session_check_result;
 	}

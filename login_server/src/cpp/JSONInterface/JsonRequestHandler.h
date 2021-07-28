@@ -37,18 +37,18 @@ public:
 	static rapidjson::Document checkObjectParameter(const rapidjson::Document& params, const char* fieldName);
 
 
-	static rapidjson::Document rstateError(const char* msg, std::string details = "");
-	static rapidjson::Document rstateError(const char* msg, NotificationList* errorReciver);
-	static rapidjson::Document rcustomStateError(const char* state, const char* msg, std::string details = "");
-	static rapidjson::Document rstateSuccess();
-	static rapidjson::Document rstateWarning(const char* msg, std::string details = "");
+	static rapidjson::Document stateError(const char* msg, std::string details = "");
+	static rapidjson::Document stateError(const char* msg, NotificationList* errorReciver);
+	static rapidjson::Document customStateError(const char* state, const char* msg, std::string details = "");
+	static rapidjson::Document stateSuccess();
+	static rapidjson::Document stateWarning(const char* msg, std::string details = "");
 
 protected:
 	Poco::Net::IPAddress mClientIp;
 	std::string			mServerHost;
 	Session*			 mSession;
 
-	rapidjson::Document rcheckAndLoadSession(const rapidjson::Document& params);
+	rapidjson::Document checkAndLoadSession(const rapidjson::Document& params);
 	bool getTargetGroup(const rapidjson::Document& params);
 
 	

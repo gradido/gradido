@@ -11,7 +11,7 @@ using namespace rapidjson;
 
 Document JsonAquireAccessToken::handle(const Document& params)
 {
-	auto session_result = rcheckAndLoadSession(params);
+	auto session_result = checkAndLoadSession(params);
 	if (session_result.IsObject()) {
 		return session_result;
 	}

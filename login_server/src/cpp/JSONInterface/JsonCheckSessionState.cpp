@@ -17,10 +17,10 @@ Document JsonCheckSessionState::handle(const Document& params)
 	auto sm = SessionManager::getInstance();
 	auto session = sm->getSession(session_id);
 	if (session) {
-		return rstateSuccess();
+		return stateSuccess();
 	}
 	else {
-		return rcustomStateError("not found", "session not found");
+		return customStateError("not found", "session not found");
 	}
 	
 }

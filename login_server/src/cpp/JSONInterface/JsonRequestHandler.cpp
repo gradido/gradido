@@ -77,7 +77,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 			rapid_json_result = handle(rapidjson_params);
 		}
 		else {
-			rapid_json_result = rstateError("empty body");
+			rapid_json_result = stateError("empty body");
 		}
 	}
 	else if(method == "GET") {		
@@ -158,7 +158,7 @@ void JsonRequestHandler::parseJsonWithErrorPrintFile(std::istream& request_strea
 
 }
 
-Document JsonRequestHandler::rstateError(const char* msg, std::string details)
+Document JsonRequestHandler::stateError(const char* msg, std::string details)
 {
 	Document obj(kObjectType);
 	auto alloc = obj.GetAllocator();
@@ -173,7 +173,7 @@ Document JsonRequestHandler::rstateError(const char* msg, std::string details)
 }
 
 
-rapidjson::Document JsonRequestHandler::rstateError(const char* msg, NotificationList* errorReciver)
+rapidjson::Document JsonRequestHandler::stateError(const char* msg, NotificationList* errorReciver)
 {
 	Document obj(kObjectType);
 	obj.AddMember("state", "error", obj.GetAllocator());
@@ -188,7 +188,7 @@ rapidjson::Document JsonRequestHandler::rstateError(const char* msg, Notificatio
 	return obj;
 }
 
-Document JsonRequestHandler::rstateSuccess()
+Document JsonRequestHandler::stateSuccess()
 {
 	Document obj(kObjectType);
 	obj.AddMember("state", "success", obj.GetAllocator());
@@ -197,7 +197,7 @@ Document JsonRequestHandler::rstateSuccess()
 }
 
 
-Document JsonRequestHandler::rcustomStateError(const char* state, const char* msg, std::string details /* = "" */ )
+Document JsonRequestHandler::customStateError(const char* state, const char* msg, std::string details /* = "" */ )
 {
 	Document obj(kObjectType);
 	obj.AddMember("state", Value(state, obj.GetAllocator()).Move(), obj.GetAllocator());
@@ -210,7 +210,7 @@ Document JsonRequestHandler::rcustomStateError(const char* state, const char* ms
 }
 
 
-Document JsonRequestHandler::rstateWarning(const char* msg, std::string details/* = ""*/)
+Document JsonRequestHandler::stateWarning(const char* msg, std::string details/* = ""*/)
 {
 	Document obj(kObjectType);
 	obj.AddMember("state", "warning", obj.GetAllocator());
@@ -264,11 +264,11 @@ Document JsonRequestHandler::getIntParameter(const Document& params, const char*
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (!itr->value.IsInt()) {
 		message = "invalid " + message;
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	iparameter = itr->value.GetInt();
 	return Document();
@@ -280,11 +280,11 @@ Document JsonRequestHandler::getBoolParameter(const rapidjson::Document& params,
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (!itr->value.IsBool()) {
 		message = "invalid " + message;
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	bParameter = itr->value.GetBool();
 	return Document();
@@ -296,11 +296,11 @@ Document JsonRequestHandler::getUIntParameter(const Document& params, const char
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (!itr->value.IsUint()) {
 		message = "invalid " + message;
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	iParameter = itr->value.GetUint();
 	return Document();
@@ -312,11 +312,11 @@ Document JsonRequestHandler::getUInt64Parameter(const Document& params, const ch
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (!itr->value.IsUint64()) {
 		message = "invalid " + message;
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	iParameter = itr->value.GetUint64();
 	return Document();
@@ -327,11 +327,11 @@ Document JsonRequestHandler::getStringParameter(const Document& params, const ch
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (!itr->value.IsString()) {
 		message = "invalid " + message;
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	strParameter = std::string(itr->value.GetString(), itr->value.GetStringLength());
 	return Document();
@@ -343,7 +343,7 @@ Document JsonRequestHandler::getStringIntParameter(const Document& params, const
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	if (itr->value.IsString()) {
 		strParameter = std::string(itr->value.GetString(), itr->value.GetStringLength());
@@ -353,7 +353,7 @@ Document JsonRequestHandler::getStringIntParameter(const Document& params, const
 	}
 	else {
 		message += " isn't neither int or string"; 
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	
 	return Document();
@@ -366,12 +366,12 @@ Document JsonRequestHandler::checkArrayParameter(const Document& params, const c
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 	
 	if (!itr->value.IsArray()) {
 		message += " is not a array";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 
 	return Document();
@@ -383,18 +383,18 @@ Document JsonRequestHandler::checkObjectParameter(const Document& params, const 
 	std::string message = fieldName;
 	if (itr == params.MemberEnd()) {
 		message += " not found";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 
 	if (!itr->value.IsObject()) {
 		message += " is not a object";
-		return rstateError(message.data());
+		return stateError(message.data());
 	}
 
 	return Document();
 }
 
-Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
+Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 {
 	if (!mSession) {
 		int session_id = 0;
@@ -404,33 +404,33 @@ Document JsonRequestHandler::rcheckAndLoadSession(const Document& params)
 		}
 
 		if (!session_id) {
-			return rstateError("empty session id");
+			return stateError("empty session id");
 		}
 
 		auto sm = SessionManager::getInstance();
 		mSession = sm->getSession(session_id);
 	}
 	if (!mSession) {
-		return rcustomStateError("not found", "session not found");
+		return customStateError("not found", "session not found");
 	}
 	// doesn't work perfect, must be debugged first
 	bool checkIp = false;
 	if (checkIp) {
 		if (mClientIp.isLoopback()) {
-			return rstateError("client ip is loop back ip");
+			return stateError("client ip is loop back ip");
 		}
 		if (!mSession->isIPValid(mClientIp)) {
-			return rstateError("client ip differ from login client ip");
+			return stateError("client ip differ from login client ip");
 		}
 	}
 	auto userNew = mSession->getNewUser();
 	//auto user = session->getUser();
 	if (userNew.isNull()) {
-		return rcustomStateError("not found", "Session didn't contain user");
+		return customStateError("not found", "Session didn't contain user");
 	}
 	auto userModel = userNew->getModel();
 	if (userModel.isNull()) {
-		return rcustomStateError("not found", "User is empty");
+		return customStateError("not found", "User is empty");
 	}
 
 	return Document();

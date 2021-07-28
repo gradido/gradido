@@ -26,7 +26,7 @@ Document JsonLoginViaEmailVerificationCode::handle(const Document& params)
 	if (!session) {
 		session = sm->getNewSession();
 		if (!session->loadFromEmailVerificationCode(code)) {
-			return rstateError("couldn't login with emailVerificationCode");
+			return stateError("couldn't login with emailVerificationCode");
 		}
 	}
 	session->setClientIp(mClientIp);
