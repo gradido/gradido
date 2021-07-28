@@ -95,7 +95,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: true
       ##########################################################################
       # BUILD LOGIN SERVER DOCKER IMAGE ########################################
       ##########################################################################
@@ -433,7 +433,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: true
       # Database migration
       - name: Start database migration
         run: |
