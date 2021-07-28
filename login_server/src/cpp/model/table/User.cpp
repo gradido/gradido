@@ -423,6 +423,7 @@ namespace model {
 
 			//userObj.set("state", userStateToString(mState));
 			auto createTimeStamp = mCreated.timestamp();
+			userObj.AddMember("created", createTimeStamp.raw() / createTimeStamp.resolution(), alloc);
 			userObj.AddMember("email_checked", mEmailChecked, alloc);
 			userObj.AddMember("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()), alloc);
 			userObj.AddMember("language", Value(mLanguageKey.data(), alloc), alloc);
