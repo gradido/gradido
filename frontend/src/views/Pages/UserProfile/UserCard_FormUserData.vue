@@ -1,29 +1,22 @@
 <template>
-  <div class="userdata_form">
-    <b-card
+  <div class="userdata_form" fluid="sm">
+    <div
       id="userdata_form"
-      class="bg-transparent"
+      class="bg-transparent pt-3 pb-3"
       style="background-color: #ebebeba3 !important"
     >
       <b-container>
         <b-row class="text-right">
           <b-col class="mb-3">
-            <b-icon
-              v-if="showUserData"
-              @click="showUserData = !showUserData"
-              class="pointer"
-              icon="pencil"
-            >
-              {{ $t('form.change') }}
-            </b-icon>
+            <a href="#!" @click="showUserData = !showUserData">
+              <span class="pointer mr-3">{{ $t('form.change-name') }}</span>
 
-            <b-icon
-              v-else
-              @click="cancelEdit"
-              class="pointer"
-              icon="x-circle"
-              variant="danger"
-            ></b-icon>
+              <b-icon v-if="showUserData" class="pointer" icon="pencil">
+                {{ $t('form.change') }}
+              </b-icon>
+
+              <b-icon v-else class="pointer" icon="x-circle" variant="danger"></b-icon>
+            </a>
           </b-col>
         </b-row>
       </b-container>
@@ -81,7 +74,7 @@
           </b-row>
         </b-form>
       </b-container>
-    </b-card>
+    </div>
   </div>
 </template>
 <script>

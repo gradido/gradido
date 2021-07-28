@@ -3,26 +3,23 @@
     <div class="w-100 text-center">
       <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
     </div>
-    <b-row>
-      <b-col>
-        <div class="card-profile-stats d-flex justify-content-center mt-md-5">
-          <div>
-            <span class="heading">
-              {{ $n(balance, 'decimal') }}
-            </span>
-            <span class="description">GDD</span>
-          </div>
-          <div>
-            <span class="heading">{{ transactionCount }}</span>
-            <span class="description">{{ $t('transactions') }}</span>
-          </div>
-          <div>
-            <span class="heading">--</span>
-            <span class="description">{{ $t('community') }}</span>
-          </div>
-        </div>
-      </b-col>
-    </b-row>
+
+    <div class="card-profile-stats d-flex justify-content-center mt-md-5">
+      <div>
+        <span class="heading">
+          {{ $n(balance, 'decimal') }}
+        </span>
+        <span class="description">GDD</span>
+      </div>
+      <div>
+        <span class="heading">{{ transactionCount }}</span>
+        <span class="description">{{ $t('transactions') }}</span>
+      </div>
+      <div>
+        <span class="heading">--</span>
+        <span class="description">{{ $t('community') }}</span>
+      </div>
+    </div>
   </b-card>
 </template>
 <script>

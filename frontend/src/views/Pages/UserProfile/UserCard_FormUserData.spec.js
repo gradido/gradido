@@ -86,9 +86,9 @@ describe('UserCard_FormUsername', () => {
         await wrapper.findAll('input').at(1).setValue('Lustiger')
         await wrapper.find('textarea').setValue('Keine Nickelbrille')
         await wrapper.find('svg.bi-x-circle').trigger('click')
-        expect(wrapper.findAll('div.col').at(2).text()).toBe('Peter')
-        expect(wrapper.findAll('div.col').at(4).text()).toBe('Lustig')
-        expect(wrapper.findAll('div.col').at(6).text()).toBe('')
+        expect(wrapper.findAll('div.col').at(2).text()).toBe('Petra')
+        expect(wrapper.findAll('div.col').at(4).text()).toBe('Lustiger')
+        expect(wrapper.findAll('div.col').at(6).text()).toBe('Keine Nickelbrille')
       })
 
       it('has a submit button', () => {

@@ -1,10 +1,11 @@
 <template>
-  <b-container fluid>
+  <div fluid="sm">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
-    <form-user-data />
+    <p><form-user-data /></p>
     <!--<form-username />-->
-    <form-user-passwort />
-  </b-container>
+    <hr />
+    <p><form-user-passwort /></p>
+  </div>
 </template>
 <script>
 import UserCard from './UserProfile/UserCard.vue'
