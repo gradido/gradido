@@ -33,7 +33,7 @@ Document JsonGetUserInfos::handle(const Document& params)
 {
 	auto sm = SessionManager::getInstance();
 
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (!paramError.IsNull()) { return paramError;}
 
 	std::string email;
@@ -59,7 +59,7 @@ Document JsonGetUserInfos::handle(const Document& params)
 
 	auto user = controller::User::create();
 	if (1 != user->load(email)) {
-		return rcustomStateError("not found", "user not found");
+		return customStateError("not found", "user not found");
 	}
 	auto user_model = user->getModel();
 
@@ -73,7 +73,7 @@ Document JsonGetUserInfos::handle(const Document& params)
 	for (auto it = ask.Begin(); it != ask.End(); it++) 
 	{
 		if (!it->IsString()) {
-			return rstateError("ask array member isn't a string");
+			return stateError("ask array member isn't a string");
 		}
 		std::string parameterString(it->GetString(), it->GetStringLength());
 		

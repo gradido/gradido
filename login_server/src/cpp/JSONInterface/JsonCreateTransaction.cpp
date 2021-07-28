@@ -16,7 +16,7 @@ using namespace rapidjson;
 
 Document JsonCreateTransaction::handle(const Document& params)
 {
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (paramError.IsObject()) { return paramError; }
 
 	std::string transaction_type;
@@ -34,12 +34,12 @@ Document JsonCreateTransaction::handle(const Document& params)
 
 	mBlockchainType = model::gradido::TransactionBody::blockchainTypeFromString(blockchain_type);
 	if (model::gradido::BLOCKCHAIN_UNKNOWN == mBlockchainType) {
-		return rstateError("unknown blockchain type");
+		return stateError("unknown blockchain type");
 	}
 	// allow session_id from community server (allowed caller)
 	// else use cookie (if call cames from vue)
 	if (!mSession) {
-		return rstateError("session not found");
+		return stateError("session not found");
 	}
 
 	auto user = mSession->getNewUser();
@@ -60,7 +60,7 @@ Document JsonCreateTransaction::handle(const Document& params)
 		return groupMemberUpdate(params);
 	}
 
-	return rstateError("transaction_type unknown");
+	return stateError("transaction_type unknown");
 
 }
 
@@ -70,7 +70,7 @@ Document JsonCreateTransaction::transfer(const Document& params)
 	auto mm = MemoryManager::getInstance();
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
-		return rcustomStateError("not found", "receiver not found");
+		return customStateError("not found", "receiver not found");
 	}
 
 	Poco::UInt32 amount = 0;
@@ -90,14 +90,14 @@ Document JsonCreateTransaction::transfer(const Document& params)
 
 		auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
 		if (transfer_transaction->prepare()) {
-			return rstateError("error in transaction details", transaction);
+			return stateError("error in transaction details", transaction);
 		}
 		if (transfer_transaction->validate()) {
-			return rstateError("error in validate transaction", transaction);
+			return stateError("error in validate transaction", transaction);
 		}
 
 		if (mSession->lastTransactionTheSame(transaction)) {
-			return rstateError("transaction are the same as the last (within 100 seconds)");
+			return stateError("transaction are the same as the last (within 100 seconds)");
 		}
 		else {
 			mSession->setLastTransaction(transaction);
@@ -129,14 +129,14 @@ Document JsonCreateTransaction::transfer(const Document& params)
 		NotificationList errors;
 		errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
 		errors.sendErrorsAsEmail();
-		return rstateError("exception");
+		return stateError("exception");
 	}
 	catch (std::exception& ex) {
 		mm->releaseMemory(target_pubkey);
 		NotificationList errors;
 		errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
 		errors.sendErrorsAsEmail();
-		return rstateError("exception");
+		return stateError("exception");
 	}
 	result.AddMember("state", "success", alloc);
 	return result;
@@ -158,14 +158,14 @@ Document JsonCreateTransaction::creation(const Document& params)
 		target_date = Poco::DateTimeParser::parse(date_string, timezoneDifferential);
 	}
 	catch (Poco::Exception& ex) {
-		return rstateError("cannot parse target_date", ex.what());
+		return stateError("cannot parse target_date", ex.what());
 	}
 
 	auto mm = MemoryManager::getInstance();
 	
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
-		return rcustomStateError("not found", "recipient not found");
+		return customStateError("not found", "recipient not found");
 	}
 
 	if (mReceiverUser.isNull()) {
@@ -173,67 +173,67 @@ Document JsonCreateTransaction::creation(const Document& params)
 		if (1 != mReceiverUser->load(target_pubkey->data())) {
 			mReceiverUser.assign(nullptr);
 			mm->releaseMemory(target_pubkey);
-			return rcustomStateError("not found", "recipient not found");
+			return customStateError("not found", "recipient not found");
 		}
 	}
 	mm->releaseMemory(target_pubkey);
 
 	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
 		if (mReceiverUser->getModel()->getGroupId() != mSession->getNewUser()->getModel()->getGroupId()) {
-			return rstateError("user not in group", "target user is in another group");
+			return stateError("user not in group", "target user is in another group");
 		}
 	}
 
 	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType, false);
 	auto creation_transaction = transaction->getTransactionBody()->getCreationTransaction();
 	if (creation_transaction->prepare()) {
-		return rstateError("error in transaction details", creation_transaction);
+		return stateError("error in transaction details", creation_transaction);
 	}
 	if (creation_transaction->validate()) {
-		return rstateError("error in validate transaction", creation_transaction);
+		return stateError("error in validate transaction", creation_transaction);
 	}
 	if (mSession->lastTransactionTheSame(transaction)) {
-		return rstateError("transaction are the same as the last (within 100 seconds)");
+		return stateError("transaction are the same as the last (within 100 seconds)");
 	}
 	else {
 		mSession->setLastTransaction(transaction);
 	}
 	if (mAutoSign) {
 		if (!transaction->sign(mSession->getNewUser())) {
-			return rstateError("error by signing transaction", transaction);
+			return stateError("error by signing transaction", transaction);
 		}
 	}
-	return rstateSuccess();
+	return stateSuccess();
 }
 
 Document JsonCreateTransaction::groupMemberUpdate(const Document& params)
 {
 	if (mBlockchainType == model::gradido::BLOCKCHAIN_MYSQL) {
-		return rstateError("groupMemberUpdate not allowed with mysql blockchain");
+		return stateError("groupMemberUpdate not allowed with mysql blockchain");
 	}
 	if (mTargetGroup.isNull()) {
-		return rstateError("group not found");
+		return stateError("group not found");
 	}
 	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
 	auto group_member_update_transaction = transaction->getTransactionBody()->getGroupMemberUpdate();
 	if (group_member_update_transaction->prepare()) {
-		return rstateError("error in transaction details", group_member_update_transaction);
+		return stateError("error in transaction details", group_member_update_transaction);
 	}
 	if (group_member_update_transaction->validate()) {
-		return rstateError("error in validate transaction", group_member_update_transaction);
+		return stateError("error in validate transaction", group_member_update_transaction);
 	}
 	if (mSession->lastTransactionTheSame(transaction)) {
-		return rstateError("transaction are the same as the last (within 100 seconds)");
+		return stateError("transaction are the same as the last (within 100 seconds)");
 	}
 	else {
 		mSession->setLastTransaction(transaction);
 	}
 	if (mAutoSign) {
 		if (!transaction->sign(mSession->getNewUser())) {
-			return rstateError("error by signing transaction", transaction);
+			return stateError("error by signing transaction", transaction);
 		}
 	}
-	return rstateSuccess();
+	return stateSuccess();
 }
 
 MemoryBin* JsonCreateTransaction::getTargetPubkey(const Document& params)

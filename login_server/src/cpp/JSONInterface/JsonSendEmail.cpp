@@ -16,7 +16,7 @@ using namespace rapidjson;
 
 Document JsonSendEmail::handle(const Document& params)
 {
-	rcheckAndLoadSession(params);
+	checkAndLoadSession(params);
 	
 	std::string email;
 	auto paramError = getStringParameter(params, "email", email);
@@ -35,7 +35,7 @@ Document JsonSendEmail::handle(const Document& params)
 		emailType = model::Email::emailType(semailType);
 	}
 	if (emailType == model::EMAIL_MAX) {
-		return rstateError("invalid email type");
+		return stateError("invalid email type");
 	}
 
 	std::string emailCustomText;
@@ -55,13 +55,13 @@ Document JsonSendEmail::handle(const Document& params)
 
 	emailVerificationCodeType = model::table::EmailOptIn::stringToType(emailVerificationCodeTypeString);
 	if (model::table::EMAIL_OPT_IN_EMPTY == emailVerificationCodeType) {
-		return rstateError("invalid verification code type");
+		return stateError("invalid verification code type");
 	}
 
 	if (!mSession &&
 		(model::table::EMAIL_OPT_IN_REGISTER == emailVerificationCodeType || model::table::EMAIL_OPT_IN_REGISTER_DIRECT == emailVerificationCodeType)
 		) {
-		return rstateError("login needed");
+		return stateError("login needed");
 	}
 
 	auto sm = SessionManager::getInstance();
@@ -71,7 +71,7 @@ Document JsonSendEmail::handle(const Document& params)
 	Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 	auto receiver_user = controller::User::create();
 	if (1 != receiver_user->load(email)) {
-		return rstateSuccess();
+		return stateSuccess();
 	}
 	auto receiver_user_id = receiver_user->getModel()->getID();
 	std::string linkInEmail = "";
@@ -82,10 +82,10 @@ Document JsonSendEmail::handle(const Document& params)
 		if (emailType == model::EMAIL_USER_RESET_PASSWORD) {
 			auto r = mSession->sendResetPasswordEmail(receiver_user, true, linkInEmail);
 			if (1 == r) {
-				return rstateWarning("email already sended");
+				return stateWarning("email already sended");
 			}
 			else if (2 == r) {
-				return rstateError("email already sent less than a 10 minutes before");
+				return stateError("email already sent less than a 10 minutes before");
 			}
 		}
 		else if (emailType == model::EMAIL_CUSTOM_TEXT) {
@@ -95,9 +95,9 @@ Document JsonSendEmail::handle(const Document& params)
 			em->addEmail(email);
 		}
 		else {
-			return rstateError("not supported email type");
+			return stateError("not supported email type");
 		}
-		return rstateSuccess();
+		return stateSuccess();
 	}
 	else
 	{
@@ -116,7 +116,7 @@ Document JsonSendEmail::handle(const Document& params)
 			email = new model::Email(email_verification_code_object, receiver_user, emailType);
 		}
 		em->addEmail(email);
-		return rstateSuccess();
+		return stateSuccess();
 	}
 
 }

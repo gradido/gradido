@@ -29,7 +29,7 @@ Document JsonCreateUser::handle(const Document& params)
 
 	auto user = controller::User::create();
 	if (user->load(email) > 0) {
-		return rcustomStateError("exist", "user already exist");
+		return customStateError("exist", "user already exist");
 	}
 
 	paramError = getStringParameter(params, "password", password);
@@ -68,7 +68,7 @@ Document JsonCreateUser::handle(const Document& params)
 	auto user_model = user->getModel();
 	if (username.size() > 3) {
 		if (user->isUsernameAlreadyUsed(username)) {
-			return rstateError("username already in use");
+			return stateError("username already in use");
 		}
 		user_model->setUsername(username);
 	}
@@ -87,7 +87,7 @@ Document JsonCreateUser::handle(const Document& params)
 
 	if (!userModel->insertIntoDB(true)) {
 		userModel->sendErrorsAsEmail();
-		return rstateError("insert user failed");
+		return stateError("insert user failed");
 	}
 	if (password.size()) {
 		session = sm->getNewSession();
@@ -104,7 +104,7 @@ Document JsonCreateUser::handle(const Document& params)
 	auto emailOptInModel = emailOptIn->getModel();
 	if (!emailOptInModel->insertIntoDB(false)) {
 		emailOptInModel->sendErrorsAsEmail();
-		return rstateError("insert emailOptIn failed");
+		return stateError("insert emailOptIn failed");
 	}
 	emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
 
@@ -113,7 +113,7 @@ Document JsonCreateUser::handle(const Document& params)
 
 	auto email_type = model::Email::convertTypeFromInt(emailType);
 	if (email_type == model::EMAIL_ERROR) {
-		return rstateError("email type is invalid");
+		return stateError("email type is invalid");
 	}
 
 	em->addEmail(new model::Email(emailOptIn, user, email_type));

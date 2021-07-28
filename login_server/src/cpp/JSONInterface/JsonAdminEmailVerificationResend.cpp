@@ -17,7 +17,7 @@ Document JsonAdminEmailVerificationResend::handle(const Document& params)
 {
 	std::string email;
 	
-	auto session_result = rcheckAndLoadSession(params);
+	auto session_result = checkAndLoadSession(params);
 	if (session_result.IsObject()) {
 		return session_result;
 	}
@@ -32,35 +32,35 @@ Document JsonAdminEmailVerificationResend::handle(const Document& params)
 	auto em = EmailManager::getInstance();
 
 	if (!mSession) { 
-		return rstateError("session not found");
+		return stateError("session not found");
 	}
 
 	auto user = mSession->getNewUser();
 	if(user.isNull()) { 
-		return rstateError("session hasn't valid user");
+		return stateError("session hasn't valid user");
 	}
 		
 	auto userModel = user->getModel();
 	if(model::table::ROLE_ADMIN != userModel->getRole()) {
-		return rstateError("user isn't admin"); 
+		return stateError("user isn't admin"); 
 	}
 
 	auto receiverUser = controller::User::create();
 	if (1 != receiverUser->load(email)) {
-		return rstateError("receiver user not found"); 
+		return stateError("receiver user not found"); 
 	}
 		
 	if (receiverUser->getModel()->isEmailChecked()) { 
-		return rstateError("account already active");
+		return stateError("account already active");
 	}
 		
 	auto emailVerification = controller::EmailVerificationCode::create(receiverUser->getModel()->getID(), model::table::EMAIL_OPT_IN_REGISTER);
 	if (emailVerification.isNull()) {
-		return rstateError("no email verification code found");
+		return stateError("no email verification code found");
 	}
 
 	emailVerification->getModel()->insertIntoDB(false);
 	emailVerification->setBaseUrl(ServerConfig::g_serverPath + "/checkEmail");
 	em->addEmail(new model::Email(emailVerification, receiverUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE_RESEND));
-	return rstateSuccess();
+	return stateSuccess();
 }

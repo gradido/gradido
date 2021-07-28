@@ -8,7 +8,7 @@ using namespace rapidjson;
 
 Document JsonUpdateUserInfos::handle(const Document& params)
 {
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (paramError.IsObject()) return paramError;
 
 	
@@ -31,7 +31,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 	//['User.first_name' => 'first_name', 'User.last_name' => 'last_name', 'User.disabled' => 0|1, 'User.language' => 'de']
 	for (auto it = updates.MemberBegin(); it != updates.MemberEnd(); it++) {
 		if (!it->name.IsString()) {
-			return rstateError("update key isn't string");
+			return stateError("update key isn't string");
 		}
 		std::string name(it->name.GetString(), it->name.GetStringLength());
 		std::string str_value;
@@ -155,7 +155,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 			if (str_value.size() > 0)
 			{
 				if (!user->hasPassword()) {
-					return rstateError("login state invalid");
+					return stateError("login state invalid");
 				}
 				if (isOldPasswordValid(updates, jsonErrors, alloc))
 				{
@@ -196,7 +196,7 @@ Document JsonUpdateUserInfos::handle(const Document& params)
 		if (1 != user_model->updateFieldsFromCommunityServer()) {
 			user_model->addError(new Error("JsonUpdateUserInfos", "error by saving update to db"));
 			user_model->sendErrorsAsEmail();
-			return rstateError("error saving to db");
+			return stateError("error saving to db");
 		}
 	}
 	

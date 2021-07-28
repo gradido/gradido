@@ -19,7 +19,7 @@ Document JsonNetworkInfos::handle(const Document& params)
 	for (auto it = ask.Begin(); it != ask.End(); it++)
 	{
 		if (!it->IsString()) {
-			return rstateError("ask array member isn't a string");
+			return stateError("ask array member isn't a string");
 		}
 		std::string parameterString(it->GetString(), it->GetStringLength());
 		if (parameterString == "groups") {

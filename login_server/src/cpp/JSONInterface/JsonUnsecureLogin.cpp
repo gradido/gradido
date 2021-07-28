@@ -28,7 +28,7 @@ Document JsonUnsecureLogin::handle(const Document& params)
 	if(paramError.IsObject()) return paramError;
 
 	if (!email.size() && !username.size()) {
-		return rstateError("no email or username given");
+		return stateError("no email or username given");
 	}
 
 	auto user = controller::User::create();
@@ -52,7 +52,7 @@ Document JsonUnsecureLogin::handle(const Document& params)
 	}
 	if (message.size()) {
 		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
-		return rstateError(message.data(), details);
+		return stateError(message.data(), details);
 	}
 
 	NotificationList pwd_errors;

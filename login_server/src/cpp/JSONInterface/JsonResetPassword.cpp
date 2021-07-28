@@ -7,7 +7,7 @@ using namespace rapidjson;
 
 Document JsonResetPassword::handle(const Document& params)
 {
-	auto paramError = rcheckAndLoadSession(params);
+	auto paramError = checkAndLoadSession(params);
 	if (paramError.IsObject()) return paramError;
 
 	std::string password;
@@ -28,14 +28,14 @@ Document JsonResetPassword::handle(const Document& params)
 	}
 	auto user = mSession->getNewUser();
 	if (user.isNull() || user->getModel().isNull()) {
-		return rstateError("invalid user");
+		return stateError("invalid user");
 	}
 
 	auto observer = SingletonTaskObserver::getInstance();
 	auto email_hash = observer->makeHash(user->getModel()->getEmail());
 
 	if (observer->getTaskCount(email_hash, TASK_OBSERVER_PASSWORD_CREATION) > 0) {
-		return rstateError("password encryption is already running");
+		return stateError("password encryption is already running");
 	}
 
 	auto update_password_result = user->setNewPassword(password);
@@ -45,5 +45,5 @@ Document JsonResetPassword::handle(const Document& params)
 			user->setGradidoKeyPair(key_pair);
 		}
 	}
-	return rstateSuccess();
+	return stateSuccess();
 }
