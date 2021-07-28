@@ -17,7 +17,6 @@ RUN apt-get update && \
     apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
-
 #########################################################################################################
 # gcc 9 cmake
 #########################################################################################################
@@ -90,4 +89,3 @@ COPY --from=gcc_9_poco /usr/local /usr/local
 
 # COPY from mariadb 
 COPY --from=gcc_9_mariadb-connector /usr/local /usr/local
-
