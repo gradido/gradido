@@ -137,20 +137,6 @@ export class ErrorData extends BaseEntity {
 @Entity()
 @ObjectType()
 export class GetUserInfoResponse extends BaseEntity {
-  /* "state": "success",
-	"userData": { 
-		"EmailVerificationCode.Register": "2718271129122",
-		"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
-		"first_name": "Max",
-		"last_name": "Musterman",
-		"disabled": 0,
-		"email_checked": 1
-  	},
-	"server": {
-    	"loginServer.path": "http://localhost/account"
-  	},
-  	"errors": []
-    */
   @Field(() => String)
   state: string
 

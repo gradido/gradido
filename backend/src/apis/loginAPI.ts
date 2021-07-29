@@ -24,13 +24,9 @@ export const apiGet = async (url: string): Promise<any> => {
     .get(url)
     .then((result) => {
       if (result.status !== 200) {
-        // eslint-disable-next-line no-console
-        console.log('IN status: ' + 'HTTP Status Error ' + result.status)
         throw new Error('HTTP Status Error ' + result.status)
       }
       if (!['success', 'warning'].includes(result.data.state)) {
-        // eslint-disable-next-line no-console
-        console.log('IN state: ' + result.data.state + ' message: ' + JSON.stringify(result))
         throw new Error(result.data.msg)
       }
       return { success: true, result: result }
