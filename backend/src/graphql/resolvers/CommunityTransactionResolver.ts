@@ -1,6 +1,7 @@
 import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
 import {} from '../models/Transaction'
+import { Balance } from '../models/Balance'
 import {
   TransactionCreateArgs,
   TransactionInput,
@@ -10,11 +11,12 @@ import { apiPost, apiGet } from '../../apis/loginAPI'
 
 @Resolver()
 export class CommunityTransactionResolver {
-  @Query(() => String)
-  async balance(@Arg('sessionId') sessionId: number): Promise<any> {
+  @Query(() => Balance)
+  async balance(@Arg('sessionId') sessionId: number): Promise<Balance> {
     // eslint-disable-next-line no-console
     console.log('IN BALANCE: URL: ' + CONFIG.COMMUNITY_API_URL + 'getBalance/' + sessionId)
-    return apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + sessionId)
+    const result = await apiGet(CONFIG.COMMUNITY_API_URL + 'getBalance/' + sessionId)
+    return new Balance(result.result.data)
   }
 
   @Query(() => String)
