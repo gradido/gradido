@@ -23,9 +23,6 @@ export const apiGet = async (url: string): Promise<any> => {
   return axios
     .get(url)
     .then((result) => {
-      // eslint-disable-next-line no-console
-      console.log('IN apiGet.THEN: ' + JSON.stringify({ success: true, result: result }))
-
       if (result.status !== 200) {
         // eslint-disable-next-line no-console
         console.log('IN status: ' + 'HTTP Status Error ' + result.status)
@@ -33,7 +30,7 @@ export const apiGet = async (url: string): Promise<any> => {
       }
       if (!['success', 'warning'].includes(result.data.state)) {
         // eslint-disable-next-line no-console
-        console.log('IN state: ' + result.data.state + ' message: ' + result.data.msg)
+        console.log('IN state: ' + result.data.state + ' message: ' + JSON.stringify(result))
         throw new Error(result.data.msg)
       }
       return { success: true, result: result }

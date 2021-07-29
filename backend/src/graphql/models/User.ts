@@ -95,3 +95,104 @@ export class LoginViaVerificationCode extends BaseEntity {
   @Column()
   email: string
 }
+
+@Entity()
+@ObjectType()
+export class LogoutResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class CreateResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class SendEmailResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => String)
+  msg?: string
+}
+
+@Entity()
+@ObjectType()
+export class Server extends BaseEntity {
+  @Field(() => String)
+  loginServerPath: string
+}
+
+@Entity()
+@ObjectType()
+export class ErrorData extends BaseEntity {
+  @Field(() => String)
+  messages: string
+}
+
+@Entity()
+@ObjectType()
+export class GetUserInfoResponse extends BaseEntity {
+  /* "state": "success",
+	"userData": { 
+		"EmailVerificationCode.Register": "2718271129122",
+		"pubkeyhex": "131c7f68dd94b2be4c913400ff7ff4cdc03ac2bda99c2d29edcacb3b065c67e6",
+		"first_name": "Max",
+		"last_name": "Musterman",
+		"disabled": 0,
+		"email_checked": 1
+  	},
+	"server": {
+    	"loginServer.path": "http://localhost/account"
+  	},
+  	"errors": []
+    */
+  @Field(() => String)
+  state: string
+
+  @Field(() => User)
+  userData: User
+
+  @Field(() => Server)
+  server: Server
+
+  @Field(() => [ErrorData])
+  errors: [ErrorData]
+}
+
+@Entity()
+@ObjectType()
+export class ChangePasswordResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class UpdateUserInfosResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => Number)
+  validValues: number
+
+  @Field(() => [ErrorData])
+  errors: [ErrorData]
+}
+
+@Entity()
+@ObjectType()
+export class CheckUsernameResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => String)
+  msg?: string
+
+  @Field(() => Number)
+  groupId?: number
+}
