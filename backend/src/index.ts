@@ -9,6 +9,7 @@ import CONFIG from './config'
 // import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { CommunityTransactionResolver } from './graphql/resolvers/CommunityTransactionResolver'
+import { GdtResolver } from './graphql/resolvers/GdtResolver'
 // import { GroupResolver } from './graphql/resolvers/GroupResolver'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -16,7 +17,11 @@ import { CommunityTransactionResolver } from './graphql/resolvers/CommunityTrans
 async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
-    resolvers: [/* BookResolver , GroupResolver, */ UserResolver, CommunityTransactionResolver],
+    resolvers: [
+      /* BookResolver , GroupResolver, */ UserResolver,
+      CommunityTransactionResolver,
+      GdtResolver,
+    ],
   })
 
   // Graphiql interface
