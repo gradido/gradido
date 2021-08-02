@@ -27,6 +27,42 @@ export class UnsecureLoginArgs {
 }
 
 @ArgsType()
+export class CreateUserArgs {
+  @Field(() => String)
+  email: string
+
+  @Field(() => String)
+  firstName: string
+
+  @Field(() => String)
+  lastName: string
+
+  @Field(() => String)
+  password: string
+}
+
+@ArgsType()
+export class SendEmailArgs {
+  @Field(() => String)
+  email: string
+
+  @Field(() => Number)
+  emailText: number
+
+  @Field(() => String)
+  emailVerificationCodeType: string
+}
+
+@ArgsType()
+export class GetUserInfoArgs {
+  @Field(() => Number)
+  sessionId: number
+
+  @Field(() => String)
+  email: string
+}
+
+@ArgsType()
 export class ChangePasswordArgs {
   @Field(() => Number)
   sessionId: number
@@ -36,4 +72,40 @@ export class ChangePasswordArgs {
 
   @Field(() => String)
   password: string
+}
+
+@ArgsType()
+export class UpdateUserInfosArgs {
+  @Field(() => Number)
+  sessionId!: number
+
+  @Field(() => String)
+  email!: string
+
+  @Field(() => String)
+  firstName?: string
+
+  @Field(() => String)
+  lastName?: string
+
+  @Field(() => String)
+  username?: string
+
+  @Field(() => String)
+  language?: string
+
+  @Field(() => String)
+  password?: string
+
+  @Field(() => String)
+  passwordNew?: string
+}
+
+@ArgsType()
+export class CheckUsernameArgs {
+  @Field(() => String)
+  username: string
+
+  @Field(() => Number)
+  groupId?: number
 }

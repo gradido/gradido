@@ -95,3 +95,90 @@ export class LoginViaVerificationCode extends BaseEntity {
   @Column()
   email: string
 }
+
+@Entity()
+@ObjectType()
+export class LogoutResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class CreateResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class SendEmailResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => String)
+  msg?: string
+}
+
+@Entity()
+@ObjectType()
+export class Server extends BaseEntity {
+  @Field(() => String)
+  loginServerPath: string
+}
+
+@Entity()
+@ObjectType()
+export class ErrorData extends BaseEntity {
+  @Field(() => String)
+  messages: string
+}
+
+@Entity()
+@ObjectType()
+export class GetUserInfoResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => User)
+  userData: User
+
+  @Field(() => Server)
+  server: Server
+
+  @Field(() => [ErrorData])
+  errors: [ErrorData]
+}
+
+@Entity()
+@ObjectType()
+export class ChangePasswordResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+}
+
+@Entity()
+@ObjectType()
+export class UpdateUserInfosResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => Number)
+  validValues: number
+
+  @Field(() => [ErrorData])
+  errors: [ErrorData]
+}
+
+@Entity()
+@ObjectType()
+export class CheckUsernameResponse extends BaseEntity {
+  @Field(() => String)
+  state: string
+
+  @Field(() => String)
+  msg?: string
+
+  @Field(() => Number)
+  groupId?: number
+}

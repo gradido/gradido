@@ -30,6 +30,7 @@ services:
       target: development
     networks:
       - external-net
+      - internal-net
     environment:
       - NODE_ENV="development"
     volumes:
