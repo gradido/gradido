@@ -41,7 +41,7 @@ export class CommunityTransactionResolver {
   }
 
   @Query(() => String)
-  async create(
+  async createCoins(
     @Args() { sessionId, email, amount, memo, targetDate = new Date() }: TransactionCreateArgs,
   ): Promise<any> {
     const payload = {

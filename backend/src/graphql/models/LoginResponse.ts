@@ -2,26 +2,24 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Entity, BaseEntity, Column } from 'typeorm'
 import { ObjectType, Field } from 'type-graphql'
+import { User } from './User'
+
+// temporaray solution until we have JWT implemented
 
 @Entity()
 @ObjectType()
-export class Balance extends BaseEntity {
+export class LoginResponse extends BaseEntity {
   constructor(json: any) {
     super()
-    this.balance = json.balance
-    this.decay = json.decay
-    this.decayDate = json.decay_date
+    this.sessionId = json.session_id
+    this.user = new User(json.user)
   }
 
   @Field(() => Number)
   @Column()
-  balance: number
+  sessionId: number
 
-  @Field(() => Number)
+  @Field(() => User)
   @Column()
-  decay: number
-
-  @Field(() => String)
-  @Column()
-  decayDate: string
+  user: User
 }

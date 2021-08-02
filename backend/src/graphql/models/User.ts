@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Entity, BaseEntity, Column } from 'typeorm'
 import { ObjectType, Field } from 'type-graphql'
 
@@ -9,6 +11,15 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
   */
+  constructor(json: any) {
+    super()
+    this.email = json.email
+    this.firstName = json.first_name
+    this.lastName = json.last_name
+    this.username = json.username
+    this.description = json.description
+    this.language = json.language
+  }
 
   @Field(() => String)
   @Column({ length: 191 })
@@ -69,116 +80,4 @@ export class User extends BaseEntity {
   @Column({ default: 0 })
   publisherId: number
   */
-}
-
-// temporaray solution until we have JWT implemented
-@Entity()
-@ObjectType()
-export class LoginResponse extends BaseEntity {
-  @Field(() => Number)
-  @Column()
-  sessionId: number
-
-  @Field(() => User)
-  @Column()
-  user: User
-}
-
-@Entity()
-@ObjectType()
-export class LoginViaVerificationCode extends BaseEntity {
-  @Field(() => Number)
-  @Column()
-  sessionId: number
-
-  @Field(() => String)
-  @Column()
-  email: string
-}
-
-@Entity()
-@ObjectType()
-export class LogoutResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-}
-
-@Entity()
-@ObjectType()
-export class CreateResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-}
-
-@Entity()
-@ObjectType()
-export class SendEmailResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-
-  @Field(() => String)
-  msg?: string
-}
-
-@Entity()
-@ObjectType()
-export class Server extends BaseEntity {
-  @Field(() => String)
-  loginServerPath: string
-}
-
-@Entity()
-@ObjectType()
-export class ErrorData extends BaseEntity {
-  @Field(() => String)
-  messages: string
-}
-
-@Entity()
-@ObjectType()
-export class GetUserInfoResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-
-  @Field(() => User)
-  userData: User
-
-  @Field(() => Server)
-  server: Server
-
-  @Field(() => [ErrorData])
-  errors: [ErrorData]
-}
-
-@Entity()
-@ObjectType()
-export class ChangePasswordResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-}
-
-@Entity()
-@ObjectType()
-export class UpdateUserInfosResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-
-  @Field(() => Number)
-  validValues: number
-
-  @Field(() => [ErrorData])
-  errors: [ErrorData]
-}
-
-@Entity()
-@ObjectType()
-export class CheckUsernameResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
-
-  @Field(() => String)
-  msg?: string
-
-  @Field(() => Number)
-  groupId?: number
 }

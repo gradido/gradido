@@ -5,23 +5,18 @@ import { ObjectType, Field } from 'type-graphql'
 
 @Entity()
 @ObjectType()
-export class Balance extends BaseEntity {
+export class LoginViaVerificationCode extends BaseEntity {
   constructor(json: any) {
     super()
-    this.balance = json.balance
-    this.decay = json.decay
-    this.decayDate = json.decay_date
+    this.sessionId = json.session_id
+    this.email = json.user.email
   }
 
   @Field(() => Number)
   @Column()
-  balance: number
-
-  @Field(() => Number)
-  @Column()
-  decay: number
+  sessionId: number
 
   @Field(() => String)
   @Column()
-  decayDate: string
+  email: string
 }

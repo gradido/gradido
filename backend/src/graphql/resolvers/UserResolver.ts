@@ -1,17 +1,14 @@
 // import jwt from 'jsonwebtoken'
 import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
-import {
-  ChangePasswordResponse,
-  CheckUsernameResponse,
-  CreateResponse,
-  GetUserInfoResponse,
-  LoginResponse,
-  LoginViaVerificationCode,
-  LogoutResponse,
-  SendEmailResponse,
-  UpdateUserInfosResponse,
-} from '../models/User'
+import { ChangePasswordResponse } from '../models/ChangePasswordResponse'
+import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
+import { CreateResponse } from '../models/CreateResponse'
+import { GetUserInfoResponse } from '../models/UserInfoData'
+import { LoginResponse } from '../models/LoginResponse'
+import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
+import { SendEmailResponse } from '../models/SendEmailResponse'
+import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import {
   ChangePasswordArgs,
   CheckUsernameArgs,
@@ -27,27 +24,17 @@ import { apiPost, apiGet } from '../../apis/loginAPI'
 export class UserResolver {
   @Query(() => LoginResponse)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<any> {
+  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
     // if there is no user, throw an authentication error
     if (!result.success) {
-      throw new Error(result.result)
+      throw new Error(result.data)
     }
 
     // temporary solution until we have JWT implemented
-    return {
-      sessionId: result.result.data.session_id,
-      user: {
-        email: result.result.data.user.email,
-        language: result.result.data.user.language,
-        username: result.result.data.user.username,
-        firstName: result.result.data.user.first_name,
-        lastName: result.result.data.user.last_name,
-        description: result.result.data.user.description,
-      },
-    }
+    return new LoginResponse(result.data)
 
     // create and return the json web token
     // The expire doesn't help us here. The client needs to track when the token expires on its own,
@@ -65,29 +52,35 @@ export class UserResolver {
 
   @Query(() => LoginViaVerificationCode)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async loginViaEmailVerificationCode(@Arg('optin') optin: string): Promise<any> {
+  async loginViaEmailVerificationCode(
+    @Arg('optin') optin: string,
+  ): Promise<LoginViaVerificationCode> {
     // I cannot use number as type here.
     // The value received is not the same as sent by the query
     const result = await apiGet(
       CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
     )
-    if (result.success)
-      return {
-        sessionId: result.result.data.session_id,
-        email: result.result.data.user.email,
-      }
-    return result.result
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return new LoginViaVerificationCode(result.data)
   }
 
-  @Query(() => LogoutResponse)
-  async logout(@Arg('sessionId') sessionId: number): Promise<any> {
+  /* @Query(() => LogoutResponse)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async logout(@Arg('sessionId') sessionId: number): Promise<LogoutResponse> {
     const payload = { session_id: sessionId }
-    const result = apiPost(CONFIG.LOGIN_API_URL + 'logout', payload);
-    return result
+    const result = apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return result.data
   }
-
+*/
   @Query(() => CreateResponse)
-  async create(@Args() { email, firstName, lastName, password }: CreateUserArgs): Promise<any> {
+  async create(
+    @Args() { email, firstName, lastName, password }: CreateUserArgs,
+  ): Promise<CreateResponse> {
     const payload = {
       email,
       first_name: firstName,
@@ -96,7 +89,11 @@ export class UserResolver {
       emailType: 2,
       login_after_register: true,
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return new CreateResponse(result.data)
   }
 
   @Query(() => SendEmailResponse)

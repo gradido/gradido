@@ -11,10 +11,10 @@ export const apiPost = async (url: string, payload: unknown): Promise<any> => {
       if (result.data.state !== 'success') {
         throw new Error(result.data.msg)
       }
-      return { success: true, result }
+      return { success: true, data: result.data }
     })
     .catch((error) => {
-      return { success: false, result: error }
+      return { success: false, data: error.message }
     })
 }
 
@@ -29,11 +29,11 @@ export const apiGet = async (url: string): Promise<any> => {
       if (!['success', 'warning'].includes(result.data.state)) {
         throw new Error(result.data.msg)
       }
-      return { success: true, result: result }
+      return { success: true, data: result.data }
     })
     .catch((error) => {
       // eslint-disable-next-line no-console
       console.log('IN apiGet.ERROR: ' + JSON.stringify({ success: false, result: error }))
-      return { success: false, result: error }
+      return { success: false, data: error.message }
     })
 }
