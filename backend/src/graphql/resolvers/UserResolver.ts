@@ -2,7 +2,7 @@
 import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
 import { LoginResponse, LoginViaVerificationCode } from '../models/User'
-import { UnsecureLoginArgs } from '../inputs/LoginUserInput'
+import { UnsecureLoginArgs, ChangePasswordArgs } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/loginAPI'
 
 @Resolver()
@@ -82,6 +82,20 @@ export class UserResolver {
         sessionId: result.result.data.session_id,
         email: result.result.data.user.email,
       }
+    return result.result
+  }
+
+  @Query(() => String)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async changePassword(@Args() { sessionId, email, password }: ChangePasswordArgs): Promise<any> {
+    const payload = {
+      session_id: sessionId,
+      email,
+      password,
+    }
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
+    console.log(result)
+    if (result.success) return result.result.data.state
     return result.result
   }
 }

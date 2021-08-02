@@ -25,3 +25,15 @@ export class UnsecureLoginArgs {
   @Field(() => String)
   password: string
 }
+
+@ArgsType()
+export class ChangePasswordArgs {
+  @Field(() => Number)
+  sessionId: number
+
+  @Field(() => String)
+  email: string
+
+  @Field(() => String)
+  password: string
+}
