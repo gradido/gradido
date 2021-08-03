@@ -8,7 +8,6 @@ import CONFIG from './config'
 // TODO move to extern
 // import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
-import { CommunityTransactionResolver } from './graphql/resolvers/CommunityTransactionResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 import { GdtResolver } from './graphql/resolvers/GdtResolver'
 import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
