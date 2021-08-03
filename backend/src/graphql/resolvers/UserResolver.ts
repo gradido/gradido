@@ -1,5 +1,5 @@
 // import jwt from 'jsonwebtoken'
-import { Resolver, Query, /* Mutation, */ Args, Arg, Field } from 'type-graphql'
+import { Resolver, Query, Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
 import { ResetPasswordResponse } from '../models/ResetPasswordResponse'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
@@ -142,24 +142,24 @@ export class UserResolver {
     {
       sessionId,
       email,
-      firstName = '',
-      lastName = '',
-      username = '',
-      language = '',
-      password = '',
-      passwordNew = '',
+      firstName = null,
+      lastName = null,
+      username = null,
+      language = null,
+      password = null,
+      passwordNew = null,
     }: UpdateUserInfosArgs,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.first_name': firstName.length > 0 ? firstName : undefined,
-        'User.last_name': lastName.length > 0 ? lastName : undefined,
-        'User.username': username.length > 0 ? username : undefined,
-        'User.language': language.length > 0 ? language : undefined,
-        'User.password': passwordNew.length > 0 ? passwordNew : undefined,
-        'User.password_old': password.length > 0 ? password : undefined,
+        'User.first_name': firstName !== null ? firstName : undefined,
+        'User.last_name': lastName !== null ? lastName : undefined,
+        'User.username': username !== null ? username : undefined,
+        'User.language': language !== null ? language : undefined,
+        'User.password': passwordNew !== null ? passwordNew : undefined,
+        'User.password_old': password !== null ? password : undefined,
       },
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
@@ -167,7 +167,6 @@ export class UserResolver {
     return new UpdateUserInfosResponse(result.data)
   }
 
-  // TODO
   @Query(() => CheckUsernameResponse)
   async checkUsername(
     @Args() { username, groupId = 1 }: CheckUsernameArgs,

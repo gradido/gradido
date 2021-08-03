@@ -83,22 +83,22 @@ export class UpdateUserInfosArgs {
   email!: string
 
   @Field({ nullable: true })
-  firstName?: string
+  firstName?: string | null
 
   @Field({ nullable: true })
-  lastName?: string
+  lastName?: string | null
 
   @Field({ nullable: true })
-  username?: string
+  username?: string | null
 
   @Field({ nullable: true })
-  language?: string
+  language?: string | null
 
   @Field({ nullable: true })
-  password?: string
+  password?: string | null
 
   @Field({ nullable: true })
-  passwordNew?: string
+  passwordNew?: string | null
 }
 
 @ArgsType()
