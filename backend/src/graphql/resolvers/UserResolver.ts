@@ -1,13 +1,13 @@
 // import jwt from 'jsonwebtoken'
-import { Resolver, Query, /* Mutation, */ Args, Arg } from 'type-graphql'
+import { Resolver, Query, /* Mutation, */ Args, Arg, Field } from 'type-graphql'
 import CONFIG from '../../config'
-import { ChangePasswordResponse } from '../models/ChangePasswordResponse'
+import { ResetPasswordResponse } from '../models/ResetPasswordResponse'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { CreateResponse } from '../models/CreateResponse'
 import { GetUserInfoResponse } from '../models/UserInfoData'
 import { LoginResponse } from '../models/LoginResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
-import { SendEmailResponse } from '../models/SendEmailResponse'
+import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import {
   ChangePasswordArgs,
@@ -66,17 +66,16 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
-  /* @Query(() => LogoutResponse)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async logout(@Arg('sessionId') sessionId: number): Promise<LogoutResponse> {
+  @Query(() => String)
+  async logout(@Arg('sessionId') sessionId: number): Promise<string> {
     const payload = { session_id: sessionId }
-    const result = apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
     if (!result.success) {
       throw new Error(result.data)
     }
-    return result.data
+    return 'success'
   }
-*/
+
   @Query(() => CreateResponse)
   async create(
     @Args() { email, firstName, lastName, password }: CreateUserArgs,
@@ -96,17 +95,20 @@ export class UserResolver {
     return new CreateResponse(result.data)
   }
 
-  @Query(() => SendEmailResponse)
-  async sendEmail(
+  // TODO
+  @Query(() => SendPasswordResetEmailResponse)
+  async sendResetPasswordEmail(
     @Args()
     { email, emailText = 7, emailVerificationCodeType = 'resetPassword' }: SendEmailArgs,
-  ): Promise<any> {
+  ): Promise<SendPasswordResetEmailResponse> {
     const payload = {
       email,
       email_text: emailText,
       email_verification_code_type: emailVerificationCodeType,
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
+    const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
+    if (!response.success) throw new Error(response.data)
+    return new SendPasswordResetEmailResponse(response.data)
   }
 
   @Query(() => GetUserInfoResponse)
@@ -119,16 +121,19 @@ export class UserResolver {
     return apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', payload)
   }
 
-  @Query(() => ChangePasswordResponse)
-  async changePassword(@Args() { sessionId, email, password }: ChangePasswordArgs): Promise<any> {
+  @Query(() => ResetPasswordResponse)
+  async resetPassword(
+    @Args()
+    { sessionId, email, password }: ChangePasswordArgs,
+  ): Promise<ResetPasswordResponse> {
     const payload = {
       session_id: sessionId,
       email,
       password,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
-    if (result.success) return result.result.data.state
-    return result.result
+    if (!result.success) throw new Error(result.data)
+    return new ResetPasswordResponse(result.data)
   }
 
   @Query(() => UpdateUserInfosResponse)
@@ -137,32 +142,40 @@ export class UserResolver {
     {
       sessionId,
       email,
-      firstName,
-      lastName,
-      username,
-      language,
-      password,
-      passwordNew,
+      firstName = '',
+      lastName = '',
+      username = '',
+      language = '',
+      password = '',
+      passwordNew = '',
     }: UpdateUserInfosArgs,
-  ): Promise<any> {
+  ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.first_name': firstName,
-        'User.last_name': lastName,
-        // 'User.description': data.description,
-        'User.username': username,
-        'User.language': language,
-        'User.password_old': password,
-        'User.password': passwordNew,
+        'User.first_name': firstName.length > 0 ? firstName : undefined,
+        'User.last_name': lastName.length > 0 ? lastName : undefined,
+        'User.username': username.length > 0 ? username : undefined,
+        'User.language': language.length > 0 ? language : undefined,
+        'User.password': passwordNew.length > 0 ? passwordNew : undefined,
+        'User.password_old': password.length > 0 ? password : undefined,
       },
     }
-    return apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+    if (!result.success) throw new Error(result.data)
+    return new UpdateUserInfosResponse(result.data)
   }
 
+  // TODO
   @Query(() => CheckUsernameResponse)
-  async checkUsername(@Args() { username, groupId = 1 }: CheckUsernameArgs): Promise<any> {
-    return apiGet(CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`)
+  async checkUsername(
+    @Args() { username, groupId = 1 }: CheckUsernameArgs,
+  ): Promise<CheckUsernameResponse> {
+    const response = await apiGet(
+      CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`,
+    )
+    if (!response.success) throw new Error(response.data)
+    return new CheckUsernameResponse(response.data)
   }
 }
