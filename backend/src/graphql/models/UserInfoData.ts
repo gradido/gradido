@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Entity, BaseEntity } from 'typeorm'
 import { ObjectType, Field } from 'type-graphql'
 import { Server } from './Server'

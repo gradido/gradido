@@ -1,7 +1,7 @@
 import { ArgsType, Field } from 'type-graphql'
 
 @ArgsType()
-export class TransactionInput {
+export class TransactionListInput {
   @Field(() => Number)
   sessionId: number
 

@@ -3,19 +3,23 @@
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class Balance {
+export class Decay {
   constructor(json: any) {
     this.balance = Number(json.balance)
-    this.decay = Number(json.decay)
-    this.decayDate = json.decay_date
+    this.decayStart = json.decay_start
+    this.decayEnd = json.decay_end
+    this.decayDuration = json.decay_duration
   }
 
   @Field(() => Number)
   balance: number
 
-  @Field(() => Number)
-  decay: number
+  @Field({ nullable: true })
+  decayStart?: number
+
+  @Field({ nullable: true })
+  decayEnd?: number
 
   @Field(() => String)
-  decayDate: string
+  decayDuration: string
 }

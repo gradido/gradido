@@ -1,15 +1,13 @@
-import { Entity, BaseEntity } from 'typeorm'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 
-@Entity()
 @ObjectType()
-export class UpdateUserInfosResponse extends BaseEntity {
-  @Field(() => String)
-  state: string
+export class UpdateUserInfosResponse {
+  constructor(json: any) {
+    this.validValues = json.valid_values
+  }
 
   @Field(() => Number)
   validValues: number
-
-  @Field(() => [String])
-  errors: [string]
 }

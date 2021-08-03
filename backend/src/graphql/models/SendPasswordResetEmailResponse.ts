@@ -1,11 +1,10 @@
-import { Entity, BaseEntity } from 'typeorm'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 
-@Entity()
 @ObjectType()
-export class SendEmailResponse extends BaseEntity {
+export class SendPasswordResetEmailResponse {
   constructor(json: any) {
-    super()
     this.state = json.state
     this.msg = json.msg
   }
