@@ -1,9 +1,7 @@
 // import jwt from 'jsonwebtoken'
 import { Resolver, Query, Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
-import { ResetPasswordResponse } from '../models/ResetPasswordResponse'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { CreateResponse } from '../models/CreateResponse'
 import { GetUserInfoResponse } from '../models/UserInfoData'
 import { LoginResponse } from '../models/LoginResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
@@ -74,10 +72,8 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => CreateResponse)
-  async create(
-    @Args() { email, firstName, lastName, password }: CreateUserArgs,
-  ): Promise<CreateResponse> {
+  @Query(() => String)
+  async create(@Args() { email, firstName, lastName, password }: CreateUserArgs): Promise<string> {
     const payload = {
       email,
       first_name: firstName,
@@ -90,7 +86,7 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
-    return new CreateResponse(result.data)
+    return 'success'
   }
 
   // TODO
@@ -120,11 +116,11 @@ export class UserResolver {
     return apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', payload)
   }
 
-  @Query(() => ResetPasswordResponse)
+  @Query(() => String)
   async resetPassword(
     @Args()
     { sessionId, email, password }: ChangePasswordArgs,
-  ): Promise<ResetPasswordResponse> {
+  ): Promise<string> {
     const payload = {
       session_id: sessionId,
       email,
@@ -132,7 +128,7 @@ export class UserResolver {
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
     if (!result.success) throw new Error(result.data)
-    return new ResetPasswordResponse(result.data)
+    return 'sucess'
   }
 
   @Query(() => UpdateUserInfosResponse)
