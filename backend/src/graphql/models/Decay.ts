@@ -3,12 +3,13 @@ import { ObjectType, Field } from 'type-graphql'
 
 @Entity()
 @ObjectType()
-export class Balance extends BaseEntity {
+export class Decay extends BaseEntity {
   constructor(json: any) {
     super()
     this.balance = Number(json.balance)
-    this.decay = Number(json.decay)
-    this.decayDate = json.decay_date
+    this.decayStart = json.decay_start
+    this.decayEnd = json.decay_end
+    this.decayDuration = json.decay_duration
   }
 
   @Field(() => Number)
@@ -17,9 +18,13 @@ export class Balance extends BaseEntity {
 
   @Field(() => Number)
   @Column()
-  decay: number
+  decayStart: number
+
+  @Field(() => Number)
+  @Column()
+  decayEnd: number
 
   @Field(() => String)
   @Column()
-  decayDate: string
+  decayDuration: string
 }

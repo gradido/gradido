@@ -8,7 +8,7 @@ import CONFIG from './config'
 // TODO move to extern
 // import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
-import { CommunityTransactionResolver } from './graphql/resolvers/CommunityTransactionResolver'
+import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 // import { GroupResolver } from './graphql/resolvers/GroupResolver'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -16,7 +16,7 @@ import { CommunityTransactionResolver } from './graphql/resolvers/CommunityTrans
 async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
-    resolvers: [/* BookResolver , GroupResolver, */ UserResolver, CommunityTransactionResolver],
+    resolvers: [UserResolver, BalanceResolver],
   })
 
   // Graphiql interface
