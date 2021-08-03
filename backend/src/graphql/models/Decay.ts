@@ -1,11 +1,10 @@
-import { Entity, BaseEntity, Column } from 'typeorm'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 
-@Entity()
 @ObjectType()
-export class Decay extends BaseEntity {
+export class Decay {
   constructor(json: any) {
-    super()
     this.balance = Number(json.balance)
     this.decayStart = json.decay_start
     this.decayEnd = json.decay_end
@@ -13,18 +12,14 @@ export class Decay extends BaseEntity {
   }
 
   @Field(() => Number)
-  @Column()
   balance: number
 
-  @Field(() => Number)
-  @Column()
-  decayStart: number
+  @Field({ nullable: true })
+  decayStart?: number
 
-  @Field(() => Number)
-  @Column()
-  decayEnd: number
+  @Field({ nullable: true })
+  decayEnd?: number
 
   @Field(() => String)
-  @Column()
   decayDuration: string
 }

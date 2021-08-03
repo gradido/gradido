@@ -1,11 +1,66 @@
-import { Entity, BaseEntity, Column } from 'typeorm'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
+import { Decay } from './Decay'
 
-@Entity()
+// we need a better solution for the decay block:
+// the first transaction on the first page shows the decay since the last transaction
+// the format is actually a Decay and not a Transaction.
+// Therefore we have a lot of nullable fields, which should be always present
+
 @ObjectType()
-export class TransactionList extends BaseEntity {
+export class Transaction {
   constructor(json: any) {
-    super()
+    this.type = json.type
+    this.balance = Number(json.balance)
+    this.decayStart = json.decay_start
+    this.decayEnd = json.decay_end
+    this.decayDuration = json.decay_duration
+    this.memo = json.memo
+    this.transactionId = json.transaction_id
+    this.name = json.name
+    this.email = json.email
+    this.date = json.date
+    this.decay = json.decay
+  }
+
+  @Field(() => String)
+  type: string
+
+  @Field(() => Number)
+  balance: number
+
+  @Field({ nullable: true })
+  decayStart?: number
+
+  @Field({ nullable: true })
+  decayEnd?: number
+
+  @Field({ nullable: true })
+  decayDuration?: string
+
+  @Field(() => String)
+  memo: string
+
+  @Field(() => Number)
+  transactionId: number
+
+  @Field({ nullable: true })
+  name?: string
+
+  @Field({ nullable: true })
+  email?: string
+
+  @Field({ nullable: true })
+  date?: string
+
+  @Field({ nullable: true })
+  decay?: Decay
+}
+
+@ObjectType()
+export class TransactionList {
+  constructor(json: any) {
     this.gdtSum = Number(json.gdtSum)
     this.count = json.count
     this.balance = Number(json.balance)
@@ -15,88 +70,20 @@ export class TransactionList extends BaseEntity {
   }
 
   @Field(() => Number)
-  @Column()
   gdtSum: number
 
   @Field(() => Number)
-  @Column()
   count: number
 
   @Field(() => Number)
-  @Column()
   balance: number
 
   @Field(() => Number)
-  @Column()
   decay: number
 
   @Field(() => String)
-  @Column()
   decayDate: string
 
   @Field(() => [Transaction])
   transactions: Transaction[]
-}
-
-@Entity()
-@ObjectType()
-export class Transaction extends BaseEntity {
-  constructor(json: any) {
-    super()
-    this.type = json.type
-    this.balance = Number(json.balance)
-    this.decayStart = json.decay_start
-    this.decayEnd = json.decay_end
-    this.decayDuration = json.decay_duration
-    this.meno = json.memo
-    this.transactionId = json.transaction_id
-    this.name = json.name
-    this.email = json.email
-    this.date = json.date
-    this.decay = json.decay
-  }
-
-  @Field(() => String)
-  @Column()
-  type: string  
-
-  @Field(() => Number)
-  @Column()
-  balance: number
-
-  @Field(() => Number)
-  @Column()
-  decayStart: number
-
-  @Field(() => Number)
-  @Column()
-  decayEnd: number
-
-  @Field(() => String)
-  @Column()
-  decayDuration: string
-
-  @Field(() => String)
-  @Column()
-  memo: string
-
-  @Field(() => Number)
-  @Column()
-  transactionId: number
-
-  @Field(() => String)
-  @Column()
-  name: string
-
-  @Field(() => String)
-  @Column()
-  email: string
-
-  @Field(() => String)
-  @Column()
-  date: string
-
-  @Field(() => Decay)
-  @Column()
-  decay: Decay
 }

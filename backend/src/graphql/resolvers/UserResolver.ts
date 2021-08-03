@@ -23,7 +23,6 @@ import { apiPost, apiGet } from '../../apis/loginAPI'
 @Resolver()
 export class UserResolver {
   @Query(() => LoginResponse)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
@@ -51,7 +50,6 @@ export class UserResolver {
   }
 
   @Query(() => LoginViaVerificationCode)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async loginViaEmailVerificationCode(
     @Arg('optin') optin: string,
   ): Promise<LoginViaVerificationCode> {
@@ -112,6 +110,7 @@ export class UserResolver {
   }
 
   @Query(() => GetUserInfoResponse)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getUserInfos(@Args() { sessionId, email }: GetUserInfoArgs): Promise<any> {
     const payload = {
       session_id: sessionId,
@@ -142,24 +141,24 @@ export class UserResolver {
     {
       sessionId,
       email,
-      firstName = null,
-      lastName = null,
-      username = null,
-      language = null,
-      password = null,
-      passwordNew = null,
+      firstName = '',
+      lastName = '',
+      username = '',
+      language = '',
+      password = '',
+      passwordNew = '',
     }: UpdateUserInfosArgs,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.first_name': firstName !== null ? firstName : undefined,
-        'User.last_name': lastName !== null ? lastName : undefined,
-        'User.username': username !== null ? username : undefined,
-        'User.language': language !== null ? language : undefined,
-        'User.password': passwordNew !== null ? passwordNew : undefined,
-        'User.password_old': password !== null ? password : undefined,
+        'User.first_name': firstName !== '' ? firstName : undefined,
+        'User.last_name': lastName !== '' ? lastName : undefined,
+        'User.username': username !== '' ? username : undefined,
+        'User.language': language !== '' ? language : undefined,
+        'User.password': passwordNew !== '' ? passwordNew : undefined,
+        'User.password_old': password !== '' ? password : undefined,
       },
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)

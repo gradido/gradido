@@ -9,14 +9,15 @@ import CONFIG from './config'
 // import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
-// import { GroupResolver } from './graphql/resolvers/GroupResolver'
+import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
-    resolvers: [UserResolver, BalanceResolver],
+    resolvers: [UserResolver, BalanceResolver, TransactionResolver],
   })
 
   // Graphiql interface
