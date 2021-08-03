@@ -137,24 +137,26 @@ export class UserResolver {
     {
       sessionId,
       email,
-      firstName = '',
-      lastName = '',
-      username = '',
-      language = '',
-      password = '',
-      passwordNew = '',
+      firstName,
+      lastName,
+      description,
+      username,
+      language,
+      password,
+      passwordNew,
     }: UpdateUserInfosArgs,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: sessionId,
       email,
       update: {
-        'User.first_name': firstName !== '' ? firstName : undefined,
-        'User.last_name': lastName !== '' ? lastName : undefined,
-        'User.username': username !== '' ? username : undefined,
-        'User.language': language !== '' ? language : undefined,
-        'User.password': passwordNew !== '' ? passwordNew : undefined,
-        'User.password_old': password !== '' ? password : undefined,
+        'User.first_name': firstName || undefined,
+        'User.last_name': lastName || undefined,
+        'User.description': description || undefined,
+        'User.username': username || undefined,
+        'User.language': language || undefined,
+        'User.password': passwordNew || undefined,
+        'User.password_old': password || undefined,
       },
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
