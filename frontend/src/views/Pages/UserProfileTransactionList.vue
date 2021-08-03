@@ -10,6 +10,7 @@
             :show-pagination="true"
             @update-transactions="updateTransactions"
           />
+           <gdd-transaction-gdt-list :timestamp="timestamp" :transactionsGdt="transactionsGdt" @update-gdt="updateGdt"/>
         </b-col>
       </b-row>
     </b-container>
@@ -17,17 +18,22 @@
 </template>
 <script>
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
+import GddTransactionGdtList from './AccountOverview/GddTransactionGdtList.vue'
 
 export default {
   name: 'UserProfileTransactionList',
   components: {
     GddTransactionList,
+    GddTransactionGdtList
   },
   props: {
     transactions: {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    transactionsGdt: {
+      default: () => [],
+    },
   },
   data() {
     return {
@@ -37,6 +43,9 @@ export default {
   methods: {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+    updateGdt() {
+      this.$emit('update-gdt')
     },
   },
 }
