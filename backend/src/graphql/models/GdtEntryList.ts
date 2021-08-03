@@ -21,9 +21,13 @@ export class GdtEntryList {
     this.state = json.state
     this.moreEntrysAsShown = json.moreEntrysAsShown
     this.ownEntries = []
-    json.ownEntries.forEach((value: any) => {
-      this.ownEntries.push(new GdtEntry(value))
-    })
+    if (typeof json.ownEntries !== undefined) {
+      for (const entry in json.ownEntries) {
+        // eslint-disable-next-line no-console
+        console.log(entry)
+        this.ownEntries.push(new GdtEntry(json.ownEntries[entry]))
+      }
+    }
     this.gdtSumPerEmail = []
     for (const email in json.gdtSumPerEmail) {
       this.gdtSumPerEmail.push(new GdtSumPerEmail(email, json.gdtSumPerEmail[email]))

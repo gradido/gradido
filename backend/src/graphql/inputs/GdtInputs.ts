@@ -6,11 +6,11 @@ export class GdtTransactionInput {
   email: string
 
   @Field(() => Number)
-  firstPage: number
+  firstPage?: number
 
   @Field(() => Number)
-  items: number
+  items?: number
 
   @Field(() => String)
-  order: string
+  order?: string
 }

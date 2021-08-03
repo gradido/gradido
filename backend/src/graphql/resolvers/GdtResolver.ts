@@ -3,7 +3,7 @@ import { Resolver, Query, /* Mutation, */ Args } from 'type-graphql'
 import CONFIG from '../../config'
 import { GdtEntryList } from '../models/GdtEntryList'
 import { GdtTransactionInput } from '../inputs/GdtInputs'
-import { apiPost, apiGet } from '../../apis/loginAPI'
+import { apiGet } from '../../apis/loginAPI'
 
 @Resolver()
 export class GdtResolver {
