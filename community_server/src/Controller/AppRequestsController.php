@@ -424,21 +424,35 @@ class AppRequestsController extends AppController
         if(!$user) {
           return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'exist a valid session cookie?']);
         }
+
         $gdtEntries = $this->JsonRequestClient->sendRequestGDT([
                     'email' => $user['email'],
                     'page' => $page, 
                     'count' => $count,
                     'orderDirection' => $orderDirection
-                ], 'GdtEntries' . DS . 'sumPerEmailApi');
-        //var_dump($gdtEntries);
+                ], 'GdtEntries' . DS . 'listPerEmailApi');
+        
         $transactions = [];
+        $result = ['state' => 'success'];
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-          $gdtSum = intval($gdtEntries['data']['sum']);
+          $gdtSum = 0;
+          if(isset($gdtEntries['data']['gdtSumPerEmail'])) {
+              foreach($gdtEntries['data']['gdtSumPerEmail'] as $email => $sum) {
+                $gdtSum += floatval($sum/100.0);
+              }
+          } 
+          $result['sum'] = $gdtSum;
           if(isset($gdtEntries['data']['count'])) {
-            $gdtCount = intval($gdtEntries['data']['count']);
+            $result['count'] = intval($gdtEntries['data']['count']);
           }
           if(isset($gdtEntries['data']['ownEntries'])) {
-              $transactions = $gdtEntries['data']['ownEntries'];
+              $result['ownEntries'] = $gdtEntries['data']['ownEntries'];
+          }
+          if(isset($gdtEntries['data']['publisherPath'])) {
+              $result['publisherPath'] = $gdtEntries['data']['publisherPath'];
+          }
+          if(isset($gdtEntries['data']['connectEntrys'])) {
+              $result['connectEntrys'] = $gdtEntries['data']['connectEntrys'];
           }
         } else {
           if($user) {
@@ -448,12 +462,9 @@ class AppRequestsController extends AppController
           }
         }
         $timeEnd = microtime(true);
-        return $this->returnJson([
-            'state' => 'success', 
-            'transactions' => $transactions,
-            'count' => $gdtEntries['data']['count'],
-            'timeUsed' => ($timeEnd - $timeBegin) . ' s'
-        ]);
+        
+        $result['timeUsed'] = ($timeEnd - $timeBegin) . ' s';
+        return $this->returnJson($result);
     }
     
     public function getDecayStartBlock()
