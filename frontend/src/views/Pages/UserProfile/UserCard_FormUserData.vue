@@ -8,7 +8,7 @@
       <b-container>
         <b-row class="text-right">
           <b-col class="mb-3">
-            <a href="#!" @click="showUserData = !showUserData">
+            <a @click="showUserData ? (showUserData = !showUserData) : cancelEdit()">
               <span class="pointer mr-3">{{ $t('form.change-name') }}</span>
 
               <b-icon v-if="showUserData" class="pointer" icon="pencil">
