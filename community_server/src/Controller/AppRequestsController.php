@@ -271,6 +271,8 @@ class AppRequestsController extends AppController
     public function getBalance($session_id = 0)
     {
         $this->viewBuilder()->setLayout('ajax');
+        $this->response = $this->response->withType('application/json');
+
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
             $this->set('body', $login_result);
@@ -301,12 +303,16 @@ class AppRequestsController extends AppController
         }
         
         $body['decay_date'] = $now;
+        $this->addAdminError("AppRequests", "getBalance", $body, $user['id']);
         $this->set('body', $body);
     }
     
     public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
     {
+        
         $this->viewBuilder()->setLayout('ajax');
+        $this->response = $this->response->withType('application/json');
+
         $startTime = microtime(true);
         
         $login_result = $this->requestLogin($session_id, false);

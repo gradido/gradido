@@ -104,6 +104,7 @@
                     rows="3"
                     v-model="form.memo"
                     class="pl-3"
+                    style="font-size: large"
                   ></b-form-textarea>
                 </b-input-group>
                 <b-col v-if="errors">
@@ -196,5 +197,10 @@ export default {
 <style>
 span.errors {
   color: red;
+}
+#input-1:focus,
+#input-2:focus,
+#input-3:focus {
+  font-weight: bold;
 }
 </style>
