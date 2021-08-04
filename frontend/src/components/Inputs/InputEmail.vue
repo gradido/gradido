@@ -15,7 +15,6 @@
         type="email"
         :state="validated ? valid : false"
         trim
-        class="email-form-input"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -60,12 +59,3 @@ export default {
   },
 }
 </script>
-<style>
-.email-form-input {
-  border-right-style: solid !important;
-  border-right-width: 1px !important;
-  padding-right: 12px !important;
-  border-top-right-radius: 6px !important;
-  border-bottom-right-radius: 6px !important;
-}
-</style>
