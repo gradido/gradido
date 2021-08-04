@@ -32,8 +32,6 @@ export const apiGet = async (url: string): Promise<any> => {
       return { success: true, data: result.data }
     })
     .catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log('IN apiGet.ERROR: ', { success: false, result: error })
       return { success: false, data: error.message }
     })
 }

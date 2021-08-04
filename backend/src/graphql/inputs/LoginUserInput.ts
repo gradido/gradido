@@ -1,22 +1,5 @@
 import { ArgsType, Field } from 'type-graphql'
 
-/*
-@InputType()
-export class LoginUserInput {
-  @Field({ nullable: true })
-  username?: string
-
-  @Field({ nullable: true })
-  email?: string
-
-  @Field({ nullable: true })
-  pubkey?: string
-
-  @Field()
-  password: string
-}
-*/
-
 @ArgsType()
 export class UnsecureLoginArgs {
   @Field(() => String)
@@ -39,18 +22,6 @@ export class CreateUserArgs {
 
   @Field(() => String)
   password: string
-}
-
-@ArgsType()
-export class SendEmailArgs {
-  @Field(() => String)
-  email: string
-
-  @Field(() => Number)
-  emailText: number
-
-  @Field(() => String)
-  emailVerificationCodeType: string
 }
 
 @ArgsType()
@@ -109,6 +80,6 @@ export class CheckUsernameArgs {
   @Field(() => String)
   username: string
 
-  @Field(() => Number)
+  @Field(() => Number, { nullable: true })
   groupId?: number
 }

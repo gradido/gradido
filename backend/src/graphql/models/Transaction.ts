@@ -11,6 +11,7 @@ import { Decay } from './Decay'
 @ObjectType()
 export class Transaction {
   constructor(json: any) {
+    // console.log('Transaction constructor', json)
     this.type = json.type
     this.balance = Number(json.balance)
     this.decayStart = json.decay_start
@@ -21,7 +22,7 @@ export class Transaction {
     this.name = json.name
     this.email = json.email
     this.date = json.date
-    this.decay = json.decay
+    this.decay = json.decay ? new Decay(json.decay) : undefined
   }
 
   @Field(() => String)
@@ -66,7 +67,9 @@ export class TransactionList {
     this.balance = Number(json.balance)
     this.decay = Number(json.decay)
     this.decayDate = json.decay_date
-    this.transactions = json.transactions
+    this.transactions = json.transactions.map((el: any) => {
+      return new Transaction(el)
+    })
   }
 
   @Field(() => Number)

@@ -12,7 +12,6 @@ import {
   CheckUsernameArgs,
   CreateUserArgs,
   GetUserInfoArgs,
-  SendEmailArgs,
   UnsecureLoginArgs,
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
@@ -89,16 +88,14 @@ export class UserResolver {
     return 'success'
   }
 
-  // TODO
   @Query(() => SendPasswordResetEmailResponse)
   async sendResetPasswordEmail(
-    @Args()
-    { email, emailText = 7, emailVerificationCodeType = 'resetPassword' }: SendEmailArgs,
+    @Arg('email') email: string,
   ): Promise<SendPasswordResetEmailResponse> {
     const payload = {
       email,
-      email_text: emailText,
-      email_verification_code_type: emailVerificationCodeType,
+      email_text: 7,
+      email_verification_code_type: 'resetPassword',
     }
     const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
     if (!response.success) throw new Error(response.data)

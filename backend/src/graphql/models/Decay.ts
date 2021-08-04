@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class Decay {
@@ -14,12 +14,12 @@ export class Decay {
   @Field(() => Number)
   balance: number
 
-  @Field({ nullable: true })
+  @Field(() => Int, { nullable: true })
   decayStart?: number
 
-  @Field({ nullable: true })
+  @Field(() => Int, { nullable: true })
   decayEnd?: number
 
-  @Field(() => String)
-  decayDuration: string
+  @Field(() => String, { nullable: true })
+  decayDuration?: string
 }

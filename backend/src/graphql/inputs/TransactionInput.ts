@@ -1,14 +1,14 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class TransactionListInput {
   @Field(() => Number)
   sessionId: number
 
-  @Field(() => Number)
+  @Field(() => Int)
   firstPage: number
 
-  @Field(() => Number)
+  @Field(() => Int)
   items: number
 
   @Field(() => String)
@@ -28,22 +28,4 @@ export class TransactionSendArgs {
 
   @Field(() => String)
   memo: string
-}
-
-@ArgsType()
-export class TransactionCreateArgs {
-  @Field(() => Number)
-  sessionId: number
-
-  @Field(() => String)
-  email: string
-
-  @Field(() => Number)
-  amount: number
-
-  @Field(() => String)
-  memo: string
-
-  @Field(() => Date)
-  targetDate: Date
 }
