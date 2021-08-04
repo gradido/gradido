@@ -25,15 +25,6 @@ export class CreateUserArgs {
 }
 
 @ArgsType()
-export class GetUserInfoArgs {
-  @Field(() => Number)
-  sessionId: number
-
-  @Field(() => String)
-  email: string
-}
-
-@ArgsType()
 export class ChangePasswordArgs {
   @Field(() => Number)
   sessionId: number

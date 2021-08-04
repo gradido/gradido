@@ -2,7 +2,6 @@
 import { Resolver, Query, Args, Arg } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { GetUserInfoResponse } from '../models/UserInfoData'
 import { LoginResponse } from '../models/LoginResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
@@ -11,7 +10,6 @@ import {
   ChangePasswordArgs,
   CheckUsernameArgs,
   CreateUserArgs,
-  GetUserInfoArgs,
   UnsecureLoginArgs,
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
@@ -100,17 +98,6 @@ export class UserResolver {
     const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
     if (!response.success) throw new Error(response.data)
     return new SendPasswordResetEmailResponse(response.data)
-  }
-
-  @Query(() => GetUserInfoResponse)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getUserInfos(@Args() { sessionId, email }: GetUserInfoArgs): Promise<any> {
-    const payload = {
-      session_id: sessionId,
-      email: email,
-      ask: ['user.first_name', 'user.last_name'],
-    }
-    return apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', payload)
   }
 
   @Query(() => String)
