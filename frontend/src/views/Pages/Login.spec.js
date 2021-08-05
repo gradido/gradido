@@ -1,26 +1,19 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import loginAPI from '../../apis/loginAPI'
 import Login from './Login'
-
-jest.mock('../../apis/loginAPI')
 
 const localVue = global.localVue
 
-const mockLoginCall = jest.fn()
-mockLoginCall.mockReturnValue({
-  success: true,
-  result: {
-    data: {
-      session_id: 1,
+const loginQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    login: {
+      sessionId: 1,
       user: {
         name: 'Peter Lustig',
       },
     },
   },
 })
-
-loginAPI.login = mockLoginCall
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
@@ -51,6 +44,9 @@ describe('Login', () => {
     },
     $toasted: {
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: loginQueryMock,
     },
   }
 
@@ -147,7 +143,14 @@ describe('Login', () => {
         })
 
         it('calls the API with the given data', () => {
-          expect(mockLoginCall).toBeCalledWith('user@example.org', '1234')
+          expect(loginQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'user@example.org',
+                password: '1234',
+              },
+            }),
+          )
         })
 
         it('creates a spinner', () => {
@@ -173,7 +176,9 @@ describe('Login', () => {
 
         describe('login fails', () => {
           beforeEach(() => {
-            mockLoginCall.mockReturnValue({ success: false })
+            loginQueryMock.mockRejectedValue({
+              message: 'Ouch!',
+            })
           })
 
           it('hides the spinner', () => {

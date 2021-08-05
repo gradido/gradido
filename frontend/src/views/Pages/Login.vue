@@ -55,10 +55,10 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
 import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
+import { login } from '../../graphql/queries'
 
 export default {
   name: 'login',
@@ -81,18 +81,26 @@ export default {
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
-      const result = await loginAPI.login(this.form.email, this.form.password)
-      if (result.success) {
-        this.$store.dispatch('login', {
-          sessionId: result.result.data.session_id,
-          user: result.result.data.user,
+      this.$apollo
+        .query({
+          query: login,
+          variables: {
+            email: this.form.email,
+            password: this.form.password,
+          },
         })
-        this.$router.push('/overview')
-        loader.hide()
-      } else {
-        loader.hide()
-        this.$toasted.error(this.$t('error.no-account'))
-      }
+        .then((result) => {
+          const {
+            data: { login },
+          } = result
+          this.$store.dispatch('login', login)
+          this.$router.push('/overview')
+          loader.hide()
+        })
+        .catch(() => {
+          loader.hide()
+          this.$toasted.error(this.$t('error.no-account'))
+        })
     },
   },
 }

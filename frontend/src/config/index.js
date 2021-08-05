@@ -13,7 +13,7 @@ const environment = {
 const server = {
   LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://localhost/login_api/',
   COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://localhost/api/',
-  GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000',
+  GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
 }
 
 const CONFIG = {
