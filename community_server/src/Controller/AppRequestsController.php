@@ -434,26 +434,11 @@ class AppRequestsController extends AppController
         
         $transactions = [];
         $result = ['state' => 'success'];
-        if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-          $gdtSum = 0;
-          if(isset($gdtEntries['data']['gdtSumPerEmail'])) {
-              foreach($gdtEntries['data']['gdtSumPerEmail'] as $email => $sum) {
-                $gdtSum += floatval($sum/100.0);
-              }
-          } 
-          $result['sum'] = $gdtSum;
-          if(isset($gdtEntries['data']['count'])) {
-            $result['count'] = intval($gdtEntries['data']['count']);
-          }
-          if(isset($gdtEntries['data']['ownEntries'])) {
-              $result['ownEntries'] = $gdtEntries['data']['ownEntries'];
-          }
-          if(isset($gdtEntries['data']['publisherPath'])) {
-              $result['publisherPath'] = $gdtEntries['data']['publisherPath'];
-          }
-          if(isset($gdtEntries['data']['connectEntrys'])) {
-              $result['connectEntrys'] = $gdtEntries['data']['connectEntrys'];
-          }
+        if('success' == $gdtEntries['state']) {
+          $timeEnd = microtime(true);
+          $gdtEntries['data']['timeUsed'] = $timeEnd - $timeBegin;
+          return $this->returnJson($gdtEntries['data']);
+          
         } else {
           if($user) {
             $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, $user['id']);
@@ -461,10 +446,7 @@ class AppRequestsController extends AppController
             $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, 0);
           }
         }
-        $timeEnd = microtime(true);
-        
-        $result['timeUsed'] = ($timeEnd - $timeBegin) . ' s';
-        return $this->returnJson($result);
+        return $this->returnJson(['state' => 'error', 'msg' => 'error by requesting gdt server', 'details' => $gdtEntries]);
     }
     
     public function getDecayStartBlock()
