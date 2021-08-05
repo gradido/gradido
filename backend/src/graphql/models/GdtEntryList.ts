@@ -19,37 +19,23 @@ export class GdtSumPerEmail {
 export class GdtEntryList {
   constructor(json: any) {
     this.state = json.state
-    this.moreEntrysAsShown = json.moreEntrysAsShown
-    this.ownEntries = []
-    if (typeof json.ownEntries !== undefined) {
-      for (const entry in json.ownEntries) {
-        // eslint-disable-next-line no-console
-        console.log(entry)
-        this.ownEntries.push(new GdtEntry(json.ownEntries[entry]))
-      }
-    }
-    this.gdtSumPerEmail = []
-    for (const email in json.gdtSumPerEmail) {
-      this.gdtSumPerEmail.push(new GdtSumPerEmail(email, json.gdtSumPerEmail[email]))
-    }
-    this.email = json.email
+    this.count = json.count
+    this.gdtEntries = json.gdtEntries ? json.gdtEntries.map((json: any) => new GdtEntry(json)) : []
+    this.gdtSum = json.gdtSum
     this.timeUsed = json.timeUsed
   }
 
   @Field(() => String)
   state: string
 
-  @Field(() => Boolean)
-  moreEntrysAsShown: boolean
+  @Field(() => Number)
+  count: number
 
   @Field(() => [GdtEntry])
-  ownEntries: GdtEntry[]
+  gdtEntries: GdtEntry[]
 
-  @Field(() => [GdtSumPerEmail])
-  gdtSumPerEmail: GdtSumPerEmail[]
-
-  @Field(() => String)
-  email: string
+  @Field(() => Number)
+  gdtSum: number
 
   @Field(() => Number)
   timeUsed: number
