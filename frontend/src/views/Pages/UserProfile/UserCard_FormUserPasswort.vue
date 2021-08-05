@@ -8,25 +8,15 @@
       <div>
         <b-row class="mb-4 text-right">
           <b-col class="text-right">
-            <a v-if="!editPassword" href="#change_pwd" @click="editPassword = !editPassword">
-              <span>{{ $t('form.change-password') }}</span>
-              <b-icon class="pointer ml-3" icon="pencil" />
-            </a>
-            <a v-else href="#change_pwd" @click="cancelEdit()">
-              <span>{{ $t('form.change-password') }}</span>
-
-              <b-icon icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
+            <a @click="!editPassword ? (editPassword = !editPassword) : cancelEdit()">
+              <span class="pointer mr-3">{{ $t('form.change-password') }}</span>
+              <b-icon v-if="!editPassword" class="pointer ml-3" icon="pencil" />
+              <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
             </a>
           </b-col>
         </b-row>
       </div>
       <div v-if="editPassword">
-        <!-- <b-row class="mb-4 text-right">
-          <b-col class="text-right">
-            <b-icon @click="cancelEdit()" class="pointer" icon="x-circle" variant="danger"></b-icon>
-          </b-col>
-        </b-row>
-        -->
         <validation-observer ref="observer" v-slot="{ handleSubmit }">
           <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
             <b-row class="mb-2">
