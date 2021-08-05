@@ -163,19 +163,14 @@ Assuming session was valid and gdt server was setup correct
 			"id": 10,
 			"amount": 100.12,
 			"date": "2021-07-28T13:58:00+00:00",
+			"email": "tester2@gmail.com",
 			"comment": null,
 			"coupon_code": "",
 			"gdt_entry_type_id": 4,
 			"factor": 15,
 			"amount2": 0,
 			"factor2": 0.05,
-			"gdt": 75.09000000000002,
-			"publisher": {
-				"id": 12,
-				"first_name": "Dario",
-				"last_name": "Frodo",
-				"email": "dariofrodo@gmx.de"
-			}
+			"gdt": 75.09000000000002
 		},
 		{
 			"id": 6,
@@ -194,35 +189,31 @@ Assuming session was valid and gdt server was setup correct
 			"id": 8,
 			"amount": 10,
 			"date": "2021-07-31T13:58:00+00:00",
+			"email": "tester1@gmail.com",
 			"comment": null,
 			"coupon_code": "",
 			"gdt_entry_type_id": 4,
 			"factor": 15,
 			"amount2": 0,
 			"factor2": 0.05,
-			"gdt": 7.5,
-			"publisher": {
-				"id": 12,
-				"first_name": "Dario",
-				"last_name": "Frodo",
-				"email": "dariofrodo@gmx.de"
-			}
+			"gdt": 7.5
 		}
 	],
 	"gdtSum": 2220.99,
-	"timeUsed": 0.19156503677368165
+	"timeUsed": 0.012517929077148438
 }
 
 - `count`: Count of total gdt transactions for user
 - `gdtEntries`: array with gdt entries, sort by date
   - `amount`: amount of payed money in euro, expect by gdt_entry_type_id = 7, then it is GDT Sum for Global Modificator time span
   - `date`: date of transaction with let create gdt transaction, date for picking factor and Global Modificator
+  - `email`: email of user which has payed money, for gdt_entry_type_id = 4 it is the email of user who was recruited
   - `comment`: custom comment or Global Modificator name if gdt_entry_type_id = 7
   - `gdt_entry_type_id`: type of gdt entry
         (1) Form: Single GDT Entry directly created by admin via formular
         (2) CVS:  Created by importing a CVS-List with multiple GDT Entries
         (3) Elopage: Automatic created by Elopage Transaction (with revenue > 0 and payment state success)
-        (4) Elopage Publisher: Automatic created by Elopage Transaction (with revenue > 0 and payment state success) for publisher, containing publisher object
+        (4) Elopage Publisher: Automatic created by Elopage Transaction (with revenue > 0 and payment state success) for publisher
         (5) Digistore: Automatic created by Digistore Transaction 
         (6) CVS2: Created by importing a CVS-List with multiple GDT Entries, other format (used by Bernds old Accounting Tool)
         (7) Global Modificator: Global Modificator which grand percental bonus on GDT in possession in event time span
@@ -230,7 +221,6 @@ Assuming session was valid and gdt server was setup correct
   - `amount2`: Bonus add amount for gdt, sparly used
   - `factor2`: Bonus mulitplication factor used by elopage publisher entry
   - `gdt`: GDT Value, calculatedt from other value: gdt = amount * factor * factor2 + amount2
-  - `publisher`: exist only on Elopage Publisher (gdt_entry_type_id = 4) GDT Entries
 - `gdtSum`: Total GDT Sum of user
 - `timeUsed`: GDT Server isn't optimized, this is for easy checking if it is still fast enough
 
