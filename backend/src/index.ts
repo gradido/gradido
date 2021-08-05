@@ -9,6 +9,7 @@ import CONFIG from './config'
 // import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
+import { GdtResolver } from './graphql/resolvers/GdtResolver'
 import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
 
 // TODO implement
@@ -17,7 +18,7 @@ import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
 async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
-    resolvers: [UserResolver, BalanceResolver, TransactionResolver],
+    resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver],
   })
 
   // Graphiql interface

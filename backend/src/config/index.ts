@@ -10,6 +10,7 @@ const server = {
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://login-server:1201/',
   COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://ngninx/api/',
+  GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
 }
 
 // This is needed by graphql-directive-auth
