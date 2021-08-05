@@ -12,7 +12,7 @@ Es wird in der Login-Maske die Funktion des Links "Passwort vergessen?"geprüft:
 
 **Nicht enthalten in diesem Testfall:**
 
-* die Anzeige, Layout und Validierung der Login-Maske; siehe dazu Testfall: [T02-C001-01-LoginMaske](./T02-C001-01-LoginMakse.md)
+* die Anzeige, Layout und Validierung der Login-Maske; siehe dazu Testfall: [T02-C001-01-LoginMaske](./T02-C001-01-LoginMaske.md)
 * die Funktion hinter dem Link "Passwort vergessen"; siehe dazu Testfall: [T02-C001-02-LoginMaske](T02-C001-02-LoginMaske.md)
 
 ## Vorraussetzungen:
