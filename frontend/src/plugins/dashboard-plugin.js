@@ -25,6 +25,8 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
+import VueApollo from 'vue-apollo'
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -38,6 +40,7 @@ export default {
     Vue.use(VueQrcode)
     Vue.use(FlatPickr)
     Vue.use(Loading)
+    Vue.use(VueApollo)
     Vue.use(Toasted, {
       position: 'top-center',
       duration: 5000,
