@@ -125,6 +125,116 @@ Transaction:
 - `creation_amount`: only for creation transaction, created account before decay
 - `target_date`: only by creation transaction, target date for creation, start time for decay calculation (if < as global decay start time)
 
+## List GDT Transactions
+`GET http://localhost/api/listGDTTransactions/[1]/[25]/[DESC]/[session_id]`
+Parts symbolized by [] are optional
+  - first parameter (1) is page for paging
+  - second parameter (25) is count for paging
+  - third parameter is ordering of resulting array, default is ASC
+  - fourth parameter is session_id (session will be searched in php session and GRADIDO_LOGIN cookie and if not found use this )
+
+#### Paging
+With count you say how many entrys you like to have in the result.
+With page you say on which page you are. 
+For example 50 transactions are in db. 
+With 1/25 you get the first 25 transactions (1-25)
+With 2/20 you get the second 20 transactions (21-40)
+
+### Response
+Assuming session was valid and gdt server was setup correct
+{
+	"state": "success",
+	"count": 4,
+	"gdtEntries": [
+		{
+			"id": 1,
+			"amount": 99,
+			"date": "2020-01-01T13:47:12+00:00",
+			"email": "dariofrodo@gmx.de",
+			"comment": "",
+			"coupon_code": null,
+			"gdt_entry_type_id": 1,
+			"factor": 18,
+			"amount2": 0,
+			"factor2": 1,
+			"gdt": 1782
+		},
+		{
+			"id": 10,
+			"amount": 100.12,
+			"date": "2021-07-28T13:58:00+00:00",
+			"comment": null,
+			"coupon_code": "",
+			"gdt_entry_type_id": 4,
+			"factor": 15,
+			"amount2": 0,
+			"factor2": 0.05,
+			"gdt": 75.09000000000002,
+			"publisher": {
+				"id": 12,
+				"first_name": "Dario",
+				"last_name": "Frodo",
+				"email": "dariofrodo@gmx.de"
+			}
+		},
+		{
+			"id": 6,
+			"amount": 1782,
+			"date": "2021-07-30T13:21:46+00:00",
+			"email": "dariofrodo@gmx.de",
+			"comment": "Event 20-20",
+			"coupon_code": null,
+			"gdt_entry_type_id": 7,
+			"factor": 0.2,
+			"amount2": 0,
+			"factor2": 1,
+			"gdt": 356.40000000000006
+		},
+		{
+			"id": 8,
+			"amount": 10,
+			"date": "2021-07-31T13:58:00+00:00",
+			"comment": null,
+			"coupon_code": "",
+			"gdt_entry_type_id": 4,
+			"factor": 15,
+			"amount2": 0,
+			"factor2": 0.05,
+			"gdt": 7.5,
+			"publisher": {
+				"id": 12,
+				"first_name": "Dario",
+				"last_name": "Frodo",
+				"email": "dariofrodo@gmx.de"
+			}
+		}
+	],
+	"gdtSum": 2220.99,
+	"timeUsed": 0.19156503677368165
+}
+
+- `count`: Count of total gdt transactions for user
+- `gdtEntries`: array with gdt entries, sort by date
+  - `amount`: amount of payed money in euro, expect by gdt_entry_type_id = 7, then it is GDT Sum for Global Modificator time span
+  - `date`: date of transaction with let create gdt transaction, date for picking factor and Global Modificator
+  - `comment`: custom comment or Global Modificator name if gdt_entry_type_id = 7
+  - `gdt_entry_type_id`: type of gdt entry
+        (1) Form: Single GDT Entry directly created by admin via formular
+        (2) CVS:  Created by importing a CVS-List with multiple GDT Entries
+        (3) Elopage: Automatic created by Elopage Transaction (with revenue > 0 and payment state success)
+        (4) Elopage Publisher: Automatic created by Elopage Transaction (with revenue > 0 and payment state success) for publisher, containing publisher object
+        (5) Digistore: Automatic created by Digistore Transaction 
+        (6) CVS2: Created by importing a CVS-List with multiple GDT Entries, other format (used by Bernds old Accounting Tool)
+        (7) Global Modificator: Global Modificator which grand percental bonus on GDT in possession in event time span
+  - `factor`: Mulitplication factor for calculating gdt, change(d) over time
+  - `amount2`: Bonus add amount for gdt, sparly used
+  - `factor2`: Bonus mulitplication factor used by elopage publisher entry
+  - `gdt`: GDT Value, calculatedt from other value: gdt = amount * factor * factor2 + amount2
+  - `publisher`: exist only on Elopage Publisher (gdt_entry_type_id = 4) GDT Entries
+- `gdtSum`: Total GDT Sum of user
+- `timeUsed`: GDT Server isn't optimized, this is for easy checking if it is still fast enough
+
+
 ## Creation transaction
 Makes a creation transaction to create new Gradido
 
