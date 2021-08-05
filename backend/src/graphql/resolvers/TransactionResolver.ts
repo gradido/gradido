@@ -24,11 +24,11 @@ export class TransactionResolver {
     const payload = {
       session_id: sessionId,
       target_email: email,
-      amount,
+      amount: amount * 10000,
       memo,
       auto_sign: true,
       transaction_type: 'transfer',
-      blockchain_type: 'mysql'
+      blockchain_type: 'mysql',
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
     if (!result.success) {
