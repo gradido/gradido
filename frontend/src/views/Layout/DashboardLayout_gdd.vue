@@ -49,7 +49,6 @@
 
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
-          <!-- your content here -->
           <router-view
             :balance="balance"
             :gdt-balance="GdtBalance"
@@ -58,14 +57,12 @@
             :pending="pending"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
-            @updateGdt="updateGdt" 
+            @updateGdt="updateGdt"
             :transactionsGdt="transactionsGdt"
-
           ></router-view>
         </fade-transition>
       </div>
       <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-      
     </div>
   </div>
 </template>
@@ -75,11 +72,9 @@ import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
 
 import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
-//import { gdt } from '../../../public/json-example/admin_transactionGdt_list.json'
 
 function hasElement(className) {
   return document.getElementsByClassName(className).length > 0
@@ -112,7 +107,7 @@ export default {
       transactionCount: 0,
       pending: true,
       transactionsGdt: [],
-   }
+    }
   },
   methods: {
     initScrollbar() {
@@ -147,60 +142,59 @@ export default {
         // what to do when loading balance fails?
       }
     },
-    async updateGdt(){ 
-      //this.transactionsGdt = gdt
-     // const result = await communityAPI.transactionsGdt(
-     //   this.$store.state.sessionId
-     // )
-    
-    this.transactionsGdt = [{"state":"success", "gdt": 
-	[
-		{
-			"id": 8821,
-			"amount": 1000, 
-			"date": "2020-08-12T14:12:00+00:00",
-			"email": "foerderkreis-1@gradido.org",
-			"comment": null,
-			"coupon_code": "",
-			"gdt_entry_type_id": 4,
-			"factor": "20.0000",
-			"amount2": 0,
-			"factor2": "0.0500",
-			"gdt": 1000
-		},
-		{
-			"id": 8552,
-			"amount": 1000, 
-			"date": "2020-06-17T14:12:00+00:00",
-			"email": "foerderkreis-1@gradido.org",
-			"comment": null,
-			"coupon_code": "",
-			"gdt_entry_type_id": 4,
-			"factor": "20.0000",
-			"amount2": 0,
-			"factor2": "0.0500",
-			"gdt": 1000
-		},
-		{
-			"id": 8317,
-			"amount": 1000, 
-			"date": "2020-03-16T14:12:00+00:00",
-			"email": "foerderkreis-1@gradido.org",
-			"comment": null,
-			"coupon_code": "",
-			"gdt_entry_type_id": 4,
-			"factor": "20.0000",
-			"amount2": 0,
-			"factor2": "0.0500",
-			"gdt": 1000
-		}
-	],
-    "transactionGdtExecutingCount": 3000,
-	"count": 3
-}]
+    async updateGdt() {
+      // const result = await communityAPI.transactionsGdt(
+      //   this.$store.state.sessionId
+      // )
 
-      //console.log("DashboardLayout_gdd.vue")
-      //console.log(this.result)
+      this.transactionsGdt = [
+        {
+          state: 'success',
+          gdt: [
+            {
+              id: 8821,
+              amount: 1000,
+              date: '2020-08-12T14:12:00+00:00',
+              email: 'foerderkreis-1@gradido.org',
+              comment: null,
+              coupon_code: '',
+              gdt_entry_type_id: 4,
+              factor: '20.0000',
+              amount2: 0,
+              factor2: '0.0500',
+              gdt: 1000,
+            },
+            {
+              id: 8552,
+              amount: 1000,
+              date: '2020-06-17T14:12:00+00:00',
+              email: 'foerderkreis-1@gradido.org',
+              comment: null,
+              coupon_code: '',
+              gdt_entry_type_id: 4,
+              factor: '20.0000',
+              amount2: 0,
+              factor2: '0.0500',
+              gdt: 1000,
+            },
+            {
+              id: 8317,
+              amount: 1000,
+              date: '2020-03-16T14:12:00+00:00',
+              email: 'foerderkreis-1@gradido.org',
+              comment: null,
+              coupon_code: '',
+              gdt_entry_type_id: 4,
+              factor: '20.0000',
+              amount2: 0,
+              factor2: '0.0500',
+              gdt: 1000,
+            },
+          ],
+          transactionGdtExecutingCount: 3000,
+          count: 3,
+        },
+      ]
     },
     updateBalance(ammount) {
       this.balance -= ammount
@@ -209,7 +203,6 @@ export default {
   mounted() {
     this.initScrollbar()
     this.updateGdt()
-    console.log(this.transactionsGdt)
   },
 }
 </script>

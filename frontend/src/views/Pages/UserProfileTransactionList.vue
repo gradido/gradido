@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container fluid>
+    <b-container>
       <b-row>
         <b-col class="order-xl-1">
           <gdd-transaction-list
@@ -10,7 +10,11 @@
             :show-pagination="true"
             @update-transactions="updateTransactions"
           />
-           <gdd-transaction-gdt-list :timestamp="timestamp" :transactionsGdt="transactionsGdt" @update-gdt="updateGdt"/>
+          <gdd-transaction-gdt-list
+            :timestamp="timestamp"
+            :transactionsGdt="transactionsGdt"
+            @update-gdt="updateGdt"
+          />
         </b-col>
       </b-row>
     </b-container>
@@ -24,7 +28,7 @@ export default {
   name: 'UserProfileTransactionList',
   components: {
     GddTransactionList,
-    GddTransactionGdtList
+    GddTransactionGdtList,
   },
   props: {
     transactions: {

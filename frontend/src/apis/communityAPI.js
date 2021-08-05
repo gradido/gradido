@@ -45,10 +45,10 @@ const communityAPI = {
       `${CONFIG.COMMUNITY_API_URL}state-balances/ajaxGdtOverview/${firstPage}/${items}/${order}/${sessionId}`,
     )
   },
-  //http://localhost/vue/public/json-example/admin_transactionGdt_list.json
-  //http://localhost/state-balances/ajaxGdtOverview
-  /* create: async (sessionId, email, amount, memo, target_date = new Date() ) => {
-    const payload = {
+  /* http://localhost/vue/public/json-example/admin_transactionGdt_list.json
+     http://localhost/state-balances/ajaxGdtOverview
+     create: async (sessionId, email, amount, memo, target_date = new Date() ) => {
+     const payload = {
       sessionId,
       email,
       amount,
