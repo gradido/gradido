@@ -19,7 +19,11 @@
           :state="validated ? valid : false"
         ></b-form-input>
         <b-input-group-append>
-          <b-button variant="outline-primary" @click="toggleShowPassword">
+          <b-button
+            variant="outline-light"
+            @click="toggleShowPassword"
+            class="border-left-0 rounded-right"
+          >
             <b-icon :icon="showPassword ? 'eye' : 'eye-slash'" />
           </b-button>
         </b-input-group-append>
