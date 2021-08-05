@@ -90,10 +90,10 @@ Document JsonCreateTransaction::transfer(const Document& params)
 
 		auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
 		if (transfer_transaction->prepare()) {
-			return stateError("error in transaction details", transaction);
+			return stateError("error in transaction details", transfer_transaction);
 		}
 		if (transfer_transaction->validate()) {
-			return stateError("error in validate transaction", transaction);
+			return stateError("error in validate transaction", transfer_transaction);
 		}
 
 		if (mSession->lastTransactionTheSame(transaction)) {
