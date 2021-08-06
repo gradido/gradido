@@ -143,9 +143,11 @@ export default {
       }
     },
     async updateGdt() {
-      // const result = await communityAPI.transactionsGdt(
-      //   this.$store.state.sessionId
-      // )
+       const result = await communityAPI.transactionsGdt(
+         this.$store.state.sessionId
+       )
+
+       console.log(result)
 
       this.transactionsGdt = [
         {
@@ -163,6 +165,19 @@ export default {
               amount2: 0,
               factor2: '0.0500',
               gdt: 1000,
+            },
+            {
+              id: 8810,
+              amount: 1500,
+              date: '2020-08-5T16:12:00+00:00',
+              email: 'eopage-gradido-foerderpaket@gradido.org',
+              comment: null,
+              coupon_code: '',
+              gdt_entry_type_id: 7,
+              factor: '15.0000',
+              amount2: 0,
+              factor2: '0.0500',
+              gdt: 1500,
             },
             {
               id: 8552,
@@ -191,8 +206,8 @@ export default {
               gdt: 1000,
             },
           ],
-          transactionGdtExecutingCount: 3000,
-          count: 3,
+          transactionGdtExecutingCount: 4500,
+          count: 4,
         },
       ]
     },
