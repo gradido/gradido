@@ -15,3 +15,8 @@ export const login = gql`
     }
   }
 `
+export const logout = gql`
+  query($sessionId: Float!) {
+    logout(sessionId: $sessionId)
+  }
+`

@@ -66,31 +66,12 @@
   </div>
 </template>
 <script>
-import PerfectScrollbar from 'perfect-scrollbar'
-import 'perfect-scrollbar/css/perfect-scrollbar.css'
-import loginAPI from '../../apis/loginAPI'
+import { logout } from '../../graphql/queries'
 
 import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
-
-function hasElement(className) {
-  return document.getElementsByClassName(className).length > 0
-}
-
-function initScrollbar(className) {
-  if (hasElement(className)) {
-    // eslint-disable-next-line no-new
-    new PerfectScrollbar(`.${className}`)
-  } else {
-    // try to init it later in case this component is loaded async
-    setTimeout(() => {
-      initScrollbar(className)
-    }, 100)
-  }
-}
 
 export default {
   components: {
@@ -109,18 +90,18 @@ export default {
     }
   },
   methods: {
-    initScrollbar() {
-      const isWindows = navigator.platform.startsWith('Win')
-      if (isWindows) {
-        initScrollbar('sidenav')
-      }
-    },
     async logout() {
-      await loginAPI.logout(this.$store.state.sessionId)
-      // do we have to check success?
-      this.$sidebar.displaySidebar(false)
-      this.$store.dispatch('logout')
-      this.$router.push('/login')
+      this.$apollo
+        .query({
+          query: logout,
+          variables: { sessionId: this.$store.state.sessionId },
+        })
+        .then(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
+      // do we have to handle errors?
     },
     async updateTransactions(pagination) {
       this.pending = true
@@ -145,14 +126,5 @@ export default {
       this.balance -= ammount
     },
   },
-  mounted() {
-    this.initScrollbar()
-  },
 }
 </script>
-<style lang="scss">
-.xxx {
-  position: relative;
-  right: 0px;
-}
-</style>
