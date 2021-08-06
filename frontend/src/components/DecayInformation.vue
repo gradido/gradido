@@ -19,16 +19,16 @@
               {{ $t('decay.last_transaction') }}
             </div>
             <div style="width: 60%">
-              <div v-if="decay.decay_start_block > 0">
+              <div v-if="decay.decayStartBlock > 0">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
                   {{ $t('decay.decay_introduced') }} :
-                  {{ $d($moment.unix(decay.decay_start), 'long') }}
+                  {{ $d($moment.unix(decay.decayStart), 'long') }}
                 </div>
               </div>
               <div>
                 <span>
-                  {{ $d($moment.unix(decay.decay_start), 'long') }}
+                  {{ $d($moment.unix(decay.decayStart), 'long') }}
                   {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                 </span>
               </div>
@@ -40,7 +40,7 @@
               {{ $t('decay.past_time') }}
             </div>
             <div style="width: 60%">
-              <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
+              <div v-if="decay.decayStartBlock > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <b v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</b>
                 <b v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</b>
@@ -62,24 +62,24 @@ export default {
   props: {
     decay: {
       balance: '',
-      decay_duration: '',
-      decay_start: 0,
-      decay_end: 0,
-      decay_start_block: 0,
+      decayDuration: '',
+      decayStart: 0,
+      decayEnd: 0,
+      decayStartBlock: 0,
     },
     decaytyp: { type: String, default: '' },
   },
   computed: {
     decayStartBlockTextShort() {
-      return this.decay.decay_start_block
-        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
+      return this.decay.decayStartBlock
+        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decayStartBlock))
         : ''
     },
     duration() {
       return this.$moment.duration(
         this.$moment
-          .unix(new Date(this.decay.decay_end))
-          .diff(this.$moment.unix(new Date(this.decay.decay_start))),
+          .unix(new Date(this.decay.decayEnd))
+          .diff(this.$moment.unix(new Date(this.decay.decayStart))),
       )._data
     },
   },

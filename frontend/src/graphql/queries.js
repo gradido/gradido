@@ -62,5 +62,35 @@ export const updateUserInfos = gql`
     ) {
       validValues
     }
+`
+
+export const transactionsQuery = gql`
+  query($sessionId: Float!, $firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
+    transactionList(sessionId: $sessionId, firstPage: $firstPage, items: $items, order: $order) {
+      gdtSum
+      count
+      balance
+      decay
+      decayDate
+      transactions {
+        type
+        balance
+        decayStart
+        decayEnd
+        decayDuration
+        memo
+        transactionId
+        name
+        email
+        date
+        decay {
+          balance
+          decayStart
+          decayEnd
+          decayDuration
+          decayStartBlock
+        }
+      }
+    }
   }
 `
