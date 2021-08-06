@@ -66,11 +66,9 @@
   </div>
 </template>
 <script>
-import { logout } from '../../graphql/queries'
-
+import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
-import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
 
 export default {
@@ -105,22 +103,30 @@ export default {
     },
     async updateTransactions(pagination) {
       this.pending = true
-      const result = await communityAPI.transactions(
-        this.$store.state.sessionId,
-        pagination.firstPage,
-        pagination.items,
-      )
-      if (result.success) {
-        this.GdtBalance = Number(result.result.data.gdtSum)
-        this.transactions = result.result.data.transactions
-        this.balance = Number(result.result.data.decay)
-        this.bookedBalance = Number(result.result.data.balance)
-        this.transactionCount = result.result.data.count
-        this.pending = false
-      } else {
-        this.pending = true
-        // what to do when loading balance fails?
-      }
+      this.$apollo
+        .query({
+          query: transactionsQuery,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            firstPage: pagination.firstPage,
+            items: pagination.items,
+          },
+        })
+        .then((result) => {
+          const {
+            data: { transactionList },
+          } = result
+          this.GdtBalance = Number(transactionList.gdtSum)
+          this.transactions = transactionList.transactions
+          this.balance = Number(transactionList.decay)
+          this.bookedBalance = Number(transactionList.balance)
+          this.transactionCount = transactionList.count
+          this.pending = false
+        })
+        .catch(() => {
+          this.pending = true
+          // what to do when loading balance fails?
+        })
     },
     updateBalance(ammount) {
       this.balance -= ammount

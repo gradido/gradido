@@ -43,8 +43,8 @@ export class Transaction {
   @Field(() => String)
   memo: string
 
-  @Field(() => Number)
-  transactionId: number
+  @Field(() => Number, { nullable: true })
+  transactionId?: number
 
   @Field({ nullable: true })
   name?: string
