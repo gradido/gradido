@@ -10,7 +10,6 @@ export class TransactionResolver {
   async transactionList(
     @Args() { sessionId, firstPage = 1, items = 25, order = 'DESC' }: TransactionListInput,
   ): Promise<TransactionList> {
-
     const result = await apiGet(
       `${CONFIG.COMMUNITY_API_URL}listTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )
