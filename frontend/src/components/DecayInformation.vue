@@ -19,7 +19,6 @@
               {{ $t('decay.last_transaction') }}
             </div>
             <div style="width: 60%">
-              {{ decay.decayStartBlock }}
               <div v-if="decay.decayStartBlock > 0">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
