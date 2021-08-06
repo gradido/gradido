@@ -42,7 +42,7 @@ const communityAPI = {
   },
   transactionsGdt: async (sessionId, firstPage = 1, items = 5, order = 'DESC') => {
     return apiGet(
-      `${CONFIG.COMMUNITY_API_URL}state-balances/ajaxGdtOverview/${firstPage}/${items}/${order}/${sessionId}`,
+      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )
   },
   //http://localhost/vue/public/json-example/admin_transactionGdt_list.json
