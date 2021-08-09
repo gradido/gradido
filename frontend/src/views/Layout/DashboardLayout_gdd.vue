@@ -51,6 +51,7 @@
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
           <router-view
+            ref="router-view"
             :balance="balance"
             :gdt-balance="GdtBalance"
             :transactions="transactions"

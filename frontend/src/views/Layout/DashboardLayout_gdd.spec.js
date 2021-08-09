@@ -6,16 +6,10 @@ jest.useFakeTimers()
 
 const localVue = global.localVue
 
-const transitionStub = () => ({
-  render(h) {
-    return this.$options._renderChildren
-  },
-})
-
 const storeDispatchMock = jest.fn()
 const storeCommitMock = jest.fn()
 const routerPushMock = jest.fn()
-const logoutQueryMock = jest.fn().mockResolvedValue({
+const apolloMock = jest.fn().mockResolvedValue({
   data: {
     logout: 'success',
   },
@@ -39,7 +33,7 @@ describe('DashboardLayoutGdd', () => {
       push: routerPushMock,
     },
     $apollo: {
-      query: logoutQueryMock,
+      query: apolloMock,
     },
     $store: {
       state: {
@@ -53,8 +47,7 @@ describe('DashboardLayoutGdd', () => {
 
   const stubs = {
     RouterLink: RouterLinkStub,
-    FadeTransition: transitionStub(),
-    RouterView: transitionStub(),
+    RouterView: true,
   }
 
   const Wrapper = () => {
@@ -136,7 +129,7 @@ describe('DashboardLayoutGdd', () => {
         })
 
         it('calls the API', async () => {
-          expect(logoutQueryMock).toBeCalledWith(
+          expect(apolloMock).toBeCalledWith(
             expect.objectContaining({
               variables: { sessionId: 1 },
             }),
@@ -154,11 +147,78 @@ describe('DashboardLayoutGdd', () => {
 
       describe('update balance', () => {
         it('updates the amount correctelly', async () => {
-          await wrapper.setData({ balance: 0 })
-          console.log(wrapper.html())
-          await wrapper.findComponent({ name: 'RouterView' }).vm.$emit('update-balance', 5)
+          await wrapper.findComponent({ ref: 'router-view' }).vm.$emit('update-balance', 5)
           await flushPromises()
-          expect(wrapper.vm.balance).toBe(5)
+          expect(wrapper.vm.balance).toBe(-5)
+        })
+      })
+
+      describe('update transactions', () => {
+        beforeEach(async () => {
+          apolloMock.mockResolvedValue({
+            data: {
+              transactionList: {
+                gdtSum: 100,
+                count: 4,
+                balance: 1450,
+                decay: 1250,
+                transactions: ['transaction', 'transaction', 'transaction', 'transaction'],
+              },
+            },
+          })
+          await wrapper
+            .findComponent({ ref: 'router-view' })
+            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+          await flushPromises()
+        })
+
+        it('calls the API', () => {
+          expect(apolloMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                sessionId: 1,
+                firstPage: 2,
+                items: 5,
+              },
+            }),
+          )
+        })
+
+        it('updates balance', () => {
+          expect(wrapper.vm.balance).toBe(1250)
+        })
+
+        it('updates transactions', () => {
+          expect(wrapper.vm.transactions).toEqual([
+            'transaction',
+            'transaction',
+            'transaction',
+            'transaction',
+          ])
+        })
+
+        it('updates GDT balance', () => {
+          expect(wrapper.vm.GdtBalance).toBe(100)
+        })
+
+        it('updates transaction count', () => {
+          expect(wrapper.vm.transactionCount).toBe(4)
+        })
+      })
+
+      describe('update transactions returns error', () => {
+        beforeEach(async () => {
+          apolloMock.mockRejectedValue({
+            message: 'error',
+          })
+          await wrapper
+            .findComponent({ ref: 'router-view' })
+            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+          await flushPromises()
+        })
+
+        it('sets pending to true', () => {
+          expect(wrapper.vm.pending).toBeTruthy()
         })
       })
     })
