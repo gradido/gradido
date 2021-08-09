@@ -419,7 +419,7 @@ return [
 
     'GroupAlias' => 'docker',
     'GDTServer' => [
-        //'host' => 'gdt'
+        'host' => 'https://gdt.gradido.net' // staging
     ],
     'API' => [
         'allowedCaller' => ['login-server']
