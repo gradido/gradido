@@ -62,6 +62,7 @@ export const updateUserInfos = gql`
     ) {
       validValues
     }
+  }
 `
 
 export const transactionsQuery = gql`

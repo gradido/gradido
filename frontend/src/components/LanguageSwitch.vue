@@ -44,7 +44,7 @@ export default {
               locale: locale,
             },
           })
-          .then((result) => {
+          .then(() => {
             // toast success message
           })
           .catch(() => {
