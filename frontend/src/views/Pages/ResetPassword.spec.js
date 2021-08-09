@@ -86,6 +86,11 @@ describe('ResetPassword', () => {
         })
       })
 
+      it('Has sessionId from API call', async () => {
+        await wrapper.vm.$nextTick()
+        expect(wrapper.vm.sessionId).toBe(1)
+      })
+
       it('renders the Reset Password form when authenticated', () => {
         expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
       })

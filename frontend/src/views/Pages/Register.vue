@@ -183,17 +183,13 @@ export default {
             password: this.form.password.password,
           },
         })
-        .then((result) => {
-          if (result.success) {
-            this.form.email = ''
-            this.form.firstname = ''
-            this.form.lastname = ''
-            this.form.password.password = ''
+        .then(() => {
+          this.form.email = ''
+          this.form.firstname = ''
+          this.form.lastname = ''
+          this.form.password.password = ''
 
-            this.$router.push('/thx/register')
-          } else {
-            throw new Error(result.errors[0].message)
-          }
+          this.$router.push('/thx/register')
         })
         .catch((error) => {
           this.showError = true
