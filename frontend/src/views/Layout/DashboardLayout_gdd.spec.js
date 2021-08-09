@@ -151,6 +151,16 @@ describe('DashboardLayoutGdd', () => {
           expect(routerPushMock).toBeCalledWith('/login')
         })
       })
+
+      describe('update balance', () => {
+        it('updates the amount correctelly', async () => {
+          await wrapper.setData({ balance: 0 })
+          console.log(wrapper.html())
+          await wrapper.findComponent({ name: 'RouterView' }).vm.$emit('update-balance', 5)
+          await flushPromises()
+          expect(wrapper.vm.balance).toBe(5)
+        })
+      })
     })
   })
 })
