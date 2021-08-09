@@ -94,3 +94,9 @@ export const transactionsQuery = gql`
     }
   }
 `
+
+export const resgisterUserQuery = gql`
+  query($firstName: String!, $lastName: String!, $email: String!, $password: String!) {
+    create(email: $email, firstName: $firstName, lastName: $lastName, password: $password)
+  }
+`
