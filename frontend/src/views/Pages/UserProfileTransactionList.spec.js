@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { shallowMount } from '@vue/test-utils'
 import UserProfileTransactionList from './UserProfileTransactionList'
 
 const localVue = global.localVue
@@ -8,10 +8,11 @@ describe('UserProfileTransactionList', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $n: jest.fn((n) => String(n)),
   }
 
   const Wrapper = () => {
-    return mount(UserProfileTransactionList, { localVue, mocks })
+    return shallowMount(UserProfileTransactionList, { localVue, mocks })
   }
 
   describe('mount', () => {
@@ -36,6 +37,10 @@ describe('UserProfileTransactionList', () => {
       expect(wrapper.emitted('update-transactions')).toEqual(
         expect.arrayContaining([expect.arrayContaining([{ firstPage: 2, items: 25 }])]),
       )
+    })
+
+    it('renders the transaction gradido transform table', () => {
+      expect(wrapper.findComponent({ name: 'GdtTransactionList' }).exists()).toBeTruthy()
     })
   })
 })

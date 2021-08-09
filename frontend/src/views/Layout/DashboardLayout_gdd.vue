@@ -144,13 +144,10 @@ export default {
         // what to do when loading balance fails?
       }
     },
-    async updateGdt(pagination) {
-      const result2 = await communityAPI.transactionsgdt(
-        this.$store.state.sessionId
-      )
-
-      console.log(' communityAPI.transactionsgdt')
-      console.log(result2)
+    async updateGdt() {
+      // const result2 = await communityAPI.transactionsgdt(this.$store.state.sessionId)
+      // console.log(' communityAPI.transactionsgdt')
+      // console.log(result2)
 
       this.transactionsGdt = [
         {
@@ -159,7 +156,7 @@ export default {
             {
               id: 8821,
               amount: 1000,
-              date: '2020-08-12T14:12:00+00:00',
+              date: '2021-08-05T14:12:00+00:00',
               email: 'foerderkreis-1@gradido.org',
               comment: null,
               coupon_code: '',
@@ -172,7 +169,7 @@ export default {
             {
               id: 8810,
               amount: 1500,
-              date: '2020-08-5T16:12:00+00:00',
+              date: '2021-08-04T16:12:00+00:00',
               email: 'eopage-gradido-foerderpaket@gradido.org',
               comment: null,
               coupon_code: '',
@@ -185,7 +182,7 @@ export default {
             {
               id: 8552,
               amount: 1000,
-              date: '2020-06-17T14:12:00+00:00',
+              date: '2021-06-03T14:12:00+00:00',
               email: 'foerderkreis-1@gradido.org',
               comment: null,
               coupon_code: '',
@@ -198,7 +195,7 @@ export default {
             {
               id: 8317,
               amount: 1000,
-              date: '2020-03-16T14:12:00+00:00',
+              date: '2021-03-16T14:12:00+00:00',
               email: 'foerderkreis-1@gradido.org',
               comment: null,
               coupon_code: '',
@@ -214,7 +211,7 @@ export default {
         },
       ]
       this.transactionGdtCount = this.transactionsGdt[0].count
-     // console.log('transactionGdtCount', this.transactionGdtCount)
+      // console.log('transactionGdtCount', this.transactionGdtCount)
     },
     updateBalance(ammount) {
       this.balance -= ammount
