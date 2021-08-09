@@ -14,18 +14,18 @@
           amount2,
           factor2,
           gdt,
-        } in this.transactionsGdt.gdt"
+        } in this.transactionsGdt"
         :key="id"
       >
         <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ id }}: {{ email }}</h5>
+          <h5 class="mb-1"> Gradido Transform (GDT) erhalten {{ comment ? ': '+comment : '' }}</h5>
           <small>{{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</small>
         </div>
 
-        {{ gdt_entry_type_id === 7 ? 'GDT in Euro gekauft' : 'GDT von gradido bekommen' }}
+       
 
-        <div v-if="gdt_entry_type_id === 7">{{ amount }} GDT ⊢ {{ amount / factor }}€</div>
-        <div v-else>{{ amount }} GDT</div>
+        <div v-if="gdt_entry_type_id === 7">{{ amount }} GDT * {{factor}} = {{gdt}}</div>
+        <div v-else>{{ amount }} € ⊢ {{ gdt}} GDT</div>
         <small>
           {{ id }} {{ amount }} {{ date }} {{ email }} {{ comment }} {{ coupon_code }}
           {{ gdt_entry_type_id }} {{ factor }} {{ amount2 }} {{ factor2 }} {{ gdt }}
