@@ -19,6 +19,7 @@
         <gdt-transaction-list
           :transactionsGdt="transactionsGdt"
           :transactionGdtCount="transactionGdtCount"
+          @update-gdt="updateGdt"
         />
       </b-tab>
     </b-tabs>
@@ -54,6 +55,9 @@ export default {
   methods: {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+    updateGdt() {
+      this.$emit('update-gdt')
     },
   },
 }

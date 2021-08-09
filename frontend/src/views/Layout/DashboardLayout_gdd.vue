@@ -145,11 +145,11 @@ export default {
       }
     },
     async updateGdt() {
-      // const result2 = await communityAPI.transactionsgdt(this.$store.state.sessionId)
-      // console.log(' communityAPI.transactionsgdt')
-      // console.log(result2)
+       const result2 = await communityAPI.transactionsgdt(this.$store.state.sessionId)
+       console.log(' communityAPI.transactionsgdt')
+       console.log(result2)
 
-      this.transactionsGdt = [
+      this.transactionsGdt = 
         {
           state: 'success',
           gdt: [
@@ -208,9 +208,8 @@ export default {
           ],
           transactionGdtExecutingCount: 4500,
           count: 4,
-        },
-      ]
-      this.transactionGdtCount = this.transactionsGdt[0].count
+        }
+      this.transactionGdtCount = this.transactionsGdt.count
       // console.log('transactionGdtCount', this.transactionGdtCount)
     },
     updateBalance(ammount) {

@@ -25,7 +25,7 @@ describe('UserProfileTransactionList', () => {
     })
 
     it('emits update-transactions after creation', () => {
-      expect(wrapper.emitted('update-transactions')).toEqual(
+         expect(wrapper.emitted('update-transactions')).toEqual(
         expect.arrayContaining([expect.arrayContaining([{ firstPage: 1, items: 25 }])]),
       )
     })

@@ -14,7 +14,7 @@
           amount2,
           factor2,
           gdt,
-        } in this.transactionsGdt[0].gdt"
+        } in this.transactionsGdt.gdt"
         :key="id"
       >
         <div class="d-flex w-100 justify-content-between">
