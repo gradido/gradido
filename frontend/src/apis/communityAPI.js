@@ -40,7 +40,7 @@ const communityAPI = {
       `${CONFIG.COMMUNITY_API_URL}listTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )
   },
-  transactionsGdt: async (sessionId, firstPage = 1, items = 5, order = 'DESC') => {
+  transactionsgdt: async (sessionId, firstPage = 1, items = 5, order = 'DESC') => {
     return apiGet(
       `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )

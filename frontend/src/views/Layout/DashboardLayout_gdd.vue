@@ -57,8 +57,9 @@
             :pending="pending"
             @update-balance="updateBalance"
             @update-transactions="updateTransactions"
-            @updateGdt="updateGdt"
+            @update-gdt="updateGdt"
             :transactionsGdt="transactionsGdt"
+            :transactionGdtCount="transactionGdtCount"
           ></router-view>
         </fade-transition>
       </div>
@@ -107,6 +108,7 @@ export default {
       transactionCount: 0,
       pending: true,
       transactionsGdt: [],
+      transactionGdtCount: 0,
     }
   },
   methods: {
@@ -142,12 +144,13 @@ export default {
         // what to do when loading balance fails?
       }
     },
-    async updateGdt() {
-       const result = await communityAPI.transactionsGdt(
-         this.$store.state.sessionId
-       )
+    async updateGdt(pagination) {
+      const result2 = await communityAPI.transactionsgdt(
+        this.$store.state.sessionId
+      )
 
-       console.log(result)
+      console.log(' communityAPI.transactionsgdt')
+      console.log(result2)
 
       this.transactionsGdt = [
         {
@@ -210,6 +213,8 @@ export default {
           count: 4,
         },
       ]
+      this.transactionGdtCount = this.transactionsGdt[0].count
+     // console.log('transactionGdtCount', this.transactionGdtCount)
     },
     updateBalance(ammount) {
       this.balance -= ammount

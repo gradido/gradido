@@ -1,32 +1,29 @@
 <template>
-  <div >
+  <div class="pb-4">
     <b-tabs content-class="mt-3 pt-4 pb-4" justified>
-      <b-tab :title="'Gradido  (' +  $n(balance, 'decimal') + ' GDD)'" active class="px-4">
-        <p class="tab-tex">Gradido Transaktionen  </p>
-      
+      <b-tab :title="'Gradido  (' + $n(balance, 'decimal') + ' GDD)'" class="px-4">
+        <p class="tab-tex">Gradido Transaktionen</p>
+
         <gdd-transaction-list
-            :timestamp="timestamp"
-            :transactionCount="transactionCount"
-            :transactions="transactions"
-            :show-pagination="true"
-            @update-transactions="updateTransactions"
-        />     
-          
+          :timestamp="timestamp"
+          :transactionCount="transactionCount"
+          :transactions="transactions"
+          :show-pagination="true"
+          @update-transactions="updateTransactions"
+        />
       </b-tab>
 
-      <b-tab :title="'Gradido Transform  (' + $n(GdtBalance, 'decimal') +' GDT)'" class="px-4">
+      <b-tab :title="'Gradido Transform  (' + $n(GdtBalance, 'decimal') + ' GDT)'" class="px-4">
         <p class="">Gradido Transform Transaktionen</p>
-       
-        <gdt-transaction-list
-            :timestamp="timestamp"
-            :transactionsGdt="transactionsGdt"
-            @update-gdt="updateGdt"
-        />
-       
-        </b-tab>
-      </b-tabs>
 
-  </div>     
+        <gdt-transaction-list
+          :transactionsGdt="transactionsGdt"
+          :transactionGdtCount="transactionGdtCount"
+          @update-gdt="updateGdt"
+        />
+      </b-tab>
+    </b-tabs>
+  </div>
 </template>
 <script>
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
@@ -48,6 +45,7 @@ export default {
     transactionsGdt: {
       default: () => [],
     },
+    transactionGdtCount: { type: Number, default: 0 },
   },
   data() {
     return {
@@ -64,6 +62,4 @@ export default {
   },
 }
 </script>
-<style>
-
-</style>
+<style></style>
