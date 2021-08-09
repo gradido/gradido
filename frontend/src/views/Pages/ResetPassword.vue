@@ -47,8 +47,8 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
+import { resetPassword, loginViaEmailVerificationCode } from '../../graphql/queries'
 
 export default {
   name: 'ResetPassword',
@@ -70,33 +70,43 @@ export default {
   },
   methods: {
     async onSubmit() {
-      const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
-      if (result.success) {
-        this.form.password = ''
-        /*
-            this.$store.dispatch('login', {
-            sessionId: result.result.data.session_id,
-            email: result.result.data.user.email,
-            })
-          */
-        this.$router.push('/thx/reset')
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: resetPassword,
+          variables: {
+            sessionId: this.sessionId,
+            email: this.email,
+            password: this.form.password,
+          },
+        })
+        .then(() => {
+          this.form.password = ''
+          this.$router.push('/thx/reset')
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
     async authenticate() {
       const loader = this.$loading.show({
         container: this.$refs.header,
       })
       const optin = this.$route.params.optin
-      const result = await loginAPI.loginViaEmailVerificationCode(optin)
-      if (result.success) {
-        this.authenticated = true
-        this.sessionId = result.result.data.session_id
-        this.email = result.result.data.user.email
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: loginViaEmailVerificationCode,
+          variables: {
+            optin: optin,
+          },
+        })
+        .then((result) => {
+          this.authenticated = true
+          this.sessionId = result.data.loginViaEmailVerificationCode.sessionId
+          this.email = result.data.loginViaEmailVerificationCode.email
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
       loader.hide()
       this.pending = false
     },

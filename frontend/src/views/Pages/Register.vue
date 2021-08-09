@@ -128,9 +128,9 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
+import { resgisterUserQuery } from '../../graphql/queries'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail },
@@ -173,33 +173,28 @@ export default {
       })
     },
     async onSubmit() {
-      const result = await loginAPI.create(
-        this.form.email,
-        this.form.firstname,
-        this.form.lastname,
-        this.form.password.password,
-      )
-      if (result.success) {
-        /* this.$store.dispatch('login', {
-          sessionId: result.result.data.session_id,
-          user: {
+      this.$axios
+        .query({
+          query: resgisterUserQuery,
+          variables: {
             email: this.form.email,
             firstName: this.form.firstname,
-            lastName: this.form.lastname
-          }
-
+            lastName: this.form.lastname,
+            password: this.form.password.password,
+          },
         })
-        */
-        this.form.email = ''
-        this.form.firstname = ''
-        this.form.lastname = ''
-        this.form.password.password = ''
+        .then(() => {
+          this.form.email = ''
+          this.form.firstname = ''
+          this.form.lastname = ''
+          this.form.password.password = ''
 
-        this.$router.push('/thx/register')
-      } else {
-        this.showError = true
-        this.messageError = result.result.message
-      }
+          this.$router.push('/thx/register')
+        })
+        .catch((error) => {
+          this.showError = true
+          this.messageError = error.message
+        })
     },
     closeAlert() {
       this.showError = false

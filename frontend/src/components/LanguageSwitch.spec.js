@@ -3,6 +3,16 @@ import LanguageSwitch from './LanguageSwitch'
 
 const localVue = global.localVue
 
+const updateUserInfosQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    updateUserInfos: {
+      sessionId: 1234,
+      email: 'he@ho.he',
+      locale: 'de',
+    },
+  },
+})
+
 describe('LanguageSwitch', () => {
   let wrapper
 
@@ -19,6 +29,9 @@ describe('LanguageSwitch', () => {
     },
     $i18n: {
       locale: 'en',
+    },
+    $apollo: {
+      query: updateUserInfosQueryMock,
     },
   }
 
@@ -89,6 +102,34 @@ describe('LanguageSwitch', () => {
         it('has German as second language to choose', () => {
           expect(wrapper.findAll('li').at(1).text()).toBe('Deutsch')
         })
+      })
+    })
+
+    describe('calls the API', () => {
+      it("with locale 'en'", () => {
+        wrapper.vm.saveLocale('en')
+        expect(updateUserInfosQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              sessionId: 1234,
+              email: 'he@ho.he',
+              locale: 'en',
+            },
+          }),
+        )
+      })
+
+      it("with locale 'de'", () => {
+        wrapper.vm.saveLocale('de')
+        expect(updateUserInfosQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              sessionId: 1234,
+              email: 'he@ho.he',
+              locale: 'de',
+            },
+          }),
+        )
       })
     })
   })
