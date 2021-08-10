@@ -115,3 +115,11 @@ export const sendResetPasswordEmail = gql`
     }
   }
 `
+
+export const checkUsername = gql`
+  query($username: String!) {
+    checkUsername(username: $username) {
+      state
+    }
+  }
+`
