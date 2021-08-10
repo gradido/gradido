@@ -1,7 +1,17 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import UserProfileTransactionList from './UserProfileTransactionList'
 
 const localVue = global.localVue
+
+const mutationObserverMock = jest.fn(function MutationObserver(callback) {
+  this.observe = jest.fn()
+  this.disconnect = jest.fn()
+  this.trigger = (mockedMutationsList) => {
+    callback(mockedMutationsList, this)
+  }
+})
+
+global.MutationObserver = mutationObserverMock
 
 describe('UserProfileTransactionList', () => {
   let wrapper
@@ -12,7 +22,7 @@ describe('UserProfileTransactionList', () => {
   }
 
   const Wrapper = () => {
-    return shallowMount(UserProfileTransactionList, { localVue, mocks })
+    return mount(UserProfileTransactionList, { localVue, mocks })
   }
 
   describe('mount', () => {
@@ -25,7 +35,7 @@ describe('UserProfileTransactionList', () => {
     })
 
     it('emits update-transactions after creation', () => {
-         expect(wrapper.emitted('update-transactions')).toEqual(
+      expect(wrapper.emitted('update-transactions')).toEqual(
         expect.arrayContaining([expect.arrayContaining([{ firstPage: 1, items: 25 }])]),
       )
     })
