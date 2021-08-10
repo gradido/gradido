@@ -19,6 +19,15 @@ describe('UserProfileTransactionList', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $n: jest.fn((n) => String(n)),
+    $d: jest.fn((d) => d),
+    $i18n: {
+      locale: jest.fn(() => 'en'),
+    },
+    $store: {
+      state: {
+        sessionId: 1,
+      },
+    },
   }
 
   const Wrapper = () => {
