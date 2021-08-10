@@ -76,99 +76,14 @@
                     </b-form-group>
                   </validation-provider>
 
-                  <validation-provider
-                    name="Email"
-                    :rules="{ required: true, email: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group class="mb-3" label="Email" label-for="registerEmail">
-                      <b-form-input
-                        id="registerEmail"
-                        name="Email"
-                        v-model="form.email"
-                        placeholder="Email"
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="registerEmailLiveFeedback"
-                      ></b-form-input>
-
-                      <b-form-invalid-feedback id="registerEmailLiveFeedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
+                  <input-email v-model="form.email"></input-email>
 
                   <hr />
+                  <input-password-confirmation
+                    v-model="form.password"
+                    :register="register"
+                  ></input-password-confirmation>
 
-                  <validation-provider
-                    :name="$t('form.password')"
-                    :rules="{ required: true }"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group
-                      class="mb-5"
-                      :label="$t('form.password')"
-                      label-for="registerPassword"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          id="registerPassword"
-                          :name="$t('form.password')"
-                          v-model="form.password"
-                          :placeholder="$t('form.password')"
-                          :type="passwordVisible ? 'text' : 'password'"
-                          :state="getValidationState(validationContext)"
-                          aria-describedby="registerPasswordLiveFeedback"
-                        ></b-form-input>
-
-                        <b-input-group-append>
-                          <b-button variant="outline-primary" @click="togglePasswordVisibility">
-                            <b-icon :icon="passwordVisible ? 'eye' : 'eye-slash'" />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                      <b-form-invalid-feedback id="registerPasswordLiveFeedback">
-                        {{ validationContext.errors[0] }}
-                      </b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
-
-                  <b-form-group
-                    class="mb-5"
-                    :label="$t('form.passwordRepeat')"
-                    label-for="registerPasswordRepeat"
-                  >
-                    <b-input-group>
-                      <b-form-input
-                        id="registerPasswordRepeat"
-                        :name="$t('form.passwordRepeat')"
-                        v-model.lazy="form.passwordRepeat"
-                        :placeholder="$t('form.passwordRepeat')"
-                        :type="passwordVisibleRepeat ? 'text' : 'password'"
-                      ></b-form-input>
-
-                      <b-input-group-append>
-                        <b-button variant="outline-primary" @click="togglePasswordRepeatVisibility">
-                          <b-icon :icon="passwordVisibleRepeat ? 'eye' : 'eye-slash'" />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                  </b-form-group>
-
-                  <transition name="hint" appear>
-                    <div v-if="passwordValidation.errors.length > 0 && !submitted" class="hints">
-                      <ul>
-                        <li v-for="error in passwordValidation.errors" :key="error">
-                          <small>{{ error }}</small>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="matches" v-else-if="!samePasswords">
-                      <p>
-                        {{ $t('site.signup.dont_match') }}
-                        <i class="ni ni-active-40" color="danger"></i>
-                      </p>
-                    </div>
-                  </transition>
                   <b-row class="my-4">
                     <b-col cols="12">
                       <b-form-checkbox
@@ -194,17 +109,7 @@
                     </span>
                   </b-alert>
 
-                  <div
-                    class="text-center"
-                    v-if="
-                      passwordsFilled &&
-                      samePasswords &&
-                      passwordValidation.valid &&
-                      namesFilled &&
-                      emailFilled &&
-                      form.agree
-                    "
-                  >
+                  <div class="text-center" v-if="namesFilled && emailFilled && form.agree">
                     <div class="text-center">
                       <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
                       <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
@@ -224,8 +129,11 @@
 </template>
 <script>
 import loginAPI from '../../apis/loginAPI'
+import InputEmail from '../../components/Inputs/InputEmail.vue'
+import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 
 export default {
+  components: { InputPasswordConfirmation, InputEmail },
   name: 'register',
   data() {
     return {
@@ -234,15 +142,15 @@ export default {
         lastname: '',
         email: '',
         agree: false,
-        password: '',
-        passwordRepeat: '',
+        password: {
+          password: '',
+          passwordRepeat: '',
+        },
       },
-
-      passwordVisible: false,
-      passwordVisibleRepeat: false,
       submitted: false,
       showError: false,
       messageError: '',
+      register: true,
     }
   },
   methods: {
@@ -254,36 +162,39 @@ export default {
         firstname: '',
         lastname: '',
         email: '',
-        password: '',
-        passwordRepeat: '',
+        password: {
+          password: '',
+          passwordRepeat: '',
+        },
+        agree: false,
       }
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
-    },
-    togglePasswordVisibility() {
-      this.passwordVisible = !this.passwordVisible
-    },
-    togglePasswordRepeatVisibility() {
-      this.passwordVisibleRepeat = !this.passwordVisibleRepeat
     },
     async onSubmit() {
       const result = await loginAPI.create(
         this.form.email,
         this.form.firstname,
         this.form.lastname,
-        this.form.password,
+        this.form.password.password,
       )
       if (result.success) {
-        this.$store.dispatch('login', {
+        /* this.$store.dispatch('login', {
           sessionId: result.result.data.session_id,
-          email: this.form.email,
+          user: {
+            email: this.form.email,
+            firstName: this.form.firstname,
+            lastName: this.form.lastname
+          }
+
         })
+        */
         this.form.email = ''
         this.form.firstname = ''
         this.form.lastname = ''
-        this.password = ''
-        this.passwordVisibleRepeat = ''
+        this.form.password.password = ''
+
         this.$router.push('/thx/register')
       } else {
         this.showError = true
@@ -296,16 +207,10 @@ export default {
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
-      this.form.password = ''
+      this.form.password.password = ''
     },
   },
   computed: {
-    samePasswords() {
-      return this.form.password === this.form.passwordRepeat
-    },
-    passwordsFilled() {
-      return this.form.password !== '' && this.form.passwordRepeat !== ''
-    },
     namesFilled() {
       return (
         this.form.firstname !== '' &&
@@ -316,26 +221,6 @@ export default {
     },
     emailFilled() {
       return this.form.email !== ''
-    },
-    rules() {
-      return [
-        { message: this.$t('site.signup.lowercase'), regex: /[a-z]+/ },
-        { message: this.$t('site.signup.uppercase'), regex: /[A-Z]+/ },
-        { message: this.$t('site.signup.minimum'), regex: /.{8,}/ },
-        { message: this.$t('site.signup.one_number'), regex: /[0-9]+/ },
-      ]
-    },
-    passwordValidation() {
-      const errors = []
-      for (const condition of this.rules) {
-        if (!condition.regex.test(this.form.password)) {
-          errors.push(condition.message)
-        }
-      }
-      if (errors.length === 0) {
-        return { valid: true, errors }
-      }
-      return { valid: false, errors }
     },
   },
 }
