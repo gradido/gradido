@@ -110,7 +110,7 @@ describe('UserCard_FormUsername', () => {
           await flushPromises()
         })
 
-        it('calls the loginAPI', () => {
+        it('calls the API', () => {
           expect(mockAPIcall).toBeCalledWith(
             expect.objectContaining({
               variables: {
@@ -159,7 +159,7 @@ describe('UserCard_FormUsername', () => {
           await flushPromises()
         })
 
-        it('calls the loginAPI', () => {
+        it('calls the API', () => {
           expect(mockAPIcall).toBeCalledWith(
             expect.objectContaining({
               variables: {
