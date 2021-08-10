@@ -45,9 +45,9 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
 import InputPassword from '../../../components/Inputs/InputPassword'
 import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
+import { updateUserInfos } from '../../../graphql/queries'
 
 export default {
   name: 'FormUserPasswort',
@@ -77,18 +77,23 @@ export default {
       this.form.passwordNewRepeat = ''
     },
     async onSubmit() {
-      const result = await loginAPI.changePasswordProfile(
-        this.$store.state.sessionId,
-        this.$store.state.email,
-        this.form.password,
-        this.form.newPassword.password,
-      )
-      if (result.success) {
-        this.$toasted.success(this.$t('site.thx.reset'))
-        this.cancelEdit()
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: updateUserInfos,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            email: this.$store.state.email,
+            password: this.form.password,
+            newPassword: this.form.newPassword.password,
+          },
+        })
+        .then(() => {
+          this.$toasted.success(this.$t('site.thx.reset'))
+          this.cancelEdit()
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
   },
 }
