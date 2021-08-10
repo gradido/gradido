@@ -433,11 +433,11 @@ msgid "The transaction send coin could not be saved. Please, try again."
 msgstr ""
 
 #: Controller/TransactionSendCoinsController.php:145
-msgid "Du hast nicht genug Geld!"
+msgid "Du hast nicht genug Gradidos!"
 msgstr ""
 
 #: Controller/TransactionSendCoinsController.php:151
-msgid "Du kannst dir leider nicht selbst Geld schicken!"
+msgid "Du kannst dir selbst keine Gradidos senden!"
 msgstr ""
 
 #: Controller/TransactionSendCoinsController.php:163
