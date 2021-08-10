@@ -78,7 +78,7 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
+import { updateUserInfos } from '../../../graphql/queries'
 
 export default {
   name: 'FormUserData',
@@ -114,24 +114,29 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault()
-      const result = await loginAPI.updateUserInfos(
-        this.$store.state.sessionId,
-        this.$store.state.email,
-        {
-          firstName: this.form.firstName,
-          lastName: this.form.lastName,
-          description: this.form.description,
-        },
-      )
-      if (result.success) {
-        this.$store.commit('firstName', this.form.firstName)
-        this.$store.commit('lastName', this.form.lastName)
-        this.$store.commit('description', this.form.description)
-        this.showUserData = true
-        this.$toasted.success(this.$t('site.profil.user-data.change-success'))
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: updateUserInfos,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            email: this.$store.state.email,
+            firstName: this.form.firstName,
+            lastName: this.form.lastName,
+            description: this.form.description,
+          },
+        })
+        .then(() => {
+          console.log('THEN:')
+          this.$store.commit('firstName', this.form.firstName)
+          this.$store.commit('lastName', this.form.lastName)
+          this.$store.commit('description', this.form.description)
+          this.showUserData = true
+          this.$toasted.success(this.$t('site.profil.user-data.change-success'))
+        })
+        .catch((error) => {
+          console.log('ERROR:', error.message)
+          this.$toasted.error(error.message)
+        })
     },
   },
 }
