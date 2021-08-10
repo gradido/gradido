@@ -126,7 +126,6 @@ export default {
           },
         })
         .then(() => {
-          console.log('THEN:')
           this.$store.commit('firstName', this.form.firstName)
           this.$store.commit('lastName', this.form.lastName)
           this.$store.commit('description', this.form.description)
@@ -134,7 +133,6 @@ export default {
           this.$toasted.success(this.$t('site.profil.user-data.change-success'))
         })
         .catch((error) => {
-          console.log('ERROR:', error.message)
           this.$toasted.error(error.message)
         })
     },
