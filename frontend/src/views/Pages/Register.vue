@@ -173,7 +173,7 @@ export default {
       })
     },
     async onSubmit() {
-      this.$axios
+      this.$apollo
         .query({
           query: resgisterUserQuery,
           variables: {
@@ -188,7 +188,6 @@ export default {
           this.form.firstname = ''
           this.form.lastname = ''
           this.form.password.password = ''
-
           this.$router.push('/thx/register')
         })
         .catch((error) => {
