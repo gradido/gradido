@@ -67,7 +67,7 @@
   </b-card>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
+import { updateUserInfos } from '../../../graphql/queries'
 
 export default {
   name: 'FormUsername',
@@ -86,22 +86,27 @@ export default {
       this.showUsername = true
     },
     async onSubmit() {
-      const result = await loginAPI.changeUsernameProfile(
-        this.$store.state.sessionId,
-        this.$store.state.email,
-        this.form.username,
-      )
-      if (result.success) {
-        this.$store.commit('username', this.form.username)
-        this.username = this.form.username
-        this.showUsername = true
-        this.$toasted.success(this.$t('site.profil.user-data.change-success'))
-      } else {
-        this.$toasted.error(result.result.message)
-        this.showUsername = true
-        this.username = this.$store.state.username
-        this.form.username = this.$store.state.username
-      }
+      this.$apollo
+        .query({
+          query: updateUserInfos,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            email: this.$store.state.email,
+            username: this.form.username,
+          },
+        })
+        .then(() => {
+          this.$store.commit('username', this.form.username)
+          this.username = this.form.username
+          this.showUsername = true
+          this.$toasted.success(this.$t('site.profil.user-data.change-success'))
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+          this.showUsername = true
+          this.username = this.$store.state.username
+          this.form.username = this.$store.state.username
+        })
     },
   },
 }

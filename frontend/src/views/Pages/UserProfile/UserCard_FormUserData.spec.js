@@ -1,21 +1,14 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormUserData from './UserCard_FormUserData'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-
-jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
-const mockAPIcall = jest.fn((args) => {
-  return { success: true }
-})
+const mockAPIcall = jest.fn()
 
 const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
-
-loginAPI.updateUserInfos = mockAPIcall
 
 describe('UserCard_FormUsername', () => {
   let wrapper
@@ -35,6 +28,9 @@ describe('UserCard_FormUsername', () => {
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: mockAPIcall,
     },
   }
 
@@ -102,6 +98,9 @@ describe('UserCard_FormUsername', () => {
 
       describe('successfull submit', () => {
         beforeEach(async () => {
+          mockAPIcall.mockResolvedValue({
+            state: 'success',
+          })
           jest.clearAllMocks()
           await wrapper.findAll('input').at(0).setValue('Petra')
           await wrapper.findAll('input').at(1).setValue('Lustiger')
@@ -111,12 +110,18 @@ describe('UserCard_FormUsername', () => {
           await flushPromises()
         })
 
-        it('calls the loginAPI', () => {
-          expect(mockAPIcall).toBeCalledWith(1, 'user@example.org', {
-            firstName: 'Petra',
-            lastName: 'Lustiger',
-            description: 'Keine Nickelbrille',
-          })
+        it('calls the API', () => {
+          expect(mockAPIcall).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                sessionId: 1,
+                email: 'user@example.org',
+                firstName: 'Petra',
+                lastName: 'Lustiger',
+                description: 'Keine Nickelbrille',
+              },
+            }),
+          )
         })
 
         it('commits firstname to store', () => {
@@ -142,8 +147,10 @@ describe('UserCard_FormUsername', () => {
 
       describe('submit results in server error', () => {
         beforeEach(async () => {
+          mockAPIcall.mockRejectedValue({
+            message: 'Error',
+          })
           jest.clearAllMocks()
-          mockAPIcall.mockReturnValue({ success: false, result: { message: 'Error' } })
           await wrapper.findAll('input').at(0).setValue('Petra')
           await wrapper.findAll('input').at(1).setValue('Lustiger')
           await wrapper.find('textarea').setValue('Keine Nickelbrille')
@@ -152,12 +159,18 @@ describe('UserCard_FormUsername', () => {
           await flushPromises()
         })
 
-        it('calls the loginAPI', () => {
-          expect(mockAPIcall).toBeCalledWith(1, 'user@example.org', {
-            firstName: 'Petra',
-            lastName: 'Lustiger',
-            description: 'Keine Nickelbrille',
-          })
+        it('calls the API', () => {
+          expect(mockAPIcall).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                sessionId: 1,
+                email: 'user@example.org',
+                firstName: 'Petra',
+                lastName: 'Lustiger',
+                description: 'Keine Nickelbrille',
+              },
+            }),
+          )
         })
 
         it('toasts an error message', () => {
