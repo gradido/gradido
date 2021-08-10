@@ -66,7 +66,7 @@ export default {
         .then((result) => {
           this.$router.push('/thx/password')
         })
-        .catch((error) => {
+        .catch(() => {
           this.$router.push('/thx/password')
         })
     },
