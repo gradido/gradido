@@ -16,11 +16,7 @@
       <b-tab :title="'Gradido Transform  (' + $n(GdtBalance, 'decimal') + ' GDT)'" class="px-4">
         <p class="">{{ $t('transaction.gdt-text') }}</p>
 
-        <gdt-transaction-list
-          :transactionsGdt="transactionsGdt"
-          :transactionGdtCount="transactionGdtCount"
-          @update-gdt="updateGdt"
-        />
+        <gdt-transaction-list />
       </b-tab>
     </b-tabs>
   </div>
@@ -42,10 +38,6 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
-    transactionsGdt: {
-      default: () => [],
-    },
-    transactionGdtCount: { type: Number, default: 0 },
   },
   data() {
     return {
@@ -55,9 +47,6 @@ export default {
   methods: {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
-    },
-    updateGdt() {
-      this.$emit('update-gdt')
     },
   },
 }

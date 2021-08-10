@@ -122,6 +122,8 @@
 </template>
 
 <script>
+import communityAPI from '../../../apis/communityAPI'
+
 const iconsByType = {
   1: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
   2: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
@@ -134,9 +136,11 @@ const iconsByType = {
 
 export default {
   name: 'gdt-transaction-list',
-  props: {
-    transactionsGdt: { default: () => [] },
-    transactionGdtCount: { type: Number, default: 0 },
+  data() {
+    return {
+      transactionsGdt: { default: () => [] },
+      transactionGdtCount: { type: Number, default: 0 },
+    }
   },
   methods: {
     getProperties(givenType) {
@@ -152,6 +156,14 @@ export default {
     throwError(msg) {
       throw new Error(msg)
     },
+    async updateGdt() {
+      const result = await communityAPI.transactionsgdt(this.$store.state.sessionId)
+      this.transactionsGdt = result.result.data.gdtEntries
+      this.transactionGdtCount = result.result.data.count
+    },
+  },
+  mounted() {
+    this.updateGdt()
   },
 }
 </script>
