@@ -1,16 +1,11 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormUsername from './UserCard_FormUsername'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
 import { extend } from 'vee-validate'
 
-jest.mock('../../../apis/loginAPI')
-
 const localVue = global.localVue
 
-const mockAPIcall = jest.fn((args) => {
-  return { success: true }
-})
+const mockAPIcall = jest.fn()
 
 // override this rule to avoid API call
 extend('gddUsernameUnique', {
@@ -22,8 +17,6 @@ extend('gddUsernameUnique', {
 const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
-
-loginAPI.changeUsernameProfile = mockAPIcall
 
 describe('UserCard_FormUsername', () => {
   let wrapper
@@ -41,6 +34,9 @@ describe('UserCard_FormUsername', () => {
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: mockAPIcall,
     },
   }
 
