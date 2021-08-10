@@ -55,11 +55,19 @@
         <!-- ROW End -->
         <!-- Collaps Start -->
         <b-collapse v-if="type != 'decay'" :id="'a' + date + ''">
-          <b-list-group v-if="type === 'creation'">
-            <b-list-group-item style="border: 0px">
+          <b-list-group>
+            <b-list-group-item style="border: 0px; background-color: #f1f1f1">
               <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">{{ $t('decay.created') }}</div>
-                <div style="width: 60%">{{ $t('decay.fromCommunity') }}</div>
+                <div style="width: 40%" class="text-right pr-3 mr-2">
+                  <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
+                  <div v-if="type === 'creation'">{{ $t('decay.created') }}</div>
+                  <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
+                </div>
+                <div style="width: 60%">
+                  <div v-if="type === 'send'">{{ $t('decay.toCommunity') }}</div>
+                  <div v-if="type === 'creation'">{{ $t('decay.fromCommunity') }}</div>
+                  <div v-if="type === 'receive'">{{ $t('decay.fromCommunity') }}</div>
+                </div>
               </div>
             </b-list-group-item>
           </b-list-group>
