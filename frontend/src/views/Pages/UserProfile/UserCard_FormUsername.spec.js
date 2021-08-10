@@ -94,13 +94,24 @@ describe('UserCard_FormUsername', () => {
 
         describe('successfull submit', () => {
           beforeEach(async () => {
+            mockAPIcall.mockResolvedValue({
+              message: 'error',
+            })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
           it('calls the loginAPI', () => {
-            expect(mockAPIcall).toHaveBeenCalledWith(1, 'user@example.org', 'username')
+            expect(mockAPIcall).toHaveBeenCalledWith(
+              expect.objectContaining({
+                variables: {
+                  email: 'user@example.org',
+                  sessionId: 1,
+                  username: 'username',
+                },
+              }),
+            )
           })
 
           it('displays the new username', () => {
@@ -123,9 +134,8 @@ describe('UserCard_FormUsername', () => {
         describe('submit retruns error', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            mockAPIcall.mockReturnValue({
-              success: false,
-              result: { message: 'Error' },
+            mockAPIcall.mockRejectedValue({
+              message: 'Error',
             })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
@@ -133,7 +143,15 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('calls the loginAPI', () => {
-            expect(mockAPIcall).toHaveBeenCalledWith(1, 'user@example.org', 'username')
+            expect(mockAPIcall).toHaveBeenCalledWith(
+              expect.objectContaining({
+                variables: {
+                  email: 'user@example.org',
+                  sessionId: 1,
+                  username: 'username',
+                },
+              }),
+            )
           })
 
           it('toasts an error message', () => {
