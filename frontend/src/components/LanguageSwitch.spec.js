@@ -6,9 +6,7 @@ const localVue = global.localVue
 const updateUserInfosQueryMock = jest.fn().mockResolvedValue({
   data: {
     updateUserInfos: {
-      sessionId: 1234,
-      email: 'he@ho.he',
-      locale: 'de',
+      validValues: 1,
     },
   },
 })
@@ -50,17 +48,22 @@ describe('LanguageSwitch', () => {
 
     describe('with locales en and de', () => {
       describe('empty store', () => {
-        it('shows English as default navigator langauge', () => {
-          expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
+        describe('navigator language is "en-US"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows English as default navigator langauge', async () => {
+            languageGetter.mockReturnValue('en-US')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
+          })
         })
 
         describe('navigator language is "de-DE"', () => {
-          const mockNavigator = jest.fn(() => {
-            return 'de'
-          })
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
           it('shows Deutsch as language ', async () => {
-            wrapper.vm.getNavigatorLanguage = mockNavigator
+            languageGetter.mockReturnValue('de-DE')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.find('button.dropdown-toggle').text()).toBe('Deutsch - de')
@@ -68,12 +71,21 @@ describe('LanguageSwitch', () => {
         })
 
         describe('navigator language is "es-ES" (not supported)', () => {
-          const mockNavigator = jest.fn(() => {
-            return 'es'
-          })
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
           it('shows English as language ', async () => {
-            wrapper.vm.getNavigatorLanguage = mockNavigator
+            languageGetter.mockReturnValue('es-ES')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
+          })
+        })
+
+        describe('no navigator langauge', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows English as language ', async () => {
+            languageGetter.mockReturnValue(null)
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
@@ -107,7 +119,7 @@ describe('LanguageSwitch', () => {
 
     describe('calls the API', () => {
       it("with locale 'en'", () => {
-        wrapper.vm.saveLocale('en')
+        wrapper.findAll('li').at(0).find('a').trigger('click')
         expect(updateUserInfosQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
@@ -120,7 +132,7 @@ describe('LanguageSwitch', () => {
       })
 
       it("with locale 'de'", () => {
-        wrapper.vm.saveLocale('de')
+        wrapper.findAll('li').at(1).find('a').trigger('click')
         expect(updateUserInfosQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {

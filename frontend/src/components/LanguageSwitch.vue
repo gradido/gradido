@@ -34,7 +34,6 @@ export default {
     async saveLocale(locale) {
       this.setLocale(locale)
       if (this.$store.state.sessionId && this.$store.state.email) {
-        // eslint-disable-next-line no-console
         this.$apollo
           .query({
             query: updateUserInfos,

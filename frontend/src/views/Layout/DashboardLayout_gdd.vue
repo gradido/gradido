@@ -51,6 +51,7 @@
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <!-- your content here -->
           <router-view
+            ref="router-view"
             :balance="balance"
             :gdt-balance="GdtBalance"
             :transactions="transactions"
@@ -99,7 +100,11 @@ export default {
           this.$store.dispatch('logout')
           this.$router.push('/login')
         })
-      // do we have to handle errors?
+        .catch(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
     },
     async updateTransactions(pagination) {
       this.pending = true
@@ -111,6 +116,7 @@ export default {
             firstPage: pagination.firstPage,
             items: pagination.items,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           const {
