@@ -128,6 +128,7 @@ export default {
         pagination.items,
       )
       if (result.success) {
+        this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
         this.balance = Number(result.result.data.decay)
         this.bookedBalance = Number(result.result.data.balance)
