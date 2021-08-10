@@ -1,16 +1,11 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-
-jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
 changePasswordProfileMock.mockReturnValue({ success: true })
-
-loginAPI.changePasswordProfile = changePasswordProfileMock
 
 const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
@@ -29,6 +24,9 @@ describe('UserCardFormUserPasswort', () => {
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: changePasswordProfileMock,
     },
   }
 
