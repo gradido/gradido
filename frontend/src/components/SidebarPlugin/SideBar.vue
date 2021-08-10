@@ -16,7 +16,11 @@
         <ul class="nav align-items-center d-md-none">
           <div class="media align-items-center">
             <span class="avatar avatar-sm">
-              <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+              <vue-qrcode
+                v-if="$store.state.email"
+                :value="$store.state.email"
+                type="image/png"
+              ></vue-qrcode>
             </span>
           </div>
         </ul>
