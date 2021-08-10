@@ -100,7 +100,11 @@ export default {
           this.$store.dispatch('logout')
           this.$router.push('/login')
         })
-      // do we have to handle errors?
+        .catch(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
     },
     async updateTransactions(pagination) {
       this.pending = true
@@ -112,6 +116,7 @@ export default {
             firstPage: pagination.firstPage,
             items: pagination.items,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           const {

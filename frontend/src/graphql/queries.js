@@ -101,3 +101,9 @@ export const resgisterUserQuery = gql`
     create(email: $email, firstName: $firstName, lastName: $lastName, password: $password)
   }
 `
+
+export const sendCoins = gql`
+  query($sessionId: Float!, $email: String!, $amount: Float!, $memo: String!) {
+    sendCoins(sessionId: $sessionId, email: $email, amount: $amount, memo: $memo)
+  }
+`

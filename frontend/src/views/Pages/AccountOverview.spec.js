@@ -1,13 +1,8 @@
 import { mount } from '@vue/test-utils'
 import AccountOverview from './AccountOverview'
-import communityAPI from '../../apis/communityAPI.js'
-
-jest.mock('../../apis/communityAPI.js')
 
 const sendMock = jest.fn()
-sendMock.mockReturnValue({ success: true })
-
-communityAPI.send = sendMock
+sendMock.mockResolvedValue('success')
 
 const localVue = global.localVue
 
@@ -27,6 +22,9 @@ describe('AccountOverview', () => {
       },
     },
     $n: jest.fn((n) => String(n)),
+    $apollo: {
+      query: sendMock,
+    },
   }
 
   const Wrapper = () => {
@@ -92,11 +90,16 @@ describe('AccountOverview', () => {
         })
 
         it('calls the API when send-transaction is emitted', async () => {
-          expect(sendMock).toBeCalledWith(1, {
-            email: 'user@example.org',
-            amount: 23.45,
-            memo: 'Make the best of it!',
-          })
+          expect(sendMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                sessionId: 1,
+                email: 'user@example.org',
+                amount: 23.45,
+                memo: 'Make the best of it!',
+              },
+            }),
+          )
         })
 
         it('emits update-balance', () => {
@@ -112,7 +115,7 @@ describe('AccountOverview', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockReturnValue({ success: false, result: { message: 'receiver not found' } })
+          sendMock.mockRejectedValue({ message: 'receiver not found' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmation' })
             .vm.$emit('send-transaction')

@@ -143,6 +143,22 @@ describe('DashboardLayoutGdd', () => {
         it('redirects to login page', () => {
           expect(routerPushMock).toBeCalledWith('/login')
         })
+
+        describe('logout fails', () => {
+          beforeEach(() => {
+            apolloMock.mockRejectedValue({
+              message: 'error',
+            })
+          })
+
+          it('dispatches logout to store', () => {
+            expect(storeDispatchMock).toBeCalledWith('logout')
+          })
+
+          it('redirects to login page', () => {
+            expect(routerPushMock).toBeCalledWith('/login')
+          })
+        })
       })
 
       describe('update balance', () => {
