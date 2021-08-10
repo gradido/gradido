@@ -133,7 +133,6 @@ export default {
         pagination.items,
       )
       if (result.success) {
-        this.GdtBalance = Number(result.result.data.gdtSum)
         this.transactions = result.result.data.transactions
         this.balance = Number(result.result.data.decay)
         this.bookedBalance = Number(result.result.data.balance)
@@ -149,6 +148,7 @@ export default {
        console.log(' communityAPI.transactionsgdt')
        console.log(result2.result)
        console.log(result2.result.data.gdtEntries)
+        this.GdtBalance = Number(result2.result.data.gdtSum)
         this.transactionsGdt = result2.result.data.gdtEntries
         this.transactionGdtCount = result2.result.data.count
 /*

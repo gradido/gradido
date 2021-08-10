@@ -325,17 +325,6 @@ class AppRequestsController extends AppController
         $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
         
         $stateBalancesTable->updateBalances($user['id']);
-        
-        $gdtSum = 0;        
-        
-        $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-        
-        if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-          $gdtSum = intval($gdtEntries['data']['sum']);
-        } else {
-          $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id'] ? $user['id'] : 0);
-        }
-
         //echo "count: $count, page: $page<br>";
         $limit = $count;
         $offset = 0;
@@ -389,7 +378,6 @@ class AppRequestsController extends AppController
             'transactions' => $transactions,
             'transactionExecutingCount' => $session->read('Transactions.executing'),
             'count' => $stateUserTransactionsQuery->count(),
-            'gdtSum' => $gdtSum,
             'timeUsed' => microtime(true) - $startTime
         ];
         $now = new FrozenTime();

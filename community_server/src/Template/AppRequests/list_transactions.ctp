@@ -8,7 +8,6 @@
 
 $body['balance'] = $this->element('centToFloat', ['cent' => $body['balance'], 'precision' => 4]);
 $body['decay'] = $this->element('centToFloat', ['cent' => $body['decay'], 'precision' => 4]);
-$body['gdtSum'] = $this->element('centToFloat', ['cent' => $body['gdtSum'], 'precision' => 2]);
 
 foreach($body['transactions'] as $i => $transaction) {
     $useCeil = false;
