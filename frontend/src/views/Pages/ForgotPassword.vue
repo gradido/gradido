@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import { sendEmail } from '../../graphql/queries'
+import { sendResetPasswordEmail } from '../../graphql/queries'
 import InputEmail from '../../components/Inputs/InputEmail'
 
 export default {
@@ -58,13 +58,17 @@ export default {
     async onSubmit() {
       this.$apollo
         .query({
-          query: sendEmail,
+          query: sendResetPasswordEmail,
           variables: {
             email: this.form.email,
           },
         })
-        .then(() => this.$router.push('/thx/password'))
-        .catch(() => this.$router.push('/thx/password'))
+        .then((result) => {
+          this.$router.push('/thx/password')
+        })
+        .catch((error) => {
+          this.$router.push('/thx/password')
+        })
     },
   },
 }
