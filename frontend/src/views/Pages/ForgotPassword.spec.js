@@ -77,6 +77,9 @@ describe('ForgotPassword', () => {
 
       describe('invalid Email', () => {
         beforeEach(async () => {
+          mockAPIcall.mockRejectedValue({
+            message: 'error',
+          })
           await form.find('input').setValue('no-email')
           await flushPromises()
         })
@@ -92,13 +95,22 @@ describe('ForgotPassword', () => {
 
       describe('valid Email', () => {
         beforeEach(async () => {
+          mockAPIcall.mockResolvedValue({
+            message: 'error',
+          })
           await form.find('input').setValue('user@example.org')
           await form.trigger('submit')
           await flushPromises()
         })
 
         it('calls the API', () => {
-          expect(mockAPIcall).toHaveBeenCalledWith('user@example.org')
+          expect(mockAPIcall).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'user@example.org',
+              },
+            }),
+          )
         })
 
         it('pushes "/thx/password" to the route', () => {
