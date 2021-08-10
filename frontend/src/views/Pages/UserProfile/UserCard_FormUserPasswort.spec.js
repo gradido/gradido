@@ -157,6 +157,11 @@ describe('UserCardFormUserPasswort', () => {
       describe('submit', () => {
         describe('valid data', () => {
           beforeEach(async () => {
+            changePasswordProfileMock.mockResolvedValue({
+              data: {
+                updateUserData: 'success',
+              },
+            })
             await form.findAll('input').at(0).setValue('1234')
             await form.findAll('input').at(1).setValue('Aa123456')
             await form.findAll('input').at(2).setValue('Aa123456')
@@ -166,10 +171,14 @@ describe('UserCardFormUserPasswort', () => {
 
           it('calls the API', () => {
             expect(changePasswordProfileMock).toHaveBeenCalledWith(
-              1,
-              'user@example.org',
-              '1234',
-              'Aa123456',
+              expect.objectContaining({
+                variables: {
+                  sessionId: 1,
+                  email: 'user@example.org',
+                  password: '1234',
+                  newPassword: 'Aa123456',
+                },
+              }),
             )
           })
 
@@ -184,9 +193,8 @@ describe('UserCardFormUserPasswort', () => {
 
         describe('server response is error', () => {
           beforeEach(async () => {
-            changePasswordProfileMock.mockReturnValue({
-              success: false,
-              result: { message: 'error' },
+            changePasswordProfileMock.mockRejectedValue({
+              message: 'error',
             })
             await form.findAll('input').at(0).setValue('1234')
             await form.findAll('input').at(1).setValue('Aa123456')
