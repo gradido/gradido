@@ -1,12 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import loginAPI from '../../apis/loginAPI.js'
 import ForgotPassword from './ForgotPassword'
 
-jest.mock('../../apis/loginAPI.js')
-
 const mockAPIcall = jest.fn()
-loginAPI.sendEmail = mockAPIcall
 
 const localVue = global.localVue
 
@@ -19,6 +15,9 @@ describe('ForgotPassword', () => {
     $t: jest.fn((t) => t),
     $router: {
       push: mockRouterPush,
+    },
+    $apollo: {
+      query: mockAPIcall,
     },
   }
 
