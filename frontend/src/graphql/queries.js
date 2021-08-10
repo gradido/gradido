@@ -107,3 +107,11 @@ export const sendCoins = gql`
     sendCoins(sessionId: $sessionId, email: $email, amount: $amount, memo: $memo)
   }
 `
+
+export const sendResetPasswordEmail = gql`
+  query($email: String!) {
+    sendResetPasswordEmail(email: $email) {
+      state
+    }
+  }
+`
