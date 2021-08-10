@@ -67,7 +67,6 @@
   </b-card>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
 import { updateUserInfos } from '../../../graphql/queries'
 
 export default {
