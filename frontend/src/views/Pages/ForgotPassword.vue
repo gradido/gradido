@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI.js'
+import { sendEmail } from '../../graphql/queries'
 import InputEmail from '../../components/Inputs/InputEmail'
 
 export default {
@@ -56,9 +56,15 @@ export default {
   },
   methods: {
     async onSubmit() {
-      await loginAPI.sendEmail(this.form.email)
-      // always give success to avoid email spying
-      this.$router.push('/thx/password')
+      this.$apollo
+        .query({
+          query: sendEmail,
+          variables: {
+            email: this.form.email,
+          },
+        })
+        .then(() => this.$router.push('/thx/password'))
+        .error(() => this.$router.push('/thx/password'))
     },
   },
 }
