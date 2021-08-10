@@ -145,76 +145,9 @@ export default {
       }
     },
     async updateGdt() {
-       const result2 = await communityAPI.transactionsgdt(this.$store.state.sessionId)
-       console.log(' communityAPI.transactionsgdt')
-       console.log(result2.result)
-       console.log(result2.result.data.gdtEntries)
-        this.transactionsGdt = result2.result.data.gdtEntries
-        this.transactionGdtCount = result2.result.data.count
-/*
-      this.transactionsGdt = 
-        {
-          state: 'success',
-          gdt: [
-            {
-              id: 8821,
-              amount: 1000,
-              date: '2021-08-05T14:12:00+00:00',
-              email: 'foerderkreis-1@gradido.org',
-              comment: null,
-              coupon_code: '',
-              gdt_entry_type_id: 4,
-              factor: '20.0000',
-              amount2: 0,
-              factor2: '0.0500',
-              gdt: 1000,
-            },
-            {
-              id: 8810,
-              amount: 1500,
-              date: '2021-08-04T16:12:00+00:00',
-              email: 'eopage-gradido-foerderpaket@gradido.org',
-              comment: null,
-              coupon_code: '',
-              gdt_entry_type_id: 7,
-              factor: '15.0000',
-              amount2: 0,
-              factor2: '0.0500',
-              gdt: 1500,
-            },
-            {
-              id: 8552,
-              amount: 1000,
-              date: '2021-06-03T14:12:00+00:00',
-              email: 'foerderkreis-1@gradido.org',
-              comment: null,
-              coupon_code: '',
-              gdt_entry_type_id: 4,
-              factor: '20.0000',
-              amount2: 0,
-              factor2: '0.0500',
-              gdt: 1000,
-            },
-            {
-              id: 8317,
-              amount: 1000,
-              date: '2021-03-16T14:12:00+00:00',
-              email: 'foerderkreis-1@gradido.org',
-              comment: null,
-              coupon_code: '',
-              gdt_entry_type_id: 4,
-              factor: '20.0000',
-              amount2: 0,
-              factor2: '0.0500',
-              gdt: 1000,
-            },
-          ],
-          transactionGdtExecutingCount: 4500,
-          count: 4,
-        }
-        */
-      //this.transactionGdtCount = this.transactionsGdt.count
-      // console.log('transactionGdtCount', this.transactionGdtCount)
+      const result2 = await communityAPI.transactionsgdt(this.$store.state.sessionId)
+      this.transactionsGdt = result2.result.data.gdtEntries
+      this.transactionGdtCount = result2.result.data.count
     },
     updateBalance(ammount) {
       this.balance -= ammount
@@ -226,9 +159,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.xxx {
-  position: relative;
-  right: 0px;
-}
-</style>

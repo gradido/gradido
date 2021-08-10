@@ -119,15 +119,15 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the message of the transaction', () => {
-          expect(transaction.findAll('div').at(5).text()).toContain('Alles Gute zum Geburtstag')
+          expect(transaction.findAll('div').at(6).text()).toContain('Alles Gute zum Geburtstag')
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(8).text()).toContain('Tue May 25 2021')
+          expect(transaction.findAll('div').at(9).text()).toContain('Tue May 25 2021')
         })
 
         it('shows the decay calculation', () => {
-          expect(transaction.findAll('div').at(9).text()).toContain('-0.5')
+          expect(transaction.findAll('div').at(10).text()).toContain('-0.5')
         })
       })
 
