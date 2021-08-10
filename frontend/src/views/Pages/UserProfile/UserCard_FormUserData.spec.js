@@ -1,21 +1,14 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormUserData from './UserCard_FormUserData'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-
-jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
-const mockAPIcall = jest.fn((args) => {
-  return { success: true }
-})
+const mockAPIcall = jest.fn()
 
 const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
-
-loginAPI.updateUserInfos = mockAPIcall
 
 describe('UserCard_FormUsername', () => {
   let wrapper
@@ -35,6 +28,9 @@ describe('UserCard_FormUsername', () => {
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: mockAPIcall,
     },
   }
 
