@@ -260,6 +260,7 @@ class AppRequestControllerTest extends TestCase
 	],
 	"transactionExecutingCount": 0,
 	"count": 7,
+	"gdtSum": 180000,
 	"timeUsed": 0.44154810905456545,
 	"decay_date": "2021-07-07T16:04:13+00:00",
 	"balance": 9099652,
