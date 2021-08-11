@@ -111,29 +111,69 @@
         <!-- Collaps End -->
       </b-list-group-item>
     </b-list-group>
+    <pagination-buttons
+      v-if="transactionGdtCount > pageSize"
+      :has-next="hasNext"
+      :has-previous="hasPrevious"
+      :total-pages="totalPages"
+      :current-page="currentPage"
+      @show-next="showNext"
+      @show-previous="showPrevious"
+    ></pagination-buttons>
   </div>
 </template>
 
 <script>
 import communityAPI from '../../../apis/communityAPI'
+import PaginationButtons from '../../../components/PaginationButtons'
 
 export default {
   name: 'gdt-transaction-list',
+  components: {
+    PaginationButtons,
+  },
   data() {
     return {
       transactionsGdt: { default: () => [] },
       transactionGdtCount: { type: Number, default: 0 },
+      currentPage: 1,
+      pageSize: { type: Number, default: 5 },
     }
+  },
+  computed: {
+    hasNext() {
+      return this.currentPage * this.pageSize < this.transactionGdtCount
+    },
+    hasPrevious() {
+      return this.currentPage > 1
+    },
+    totalPages() {
+      return Math.ceil(this.transactionGdtCount / this.pageSize)
+    },
   },
   methods: {
     async updateGdt() {
-      const result = await communityAPI.transactionsgdt(this.$store.state.sessionId)
+      const result = await communityAPI.transactionsgdt(
+        this.$store.state.sessionId,
+        this.currentPage,
+        this.pageSize,
+      )
       if (result.success) {
         this.transactionsGdt = result.result.data.gdtEntries
         this.transactionGdtCount = result.result.data.count
       } else {
         this.$toasted.error(result.result.message)
       }
+    },
+    showNext() {
+      this.currentPage++
+      this.updateGdt()
+      window.scrollTo(0, 0)
+    },
+    showPrevious() {
+      this.currentPage--
+      this.updateGdt()
+      window.scrollTo(0, 0)
     },
   },
   mounted() {
