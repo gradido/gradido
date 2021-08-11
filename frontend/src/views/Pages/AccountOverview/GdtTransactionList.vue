@@ -1,10 +1,10 @@
 <template>
   <div class="gdt-transaction-list">
-    <b-list-group>
-      <b-list-group-item v-if="transactionGdtCount === 0">
+    <div class="list-group">
+      <div v-if="transactionGdtCount === 0">
         {{ $t('gdt.no-transactions') }}
-      </b-list-group-item>
-      <b-list-group-item
+      </div>
+      <div
         v-for="{
           id,
           amount,
@@ -20,106 +20,117 @@
         } in this.transactionsGdt"
         :key="id"
       >
-        <!-- ROW Start -->
-        <div class="d-flex gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
-          <!-- ICON -->
-          <div style="width: 8%"></div>
-          <!-- Text Links -->
-          <div class="font1_2em pr-2 text-right" style="width: 36%">
-            <div>
-              <div>
-                <div v-if="gdt_entry_type_id === 7">{{ $n(gdt, 'decimal') }}</div>
-                <div v-else>{{ $n(amount, 'decimal') }}</div>
-              </div>
-
-              <div v-if="gdt_entry_type_id !== 7 && gdt_entry_type_id !== 4">
-                {{ $n(gdt, 'decimal') }}
-              </div>
-            </div>
-
-            <div v-if="comment">
-              <small>
-                {{ $t('form.memo') }}
-              </small>
-            </div>
-            <div v-if="date" class="text-sm">
-              {{ $t('form.date') }}
-            </div>
-          </div>
-          <!-- Text Rechts -->
-          <div class="font1_2em text-left pl-2" style="width: 55%">
-            <div>
-              <div v-if="gdt_entry_type_id !== 7 && gdt_entry_type_id !== 4">EURO</div>
-              <div>GDT</div>
-            </div>
-
-            <div v-if="comment">
-              <small>
-                {{ comment }}
-              </small>
-            </div>
-
-            <div v-if="date" class="text-sm">
-              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-            </div>
-          </div>
-          <!-- Collaps Toggle Button -->
-          <div v-if="gdt_entry_type_id" class="text-right" style="width: 5%">
+        <!-- Betrag -->
+        <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
+          <div v-if="type != 'decay'" class="text-right" style="width: 96%; position: absolute">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
+          <!-- 7 nur GDT erhalten -->
+          <b-row v-if="gdt_entry_type_id === 7">
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.gdt-receive') }}</div>
+              <div>{{ $n(gdt, 'decimal') }}</div>
+            </div>
+            <div class="col-6">
+              <div>---</div>
+              <div>GDT</div>
+            </div>
+          </b-row>
+          <!--4 publisher -->
+          <b-row v-else-if="gdt_entry_type_id === 4">
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.your-share') }}</div>
+              <div>{{ $n(amount, 'decimal') }}</div>
+            </div>
+            <div class="col-6">
+              <div>5%</div>
+              <div>GDT</div>
+            </div>
+          </b-row>
+          <!-- 1, 2, 3, 5, 6 spenden in euro -->
+          <b-row v-else>
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.donation') }}</div>
+              <div>{{ $n(amount, 'decimal') }}</div>
+              <div>{{ $n(gdt, 'decimal') }}</div>
+            </div>
+            <div class="col-6">
+              <div>---</div>
+              <div>EURO</div>
+              <div>GDT</div>
+            </div>
+          </b-row>
+
+          <!-- Betrag ENDE-->
+
+          <!-- Nachricht-->
+          <b-row v-if="comment">
+            <div class="col-6 text-right">
+              {{ $t('form.memo') }}
+            </div>
+            <div class="col-6">
+              {{ comment }}
+            </div>
+          </b-row>
+
+          <!-- Datum-->
+          <b-row v-if="date" class="gdt-list-row text-header">
+            <div class="col-6 text-right">
+              {{ $t('form.date') }}
+            </div>
+            <div class="col-6">
+              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            </div>
+          </b-row>
         </div>
-        <!-- ROW End -->
-        <!-- Collaps Start -->
+
+        <!--     Collaps START    -->
+
         <b-collapse v-if="gdt_entry_type_id" :id="'a' + date + ''" class="pb-4">
-          <b-list-group style="border: 0px; background-color: #f1f1f1">
-            <div v-if="gdt_entry_type_id !== 7 && gdt_entry_type_id !== 4" class="text-center pt-3">
-              {{ $t('gdt.conversion-gdt-euro') }}
-            </div>
-            <div v-else-if="gdt_entry_type_id === 4" class="text-center pt-3">
-              {{ $t('gdt.publisher') }}
-            </div>
-            <div v-else class="text-center pt-3">
-              {{ $t('gdt.calculation') }}
-            </div>
-
-            <!--EURO / GDT -->
-            <b-list-group-item
-              v-if="gdt_entry_type_id !== 7 && gdt_entry_type_id !== 4"
-              style="border: 0px; background-color: #f1f1f1"
-            >
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                  <div>{{ $t('gdt.factor') }}</div>
-                  <div>{{ $t('gdt.conversion') }}</div>
-                </div>
-                <div style="width: 60%">
-                  <div>{{ factor }}</div>
-                  <div>{{ amount }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT</div>
-                </div>
+          <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
+            <!-- Überschrift -->
+            <b-row class="gdt-list-clooaps-header-text text-center pb-3">
+              <div class="col h4" v-if="gdt_entry_type_id === 7">
+                {{ $t('gdt.conversion-gdt-euro') }}
               </div>
-            </b-list-group-item>
-
-            <b-list-group-item
-              v-else-if="gdt_entry_type_id === 4"
-              style="border: 0px; background-color: #f1f1f1"
-            ></b-list-group-item>
-
-            <!-- Only GDT -->
-            <b-list-group-item v-else style="border: 0px; background-color: #f1f1f1">
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">{{ $t('gdt.formula') }}:</div>
-                <div style="width: 60%">
-                  {{ amount }} GDT * {{ factor }} = {{ $n(gdt, 'decimal') }}
-                </div>
+              <div class="col h4" v-else-if="gdt_entry_type_id === 4">
+                {{ $t('gdt.publisher') }}
               </div>
-            </b-list-group-item>
-          </b-list-group>
+              <div class="col h4" v-else>{{ $t('gdt.calculation') }}</div>
+            </b-row>
+
+            <!-- 7 nur GDT erhalten -->
+            <b-row class="gdt-list-clooaps-box-7" v-if="gdt_entry_type_id == 7">
+              <div class="col-6 text-right clooaps-col-left">
+                <div>{{ $t('gdt.factor') }}</div>
+                <div>{{ $t('gdt.conversion') }}</div>
+              </div>
+              <div class="col-6 clooaps-col-right">
+                <div>{{ factor }}</div>
+                <div>{{ amount }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT</div>
+              </div>
+            </b-row>
+            <!-- 4 publisher -->
+            <b-row class="gdt-list-clooaps-box-4" v-else-if="gdt_entry_type_id === 4">
+              <div class="col-6 text-right clooaps-col-left"></div>
+              <div class="col-6 clooaps-col-right"></div>
+            </b-row>
+
+            <!-- 1, 2, 3, 5, 6 spenden in euro -->
+            <b-row class="gdt-list-clooaps-box--all" v-else>
+              <div class="col-6 text-right clooaps-col-left">{{ $t('gdt.formula') }}:</div>
+              <div class="col-6 clooaps-col-right">
+                {{ amount }} GDT * {{ factor }} = {{ $n(gdt, 'decimal') }}
+              </div>
+            </b-row>
+          </div>
         </b-collapse>
-        <!-- Collaps End -->
-      </b-list-group-item>
-    </b-list-group>
+
+        <!--     Collaps ENDE    -->
+      </div>
+    </div>
   </div>
 </template>
 
