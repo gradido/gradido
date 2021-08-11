@@ -119,7 +119,7 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the message of the transaction', () => {
-          expect(transaction.findAll('div').at(4).text()).toContain('Alles Gute zum Geburtstag')
+          expect(transaction.findAll('div').at(6).text()).toContain('Alles Gute zum Geburtstag')
         })
 
         it('shows the date of the transaction', () => {
@@ -154,11 +154,11 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(3).text()).toContain('Gradido Akademie')
+          expect(transaction.findAll('div').at(5).text()).toContain('Gradido Akademie')
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(3).text()).toContain('Thu Apr 29 2021')
+          expect(transaction.findAll('div').at(7).text()).toContain('Thu Apr 29 2021')
         })
       })
 
@@ -185,15 +185,15 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the message of the transaction', () => {
-          expect(transaction.findAll('div').at(5).text()).toContain('Für das Fahrrad!')
+          expect(transaction.findAll('div').at(8).text()).toContain('Für das Fahrrad!')
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(8).text()).toContain('Thu Apr 29 2021')
+          expect(transaction.findAll('div').at(9).text()).toContain('Thu Apr 29 2021')
         })
 
         it('shows the decay calculation', () => {
-          expect(transaction.findAll('div').at(9).text()).toContain('-1.5')
+          expect(transaction.findAll('div').at(10).text()).toContain('-1.5')
         })
       })
 
@@ -220,7 +220,7 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(3).text()).toBe('decay.decay_since_last_transaction')
+          expect(transaction.findAll('div').at(4).text()).toBe('decay.decay_since_last_transaction')
         })
       })
     })
