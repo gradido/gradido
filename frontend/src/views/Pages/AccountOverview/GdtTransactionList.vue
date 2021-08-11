@@ -20,13 +20,16 @@
         } in this.transactionsGdt"
         :key="id"
       >
-        <!-- Betrag -->
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
-          <div v-if="type != 'decay'" class="text-right" style="width: 96%; position: absolute">
+          <!-- Collaps Button  -->
+          <div class="text-right" style="width: 96%; position: absolute">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
+
+          <!-- Betrag -->
+
           <!-- 7 nur GDT erhalten -->
           <b-row v-if="gdt_entry_type_id === 7">
             <div class="col-6 text-right">

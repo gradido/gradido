@@ -1,82 +1,72 @@
 <template>
   <div class="gdd-transaction-list">
-    <b-list-group>
-      <b-list-group-item
+    <div class="list-group">
+      <div
         v-for="{ decay, transaction_id, type, date, balance, name, memo } in transactions"
         :key="transaction_id"
+        class="list-group-item gdd-transaction-list-item"
+        v-b-toggle="'a' + date + ''"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <!-- ROW Start -->
-        <div class="d-flex gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
-          <!-- ICON -->
-          <div style="width: 8%">
+        <!-- Collaps Button  -->
+        <div v-if="type != 'decay'" class="text-right" style="width: 95%; position: absolute">
+          <b-button class="btn-sm">
+            <b>i</b>
+          </b-button>
+        </div>
+
+        <b-row>
+          <!-- ICON  -->
+          <div class="col-1">
             <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
           </div>
-          <!-- Text Links -->
-          <div class="font1_2em pr-2 text-right" style="width: 32%">
-            <span>{{ getProperties(type).operator }}</span>
 
-            <small v-if="type === 'decay'">{{ $n(balance, 'decimal') }}</small>
-
-            <span v-else>{{ $n(balance, 'decimal') }}</span>
-            <div v-if="type !== 'decay' && type !== 'creation'">
-              <small>
-                {{ $t('form.memo') }}
-              </small>
-            </div>
-            <div class="text-sm">
-              {{ $t('form.date') }}
-            </div>
-            <div v-if="decay" class="text-sm pt-2">
-              <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
-            </div>
-          </div>
-          <!-- Text Rechts -->
-          <div class="font1_2em text-left pl-2" style="width: 55%">
-            <div>{{ name ? name : '' }}</div>
-            <div>
-              <small>
-                {{ memo }}
-              </small>
-            </div>
-            <span v-if="type === 'decay'">
-              <small>{{ $t('decay.decay_since_last_transaction') }}</small>
-            </span>
-            <div v-if="date" class="text-sm">
-              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-            </div>
-            <decay-information v-if="decay" decaytyp="short" :decay="decay" />
-          </div>
-          <!-- Collaps Toggle Button -->
-          <div v-if="type != 'decay'" class="text-right" style="width: 5%">
-            <b-button class="btn-sm">
-              <b>i</b>
-            </b-button>
-          </div>
-        </div>
-        <!-- ROW End -->
-        <!-- Collaps Start -->
-        <b-collapse v-if="type != 'decay'" :id="'a' + date + ''">
-          <b-list-group>
-            <b-list-group-item style="border: 0px; background-color: #f1f1f1">
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                  <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
-                  <div v-if="type === 'creation'">{{ $t('decay.created') }}</div>
-                  <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
-                </div>
-                <div style="width: 60%">
-                  <div v-if="type === 'send'">{{ $t('decay.toCommunity') }}</div>
-                  <div v-if="type === 'creation'">{{ $t('decay.fromCommunity') }}</div>
-                  <div v-if="type === 'receive'">{{ $t('decay.fromCommunity') }}</div>
-                </div>
+          <!-- Erklärung Links -->
+          <div class="col col-11">
+            <!-- Betrag / Name Email -->
+            <b-row>
+              <div class="col-5 text-right">{{ $n(balance, 'decimal') }}</div>
+              <div class="col-7">
+                {{ type !== 'decay' ? name : $t('decay.decay_since_last_transaction') }}
               </div>
-            </b-list-group-item>
-          </b-list-group>
-          <decay-information v-if="decay" decaytyp="new" :decay="decay" />
+            </b-row>
+
+            <!-- Nachricht -->
+            <b-row v-if="type !== 'decay' && type !== 'creation'">
+              <div class="col-5 text-right">{{ $t('form.memo') }}</div>
+              <div class="col-7">{{ memo }}</div>
+            </b-row>
+
+            <!-- Datum -->
+            <b-row v-if="type !== 'decay' && type !== 'creation'">
+              <div class="col-5 text-right">{{ $t('form.date') }}</div>
+              <div class="col-7">
+                {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+              </div>
+            </b-row>
+
+            <!-- Decay -->
+            <b-row v-if="decay">
+              <div class="col-5 text-right">
+                <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
+              </div>
+              <div class="col-7">
+                <decay-information v-if="decay" decaytyp="short" :decay="decay" />
+              </div>
+            </b-row>
+          </div>
+        </b-row>
+
+        <!-- Collaps Start -->
+
+        <b-collapse v-if="type != 'decay'" class="pb-4" :id="'a' + date + ''">
+          <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
+            <decay-information v-if="decay" decaytyp="new" :decay="decay" />
+          </div>
         </b-collapse>
+
         <!-- Collaps End -->
-      </b-list-group-item>
+      </div>
       <pagination-buttons
         v-if="showPagination && transactionCount > pageSize"
         :has-next="hasNext"
@@ -89,7 +79,7 @@
       <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
-    </b-list-group>
+    </div>
   </div>
 </template>
 
