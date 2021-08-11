@@ -159,7 +159,9 @@ describe('UserCard_FormUserPasswort', () => {
           beforeEach(async () => {
             changePasswordProfileMock.mockResolvedValue({
               data: {
-                updateUserData: 'success',
+                updateUserData: {
+                  validValues: 1,
+                },
               },
             })
             await form.findAll('input').at(0).setValue('1234')

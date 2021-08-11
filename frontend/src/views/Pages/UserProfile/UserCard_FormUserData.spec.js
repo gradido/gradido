@@ -99,7 +99,11 @@ describe('UserCard_FormUserData', () => {
       describe('successfull submit', () => {
         beforeEach(async () => {
           mockAPIcall.mockResolvedValue({
-            state: 'success',
+            data: {
+              updateUserInfos: {
+                validValues: 3,
+              },
+            },
           })
           jest.clearAllMocks()
           await wrapper.findAll('input').at(0).setValue('Petra')
