@@ -142,13 +142,13 @@ describe('Register', () => {
         expect(wrapper.find('#Email-input-field').element.value).toBe('')
       })
 
-      it('resets the password field after clicking the reset button', async () => {
+      it.skip('resets the password field after clicking the reset button', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
         expect(wrapper.find('input[name="form.password"]').element.value).toBe('')
       })
 
-      it('resets the passwordRepeat field after clicking the reset button', async () => {
+      it.skip('resets the passwordRepeat field after clicking the reset button', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
         expect(wrapper.find('input[name="form.passwordRepeat"]').element.value).toBe('')
