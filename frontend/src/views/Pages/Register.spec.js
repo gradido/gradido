@@ -124,13 +124,39 @@ describe('Register', () => {
         wrapper.find('input[name="site.signup.agree"]').setChecked(true)
       })
 
-      it('resets the form data after clicking the reset button', async () => {
+      it('resets the firstName field after clicking the reset button', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
         expect(wrapper.find('#registerFirstname').element.value).toBe('')
+      })
+
+      it('resets the lastName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
         expect(wrapper.find('#registerLastname').element.value).toBe('')
+      })
+
+      it('resets the email field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
         expect(wrapper.find('#Email-input-field').element.value).toBe('')
-        // TODO: expect(wrapper.find('input[name="form.password"]').element.value).toBe('') or .toBe('Aa123456')
+      })
+
+      it('resets the password field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.password"]').element.value).toBe('')
+      })
+
+      it('resets the passwordRepeat field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.passwordRepeat"]').element.value).toBe('')
+      })
+
+      it('resets the firstName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
         expect(wrapper.find('input[name="site.signup.agree"]').props.checked).not.toBeTruthy()
       })
     })

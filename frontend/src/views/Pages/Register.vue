@@ -168,6 +168,8 @@ export default {
         },
         agree: false,
       }
+      this.form.password.password = ''
+      this.form.password.passwordRepeat = ''
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
@@ -188,6 +190,7 @@ export default {
           this.form.firstname = ''
           this.form.lastname = ''
           this.form.password.password = ''
+          this.form.password.passwordRepeat = ''
           this.$router.push('/thx/register')
         })
         .catch((error) => {
@@ -202,6 +205,7 @@ export default {
       this.form.firstname = ''
       this.form.lastname = ''
       this.form.password.password = ''
+      this.form.password.passwordRepeat = ''
     },
   },
   computed: {
