@@ -17,13 +17,6 @@
         } in this.transactionsGdt"
         :key="id"
       >
-        <div class="d-flex w-100 justify-content-between pb-3">
-          <h5 class="mb-1">
-            {{ $t('gdt.gdt-received') }} {{ comment ? ': [' + comment + ']' : '' }}
-          </h5>
-          <small>{{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}</small>
-        </div>
-
         <!-- ROW Start -->
         <div class="d-flex gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- ICON -->
@@ -124,16 +117,6 @@
 <script>
 import communityAPI from '../../../apis/communityAPI'
 
-const iconsByType = {
-  1: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  2: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  3: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  4: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  5: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  6: { icon: 'arrow-left-circle', classes: 'text-success', operator: '+' },
-  7: { icon: 'arrow-left-circle', classes: 'text-info', operator: '+' },
-}
-
 export default {
   name: 'gdt-transaction-list',
   data() {
@@ -143,23 +126,14 @@ export default {
     }
   },
   methods: {
-    getProperties(givenType) {
-      const type = iconsByType[givenType]
-      if (type)
-        return {
-          icon: type.icon,
-          class: type.classes + ' m-mb-1 font2em',
-          operator: type.operator,
-        }
-      this.throwError('no icon to given type')
-    },
-    throwError(msg) {
-      throw new Error(msg)
-    },
     async updateGdt() {
       const result = await communityAPI.transactionsgdt(this.$store.state.sessionId)
-      this.transactionsGdt = result.result.data.gdtEntries
-      this.transactionGdtCount = result.result.data.count
+      if (result.success) {
+        this.transactionsGdt = result.result.data.gdtEntries
+        this.transactionGdtCount = result.result.data.count
+      } else {
+        this.$toasted.error(result.result.message)
+      }
     },
   },
   mounted() {

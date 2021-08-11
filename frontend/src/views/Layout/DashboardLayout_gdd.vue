@@ -136,7 +136,7 @@ export default {
         this.pending = false
       } else {
         this.pending = true
-        // what to do when loading balance fails?
+        this.$toasted.error(result.result.message)
       }
     },
     updateBalance(ammount) {
