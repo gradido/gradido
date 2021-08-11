@@ -137,7 +137,7 @@ export default {
       transactionsGdt: { default: () => [] },
       transactionGdtCount: { type: Number, default: 0 },
       currentPage: 1,
-      pageSize: { type: Number, default: 5 },
+      pageSize: 25,
     }
   },
   computed: {
