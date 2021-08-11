@@ -36,7 +36,8 @@
     "received":"empfangen",
     "sent":"gesendet",
     "created":"geschöpft",
-    "fromCommunity":"Aus der Community"
+    "fromCommunity":"Aus der Community",
+    "toCommunity":"An die Community"
   }, 
   "form": {
     "cancel": "Abbrechen",

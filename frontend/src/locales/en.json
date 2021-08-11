@@ -36,7 +36,8 @@
     "received":"received",
     "sent":"sent",
     "created":"reated",
-    "fromCommunity":"From the community"
+    "fromCommunity":"From the community",
+    "toCommunity":"To the community"
   },
   "form": {
     "cancel":"Cancel",
