@@ -94,7 +94,9 @@
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
     "nullTransactions":"Du hast noch keine Transaktionen auf deinem Konto.",
     "more": "mehr",
-    "receiverNotFound":"Empfänger nicht gefunden"
+    "receiverNotFound":"Empfänger nicht gefunden",
+    "gdd-text":"Gradido Transaktionen",
+    "gdt-text":"Gradido Transform Transaktionen"
   },
   "site": {
     "login": {
@@ -165,5 +167,13 @@
     "title": "Passwort zurücksetzen",
     "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst.",
     "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support."
+  },
+  "gdt": {
+     "gdt-received":"Gradido Transform (GDT) erhalten",
+     "factor":"Faktor",
+     "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
+     "calculation":"Berechnung der Gradido Transform",
+     "conversion":"Umrechnung",
+     "formula":"Berechungsformel"
   }
 }

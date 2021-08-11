@@ -25,7 +25,10 @@ class AppRequestsController extends AppController
         $this->loadComponent('GradidoNumber');
         //$this->loadComponent('JsonRpcRequestClient');
         //$this->Auth->allow(['add', 'edit']);
-        $this->Auth->allow(['index', 'sendCoins', 'createCoins', 'getBalance', 'listTransactions', 'getDecayStartBlock']);
+        $this->Auth->allow([
+            'index', 'sendCoins', 'createCoins', 'getBalance', 
+            'listTransactions','listGDTTransactions', 'getDecayStartBlock'
+        ]);
     }
     
   
@@ -271,8 +274,6 @@ class AppRequestsController extends AppController
     public function getBalance($session_id = 0)
     {
         $this->viewBuilder()->setLayout('ajax');
-        $this->response = $this->response->withType('application/json');
-
         $login_result = $this->requestLogin($session_id, false);
         if($login_result !== true) {
             $this->set('body', $login_result);
@@ -303,16 +304,12 @@ class AppRequestsController extends AppController
         }
         
         $body['decay_date'] = $now;
-        $this->addAdminError("AppRequests", "getBalance", $body, $user['id']);
         $this->set('body', $body);
     }
     
     public function listTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
     {
-        
         $this->viewBuilder()->setLayout('ajax');
-        $this->response = $this->response->withType('application/json');
-
         $startTime = microtime(true);
         
         $login_result = $this->requestLogin($session_id, false);
@@ -407,6 +404,49 @@ class AppRequestsController extends AppController
         }
 
         $this->set('body', $body);       
+    }
+    
+    public function listGDTTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
+    {
+        $timeBegin = microtime(true);
+        $gdtSum = 0;
+        $gdtCount = -1;
+        $this->viewBuilder()->setLayout('ajax');
+        
+        $login_result = $this->requestLogin($session_id, false);
+        
+        if($login_result !== true) {
+            return $this->returnJson($login_result);
+        }
+        $session = $this->getRequest()->getSession();
+        $user = $session->read('StateUser');
+
+        if(!$user) {
+          return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'exist a valid session cookie?']);
+        }
+
+        $gdtEntries = $this->JsonRequestClient->sendRequestGDT([
+                    'email' => $user['email'],
+                    'page' => $page, 
+                    'count' => $count,
+                    'orderDirection' => $orderDirection
+                ], 'GdtEntries' . DS . 'listPerEmailApi');
+        
+        $transactions = [];
+        $result = ['state' => 'success'];
+        if('success' == $gdtEntries['state']) {
+          $timeEnd = microtime(true);
+          $gdtEntries['data']['timeUsed'] = $timeEnd - $timeBegin;
+          return $this->returnJson($gdtEntries['data']);
+          
+        } else {
+          if($user) {
+            $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, $user['id']);
+          } else {
+            $this->addAdminError('StateBalancesController', 'ajaxGdtOverview', $gdtEntries, 0);
+          }
+        }
+        return $this->returnJson(['state' => 'error', 'msg' => 'error by requesting gdt server', 'details' => $gdtEntries]);
     }
     
     public function getDecayStartBlock()

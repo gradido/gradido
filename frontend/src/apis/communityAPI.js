@@ -40,8 +40,15 @@ const communityAPI = {
       `${CONFIG.COMMUNITY_API_URL}listTransactions/${firstPage}/${items}/${order}/${sessionId}`,
     )
   },
-  /* create: async (sessionId, email, amount, memo, target_date = new Date() ) => {
-    const payload = {
+  transactionsgdt: async (sessionId, firstPage = 1, items = 5, order = 'DESC') => {
+    return apiGet(
+      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${firstPage}/${items}/${order}/${sessionId}`,
+    )
+  },
+  /* http://localhost/vue/public/json-example/admin_transactionGdt_list.json
+     http://localhost/state-balances/ajaxGdtOverview
+     create: async (sessionId, email, amount, memo, target_date = new Date() ) => {
+     const payload = {
       sessionId,
       email,
       amount,

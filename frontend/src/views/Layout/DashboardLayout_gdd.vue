@@ -49,7 +49,6 @@
 
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
-          <!-- your content here -->
           <router-view
             :balance="balance"
             :gdt-balance="GdtBalance"
@@ -71,7 +70,6 @@ import 'perfect-scrollbar/css/perfect-scrollbar.css'
 import loginAPI from '../../apis/loginAPI'
 
 import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
 import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
@@ -138,7 +136,7 @@ export default {
         this.pending = false
       } else {
         this.pending = true
-        // what to do when loading balance fails?
+        this.$toasted.error(result.result.message)
       }
     },
     updateBalance(ammount) {
@@ -150,9 +148,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.xxx {
-  position: relative;
-  right: 0px;
-}
-</style>

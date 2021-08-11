@@ -342,7 +342,7 @@ Ein GDT Eintrag sieht so aus:
 ```
 {
 	"id": 8857,
-	"amount": 1000, // = 10,00 Euro
+	"amount": 1000, // GDT
 	"date": "2020-06-17T14:12:00+00:00",
 	"email": "foerderkreis-1@gradido.org",
 	"comment": null,
@@ -379,8 +379,10 @@ Bis zum 5. (Bernd ist 2.)
 Diese Beziehung wird durch die connectEntries dargestellt.
 Insbesondere durch den publishersPath, connect enthält einfach nur alle mögliche Daten.
 
+
 # TODO
 TODO: Update GDT-Server um paging und Zugriff auf alle Einträge zu erhalten, optimierter Zugriff
 GET https://staging.gradido.net/state-balances/ajaxGdtTransactions
 Liefert wenn alles in Ordnung ist:
  
+wenn nicht type 7 dann "amount" in euro ansonsten in GDT
