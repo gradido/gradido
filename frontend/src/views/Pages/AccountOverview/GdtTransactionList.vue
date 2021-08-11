@@ -155,4 +155,9 @@ export default {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  background-color: #f8f9fe38;
+}
 </style>
