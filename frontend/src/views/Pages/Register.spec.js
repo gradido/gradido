@@ -124,13 +124,14 @@ describe('Register', () => {
         wrapper.find('input[name="site.signup.agree"]').setChecked(true)
       })
 
-      it('trigger reset button', async () => {
+      it('resets the form data after clicking the reset button', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
-        expect(wrapper.find('#registerFirstname').text()).toBe('')
-        expect(wrapper.find('#registerLastname').text()).toBe('')
-        expect(wrapper.find('#Email-input-field').text()).toBe('')
-        expect(wrapper.find('input[name="form.password"]').text()).toBe('')
+        expect(wrapper.find('#registerFirstname').element.value).toBe('')
+        expect(wrapper.find('#registerLastname').element.value).toBe('')
+        expect(wrapper.find('#Email-input-field').element.value).toBe('')
+        // TODO: expect(wrapper.find('input[name="form.password"]').element.value).toBe('') or .toBe('Aa123456')
+        expect(wrapper.find('input[name="site.signup.agree"]').props.checked).not.toBeTruthy()
       })
     })
 
@@ -144,30 +145,27 @@ describe('Register', () => {
       })
 
       describe('server sends back error', () => {
-        beforeEach(() => {
-          resgisterUserQueryMock.mockRejectedValue({ message: 'error' })
-        })
-        it('shows error message', async () => {
+        beforeEach(async () => {
+          resgisterUserQueryMock.mockRejectedValue({ message: 'Ouch!' })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
-          expect(wrapper.vm.messageError).toBe('error')
-          expect(wrapper.vm.showError).toBeTruthy()
-          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
         })
 
-        it('dissmiss error message', async () => {
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
+        it('shows error message', () => {
+          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text()).toContain('error.error!')
+          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
+        })
+
+        it('button to dismisses error message is present', () => {
           expect(wrapper.find('button.close').exists()).toBeTruthy()
+        })
+
+        it('dismisses error message', async () => {
           await wrapper.find('button.close').trigger('click')
           await flushPromises()
-          expect(wrapper.vm.showError).toBe(false)
-          expect(wrapper.vm.messageError).toBe('')
-          expect(wrapper.vm.form.email).toBe('')
-          expect(wrapper.vm.form.firstname).toBe('')
-          expect(wrapper.vm.form.lastname).toBe('')
-          expect(wrapper.vm.form.password.password).toBe('')
+          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
         })
       })
 
@@ -180,7 +178,7 @@ describe('Register', () => {
           })
         })
 
-        it('rout to "/thx/register"', async () => {
+        it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
           expect(resgisterUserQueryMock).toBeCalledWith(
@@ -193,10 +191,6 @@ describe('Register', () => {
               },
             }),
           )
-          expect(wrapper.vm.form.email).toBe('')
-          expect(wrapper.vm.form.firstname).toBe('')
-          expect(wrapper.vm.form.lastname).toBe('')
-          expect(wrapper.vm.form.password.password).toBe('')
           expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
         })
       })

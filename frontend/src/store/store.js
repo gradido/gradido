@@ -33,8 +33,8 @@ export const actions = {
     commit('email', data.user.email)
     commit('language', data.user.language)
     commit('username', data.user.username)
-    commit('firstName', data.user.first_name)
-    commit('lastName', data.user.last_name)
+    commit('firstName', data.user.firstName)
+    commit('lastName', data.user.lastName)
     commit('description', data.user.description)
   },
   logout: ({ commit, state }) => {
