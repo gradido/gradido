@@ -95,14 +95,18 @@ describe('UserCard_FormUsername', () => {
         describe('successfull submit', () => {
           beforeEach(async () => {
             mockAPIcall.mockResolvedValue({
-              message: 'error',
+              data: {
+                updateUserInfos: {
+                  validValues: 1,
+                },
+              },
             })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
-          it('calls the loginAPI', () => {
+          it('calls the API', () => {
             expect(mockAPIcall).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
@@ -135,14 +139,14 @@ describe('UserCard_FormUsername', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
             mockAPIcall.mockRejectedValue({
-              message: 'Error',
+              message: 'Ouch!',
             })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
-          it('calls the loginAPI', () => {
+          it('calls the API', () => {
             expect(mockAPIcall).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
@@ -155,7 +159,7 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorMock).toBeCalledWith('Error')
+            expect(toastErrorMock).toBeCalledWith('Ouch!')
           })
 
           it('renders an empty username', () => {

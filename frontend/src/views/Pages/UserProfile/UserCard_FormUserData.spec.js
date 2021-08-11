@@ -10,7 +10,7 @@ const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
 
-describe('UserCard_FormUsername', () => {
+describe('UserCard_FormUserData', () => {
   let wrapper
 
   const mocks = {

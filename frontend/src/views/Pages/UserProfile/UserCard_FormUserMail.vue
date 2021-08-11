@@ -32,7 +32,7 @@
   </b-card>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
+import { updateUserInfos } from '../../../graphql/queries'
 
 export default {
   name: 'FormUserMail',
@@ -44,17 +44,21 @@ export default {
   },
   methods: {
     async onSubmit() {
-      // console.log(this.data)
-      const result = await loginAPI.changeEmailProfil(
-        this.$store.state.sessionId,
-        this.email,
-        this.newEmail,
-      )
-      if (result.success) {
-        alert('changePassword success')
-      } else {
-        alert(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: updateUserInfos,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            email: this.$store.state.email,
+            newEmail: this.newEmail,
+          },
+        })
+        .then(() => {
+          alert('changePassword success')
+        })
+        .catch((error) => {
+          alert(error.message)
+        })
     },
   },
 }

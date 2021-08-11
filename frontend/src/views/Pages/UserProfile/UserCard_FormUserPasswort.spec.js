@@ -10,7 +10,7 @@ changePasswordProfileMock.mockReturnValue({ success: true })
 const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
 
-describe('UserCardFormUserPasswort', () => {
+describe('UserCard_FormUserPasswort', () => {
   let wrapper
 
   const mocks = {
