@@ -33,9 +33,9 @@
     "hours": "Hours",
     "minutes": "Minutes",
     "seconds": "Seconds",
-    "received":"received",
-    "sent":"sent",
-    "created":"reated",
+    "received":"Received",
+    "sent":"Sent",
+    "created":"Created",
     "fromCommunity":"From the community",
     "toCommunity":"To the community"
   },
@@ -176,6 +176,7 @@
     "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "calculation": "Calculation of Gradido Transform",
     "conversion": "Conversion",
-    "formula": "Calculation formula"
+    "formula": "Calculation formula",
+    "no-transactions":"You currently have no transactions"
  }
 }

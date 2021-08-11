@@ -10,7 +10,7 @@
           <div class="d-flex">
             <div style="width: 100%" class="text-center pb-3">
               <b-icon icon="droplet-half" height="12" class="mb-2" />
-              {{ $t('decay.calculation_decay') }}
+              <b>{{ $t('decay.calculation_decay') }}</b>
             </div>
           </div>
 
@@ -42,12 +42,12 @@
             <div style="width: 60%">
               <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
-                <b v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</b>
-                <b v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</b>
-                <b v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</b>
-                <b v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</b>
-                <b v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</b>
-                <b v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</b>
+                <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
+                <span v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</span>
+                <span v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</span>
+                <span v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</span>
+                <span v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</span>
+                <span v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</span>
               </span>
             </div>
           </div>

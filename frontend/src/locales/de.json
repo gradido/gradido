@@ -33,11 +33,11 @@
     "hours":"Stunden",
     "minutes":"Minuten",
     "seconds":"Sekunden",
-    "received":"empfangen",
-    "sent":"gesendet",
-    "created":"geschöpft",
-    "fromCommunity":"Aus der Community",
-    "toCommunity":"An die Community"
+    "received":"Empfangen",
+    "sent":"Gesendet",
+    "created":"Geschöpft",
+    "fromCommunity":"Aus der Gemeinschaft",
+    "toCommunity":"An die Gemeinschaft"
   }, 
   "form": {
     "cancel": "Abbrechen",
@@ -175,6 +175,7 @@
      "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
      "calculation":"Berechnung der Gradido Transform",
      "conversion":"Umrechnung",
-     "formula":"Berechungsformel"
+     "formula":"Berechungsformel",
+     "no-transactions":"Du hast zur Zeit keine Transaktionen"
   }
 }
