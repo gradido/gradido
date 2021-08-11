@@ -103,7 +103,6 @@ export default {
   data() {
     return {
       currentPage: 1,
-      startDecay: 0,
     }
   },
   props: {
