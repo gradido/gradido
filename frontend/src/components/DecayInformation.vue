@@ -43,11 +43,17 @@
               <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
-                <span v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</span>
+                <span v-if="duration.months > 0">
+                  {{ duration.months }} {{ $t('decay.months') }},
+                </span>
                 <span v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</span>
                 <span v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</span>
-                <span v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</span>
-                <span v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</span>
+                <span v-if="duration.minutes > 0">
+                  {{ duration.minutes }} {{ $t('decay.minutes') }},
+                </span>
+                <span v-if="duration.seconds > 0">
+                  {{ duration.seconds }} {{ $t('decay.seconds') }}
+                </span>
               </span>
             </div>
           </div>

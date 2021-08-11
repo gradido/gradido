@@ -177,6 +177,7 @@
     "calculation": "Calculation of Gradido Transform",
     "conversion": "Conversion",
     "formula": "Calculation formula",
-    "no-transactions":"You currently have no transactions"
+    "no-transactions":"You currently have no transactions",
+    "publisher":"Your recruited member has donated."
  }
 }

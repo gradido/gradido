@@ -24,8 +24,8 @@
                 {{ $t('form.memo') }}
               </small>
             </div>
-            <div  class="text-sm">
-           {{ $t('form.date') }}
+            <div class="text-sm">
+              {{ $t('form.date') }}
             </div>
             <div v-if="decay" class="text-sm pt-2">
               <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />

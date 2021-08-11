@@ -176,6 +176,7 @@
      "calculation":"Berechnung der Gradido Transform",
      "conversion":"Umrechnung",
      "formula":"Berechungsformel",
-     "no-transactions":"Du hast zur Zeit keine Transaktionen"
+     "no-transactions":"Du hast zur Zeit keine Transaktionen",
+     "publisher":"Dein geworbenes Mitglied hat gespendet."
   }
 }
