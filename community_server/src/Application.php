@@ -65,17 +65,56 @@ class Application extends BaseApplication
      */
     public function middleware($middlewareQueue)
     {
-        //$csrf = new CsrfProtectionMiddleware();
+        $csrf = new CsrfProtectionMiddleware();
 
         // Token check will be skipped when callback returns `true`.
-        /*$csrf->whitelistCallback(function ($request) {
+        $csrf->whitelistCallback(function ($request) {
             // Skip token check for API URLs.
-            //if ($request->getParam('prefix') === 'api') {
-            if($request->getAttribute('base') === 'TransactionJsonRequestHandler') {
+            $whitelist = ['JsonRequestHandler', 'ElopageWebhook', 'AppRequests'];
+            $ajaxWhitelist = ['TransactionSendCoins', 'TransactionCreations'];
+
+            $callerIp = $request->clientIp();
+
+            foreach($whitelist as $entry) {
+              if($request->getParam('controller') === $entry) {
+                if($entry == 'ElopageWebhook' || $entry == 'AppRequests') {
+                  return true;
+                }
+                $allowedIpLocalhost = ['127.0.0.1', 'localhost', '', '::1'];
+                if(in_array($callerIp, $allowedIpLocalhost)) {
+                    return true;
+                }
+                $allowedCaller = Configure::read('API.allowedCaller');
+                $ipPerHost = [];
+                if($allowedCaller && count($allowedCaller) > 0) {
+
+                    foreach($allowedCaller as $allowed) {
+                      $ip = gethostbyname($allowed);
+                      $ipPerHost[$allowed] = $ip;
+                      if($ip === $callerIp) return true;
+                    }
+                    //die("caller ip: $callerIp<br>");
+                }
+                            //var_dump(['caller_ip' => $callerIp, 'ips' => $ipPerHost]);
+                die(json_encode(['state' => 'error', 'details' => ['caller_ip' => $callerIp, 'ips' => $ipPerHost]]));
+              }
+            }
+            // disable csfr for all ajax requests in ajax whitelisted controller
+            foreach($ajaxWhitelist as $entry) {
+                if($request->getParam('controller') === $entry) {
+                    $action = $request->getParam('action');
+                    if(preg_match('/^ajax/', $action)) {
+                        return true;
+                    }
+                }
+            }
+        
+        /*    if($request->getAttribute('base') === 'TransactionJsonRequestHandler') {
                 return true;
             }
+         * */
         });
-*/
+//*/
         // Ensure routing middleware is added to the queue before CSRF protection middleware.
         //$middlewareQueue->;
         
