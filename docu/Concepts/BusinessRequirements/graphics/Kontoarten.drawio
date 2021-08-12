@@ -1,0 +1,34 @@
+<mxfile>
+    <diagram id="BGiljZVv0MSwwXBWfka-" name="Page-1">
+        <mxGraphModel dx="955" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;Community&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="400" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Mitglied" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="104" y="90" width="310" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Mitglied" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="110" width="310" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Mitglied&lt;br&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;ul&gt;&lt;li&gt;&lt;span style=&quot;text-align: left&quot;&gt;Name&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span&gt;Vorname&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span&gt;...&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="64" y="130" width="310" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="AGE-Konto" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="240" width="270" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="GDT-Konto" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="290" width="270" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="Allgemeinwohl-Konto" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="380" width="270" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="AUF-Konto" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="440" width="270" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
