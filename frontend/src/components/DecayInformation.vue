@@ -19,7 +19,7 @@
               <div v-if="!decay.decay_start_block">{{ $t('decay.last_transaction') }}</div>
             </div>
             <div style="width: 60%">
-              <div v-if="decay.decay_start_block > 0">
+              <div v-if="decay.decay_start_block">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
                   {{ $t('decay.decay_introduced') }} :
@@ -35,12 +35,12 @@
             </div>
           </div>
 
-          <div class="d-flex" v-if="!decay.decay_start_block">
+          <div class="d-flex">
             <div style="width: 40%" class="text-right pr-3 mr-2">
-              {{ $t('decay.past_time') }}
+              <div v-if="!decay.decay_start_block">{{ $t('decay.past_time') }}</div>
             </div>
             <div style="width: 60%">
-              <div>{{ $t('decay.since_introduction') }}</div>
+              <div v-if="decay.decay_start_block">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
                 <span v-if="duration.months > 0">

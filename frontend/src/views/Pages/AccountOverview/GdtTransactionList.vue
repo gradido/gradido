@@ -34,42 +34,40 @@
           <b-row v-if="gdt_entry_type_id === 7">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.gdt-receive') }}</div>
-              <div>{{ $n(gdt, 'decimal') }}</div>
+              <div>Gutschrift</div>
             </div>
             <div class="col-6">
-              <div>---</div>
-              <div>GDT</div>
+              <div>{{ comment }}</div>
+              <div>{{ $n(gdt, 'decimal') }} GDT</div>
             </div>
           </b-row>
           <!--4 publisher -->
           <b-row v-else-if="gdt_entry_type_id === 4">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.your-share') }}</div>
-              <div>{{ $n(amount, 'decimal') }}</div>
+              <div>Gutschrift</div>
             </div>
             <div class="col-6">
               <div>5%</div>
-              <div>GDT</div>
+              <div>{{ $n(amount, 'decimal') }} GDT</div>
             </div>
           </b-row>
           <!-- 1, 2, 3, 5, 6 spenden in euro -->
           <b-row v-else>
             <div class="col-6 text-right">
               <div>{{ $t('gdt.donation') }}</div>
-              <div>{{ $n(amount, 'decimal') }}</div>
-              <div>{{ $n(gdt, 'decimal') }}</div>
+              <div>Gutschrift</div>
             </div>
             <div class="col-6">
-              <div>---</div>
-              <div>EURO</div>
-              <div>GDT</div>
+              <div>{{ $n(amount, 'decimal') }} €</div>
+              <div>{{ $n(gdt, 'decimal') }} GDT</div>
             </div>
           </b-row>
 
           <!-- Betrag ENDE-->
 
           <!-- Nachricht-->
-          <b-row v-if="comment">
+          <b-row v-if="comment && gdt_entry_type_id !== 7">
             <div class="col-6 text-right">
               {{ $t('form.memo') }}
             </div>
