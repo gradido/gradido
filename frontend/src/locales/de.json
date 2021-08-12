@@ -177,9 +177,9 @@
      "conversion":"Umrechnung",
      "formula":"Berechungsformel",
      "no-transactions":"Du hast zur Zeit keine Transaktionen",
-     "publisher":"Dein geworbenes Mitglied hat gespendet.",
+     "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
      "gdt-receive":"Aktion",
      "your-share":"Geworbenes Mitglied",
-     "donation":"Spende"
+     "contribution":"Beitrag"
   }
 }

@@ -178,9 +178,9 @@
     "conversion": "Conversion",
     "formula": "Calculation formula",
     "no-transactions":"You currently have no transactions",
-    "publisher":"Your recruited member has donated.",
+    "publisher":"A member you referred has paid a contribution",
     "gdt-receive":"GDT receive",
     "your-share":"Your share",
-    "donation":"Donation"
+    "contribution":"Contribution"
  }
 }

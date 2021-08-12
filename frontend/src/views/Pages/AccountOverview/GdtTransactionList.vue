@@ -17,7 +17,7 @@
           /*amount2,*/
           /*factor2,*/
           gdt,
-        } in this.transactionsGdt"
+        } in transactionsGdt"
         :key="id"
       >
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
@@ -26,7 +26,7 @@
             <b-icon
               :icon="getIcon(gdt_entry_type_id).icon"
               :class="getIcon(gdt_entry_type_id).class"
-            />
+            ></b-icon>
           </div>
 
           <!-- Collaps Button  -->
@@ -63,7 +63,7 @@
           <!-- 1, 2, 3, 5, 6 spenden in euro -->
           <b-row v-else>
             <div class="col-6 text-right">
-              <div>{{ $t('gdt.donation') }}</div>
+              <div>{{ $t('gdt.contribution') }}</div>
               <div>Gutschrift</div>
             </div>
             <div class="col-6">
@@ -118,7 +118,9 @@
               </div>
               <div class="col-6 clooaps-col-right">
                 <div>{{ factor }}</div>
-                <div>{{ amount }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT</div>
+                <div>
+                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                </div>
               </div>
             </b-row>
             <!-- 4 publisher -->
@@ -131,7 +133,7 @@
             <b-row class="gdt-list-clooaps-box--all" v-else>
               <div class="col-6 text-right clooaps-col-left">{{ $t('gdt.formula') }}:</div>
               <div class="col-6 clooaps-col-right">
-                {{ amount }} GDT * {{ factor }} = {{ $n(gdt, 'decimal') }}
+                {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
               </div>
             </b-row>
           </div>
@@ -156,9 +158,9 @@ import communityAPI from '../../../apis/communityAPI'
 import PaginationButtons from '../../../components/PaginationButtons'
 
 const iconsByType = {
-  7: { icon: 'gift', classes: 'gradido-global-color-accent' },
-  4: { icon: 'person-check', classes: 'gradido-global-color-accent' },
   1: { icon: 'heart', classes: 'gradido-global-color-accent' },
+  4: { icon: 'person-check', classes: 'gradido-global-color-accent' },
+  7: { icon: 'gift', classes: 'gradido-global-color-accent' },
 }
 
 export default {
@@ -201,6 +203,7 @@ export default {
     },
     getIcon(givenType) {
       const type = iconsByType[givenType]
+
       if (type)
         return {
           icon: type.icon,
