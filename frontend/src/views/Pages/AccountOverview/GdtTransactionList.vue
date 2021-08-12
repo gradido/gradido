@@ -5,25 +5,15 @@
         {{ $t('gdt.no-transactions') }}
       </div>
       <div
-        v-for="{
-          id,
-          amount,
-          date,
-          /*email,*/
-          comment,
-          /*coupon_code,*/
-          gdt_entry_type_id,
-          factor,
-          /*amount2,*/
-          /*factor2,*/
-          gdt,
-        } in transactionsGdt"
+        v-else
+        v-for="{ id, amount, date, comment, gdt_entry_type_id, factor, gdt } in transactionsGdt"
         :key="id"
       >
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- Icon  -->
           <div class="text-right" style="position: absolute">
             <b-icon
+              v-if="gdt_entry_type_id"
               :icon="getIcon(gdt_entry_type_id).icon"
               :class="getIcon(gdt_entry_type_id).class"
             ></b-icon>
@@ -131,9 +121,15 @@
 
             <!-- 1, 2, 3, 5, 6 spenden in euro -->
             <b-row class="gdt-list-clooaps-box--all" v-else>
-              <div class="col-6 text-right clooaps-col-left">{{ $t('gdt.formula') }}:</div>
+              <div class="col-6 text-right clooaps-col-left">
+                <div>{{ $t('gdt.factor') }}</div>
+                <div>{{ $t('gdt.formula') }}:</div>
+              </div>
               <div class="col-6 clooaps-col-right">
-                {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                <div>{{ factor }}</div>
+                <div>
+                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                </div>
               </div>
             </b-row>
           </div>
@@ -203,13 +199,12 @@ export default {
     },
     getIcon(givenType) {
       const type = iconsByType[givenType]
-
       if (type)
         return {
           icon: type.icon,
           class: type.classes + ' m-mb-1 font2em',
         }
-      this.throwError('no icon to given type')
+      this.throwError('no icon to given type: ' + givenType)
     },
     throwError(msg) {
       throw new Error(msg)
