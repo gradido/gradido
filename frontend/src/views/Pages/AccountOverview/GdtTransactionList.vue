@@ -197,18 +197,13 @@ export default {
           },
         })
         .then((result) => {
-          // eslint-disable-next-line no-console
-          console.log('Result: ', result)
           const {
             data: { listGDTEntries },
           } = result
-          // eslint-disable-next-line no-console
           this.transactionsGdt = listGDTEntries.gdtEntries
           this.transactionGdtCount = listGDTEntries.count
         })
         .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log('error: ', error)
           this.$toasted.error(error.message)
         })
     },
