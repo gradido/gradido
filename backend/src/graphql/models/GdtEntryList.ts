@@ -33,8 +33,8 @@ export class GdtEntryList {
   @Field(() => Number)
   count: number
 
-  @Field(() => [GdtEntry])
-  gdtEntries: GdtEntry[]
+  @Field(() => [GdtEntry], { nullable: true })
+  gdtEntries?: GdtEntry[]
 
   @Field(() => Number)
   gdtSum: number

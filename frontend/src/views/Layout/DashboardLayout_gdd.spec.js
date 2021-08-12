@@ -14,6 +14,7 @@ const apolloMock = jest.fn().mockResolvedValue({
     logout: 'success',
   },
 })
+const toasterMock = jest.fn()
 
 describe('DashboardLayoutGdd', () => {
   let wrapper
@@ -31,6 +32,9 @@ describe('DashboardLayoutGdd', () => {
     },
     $router: {
       push: routerPushMock,
+    },
+    $toasted: {
+      error: toasterMock,
     },
     $apollo: {
       query: apolloMock,
@@ -225,7 +229,7 @@ describe('DashboardLayoutGdd', () => {
       describe('update transactions returns error', () => {
         beforeEach(async () => {
           apolloMock.mockRejectedValue({
-            message: 'error',
+            message: 'Ouch!',
           })
           await wrapper
             .findComponent({ ref: 'router-view' })
@@ -235,6 +239,10 @@ describe('DashboardLayoutGdd', () => {
 
         it('sets pending to true', () => {
           expect(wrapper.vm.pending).toBeTruthy()
+        })
+
+        it('calls $toasted.error method', () => {
+          expect(toasterMock).toBeCalledWith('Ouch!')
         })
       })
     })

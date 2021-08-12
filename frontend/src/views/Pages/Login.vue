@@ -93,6 +93,7 @@ export default {
           const {
             data: { login },
           } = result
+          console.log('login:', login)
           this.$store.dispatch('login', login)
           this.$router.push('/overview')
           loader.hide()

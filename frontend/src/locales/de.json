@@ -23,7 +23,8 @@
     "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",
     "calculation_decay":"Berechnung der Vergänglichkeit",
     "Starting_block_decay":"Startblock Vergänglichkeit",
-    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am",
+    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am ",
+    "decayStart": " - Startblock für Vergänglichkeit am: ",
     "last_transaction":"Letzte Transaktion",
     "past_time":"Vergangene Zeit",
     "since_introduction":"seit Einführung der Vergänglichkeit",
@@ -33,10 +34,11 @@
     "hours":"Stunden",
     "minutes":"Minuten",
     "seconds":"Sekunden",
-    "received":"empfangen",
-    "sent":"gesendet",
-    "created":"geschöpft",
-    "fromCommunity":"Aus der Community"
+    "received":"Empfangen",
+    "sent":"Gesendet",
+    "created":"Geschöpft",
+    "fromCommunity":"Aus der Gemeinschaft",
+    "toCommunity":"An die Gemeinschaft"
   }, 
   "form": {
     "cancel": "Abbrechen",
@@ -94,7 +96,9 @@
     "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
     "nullTransactions":"Du hast noch keine Transaktionen auf deinem Konto.",
     "more": "mehr",
-    "receiverNotFound":"Empfänger nicht gefunden"
+    "receiverNotFound":"Empfänger nicht gefunden",
+    "gdd-text":"Gradido Transaktionen",
+    "gdt-text":"Gradido Transform Transaktionen"
   },
   "site": {
     "login": {
@@ -165,5 +169,20 @@
     "title": "Passwort zurücksetzen",
     "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst.",
     "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support."
+  },
+  "gdt": {
+    "gdt-received":"Gradido Transform (GDT) erhalten",
+    "factor":"Faktor",
+    "raise": "Erhöhung",
+    "credit": "Gutschrift",
+    "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
+    "calculation":"Berechnung der Gradido Transform",
+    "conversion":"Umrechnung",
+    "formula":"Berechungsformel",
+    "no-transactions":"Du hast zur Zeit keine Transaktionen",
+    "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
+    "gdt-receive":"Aktion",
+    "your-share":"Geworbenes Mitglied",
+    "contribution":"Beitrag"
   }
 }

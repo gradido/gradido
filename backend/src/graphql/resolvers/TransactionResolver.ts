@@ -3,6 +3,8 @@ import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
 import { apiGet, apiPost } from '../../apis/loginAPI'
+import { GdtEntryList } from '../models/GdtEntryList'
+import { GdtTransactionSessionIdInput } from '../inputs/GdtInputs'
 
 @Resolver()
 export class TransactionResolver {
@@ -17,18 +19,38 @@ export class TransactionResolver {
     return new TransactionList(result.data)
   }
 
+  @Query(() => GdtEntryList)
+  async gdtTransactionList(
+    @Args()
+    { sessionId, currentPage = 1, pageSize = 25, order = 'DESC' }: GdtTransactionSessionIdInput,
+  ): Promise<GdtEntryList> {
+    console.log(
+      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
+    )
+    const result = await apiGet(
+      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
+    )
+    if (!result.success) {
+      console.log('? ', result)
+      throw new Error(result.data)
+    }
+    return new GdtEntryList(result.data)
+  }
+
   @Query(() => String)
   async sendCoins(
     @Args() { sessionId, email, amount, memo }: TransactionSendArgs,
   ): Promise<string> {
     const payload = {
       session_id: sessionId,
-      email,
-      amount,
+      target_email: email,
+      amount: amount * 10000,
       memo,
       auto_sign: true,
+      transaction_type: 'transfer',
+      blockchain_type: 'mysql',
     }
-    const result = await apiPost(CONFIG.COMMUNITY_API_URL + 'sendCoins', payload)
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
     if (!result.success) {
       throw new Error(result.data)
     }

@@ -24,6 +24,7 @@
     "calculation_decay": "Calculation of Decay",
     "Starting_block_decay": "Starting Block Decay",
     "decay_introduced": "Decay was Introduced on",
+    "decayStart": " - Starting block for decay at: ",
     "last_transaction": "Last transaction:",
     "past_time": "Past time",
     "since_introduction": "Since the introduction of Decay",
@@ -33,10 +34,11 @@
     "hours": "Hours",
     "minutes": "Minutes",
     "seconds": "Seconds",
-    "received":"received",
-    "sent":"sent",
-    "created":"reated",
-    "fromCommunity":"From the community"
+    "received":"Received",
+    "sent":"Sent",
+    "created":"Created",
+    "fromCommunity":"From the community",
+    "toCommunity":"To the community"
   },
   "form": {
     "cancel":"Cancel",
@@ -94,7 +96,9 @@
     "show_all":"View all <strong>{count}</strong> transactions.",
     "nullTransactions":"You don't have any transactions on your account yet.",
     "more": "more",
-    "receiverNotFound":"Recipient not found"
+    "receiverNotFound":"Recipient not found",
+    "gdd-text":"Gradido Transactions",
+    "gdt-text":"Gradido Transform Transactions"
   },
   "site": {
     "login": {
@@ -166,5 +170,20 @@
     "title": "Reset Password",
     "text": "Now you can save a new password to login to the Gradido-App in the future.",
     "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support."
-  }
+  },
+  "gdt": {
+    "gdt-received": "Gradido Transform (GDT) received",
+    "factor": "Factor",
+    "raise": "Increase",
+    "credit": "Credit",
+    "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
+    "calculation": "Calculation of Gradido Transform",
+    "conversion": "Conversion",
+    "formula": "Calculation formula",
+    "no-transactions":"You currently have no transactions",
+    "publisher":"A member you referred has paid a contribution",
+    "gdt-receive":"GDT receive",
+    "your-share":"Your share",
+    "contribution":"Contribution"
+ }
 }

@@ -123,3 +123,47 @@ export const checkUsername = gql`
     }
   }
 `
+
+export const gdtTransactionListQuery = gql`
+  query($sessionId: Float!, $currentPage: Float!, $pageSize: Float!) {
+    gdtTransactionList(sessionId: $sessionId, currentPage: $currentPage, pageSize: $pageSize) {
+      state
+      count
+      gdtEntries {
+        amount
+        date
+        email
+        comment
+        couponCode
+        gdtEntryType
+        factor
+        amount2
+        factor2
+        gdt
+      }
+      gdtSum
+    }
+  }
+`
+
+export const listGDTEntriesQuery = gql`
+  query($email: String!, $currentPage: Float!, $pageSize: Float!) {
+    listGDTEntries(email: $email, currentPage: $currentPage, pageSize: $pageSize) {
+      state
+      count
+      gdtEntries {
+        amount
+        date
+        email
+        comment
+        couponCode
+        gdtEntryType
+        factor
+        amount2
+        factor2
+        gdt
+      }
+      gdtSum
+    }
+  }
+`

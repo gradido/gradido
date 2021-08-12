@@ -49,7 +49,6 @@
 
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
-          <!-- your content here -->
           <router-view
             ref="router-view"
             :balance="balance"
@@ -129,8 +128,9 @@ export default {
           this.transactionCount = transactionList.count
           this.pending = false
         })
-        .catch(() => {
+        .catch((error) => {
           this.pending = true
+          this.$toasted.error(error.message)
           // what to do when loading balance fails?
         })
     },

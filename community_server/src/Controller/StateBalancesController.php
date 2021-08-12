@@ -65,36 +65,14 @@ class StateBalancesController extends AppController
         if($update_balance_result['success'] !== true) {
             $this->addAdminError('StateBalances', 'overview', $update_balance_result, $user['id']);
         }
-        
-        // sendRequestGDT
-        // listPerEmailApi
-
-        $gdtSum = 0;
-        //if('admin' === $user['role']) {
-          $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-          //var_dump($gdtEntries);
-          if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
-            $gdtSum = intval($gdtEntries['data']['sum']);
-          } else {
-            if($user) {
-              $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, $user['id']);
-            } else {
-              $this->addAdminError('StateBalancesController', 'overview', $gdtEntries, 0);
-            }
-          }
-        //}
-        //
-        //
+          
         $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
         $stateUserTransactionsTable = TableRegistry::getTableLocator()->get('StateUserTransactions');
-        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');
-        
+        $transactionsTable  = TableRegistry::getTableLocator()->get('Transactions');        
         
         $stateBalancesTable->updateBalances($user['id']);
-
         $gdtSum = 0;        
         $gdtEntries = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'sumPerEmailApi');
-
         if('success' == $gdtEntries['state'] && 'success' == $gdtEntries['data']['state']) {
           $gdtSum = intval($gdtEntries['data']['sum']);
         } else {
@@ -210,13 +188,30 @@ class StateBalancesController extends AppController
             return $result;
         }
         $user = $session->read('StateUser');
-        $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
+        $requestResult = $this->JsonRequestClient->sendRequestGDT([
+            'email' => $user['email'],
+            'page' => 1,
+            'count' => 100,
+            'orderDirection' => 'DESC'
+        ], 'GdtEntries' . DS . 'listPerEmailApi');
 
         //var_dump($requestResult);
-        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
-
+        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) 
+        {
+            $moreEntrysAsShown = false;
+            if(isset($requestResult['data']['count'])) {
+                if($requestResult['data']['count'] > 100) {
+                    $moreEntrysAsShown = true;
+                }
+            } else {
+                $moreEntrysAsShown = $requestResult['data']['moreEntrysAsShown'];
+            }
           //var_dump(array_keys($requestResult['data']));
-            $ownEntries = $requestResult['data']['ownEntries'];
+            if(isset($requestResult['data']['gdtEntries'])) {
+                $ownEntries = $requestResult['data']['gdtEntries'];
+            } else {
+                $ownEntries = $requestResult['data']['ownEntries'];
+            }
           //$gdtEntries = $requestResult['data']['entries'];
 
             $gdtSum = 0;
@@ -239,8 +234,7 @@ class StateBalancesController extends AppController
           //echo "gdtSum: $gdtSum<br>";
             $this->set('gdtSum', $gdtSum);
             $this->set('ownEntries', $ownEntries);
-            $this->set('gdtSumPerEmail', $requestResult['data']['gdtSumPerEmail']);
-            $this->set('moreEntrysAsShown', $requestResult['data']['moreEntrysAsShown']);
+            $this->set('moreEntrysAsShown', $moreEntrysAsShown);
             $this->set('user', $user);
 
             if (isset($requestResult['data']['publishers'])) {

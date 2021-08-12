@@ -63,7 +63,7 @@ export default {
             email: this.form.email,
           },
         })
-        .then((result) => {
+        .then(() => {
           this.$router.push('/thx/password')
         })
         .catch(() => {

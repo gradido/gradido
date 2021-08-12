@@ -10,11 +10,11 @@ export class GdtResolver {
   @Query(() => GdtEntryList)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listGDTEntries(
-    @Args() { email, firstPage = 1, items = 5, order = 'DESC' }: GdtTransactionInput,
+    @Args() { email, currentPage = 1, pageSize = 5, order = 'DESC' }: GdtTransactionInput,
   ): Promise<GdtEntryList> {
     email = email.trim().toLowerCase()
     const result = await apiGet(
-      `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${email}/${firstPage}/${items}/${order}`,
+      `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${email}/${currentPage}/${pageSize}/${order}`,
     )
 
     if (!result.success) {

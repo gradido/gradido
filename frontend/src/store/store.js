@@ -29,6 +29,8 @@ export const mutations = {
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
+    // eslint-disable-next-line no-console
+    console.log('Login Data:', data)
     commit('sessionId', data.sessionId)
     commit('email', data.user.email)
     commit('language', data.user.language)
@@ -38,6 +40,8 @@ export const actions = {
     commit('description', data.user.description)
   },
   logout: ({ commit, state }) => {
+    // eslint-disable-next-line no-console
+    console.log('Logout Data:', state)
     commit('sessionId', null)
     commit('email', null)
     commit('username', '')

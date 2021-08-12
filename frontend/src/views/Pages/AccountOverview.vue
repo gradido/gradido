@@ -133,9 +133,3 @@ export default {
   },
 }
 </script>
-
-<style>
-.active {
-  background-color: rgba(192, 192, 192, 0.568);
-}
-</style>
