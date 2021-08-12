@@ -51,4 +51,15 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+.nav-tabs > li > a {
+  /* adjust padding for height*/
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.nav-tabs > li.active {
+  background-color: aquamarine;
+  font-size: larger;
+}
+</style>
