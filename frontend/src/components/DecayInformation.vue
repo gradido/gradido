@@ -78,7 +78,7 @@ export default {
   computed: {
     decayStartBlockTextShort() {
       return this.decay.decay_start_block
-        ? ' - Startblock Decay am: ' + this.$d(this.$moment.unix(this.decay.decay_start_block))
+        ? this.$t('decay.decayStart') + this.$d(this.$moment.unix(this.decay.decay_start_block))
         : ''
     },
     duration() {
