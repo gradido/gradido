@@ -23,7 +23,7 @@
     "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",
     "calculation_decay":"Berechnung der Vergänglichkeit",
     "Starting_block_decay":"Startblock Vergänglichkeit",
-    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am",
+    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am ",
     "last_transaction":"Letzte Transaktion",
     "past_time":"Vergangene Zeit",
     "since_introduction":"seit Einführung der Vergänglichkeit",
@@ -33,11 +33,11 @@
     "hours":"Stunden",
     "minutes":"Minuten",
     "seconds":"Sekunden",
-    "received":"empfangen",
-    "sent":"gesendet",
-    "created":"geschöpft",
-    "fromCommunity":"Aus der Community",
-    "toCommunity":"An die Community"
+    "received":"Empfangen",
+    "sent":"Gesendet",
+    "created":"Geschöpft",
+    "fromCommunity":"Aus der Gemeinschaft",
+    "toCommunity":"An die Gemeinschaft"
   }, 
   "form": {
     "cancel": "Abbrechen",
@@ -175,6 +175,11 @@
      "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
      "calculation":"Berechnung der Gradido Transform",
      "conversion":"Umrechnung",
-     "formula":"Berechungsformel"
+     "formula":"Berechungsformel",
+     "no-transactions":"Du hast zur Zeit keine Transaktionen",
+     "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
+     "gdt-receive":"Aktion",
+     "your-share":"Geworbenes Mitglied",
+     "contribution":"Beitrag"
   }
 }

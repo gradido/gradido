@@ -1,116 +1,142 @@
 <template>
   <div class="gdt-transaction-list">
-    <b-list-group>
-      <b-list-group-item
-        v-for="{
-          id,
-          amount,
-          date,
-          /*email,*/
-          comment,
-          /*coupon_code,*/
-          gdt_entry_type_id,
-          factor,
-          /*amount2,*/
-          /*factor2,*/
-          gdt,
-        } in this.transactionsGdt"
+    <div class="list-group">
+      <div v-if="transactionGdtCount === 0">
+        {{ $t('gdt.no-transactions') }}
+      </div>
+      <div
+        v-else
+        v-for="{ id, amount, date, comment, gdt_entry_type_id, factor, gdt } in transactionsGdt"
         :key="id"
       >
-        <!-- ROW Start -->
-        <div class="d-flex gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
-          <!-- ICON -->
-          <div style="width: 8%"></div>
-          <!-- Text Links -->
-          <div class="font1_2em pr-2 text-right" style="width: 36%">
-            <div>
-              <div>
-                <span v-if="gdt_entry_type_id != 7">-</span>
-                {{ $n(amount, 'decimal') }}
-              </div>
-              <div v-if="gdt_entry_type_id != 7">+{{ $n(gdt, 'decimal') }}</div>
-            </div>
-
-            <div v-if="comment">
-              <small>
-                {{ $t('form.memo') }}
-              </small>
-            </div>
-            <div v-if="date" class="text-sm">
-              {{ $t('form.date') }}
-            </div>
-            <div v-if="gdt_entry_type_id != 7">
-              <small>{{ $t('gdt.factor') }}</small>
-            </div>
+        <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
+          <!-- Icon  -->
+          <div class="text-right" style="position: absolute">
+            <b-icon
+              v-if="gdt_entry_type_id"
+              :icon="getIcon(gdt_entry_type_id).icon"
+              :class="getIcon(gdt_entry_type_id).class"
+            ></b-icon>
           </div>
-          <!-- Text Rechts -->
-          <div class="font1_2em text-left pl-2" style="width: 55%">
-            <div>
-              <div v-if="gdt_entry_type_id != 7">EURO</div>
-              <div>GDT</div>
-            </div>
 
-            <div v-if="comment">
-              <small>
-                {{ comment }}
-              </small>
-            </div>
-
-            <div v-if="date" class="text-sm">
-              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-            </div>
-
-            <div v-if="gdt_entry_type_id != 7">
-              <small>{{ factor }}</small>
-            </div>
-          </div>
-          <!-- Collaps Toggle Button -->
-          <div v-if="gdt_entry_type_id" class="text-right" style="width: 5%">
+          <!-- Collaps Button  -->
+          <div class="text-right" style="width: 96%; position: absolute">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
+
+          <!-- Betrag -->
+
+          <!-- 7 nur GDT erhalten -->
+          <b-row v-if="gdt_entry_type_id === 7">
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.gdt-receive') }}</div>
+              <div>Gutschrift</div>
+            </div>
+            <div class="col-6">
+              <div>{{ comment }}</div>
+              <div>{{ $n(gdt, 'decimal') }} GDT</div>
+            </div>
+          </b-row>
+          <!--4 publisher -->
+          <b-row v-else-if="gdt_entry_type_id === 4">
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.your-share') }}</div>
+              <div>Gutschrift</div>
+            </div>
+            <div class="col-6">
+              <div>5%</div>
+              <div>{{ $n(amount, 'decimal') }} GDT</div>
+            </div>
+          </b-row>
+          <!-- 1, 2, 3, 5, 6 spenden in euro -->
+          <b-row v-else>
+            <div class="col-6 text-right">
+              <div>{{ $t('gdt.contribution') }}</div>
+              <div>Gutschrift</div>
+            </div>
+            <div class="col-6">
+              <div>{{ $n(amount, 'decimal') }} €</div>
+              <div>{{ $n(gdt, 'decimal') }} GDT</div>
+            </div>
+          </b-row>
+
+          <!-- Betrag ENDE-->
+
+          <!-- Nachricht-->
+          <b-row v-if="comment && gdt_entry_type_id !== 7">
+            <div class="col-6 text-right">
+              {{ $t('form.memo') }}
+            </div>
+            <div class="col-6">
+              {{ comment }}
+            </div>
+          </b-row>
+
+          <!-- Datum-->
+          <b-row v-if="date" class="gdt-list-row text-header">
+            <div class="col-6 text-right">
+              {{ $t('form.date') }}
+            </div>
+            <div class="col-6">
+              {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            </div>
+          </b-row>
         </div>
-        <!-- ROW End -->
-        <!-- Collaps Start -->
+
+        <!--     Collaps START    -->
+
         <b-collapse v-if="gdt_entry_type_id" :id="'a' + date + ''" class="pb-4">
-          <b-list-group style="border: 0px; background-color: #f1f1f1">
-            <div v-if="gdt_entry_type_id != '7'" class="text-center pt-3">
-              {{ $t('gdt.conversion-gdt-euro') }}
-            </div>
-            <div v-else class="text-center pt-3">
-              {{ $t('gdt.calculation') }}
-            </div>
+          <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
+            <!-- Überschrift -->
+            <b-row class="gdt-list-clooaps-header-text text-center pb-3">
+              <div class="col h4" v-if="gdt_entry_type_id === 7">
+                {{ $t('gdt.conversion-gdt-euro') }}
+              </div>
+              <div class="col h4" v-else-if="gdt_entry_type_id === 4">
+                {{ $t('gdt.publisher') }}
+              </div>
+              <div class="col h4" v-else>{{ $t('gdt.calculation') }}</div>
+            </b-row>
 
-            <!--EURO / GDT -->
-            <b-list-group-item
-              v-if="gdt_entry_type_id != '7'"
-              style="border: 0px; background-color: #f1f1f1"
-            >
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">
-                  <div>{{ $t('gdt.factor') }}</div>
-                  <div>{{ $t('gdt.conversion') }}</div>
-                </div>
-                <div style="width: 60%">
-                  <div>{{ factor }}</div>
-                  <div>{{ amount }} € ⊢ {{ gdt }} GDT</div>
+            <!-- 7 nur GDT erhalten -->
+            <b-row class="gdt-list-clooaps-box-7" v-if="gdt_entry_type_id == 7">
+              <div class="col-6 text-right clooaps-col-left">
+                <div>{{ $t('gdt.factor') }}</div>
+                <div>{{ $t('gdt.conversion') }}</div>
+              </div>
+              <div class="col-6 clooaps-col-right">
+                <div>{{ factor }}</div>
+                <div>
+                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
                 </div>
               </div>
-            </b-list-group-item>
+            </b-row>
+            <!-- 4 publisher -->
+            <b-row class="gdt-list-clooaps-box-4" v-else-if="gdt_entry_type_id === 4">
+              <div class="col-6 text-right clooaps-col-left"></div>
+              <div class="col-6 clooaps-col-right"></div>
+            </b-row>
 
-            <!-- Only GDT -->
-            <b-list-group-item v-else style="border: 0px; background-color: #f1f1f1">
-              <div class="d-flex">
-                <div style="width: 40%" class="text-right pr-3 mr-2">{{ $t('gdt.formula') }}:</div>
-                <div style="width: 60%">{{ amount }} GDT * {{ factor }} = {{ gdt }}</div>
+            <!-- 1, 2, 3, 5, 6 spenden in euro -->
+            <b-row class="gdt-list-clooaps-box--all" v-else>
+              <div class="col-6 text-right clooaps-col-left">
+                <div>{{ $t('gdt.factor') }}</div>
+                <div>{{ $t('gdt.formula') }}:</div>
               </div>
-            </b-list-group-item>
-          </b-list-group>
+              <div class="col-6 clooaps-col-right">
+                <div>{{ factor }}</div>
+                <div>
+                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                </div>
+              </div>
+            </b-row>
+          </div>
         </b-collapse>
-        <!-- Collaps End -->
-      </b-list-group-item>
-    </b-list-group>
+        <!--     Collaps ENDE    -->
+      </div>
+    </div>
     <pagination-buttons
       v-if="transactionGdtCount > pageSize"
       :has-next="hasNext"
@@ -126,6 +152,12 @@
 <script>
 import communityAPI from '../../../apis/communityAPI'
 import PaginationButtons from '../../../components/PaginationButtons'
+
+const iconsByType = {
+  1: { icon: 'heart', classes: 'gradido-global-color-accent' },
+  4: { icon: 'person-check', classes: 'gradido-global-color-accent' },
+  7: { icon: 'gift', classes: 'gradido-global-color-accent' },
+}
 
 export default {
   name: 'gdt-transaction-list',
@@ -165,6 +197,18 @@ export default {
         this.$toasted.error(result.result.message)
       }
     },
+    getIcon(givenType) {
+      const type = iconsByType[givenType]
+      if (type)
+        return {
+          icon: type.icon,
+          class: type.classes + ' m-mb-1 font2em',
+        }
+      this.throwError('no icon to given type: ' + givenType)
+    },
+    throwError(msg) {
+      throw new Error(msg)
+    },
     showNext() {
       this.currentPage++
       this.updateGdt()
@@ -185,5 +229,10 @@ export default {
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  background-color: #f8f9fe38;
 }
 </style>
