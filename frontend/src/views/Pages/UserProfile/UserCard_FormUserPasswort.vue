@@ -84,7 +84,7 @@ export default {
             sessionId: this.$store.state.sessionId,
             email: this.$store.state.email,
             password: this.form.password,
-            newPassword: this.form.newPassword.password,
+            passwordNew: this.form.newPassword.password,
           },
         })
         .then(() => {
