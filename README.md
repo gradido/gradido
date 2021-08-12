@@ -2,7 +2,7 @@
 
 Healthy money for a healthy world
 
-![logo](https://gradido.net/wp-content/uploads/2020/07/gradido_logo_web.png)
+![logo](https://gradido.net/wp-content/uploads/2021/06/gradido_logo%E2%97%8Fpreview.png)
 
 The Gradido model can create global prosperity and peace
 The Corona crisis has fundamentally changed our world within a very short time.
