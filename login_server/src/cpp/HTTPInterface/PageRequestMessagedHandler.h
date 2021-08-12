@@ -29,6 +29,7 @@ protected:
 
 	unsigned long long getLastGetAsU64(const std::string& uri);
 	std::string getBaseUrl();
+	std::string getHost();
 
 	Profiler mTimeProfiler;
 	std::string mHost;
