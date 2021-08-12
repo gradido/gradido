@@ -19,13 +19,9 @@ function publisherLink($publisher, $the) {
 
 $this->assign('title', __('GDT Kontoübersicht'));
 $header = '<h3>' . __('Zur Verfügung: ') . '</h3>';
-$gdtSumFromEmails = 0;
-foreach($gdtSumPerEmail as $email => $gdt) {
-  $gdtSumFromEmails += $gdt;
-}
 
 if($gdtSum > 0){
-  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSumFromEmails]).'</h2>';
+  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSum]).'</h2>';
 }
 if($moreEntrysAsShown) {
   $header .= '<span>'. __('Nur die letzten 100 Einträge werden angezeigt!') . '</span>';
