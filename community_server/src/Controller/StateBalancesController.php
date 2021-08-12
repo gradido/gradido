@@ -188,13 +188,28 @@ class StateBalancesController extends AppController
             return $result;
         }
         $user = $session->read('StateUser');
-        $requestResult = $this->JsonRequestClient->sendRequestGDT(['email' => $user['email']], 'GdtEntries' . DS . 'listPerEmailApi');
+        $requestResult = $this->JsonRequestClient->sendRequestGDT([
+            'email' => $user['email'],
+            'page' => 1,
+            'count' => 100,
+            'orderDirection' => 'DESC'
+        ], 'GdtEntries' . DS . 'listPerEmailApi');
 
         //var_dump($requestResult);
-        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) {
-
+        if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) 
+        {
+            $moreEntrysAsShown = false;
+            if(isset($requestResult['data']['count']) && $requestResult['data']['count'] > 100) {
+                $moreEntrysAsShown = true;
+            } else {
+                $moreEntrysAsShown = $requestResult['data']['moreEntrysAsShown'];
+            }
           //var_dump(array_keys($requestResult['data']));
-            $ownEntries = $requestResult['data']['ownEntries'];
+            if(isset($requestResult['data']['gdtEntries'])) {
+                $ownEntries = $requestResult['data']['gdtEntries'];
+            } else {
+                $ownEntries = $requestResult['data']['ownEntries'];
+            }
           //$gdtEntries = $requestResult['data']['entries'];
 
             $gdtSum = 0;
@@ -217,8 +232,7 @@ class StateBalancesController extends AppController
           //echo "gdtSum: $gdtSum<br>";
             $this->set('gdtSum', $gdtSum);
             $this->set('ownEntries', $ownEntries);
-            $this->set('gdtSumPerEmail', $requestResult['data']['gdtSumPerEmail']);
-            $this->set('moreEntrysAsShown', $requestResult['data']['moreEntrysAsShown']);
+            $this->set('moreEntrysAsShown', $moreEntrysAsShown);
             $this->set('user', $user);
 
             if (isset($requestResult['data']['publishers'])) {
