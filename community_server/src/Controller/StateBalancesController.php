@@ -199,8 +199,10 @@ class StateBalancesController extends AppController
         if('success' === $requestResult['state'] && 'success' === $requestResult['data']['state']) 
         {
             $moreEntrysAsShown = false;
-            if(isset($requestResult['data']['count']) && $requestResult['data']['count'] > 100) {
-                $moreEntrysAsShown = true;
+            if(isset($requestResult['data']['count'])) {
+                if($requestResult['data']['count'] > 100) {
+                    $moreEntrysAsShown = true;
+                }
             } else {
                 $moreEntrysAsShown = $requestResult['data']['moreEntrysAsShown'];
             }
