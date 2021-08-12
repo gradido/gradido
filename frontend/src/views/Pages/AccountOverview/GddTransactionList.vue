@@ -51,7 +51,7 @@
               <!-- Decay -->
               <b-row v-if="decay">
                 <div class="col-5 text-right">
-                  <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-3" />
+                  <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
                 </div>
                 <div class="col-7 gdd-transaction-list-item-decay">
                   <decay-information v-if="decay" decaytyp="short" :decay="decay" />
