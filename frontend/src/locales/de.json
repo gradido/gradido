@@ -24,6 +24,7 @@
     "calculation_decay":"Berechnung der Vergänglichkeit",
     "Starting_block_decay":"Startblock Vergänglichkeit",
     "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am ",
+    "decayStart": " - Startblock für Vergänglichkeit am: ",
     "last_transaction":"Letzte Transaktion",
     "past_time":"Vergangene Zeit",
     "since_introduction":"seit Einführung der Vergänglichkeit",
@@ -170,16 +171,18 @@
     "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support."
   },
   "gdt": {
-     "gdt-received":"Gradido Transform (GDT) erhalten",
-     "factor":"Faktor",
-     "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
-     "calculation":"Berechnung der Gradido Transform",
-     "conversion":"Umrechnung",
-     "formula":"Berechungsformel",
-     "no-transactions":"Du hast zur Zeit keine Transaktionen",
-     "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
-     "gdt-receive":"Aktion",
-     "your-share":"Geworbenes Mitglied",
-     "contribution":"Beitrag"
+    "gdt-received":"Gradido Transform (GDT) erhalten",
+    "factor":"Faktor",
+    "raise": "Erhöhung",
+    "credit": "Gutschrift",
+    "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
+    "calculation":"Berechnung der Gradido Transform",
+    "conversion":"Umrechnung",
+    "formula":"Berechungsformel",
+    "no-transactions":"Du hast zur Zeit keine Transaktionen",
+    "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
+    "gdt-receive":"Aktion",
+    "your-share":"Geworbenes Mitglied",
+    "contribution":"Beitrag"
   }
 }

@@ -24,6 +24,7 @@
     "calculation_decay": "Calculation of Decay",
     "Starting_block_decay": "Starting Block Decay",
     "decay_introduced": "Decay was Introduced on",
+    "decayStart": " - Starting block for decay at: ",
     "last_transaction": "Last transaction:",
     "past_time": "Past time",
     "since_introduction": "Since the introduction of Decay",
@@ -173,6 +174,8 @@
   "gdt": {
     "gdt-received": "Gradido Transform (GDT) received",
     "factor": "Factor",
+    "raise": "Increase",
+    "credit": "Credit",
     "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "calculation": "Calculation of Gradido Transform",
     "conversion": "Conversion",

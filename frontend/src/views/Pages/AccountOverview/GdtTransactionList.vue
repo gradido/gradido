@@ -32,7 +32,7 @@
           <b-row v-if="gdt_entry_type_id === 7">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.gdt-receive') }}</div>
-              <div>Gutschrift</div>
+              <div>{{ $t('gdt.credit') }}</div>
             </div>
             <div class="col-6">
               <div>{{ comment }}</div>
@@ -43,7 +43,7 @@
           <b-row v-else-if="gdt_entry_type_id === 4">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.your-share') }}</div>
-              <div>Gutschrift</div>
+              <div>{{ $t('gdt.credit') }}</div>
             </div>
             <div class="col-6">
               <div>5%</div>
@@ -54,7 +54,7 @@
           <b-row v-else>
             <div class="col-6 text-right">
               <div>{{ $t('gdt.contribution') }}</div>
-              <div>Gutschrift</div>
+              <div>{{ $t('gdt.credit') }}</div>
             </div>
             <div class="col-6">
               <div>{{ $n(amount, 'decimal') }} €</div>
@@ -103,13 +103,14 @@
             <!-- 7 nur GDT erhalten -->
             <b-row class="gdt-list-clooaps-box-7" v-if="gdt_entry_type_id == 7">
               <div class="col-6 text-right clooaps-col-left">
-                <div>{{ $t('gdt.factor') }}</div>
+                <div>{{ $t('gdt.raise') }}</div>
                 <div>{{ $t('gdt.conversion') }}</div>
               </div>
               <div class="col-6 clooaps-col-right">
-                <div>{{ factor }}</div>
+                <div>{{ factor * 100 }} %</div>
                 <div>
-                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                  {{ $n(amount, 'decimal') }} GDT * {{ factor * 100 }} % =
+                  {{ $n(gdt, 'decimal') }} GDT
                 </div>
               </div>
             </b-row>
@@ -123,12 +124,13 @@
             <b-row class="gdt-list-clooaps-box--all" v-else>
               <div class="col-6 text-right clooaps-col-left">
                 <div>{{ $t('gdt.factor') }}</div>
-                <div>{{ $t('gdt.formula') }}:</div>
+                <div>{{ $t('gdt.formula') }}</div>
               </div>
               <div class="col-6 clooaps-col-right">
-                <div>{{ factor }}</div>
+                <div>{{ factor }} GDT pro €</div>
                 <div>
-                  {{ $n(amount, 'decimal') }} € * {{ factor }} = {{ $n(gdt, 'decimal') }} GDT
+                  {{ $n(amount, 'decimal') }} € * {{ factor }} GDT / € =
+                  {{ $n(gdt, 'decimal') }} GDT
                 </div>
               </div>
             </b-row>
