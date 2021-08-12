@@ -1,25 +1,25 @@
 <template>
   <div>
     <span v-if="decaytyp === 'short'">
-      <small>{{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}</small>
+      {{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}
     </span>
 
     <div v-if="decaytyp === 'new'">
       <b-list-group style="border: 0px">
         <b-list-group-item style="border: 0px; background-color: #f1f1f1">
-          <div class="d-flex">
+          <div class="d-flex" v-if="!decay.decay_start_block">
             <div style="width: 100%" class="text-center pb-3">
               <b-icon icon="droplet-half" height="12" class="mb-2" />
-              {{ $t('decay.calculation_decay') }}
+              <b>{{ $t('decay.calculation_decay') }}</b>
             </div>
           </div>
 
           <div class="d-flex">
             <div style="width: 40%" class="text-right pr-3 mr-2">
-              {{ $t('decay.last_transaction') }}
+              <div v-if="!decay.decay_start_block">{{ $t('decay.last_transaction') }}</div>
             </div>
             <div style="width: 60%">
-              <div v-if="decay.decay_start_block > 0">
+              <div v-if="decay.decay_start_block">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
                   {{ $t('decay.decay_introduced') }} :
@@ -27,7 +27,7 @@
                 </div>
               </div>
               <div>
-                <span>
+                <span v-if="!decay.decay_start_block">
                   {{ $d($moment.unix(decay.decay_start), 'long') }}
                   {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                 </span>
@@ -37,17 +37,23 @@
 
           <div class="d-flex">
             <div style="width: 40%" class="text-right pr-3 mr-2">
-              {{ $t('decay.past_time') }}
+              <div v-if="!decay.decay_start_block">{{ $t('decay.past_time') }}</div>
             </div>
             <div style="width: 60%">
-              <div v-if="decay.decay_start_block > 0">{{ $t('decay.since_introduction') }}</div>
+              <div v-if="decay.decay_start_block">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
-                <b v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</b>
-                <b v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</b>
-                <b v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</b>
-                <b v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</b>
-                <b v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</b>
-                <b v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</b>
+                <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
+                <span v-if="duration.months > 0">
+                  {{ duration.months }} {{ $t('decay.months') }},
+                </span>
+                <span v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</span>
+                <span v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</span>
+                <span v-if="duration.minutes > 0">
+                  {{ duration.minutes }} {{ $t('decay.minutes') }},
+                </span>
+                <span v-if="duration.seconds > 0">
+                  {{ duration.seconds }} {{ $t('decay.seconds') }}
+                </span>
               </span>
             </div>
           </div>
