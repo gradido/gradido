@@ -21,6 +21,14 @@
         :key="id"
       >
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
+          <!-- Icon  -->
+          <div class="text-right" style="position: absolute">
+            <b-icon
+              :icon="getIcon(gdt_entry_type_id).icon"
+              :class="getIcon(gdt_entry_type_id).class"
+            />
+          </div>
+
           <!-- Collaps Button  -->
           <div class="text-right" style="width: 96%; position: absolute">
             <b-button class="btn-sm">
@@ -147,6 +155,12 @@
 import communityAPI from '../../../apis/communityAPI'
 import PaginationButtons from '../../../components/PaginationButtons'
 
+const iconsByType = {
+  7: { icon: 'gift', classes: 'gradido-global-color-accent' },
+  4: { icon: 'person-check', classes: 'gradido-global-color-accent' },
+  1: { icon: 'heart', classes: 'gradido-global-color-accent' },
+}
+
 export default {
   name: 'gdt-transaction-list',
   components: {
@@ -184,6 +198,18 @@ export default {
       } else {
         this.$toasted.error(result.result.message)
       }
+    },
+    getIcon(givenType) {
+      const type = iconsByType[givenType]
+      if (type)
+        return {
+          icon: type.icon,
+          class: type.classes + ' m-mb-1 font2em',
+        }
+      this.throwError('no icon to given type')
+    },
+    throwError(msg) {
+      throw new Error(msg)
     },
     showNext() {
       this.currentPage++
