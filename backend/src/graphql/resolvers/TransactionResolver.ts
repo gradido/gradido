@@ -24,14 +24,10 @@ export class TransactionResolver {
     @Args()
     { sessionId, currentPage = 1, pageSize = 25, order = 'DESC' }: GdtTransactionSessionIdInput,
   ): Promise<GdtEntryList> {
-    console.log(
-      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
-    )
     const result = await apiGet(
       `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
     )
     if (!result.success) {
-      console.log('? ', result)
       throw new Error(result.data)
     }
     return new GdtEntryList(result.data)
