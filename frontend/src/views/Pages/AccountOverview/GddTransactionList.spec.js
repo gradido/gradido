@@ -106,28 +106,40 @@ describe('GddTransactionList', () => {
           expect(transaction.find('svg').classes()).toContain('text-danger')
         })
 
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('19.93')
+        it('has a minus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '-',
+          )
         })
 
-        it('has a minus operator', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('-')
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '19.93',
+          )
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(0).text()).toContain('Bob der Baumeister')
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bob der Baumeister',
+          )
         })
 
         it('shows the message of the transaction', () => {
-          expect(transaction.findAll('div').at(6).text()).toContain('Alles Gute zum Geburtstag')
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'Alles Gute zum Geburtstag',
+          )
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(9).text()).toContain('Tue May 25 2021')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Tue May 25 2021',
+          )
         })
 
         it('shows the decay calculation', () => {
-          expect(transaction.findAll('div').at(10).text()).toContain('-0.5')
+          expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '-0.5',
+          )
         })
       })
 
@@ -145,20 +157,28 @@ describe('GddTransactionList', () => {
           expect(transaction.find('svg').classes()).toContain('gradido-global-color-accent')
         })
 
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('1000')
+        it('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
         })
 
-        it('has a plus operator', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('+')
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '1000',
+          )
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(5).text()).toContain('Gradido Akademie')
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Gradido Akademie',
+          )
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(7).text()).toContain('Thu Apr 29 2021')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Thu Apr 29 2021',
+          )
         })
       })
 
@@ -176,24 +196,40 @@ describe('GddTransactionList', () => {
           expect(transaction.find('svg').classes()).toContain('gradido-global-color-accent')
         })
 
+        it('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
+        })
+
         it('shows the amount of transaction', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('+ 314.98')
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '314.98',
+          )
         })
 
         it('shows the name of the recipient', () => {
-          expect(transaction.findAll('div').at(0).text()).toContain('Jan Ulrich')
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Jan Ulrich',
+          )
         })
 
         it('shows the message of the transaction', () => {
-          expect(transaction.findAll('div').at(8).text()).toContain('Für das Fahrrad!')
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'Für das Fahrrad!',
+          )
         })
 
         it('shows the date of the transaction', () => {
-          expect(transaction.findAll('div').at(9).text()).toContain('Thu Apr 29 2021')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Thu Apr 29 2021',
+          )
         })
 
         it('shows the decay calculation', () => {
-          expect(transaction.findAll('div').at(10).text()).toContain('-1.5')
+          expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '-1.5',
+          )
         })
       })
 
@@ -211,16 +247,22 @@ describe('GddTransactionList', () => {
           expect(transaction.find('svg').classes()).toContain('gradido-global-color-gray')
         })
 
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('1.07')
+        it('has a minus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '-',
+          )
         })
 
-        it('has a minus operator', () => {
-          expect(transaction.findAll('div').at(2).text()).toContain('-')
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '1.07',
+          )
         })
 
         it('shows the name of the receiver', () => {
-          expect(transaction.findAll('div').at(4).text()).toBe('decay.decay_since_last_transaction')
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toBe(
+            'decay.decay_since_last_transaction',
+          )
         })
       })
     })
