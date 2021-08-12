@@ -340,17 +340,13 @@ class AppRequestsController extends AppController
         $limit = $count;
         $offset = 0;
         $skip_first_transaction = false;
-        if($page == 1) {
-            $limit--;
-        } else {
+        if($page > 1) {
             $offset = (( $page - 1 ) * $count) - 1;
-        }
-        if($offset) {
             $limit++;
-            $skip_first_transaction = true;
-            if($orderDirection == 'ASC') {
-                $offset--;
-            }
+        }
+        
+        if($offset && $orderDirection == 'ASC') {
+            $offset--;
         }
         
         //echo "limit: $limit, offset: $offset, skip first transaction: $skip_first_transaction<br>";
@@ -363,6 +359,11 @@ class AppRequestsController extends AppController
                                         //->page($page)
                                         ->offset($offset)
                                         ;
+        $state_user_transactions_count = $stateUserTransactionsQuery->count();
+        if($state_user_transactions_count > $offset + $limit) {
+            $skip_first_transaction = true;
+        }
+        
         $decay = true;
         if($page > 1) {
             $decay = false;
@@ -388,7 +389,7 @@ class AppRequestsController extends AppController
             'state' => 'success',
             'transactions' => $transactions,
             'transactionExecutingCount' => $session->read('Transactions.executing'),
-            'count' => $stateUserTransactionsQuery->count(),
+            'count' => $state_user_transactions_count,
             'gdtSum' => $gdtSum,
             'timeUsed' => microtime(true) - $startTime
         ];
@@ -409,8 +410,6 @@ class AppRequestsController extends AppController
     public function listGDTTransactions($page = 1, $count = 25, $orderDirection = 'ASC', $session_id = 0)
     {
         $timeBegin = microtime(true);
-        $gdtSum = 0;
-        $gdtCount = -1;
         $this->viewBuilder()->setLayout('ajax');
         
         $login_result = $this->requestLogin($session_id, false);
@@ -432,8 +431,6 @@ class AppRequestsController extends AppController
                     'orderDirection' => $orderDirection
                 ], 'GdtEntries' . DS . 'listPerEmailApi');
         
-        $transactions = [];
-        $result = ['state' => 'success'];
         if('success' == $gdtEntries['state']) {
           $timeEnd = microtime(true);
           $gdtEntries['data']['timeUsed'] = $timeEnd - $timeBegin;
