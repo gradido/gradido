@@ -1,10 +1,8 @@
-import { Resolver, Query, /* Mutation, */ Args } from 'type-graphql'
+import { Resolver, Query, Args } from 'type-graphql'
 import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
 import { apiGet, apiPost } from '../../apis/loginAPI'
-import { GdtEntryList } from '../models/GdtEntryList'
-import { GdtTransactionSessionIdInput } from '../inputs/GdtInputs'
 
 @Resolver()
 export class TransactionResolver {
@@ -17,20 +15,6 @@ export class TransactionResolver {
     )
     if (!result.success) throw new Error(result.data)
     return new TransactionList(result.data)
-  }
-
-  @Query(() => GdtEntryList)
-  async gdtTransactionList(
-    @Args()
-    { sessionId, currentPage = 1, pageSize = 25, order = 'DESC' }: GdtTransactionSessionIdInput,
-  ): Promise<GdtEntryList> {
-    const result = await apiGet(
-      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return new GdtEntryList(result.data)
   }
 
   @Query(() => String)
