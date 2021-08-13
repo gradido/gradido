@@ -178,7 +178,7 @@ describe('UserCard_FormUserPasswort', () => {
                   sessionId: 1,
                   email: 'user@example.org',
                   password: '1234',
-                  newPassword: 'Aa123456',
+                  passwordNew: 'Aa123456',
                 },
               }),
             )
