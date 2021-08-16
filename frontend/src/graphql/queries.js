@@ -129,7 +129,6 @@ export const listGDTEntriesQuery = gql`
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize, sessionId: $sessionId) {
       count
       gdtEntries {
-        transactionId
         amount
         date
         comment
