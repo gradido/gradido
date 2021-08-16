@@ -28,9 +28,6 @@ export class GdtEntry {
   }
 
   @Field(() => Number)
-  transactionId: number
-
-  @Field(() => Number)
   amount: number
 
   @Field(() => String)
