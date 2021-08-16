@@ -199,7 +199,7 @@ export default {
         .query({
           query: listGDTEntriesQuery,
           variables: {
-            email: this.$store.state.email,
+            sessionId: this.$store.state.sessionId,
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           },

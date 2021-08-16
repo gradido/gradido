@@ -14,15 +14,16 @@ export class GdtTransactionInput {
   @Field(() => String, { nullable: true })
   order?: string
 }
+
 @ArgsType()
 export class GdtTransactionSessionIdInput {
   @Field(() => Number)
   sessionId: number
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   currentPage?: number
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   pageSize?: number
 
   @Field(() => String, { nullable: true })

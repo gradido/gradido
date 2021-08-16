@@ -125,8 +125,8 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query($email: String!, $currentPage: Int!, $pageSize: Int!) {
-    listGDTEntries(email: $email, currentPage: $currentPage, pageSize: $pageSize) {
+  query($currentPage: Int!, $pageSize: Int!, $sessionId: Float!) {
+    listGDTEntries(currentPage: $currentPage, pageSize: $pageSize, sessionId: $sessionId) {
       count
       gdtEntries {
         transactionId
