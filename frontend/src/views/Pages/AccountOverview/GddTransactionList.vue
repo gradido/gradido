@@ -1,9 +1,9 @@
 <template>
   <div class="gdd-transaction-list">
-    <b-list-group>
-      <b-list-group-item
-        v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
-        :key="transactionId"
+    <div class="list-group">
+      <div
+        v-for="{ decay, transaction_id, type, date, balance, name, memo } in transactions"
+        :key="transaction_id"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
         <div class="list-group-item gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
@@ -70,7 +70,7 @@
 
           <!-- Collaps End -->
         </div>
-      </b-list-group-item>
+      </div>
       <pagination-buttons
         v-if="showPagination && transactionCount > pageSize"
         :has-next="hasNext"
@@ -83,7 +83,7 @@
       <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
-    </b-list-group>
+    </div>
   </div>
 </template>
 

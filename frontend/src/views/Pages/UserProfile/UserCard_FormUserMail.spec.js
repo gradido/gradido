@@ -63,10 +63,6 @@ describe('UserCard_FormUserMail', () => {
         await flushPromises()
       })
 
-      it('enter email in input field', () => {
-        expect(wrapper.find('input').element.value).toBe('test@example.org')
-      })
-
       describe('error API send', () => {
         beforeEach(async () => {
           mockAPIcall.mockRejectedValue({
@@ -76,7 +72,7 @@ describe('UserCard_FormUserMail', () => {
           await flushPromises()
         })
 
-        it('send request with filled variables to the API', async () => {
+        it('sends request with filled variables to the API', async () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
@@ -106,7 +102,7 @@ describe('UserCard_FormUserMail', () => {
           await flushPromises()
         })
 
-        it('send request with filled variables to the API', async () => {
+        it('sends request with filled variables to the API', async () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
@@ -118,7 +114,7 @@ describe('UserCard_FormUserMail', () => {
           )
         })
 
-        it('successful message is send to the window.alert', async () => {
+        it('sends a success message', async () => {
           expect(window.alert).toBeCalledWith('changePassword success')
         })
       })

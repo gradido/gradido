@@ -1,14 +1,14 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class GdtTransactionInput {
   @Field(() => String)
   email: string
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   currentPage?: number
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   pageSize?: number
 
   @Field(() => String, { nullable: true })
