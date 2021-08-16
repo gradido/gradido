@@ -14,9 +14,8 @@ export class GdtResolver {
     { currentPage = 1, pageSize = 5, order = 'DESC', sessionId }: GdtTransactionSessionIdInput,
   ): Promise<GdtEntryList> {
     const result = await apiGet(
-      `${CONFIG.GDT_API_URL}/listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
+      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${sessionId}`,
     )
-    // console.log(result.data)
     if (!result.success) {
       throw new Error(result.data)
     }

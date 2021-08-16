@@ -11,7 +11,6 @@ import { Decay } from './Decay'
 @ObjectType()
 export class Transaction {
   constructor(json: any) {
-    // console.log('Transaction constructor', json)
     this.type = json.type
     this.balance = Number(json.balance)
     this.decayStart = json.decay_start
