@@ -125,20 +125,16 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query($email: String!, $currentPage: Float!, $pageSize: Float!) {
+  query($email: String!, $currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(email: $email, currentPage: $currentPage, pageSize: $pageSize) {
-      state
       count
       gdtEntries {
+        transactionId
         amount
         date
-        email
         comment
-        couponCode
         gdtEntryType
         factor
-        amount2
-        factor2
         gdt
       }
       gdtSum
