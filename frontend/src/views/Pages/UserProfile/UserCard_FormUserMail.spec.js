@@ -84,7 +84,7 @@ describe('UserCard_FormUserMail', () => {
           )
         })
 
-        it('error message is send to the window.alert', async () => {
+        it('shows an error message', async () => {
           expect(window.alert).toBeCalledWith('Ouch!')
         })
       })
