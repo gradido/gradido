@@ -1,16 +1,31 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class GdtTransactionInput {
   @Field(() => String)
   email: string
 
-  @Field(() => Number)
-  firstPage?: number
+  @Field(() => Int, { nullable: true })
+  currentPage?: number
 
-  @Field(() => Number)
-  items?: number
+  @Field(() => Int, { nullable: true })
+  pageSize?: number
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
+  order?: string
+}
+
+@ArgsType()
+export class GdtTransactionSessionIdInput {
+  @Field(() => Number)
+  sessionId: number
+
+  @Field(() => Int, { nullable: true })
+  currentPage?: number
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number
+
+  @Field(() => String, { nullable: true })
   order?: string
 }

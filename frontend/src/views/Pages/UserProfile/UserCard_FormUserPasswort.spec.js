@@ -1,21 +1,16 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-
-jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
 changePasswordProfileMock.mockReturnValue({ success: true })
 
-loginAPI.changePasswordProfile = changePasswordProfileMock
-
 const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
 
-describe('UserCardFormUserPasswort', () => {
+describe('UserCard_FormUserPasswort', () => {
   let wrapper
 
   const mocks = {
@@ -29,6 +24,9 @@ describe('UserCardFormUserPasswort', () => {
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
+    },
+    $apollo: {
+      query: changePasswordProfileMock,
     },
   }
 
@@ -159,6 +157,13 @@ describe('UserCardFormUserPasswort', () => {
       describe('submit', () => {
         describe('valid data', () => {
           beforeEach(async () => {
+            changePasswordProfileMock.mockResolvedValue({
+              data: {
+                updateUserData: {
+                  validValues: 1,
+                },
+              },
+            })
             await form.findAll('input').at(0).setValue('1234')
             await form.findAll('input').at(1).setValue('Aa123456')
             await form.findAll('input').at(2).setValue('Aa123456')
@@ -168,10 +173,14 @@ describe('UserCardFormUserPasswort', () => {
 
           it('calls the API', () => {
             expect(changePasswordProfileMock).toHaveBeenCalledWith(
-              1,
-              'user@example.org',
-              '1234',
-              'Aa123456',
+              expect.objectContaining({
+                variables: {
+                  sessionId: 1,
+                  email: 'user@example.org',
+                  password: '1234',
+                  passwordNew: 'Aa123456',
+                },
+              }),
             )
           })
 
@@ -186,9 +195,8 @@ describe('UserCardFormUserPasswort', () => {
 
         describe('server response is error', () => {
           beforeEach(async () => {
-            changePasswordProfileMock.mockReturnValue({
-              success: false,
-              result: { message: 'error' },
+            changePasswordProfileMock.mockRejectedValue({
+              message: 'error',
             })
             await form.findAll('input').at(0).setValue('1234')
             await form.findAll('input').at(1).setValue('Aa123456')

@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI.js'
+import { sendResetPasswordEmail } from '../../graphql/queries'
 import InputEmail from '../../components/Inputs/InputEmail'
 
 export default {
@@ -56,9 +56,19 @@ export default {
   },
   methods: {
     async onSubmit() {
-      await loginAPI.sendEmail(this.form.email)
-      // always give success to avoid email spying
-      this.$router.push('/thx/password')
+      this.$apollo
+        .query({
+          query: sendResetPasswordEmail,
+          variables: {
+            email: this.form.email,
+          },
+        })
+        .then(() => {
+          this.$router.push('/thx/password')
+        })
+        .catch(() => {
+          this.$router.push('/thx/password')
+        })
     },
   },
 }

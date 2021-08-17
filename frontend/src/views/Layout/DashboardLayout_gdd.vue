@@ -50,6 +50,7 @@
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <router-view
+            ref="router-view"
             :balance="balance"
             :gdt-balance="GdtBalance"
             :transactions="transactions"
@@ -65,30 +66,10 @@
   </div>
 </template>
 <script>
-import PerfectScrollbar from 'perfect-scrollbar'
-import 'perfect-scrollbar/css/perfect-scrollbar.css'
-import loginAPI from '../../apis/loginAPI'
-
+import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
-import communityAPI from '../../apis/communityAPI'
 import VueQrcode from 'vue-qrcode'
-
-function hasElement(className) {
-  return document.getElementsByClassName(className).length > 0
-}
-
-function initScrollbar(className) {
-  if (hasElement(className)) {
-    // eslint-disable-next-line no-new
-    new PerfectScrollbar(`.${className}`)
-  } else {
-    // try to init it later in case this component is loaded async
-    setTimeout(() => {
-      initScrollbar(className)
-    }, 100)
-  }
-}
 
 export default {
   components: {
@@ -107,44 +88,55 @@ export default {
     }
   },
   methods: {
-    initScrollbar() {
-      const isWindows = navigator.platform.startsWith('Win')
-      if (isWindows) {
-        initScrollbar('sidenav')
-      }
-    },
     async logout() {
-      await loginAPI.logout(this.$store.state.sessionId)
-      // do we have to check success?
-      this.$sidebar.displaySidebar(false)
-      this.$store.dispatch('logout')
-      this.$router.push('/login')
+      this.$apollo
+        .query({
+          query: logout,
+          variables: { sessionId: this.$store.state.sessionId },
+        })
+        .then(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
+        .catch(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
     },
     async updateTransactions(pagination) {
       this.pending = true
-      const result = await communityAPI.transactions(
-        this.$store.state.sessionId,
-        pagination.firstPage,
-        pagination.items,
-      )
-      if (result.success) {
-        this.GdtBalance = Number(result.result.data.gdtSum)
-        this.transactions = result.result.data.transactions
-        this.balance = Number(result.result.data.decay)
-        this.bookedBalance = Number(result.result.data.balance)
-        this.transactionCount = result.result.data.count
-        this.pending = false
-      } else {
-        this.pending = true
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: transactionsQuery,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            firstPage: pagination.firstPage,
+            items: pagination.items,
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          const {
+            data: { transactionList },
+          } = result
+          this.GdtBalance = Number(transactionList.gdtSum)
+          this.transactions = transactionList.transactions
+          this.balance = Number(transactionList.decay)
+          this.bookedBalance = Number(transactionList.balance)
+          this.transactionCount = transactionList.count
+          this.pending = false
+        })
+        .catch((error) => {
+          this.pending = true
+          this.$toasted.error(error.message)
+          // what to do when loading balance fails?
+        })
     },
     updateBalance(ammount) {
       this.balance -= ammount
     },
-  },
-  mounted() {
-    this.initScrollbar()
   },
 }
 </script>

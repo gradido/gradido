@@ -2,8 +2,8 @@
   <div class="gdd-transaction-list">
     <div class="list-group">
       <div
-        v-for="{ decay, transaction_id, type, date, balance, name, memo } in transactions"
-        :key="transaction_id"
+        v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
+        :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
         <div class="list-group-item gdd-transaction-list-item" v-b-toggle="'a' + date + ''">

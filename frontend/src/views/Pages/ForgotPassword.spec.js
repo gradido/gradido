@@ -1,12 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import loginAPI from '../../apis/loginAPI.js'
 import ForgotPassword from './ForgotPassword'
 
-jest.mock('../../apis/loginAPI.js')
-
 const mockAPIcall = jest.fn()
-loginAPI.sendEmail = mockAPIcall
 
 const localVue = global.localVue
 
@@ -19,6 +15,9 @@ describe('ForgotPassword', () => {
     $t: jest.fn((t) => t),
     $router: {
       push: mockRouterPush,
+    },
+    $apollo: {
+      query: mockAPIcall,
     },
   }
 
@@ -92,18 +91,56 @@ describe('ForgotPassword', () => {
       })
 
       describe('valid Email', () => {
-        beforeEach(async () => {
-          await form.find('input').setValue('user@example.org')
-          await form.trigger('submit')
-          await flushPromises()
+        beforeEach(() => {
+          form.find('input').setValue('user@example.org')
         })
 
-        it('calls the API', () => {
-          expect(mockAPIcall).toHaveBeenCalledWith('user@example.org')
-        })
+        describe('calls the API', () => {
+          describe('sends back error', () => {
+            beforeEach(async () => {
+              mockAPIcall.mockRejectedValue({
+                message: 'error',
+              })
+              await form.trigger('submit')
+              await flushPromises()
+            })
 
-        it('pushes "/thx/password" to the route', () => {
-          expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            it('pushes to "/thx/password"', () => {
+              expect(mockAPIcall).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    email: 'user@example.org',
+                  },
+                }),
+              )
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            })
+          })
+
+          describe('success', () => {
+            beforeEach(async () => {
+              mockAPIcall.mockResolvedValue({
+                data: {
+                  sendResetPasswordEmail: {
+                    state: 'success',
+                  },
+                },
+              })
+              await form.trigger('submit')
+              await flushPromises()
+            })
+
+            it('pushes to "/thx/password"', () => {
+              expect(mockAPIcall).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    email: 'user@example.org',
+                  },
+                }),
+              )
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            })
+          })
         })
       })
     })

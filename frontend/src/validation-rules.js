@@ -1,7 +1,7 @@
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
-import loginAPI from './apis/loginAPI'
+import { checkUsername } from './graphql/queries'
 
 export const loadAllRules = (i18nCallback) => {
   configure({
@@ -51,8 +51,19 @@ export const loadAllRules = (i18nCallback) => {
 
   extend('gddUsernameUnique', {
     async validate(value) {
-      const result = await loginAPI.checkUsername(value)
-      return result.result.data.state === 'success'
+      this.$apollo
+        .query({
+          query: checkUsername,
+          variables: {
+            username: value,
+          },
+        })
+        .then((result) => {
+          return result.data.checkUsername.state === 'success'
+        })
+        .catch(() => {
+          return false
+        })
     },
     message: (_, values) => i18nCallback.t('form.validation.usernmae-unique', values),
   })

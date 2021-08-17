@@ -6,16 +6,24 @@
       </div>
       <div
         v-else
-        v-for="{ id, amount, date, comment, gdt_entry_type_id, factor, gdt } in transactionsGdt"
-        :key="id"
+        v-for="{
+          transactionId,
+          amount,
+          date,
+          comment,
+          gdtEntryType,
+          factor,
+          gdt,
+        } in transactionsGdt"
+        :key="transactionId"
       >
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- Icon  -->
           <div class="text-right" style="position: absolute">
             <b-icon
-              v-if="gdt_entry_type_id"
-              :icon="getIcon(gdt_entry_type_id).icon"
-              :class="getIcon(gdt_entry_type_id).class"
+              v-if="gdtEntryType"
+              :icon="getIcon(gdtEntryType).icon"
+              :class="getIcon(gdtEntryType).class"
             ></b-icon>
           </div>
 
@@ -29,7 +37,7 @@
           <!-- Betrag -->
 
           <!-- 7 nur GDT erhalten -->
-          <b-row v-if="gdt_entry_type_id === 7">
+          <b-row v-if="gdtEntryType === 7">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.gdt-receive') }}</div>
               <div>{{ $t('gdt.credit') }}</div>
@@ -40,7 +48,7 @@
             </div>
           </b-row>
           <!--4 publisher -->
-          <b-row v-else-if="gdt_entry_type_id === 4">
+          <b-row v-else-if="gdtEntryType === 4">
             <div class="col-6 text-right">
               <div>{{ $t('gdt.your-share') }}</div>
               <div>{{ $t('gdt.credit') }}</div>
@@ -65,7 +73,7 @@
           <!-- Betrag ENDE-->
 
           <!-- Nachricht-->
-          <b-row v-if="comment && gdt_entry_type_id !== 7">
+          <b-row v-if="comment && gdtEntryType !== 7">
             <div class="col-6 text-right">
               {{ $t('form.memo') }}
             </div>
@@ -87,21 +95,21 @@
 
         <!--     Collaps START    -->
 
-        <b-collapse v-if="gdt_entry_type_id" :id="'a' + date + ''" class="pb-4">
+        <b-collapse v-if="gdtEntryType" :id="'a' + date + ''" class="pb-4">
           <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
             <!-- Überschrift -->
             <b-row class="gdt-list-clooaps-header-text text-center pb-3">
-              <div class="col h4" v-if="gdt_entry_type_id === 7">
+              <div class="col h4" v-if="gdtEntryType === 7">
                 {{ $t('gdt.conversion-gdt-euro') }}
               </div>
-              <div class="col h4" v-else-if="gdt_entry_type_id === 4">
+              <div class="col h4" v-else-if="gdtEntryType === 4">
                 {{ $t('gdt.publisher') }}
               </div>
               <div class="col h4" v-else>{{ $t('gdt.calculation') }}</div>
             </b-row>
 
             <!-- 7 nur GDT erhalten -->
-            <b-row class="gdt-list-clooaps-box-7" v-if="gdt_entry_type_id == 7">
+            <b-row class="gdt-list-clooaps-box-7" v-if="gdtEntryType == 7">
               <div class="col-6 text-right clooaps-col-left">
                 <div>{{ $t('gdt.raise') }}</div>
                 <div>{{ $t('gdt.conversion') }}</div>
@@ -115,7 +123,7 @@
               </div>
             </b-row>
             <!-- 4 publisher -->
-            <b-row class="gdt-list-clooaps-box-4" v-else-if="gdt_entry_type_id === 4">
+            <b-row class="gdt-list-clooaps-box-4" v-else-if="gdtEntryType === 4">
               <div class="col-6 text-right clooaps-col-left"></div>
               <div class="col-6 clooaps-col-right"></div>
             </b-row>
@@ -152,7 +160,7 @@
 </template>
 
 <script>
-import communityAPI from '../../../apis/communityAPI'
+import { listGDTEntriesQuery } from '../../../graphql/queries'
 import PaginationButtons from '../../../components/PaginationButtons'
 
 const iconsByType = {
@@ -187,17 +195,25 @@ export default {
   },
   methods: {
     async updateGdt() {
-      const result = await communityAPI.transactionsgdt(
-        this.$store.state.sessionId,
-        this.currentPage,
-        this.pageSize,
-      )
-      if (result.success) {
-        this.transactionsGdt = result.result.data.gdtEntries
-        this.transactionGdtCount = result.result.data.count
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .query({
+          query: listGDTEntriesQuery,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          },
+        })
+        .then((result) => {
+          const {
+            data: { listGDTEntries },
+          } = result
+          this.transactionsGdt = listGDTEntries.gdtEntries
+          this.transactionGdtCount = listGDTEntries.count
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
     getIcon(givenType) {
       const type = iconsByType[givenType]

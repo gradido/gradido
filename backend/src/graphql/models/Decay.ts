@@ -9,6 +9,7 @@ export class Decay {
     this.decayStart = json.decay_start
     this.decayEnd = json.decay_end
     this.decayDuration = json.decay_duration
+    this.decayStartBlock = json.decay_start_block
   }
 
   @Field(() => Number)
@@ -22,4 +23,7 @@ export class Decay {
 
   @Field(() => String, { nullable: true })
   decayDuration?: string
+
+  @Field(() => Int, { nullable: true })
+  decayStartBlock?: number
 }

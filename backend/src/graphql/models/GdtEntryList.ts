@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GdtEntry } from './GdtEntry'
 import { ObjectType, Field } from 'type-graphql'
 
@@ -31,8 +33,8 @@ export class GdtEntryList {
   @Field(() => Number)
   count: number
 
-  @Field(() => [GdtEntry])
-  gdtEntries: GdtEntry[]
+  @Field(() => [GdtEntry], { nullable: true })
+  gdtEntries?: GdtEntry[]
 
   @Field(() => Number)
   gdtSum: number

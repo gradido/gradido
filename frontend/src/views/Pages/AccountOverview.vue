@@ -51,7 +51,7 @@ import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter
 import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
-import communityAPI from '../../apis/communityAPI.js'
+import { sendCoins } from '../../graphql/queries.js'
 
 const EMPTY_TRANSACTION_DATA = {
   email: '',
@@ -104,14 +104,22 @@ export default {
     },
     async sendTransaction() {
       this.loading = true
-      const result = await communityAPI.send(this.$store.state.sessionId, this.transactionData)
-      if (result.success) {
-        this.error = false
-        this.$emit('update-balance', this.transactionData.amount)
-      } else {
-        this.errorResult = result.result.message
-        this.error = true
-      }
+      this.$apollo
+        .query({
+          query: sendCoins,
+          variables: {
+            sessionId: this.$store.state.sessionId,
+            ...this.transactionData,
+          },
+        })
+        .then(() => {
+          this.error = false
+          this.$emit('update-balance', this.transactionData.amount)
+        })
+        .catch((err) => {
+          this.errorResult = err.message
+          this.error = true
+        })
       this.currentTransactionStep = 2
       this.loading = false
     },

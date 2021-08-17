@@ -72,8 +72,8 @@ describe('Vuex store', () => {
           email: 'someone@there.is',
           language: 'en',
           username: 'user',
-          first_name: 'Peter',
-          last_name: 'Lustig',
+          firstName: 'Peter',
+          lastName: 'Lustig',
           description: 'Nickelbrille',
         },
       }

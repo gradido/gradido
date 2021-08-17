@@ -5,6 +5,9 @@ import Register from './Register'
 
 const localVue = global.localVue
 
+const resgisterUserQueryMock = jest.fn()
+const routerPushMock = jest.fn()
+
 describe('Register', () => {
   let wrapper
 
@@ -13,6 +16,12 @@ describe('Register', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $router: {
+      push: routerPushMock,
+    },
+    $apollo: {
+      query: resgisterUserQueryMock,
+    },
   }
 
   const stubs = {
@@ -105,6 +114,113 @@ describe('Register', () => {
       })
     })
 
-    // To Do: Test lines 156-197,210-213
+    describe('resetForm', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('input[name="site.signup.agree"]').setChecked(true)
+      })
+
+      it('resets the firstName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#registerFirstname').element.value).toBe('')
+      })
+
+      it('resets the lastName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#registerLastname').element.value).toBe('')
+      })
+
+      it('resets the email field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#Email-input-field').element.value).toBe('')
+      })
+
+      it.skip('resets the password field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.password"]').element.value).toBe('')
+      })
+
+      it.skip('resets the passwordRepeat field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.passwordRepeat"]').element.value).toBe('')
+      })
+
+      it('resets the firstName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="site.signup.agree"]').props.checked).not.toBeTruthy()
+      })
+    })
+
+    describe('API calls', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+      })
+
+      describe('server sends back error', () => {
+        beforeEach(async () => {
+          resgisterUserQueryMock.mockRejectedValue({ message: 'Ouch!' })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('shows error message', () => {
+          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text()).toContain('error.error!')
+          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
+        })
+
+        it('button to dismisses error message is present', () => {
+          expect(wrapper.find('button.close').exists()).toBeTruthy()
+        })
+
+        it('dismisses error message', async () => {
+          await wrapper.find('button.close').trigger('click')
+          await flushPromises()
+          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+        })
+      })
+
+      describe('server sends back success', () => {
+        beforeEach(() => {
+          resgisterUserQueryMock.mockResolvedValue({
+            data: {
+              create: 'success',
+            },
+          })
+        })
+
+        it('routes to "/thx/register"', async () => {
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+          expect(resgisterUserQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'max.mustermann@gradido.net',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                password: 'Aa123456',
+              },
+            }),
+          )
+          expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
+        })
+      })
+    })
+    // TODO: line 157
   })
 })
