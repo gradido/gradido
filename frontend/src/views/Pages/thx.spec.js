@@ -3,6 +3,17 @@ import Thx from './thx'
 
 const localVue = global.localVue
 
+const createMockObject = (comingFrom) => {
+  return {
+    $t: jest.fn((t) => t),
+    $route: {
+      params: {
+        comingFrom,
+      },
+    },
+  }
+}
+
 describe('Thx', () => {
   let wrapper
 
@@ -12,14 +23,7 @@ describe('Thx', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper({
-        $t: jest.fn((t) => t),
-        $route: {
-          params: {
-            comingFrom: 'password',
-          },
-        },
-      })
+      wrapper = Wrapper(createMockObject('password'))
     })
 
     it('renders the thx page', () => {
@@ -33,14 +37,7 @@ describe('Thx', () => {
 
   describe('coming from /password', () => {
     beforeEach(() => {
-      wrapper = Wrapper({
-        $t: jest.fn((t) => t),
-        $route: {
-          params: {
-            comingFrom: 'password',
-          },
-        },
-      })
+      wrapper = Wrapper(createMockObject('password'))
     })
 
     it('renders the thanks text', () => {
@@ -58,14 +55,7 @@ describe('Thx', () => {
 
   describe('coming from /reset', () => {
     beforeEach(() => {
-      wrapper = Wrapper({
-        $t: jest.fn((t) => t),
-        $route: {
-          params: {
-            comingFrom: 'reset',
-          },
-        },
-      })
+      wrapper = Wrapper(createMockObject('reset'))
     })
 
     it('renders the thanks text', () => {
@@ -83,14 +73,7 @@ describe('Thx', () => {
 
   describe('coming from /register', () => {
     beforeEach(() => {
-      wrapper = Wrapper({
-        $t: jest.fn((t) => t),
-        $route: {
-          params: {
-            comingFrom: 'register',
-          },
-        },
-      })
+      wrapper = Wrapper(createMockObject('register'))
     })
 
     it('renders the thanks text', () => {
