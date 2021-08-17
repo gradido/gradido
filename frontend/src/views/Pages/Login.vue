@@ -88,6 +88,7 @@ export default {
             email: this.form.email,
             password: this.form.password,
           },
+          fetchPolicy: 'no-cache',
         })
         .then((result) => {
           const {
