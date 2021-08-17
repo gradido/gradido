@@ -88,6 +88,7 @@ export default {
             email: this.form.email,
             password: this.form.password,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           const {
