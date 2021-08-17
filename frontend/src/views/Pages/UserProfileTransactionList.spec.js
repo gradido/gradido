@@ -30,8 +30,12 @@ describe('UserProfileTransactionList', () => {
     },
   }
 
+  const stubs = {
+    GdtTransactionList: true,
+  }
+  
   const Wrapper = () => {
-    return mount(UserProfileTransactionList, { localVue, mocks })
+    return mount(UserProfileTransactionList, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
