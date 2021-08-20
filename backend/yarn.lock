@@ -2282,6 +2282,13 @@ keyv@^3.0.0:
   dependencies:
     json-buffer "3.0.0"
 
+klicktipp-api@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/klicktipp-api/-/klicktipp-api-1.0.2.tgz#a7ba728887c4d9a1c257fa30b78cbe0be92a20ab"
+  integrity sha512-aQQpuznC0O2W7Oq2BxKDnuLAnGmKTMfudOQ0TAEf0TLv82KH2AsCXl0nbutJ2g1i3MH+sCyGE/r/nwnUhr4QeA==
+  dependencies:
+    axios "^0.21.1"
+
 latest-version@^5.0.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-5.1.0.tgz#119dfe908fe38d15dfa43ecd13fa12ec8832face"

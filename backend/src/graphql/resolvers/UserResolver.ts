@@ -14,9 +14,12 @@ import {
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/loginAPI'
+import { KlicktippConnector } from '../../apis/klicktippAPI'
 
 @Resolver()
 export class UserResolver {
+  private connector: KlicktippConnector = new KlicktippConnector(CONFIG.KLICKTTIPP_API_URL)
+
   @Query(() => LoginResponse)
   async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
     email = email.trim().toLowerCase()
@@ -83,6 +86,20 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+
+    const loginSuccessful = await this.connector.login(
+      CONFIG.KLICKTIPP_USER,
+      CONFIG.KLICKTIPP_PASSWORD,
+    )
+    if (loginSuccessful) {
+      const fields = {}
+      const success = await this.connector.signin(CONFIG.KLICKTIPP_APIKEY, email, fields)
+      if (!success) {
+        throw new Error(`Signin to KlickTipp has failed ${this.connector.getLastError()}`)
+      }
+    } else {
+      throw new Error(`Could not login to Klicktipp ${this.connector.getLastError()}`)
+    }
     return 'success'
   }
 
@@ -96,7 +113,9 @@ export class UserResolver {
       email_verification_code_type: 'resetPassword',
     }
     const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
-    if (!response.success) throw new Error(response.data)
+    if (!response.success) {
+      throw new Error(response.data)
+    }
     return new SendPasswordResetEmailResponse(response.data)
   }
 
@@ -111,7 +130,9 @@ export class UserResolver {
       password,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
-    if (!result.success) throw new Error(result.data)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
     return 'sucess'
   }
 
