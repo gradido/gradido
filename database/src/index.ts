@@ -1,8 +1,11 @@
 import { createPool, PoolConfig } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import CONFIG from './config'
+import prepare from './prepare'
 
 const run = async (command: string) => {
+  await prepare()
+
   // Database connection
   const poolConfig: PoolConfig = {
     host: CONFIG.DB_HOST,
