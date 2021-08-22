@@ -15,11 +15,6 @@ COPY ./login_server/skeema/ .
 RUN cd ./gradido_login/ && for f in *.sql; do cp -- "$f" "../b1_$f"; sed  -i '1i use gradido_login;' "../b1_$f"; done
 COPY ./configs/login_server/setup_db_tables ./gradido_login/insert
 RUN cd ./gradido_login/insert && for f in *.sql; do cp -- "$f" "../../c1_$f";  sed  -i '1i use gradido_login;' "../../c1_$f"; done
-# community server db
-COPY ./community_server/db/skeema/ . 
-RUN cd ./gradido_community/ && for f in *.sql; do cp -- "$f" "../d_$f"; sed  -i '1i use gradido_community;' "../d_$f"; done
-COPY ./community_server/db/setup_db_tables ./gradido_community/insert 
-RUN cd ./gradido_community/insert && for f in *.sql; do cp -- "$f" "../../e_$f";  sed  -i '1i use gradido_community;' "../../e_$f"; done
 
 #########################################################################################################
 # mariadb server with test dbs
