@@ -40,9 +40,11 @@ const run = async (command: string) => {
   }
 }
 
-run(process.argv[2]).catch((err) => {
-  // eslint-disable-next-line no-console
-  console.log(err)
-}).then(()=>{
-  process.exit()
-})
+run(process.argv[2])
+  .catch((err) => {
+    // eslint-disable-next-line no-console
+    console.log(err)
+  })
+  .then(() => {
+    process.exit()
+  })
