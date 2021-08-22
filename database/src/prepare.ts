@@ -30,7 +30,7 @@ export default async (): Promise<void> => {
     `SHOW COLUMNS FROM \`${CONFIG.DB_DATABASE}\`.\`migrations\` LIKE 'db_version';`,
   )
   if (result.length > 0) {
-    con.query(`DROP TABLE \`${CONFIG.DB_DATABASE}\`.\`migrations\``)
+    await con.query(`DROP TABLE \`${CONFIG.DB_DATABASE}\`.\`migrations\``)
     // eslint-disable-next-line no-console
     console.log('Found and dropped old migrations table')
   }
