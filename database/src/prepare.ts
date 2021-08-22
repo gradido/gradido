@@ -6,11 +6,11 @@
  * creating, deleting, renaming Databases.
  */
 
-import { createConnection } from 'mysql'
+import { createConnection } from 'mysql2/promise'
 import CONFIG from './config'
 
 export default async (): Promise<void> => {
-  const con = createConnection({
+  const con = await createConnection({
     host: CONFIG.DB_HOST,
     port: CONFIG.DB_PORT,
     user: CONFIG.DB_USER,
@@ -26,17 +26,14 @@ export default async (): Promise<void> => {
       DEFAULT COLLATE utf8mb4_unicode_ci;`)
 
   // Check if old migration table is present, delete if needed
-  await con.query(
-    `SHOW COLUMNS FROM \`${CONFIG.DB_DATABASE}\`.\`migrations\` LIKE 'version';`,
-    (err, result /* , fields */) => {
-      if (err) throw err
-      if (result.length > 0) {
-        con.query(`DROP TABLE \`${CONFIG.DB_DATABASE}\`.\`migrations\``)
-        // eslint-disable-next-line no-console
-        console.log('Found and dropped old migrations table')
-      }
-    },
+  const result = await con.query(
+    `SHOW COLUMNS FROM \`${CONFIG.DB_DATABASE}\`.\`migrations\` LIKE 'db_version';`,
   )
+  if (result.length > 0) {
+    con.query(`DROP TABLE \`${CONFIG.DB_DATABASE}\`.\`migrations\``)
+    // eslint-disable-next-line no-console
+    console.log('Found and dropped old migrations table')
+  }
 
   await con.end()
 }
