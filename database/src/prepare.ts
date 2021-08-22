@@ -19,7 +19,7 @@ export default async (): Promise<void> => {
 
   await con.connect()
 
-  // Create Databse `gradido_community`
+  // Create Database `gradido_community`
   await con.query(`
     CREATE DATABASE IF NOT EXISTS ${CONFIG.DB_DATABASE} 
       DEFAULT CHARACTER SET utf8mb4
