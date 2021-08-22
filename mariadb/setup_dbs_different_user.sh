@@ -52,24 +52,4 @@ source $HOME/.gvm/scripts/gvm
 gvm use go1.14.4
 skeema push -p$LOGIN_DB_PASSWD
 
-cd ../../..
-# populate db of community-server
-cd community_server/db/skeema
-sudo cat << EOF > .skeema
-[production]
-flavor=mariadb:10.3.25
-host=127.0.0.1
-port=3306
-user=$COMMUNITY_DB_USER
-EOF
-cd gradido_community 
-sudo cat << EOF > .skeema 
-default-character-set=utf8mb4
-default-collation=utf8mb4_unicode_ci
-schema=$COMMUNITY_DB_NAME
-EOF
-
-skeema push -p$COMMUNITY_DB_PASSWD
-
 echo -e "${COLOR_YELLOW}Login-Server db password: $LOGIN_DB_PASSWD${COLOR_NONE}"
-echo -e "${COLOR_YELLOW}Community-Server db password: $COMMUNITY_DB_PASSWD${COLOR_NONE}"
