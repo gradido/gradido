@@ -4,6 +4,7 @@ import CONFIG from './config'
 import prepare from './prepare'
 
 const run = async (command: string) => {
+  // Database actions not supported by our migration library
   await prepare()
 
   // Database connection
