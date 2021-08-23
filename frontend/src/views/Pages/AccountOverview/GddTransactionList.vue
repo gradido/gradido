@@ -8,8 +8,12 @@
       >
         <div class="list-group-item gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- Collaps Button  -->
-          <div v-if="type != 'decay'" class="text-right" style="width: 95%; position: absolute">
-            <b-button class="btn-sm">
+          <div
+            v-if="type != 'decay' && decay"
+            class="text-right"
+            style="width: 95%; position: absolute"
+          >
+            <b-button v-if="decay.balance > 0" class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
@@ -49,12 +53,20 @@
               </b-row>
 
               <!-- Decay -->
-              <b-row v-if="decay">
+              <b-row v-if="decay && decay.balance > 0">
                 <div class="col-5 text-right">
                   <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
                 </div>
                 <div class="col-7 gdd-transaction-list-item-decay">
                   <decay-information v-if="decay" decaytyp="short" :decay="decay" />
+                </div>
+              </b-row>
+              <b-row v-if="decay && decay.decayStartBlock">
+                <div class="col-5 text-right">
+                  <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
+                </div>
+                <div class="col-7 gdd-transaction-list-item-decay">
+                  <b>{{ $t('decay.Starting_block_decay') }}</b>
                 </div>
               </b-row>
             </div>
