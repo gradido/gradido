@@ -334,7 +334,7 @@ jobs:
       - name: Push backend
         run: docker push --all-tags gradido/backend
       - name: Push database
-        run: docker push --all-tags gradido/database_up
+        run: docker push --all-tags gradido/database
       - name: Push login_server
         run: docker push --all-tags gradido/login_server
       - name: Push community_server
