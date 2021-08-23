@@ -13,7 +13,7 @@ import {
   UnsecureLoginArgs,
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
-import { apiPost, apiGet } from '../../apis/loginAPI'
+import { apiPost, apiGet } from '../../apis/HttpRequest'
 import { KlicktippConnector } from '../../apis/klicktippAPI'
 
 @Resolver()
@@ -73,7 +73,9 @@ export class UserResolver {
   }
 
   @Query(() => String)
-  async create(@Args() { email, firstName, lastName, password }: CreateUserArgs): Promise<string> {
+  async create(
+    @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
+  ): Promise<string> {
     const payload = {
       email,
       first_name: firstName,
@@ -87,19 +89,16 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    const loginSuccessful = await this.connector.login(
-      CONFIG.KLICKTIPP_USER,
-      CONFIG.KLICKTIPP_PASSWORD,
-    )
-    if (loginSuccessful) {
-      const fields = {}
-      const success = await this.connector.signin(CONFIG.KLICKTIPP_APIKEY, email, fields)
-      if (!success) {
-        throw new Error(`Signin to KlickTipp has failed ${this.connector.getLastError()}`)
-      }
-    } else {
-      throw new Error(`Could not login to Klicktipp ${this.connector.getLastError()}`)
-    }
+    // const loginSuccessful = await this.connector.login(
+    //   CONFIG.KLICKTIPP_USER,
+    //   CONFIG.KLICKTIPP_PASSWORD,
+    // )
+    // if (loginSuccessful) {
+    const fields = {}
+    const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+    await this.connector.signin(apiKey, email, fields)
+    // }
+
     return 'success'
   }
 

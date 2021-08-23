@@ -13,8 +13,9 @@ const server = {
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
   KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'mbaier-heinehannes',
-  KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',
-  KLICKTIPP_APIKEY: process.env.KLICKTIPP_APIKEY || '',
+  KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'Ynq9m8HCP',
+  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || '4vgozlkpz8z726a',
+  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || '4vgpzlkpz8zb79c',
 }
 
 // This is needed by graphql-directive-auth

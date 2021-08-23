@@ -30,8 +30,8 @@ export class KlicktippConnector {
    * @return TRUE on success
    */
   async login(username: string, password: string): Promise<boolean> {
-    if (!(username && password)) {
-      throw new Error('Login failed: Illegal Arguments')
+    if (!(username.length > 0 && password.length > 0)) {
+      throw new Error('Klicktipp Login failed: Illegal Arguments')
     }
 
     const res = await this.httpRequest('/account/login', 'POST', { username, password }, false)
@@ -43,7 +43,7 @@ export class KlicktippConnector {
       return true
     }
 
-    throw new Error(`Login failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Login failed: ${res.response.statusText}`)
   }
 
   /**
@@ -61,7 +61,7 @@ export class KlicktippConnector {
       return true
     }
 
-    throw new Error(`Logout failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Logout failed: ${res.response.statusText}`)
   }
 
   /**
@@ -76,7 +76,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Subscription process index failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscription process index failed: ${res.response.statusText}`)
   }
 
   /**
@@ -88,7 +88,7 @@ export class KlicktippConnector {
    */
   async subscriptionProcessGet(listid: string): Promise<any> {
     if (!listid || listid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // retrieve
@@ -98,7 +98,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Subscription process get failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscription process get failed: ${res.response.statusText}`)
   }
 
   /**
@@ -111,7 +111,7 @@ export class KlicktippConnector {
    */
   async subscriptionProcessRedirect(listid: string, email: string): Promise<any> {
     if (!listid || listid === '' || !email || email === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // update
@@ -122,7 +122,9 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Subscription process get redirection url failed: ${res.response.statusText}`)
+    throw new Error(
+      `Klicktipp Subscription process get redirection url failed: ${res.response.statusText}`,
+    )
   }
 
   /**
@@ -137,7 +139,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Tag index failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tag index failed: ${res.response.statusText}`)
   }
 
   /**
@@ -149,7 +151,7 @@ export class KlicktippConnector {
    */
   async tagGet(tagid: string): Promise<any> {
     if (!tagid || tagid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
     const res = await this.httpRequest(`/tag/${tagid}`)
 
@@ -157,7 +159,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Tag get failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tag get failed: ${res.response.statusText}`)
   }
 
   /**
@@ -170,7 +172,7 @@ export class KlicktippConnector {
    */
   async tagCreate(name: string, text?: string): Promise<boolean> {
     if (!name || name === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
     const data = {
       name,
@@ -182,7 +184,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Tag creation failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tag creation failed: ${res.response.statusText}`)
   }
 
   /**
@@ -196,7 +198,7 @@ export class KlicktippConnector {
    */
   async tagUpdate(tagid: string, name?: string, text?: string): Promise<boolean> {
     if (!tagid || tagid === '' || (name === '' && text === '')) {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
     const data = {
       name: name !== undefined ? name : '',
@@ -209,7 +211,7 @@ export class KlicktippConnector {
       return true
     }
 
-    throw new Error(`Tag update failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tag update failed: ${res.response.statusText}`)
   }
 
   /**
@@ -221,7 +223,7 @@ export class KlicktippConnector {
    */
   async tagDelete(tagid: string): Promise<boolean> {
     if (!tagid || tagid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     const res = await this.httpRequest(`/tag/${tagid}`, 'DELETE')
@@ -230,7 +232,7 @@ export class KlicktippConnector {
       return true
     }
 
-    throw new Error(`Tag deletion failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tag deletion failed: ${res.response.statusText}`)
   }
 
   /**
@@ -245,7 +247,7 @@ export class KlicktippConnector {
       return res.data
     }
 
-    throw new Error(`Field index failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Field index failed: ${res.response.statusText}`)
   }
 
   /**
@@ -282,7 +284,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`Subscription failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscription failed: ${res.response.statusText}`)
   }
 
   /**
@@ -294,7 +296,7 @@ export class KlicktippConnector {
    */
   async unsubscribe(email: string): Promise<boolean> {
     if (!email || email === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // unsubscribe
@@ -305,7 +307,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Unsubscription failed:  ${res.response.statusText}`)
+    throw new Error(`Klicktipp Unsubscription failed:  ${res.response.statusText}`)
   }
 
   /**
@@ -318,7 +320,7 @@ export class KlicktippConnector {
    */
   async tag(email: string, tagids: string): Promise<boolean> {
     if (!email || email === '' || !tagids || tagids === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // tag
@@ -332,7 +334,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`Tagging failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Tagging failed: ${res.response.statusText}`)
   }
 
   /**
@@ -345,7 +347,7 @@ export class KlicktippConnector {
    */
   async untag(email: string, tagid: string): Promise<boolean> {
     if (!email || email === '' || !tagid || tagid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // subscribe
@@ -359,7 +361,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Untagging failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Untagging failed: ${res.response.statusText}`)
   }
 
   /**
@@ -372,7 +374,7 @@ export class KlicktippConnector {
    */
   async resend(email: string, autoresponder: string): Promise<boolean> {
     if (!email || email === '' || !autoresponder || autoresponder === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // resend/reset autoresponder
@@ -383,7 +385,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Resend failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Resend failed: ${res.response.statusText}`)
   }
 
   /**
@@ -397,7 +399,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`Subscriber index failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscriber index failed: ${res.response.statusText}`)
   }
 
   /**
@@ -409,7 +411,7 @@ export class KlicktippConnector {
    */
   async subscriberGet(subscriberid: string): Promise<any> {
     if (!subscriberid || subscriberid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // retrieve
@@ -417,7 +419,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`Subscriber get failed:  ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscriber get failed:  ${res.response.statusText}`)
   }
 
   /**
@@ -429,7 +431,7 @@ export class KlicktippConnector {
    */
   async subscriberSearch(email: string): Promise<any> {
     if (!email || email === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
     // search
     const data = { email }
@@ -438,7 +440,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`Subscriber search failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscriber search failed: ${res.response.statusText}`)
   }
 
   /**
@@ -450,7 +452,7 @@ export class KlicktippConnector {
    */
   async subscriberTagged(tagid: string): Promise<any> {
     if (!tagid || tagid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // search
@@ -460,7 +462,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return res.data
     }
-    throw new Error(`subscriber tagged failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp subscriber tagged failed: ${res.response.statusText}`)
   }
 
   /**
@@ -479,7 +481,7 @@ export class KlicktippConnector {
     newsmsnumber?: string,
   ): Promise<boolean> {
     if (!subscriberid || subscriberid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // update
@@ -492,7 +494,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Subscriber update failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscriber update failed: ${res.response.statusText}`)
   }
 
   /**
@@ -504,7 +506,7 @@ export class KlicktippConnector {
    */
   async subscriberDelete(subscriberid: string): Promise<boolean> {
     if (!subscriberid || subscriberid === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // delete
@@ -513,7 +515,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Subscriber deletion failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscriber deletion failed: ${res.response.statusText}`)
   }
 
   /**
@@ -527,7 +529,7 @@ export class KlicktippConnector {
    */
   async signin(apikey: string, email: string, fields?: any, smsnumber?: string): Promise<boolean> {
     if (!apikey || apikey === '' || ((!email || email === '') && smsnumber === '')) {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // subscribe
@@ -543,7 +545,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Subscription failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Subscription failed: ${res.response.statusText}`)
   }
 
   /**
@@ -556,7 +558,7 @@ export class KlicktippConnector {
    */
   async signout(apikey: string, email: string): Promise<boolean> {
     if (!apikey || apikey === '' || !email || email === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // untag
@@ -566,7 +568,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Untagging failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Untagging failed: ${res.response.statusText}`)
   }
 
   /**
@@ -579,7 +581,7 @@ export class KlicktippConnector {
    */
   async signoff(apikey: string, email: string): Promise<boolean> {
     if (!apikey || apikey === '' || !email || email === '') {
-      throw new Error('Illegal Arguments')
+      throw new Error('Klicktipp Illegal Arguments')
     }
 
     // unsubscribe
@@ -589,7 +591,7 @@ export class KlicktippConnector {
     if (!res.isAxiosError) {
       return true
     }
-    throw new Error(`Unsubscription failed: ${res.response.statusText}`)
+    throw new Error(`Klicktipp Unsubscription failed: ${res.response.statusText}`)
   }
 
   async httpRequest(path: string, method?: Method, data?: any, usesession?: boolean): Promise<any> {

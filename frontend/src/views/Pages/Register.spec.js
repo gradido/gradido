@@ -12,6 +12,11 @@ describe('Register', () => {
   let wrapper
 
   const mocks = {
+    $store: {
+      state: {
+        language: 'de',
+      },
+    },
     $i18n: {
       locale: 'en',
     },
@@ -214,6 +219,7 @@ describe('Register', () => {
                 firstName: 'Max',
                 lastName: 'Mustermann',
                 password: 'Aa123456',
+                language: 'de',
               },
             }),
           )

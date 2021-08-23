@@ -183,6 +183,7 @@ export default {
             firstName: this.form.firstname,
             lastName: this.form.lastname,
             password: this.form.password.password,
+            language: this.$store.state.language,
           },
         })
         .then(() => {
