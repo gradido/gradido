@@ -48,6 +48,7 @@ run(process.argv[2])
   .catch((err) => {
     // eslint-disable-next-line no-console
     console.log(err)
+    process.exit(1)
   })
   .then(() => {
     process.exit()
