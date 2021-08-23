@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const login = gql`
-  query ($email: String!, $password: String!) {
+  query($email: String!, $password: String!) {
     login(email: $email, password: $password) {
       sessionId
       user {
@@ -17,19 +17,19 @@ export const login = gql`
 `
 
 export const logout = gql`
-  query ($sessionId: Float!) {
+  query($sessionId: Float!) {
     logout(sessionId: $sessionId)
   }
 `
 
 export const resetPassword = gql`
-  query ($sessionId: Float!, $email: String!, $password: String!) {
+  query($sessionId: Float!, $email: String!, $password: String!) {
     resetPassword(sessionId: $sessionId, email: $email, password: $password)
   }
 `
 
 export const loginViaEmailVerificationCode = gql`
-  query ($optin: String!) {
+  query($optin: String!) {
     loginViaEmailVerificationCode(optin: $optin) {
       sessionId
       email
@@ -38,7 +38,7 @@ export const loginViaEmailVerificationCode = gql`
 `
 
 export const updateUserInfos = gql`
-  query (
+  query(
     $sessionId: Float!
     $email: String!
     $firstName: String
@@ -66,7 +66,7 @@ export const updateUserInfos = gql`
 `
 
 export const transactionsQuery = gql`
-  query ($sessionId: Float!, $firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
+  query($sessionId: Float!, $firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
     transactionList(sessionId: $sessionId, firstPage: $firstPage, items: $items, order: $order) {
       gdtSum
       count
@@ -97,7 +97,7 @@ export const transactionsQuery = gql`
 `
 
 export const resgisterUserQuery = gql`
-  query (
+  query(
     $firstName: String!
     $lastName: String!
     $email: String!
@@ -115,13 +115,13 @@ export const resgisterUserQuery = gql`
 `
 
 export const sendCoins = gql`
-  query ($sessionId: Float!, $email: String!, $amount: Float!, $memo: String!) {
+  query($sessionId: Float!, $email: String!, $amount: Float!, $memo: String!) {
     sendCoins(sessionId: $sessionId, email: $email, amount: $amount, memo: $memo)
   }
 `
 
 export const sendResetPasswordEmail = gql`
-  query ($email: String!) {
+  query($email: String!) {
     sendResetPasswordEmail(email: $email) {
       state
     }
@@ -129,7 +129,7 @@ export const sendResetPasswordEmail = gql`
 `
 
 export const checkUsername = gql`
-  query ($username: String!) {
+  query($username: String!) {
     checkUsername(username: $username) {
       state
     }
@@ -137,7 +137,7 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query ($currentPage: Int!, $pageSize: Int!, $sessionId: Float!) {
+  query($currentPage: Int!, $pageSize: Int!, $sessionId: Float!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize, sessionId: $sessionId) {
       count
       gdtEntries {
