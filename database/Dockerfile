@@ -99,7 +99,7 @@ FROM base as production
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
 # We also copy the node_modules express and serve-static for the run script
-# COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+ COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
