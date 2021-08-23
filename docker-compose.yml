@@ -72,6 +72,33 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
+
+  ########################################################
+  # DATABASE #############################################
+  ########################################################
+  database:
+    image: gradido/database:production_up
+    build:
+      context: ./database
+      target: production_up
+    depends_on:
+      - mariadb
+    networks:
+      - internal-net
+    #ports:
+    #  - 4000:4000
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      - DB_HOST=mariadb
+      # Application only envs
+    #env_file:
+    #  - ./frontend/.env
     
   #########################################################
   ## LOGIN SERVER #########################################
