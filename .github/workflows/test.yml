@@ -44,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       ##########################################################################
-      # FRONTEND ###############################################################
+      # BACKEND ################################################################
       ##########################################################################
       - name: Backend | Build `test` image
         run: |
@@ -55,6 +55,32 @@ jobs:
         with:
           name: docker-backend-test
           path: /tmp/backend.tar
+
+  ##############################################################################
+  # JOB: DOCKER BUILD TEST DATABASE UP #########################################
+  ##############################################################################
+  build_test_database_up:
+    name: Docker Build Test - Database up
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DATABASE UP ############################################################
+      ##########################################################################
+      - name: Database | Build `test_up` image
+        run: |
+          docker build --target test_up -t "gradido/database:test_up" database/
+          docker save "gradido/database:test_up" > /tmp/database_up.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-database-test_up
+          path: /tmp/database_up.tar
 
   ##############################################################################
   # JOB: DOCKER BUILD TEST LOGIN SERVER ########################################
@@ -209,10 +235,39 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/backend.tar
       ##########################################################################
-      # LINT FRONTEND ###########################################################
+      # LINT BACKEND ###########################################################
       ##########################################################################
       - name: backend | Lint
         run: docker run --rm gradido/backend:test yarn run lint
+
+  ##############################################################################
+  # JOB: LINT DATABASE UP ######################################################
+  ##############################################################################
+  lint_database_up:
+    name: Lint - Database Up
+    runs-on: ubuntu-latest
+    needs: [build_test_database_up]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGE ##################################################
+      ##########################################################################
+      - name: Download Docker Image (Backend)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-database-test_up
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/database_up.tar
+      ##########################################################################
+      # LINT DATABASE ##########################################################
+      ##########################################################################
+      - name: database | Lint
+        run: docker run --rm gradido/database:test_up yarn run lint
 
   ##############################################################################
   # JOB: UNIT TEST FRONTEND  ###################################################
