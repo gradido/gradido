@@ -464,8 +464,8 @@ jobs:
       ##########################################################################
       # DOCKER COMPOSE DATABASE UP + RESET #####################################
       ##########################################################################
-      #- name: database | docker-compose
-      #  run: docker-compose -f docker-compose.yml up --detach mariadb
+      - name: database | docker-compose
+        run: docker-compose -f docker-compose.yml up --detach mariadb
       - name: database | up
         run: docker-compose -f docker-compose.yml run -T database yarn up
       - name: database | reset
