@@ -13,9 +13,17 @@ const server = {
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
 }
 
+const database = {
+  DB_HOST: process.env.DB_HOST || 'localhost',
+  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_USER: process.env.DB_USER || 'root',
+  DB_PASSWORD: process.env.DB_PASSWORD || '',
+  DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
+}
+
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server }
+const CONFIG = { ...server, ...database }
 
 export default CONFIG

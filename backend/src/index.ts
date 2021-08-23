@@ -2,7 +2,9 @@ import 'reflect-metadata'
 import express from 'express'
 import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
-// import { createConnection } from 'typeorm'
+import { RowDataPacket } from 'mysql2/promise'
+
+import connection from './database/connection'
 import CONFIG from './config'
 
 // TODO move to extern
@@ -15,7 +17,19 @@ import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
+const DB_VERSION = '0001-init_db'
+
 async function main() {
+  // check for correct database version
+  const con = await connection()
+  const [rows] = await con.query(`SELECT fileName FROM migrations ORDER BY version DESC LIMIT 1;`)
+  if (
+    (<RowDataPacket>rows).length === 0 ||
+    (<RowDataPacket>rows)[0].fileName.indexOf(DB_VERSION) === -1
+  ) {
+    throw new Error(`Wrong database version - the backend requires '${DB_VERSION}'`)
+  }
+
   // const connection = await createConnection()
   const schema = await buildSchema({
     resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver],
@@ -45,4 +59,8 @@ async function main() {
   })
 }
 
-main()
+main().catch((e) => {
+  // eslint-disable-next-line no-console
+  console.error(e)
+  process.exit(1)
+})
