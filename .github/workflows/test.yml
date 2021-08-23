@@ -448,17 +448,15 @@ jobs:
           min_coverage: 14
           token: ${{ github.token }}
 
-  #test:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - uses: actions/checkout@v2
-  #    - name: Build the stack
-  #      run: |
-  #       git submodule update --init --recursive
-  #       docker-compose up -d
-  #    - name: Test
-  #      env:
-  #        GN_INSTANCE_FOLDER: /tmp/gradio-node-instance
-  #        GN_CONTAINER_NAME: gradido-node-build
-  #      run: docker run gradido-node-test
-  #      timeout-minutes: 2
+  ##########################################################################
+  # DATABASE MIGRATION TEST UP + RESET #####################################
+  ##########################################################################
+  database_migration_test:
+    name: Database Migration Test - Up + Reset
+    runs-on: ubuntu-latest
+    #needs: [nothing]
+    steps:
+      - name: database | docker-compose - up
+        run: docker-compose -f docker-compose.yml up --detach database
+      - name: database | reset
+        run: docker-compose exec -T database yarn reset
