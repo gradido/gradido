@@ -2,7 +2,7 @@ import { Resolver, Query, Args } from 'type-graphql'
 import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
-import { apiGet, apiPost } from '../../apis/loginAPI'
+import { apiGet, apiPost } from '../../apis/HttpRequest'
 
 @Resolver()
 export class TransactionResolver {
