@@ -464,7 +464,9 @@ jobs:
       ##########################################################################
       # DOCKER COMPOSE DATABASE UP + RESET #####################################
       ##########################################################################
-      - name: database | docker-compose - up
+      - name: database | docker-compose
         run: docker-compose -f docker-compose.yml up --detach database
+      - name: database | up
+        run: docker-compose run -T database yarn up
       - name: database | reset
-        run: docker-compose exec -T database yarn reset
+        run: docker-compose run -T database yarn reset
