@@ -456,6 +456,14 @@ jobs:
     runs-on: ubuntu-latest
     #needs: [nothing]
     steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOCKER COMPOSE DATABASE UP + RESET #####################################
+      ##########################################################################
       - name: database | docker-compose - up
         run: docker-compose -f docker-compose.yml up --detach database
       - name: database | reset
