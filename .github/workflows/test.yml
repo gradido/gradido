@@ -467,6 +467,6 @@ jobs:
       - name: database | docker-compose
         run: docker-compose -f docker-compose.yml up --detach database
       - name: database | up
-        run: docker-compose run -T database yarn up
+        run: docker-compose -f docker-compose.yml run -T database yarn up
       - name: database | reset
-        run: docker-compose run -T database yarn reset
+        run: docker-compose -f docker-compose.yml run -T database yarn reset
