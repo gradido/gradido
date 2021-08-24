@@ -13,7 +13,7 @@
             class="text-right"
             style="width: 95%; position: absolute"
           >
-            <b-button v-if="decay.balance > 0" class="btn-sm">
+            <b-button class="btn-sm">
               <b>i</b>
             </b-button>
           </div>
@@ -53,7 +53,7 @@
               </b-row>
 
               <!-- Decay -->
-              <b-row v-if="decay && decay.balance > 0">
+              <b-row v-if="decay && !decay.decayStartBlock">
                 <div class="col-5 text-right">
                   <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
                 </div>

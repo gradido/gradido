@@ -38,7 +38,8 @@
     "sent":"Gesendet",
     "created":"Geschöpft",
     "fromCommunity":"Aus der Gemeinschaft",
-    "toCommunity":"An die Gemeinschaft"
+    "toCommunity":"An die Gemeinschaft",
+    "noDecay": "Keine Vergänglichkeit"
   }, 
   "form": {
     "cancel": "Abbrechen",
