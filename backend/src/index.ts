@@ -8,7 +8,6 @@ import connection from './database/connection'
 import CONFIG from './config'
 
 // TODO move to extern
-// import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 import { GdtResolver } from './graphql/resolvers/GdtResolver'
