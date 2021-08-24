@@ -1,7 +1,12 @@
 <template>
   <div>
     <span v-if="decaytyp === 'short'">
-      {{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}
+      <div v-if="decay.balance > 0">
+        {{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}
+      </div>
+      <div v-else>
+        {{ $t('decay.noDecay') }}
+      </div>
     </span>
 
     <div v-if="decaytyp === 'new'">
