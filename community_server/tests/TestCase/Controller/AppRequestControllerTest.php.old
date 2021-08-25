@@ -32,9 +32,9 @@ class AppRequestControllerTest extends TestCase
     
     
     
-    /*public function setUp() {
+    public function setUp() {
         parent::setUp();
-    }*/
+    }
 
     /**
      * Test ajaxGetBalance method
