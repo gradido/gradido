@@ -27,8 +27,7 @@ class AppRequestControllerTest extends TestCase
         'app.TransactionSignatures',
         'app.TransactionSendCoins',
         'app.StateBalances',
-        'app.TransactionTypes',
-        'app.Migrations'
+        'app.TransactionTypes'
     ];
     
     
