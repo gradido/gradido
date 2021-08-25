@@ -157,24 +157,6 @@ msgstr ""
 msgid "Gradido Transaktion fehlgeschlagen!"
 msgstr ""
 
-#: Controller/MigrationsController.php:124
-#: Controller/MigrationsController.php:148
-msgid "The migration has been saved."
-msgstr ""
-
-#: Controller/MigrationsController.php:128
-#: Controller/MigrationsController.php:152
-msgid "The migration could not be saved. Please, try again."
-msgstr ""
-
-#: Controller/MigrationsController.php:169
-msgid "The migration has been deleted."
-msgstr ""
-
-#: Controller/MigrationsController.php:171
-msgid "The migration could not be deleted. Please, try again."
-msgstr ""
-
 #: Controller/OperatorTypesController.php:54
 #: Controller/OperatorTypesController.php:78
 msgid "The operator type has been saved."
@@ -858,9 +840,6 @@ msgstr ""
 #: Template/CommunityProfiles/view.ctp:9 Template/ElopageBuys/add.ctp:9
 #: Template/ElopageBuys/edit.ctp:9 Template/ElopageBuys/index.ctp:9
 #: Template/ElopageBuys/index.ctp:30 Template/ElopageBuys/view.ctp:9
-#: Template/Migrations/add.ctp:9 Template/Migrations/edit.ctp:9
-#: Template/Migrations/index.ctp:9 Template/Migrations/index.ctp:20
-#: Template/Migrations/view.ctp:9 Template/OperatorTypes/add.ctp:9
 #: Template/OperatorTypes/edit.ctp:9 Template/OperatorTypes/index.ctp:9
 #: Template/OperatorTypes/index.ctp:23 Template/OperatorTypes/view.ctp:9
 #: Template/OperatorTypes/view.ctp:43 Template/Operators/add.ctp:9
@@ -1011,7 +990,6 @@ msgstr ""
 #: Template/BlockchainTypes/add.ctp:23 Template/BlockchainTypes/edit.ctp:29
 #: Template/CommunityProfiles/add.ctp:22 Template/CommunityProfiles/edit.ctp:28
 #: Template/ElopageBuys/add.ctp:31 Template/ElopageBuys/edit.ctp:37
-#: Template/Migrations/add.ctp:21 Template/Migrations/edit.ctp:27
 #: Template/OperatorTypes/add.ctp:24 Template/OperatorTypes/edit.ctp:30
 #: Template/Operators/add.ctp:24 Template/Operators/edit.ctp:30
 #: Template/Roles/add.ctp:21 Template/Roles/edit.ctp:27
@@ -1051,8 +1029,6 @@ msgstr ""
 #: Template/BlockchainTypes/edit.ctp:11 Template/BlockchainTypes/index.ctp:35
 #: Template/CommunityProfiles/edit.ctp:11
 #: Template/CommunityProfiles/index.ctp:33 Template/ElopageBuys/edit.ctp:11
-#: Template/ElopageBuys/index.ctp:51 Template/Migrations/edit.ctp:11
-#: Template/Migrations/index.ctp:31 Template/OperatorTypes/edit.ctp:11
 #: Template/OperatorTypes/index.ctp:35 Template/OperatorTypes/view.ctp:54
 #: Template/Operators/edit.ctp:11 Template/Operators/index.ctp:40
 #: Template/Roles/edit.ctp:11 Template/Roles/index.ctp:31
@@ -1102,8 +1078,6 @@ msgstr ""
 #: Template/CommunityProfiles/index.ctp:33
 #: Template/CommunityProfiles/view.ctp:11 Template/ElopageBuys/edit.ctp:13
 #: Template/ElopageBuys/index.ctp:51 Template/ElopageBuys/view.ctp:11
-#: Template/Migrations/edit.ctp:13 Template/Migrations/index.ctp:31
-#: Template/Migrations/view.ctp:11 Template/OperatorTypes/edit.ctp:13
 #: Template/OperatorTypes/index.ctp:35 Template/OperatorTypes/view.ctp:11
 #: Template/OperatorTypes/view.ctp:54 Template/Operators/edit.ctp:13
 #: Template/Operators/index.ctp:40 Template/Operators/view.ctp:11
@@ -1183,7 +1157,6 @@ msgstr ""
 #: Template/AddressTypes/view.ctp:83 Template/AdminErrors/index.ctp:39
 #: Template/BlockchainTypes/index.ctp:33
 #: Template/CommunityProfiles/index.ctp:31 Template/ElopageBuys/index.ctp:49
-#: Template/Migrations/index.ctp:29 Template/OperatorTypes/index.ctp:33
 #: Template/OperatorTypes/view.ctp:52 Template/Operators/index.ctp:38
 #: Template/Roles/index.ctp:29 Template/ServerUsers/index.ctp:41
 #: Template/StateBalances/index.ctp:36 Template/StateCreated/index.ctp:43
@@ -1215,7 +1188,6 @@ msgstr ""
 #: Template/AddressTypes/view.ctp:84 Template/AdminErrors/index.ctp:41
 #: Template/BlockchainTypes/index.ctp:34
 #: Template/CommunityProfiles/index.ctp:32 Template/ElopageBuys/index.ctp:50
-#: Template/Migrations/index.ctp:30 Template/OperatorTypes/index.ctp:34
 #: Template/OperatorTypes/view.ctp:53 Template/Operators/index.ctp:39
 #: Template/Roles/index.ctp:30 Template/ServerUsers/index.ctp:42
 #: Template/StateBalances/index.ctp:37 Template/StateCreated/index.ctp:44
@@ -1242,7 +1214,6 @@ msgstr ""
 #: Template/AddressTypes/index.ctp:45 Template/AdminErrors/index.ctp:50
 #: Template/BlockchainTypes/index.ctp:43
 #: Template/CommunityProfiles/index.ctp:41 Template/ElopageBuys/index.ctp:59
-#: Template/Migrations/index.ctp:39 Template/OperatorTypes/index.ctp:43
 #: Template/Operators/index.ctp:48 Template/Roles/index.ctp:39
 #: Template/ServerUsers/index.ctp:51 Template/StateBalances/index.ctp:46
 #: Template/StateCreated/index.ctp:53 Template/StateErrors/index.ctp:47
@@ -1266,7 +1237,6 @@ msgstr ""
 #: Template/AddressTypes/index.ctp:46 Template/AdminErrors/index.ctp:51
 #: Template/BlockchainTypes/index.ctp:44
 #: Template/CommunityProfiles/index.ctp:42 Template/ElopageBuys/index.ctp:60
-#: Template/Migrations/index.ctp:40 Template/OperatorTypes/index.ctp:44
 #: Template/Operators/index.ctp:49 Template/Roles/index.ctp:40
 #: Template/ServerUsers/index.ctp:52 Template/StateBalances/index.ctp:47
 #: Template/StateCreated/index.ctp:54 Template/StateErrors/index.ctp:48
@@ -1290,7 +1260,6 @@ msgstr ""
 #: Template/AddressTypes/index.ctp:48 Template/AdminErrors/index.ctp:53
 #: Template/BlockchainTypes/index.ctp:46
 #: Template/CommunityProfiles/index.ctp:44 Template/ElopageBuys/index.ctp:62
-#: Template/Migrations/index.ctp:42 Template/OperatorTypes/index.ctp:46
 #: Template/Operators/index.ctp:51 Template/Roles/index.ctp:42
 #: Template/ServerUsers/index.ctp:54 Template/StateBalances/index.ctp:49
 #: Template/StateCreated/index.ctp:56 Template/StateErrors/index.ctp:50
@@ -1314,7 +1283,6 @@ msgstr ""
 #: Template/AddressTypes/index.ctp:49 Template/AdminErrors/index.ctp:54
 #: Template/BlockchainTypes/index.ctp:47
 #: Template/CommunityProfiles/index.ctp:45 Template/ElopageBuys/index.ctp:63
-#: Template/Migrations/index.ctp:43 Template/OperatorTypes/index.ctp:47
 #: Template/Operators/index.ctp:52 Template/Roles/index.ctp:43
 #: Template/ServerUsers/index.ctp:55 Template/StateBalances/index.ctp:50
 #: Template/StateCreated/index.ctp:57 Template/StateErrors/index.ctp:51
@@ -1338,7 +1306,6 @@ msgstr ""
 #: Template/AddressTypes/index.ctp:51 Template/AdminErrors/index.ctp:56
 #: Template/BlockchainTypes/index.ctp:49
 #: Template/CommunityProfiles/index.ctp:47 Template/ElopageBuys/index.ctp:65
-#: Template/Migrations/index.ctp:45 Template/OperatorTypes/index.ctp:49
 #: Template/Operators/index.ctp:54 Template/Roles/index.ctp:45
 #: Template/ServerUsers/index.ctp:57 Template/StateBalances/index.ctp:52
 #: Template/StateCreated/index.ctp:59 Template/StateErrors/index.ctp:53
@@ -1385,7 +1352,6 @@ msgstr ""
 #: Template/AddressTypes/view.ctp:32 Template/AddressTypes/view.ctp:41
 #: Template/AddressTypes/view.ctp:68 Template/AdminErrors/view.ctp:46
 #: Template/BlockchainTypes/view.ctp:32 Template/CommunityProfiles/view.ctp:24
-#: Template/ElopageBuys/view.ctp:32 Template/Migrations/view.ctp:20
 #: Template/OperatorTypes/view.ctp:30 Template/OperatorTypes/view.ctp:39
 #: Template/Operators/view.ctp:32 Template/Roles/view.ctp:24
 #: Template/ServerUsers/view.ctp:36 Template/StateBalances/view.ctp:27
@@ -1873,35 +1839,6 @@ msgstr ""
 
 #: Template/Layout/frontend.ctp:108
 msgid "Community Server in Entwicklung"
-msgstr ""
-
-#: Template/Migrations/add.ctp:10 Template/Migrations/edit.ctp:16
-#: Template/Migrations/view.ctp:12
-msgid "List Migrations"
-msgstr ""
-
-#: Template/Migrations/add.ctp:16
-msgid "Add Migration"
-msgstr ""
-
-#: Template/Migrations/edit.ctp:22 Template/Migrations/view.ctp:10
-msgid "Edit Migration"
-msgstr ""
-
-#: Template/Migrations/index.ctp:10 Template/Migrations/view.ctp:13
-msgid "New Migration"
-msgstr ""
-
-#: Template/Migrations/index.ctp:14
-msgid "Migrations"
-msgstr ""
-
-#: Template/Migrations/view.ctp:11
-msgid "Delete Migration"
-msgstr ""
-
-#: Template/Migrations/view.ctp:24
-msgid "Db Version"
 msgstr ""
 
 #: Template/OperatorTypes/add.ctp:10 Template/OperatorTypes/edit.ctp:16

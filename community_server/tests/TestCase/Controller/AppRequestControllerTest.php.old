@@ -27,16 +27,15 @@ class AppRequestControllerTest extends TestCase
         'app.TransactionSignatures',
         'app.TransactionSendCoins',
         'app.StateBalances',
-        'app.TransactionTypes',
-        'app.Migrations'
+        'app.TransactionTypes'
     ];
     
     
     
-    /*public function setUp() {
+    public function setUp() {
         parent::setUp();
     }
-*/
+
     /**
      * Test ajaxGetBalance method
      *
