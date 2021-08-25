@@ -32,16 +32,16 @@ class AppRequestControllerTest extends TestCase
     
     
     
-    /*public function setUp() {
+    public function setUp() {
         parent::setUp();
     }
-*/
+
     /**
      * Test ajaxGetBalance method
      *
      * @return void
      */
-    /* public function testGetBalance1()
+    public function testGetBalance1()
     {
         $session_id = rand();
         $this->session([
@@ -59,9 +59,9 @@ class AppRequestControllerTest extends TestCase
         $this->assertEquals(9099652, $response->balance);
         $this->assertLessThan(9099652, $response->decay);
         
-    } */
+    }
     
-    /* public function testGetBalance2()
+    public function testGetBalance2()
     {
         $session_id = rand();
         $this->session([
@@ -77,8 +77,8 @@ class AppRequestControllerTest extends TestCase
         $response = $this->getAndParseWithoutCompare('/api/get-balance/' . $session_id);
         $this->assertEquals('success', $response->state);
         $this->assertEquals(0, $response->balance);
-    } */
-    /* public function testGetBalance3()
+    }
+    public function testGetBalance3()
     {
         $session_id = rand();
         $this->session([
@@ -95,9 +95,9 @@ class AppRequestControllerTest extends TestCase
         $this->assertEquals('success', $response->state);
         $this->assertEquals(10899568, $response->balance);
         $this->assertLessThan(10899568, $response->decay);
-    } */
+    }
     
-    /* public function testGetBalanceInvalidSession()
+    public function testGetBalanceInvalidSession()
     {
         $session_id = rand();
         $this->session([
@@ -114,9 +114,9 @@ class AppRequestControllerTest extends TestCase
                     'details' => ['msg' => 'session not found', 'state' => 'not found']
                 ]
         );
-    } */
+    }
     
-    /* public function testGetBalanceInvalidSessionId()
+    public function testGetBalanceInvalidSessionId()
     {
         $session_id = rand();
         $this->session([
@@ -133,14 +133,14 @@ class AppRequestControllerTest extends TestCase
                     'details' => ['msg' => 'session not found', 'state' => 'not found']
                 ]
         );
-    } */
+    }
 
     /**
      * Test ajaxListTransactions method
      *
      * @return void
      */
-    /* public function testListTransactions()
+    public function testListTransactions()
     {
         //ajaxListTransactions
         $session_id = rand();
@@ -266,10 +266,10 @@ class AppRequestControllerTest extends TestCase
 	"decay": 7753926
 }';
         $this->getAndParse('/api/list-transactions/', json_decode($expectedResult, true));
-    } */
+    }
     
     
-    /* private function getAndParse($path, $expected)
+    private function getAndParse($path, $expected)
     {
         $this->configRequest([
             'headers' => ['Accept' => 'application/json']
@@ -318,8 +318,8 @@ class AppRequestControllerTest extends TestCase
         }
         
         $this->assertEquals($expected, $responseBodyString);
-    } */
-    /* private function getAndParseWithoutCompare($path) 
+    }
+    private function getAndParseWithoutCompare($path) 
     {
         $this->configRequest([
             'headers' => ['Accept' => 'application/json']
@@ -341,5 +341,5 @@ class AppRequestControllerTest extends TestCase
         $this->assertNotFalse($json);
 
         return $json;
-    } */
+    }
 }
