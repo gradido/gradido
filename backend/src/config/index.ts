@@ -14,8 +14,8 @@ const server = {
   KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
   KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'gradido_test',
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',
-  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || '4vgozlkpz8z726a',
-  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || '4vgpzlkpz8zb79c',
+  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || 'SomeFakeKeyDE',
+  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
 }
 
 // This is needed by graphql-directive-auth
