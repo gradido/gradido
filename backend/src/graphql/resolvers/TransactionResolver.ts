@@ -1,4 +1,4 @@
-import { Resolver, Query, Args } from 'type-graphql'
+import { Resolver, Query, Args, Authorized } from 'type-graphql'
 import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
@@ -6,6 +6,7 @@ import { apiGet, apiPost } from '../../apis/loginAPI'
 
 @Resolver()
 export class TransactionResolver {
+  @Authorized()
   @Query(() => TransactionList)
   async transactionList(
     @Args() { sessionId, firstPage = 1, items = 25, order = 'DESC' }: TransactionListInput,
@@ -17,6 +18,7 @@ export class TransactionResolver {
     return new TransactionList(result.data)
   }
 
+  @Authorized()
   @Query(() => String)
   async sendCoins(
     @Args() { sessionId, email, amount, memo }: TransactionSendArgs,

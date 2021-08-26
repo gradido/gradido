@@ -2,17 +2,16 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import jwt from 'jsonwebtoken'
-import '../config'
+import CONFIG from '../config/'
 
-export default async (authorizationHeader: string): any => {
-  if (!authorizationHeader) return null
-  const token = authorizationHeader.replace('Bearer ', '')
+export default (token: string): any => {
+  if (!token) return null
   let sessionId = null
-  let email = null
+  const email = null
   try {
-    const decoded = await jwt.verify(token, CONFIG.JWT_SECRET)
+    const decoded = jwt.verify(token, CONFIG.JWT_SECRET)
     sessionId = decoded.sub
-    email = decoded.email
+    // email = decoded.email
   } catch (err) {
     return null
   }
