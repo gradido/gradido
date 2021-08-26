@@ -21,9 +21,10 @@ const DB_VERSION = '0001-init_db'
 async function main() {
   // check for correct database version
   const con = await connection()
-  const [rows] = await con.query(`SELECT fileName FROM migrations ORDER BY version DESC LIMIT 1;`)
+  const [rows] = await con.query(`SELECT * FROM migrations ORDER BY version DESC LIMIT 1;`)
   if (
     (<RowDataPacket>rows).length === 0 ||
+    !(<RowDataPacket>rows)[0].fileName ||
     (<RowDataPacket>rows)[0].fileName.indexOf(DB_VERSION) === -1
   ) {
     throw new Error(`Wrong database version - the backend requires '${DB_VERSION}'`)
