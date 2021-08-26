@@ -51,14 +51,15 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('description', '')
-    sessionStorage.clear()
+    commit('token', null)
+    localStorage.clear()
   },
 }
 
 export const store = new Vuex.Store({
   plugins: [
     createPersistedState({
-      storage: window.sessionStorage,
+      storage: window.localStorage,
     }),
   ],
   state: {
@@ -69,6 +70,7 @@ export const store = new Vuex.Store({
     lastName: '',
     username: '',
     description: '',
+    token: null,
   },
   getters: {},
   // Syncronous mutation of the state

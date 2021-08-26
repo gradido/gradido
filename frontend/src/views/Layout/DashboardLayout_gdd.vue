@@ -107,7 +107,6 @@ export default {
     },
     async updateTransactions(pagination) {
       this.pending = true
-      console.log('Session ID', this.$store.state.sessionId)
       this.$apollo
         .query({
           query: transactionsQuery,
@@ -119,11 +118,9 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          console.log(result)
           const {
             data: { transactionList },
           } = result
-          console.log(transactionList)
           this.GdtBalance = Number(transactionList.gdtSum)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.decay)

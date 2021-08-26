@@ -3,7 +3,7 @@ import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
-import ApolloClient from 'apollo-boost'
+import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
 
@@ -11,7 +11,21 @@ import { store } from './store/store'
 
 import router from './routes/router'
 
+const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
+
+const authLink = new ApolloLink((operation, forward) => {
+  const token = store.state.token
+  operation.setContext({
+    headers: {
+      Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
+    },
+  })
+  return forward(operation)
+})
+
 const apolloClient = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
   uri: CONFIG.GRAPHQL_URI,
 })
 
