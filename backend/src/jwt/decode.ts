@@ -12,12 +12,12 @@ export default (token: string): any => {
     const decoded = jwt.verify(token, CONFIG.JWT_SECRET)
     sessionId = decoded.sub
     // email = decoded.email
+    return {
+      token,
+      sessionId,
+      email,
+    }
   } catch (err) {
     return null
-  }
-  return {
-    token,
-    sessionId,
-    email,
   }
 }
