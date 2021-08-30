@@ -1,5 +1,5 @@
 // import jwt from 'jsonwebtoken'
-import { Resolver, Query, Args, Arg } from 'type-graphql'
+import { Resolver, Query, Args, Arg, UseMiddleware } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginResponse } from '../models/LoginResponse'
@@ -15,6 +15,7 @@ import {
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import { KlicktippConnector } from '../../apis/klicktippAPI'
+import { registerMiddleware } from '../../middleware/registerMiddleware'
 
 @Resolver()
 export class UserResolver {
@@ -73,6 +74,7 @@ export class UserResolver {
   }
 
   @Query(() => String)
+  @UseMiddleware(registerMiddleware)
   async create(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
@@ -94,11 +96,12 @@ export class UserResolver {
     //   CONFIG.KLICKTIPP_PASSWORD,
     // )
     // if (loginSuccessful) {
-    const fields = {}
-    const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-    await this.connector.signin(apiKey, email, fields)
+    // const fields = {}
+    // const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+    // await this.connector.signin(apiKey, email, fields)
     // }
 
+    // I think we need something more than success here to process the returned data in the middleware
     return 'success'
   }
 
