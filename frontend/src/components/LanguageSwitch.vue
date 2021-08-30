@@ -32,7 +32,7 @@ export default {
       localeChanged(locale)
     },
     async saveLocale(locale) {
-      if (this.$i18n.locale === locale) return
+      // if (this.$i18n.locale === locale) return
       this.setLocale(locale)
       if (this.$store.state.email) {
         this.$apollo
