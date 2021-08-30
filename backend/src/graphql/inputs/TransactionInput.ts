@@ -2,9 +2,6 @@ import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class TransactionListInput {
-  @Field(() => Number)
-  sessionId: number
-
   @Field(() => Int)
   firstPage: number
 

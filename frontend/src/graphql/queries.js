@@ -56,8 +56,8 @@ export const updateUserInfos = gql`
 `
 
 export const transactionsQuery = gql`
-  query($sessionId: Float!, $firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
-    transactionList(sessionId: $sessionId, firstPage: $firstPage, items: $items, order: $order) {
+  query($firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
+    transactionList(firstPage: $firstPage, items: $items, order: $order) {
       gdtSum
       count
       balance

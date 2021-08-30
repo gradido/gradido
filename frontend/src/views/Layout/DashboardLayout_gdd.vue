@@ -111,7 +111,6 @@ export default {
         .query({
           query: transactionsQuery,
           variables: {
-            sessionId: this.$store.state.sessionId,
             firstPage: pagination.firstPage,
             items: pagination.items,
           },

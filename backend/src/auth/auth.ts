@@ -7,7 +7,10 @@ import decode from '../jwt/decode'
 export const isAuthorized: AuthChecker<any> = ({ root, args, context, info }, roles) => {
   if (context.token) {
     const decoded = decode(context.token)
-    if (decoded.sessionId && decoded.sessionId !== 0) return true
+    if (decoded.sessionId && decoded.sessionId !== 0) {
+      context.sessionId = decoded.sessionId
+      return true
+    }
   }
   return false
 }
