@@ -80,6 +80,9 @@ describe('Register', () => {
       it('has password repeat input fields', () => {
         expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
       })
+      it('has Language selected field', () => {
+        expect(wrapper.find('#selectedLanguage').exists()).toBeTruthy()
+      })
 
       it('has 1 checkbox input fields', () => {
         expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
@@ -214,6 +217,7 @@ describe('Register', () => {
                 firstName: 'Max',
                 lastName: 'Mustermann',
                 password: 'Aa123456',
+                language: 'null',
               },
             }),
           )
