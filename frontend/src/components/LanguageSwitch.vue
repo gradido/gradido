@@ -32,13 +32,13 @@ export default {
       localeChanged(locale)
     },
     async saveLocale(locale) {
+      if (this.$i18n.locale === locale) return
       this.setLocale(locale)
-      if (this.$store.state.sessionId && this.$store.state.email) {
+      if (this.$store.state.email) {
         this.$apollo
           .query({
             query: updateUserInfos,
             variables: {
-              sessionId: this.$store.state.sessionId,
               email: this.$store.state.email,
               locale: locale,
             },

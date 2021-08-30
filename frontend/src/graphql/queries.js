@@ -29,7 +29,6 @@ export const loginViaEmailVerificationCode = gql`
 
 export const updateUserInfos = gql`
   query(
-    $sessionId: Float!
     $email: String!
     $firstName: String
     $lastName: String
@@ -40,7 +39,6 @@ export const updateUserInfos = gql`
     $locale: String
   ) {
     updateUserInfos(
-      sessionId: $sessionId
       email: $email
       firstName: $firstName
       lastName: $lastName

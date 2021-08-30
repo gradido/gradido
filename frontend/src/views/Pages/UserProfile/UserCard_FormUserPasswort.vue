@@ -81,7 +81,6 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
-            sessionId: this.$store.state.sessionId,
             email: this.$store.state.email,
             password: this.form.password,
             passwordNew: this.form.newPassword.password,

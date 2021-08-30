@@ -108,11 +108,11 @@ export class UserResolver {
     return 'sucess'
   }
 
+  @Authorized()
   @Query(() => UpdateUserInfosResponse)
   async updateUserInfos(
     @Args()
     {
-      sessionId,
       email,
       firstName,
       lastName,
@@ -122,9 +122,10 @@ export class UserResolver {
       password,
       passwordNew,
     }: UpdateUserInfosArgs,
+    @Ctx() context: any,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
-      session_id: sessionId,
+      session_id: context.sessionId,
       email,
       update: {
         'User.first_name': firstName || undefined,
