@@ -1,5 +1,7 @@
-// import jwt from 'jsonwebtoken'
-import { Resolver, Query, Args, Arg } from 'type-graphql'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+import { Resolver, Query, Args, Arg, Authorized, Ctx } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { User } from '../models/User'
@@ -28,12 +30,6 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    // temporary solution until we have JWT implemented
-    // return new LoginResponse(result.data)
-
-    // create and return the json web token
-    // The expire doesn't help us here. The client needs to track when the token expires on its own,
-    // since every action prolongs the time the session is valid.
     const data = result.data
     const sessionId = data.session_id
     delete data.session_id
@@ -55,9 +51,10 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
+  @Authorized()
   @Query(() => String)
-  async logout(@Arg('sessionId') sessionId: number): Promise<string> {
-    const payload = { session_id: sessionId }
+  async logout(@Ctx() context: any): Promise<string> {
+    const payload = { session_id: context.sessionId }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
     if (!result.success) {
       throw new Error(result.data)
