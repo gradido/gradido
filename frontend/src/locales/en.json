@@ -38,7 +38,8 @@
     "sent":"Sent",
     "created":"Created",
     "fromCommunity":"From the community",
-    "toCommunity":"To the community"
+    "toCommunity":"To the community",
+    "noDecay": "No Decay"
   },
   "form": {
     "cancel":"Cancel",

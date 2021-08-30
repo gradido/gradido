@@ -22,7 +22,5 @@ WORKDIR ${DOCKER_WORKDIR}
 COPY ./skeema/.skeema .
 COPY ./login_server/skeema/ .
 COPY ./mariadb/.skeema.login ./gradido_login/.skeema
-COPY ./community_server/db/skeema/ . 
-COPY ./mariadb/.skeema.community ./gradido_community/.skeema
 
 CMD skeema push --allow-unsafe
