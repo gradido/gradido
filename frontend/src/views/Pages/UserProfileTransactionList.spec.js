@@ -13,11 +13,6 @@ describe('UserProfileTransactionList', () => {
     $i18n: {
       locale: jest.fn(() => 'en'),
     },
-    $store: {
-      state: {
-        sessionId: 1,
-      },
-    },
   }
 
   const stubs = {
