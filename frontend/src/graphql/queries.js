@@ -113,8 +113,8 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query($currentPage: Int!, $pageSize: Int!, $sessionId: Float!) {
-    listGDTEntries(currentPage: $currentPage, pageSize: $pageSize, sessionId: $sessionId) {
+  query($currentPage: Int!, $pageSize: Int!) {
+    listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
       count
       gdtEntries {
         amount
