@@ -14,9 +14,6 @@ export class TransactionListInput {
 
 @ArgsType()
 export class TransactionSendArgs {
-  @Field(() => Number)
-  sessionId: number
-
   @Field(() => String)
   email: string
 

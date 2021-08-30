@@ -25,10 +25,11 @@ export class TransactionResolver {
   @Authorized()
   @Query(() => String)
   async sendCoins(
-    @Args() { sessionId, email, amount, memo }: TransactionSendArgs,
+    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Ctx() context: any,
   ): Promise<string> {
     const payload = {
-      session_id: sessionId,
+      session_id: context.sessionId,
       target_email: email,
       amount: amount * 10000,
       memo,

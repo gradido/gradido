@@ -91,8 +91,8 @@ export const resgisterUserQuery = gql`
 `
 
 export const sendCoins = gql`
-  query($sessionId: Float!, $email: String!, $amount: Float!, $memo: String!) {
-    sendCoins(sessionId: $sessionId, email: $email, amount: $amount, memo: $memo)
+  query($email: String!, $amount: Float!, $memo: String!) {
+    sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `
 
