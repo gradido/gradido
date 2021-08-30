@@ -12,9 +12,6 @@ export const mutations = {
   email: (state, email) => {
     state.email = email
   },
-  sessionId: (state, sessionId) => {
-    state.sessionId = sessionId
-  },
   username: (state, username) => {
     state.username = username
   },
@@ -35,23 +32,21 @@ export const mutations = {
 export const actions = {
   login: ({ dispatch, commit }, token) => {
     const decoded = VueJwtDecode.decode(token)
-    commit('sessionId', decoded.sessionId)
+    commit('token', token)
     commit('email', decoded.email)
     commit('language', decoded.language)
     commit('username', decoded.username)
     commit('firstName', decoded.firstName)
     commit('lastName', decoded.lastName)
     commit('description', decoded.description)
-    commit('token', token)
   },
   logout: ({ commit, state }) => {
-    commit('sessionId', null)
+    commit('token', null)
     commit('email', null)
     commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
     commit('description', '')
-    commit('token', null)
     localStorage.clear()
   },
 }
@@ -63,7 +58,6 @@ export const store = new Vuex.Store({
     }),
   ],
   state: {
-    sessionId: null,
     email: '',
     language: null,
     firstName: '',
