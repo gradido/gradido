@@ -169,6 +169,19 @@ const iconsByType = {
   7: { icon: 'gift', classes: 'gradido-global-color-accent' },
 }
 
+function iconByType(typeId)
+{
+    switch(typeId) {
+      case 1:
+      case 2:
+      case 3:
+      case 5: 
+      case 6: return { icon: 'heart', classes: 'gradido-global-color-accent' }
+      case 4: return { icon: 'person-check', classes: 'gradido-global-color-accent' }
+      case 7: return { icon: 'gift', classes: 'gradido-global-color-accent' }
+    }
+}
+
 export default {
   name: 'gdt-transaction-list',
   components: {
@@ -216,7 +229,7 @@ export default {
         })
     },
     getIcon(givenType) {
-      const type = iconsByType[givenType]
+      const type = iconByType(givenType)
       if (type)
         return {
           icon: type.icon,
