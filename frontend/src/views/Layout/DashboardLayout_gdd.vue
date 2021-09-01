@@ -92,7 +92,6 @@ export default {
       this.$apollo
         .query({
           query: logout,
-          variables: { sessionId: this.$store.state.sessionId },
         })
         .then(() => {
           this.$sidebar.displaySidebar(false)
@@ -111,7 +110,6 @@ export default {
         .query({
           query: transactionsQuery,
           variables: {
-            sessionId: this.$store.state.sessionId,
             firstPage: pagination.firstPage,
             items: pagination.items,
           },

@@ -16,12 +16,12 @@ describe('AccountOverview', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $n: jest.fn((n) => String(n)),
     $store: {
       state: {
-        sessionId: 1,
+        email: 'sender@example.org',
       },
     },
-    $n: jest.fn((n) => String(n)),
     $apollo: {
       query: sendMock,
     },
@@ -93,7 +93,6 @@ describe('AccountOverview', () => {
           expect(sendMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                sessionId: 1,
                 email: 'user@example.org',
                 amount: 23.45,
                 memo: 'Make the best of it!',

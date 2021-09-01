@@ -14,7 +14,6 @@ describe('UserCard_FormUserMail', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        sessionId: 1,
         email: 'user@example.org',
         firstName: 'Peter',
         lastName: 'Lustig',
@@ -76,7 +75,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                sessionId: 1,
                 email: 'user@example.org',
                 newEmail: 'test@example.org',
               },
@@ -106,7 +104,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                sessionId: 1,
                 email: 'user@example.org',
                 newEmail: 'test@example.org',
               },

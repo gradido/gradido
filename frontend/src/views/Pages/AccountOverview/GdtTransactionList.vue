@@ -208,7 +208,6 @@ export default {
         .query({
           query: listGDTEntriesQuery,
           variables: {
-            sessionId: this.$store.state.sessionId,
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           },

@@ -17,7 +17,6 @@ describe('UserCard_FormUserPasswort', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        sessionId: 1,
         email: 'user@example.org',
       },
     },
@@ -175,7 +174,6 @@ describe('UserCard_FormUserPasswort', () => {
             expect(changePasswordProfileMock).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
-                  sessionId: 1,
                   email: 'user@example.org',
                   password: '1234',
                   passwordNew: 'Aa123456',

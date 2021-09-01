@@ -2,23 +2,13 @@ import gql from 'graphql-tag'
 
 export const login = gql`
   query($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      sessionId
-      user {
-        email
-        firstName
-        lastName
-        language
-        username
-        description
-      }
-    }
+    login(email: $email, password: $password)
   }
 `
 
 export const logout = gql`
-  query($sessionId: Float!) {
-    logout(sessionId: $sessionId)
+  query {
+    logout
   }
 `
 
@@ -39,7 +29,6 @@ export const loginViaEmailVerificationCode = gql`
 
 export const updateUserInfos = gql`
   query(
-    $sessionId: Float!
     $email: String!
     $firstName: String
     $lastName: String
@@ -50,7 +39,6 @@ export const updateUserInfos = gql`
     $locale: String
   ) {
     updateUserInfos(
-      sessionId: $sessionId
       email: $email
       firstName: $firstName
       lastName: $lastName
@@ -66,8 +54,8 @@ export const updateUserInfos = gql`
 `
 
 export const transactionsQuery = gql`
-  query($sessionId: Float!, $firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
-    transactionList(sessionId: $sessionId, firstPage: $firstPage, items: $items, order: $order) {
+  query($firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
+    transactionList(firstPage: $firstPage, items: $items, order: $order) {
       gdtSum
       count
       balance
@@ -103,8 +91,8 @@ export const resgisterUserQuery = gql`
 `
 
 export const sendCoins = gql`
-  query($sessionId: Float!, $email: String!, $amount: Float!, $memo: String!) {
-    sendCoins(sessionId: $sessionId, email: $email, amount: $amount, memo: $memo)
+  query($email: String!, $amount: Float!, $memo: String!) {
+    sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `
 
@@ -125,8 +113,8 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query($currentPage: Int!, $pageSize: Int!, $sessionId: Float!) {
-    listGDTEntries(currentPage: $currentPage, pageSize: $pageSize, sessionId: $sessionId) {
+  query($currentPage: Int!, $pageSize: Int!) {
+    listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
       count
       gdtEntries {
         id

@@ -17,9 +17,6 @@ export class GdtTransactionInput {
 
 @ArgsType()
 export class GdtTransactionSessionIdInput {
-  @Field(() => Number)
-  sessionId: number
-
   @Field(() => Int, { nullable: true })
   currentPage?: number
 
