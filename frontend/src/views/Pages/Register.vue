@@ -188,9 +188,8 @@ export default {
           passwordRepeat: '',
         },
         agree: false,
-      },
-      this.selected = null,
-     
+      }
+      this.selected = null
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
