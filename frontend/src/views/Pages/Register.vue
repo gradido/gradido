@@ -188,9 +188,9 @@ export default {
           passwordRepeat: '',
         },
         agree: false,
-      }
-      this.form.password.password = ''
-      this.form.password.passwordRepeat = ''
+      },
+      this.selected = null,
+     
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })

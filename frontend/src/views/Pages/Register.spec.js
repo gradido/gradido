@@ -132,10 +132,10 @@ describe('Register', () => {
         wrapper.find('input[name="site.signup.agree"]').setChecked(true)
       })
 
-      it('reset selected value', async () => {
+      it('reset selected value language', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
-        expect(wrapper.find('#selectedLanguage').element.value).toBe('de')
+        expect(wrapper.find('#selectedLanguage').element.value).toBe('')
       })
 
       it('resets the firstName field after clicking the reset button', async () => {
