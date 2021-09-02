@@ -127,6 +127,11 @@ describe('DashboardLayoutGdd', () => {
 
       describe('logout', () => {
         beforeEach(async () => {
+          await apolloMock.mockResolvedValue({
+            data: {
+              logout: 'success',
+            },
+          })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
         })
