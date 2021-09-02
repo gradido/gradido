@@ -7,7 +7,7 @@ sudo apt install -y gcovr build-essential gettext libcurl4-openssl-dev libssl-de
 ``` 
 
 ## CMake
-I use CMake for build file generation and the Login-Server needs at least version v3.18.2
+CMake is used for build file generation and the Login-Server needs at least version v3.18.2
 You can build and install it from source. 
 The Version in apt is sadly to old.
 
