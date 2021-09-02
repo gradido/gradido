@@ -131,7 +131,7 @@ describe('DashboardLayoutGdd', () => {
           await flushPromises()
         })
 
-        it('calls the API', async () => {
+        it('calls the API', () => {
           expect(apolloMock).toBeCalled()
         })
 
