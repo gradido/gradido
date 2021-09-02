@@ -127,12 +127,17 @@ describe('DashboardLayoutGdd', () => {
 
       describe('logout', () => {
         beforeEach(async () => {
+          await apolloMock.mockResolvedValue({
+            data: {
+              logout: 'success',
+            },
+          })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
         })
 
         it('calls the API', async () => {
-          expect(apolloMock).toBeCalled()
+          await expect(apolloMock).toBeCalled()
         })
 
         it('dispatches logout to store', () => {
