@@ -17,6 +17,7 @@
         } in transactionsGdt"
         :key="transactionId"
       >
+        <transaktion :date="date" :comment="comment" :gdtEntryType="gdtEntryType"> </transaktion>
         <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
           <!-- Icon  -->
           <div class="text-right" style="position: absolute">
@@ -162,6 +163,7 @@
 <script>
 import { listGDTEntriesQuery } from '../../../graphql/queries'
 import PaginationButtons from '../../../components/PaginationButtons'
+import Transaktion from '../../../components/Transaktion.vue'
 
 const iconsByType = {
   1: { icon: 'heart', classes: 'gradido-global-color-accent' },
@@ -173,6 +175,7 @@ export default {
   name: 'gdt-transaction-list',
   components: {
     PaginationButtons,
+    Transaktion,
   },
   data() {
     return {
