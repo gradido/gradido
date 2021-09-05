@@ -1,5 +1,5 @@
 // import jwt from 'jsonwebtoken'
-import { Resolver, Query, Args, Arg } from 'type-graphql'
+import { Resolver, Query, Args, Arg, UseMiddleware } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginResponse } from '../models/LoginResponse'
@@ -15,6 +15,7 @@ import {
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import { KlicktippController } from '../../apis/KlicktippController'
+import { registerMiddleware } from '../../middleware/registerMiddleware'
 
 @Resolver()
 export class UserResolver {
@@ -73,6 +74,7 @@ export class UserResolver {
   }
 
   @Query(() => String)
+  @UseMiddleware(registerMiddleware)
   async create(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
