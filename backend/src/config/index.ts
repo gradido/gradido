@@ -11,11 +11,6 @@ const server = {
   LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://login-server:1201/',
   COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://nginx/api/',
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
-  KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
-  KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'gradido_test',
-  KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',
-  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || 'SomeFakeKeyDE',
-  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
 }
 
 const database = {
@@ -26,9 +21,17 @@ const database = {
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
 }
 
+const klicktipp = {
+  KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
+  KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'gradido_test',
+  KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',
+  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || 'SomeFakeKeyDE',
+  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
+}
+
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database }
+const CONFIG = { ...server, ...database, ...klicktipp }
 
 export default CONFIG

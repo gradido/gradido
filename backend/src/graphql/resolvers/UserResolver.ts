@@ -14,11 +14,11 @@ import {
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
-import { KlicktippConnector } from '../../apis/klicktippAPI'
+import { KlicktippController } from '../../apis/KlicktippController'
 
 @Resolver()
 export class UserResolver {
-  private connector: KlicktippConnector = new KlicktippConnector(CONFIG.KLICKTTIPP_API_URL)
+  private connector: KlicktippController = new KlicktippController(CONFIG.KLICKTTIPP_API_URL)
 
   @Query(() => LoginResponse)
   async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
@@ -83,21 +83,12 @@ export class UserResolver {
       password,
       emailType: 2,
       login_after_register: true,
+      language: language,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {
       throw new Error(result.data)
     }
-
-    // const loginSuccessful = await this.connector.login(
-    //   CONFIG.KLICKTIPP_USER,
-    //   CONFIG.KLICKTIPP_PASSWORD,
-    // )
-    // if (loginSuccessful) {
-    const fields = {}
-    const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-    await this.connector.signin(apiKey, email, fields)
-    // }
 
     return 'success'
   }
