@@ -25,7 +25,6 @@ describe('UserCard_FormUsername', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        sessionId: 1,
         email: 'user@example.org',
         username: '',
       },
@@ -111,7 +110,6 @@ describe('UserCard_FormUsername', () => {
               expect.objectContaining({
                 variables: {
                   email: 'user@example.org',
-                  sessionId: 1,
                   username: 'username',
                 },
               }),
@@ -151,7 +149,6 @@ describe('UserCard_FormUsername', () => {
               expect.objectContaining({
                 variables: {
                   email: 'user@example.org',
-                  sessionId: 1,
                   username: 'username',
                 },
               }),

@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "select_language": "Please choose a language for the app and newsletter",
   "decay": {
     "decay": "Decay",
     "decay_since_last_transaction":"Decay since the last transaction",

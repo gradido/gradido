@@ -15,7 +15,6 @@ describe('LanguageSwitch', () => {
   let wrapper
 
   const state = {
-    sessionId: 1234,
     email: 'he@ho.he',
     language: null,
   }
@@ -123,7 +122,6 @@ describe('LanguageSwitch', () => {
         expect(updateUserInfosQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              sessionId: 1234,
               email: 'he@ho.he',
               locale: 'en',
             },
@@ -136,7 +134,6 @@ describe('LanguageSwitch', () => {
         expect(updateUserInfosQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              sessionId: 1234,
               email: 'he@ho.he',
               locale: 'de',
             },
