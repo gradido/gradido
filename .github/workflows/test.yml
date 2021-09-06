@@ -297,7 +297,7 @@ jobs:
       ##########################################################################
       - name: frontend | Unit tests
         run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          docker run -e BUILD_COMMIT="$(git rev-parse HEAD)" -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE REPORT FRONTEND ################################################
