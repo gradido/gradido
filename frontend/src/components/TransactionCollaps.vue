@@ -1,0 +1,78 @@
+<template>
+  <div>
+    <b-row class="gdt-list-clooaps-header-text text-center pb-3">
+      <div class="col h4">
+        {{ getLinesByType(gdtEntryType).headline }}
+      </div>
+    </b-row>
+    <b-row class="gdt-list-clooaps-box--all">
+      <div class="col-6 text-right clooaps-col-left">
+        <div>{{ getLinesByType(gdtEntryType).first }}</div>
+        <div>{{ getLinesByType(gdtEntryType).second }}</div>
+      </div>
+      <div class="col-6 clooaps-col-right">
+        <div>{{ getLinesByType(gdtEntryType).firstMath }}</div>
+        <div>
+          {{ getLinesByType(gdtEntryType).secondMath }}
+        </div>
+      </div>
+    </b-row>
+  </div>
+</template>
+<script>
+export default {
+  name: 'TransactionCollaps',
+  props: {
+    amount: { type: Number, default: 0 },
+    gdtEntryType: { type: Number, default: 0 },
+    factor: { type: Number, default: 0 },
+    gdt: { type: Number, default: 0 },
+  },
+  methods: {
+    getLinesByType(givenType) {
+      const linesByType = {
+        1: {
+          headline: this.$t('gdt.calculation'),
+          first: this.$t('gdt.factor'),
+          firstMath: this.factor + ' GDT pro €',
+          second: this.$t('gdt.formula'),
+          secondMath:
+            this.$n(this.amount, 'decimal') +
+            ' € * ' +
+            this.factor +
+            ' GDT / € = ' +
+            this.$n(this.gdt, 'decimal') +
+            ' GDT',
+        },
+        4: {
+          headline: this.$t('gdt.publisher'),
+        },
+        7: {
+          headline: this.$t('gdt.conversion-gdt-euro'),
+          first: this.$t('gdt.raise'),
+          firstMath: this.factor * 100 + ' % ',
+          second: this.$t('gdt.conversion'),
+          secondMath:
+            this.$n(this.amount, 'decimal') +
+            '  GDT * ' +
+            this.factor * 100 +
+            '% = ' +
+            this.$n(this.gdt, 'decimal') +
+            ' GDT',
+        },
+      }
+
+      const type = linesByType[givenType]
+
+      if (type)
+        return {
+          headline: type.headline,
+          first: type.first,
+          firstMath: type.firstMath,
+          second: type.second,
+          secondMath: type.secondMath,
+        }
+    },
+  },
+}
+</script>
