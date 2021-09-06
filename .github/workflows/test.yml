@@ -22,7 +22,7 @@ jobs:
       ##########################################################################
       - name: Frontend | Build `test` image
         run: |
-          docker build --target test -t "gradido/frontend:test" frontend/
+          docker build -e BUILD_COMMIT="$(git rev-parse HEAD)" --target test -t "gradido/frontend:test" frontend/
           docker save "gradido/frontend:test" > /tmp/frontend.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
