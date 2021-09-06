@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "select_language": "Bitte wähle eine Sprache für die App und Newsletter",
   "decay": {
     "decay": "Vergänglichkeit",
     "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",

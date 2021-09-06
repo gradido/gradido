@@ -21,7 +21,7 @@ $this->assign('title', __('GDT Kontoübersicht'));
 $header = '<h3>' . __('Zur Verfügung: ') . '</h3>';
 
 if($gdtSum > 0){
-  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSum]).'</h2>';
+  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSum*100.0]).'</h2>';
 }
 if($moreEntrysAsShown) {
   $header .= '<span>'. __('Nur die letzten 100 Einträge werden angezeigt!') . '</span>';
@@ -56,7 +56,7 @@ $this->assign('header', $header);
         <?= $this->Number->format($entry['factor2']) ?>
       <?php endif; ?>
       </div>
-      <div class="cell c3"><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $entry['gdt']*100.0]) ?></div>
     </div>
     <?php endforeach; ?>
   </div>
@@ -98,7 +98,7 @@ $this->assign('header', $header);
           <?= $this->Number->format($gdtEntry['factor2']) ?>
         <?php endif; ?>
       </div>
-      <div class="cell c3"><?= $this->element('printGDT', ['number' => $gdtEntry['gdt']]) ?></div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $gdtEntry['gdt'] * 100.0]) ?></div>
     </div>
     <?php endforeach; ?>
   </div>

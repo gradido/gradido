@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import 'reflect-metadata'
 import express from 'express'
 import { buildSchema } from 'type-graphql'
@@ -8,16 +10,29 @@ import connection from './database/connection'
 import CONFIG from './config'
 
 // TODO move to extern
-// import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 import { GdtResolver } from './graphql/resolvers/GdtResolver'
 import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
 
+import { isAuthorized } from './auth/auth'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 const DB_VERSION = '0001-init_db'
+
+const context = (req: any) => {
+  const authorization = req.req.headers.authorization
+  let token = null
+  if (authorization) {
+    token = req.req.headers.authorization.replace(/^Bearer /, '')
+  }
+  const context = {
+    token,
+  }
+  return context
+}
 
 async function main() {
   // check for correct database version
@@ -34,6 +49,7 @@ async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
     resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver],
+    authChecker: isAuthorized,
   })
 
   // Graphiql interface
@@ -46,7 +62,7 @@ async function main() {
   const server = express()
 
   // Apollo Server
-  const apollo = new ApolloServer({ schema, playground })
+  const apollo = new ApolloServer({ schema, playground, context })
   apollo.applyMiddleware({ app: server })
 
   // Start Server

@@ -41,9 +41,6 @@ export class ChangePasswordArgs {
 
 @ArgsType()
 export class UpdateUserInfosArgs {
-  @Field(() => Number)
-  sessionId!: number
-
   @Field(() => String)
   email!: string
 

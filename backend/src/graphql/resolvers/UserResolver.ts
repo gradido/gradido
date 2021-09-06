@@ -1,8 +1,10 @@
-// import jwt from 'jsonwebtoken'
-import { Resolver, Query, Args, Arg, UseMiddleware } from 'type-graphql'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { LoginResponse } from '../models/LoginResponse'
+import { User } from '../models/User'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
@@ -21,8 +23,8 @@ import { registerMiddleware } from '../../middleware/registerMiddleware'
 export class UserResolver {
   private connector: KlicktippController = new KlicktippController(CONFIG.KLICKTTIPP_API_URL)
 
-  @Query(() => LoginResponse)
-  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
+  @Query(() => String)
+  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<string> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -31,21 +33,10 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    // temporary solution until we have JWT implemented
-    return new LoginResponse(result.data)
-
-    // create and return the json web token
-    // The expire doesn't help us here. The client needs to track when the token expires on its own,
-    // since every action prolongs the time the session is valid.
-    /*
-    return jwt.sign(
-      { result, role: 'todo' },
-      CONFIG.JWT_SECRET, // * , { expiresIn: CONFIG.JWT_EXPIRES_IN } ,
-    )
-    */
-    // return (await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', login)).result.data
-    // const loginResult: LoginResult = await loginAPI.login(data)
-    // return loginResult.user ? loginResult.user : new User()
+    const data = result.data
+    const sessionId = data.session_id
+    delete data.session_id
+    return encode({ sessionId, user: new User(data.user) })
   }
 
   @Query(() => LoginViaVerificationCode)
@@ -63,9 +54,10 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
+  @Authorized()
   @Query(() => String)
-  async logout(@Arg('sessionId') sessionId: number): Promise<string> {
-    const payload = { session_id: sessionId }
+  async logout(@Ctx() context: any): Promise<string> {
+    const payload = { session_id: context.sessionId }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
     if (!result.success) {
       throw new Error(result.data)
@@ -128,11 +120,11 @@ export class UserResolver {
     return 'sucess'
   }
 
+  @Authorized()
   @Query(() => UpdateUserInfosResponse)
   async updateUserInfos(
     @Args()
     {
-      sessionId,
       email,
       firstName,
       lastName,
@@ -142,9 +134,10 @@ export class UserResolver {
       password,
       passwordNew,
     }: UpdateUserInfosArgs,
+    @Ctx() context: any,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
-      session_id: sessionId,
+      session_id: context.sessionId,
       email,
       update: {
         'User.first_name': firstName || undefined,

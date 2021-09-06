@@ -107,10 +107,7 @@ export default {
       this.$apollo
         .query({
           query: sendCoins,
-          variables: {
-            sessionId: this.$store.state.sessionId,
-            ...this.transactionData,
-          },
+          variables: this.transactionData,
         })
         .then(() => {
           this.error = false

@@ -8,11 +8,6 @@ describe('GddSend', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        sessionId: 1234,
-      },
-    },
     $i18n: {
       locale: jest.fn(() => 'en'),
     },
