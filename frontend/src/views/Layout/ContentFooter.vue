@@ -63,7 +63,10 @@ export default {
       year: new Date().getFullYear(),
       version: CONFIG.APP_VERSION,
       hash: process.env.VUE_APP_BUILD_COMMIT,
-      shortHash: process.env.VUE_APP_BUILD_COMMIT.substr(0, 8),
+      shortHash:
+        process.env.VUE_APP_BUILD_COMMIT !== undefined
+          ? process.env.VUE_APP_BUILD_COMMIT.substr(0, 8)
+          : '00000000',
     }
   },
 }
