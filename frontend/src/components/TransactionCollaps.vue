@@ -23,10 +23,10 @@
 export default {
   name: 'TransactionCollaps',
   props: {
-    amount: { type: Number, default: 0 },
-    gdtEntryType: { type: Number, default: 0 },
-    factor: { type: Number, default: 0 },
-    gdt: { type: Number, default: 0 },
+    amount: { type: Number },
+    gdtEntryType: { type: Number },
+    factor: { type: Number },
+    gdt: { type: Number },
   },
   methods: {
     getLinesByType(givenType) {

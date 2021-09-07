@@ -1,11 +1,11 @@
 <template>
   <div>
+    
     <div class="list-group">
       <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
         <!-- Icon  -->
         <div class="text-right" style="position: absolute">
-          <b-icon
-            v-if="gdtEntryType"
+          <b-icon          
             :icon="getLinesByType(gdtEntryType).icon"
             :class="getLinesByType(gdtEntryType).iconclasses"
           ></b-icon>
@@ -80,47 +80,46 @@ export default {
     TransactionCollaps,
   },
   props: {
-    amount: { type: Number, default: 0 },
+    amount: { type: Number },
     date: {
-      type: Date,
-      default: function () {
-        return new Date()
-      },
+      type: Date
     },
-    comment: { type: String, default: '' },
-    gdtEntryType: { type: Number, default: 0 },
-    factor: { type: Number, default: 0 },
-    gdt: { type: Number, default: 0 },
+    comment: { type: String },
+    gdtEntryType: { type: Number, default: 1},
+    factor: { type: Number},
+    gdt: { type: Number},
   },
   methods: {
     getLinesByType(givenType) {
-      const linesByType = {
-        1: {
-          icon: 'heart',
-          iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-          description: 'Beitrag',
-          descriptiontext: this.$n(this.amount, 'decimal') + ' €',
-          credittext: this.$n(this.gdt, 'decimal') + ' GDT',
-        },
-        4: {
-          icon: 'person-check',
-          iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-          description: 'Geworbenes Mitglied',
-          descriptiontext: '5%',
-          credittext: this.$n(this.amount, 'decimal') + ' GDT',
-        },
-        7: {
-          icon: 'gift',
-          iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-          description: 'Aktion',
-          descriptiontext: this.comment,
-          credittext: this.$n(this.gdt, 'decimal') + ' GDT',
-        },
-      }
-
-      const type = linesByType[givenType]
-
-      if (type)
+       
+        const linesByType = {
+          1: {
+            icon: 'heart',
+            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            description: 'Beitrag',
+            descriptiontext: this.$n(this.amount, 'decimal') + ' €',
+            credittext: this.$n(this.gdt, 'decimal') + ' GDT',
+          },
+          4: {
+            icon: 'person-check',
+            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            description: 'Geworbenes Mitglied',
+            descriptiontext: '5%',
+            credittext: this.$n(this.amount, 'decimal') + ' GDT',
+          },
+          7: {
+            icon: 'gift',
+            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            description: 'Aktion',
+            descriptiontext: this.comment,
+            credittext: this.$n(this.gdt, 'decimal') + ' GDT',
+          },
+        }
+        
+       
+      const type = linesByType[givenType]       
+      
+      if (type) 
         return {
           icon: type.icon,
           iconclasses: type.iconclasses,
@@ -128,6 +127,7 @@ export default {
           descriptiontext: type.descriptiontext,
           credittext: type.credittext,
         }
+      
     },
   },
 }
