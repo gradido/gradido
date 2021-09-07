@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+import VueJwtDecode from 'vue-jwt-decode'
+
 Vue.use(Vuex)
 
 export const mutations = {
@@ -9,9 +11,6 @@ export const mutations = {
   },
   email: (state, email) => {
     state.email = email
-  },
-  sessionId: (state, sessionId) => {
-    state.sessionId = sessionId
   },
   username: (state, username) => {
     state.username = username
@@ -25,43 +24,47 @@ export const mutations = {
   description: (state, description) => {
     state.description = description
   },
+  token: (state, token) => {
+    state.token = token
+  },
 }
 
 export const actions = {
-  login: ({ dispatch, commit }, data) => {
-    commit('sessionId', data.sessionId)
-    commit('email', data.user.email)
-    commit('language', data.user.language)
-    commit('username', data.user.username)
-    commit('firstName', data.user.firstName)
-    commit('lastName', data.user.lastName)
-    commit('description', data.user.description)
+  login: ({ dispatch, commit }, token) => {
+    const decoded = VueJwtDecode.decode(token)
+    commit('token', token)
+    commit('email', decoded.email)
+    commit('language', decoded.language)
+    commit('username', decoded.username)
+    commit('firstName', decoded.firstName)
+    commit('lastName', decoded.lastName)
+    commit('description', decoded.description)
   },
   logout: ({ commit, state }) => {
-    commit('sessionId', null)
+    commit('token', null)
     commit('email', null)
     commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
     commit('description', '')
-    sessionStorage.clear()
+    localStorage.clear()
   },
 }
 
 export const store = new Vuex.Store({
   plugins: [
     createPersistedState({
-      storage: window.sessionStorage,
+      storage: window.localStorage,
     }),
   ],
   state: {
-    sessionId: null,
     email: '',
     language: null,
     firstName: '',
     lastName: '',
     username: '',
     description: '',
+    token: null,
   },
   getters: {},
   // Syncronous mutation of the state

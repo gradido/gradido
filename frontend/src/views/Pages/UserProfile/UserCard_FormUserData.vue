@@ -85,7 +85,6 @@ export default {
   data() {
     return {
       showUserData: true,
-      sessionId: this.$store.state.sessionId,
       form: {
         firstName: this.$store.state.firstName,
         lastName: this.$store.state.lastName,
@@ -118,7 +117,6 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
-            sessionId: this.$store.state.sessionId,
             email: this.$store.state.email,
             firstName: this.form.firstName,
             lastName: this.form.lastName,

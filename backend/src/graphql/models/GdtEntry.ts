@@ -15,6 +15,7 @@ export enum GdtEntryType {
 @ObjectType()
 export class GdtEntry {
   constructor(json: any) {
+    this.id = json.id
     this.amount = json.amount
     this.date = json.date
     this.email = json.email
@@ -26,6 +27,9 @@ export class GdtEntry {
     this.factor2 = json.factor2
     this.gdt = json.gdt
   }
+
+  @Field(() => Number)
+  id: number
 
   @Field(() => Number)
   amount: number

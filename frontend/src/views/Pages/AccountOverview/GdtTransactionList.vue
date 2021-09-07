@@ -76,7 +76,6 @@ export default {
         .query({
           query: listGDTEntriesQuery,
           variables: {
-            sessionId: this.$store.state.sessionId,
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           },
@@ -92,7 +91,6 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-
     throwError(msg) {
       throw new Error(msg)
     },

@@ -41,7 +41,6 @@ describe('DashboardLayoutGdd', () => {
     },
     $store: {
       state: {
-        sessionId: 1,
         email: 'user@example.org',
       },
       dispatch: storeDispatchMock,
@@ -128,16 +127,17 @@ describe('DashboardLayoutGdd', () => {
 
       describe('logout', () => {
         beforeEach(async () => {
+          await apolloMock.mockResolvedValue({
+            data: {
+              logout: 'success',
+            },
+          })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
         })
 
         it('calls the API', async () => {
-          expect(apolloMock).toBeCalledWith(
-            expect.objectContaining({
-              variables: { sessionId: 1 },
-            }),
-          )
+          await expect(apolloMock).toBeCalled()
         })
 
         it('dispatches logout to store', () => {
@@ -196,7 +196,6 @@ describe('DashboardLayoutGdd', () => {
           expect(apolloMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                sessionId: 1,
                 firstPage: 2,
                 items: 5,
               },
