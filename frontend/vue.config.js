@@ -1,7 +1,7 @@
 const path = require('path')
 const dotenv = require('dotenv-webpack')
 
-process.env.VUE_APP_BUILD_COMMIT = process.env.BUILD_COMMIT ? process.env.BUILD_COMMIT : '000000000'
+process.env.VUE_APP_BUILD_COMMIT = process.env.BUILD_COMMIT || '000000000'
 
 // vue.config.js
 module.exports = {
