@@ -20,8 +20,17 @@ describe('Transaction', () => {
     },
   }
 
+  const propsData = {
+    amount: 100,
+    gdt: 110,
+    factor: 22,
+    comment: '',
+    date: '2020-04-10T13:28:00+00:00',
+    gdtEntryType: 4,
+  }
+
   const Wrapper = () => {
-    return mount(Transaction, { localVue, mocks })
+    return mount(Transaction, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

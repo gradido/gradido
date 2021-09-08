@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
-import TransactionCollaps from './TransactionCollaps'
+import TransactionCollapse from './TransactionCollapse'
 
 const localVue = global.localVue
 
 const toastErrorMock = jest.fn()
 
-describe('TransactionCollaps', () => {
+describe('TransactionCollapse', () => {
   let wrapper
 
   const mocks = {
@@ -21,7 +21,7 @@ describe('TransactionCollaps', () => {
   }
 
   const Wrapper = () => {
-    return mount(TransactionCollaps, { localVue, mocks })
+    return mount(TransactionCollapse, { localVue, mocks })
   }
 
   describe('mount', () => {

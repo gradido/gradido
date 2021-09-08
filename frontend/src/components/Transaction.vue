@@ -60,29 +60,27 @@
 
       <!-- collaps trancaction info-->
       <b-collapse :id="'a' + date + ''" class="pb-4">
-        <transaction-collaps
+        <transaction-collapse
           :amount="amount"
           :gdtEntryType="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
-        ></transaction-collaps>
+        ></transaction-collapse>
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
-import TransactionCollaps from '../components/TransactionCollaps.vue'
+import TransactionCollapse from './TransactionCollapse.vue'
 
 export default {
   name: 'Transaction',
   components: {
-    TransactionCollaps,
+    TransactionCollapse,
   },
   props: {
     amount: { type: Number },
-    date: {
-      type: Date,
-    },
+    date: { type: String },
     comment: { type: String },
     gdtEntryType: { type: Number, default: 1 },
     factor: { type: Number },
@@ -116,18 +114,8 @@ export default {
 
       const type = linesByType[givenType]
 
-      if (type)
-        return {
-          icon: type.icon,
-          iconclasses: type.iconclasses,
-          description: type.description,
-          descriptiontext: type.descriptiontext,
-          credittext: type.credittext,
-        }
-      this.throwError('no lines for this type')
-    },
-    throwError(msg) {
-      throw new Error(msg)
+      if (type) return type
+      throw new Error('no lines for this type')
     },
   },
 }

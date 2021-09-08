@@ -21,10 +21,10 @@
 </template>
 <script>
 export default {
-  name: 'transaction-collaps',
+  name: 'TransactionCollapse',
   props: {
     amount: { type: Number },
-    gdtEntryType: { type: Number },
+    gdtEntryType: { type: Number, default: 1 },
     factor: { type: Number },
     gdt: { type: Number },
   },
@@ -68,18 +68,8 @@ export default {
 
       const type = linesByType[givenType]
 
-      if (type)
-        return {
-          headline: type.headline,
-          first: type.first,
-          firstMath: type.firstMath,
-          second: type.second,
-          secondMath: type.secondMath,
-        }
-      this.throwError('no additional transaction info for this type')
-    },
-    throwError(msg) {
-      throw new Error(msg)
+      if (type) return type
+      throw new Error('no additional transaction info for this type')
     },
   },
 }
