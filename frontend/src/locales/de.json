@@ -138,6 +138,7 @@
       "add_work":"neuer Gemeinschaftsbeitrag"
     },
     "profil": {
+      "transactions":"Transaktionen",
       "activity": {
         "new":"Neue Gemeinschaftsstunden eintragen",
         "list":"Meine Gemeinschaftsstunden Liste"
@@ -183,8 +184,9 @@
     "formula":"Berechungsformel",
     "no-transactions":"Du hast zur Zeit keine Transaktionen",
     "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
-    "gdt-receive":"Aktion",
-    "your-share":"Geworbenes Mitglied",
+    "action":"Action",
+    "gdt-receive":"GDT erhalten",
+    "recruited-member":"Geworbenes Mitglied",
     "contribution":"Beitrag"
   }
 }

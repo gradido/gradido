@@ -17,7 +17,6 @@
         } in transactionsGdt"
         :key="transactionId"
       >
- 
         <transaction
           :amount="amount"
           :date="date"

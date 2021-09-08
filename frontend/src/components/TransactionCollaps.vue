@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="gdt-transaction-collaps">
     <b-row class="gdt-list-clooaps-header-text text-center pb-3">
       <div class="col h4">
         {{ getLinesByType(gdtEntryType).headline }}
@@ -21,7 +21,7 @@
 </template>
 <script>
 export default {
-  name: 'TransactionCollaps',
+  name: 'transaction-collaps',
   props: {
     amount: { type: Number },
     gdtEntryType: { type: Number },
@@ -46,6 +46,10 @@ export default {
         },
         4: {
           headline: this.$t('gdt.publisher'),
+          first: null,
+          firstMath: null,
+          second: null,
+          secondMath: null,
         },
         7: {
           headline: this.$t('gdt.conversion-gdt-euro'),
@@ -72,6 +76,10 @@ export default {
           second: type.second,
           secondMath: type.secondMath,
         }
+      this.throwError('no additional transaction info for this type')
+    },
+    throwError(msg) {
+      throw new Error(msg)
     },
   },
 }
