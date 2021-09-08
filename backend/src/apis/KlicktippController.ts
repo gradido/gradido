@@ -1,11 +1,11 @@
-import * as KlicktippAPI from '../apis/KlicktippAPI'
+import { KlicktippConnector } from './klicktippConnector'
 import CONFIG from '../config'
 
 export class KlicktippController {
-  private klicktippConnector: KlicktippAPI.KlicktippConnector
+  private klicktippConnector: KlicktippConnector
 
   constructor(service?: string) {
-    this.klicktippConnector = new KlicktippAPI.KlicktippConnector(service)
+    this.klicktippConnector = new KlicktippConnector(service)
   }
 
   async signin(email: string, language: string): Promise<boolean> {
