@@ -1,40 +1,53 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { KlicktippConnector } from './klicktippConnector'
 import CONFIG from '../config'
 
-export class KlicktippController {
-  private klicktippConnector: KlicktippConnector
+const klicktippConnector = new KlicktippConnector()
 
-  constructor(service?: string) {
-    this.klicktippConnector = new KlicktippConnector(service)
-  }
+export const signin = async (email: string, language: string): Promise<boolean> => {
+  const fields = {}
+  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+  const result = await klicktippConnector.signin(apiKey, email, fields)
+  return result
+}
 
-  async signin(email: string, language: string): Promise<boolean> {
-    const fields = {}
-    const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-    const result = await this.klicktippConnector.signin(apiKey, email, fields)
+export const signout = async (email: string, language: string): Promise<boolean> => {
+  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+  const result = await klicktippConnector.signoff(apiKey, email)
+  return result
+}
+
+export const userTags = async (email: string): Promise<any> => {
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    const subscriberId = await klicktippConnector.subscriberSearch(email)
+    const result = await klicktippConnector.subscriberGet(subscriberId)
+    await logoutKlicktippUser()
     return result
   }
+}
 
-  async signout(email: string, language: string): Promise<boolean> {
-    const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-    const result = await this.klicktippConnector.signoff(apiKey, email)
-    return result
-  }
+export const loginKlicktippUser = async (): Promise<boolean> => {
+  return await klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
+}
 
-  async userTags(email: string): Promise<any> {
-    await this.loginKlicktippUser()
-    const subscriberId = await this.klicktippConnector.subscriberSearch(email)
-    const result = await this.klicktippConnector.subscriberGet(subscriberId)
-    console.log('The subscriber with the id: ', subscriberId, result)
-    return result
-  }
+export const logoutKlicktippUser = async (): Promise<boolean> => {
+  return await klicktippConnector.logout()
+}
 
-  private async loginKlicktippUser() {
-    return await this.klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
+export const untagUser = async (email: string, tagid: string): Promise<boolean> => {
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.untag(email, tagid)
   }
+  return false
+}
 
-  async untagUser(email: string, tagid: string) {
-    await this.loginKlicktippUser()
-    return await this.klicktippConnector.untag(email, tagid)
+export const tagUser = async (email: string, tagids: string): Promise<boolean> => {
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.tag(email, tagids)
   }
+  return false
 }

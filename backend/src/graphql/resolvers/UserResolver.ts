@@ -16,14 +16,12 @@ import {
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
-import { KlicktippController } from '../../apis/KlicktippController'
-import { registerMiddleware } from '../../middleware/registerMiddleware'
+import { klicktippRegistrationMiddleware } from '../../middleware/klicktippMiddleware'
 import encode from '../../jwt/encode'
+import { CheckEmailResponse } from '../models/CheckEmailResponse'
 
 @Resolver()
 export class UserResolver {
-  private connector: KlicktippController = new KlicktippController(CONFIG.KLICKTTIPP_API_URL)
-
   @Query(() => String)
   async login(@Args() { email, password }: UnsecureLoginArgs): Promise<string> {
     email = email.trim().toLowerCase()
@@ -67,7 +65,6 @@ export class UserResolver {
   }
 
   @Query(() => String)
-  @UseMiddleware(registerMiddleware)
   async create(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
@@ -164,5 +161,15 @@ export class UserResolver {
     )
     if (!response.success) throw new Error(response.data)
     return new CheckUsernameResponse(response.data)
+  }
+
+  @Query(() => CheckEmailResponse)
+  @UseMiddleware(klicktippRegistrationMiddleware)
+  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'checkEmail/' + optin)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return new CheckEmailResponse(result.data)
   }
 }
