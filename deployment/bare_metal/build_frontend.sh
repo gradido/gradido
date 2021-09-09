@@ -3,7 +3,8 @@
 # or NPM_BIN Path and NVM_DIR must be adjusted
 
 cd /var/www/html/gradido
-eval "echo \"$(cat .env.shell)\"" > .env
+eval "echo \"$(cat .env.local)\"" > .env
+eval "echo \"$(cat .env.shell)\"" >> .env
 cd frontend
 
 NPM_BIN=/root/.nvm/versions/node/v12.19.0/bin/npm
