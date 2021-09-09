@@ -115,7 +115,7 @@ export default {
       const type = linesByType[givenType]
 
       if (type) return type
-      throw new Error('no lines for this type')
+      throw new Error('no lines for this type: ' + givenType)
     },
   },
 }

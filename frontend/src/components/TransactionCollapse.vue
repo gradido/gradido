@@ -1,5 +1,5 @@
 <template>
-  <div class="gdt-transaction-collaps">
+  <div class="gdt-transaction-collapse">
     <b-row class="gdt-list-clooaps-header-text text-center pb-3">
       <div class="col h4">
         {{ getLinesByType(gdtEntryType).headline }}
@@ -69,7 +69,7 @@ export default {
       const type = linesByType[givenType]
 
       if (type) return type
-      throw new Error('no additional transaction info for this type')
+      throw new Error('no additional transaction info for this type: ' + givenType)
     },
   },
 }
