@@ -31,6 +31,11 @@ const textFields = {
     button: 'site.login.signin',
     linkTo: '/overview',
   },
+  checkEmail: {
+    subtitle: 'site.thx.checkEmail',
+    button: 'login',
+    linkTo: '/login',
+  },
 }
 
 export default {

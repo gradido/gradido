@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const login = gql`
-  query($email: String!, $password: String!) {
+  query ($email: String!, $password: String!) {
     login(email: $email, password: $password)
   }
 `
@@ -13,13 +13,13 @@ export const logout = gql`
 `
 
 export const resetPassword = gql`
-  query($sessionId: Float!, $email: String!, $password: String!) {
+  query ($sessionId: Float!, $email: String!, $password: String!) {
     resetPassword(sessionId: $sessionId, email: $email, password: $password)
   }
 `
 
 export const loginViaEmailVerificationCode = gql`
-  query($optin: String!) {
+  query ($optin: String!) {
     loginViaEmailVerificationCode(optin: $optin) {
       sessionId
       email
@@ -28,7 +28,7 @@ export const loginViaEmailVerificationCode = gql`
 `
 
 export const updateUserInfos = gql`
-  query(
+  query (
     $email: String!
     $firstName: String
     $lastName: String
@@ -54,7 +54,7 @@ export const updateUserInfos = gql`
 `
 
 export const transactionsQuery = gql`
-  query($firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
+  query ($firstPage: Int = 1, $items: Int = 25, $order: String = "DESC") {
     transactionList(firstPage: $firstPage, items: $items, order: $order) {
       gdtSum
       count
@@ -85,7 +85,7 @@ export const transactionsQuery = gql`
 `
 
 export const resgisterUserQuery = gql`
-  query(
+  query (
     $firstName: String!
     $lastName: String!
     $email: String!
@@ -103,13 +103,13 @@ export const resgisterUserQuery = gql`
 `
 
 export const sendCoins = gql`
-  query($email: String!, $amount: Float!, $memo: String!) {
+  query ($email: String!, $amount: Float!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `
 
 export const sendResetPasswordEmail = gql`
-  query($email: String!) {
+  query ($email: String!) {
     sendResetPasswordEmail(email: $email) {
       state
     }
@@ -117,7 +117,7 @@ export const sendResetPasswordEmail = gql`
 `
 
 export const checkUsername = gql`
-  query($username: String!) {
+  query ($username: String!) {
     checkUsername(username: $username) {
       state
     }
@@ -125,7 +125,7 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query($currentPage: Int!, $pageSize: Int!) {
+  query ($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
       count
       gdtEntries {
@@ -138,6 +138,15 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
+    }
+  }
+`
+
+export const checkEmailQuery = gql`
+  query ($optin: String!) {
+    checkEmail(option: $optin) {
+      email
+      sessionId
     }
   }
 `

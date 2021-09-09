@@ -125,11 +125,16 @@
       "subtitle": "If you have forgotten your password, you can reset it here.",
       "send_now": "Send now"
     },
+    "checkEmail": {
+      "title": "Verifing email", 
+      "error-text": "Could not verify the email."
+    },
     "thx": {
       "title": "Thank you!",
       "email": "We have sent you an email.",
       "reset": "Your password has been changed.",
-      "register": "You are registred now."      
+      "register": "You are registred now.",
+      "checkEmail": "Your email has been successfully verified."
     },
     "overview":{
       "account_overview":"Account overview",

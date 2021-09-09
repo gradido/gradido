@@ -125,11 +125,16 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
       "send_now": "Jetzt senden"
     },
+    "checkEmail": {
+      "title": "Email wird verifiziert", 
+      "error-text": "Email konnte nicht verifiziert werden."
+    },
     "thx": {
       "title": "Danke!",
       "email": "Wir haben dir eine eMail gesendet.",
       "reset": "Dein Passwort wurde geändert.",
-      "register": "Du bist jetzt regisriert."      
+      "register": "Du bist jetzt regisriert.",
+      "checkEmail": "Deine Email würde erfolgreich verifiziert."
     },
     "overview":{
       "account_overview":"Kontoübersicht",
