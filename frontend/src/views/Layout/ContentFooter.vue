@@ -15,7 +15,11 @@
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
             App version {{ version }}
           </a>
-          <a :href="'https://github.com/gradido/gradido/commit/' + hash" target="_blank">
+          <a
+            v-if="shortHash !== '00000000'"
+            :href="'https://github.com/gradido/gradido/commit/' + hash"
+            target="_blank"
+          >
             {{ shortHash }}
           </a>
         </div>
