@@ -144,7 +144,7 @@ export const listGDTEntriesQuery = gql`
 
 export const checkEmailQuery = gql`
   query ($optin: String!) {
-    checkEmail(option: $optin) {
+    checkEmail(optin: $optin) {
       email
       sessionId
     }
