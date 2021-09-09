@@ -86,13 +86,14 @@
 
                   <b-row>
                     <b-col cols="12">
-                      {{ $t('language') }}
-                      <b-form-select
-                        id="selectedLanguage"
-                        v-model="selected"
-                        :options="options"
-                        class="mb-3"
+                      {{ $t('language') }} {{ language }}
+                      <!--   <b-form-select
+                        v-model="language"
+                        class="selectedLanguage mb-3"
                       ></b-form-select>
+                      -->
+
+                      <language-switch-select @update-language="updateLanguage" />
                     </b-col>
                   </b-row>
 
@@ -145,10 +146,11 @@
 <script>
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
+import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { resgisterUserQuery } from '../../graphql/queries'
 
 export default {
-  components: { InputPasswordConfirmation, InputEmail },
+  components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
   name: 'register',
   data() {
     return {
@@ -162,12 +164,7 @@ export default {
           passwordRepeat: '',
         },
       },
-      selected: null,
-      options: [
-        { value: null, text: this.$t('select_language') },
-        { value: 'de', text: this.$t('languages.de') },
-        { value: 'en', text: this.$t('languages.en') },
-      ],
+      language: '',
       submitted: false,
       showError: false,
       messageError: '',
@@ -175,6 +172,9 @@ export default {
     }
   },
   methods: {
+    updateLanguage(e) {
+      this.language = e
+    },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
@@ -189,7 +189,7 @@ export default {
         },
         agree: false,
       }
-      this.selected = null
+      this.language = ''
       this.$nextTick(() => {
         this.$refs.observer.reset()
       })
@@ -203,7 +203,7 @@ export default {
             firstName: this.form.firstname,
             lastName: this.form.lastname,
             password: this.form.password.password,
-            language: this.selected,
+            language: this.language,
           },
         })
         .then(() => {
@@ -212,7 +212,7 @@ export default {
           this.form.lastname = ''
           this.form.password.password = ''
           this.form.password.passwordRepeat = ''
-          this.selected = null
+          this.language = ''
           this.$router.push('/thx/register')
         })
         .catch((error) => {
@@ -228,7 +228,7 @@ export default {
       this.form.lastname = ''
       this.form.password.password = ''
       this.form.password.passwordRepeat = ''
-      this.selected = null
+      this.language = ''
     },
   },
   computed: {
@@ -244,7 +244,7 @@ export default {
       return this.form.email !== ''
     },
     languageFilled() {
-      return this.selected !== null
+      return this.language !== ''
     },
   },
 }
