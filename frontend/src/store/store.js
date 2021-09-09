@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
-import VueJwtDecode from 'vue-jwt-decode'
+// import VueJwtDecode from 'vue-jwt-decode'
 
 Vue.use(Vuex)
 
@@ -30,15 +30,16 @@ export const mutations = {
 }
 
 export const actions = {
-  login: ({ dispatch, commit }, token) => {
-    const decoded = VueJwtDecode.decode(token)
-    commit('token', token)
-    commit('email', decoded.email)
-    commit('language', decoded.language)
-    commit('username', decoded.username)
-    commit('firstName', decoded.firstName)
-    commit('lastName', decoded.lastName)
-    commit('description', decoded.description)
+  login: ({ dispatch, commit }, data) => {
+    // const decoded = VueJwtDecode.decode(data.token)
+    const { user } = data
+    commit('token', data.token)
+    commit('email', user.email)
+    commit('language', user.language)
+    commit('username', user.username)
+    commit('firstName', user.firstName)
+    commit('lastName', user.lastName)
+    commit('description', user.description)
   },
   logout: ({ commit, state }) => {
     commit('token', null)

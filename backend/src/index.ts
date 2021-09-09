@@ -22,14 +22,15 @@ import { isAuthorized } from './auth/auth'
 
 const DB_VERSION = '0001-init_db'
 
-const context = (req: any) => {
-  const authorization = req.req.headers.authorization
+const context = (args: any) => {
+  const authorization = args.req.headers.authorization
   let token = null
   if (authorization) {
-    token = req.req.headers.authorization.replace(/^Bearer /, '')
+    token = authorization.replace(/^Bearer /, '')
   }
   const context = {
     token,
+    setHeaders: [],
   }
   return context
 }
@@ -61,8 +62,24 @@ async function main() {
   // Express Server
   const server = express()
 
+  const plugins = [
+    {
+      requestDidStart() {
+        return {
+          willSendResponse(requestContext: any) {
+            const { setHeaders = [] } = requestContext.context
+            setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
+              requestContext.response.http.headers.append(key, value)
+            })
+            return requestContext
+          },
+        }
+      },
+    },
+  ]
+
   // Apollo Server
-  const apollo = new ApolloServer({ schema, playground, context })
+  const apollo = new ApolloServer({ schema, playground, context, plugins })
   apollo.applyMiddleware({ app: server })
 
   // Start Server

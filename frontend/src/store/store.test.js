@@ -77,7 +77,17 @@ describe('Vuex store', () => {
     describe('login', () => {
       const commit = jest.fn()
       const state = {}
-      const commitedData = 'token'
+      const commitedData = {
+        token: 'token',
+        user: {
+          email: 'user@example.org',
+          language: 'de',
+          username: 'peter',
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          description: 'Nickelbrille',
+        },
+      }
 
       it('calls seven commits', () => {
         login({ commit, state }, commitedData)
