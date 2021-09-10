@@ -1,35 +1,27 @@
 <template>
   <b-card id="formusername" class="bg-transparent" style="background-color: #ebebeba3 !important">
-    <b-container v-if="username === ''">
-      <b-row class="text-right">
-        <b-col class="mb-3">
-          <b-icon
-            v-if="showUsername"
-            @click="showUsername = !showUsername"
-            class="pointer"
-            icon="pencil"
-          >
-            {{ $t('form.change') }}
-          </b-icon>
-          <b-icon
-            v-else
-            @click="cancelEdit"
-            class="pointer"
-            icon="x-circle"
-            variant="danger"
-          ></b-icon>
+    <div>
+      <b-row class="mb-4 text-right">
+        <b-col class="text-right">
+          <a @click="showUsername ? (showUsername = !showUsername) : cancelEdit()">
+            <span class="pointer mr-3">{{ $t('form.change') }}</span>
+            <b-icon v-if="showUsername" class="pointer ml-3" icon="pencil"></b-icon>
+            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
+          </a>
         </b-col>
       </b-row>
-    </b-container>
-    <b-container v-if="showUsername">
+    </div>
+
+    <div v-if="showUsername">
       <b-row class="mb-3">
         <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
           <small>{{ $t('form.username') }}</small>
         </b-col>
-        <b-col class="col-md-9 col-sm-10 display-username">@{{ username }}</b-col>
+        <b-col class="display-1 col-md-9 col-sm-10 display-username">@{{ username }}</b-col>
       </b-row>
-    </b-container>
-    <b-container v-else>
+    </div>
+
+    <div v-else>
       <validation-observer ref="formValidator" v-slot="{ handleSubmit, valid }">
         <b-form role="form" @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-3">
@@ -63,7 +55,7 @@
           </b-row>
         </b-form>
       </validation-observer>
-    </b-container>
+    </div>
   </b-card>
 </template>
 <script>

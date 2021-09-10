@@ -22,10 +22,6 @@ export default {
   },
   props: {
     language: { type: String },
-    register: {
-      type: Boolean,
-      required: true,
-    },
   },
   created() {
     if (!this.register) this.selected = this.$store.state.language

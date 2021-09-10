@@ -37,8 +37,8 @@ describe('Register', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Register form', () => {
-      expect(wrapper.find('div.register-form').exists()).toBeTruthy()
+    it.only('renders the Register form', () => {
+      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
 
     describe('Register header', () => {

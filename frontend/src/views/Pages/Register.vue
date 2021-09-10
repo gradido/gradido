@@ -1,5 +1,5 @@
 <template>
-  <div class="register-form">
+  <div id="registerform">
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -86,13 +86,7 @@
 
                   <b-row>
                     <b-col cols="12">
-                      {{ $t('language') }} {{ language }}
-                      <!--   <b-form-select
-                        v-model="language"
-                        class="selectedLanguage mb-3"
-                      ></b-form-select>
-                      -->
-
+                      {{ $t('language') }}
                       <language-switch-select @update-language="updateLanguage" />
                     </b-col>
                   </b-row>
@@ -244,7 +238,7 @@ export default {
       return this.form.email !== ''
     },
     languageFilled() {
-      return this.language !== ''
+      return this.language !== null && this.language !== ''
     },
   },
 }

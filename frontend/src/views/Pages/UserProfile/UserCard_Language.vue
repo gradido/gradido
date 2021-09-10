@@ -1,25 +1,38 @@
 <template>
-  <div
-    id="change_language"
-    class="bg-transparent pt-3 pb-3"
+  <b-card
+    id="formuserlanguage"
+    class="bg-transparent"
     style="background-color: #ebebeba3 !important"
   >
-    <b-container>
+    <div>
+      <b-row class="mb-4 text-right">
+        <b-col class="text-right">
+          <a @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()">
+            <span class="pointer mr-3">{{ $t('form.changeLanguage') }}</span>
+            <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
+            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
+          </a>
+        </b-col>
+      </b-row>
+    </div>
+
+    <div v-if="showLanguage">
+      <b-row class="mb-3">
+        <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+          <small>{{ $t('language') }}</small>
+        </b-col>
+        <b-col class="h2 col-md-9 col-sm-10">{{ $store.state.language }}</b-col>
+      </b-row>
+    </div>
+
+    <div v-else>
       <div>
-        <b-row class="mb-4 text-right">
-          <b-col class="text-right">
-            <a @click="!editLanguage ? (editLanguage = !editLanguage) : cancelEdit()">
-              <span class="pointer mr-3">{{ $t('form.changeLanguage') }}</span>
-              <b-icon v-if="!editPassword" class="pointer ml-3" icon="pencil" />
-              <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
-            </a>
-          </b-col>
-        </b-row>
-      </div>
-      <div v-if="editLanguage">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-2">
-            <b-col>
+            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
+              <small>{{ $t('language') }}</small>
+            </b-col>
+            <b-col class="col-md-9 col-sm-10">
               <language-switch-select @update-language="updateLanguage" :language="language" />
             </b-col>
           </b-row>
@@ -35,10 +48,8 @@
           </b-row>
         </b-form>
       </div>
-      <div>Language in store: {{ $store.state.language }}</div>
-      <div>Language in data: {{ this.language }}</div>
-    </b-container>
-  </div>
+    </div>
+  </b-card>
 </template>
 <script>
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
@@ -49,9 +60,8 @@ export default {
   components: { LanguageSwitchSelect },
   data() {
     return {
-      editLanguage: false,
+      showLanguage: true,
       language: '',
-      register: false,
     }
   },
   methods: {
@@ -59,7 +69,7 @@ export default {
       this.language = e
     },
     cancelEdit() {
-      this.editLanguage = false
+      this.showLanguage = true
     },
     async onSubmit() {
       this.$apollo
