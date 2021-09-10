@@ -20,6 +20,7 @@ const CONFIG = {
   ...environment,
   ...server,
   APP_VERSION: pkg.version,
+  COMMIT_HASH: process.env.VUE_APP_BUILD_COMMIT,
 }
 
 export default CONFIG
