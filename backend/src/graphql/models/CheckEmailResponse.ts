@@ -8,6 +8,8 @@ export class CheckEmailResponse {
     this.sessionId = json.session_id
     this.email = json.user.email
     this.language = json.user.language
+    this.firstName = json.user.first_name
+    this.lastName = json.user.last_name
   }
 
   @Field(() => Number)
@@ -15,6 +17,12 @@ export class CheckEmailResponse {
 
   @Field(() => String)
   email: string
+
+  @Field(() => String)
+  firstName: string
+
+  @Field(() => String)
+  lastName: string
 
   @Field(() => String)
   language: string

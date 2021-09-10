@@ -127,7 +127,7 @@
     },
     "checkEmail": {
       "title": "Verifing email", 
-      "error-text": "Could not verify the email."
+      "errorText": "Could not verify the email."
     },
     "thx": {
       "title": "Thank you!",

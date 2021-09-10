@@ -166,7 +166,9 @@ export class UserResolver {
   @Query(() => CheckEmailResponse)
   @UseMiddleware(klicktippRegistrationMiddleware)
   async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
-    const result = await apiGet(CONFIG.LOGIN_API_URL + 'checkEmail/' + optin)
+    const result = await apiGet(
+      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
+    )
     if (!result.success) {
       throw new Error(result.data)
     }

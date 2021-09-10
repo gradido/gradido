@@ -5,8 +5,16 @@ import CONFIG from '../config'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const signin = async (email: string, language: string): Promise<boolean> => {
-  const fields = {}
+export const signin = async (
+  email: string,
+  language: string,
+  firstName: string,
+  lastName: string,
+): Promise<boolean> => {
+  const fields = {
+    fieldFirstName: firstName,
+    fieldLastName: lastName,
+  }
   const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
   const result = await klicktippConnector.signin(apiKey, email, fields)
   return result

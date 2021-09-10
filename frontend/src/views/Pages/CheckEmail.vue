@@ -5,10 +5,10 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('check-email.title') }}</h1>
+              <h1>{{ $t('checkEmail.title') }}</h1>
               <div class="pb-4" v-if="!pending">
                 <span v-if="!authenticated">
-                  {{ $t('check-email.error-text') }}
+                  {{ $t('checkEmail.errorText') }}
                 </span>
               </div>
             </b-col>

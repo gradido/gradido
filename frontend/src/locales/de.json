@@ -127,7 +127,7 @@
     },
     "checkEmail": {
       "title": "Email wird verifiziert", 
-      "error-text": "Email konnte nicht verifiziert werden."
+      "errorText": "Email konnte nicht verifiziert werden."
     },
     "thx": {
       "title": "Danke!",
