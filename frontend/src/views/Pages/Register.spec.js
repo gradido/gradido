@@ -37,7 +37,7 @@ describe('Register', () => {
       wrapper = Wrapper()
     })
 
-    it.only('renders the Register form', () => {
+    it('renders the Register form', () => {
       expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
 
