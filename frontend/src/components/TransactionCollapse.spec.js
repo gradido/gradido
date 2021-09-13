@@ -15,7 +15,7 @@ describe('TransactionCollapse', () => {
     amount: 100,
     gdt: 110,
     factor: 22,
-    gdtEntryType: 4,
+    gdtEntryType: 1,
   }
 
   const Wrapper = () => {
@@ -31,20 +31,32 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop amount  ', () => {
-      expect(wrapper.props().amount).toBe(100)
+    it('renders the component clooaps-header', () => {
+      expect(wrapper.find('.gdt-list-clooaps-header-text')).toBeTruthy()
     })
 
-    it('checks the prop gdt  ', () => {
-      expect(wrapper.props().gdt).toBe(110)
+    it('renders the component clooaps-headline', () => {
+      expect(wrapper.find('#clooaps-headline').text()).toBe('gdt.calculation')
     })
 
-    it('checks the prop factor  ', () => {
-      expect(wrapper.props().factor).toBe(22)
+    it('renders the component clooaps-first', () => {
+      expect(wrapper.find('#clooaps-first').text()).toBe('gdt.factor')
+    })
+
+    it('renders the component clooaps-second', () => {
+      expect(wrapper.find('#clooaps-second').text()).toBe('gdt.formula')
+    })
+
+    it('renders the component clooaps-firstMath', () => {
+      expect(wrapper.find('#clooaps-firstMath').text()).toBe('22 GDT pro €')
+    })
+
+    it('renders the component clooaps-secondMath', () => {
+      expect(wrapper.find('#clooaps-secondMath').text()).toBe('100 € * 22 GDT / € = 110 GDT')
     })
 
     it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(4)
+      expect(wrapper.props().gdtEntryType).toBe(1)
     })
   })
 })
