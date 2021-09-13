@@ -3,15 +3,12 @@ import gql from 'graphql-tag'
 export const login = gql`
   query($email: String!, $password: String!) {
     login(email: $email, password: $password) {
-      token
-      user {
-        email
-        username
-        firstName
-        lastName
-        language
-        description
-      }
+      email
+      username
+      firstName
+      lastName
+      language
+      description
     }
   }
 `

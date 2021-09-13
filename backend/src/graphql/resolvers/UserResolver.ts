@@ -7,7 +7,8 @@ import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
-import { LoginResponse } from '../models/LoginResponse'
+import { User } from '../models/User'
+import encode from '../../jwt/encode'
 import {
   ChangePasswordArgs,
   CheckUsernameArgs,
@@ -19,8 +20,8 @@ import { apiPost, apiGet } from '../../apis/loginAPI'
 
 @Resolver()
 export class UserResolver {
-  @Query(() => LoginResponse)
-  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<LoginResponse> {
+  @Query(() => User)
+  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -29,7 +30,9 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    return new LoginResponse({ sessionId: result.data.session_id, user: result.data.user })
+    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+
+    return new User(result.data.user)
   }
 
   @Query(() => LoginViaVerificationCode)
