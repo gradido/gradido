@@ -2,6 +2,7 @@
 
 import 'reflect-metadata'
 import express from 'express'
+import cors from 'cors'
 import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
 import { RowDataPacket } from 'mysql2/promise'
@@ -61,6 +62,13 @@ async function main() {
 
   // Express Server
   const server = express()
+
+  const corsOptions = {
+    origin: '*',
+    exposedHeaders: ['token'],
+  }
+
+  server.use(cors(corsOptions))
 
   const plugins = [
     {
