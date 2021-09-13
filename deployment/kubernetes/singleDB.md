@@ -22,4 +22,4 @@ kubectl delete pv mariadb-pv-volume
 ```
 
 ## Access db with command line client
-kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mariadb -pja_sk8iWu37la_sl
+kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mariadb -pja_sk8iWu37la_sl -u gradido_community

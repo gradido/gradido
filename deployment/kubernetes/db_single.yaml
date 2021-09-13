@@ -28,9 +28,11 @@ spec:
       - image: mariadb/server:10.5
         name: mariadb
         env:
+        - name: MARIADB_RANDOM_ROOT_PASSWORD
+          value: 'yes'
         - name: MARIADB_USER
           value: gradido_community
-        - name: MYSQL_ROOT_PASSWORD
+        - name: MARIADB_PASSWORD
           value: ja_sk8iWu37la_sl
         - name: MARIADB_DATABASE
           value: gradido_community

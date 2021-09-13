@@ -11,7 +11,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath: 
-    path: "/mnt/data"
+    path: "/mnt/gradido_mariadb"
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
