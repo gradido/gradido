@@ -72,7 +72,6 @@
     "vue-good-table": "^2.21.3",
     "vue-i18n": "^8.22.4",
     "vue-jest": "^3.0.7",
-    "vue-jwt-decode": "^0.1.0",
     "vue-loading-overlay": "^3.4.2",
     "vue-moment": "^4.1.0",
     "vue-qrcode": "^0.3.5",

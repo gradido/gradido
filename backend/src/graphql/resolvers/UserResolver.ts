@@ -4,10 +4,11 @@
 import { Resolver, Query, Args, Arg, Authorized, Ctx } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { User } from '../models/User'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
+import { User } from '../models/User'
+import encode from '../../jwt/encode'
 import {
   ChangePasswordArgs,
   CheckUsernameArgs,
@@ -16,12 +17,11 @@ import {
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/loginAPI'
-import encode from '../../jwt/encode'
 
 @Resolver()
 export class UserResolver {
-  @Query(() => String)
-  async login(@Args() { email, password }: UnsecureLoginArgs): Promise<string> {
+  @Query(() => User)
+  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -30,10 +30,9 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    const data = result.data
-    const sessionId = data.session_id
-    delete data.session_id
-    return encode({ sessionId, user: new User(data.user) })
+    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+
+    return new User(result.data.user)
   }
 
   @Query(() => LoginViaVerificationCode)
