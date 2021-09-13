@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: mariadb
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mariadb 
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  strategy:
+    type: Recreate
+  template: 
+    metadata: 
+      labels:  
+        app: mariadb
+    spec:
+      containers:  
+      - image: mariadb/server:10.5
+        name: mariadb
+        env:
+        - name: MARIADB_USER
+          value: gradido_community
+        - name: MYSQL_ROOT_PASSWORD
+          value: ja_sk8iWu37la_sl
+        - name: MARIADB_DATABASE
+          value: gradido_community
+        ports: 
+        - containerPort: 3306
+          name: mariadb
+        volumeMounts:
+        - name: mariadb-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mariadb-persistent-storage
+        persistentVolumeClaim:
+          claimName: mariadb-pv-claim
