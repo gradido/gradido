@@ -58,9 +58,9 @@ export default {
           second: this.$t('gdt.conversion'),
           secondMath:
             this.$n(this.amount, 'decimal') +
-            '  GDT * ' +
+            ' GDT * ' +
             this.factor * 100 +
-            '% = ' +
+            ' % = ' +
             this.$n(this.gdt, 'decimal') +
             ' GDT',
         },
