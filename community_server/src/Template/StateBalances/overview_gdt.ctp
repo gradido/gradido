@@ -47,8 +47,12 @@ $this->assign('header', $header);
       <div class="cell c3"><?= new FrozenTime($entry['date']) ?></div>
       <div class="cell c0"><?= h($entry['comment']) ?></div>
       <div class="cell c3">
-        <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
-        <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
+          <?php if(intval($entry['gdt_entry_type_id']) == 7) : ?>
+            <?= $this->element('printGDT', ['number' => $entry['amount']*100.0]); ?>
+          <?php else : ?>
+            <?= $this->element('printEuro', ['number' => $entry['amount']*100.0]); ?>
+            <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']*100.0]) ?>
+          <?php endif; ?>
       </div>
       <div class="cell c2">
       <?= $this->Number->format($entry['factor']) ?>
@@ -89,8 +93,12 @@ $this->assign('header', $header);
       <!--<div class="cell c0"><?= h($elopageTransaction['email']) ?></div>-->
       <div class="cell c3"><?= new FrozenTime($gdtEntry['date']) ?></div>
       <div class="cell c3">
-          <?= $this->element('printEuro', ['number' => $gdtEntry['amount']]) ?>
-          <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
+          <?php if(intval($gdtEntry['gdt_entry_type_id']) == 7) : ?>
+            <?= $this->element('printGDT', ['number' => $gdtEntry['amount']*100.0]); ?>
+          <?php else : ?>
+            <?= $this->element('printEuro', ['number' => $gdtEntry['amount']*100.0]); ?>
+            <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']*100.0]) ?>
+          <?php endif; ?>
       </div>
       <div class="cell c2">
         <?= $this->Number->format($gdtEntry['factor']) ?>
