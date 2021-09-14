@@ -108,7 +108,7 @@ export default {
         7: {
           icon: 'gift',
           iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-          description: this.$t('gdt.action'),
+          description: this.$t('gdt.gdt-receive'),
           descriptiontext: this.comment,
           credittext: this.$n(this.gdt, 'decimal') + ' GDT',
         },
