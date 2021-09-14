@@ -90,9 +90,6 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-    throwError(msg) {
-      throw new Error(msg)
-    },
     showNext() {
       this.currentPage++
       this.updateGdt()
