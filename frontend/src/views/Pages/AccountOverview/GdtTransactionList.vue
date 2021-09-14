@@ -48,7 +48,7 @@ export default {
   },
   data() {
     return {
-      transactionsGdt: { default: () => [] },
+      transactionsGdt: [],
       transactionGdtCount: { type: Number, default: 0 },
       currentPage: 1,
       pageSize: 25,

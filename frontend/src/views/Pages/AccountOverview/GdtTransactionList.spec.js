@@ -46,6 +46,9 @@ const apolloMock = jest.fn().mockResolvedValue({
 })
 
 const toastErrorMock = jest.fn()
+const windowScrollToMock = jest.fn()
+
+window.scrollTo = windowScrollToMock
 
 describe('GdtTransactionList', () => {
   let wrapper
@@ -90,6 +93,10 @@ describe('GdtTransactionList', () => {
           }),
         )
       })
+
+      it('scrolls to (0, 0) after API call', () => {
+        expect(windowScrollToMock).toBeCalledWith(0, 0)
+      })
     })
 
     describe('server returns error', () => {
@@ -103,6 +110,22 @@ describe('GdtTransactionList', () => {
 
       it('toasts an error message', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch!')
+      })
+    })
+
+    describe('change of currentPage', () => {
+      it('calls the API after currentPage changes', async () => {
+        jest.clearAllMocks()
+        wrapper.setData({ currentPage: 2 })
+        await wrapper.vm.$nextTick()
+        expect(apolloMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              currentPage: 2,
+              pageSize: 25,
+            },
+          }),
+        )
       })
     })
   })
