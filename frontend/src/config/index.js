@@ -16,11 +16,17 @@ const server = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
 }
 
+// eslint-disable-next-line no-console
+console.log('hash: %o', process.env.VUE_APP_BUILD_COMMIT)
+
 const CONFIG = {
   ...environment,
   ...server,
   APP_VERSION: pkg.version,
-  COMMIT_HASH: process.env.VUE_APP_BUILD_COMMIT || '00000000',
+  COMMIT_HASH:
+    process.env.VUE_APP_BUILD_COMMIT === 'undefined'
+      ? '00000000'
+      : process.env.VUE_APP_BUILD_COMMIT,
 }
 
 export default CONFIG
