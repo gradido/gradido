@@ -23,16 +23,16 @@ describe('UserProfileOverview', () => {
       expect(wrapper.findComponent({ name: 'UserCard' }).exists()).toBeTruthy()
     })
 
-    it('has a user data form', () => {
+    it('has a user first and last name form', () => {
       expect(wrapper.findComponent({ name: 'FormUserData' }).exists()).toBeTruthy()
     })
 
-    // it('has a user name form', () => {
-    //  expect(wrapper.findComponent({ name: 'FormUsername' }).exists()).toBeTruthy()
-    // })
-
-    it('has a user password form', () => {
+    it('has a user change password form', () => {
       expect(wrapper.findComponent({ name: 'FormUserPasswort' }).exists()).toBeTruthy()
+    })
+
+    it('has a user change language form', () => {
+      expect(wrapper.findComponent({ name: 'FormUserLanguage' }).exists()).toBeTruthy()
     })
   })
 })
