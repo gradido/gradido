@@ -29,10 +29,9 @@
     </div>
     <pagination-buttons
       v-if="transactionGdtCount > pageSize"
-      :has-next="hasNext"
-      :has-previous="hasPrevious"
-      :total-pages="totalPages"
-      :current-page="currentPage"
+      v-model="currentPage"
+      :per-page="pageSize"
+      :total-rows="transactionGdtCount"
       @show-next="showNext"
       @show-previous="showPrevious"
     ></pagination-buttons>
@@ -57,17 +56,6 @@ export default {
       currentPage: 1,
       pageSize: 25,
     }
-  },
-  computed: {
-    hasNext() {
-      return this.currentPage * this.pageSize < this.transactionGdtCount
-    },
-    hasPrevious() {
-      return this.currentPage > 1
-    },
-    totalPages() {
-      return Math.ceil(this.transactionGdtCount / this.pageSize)
-    },
   },
   methods: {
     async updateGdt() {

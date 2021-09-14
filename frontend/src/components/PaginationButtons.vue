@@ -7,7 +7,7 @@
         </b-button>
       </b-col>
       <b-col cols="3">
-        <p class="text-center pt-2">{{ currentPage }} / {{ totalPages }}</p>
+        <p class="text-center pt-2">{{ value }} / {{ totalPages }}</p>
       </b-col>
       <b-col>
         <b-button class="next-page" :disabled="!hasNext" @click="$emit('show-next')">
@@ -18,13 +18,35 @@
   </div>
 </template>
 <script>
-export default {
-  name: 'PaginationButtons',
-  props: {
-    hasNext: { type: Boolean, default: false },
-    hasPrevious: { type: Boolean, default: false },
-    totalPages: { type: Number, default: 1 },
-    currentPage: { type: Number, default: 1 },
-  },
-}
+ export default {
+   name: 'PaginationButtons',
+   props: {
+     totalRows: { type: Number, required: true },
+     pageSize: { type: Number, required: true },
+     value: { type: Number, , required: true },
+   },
+   computed: {
+     hasNext() {
+       return this.value * this.pageSize < this.totalCount
+     },
+     hasPrevious() {
+       return this.value > 1
+     },
+     totalPages() {
+       return Math.ceil(this.totalCount / this.pageSize)
+     },
+   },
+   methods: {
+     showNext() {
+       this.value++
+       this.updateGdt()
+       window.scrollTo(0, 0)
+     },
+     showPrevious() {
+       this.value--
+       this.updateGdt()
+       window.scrollTo(0, 0)
+     },
+   },
+ }
 </script>
