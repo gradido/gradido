@@ -28,12 +28,9 @@
       </div>
     </div>
     <pagination-buttons
-      v-if="transactionGdtCount > pageSize"
       v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
-      @show-next="showNext"
-      @show-previous="showPrevious"
     ></pagination-buttons>
   </div>
 </template>
@@ -73,24 +70,20 @@ export default {
           } = result
           this.transactionsGdt = listGDTEntries.gdtEntries
           this.transactionGdtCount = listGDTEntries.count
+          window.scrollTo(0, 0)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
     },
-    showNext() {
-      this.currentPage++
-      this.updateGdt()
-      window.scrollTo(0, 0)
-    },
-    showPrevious() {
-      this.currentPage--
-      this.updateGdt()
-      window.scrollTo(0, 0)
-    },
   },
   mounted() {
     this.updateGdt()
+  },
+  watch: {
+    currentPage() {
+      this.updateGdt()
+    },
   },
 }
 </script>

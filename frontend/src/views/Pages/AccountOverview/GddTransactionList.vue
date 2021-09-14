@@ -84,13 +84,9 @@
         </div>
       </div>
       <pagination-buttons
-        v-if="showPagination && transactionCount > pageSize"
-        :has-next="hasNext"
-        :has-previous="hasPrevious"
-        :total-pages="totalPages"
-        :current-page="currentPage"
-        @show-next="showNext"
-        @show-previous="showPrevious"
+        v-model="currentPage"
+        :per-page="pageSize"
+        :total-rows="transactionCount"
       ></pagination-buttons>
       <div v-if="transactions.length === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
@@ -128,23 +124,6 @@ export default {
     transactionCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
   },
-  watch: {
-    timestamp: {
-      immediate: true,
-      handler: 'updateTransactions',
-    },
-  },
-  computed: {
-    hasNext() {
-      return this.currentPage * this.pageSize < this.transactionCount
-    },
-    hasPrevious() {
-      return this.currentPage > 1
-    },
-    totalPages() {
-      return Math.ceil(this.transactionCount / this.pageSize)
-    },
-  },
   methods: {
     updateTransactions() {
       this.$emit('update-transactions', {
@@ -165,15 +144,14 @@ export default {
     throwError(msg) {
       throw new Error(msg)
     },
-    showNext() {
-      this.currentPage++
+  },
+  watch: {
+    currentPage() {
       this.updateTransactions()
-      window.scrollTo(0, 0)
     },
-    showPrevious() {
-      this.currentPage--
-      this.updateTransactions()
-      window.scrollTo(0, 0)
+    timestamp: {
+      immediate: true,
+      handler: 'updateTransactions',
     },
   },
 }
