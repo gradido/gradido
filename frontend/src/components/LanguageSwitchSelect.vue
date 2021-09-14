@@ -24,7 +24,7 @@ export default {
     language: { type: String },
   },
   created() {
-    if (!this.register) this.selected = this.$store.state.language
+    this.selected = this.$store.state.language
   },
   computed: {
     languageObject() {
