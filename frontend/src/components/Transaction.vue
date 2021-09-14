@@ -88,6 +88,8 @@ export default {
   },
   methods: {
     getLinesByType(givenType) {
+      if (givenType === 2 || givenType === 3 || givenType === 5 || givenType === 6) givenType = 1
+
       const linesByType = {
         1: {
           icon: 'heart',
