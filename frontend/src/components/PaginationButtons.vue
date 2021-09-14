@@ -21,7 +21,7 @@
 export default {
   name: 'PaginationButtons',
   props: {
-    totalRows: { type: Number, required: true },
+    totalRows: { required: true },
     perPage: { type: Number, required: true },
     value: { type: Number, required: true },
   },

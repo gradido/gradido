@@ -84,6 +84,7 @@
         </div>
       </div>
       <pagination-buttons
+        v-if="showPagination"
         v-model="currentPage"
         :per-page="pageSize"
         :total-rows="transactionCount"
@@ -130,6 +131,7 @@ export default {
         firstPage: this.currentPage,
         items: this.pageSize,
       })
+      window.scrollTo(0, 0)
     },
     getProperties(givenType) {
       const type = iconsByType[givenType]
