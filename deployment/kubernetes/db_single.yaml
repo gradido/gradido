@@ -25,17 +25,11 @@ spec:
         app: mariadb
     spec:
       containers:  
-      - image: mariadb/server:10.5
+      - image: gradido/mariadb:latest
         name: mariadb
         env:
-        - name: MARIADB_RANDOM_ROOT_PASSWORD
-          value: 'yes'
-        - name: MARIADB_USER
-          value: gradido_community
-        - name: MARIADB_PASSWORD
+        - name: MARIADB_ROOT_PASSWORD
           value: ja_sk8iWu37la_sl
-        - name: MARIADB_DATABASE
-          value: gradido_community
         ports: 
         - containerPort: 3306
           name: mariadb

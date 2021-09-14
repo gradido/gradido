@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-1
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      containers: 
+      - name: migration
+        image: gradido/database:production_up
+        env:
+          - name: DB_USER
+            value: root
+          - name: DB_PASSWORD
+            value: ja_sk8iWu37la_sl
+          - name: DB_HOST
+            value: mariadb
+      restartPolicy: Never
