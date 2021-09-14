@@ -5,3 +5,4 @@ messages.pot
 .skeema
 nbproject
 .metadata
+/.env
