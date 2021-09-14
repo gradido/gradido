@@ -39,6 +39,7 @@ export class KlicktippConnector {
     const res = await this.httpRequest('/account/login', 'POST', { username, password }, false)
 
     if (!res.isAxiosError) {
+      console.log('res.data', res.data)
       this.sessionId = res.data.sessid
       this.sessionName = res.data.session_name
 
@@ -72,7 +73,7 @@ export class KlicktippConnector {
    * @return A associative obeject <list id> => <list name>
    */
   async subscriptionProcessIndex(): Promise<any> {
-    const res = await this.httpRequest('/list')
+    const res = await this.httpRequest('/list', 'GET', {}, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -94,7 +95,7 @@ export class KlicktippConnector {
     }
 
     // retrieve
-    const res = await this.httpRequest(`/subscriber/${listid}`)
+    const res = await this.httpRequest(`/subscriber/${listid}`, 'GET', {}, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -135,7 +136,7 @@ export class KlicktippConnector {
    * @return A associative object <tag id> => <tag name>
    */
   async tagIndex(): Promise<any> {
-    const res = await this.httpRequest('/tag')
+    const res = await this.httpRequest('/tag', 'GET', {}, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -155,7 +156,7 @@ export class KlicktippConnector {
     if (!tagid || tagid === '') {
       throw new Error('Klicktipp Illegal Arguments')
     }
-    const res = await this.httpRequest(`/tag/${tagid}`)
+    const res = await this.httpRequest(`/tag/${tagid}`, 'GET', {}, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -180,7 +181,7 @@ export class KlicktippConnector {
       name,
       text: text !== undefined ? text : '',
     }
-    const res = await this.httpRequest('/tag', 'POST', data)
+    const res = await this.httpRequest('/tag', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -207,7 +208,7 @@ export class KlicktippConnector {
       text: text !== undefined ? text : '',
     }
 
-    const res = await this.httpRequest(`/tag/${tagid}`, 'PUT', data)
+    const res = await this.httpRequest(`/tag/${tagid}`, 'PUT', data, true)
 
     if (!res.isAxiosError) {
       return true
@@ -243,7 +244,7 @@ export class KlicktippConnector {
    * @return A associative object <field id> => <field name>
    */
   async fieldIndex(): Promise<any> {
-    const res = await this.httpRequest('/field')
+    const res = await this.httpRequest('/field', 'GET', {}, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -281,7 +282,7 @@ export class KlicktippConnector {
       tagid: tagid !== undefined ? tagid : 0,
     }
 
-    const res = await this.httpRequest('/subscriber', 'POST', data)
+    const res = await this.httpRequest('/subscriber', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -304,7 +305,7 @@ export class KlicktippConnector {
     // unsubscribe
     const data = { email }
 
-    const res = await this.httpRequest('/subscriber/unsubscribe', 'POST', data)
+    const res = await this.httpRequest('/subscriber/unsubscribe', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return true
@@ -331,7 +332,7 @@ export class KlicktippConnector {
       tagids,
     }
 
-    const res = await this.httpRequest('/subscriber/tag', 'POST', data)
+    const res = await this.httpRequest('/subscriber/tag', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -358,7 +359,7 @@ export class KlicktippConnector {
       tagid,
     }
 
-    const res = await this.httpRequest('/subscriber/untag', 'POST', data)
+    const res = await this.httpRequest('/subscriber/untag', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return true
@@ -382,7 +383,7 @@ export class KlicktippConnector {
     // resend/reset autoresponder
     const data = { email, autoresponder }
 
-    const res = await this.httpRequest('/subscriber/resend', 'POST', data)
+    const res = await this.httpRequest('/subscriber/resend', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return true
@@ -396,8 +397,8 @@ export class KlicktippConnector {
    * @return An array of subscriber ids.
    */
   async subscriberIndex(): Promise<[string]> {
-    const res = await this.httpRequest('/subscriber')
-
+    const res = await this.httpRequest('/subscriber', 'GET', undefined, true)
+    console.log('SubscriberIndex.res', res)
     if (!res.isAxiosError) {
       return res.data
     }
@@ -417,7 +418,7 @@ export class KlicktippConnector {
     }
 
     // retrieve
-    const res = await this.httpRequest(`/subscriber/${subscriberid}`)
+    const res = await this.httpRequest(`/subscriber/${subscriberid}`, 'GET', {}, true)
     if (!res.isAxiosError) {
       return res.data
     }
@@ -437,7 +438,7 @@ export class KlicktippConnector {
     }
     // search
     const data = { email }
-    const res = await this.httpRequest('/subscriber/search', 'POST', data)
+    const res = await this.httpRequest('/subscriber/search', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -459,7 +460,7 @@ export class KlicktippConnector {
 
     // search
     const data = { tagid }
-    const res = await this.httpRequest('/subscriber/tagged', 'POST', data)
+    const res = await this.httpRequest('/subscriber/tagged', 'POST', data, true)
 
     if (!res.isAxiosError) {
       return res.data
@@ -492,7 +493,7 @@ export class KlicktippConnector {
       newemail: newemail !== undefined ? newemail : '',
       newsmsnumber: newsmsnumber !== undefined ? newsmsnumber : '',
     }
-    const res = await this.httpRequest(`/subscriber/${subscriberid}`, 'PUT', data)
+    const res = await this.httpRequest(`/subscriber/${subscriberid}`, 'PUT', data, true)
     if (!res.isAxiosError) {
       return true
     }
@@ -512,7 +513,7 @@ export class KlicktippConnector {
     }
 
     // delete
-    const res = await this.httpRequest(`/subscriber/${subscriberid}`, 'DELETE')
+    const res = await this.httpRequest(`/subscriber/${subscriberid}`, 'DELETE', {}, true)
 
     if (!res.isAxiosError) {
       return true
