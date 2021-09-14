@@ -1,18 +1,18 @@
 <template>
   <div class="gdt-transaction-collapse">
-    <b-row class="gdt-list-clooaps-header-text text-center pb-3">
-      <div id="clooaps-headline" class="col h4">
+    <b-row class="gdt-list-collapse-header-text text-center pb-3">
+      <div id="collapse-headline" class="col h4">
         {{ getLinesByType(gdtEntryType).headline }}
       </div>
     </b-row>
-    <b-row class="gdt-list-clooaps-box--all">
-      <div class="col-6 text-right clooaps-col-left">
-        <div id="clooaps-first">{{ getLinesByType(gdtEntryType).first }}</div>
-        <div id="clooaps-second">{{ getLinesByType(gdtEntryType).second }}</div>
+    <b-row class="gdt-list-collapse-box--all">
+      <div class="col-6 text-right collapse-col-left">
+        <div id="collapse-first">{{ getLinesByType(gdtEntryType).first }}</div>
+        <div id="collapse-second">{{ getLinesByType(gdtEntryType).second }}</div>
       </div>
-      <div class="col-6 clooaps-col-right">
-        <div id="clooaps-firstMath">{{ getLinesByType(gdtEntryType).firstMath }}</div>
-        <div id="clooaps-secondMath">
+      <div class="col-6 collapse-col-right">
+        <div id="collapse-firstMath">{{ getLinesByType(gdtEntryType).firstMath }}</div>
+        <div id="collapse-secondMath">
           {{ getLinesByType(gdtEntryType).secondMath }}
         </div>
       </div>

@@ -35,28 +35,28 @@ describe('TransactionCollapse', () => {
       expect(wrapper.props().gdtEntryType).toBe(1)
     })
 
-    it('renders the component clooaps-header', () => {
-      expect(wrapper.find('.gdt-list-clooaps-header-text')).toBeTruthy()
+    it('renders the component collapse-header', () => {
+      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
     })
 
-    it('renders the component clooaps-headline', () => {
-      expect(wrapper.find('#clooaps-headline').text()).toBe('gdt.calculation')
+    it('renders the component collapse-headline', () => {
+      expect(wrapper.find('#collapse-headline').text()).toBe('gdt.calculation')
     })
 
-    it('renders the component clooaps-first', () => {
-      expect(wrapper.find('#clooaps-first').text()).toBe('gdt.factor')
+    it('renders the component collapse-first', () => {
+      expect(wrapper.find('#collapse-first').text()).toBe('gdt.factor')
     })
 
-    it('renders the component clooaps-second', () => {
-      expect(wrapper.find('#clooaps-second').text()).toBe('gdt.formula')
+    it('renders the component collapse-second', () => {
+      expect(wrapper.find('#collapse-second').text()).toBe('gdt.formula')
     })
 
-    it('renders the component clooaps-firstMath', () => {
-      expect(wrapper.find('#clooaps-firstMath').text()).toBe('22 GDT pro €')
+    it('renders the component collapse-firstMath', () => {
+      expect(wrapper.find('#collapse-firstMath').text()).toBe('22 GDT pro €')
     })
 
-    it('renders the component clooaps-secondMath', () => {
-      expect(wrapper.find('#clooaps-secondMath').text()).toBe('100 € * 22 GDT / € = 110 GDT')
+    it('renders the component collapse-secondMath', () => {
+      expect(wrapper.find('#collapse-secondMath').text()).toBe('100 € * 22 GDT / € = 110 GDT')
     })
   })
 
@@ -80,28 +80,28 @@ describe('TransactionCollapse', () => {
       expect(wrapper.props().gdtEntryType).toBe(7)
     })
 
-    it('renders the component clooaps-header', () => {
-      expect(wrapper.find('.gdt-list-clooaps-header-text')).toBeTruthy()
+    it('renders the component collapse-header', () => {
+      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
     })
 
-    it('renders the component clooaps-headline', () => {
-      expect(wrapper.find('#clooaps-headline').text()).toBe('gdt.conversion-gdt-euro')
+    it('renders the component collapse-headline', () => {
+      expect(wrapper.find('#collapse-headline').text()).toBe('gdt.conversion-gdt-euro')
     })
 
-    it('renders the component clooaps-first', () => {
-      expect(wrapper.find('#clooaps-first').text()).toBe('gdt.raise')
+    it('renders the component collapse-first', () => {
+      expect(wrapper.find('#collapse-first').text()).toBe('gdt.raise')
     })
 
-    it('renders the component clooaps-second', () => {
-      expect(wrapper.find('#clooaps-second').text()).toBe('gdt.conversion')
+    it('renders the component collapse-second', () => {
+      expect(wrapper.find('#collapse-second').text()).toBe('gdt.conversion')
     })
 
-    it('renders the component clooaps-firstMath', () => {
-      expect(wrapper.find('#clooaps-firstMath').text()).toBe('2200 %')
+    it('renders the component collapse-firstMath', () => {
+      expect(wrapper.find('#collapse-firstMath').text()).toBe('2200 %')
     })
 
-    it('renders the component clooaps-secondMath', () => {
-      expect(wrapper.find('#clooaps-secondMath').text()).toBe('100 GDT * 2200 % = 2200 GDT')
+    it('renders the component collapse-secondMath', () => {
+      expect(wrapper.find('#collapse-secondMath').text()).toBe('100 GDT * 2200 % = 2200 GDT')
     })
   })
 
@@ -125,28 +125,28 @@ describe('TransactionCollapse', () => {
       expect(wrapper.props().gdtEntryType).toBe(4)
     })
 
-    it('renders the component clooaps-header', () => {
-      expect(wrapper.find('.gdt-list-clooaps-header-text')).toBeTruthy()
+    it('renders the component collapse-header', () => {
+      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
     })
 
-    it('renders the component clooaps-headline', () => {
-      expect(wrapper.find('#clooaps-headline').text()).toBe('gdt.publisher')
+    it('renders the component collapse-headline', () => {
+      expect(wrapper.find('#collapse-headline').text()).toBe('gdt.publisher')
     })
 
-    it('renders the component clooaps-first', () => {
-      expect(wrapper.find('#clooaps-first').text()).toBe('')
+    it('renders the component collapse-first', () => {
+      expect(wrapper.find('#collapse-first').text()).toBe('')
     })
 
-    it('renders the component clooaps-second', () => {
-      expect(wrapper.find('#clooaps-second').text()).toBe('')
+    it('renders the component collapse-second', () => {
+      expect(wrapper.find('#collapse-second').text()).toBe('')
     })
 
-    it('renders the component clooaps-firstMath', () => {
-      expect(wrapper.find('#clooaps-firstMath').text()).toBe('')
+    it('renders the component collapse-firstMath', () => {
+      expect(wrapper.find('#collapse-firstMath').text()).toBe('')
     })
 
-    it('renders the component clooaps-secondMath', () => {
-      expect(wrapper.find('#clooaps-secondMath').text()).toBe('')
+    it('renders the component collapse-secondMath', () => {
+      expect(wrapper.find('#collapse-secondMath').text()).toBe('')
     })
   })
 })
