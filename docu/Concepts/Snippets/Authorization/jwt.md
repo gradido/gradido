@@ -15,6 +15,15 @@ That can only be done by the Login-Server or a Desktop or Handy-App storing the 
 With that we have universal way for authorization against the backend. 
 We could additional store if we like to sign transactions local or with Login-Server and the Login-Server url.
 
+## JWT and Login-Server
+Login-Server uses Poco version 1.9.4 but unfortunately Poco only introduces jwt from version 1.10.
+And Updating to 1.10 needs some work because some things have changed in Poco 1.10.
+
+## JWT signature algorithms
+In JWT standard ed25519 don't seemd to play a role.
+We must find out if we can use the ed25519 keys together with one of the signature algorithms
+in JWT standard or we must use **crypto_sign_verify_detached** from libsodium even it is nonstandard
+to verify signature created with ed25519 keys and libsodiums **crypto_sign_detached** function.
 
 
 
