@@ -1,15 +1,4 @@
 import { mutations, actions } from './store'
-import VueJwtDecode from 'vue-jwt-decode'
-
-jest.mock('vue-jwt-decode')
-VueJwtDecode.decode.mockReturnValue({
-  email: 'user@example.org',
-  language: 'de',
-  username: 'peter',
-  firstName: 'Peter',
-  lastName: 'Lustig',
-  description: 'Nickelbrille',
-})
 
 const { language, email, token, username, firstName, lastName, description } = mutations
 const { login, logout } = actions
@@ -77,46 +66,48 @@ describe('Vuex store', () => {
     describe('login', () => {
       const commit = jest.fn()
       const state = {}
-      const commitedData = 'token'
+      const commitedData = {
+        email: 'user@example.org',
+        language: 'de',
+        username: 'peter',
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        description: 'Nickelbrille',
+      }
 
       it('calls seven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(7)
-      })
-
-      it('commits token', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(1, 'token', 'token')
+        expect(commit).toHaveBeenCalledTimes(6)
       })
 
       it('commits email', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(2, 'email', 'user@example.org')
+        expect(commit).toHaveBeenNthCalledWith(1, 'email', 'user@example.org')
       })
 
       it('commits language', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(3, 'language', 'de')
+        expect(commit).toHaveBeenNthCalledWith(2, 'language', 'de')
       })
 
       it('commits username', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(4, 'username', 'peter')
+        expect(commit).toHaveBeenNthCalledWith(3, 'username', 'peter')
       })
 
       it('commits firstName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'firstName', 'Peter')
+        expect(commit).toHaveBeenNthCalledWith(4, 'firstName', 'Peter')
       })
 
       it('commits lastName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'lastName', 'Lustig')
+        expect(commit).toHaveBeenNthCalledWith(5, 'lastName', 'Lustig')
       })
 
       it('commits description', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'description', 'Nickelbrille')
+        expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
       })
     })
 
