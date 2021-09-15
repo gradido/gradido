@@ -22,14 +22,13 @@ services:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
       # - PORT=3000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
       - NODE_ENV="production"
-      # Application only envs
-      #- HOST=0.0.0.0 # This is nuxt specific, alternative value is HOST=webapp
-    #env_file:
-    #  - ./frontend/.env
+    env_file:
+      - ./.env
+      # - ./frontend/.env
 
   #########################################################
   ## MARIADB ##############################################
