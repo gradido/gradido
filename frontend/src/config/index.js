@@ -6,20 +6,9 @@ const pkg = require('../../package')
 
 const version = {
   APP_VERSION: pkg.version,
-  BUILD_COMMIT:
-    process.env.BUILD_COMMIT ||
-    // the check for undefined is because of a conflict between webpack-dotenv and vue cli env filtering
-    (process.env.VUE_APP_BUILD_COMMIT !== 'undefined' ? process.env.VUE_APP_BUILD_COMMIT : null) ||
-    null,
+  BUILD_COMMIT: process.env.BUILD_COMMIT || null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
-  BUILD_COMMIT_SHORT: (
-    process.env.BUILD_COMMIT ||
-    (process.env.VUE_APP_BUILD_COMMIT !== 'undefined' ? process.env.VUE_APP_BUILD_COMMIT : null) ||
-    '0000000'
-  ).substr(0, 7),
-  // unused
-  // BUILD_DATE: process.env.BUILD_DATE || process.env.VUE_APP_BUILD_DATE || '1970-01-01T00:00:00.00Z',
-  // BUILD_VERSION: process.env.BUILD_VERSION || process.env.VUE_APP_BUILD_VERSION || '0.0.0.0',
+  BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT || '0000000').substr(0, 7),
 }
 
 const environment = {

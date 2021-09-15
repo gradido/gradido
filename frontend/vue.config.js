@@ -1,7 +1,6 @@
 const path = require('path')
-const dotenv = require('dotenv-webpack')
-
-process.env.VUE_APP_BUILD_COMMIT = process.env.BUILD_COMMIT
+const webpack = require('webpack')
+const Dotenv = require('dotenv-webpack')
 
 // vue.config.js
 module.exports = {
@@ -25,8 +24,17 @@ module.exports = {
         assets: path.join(__dirname, 'src/assets'),
       },
     },
-    // eslint-disable-next-line new-cap
-    plugins: [new dotenv()],
+    plugins: [
+      new Dotenv(),
+      new webpack.DefinePlugin({
+        // Those are Environment Variables transmitted via Docker
+        // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
+        // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
+        // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
+        'process.env.BUILD_COMMIT': JSON.stringify(process.env.BUILD_COMMIT),
+        // 'process.env.PORT': JSON.stringify(process.env.PORT),
+      }),
+    ],
   },
   css: {
     // Enable CSS source maps.
