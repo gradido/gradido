@@ -26,7 +26,11 @@ export const signout = async (email: string, language: string): Promise<boolean>
   return result
 }
 
-export const userTags = async (email: string): Promise<any> => {
+export const unsubscribe = async (email: string): Promise<boolean> => {
+  return await klicktippConnector.unsubscribe(email)
+}
+
+export const getKlickTippUser = async (email: string): Promise<any> => {
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
     const subscriberId = await klicktippConnector.subscriberSearch(email)

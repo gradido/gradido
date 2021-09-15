@@ -16,13 +16,17 @@ import {
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
-import { klicktippRegistrationMiddleware } from '../../middleware/klicktippMiddleware'
+import {
+  klicktippRegistrationMiddleware,
+  klicktippNewsletterStateMiddleware,
+} from '../../middleware/klicktippMiddleware'
 import encode from '../../jwt/encode'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
 
 @Resolver()
 export class UserResolver {
   @Query(() => String)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(@Args() { email, password }: UnsecureLoginArgs): Promise<string> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
