@@ -19,7 +19,6 @@
     "en": "English"
   },
   "select_language": "Bitte wähle eine Sprache für die App und Newsletter",
-  "newsletter": "Newsletter",
   "decay": {
     "decay": "Vergänglichkeit",
     "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",
@@ -42,7 +41,11 @@
     "fromCommunity":"Aus der Gemeinschaft",
     "toCommunity":"An die Gemeinschaft",
     "noDecay": "Keine Vergänglichkeit"
-  }, 
+  },
+  "setting": {
+    "newsletter": "Newsletter",
+    "changeNewsletter": "Newsletter Status ändern"
+  },
   "form": {
     "cancel": "Abbrechen",
     "reset": "Zurücksetzen",
@@ -66,7 +69,6 @@
     "change-password": "Passwort ändern",
     "change-name": "Name ändern",
     "changeLanguage": "Sprache ändern",
-    "changeNewsletter": "Newsletter Status ändern",
     "amount":"Betrag",
     "memo":"Nachricht",
     "message":"Nachricht",

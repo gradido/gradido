@@ -23,7 +23,7 @@ export default {
     FormUserData,
     FormUserPasswort,
     FormUserLanguage,
-    FormUserNewsletter
+    FormUserNewsletter,
   },
   props: {
     balance: { type: Number, default: 0 },
