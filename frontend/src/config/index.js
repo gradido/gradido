@@ -32,10 +32,6 @@ const CONFIG = {
   ...environment,
   ...server,
   ...options,
-  COMMIT_HASH:
-    process.env.VUE_APP_BUILD_COMMIT === 'undefined'
-      ? '00000000'
-      : process.env.VUE_APP_BUILD_COMMIT,
 }
 
 export default CONFIG
