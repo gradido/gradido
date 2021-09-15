@@ -42,8 +42,8 @@ describe('UserCard_Newsletter', () => {
       expect(wrapper.find('div#formusernewsletter').exists()).toBeTruthy()
     })
 
-    it('has an edit icon', () => {
-      expect(wrapper.find('svg.bi-pencil').exists()).toBeTruthy()
+    it('has an edit BFormCheckbox switch', () => {
+      expect(wrapper.find('.Test-BFormCheckbox').exists()).toBeTruthy()
     })
   })
 })

@@ -42,6 +42,12 @@
     "toCommunity":"To the community",
     "noDecay": "No Decay"
   },
+  "setting": {
+    "newsletter": "Newsletter",
+    "changeNewsletter": "Newsletter status change",
+    "newsletterTrue": "You have joined the Gradido newsletter system and receive news and information regularly.",
+    "newsletterFalse": "You are unsubscribed from Gradido's newsletter system."
+  },
   "form": {
     "cancel":"Cancel",
     "reset": "Reset",
@@ -65,7 +71,6 @@
     "change-password": "Change password",
     "change-name": "Change name",
     "changeLanguage": "Change language",
-    "changeNewsletter": "Change newsletter status",
     "amount":"Amount",
     "memo":"Message",
     "message":"Message",
