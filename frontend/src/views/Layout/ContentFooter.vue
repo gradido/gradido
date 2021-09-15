@@ -16,11 +16,11 @@
             App version {{ version }}
           </a>
           <a
-            v-if="shortHash !== '00000000'"
+            v-if="hash"
             :href="'https://github.com/gradido/gradido/commit/' + hash"
             target="_blank"
           >
-            {{ shortHash }}
+            ({{ shortHash }})
           </a>
         </div>
       </b-col>
@@ -66,8 +66,8 @@ export default {
     return {
       year: new Date().getFullYear(),
       version: CONFIG.APP_VERSION,
-      hash: CONFIG.COMMIT_HASH,
-      shortHash: CONFIG.COMMIT_HASH.substr(0, 8),
+      hash: CONFIG.BUILD_COMMIT,
+      shortHash: CONFIG.BUILD_COMMIT_SHORT,
     }
   },
 }

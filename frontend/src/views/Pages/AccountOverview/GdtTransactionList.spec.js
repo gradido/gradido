@@ -57,11 +57,6 @@ describe('GdtTransactionList', () => {
     $t: jest.fn((t) => t),
     $n: jest.fn((n) => n),
     $d: jest.fn((d) => d),
-    $store: {
-      state: {
-        sessionId: 1,
-      },
-    },
     $toasted: {
       error: toastErrorMock,
     },
@@ -89,7 +84,6 @@ describe('GdtTransactionList', () => {
         expect(apolloMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              sessionId: 1,
               currentPage: 1,
               pageSize: 25,
             },

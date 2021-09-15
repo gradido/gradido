@@ -18,6 +18,7 @@
     "de": "Deutsch",
     "en": "English"
   },
+  "select_language": "Please choose a language for the app and newsletter",
   "decay": {
     "decay": "Decay",
     "decay_since_last_transaction":"Decay since the last transaction",
@@ -136,16 +137,6 @@
       "send_gradido":"Send Gradido",
       "add_work":"New Community Contribution"
     },
-    "profil": {
-      "transactions":"transactions",
-      "activity": {
-        "new":"Register new community hours",
-        "list":"My Community Hours List"
-      },
-      "user-data": {
-        "change-success": "Your data has been saved."
-      }
-    },
     "navbar" : {
       "my-profil":"My profile",
       "settings":"Settings",
@@ -183,8 +174,8 @@
     "formula": "Calculation formula",
     "no-transactions":"You currently have no transactions",
     "publisher":"A member you referred has paid a contribution",
-    "gdt-receive":"GDT receive",
-    "your-share":"Your share",
+    "action":"Action",
+    "recruited-member":"Recruited Member",
     "contribution":"Contribution"
  }
 }

@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import 'reflect-metadata'
 import express from 'express'
+import cors from 'cors'
 import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
 import { RowDataPacket } from 'mysql2/promise'
@@ -8,16 +11,30 @@ import connection from './database/connection'
 import CONFIG from './config'
 
 // TODO move to extern
-// import { BookResolver } from './graphql/resolvers/BookResolver'
 import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 import { GdtResolver } from './graphql/resolvers/GdtResolver'
 import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
 
+import { isAuthorized } from './auth/auth'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 const DB_VERSION = '0001-init_db'
+
+const context = (args: any) => {
+  const authorization = args.req.headers.authorization
+  let token = null
+  if (authorization) {
+    token = authorization.replace(/^Bearer /, '')
+  }
+  const context = {
+    token,
+    setHeaders: [],
+  }
+  return context
+}
 
 async function main() {
   // check for correct database version
@@ -34,6 +51,7 @@ async function main() {
   // const connection = await createConnection()
   const schema = await buildSchema({
     resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver],
+    authChecker: isAuthorized,
   })
 
   // Graphiql interface
@@ -45,8 +63,31 @@ async function main() {
   // Express Server
   const server = express()
 
+  const corsOptions = {
+    origin: '*',
+    exposedHeaders: ['token'],
+  }
+
+  server.use(cors(corsOptions))
+
+  const plugins = [
+    {
+      requestDidStart() {
+        return {
+          willSendResponse(requestContext: any) {
+            const { setHeaders = [] } = requestContext.context
+            setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
+              requestContext.response.http.headers.append(key, value)
+            })
+            return requestContext
+          },
+        }
+      },
+    },
+  ]
+
   // Apollo Server
-  const apollo = new ApolloServer({ schema, playground })
+  const apollo = new ApolloServer({ schema, playground, context, plugins })
   apollo.applyMiddleware({ app: server })
 
   // Start Server

@@ -6,12 +6,7 @@ const localVue = global.localVue
 
 const loginQueryMock = jest.fn().mockResolvedValue({
   data: {
-    login: {
-      sessionId: 1,
-      user: {
-        name: 'Peter Lustig',
-      },
-    },
+    login: 'token',
   },
 })
 
@@ -159,10 +154,7 @@ describe('Login', () => {
 
         describe('login success', () => {
           it('dispatches server response to store', () => {
-            expect(mockStoreDispach).toBeCalledWith('login', {
-              sessionId: 1,
-              user: { name: 'Peter Lustig' },
-            })
+            expect(mockStoreDispach).toBeCalledWith('login', 'token')
           })
 
           it('redirects to overview page', () => {

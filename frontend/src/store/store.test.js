@@ -1,6 +1,6 @@
 import { mutations, actions } from './store'
 
-const { language, email, sessionId, username, firstName, lastName, description } = mutations
+const { language, email, token, username, firstName, lastName, description } = mutations
 const { login, logout } = actions
 
 describe('Vuex store', () => {
@@ -21,11 +21,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('sessionId', () => {
-      it('sets the state of sessionId', () => {
-        const state = { sessionId: null }
-        sessionId(state, '1234')
-        expect(state.sessionId).toEqual('1234')
+    describe('token', () => {
+      it('sets the state of token', () => {
+        const state = { token: null }
+        token(state, '1234')
+        expect(state.token).toEqual('1234')
       })
     })
 
@@ -67,55 +67,47 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
       const commitedData = {
-        sessionId: 1234,
-        user: {
-          email: 'someone@there.is',
-          language: 'en',
-          username: 'user',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          description: 'Nickelbrille',
-        },
+        email: 'user@example.org',
+        language: 'de',
+        username: 'peter',
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        description: 'Nickelbrille',
       }
 
       it('calls seven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(7)
-      })
-
-      it('commits sessionId', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', 1234)
+        expect(commit).toHaveBeenCalledTimes(6)
       })
 
       it('commits email', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(2, 'email', 'someone@there.is')
+        expect(commit).toHaveBeenNthCalledWith(1, 'email', 'user@example.org')
       })
 
       it('commits language', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(3, 'language', 'en')
+        expect(commit).toHaveBeenNthCalledWith(2, 'language', 'de')
       })
 
       it('commits username', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(4, 'username', 'user')
+        expect(commit).toHaveBeenNthCalledWith(3, 'username', 'peter')
       })
 
       it('commits firstName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'firstName', 'Peter')
+        expect(commit).toHaveBeenNthCalledWith(4, 'firstName', 'Peter')
       })
 
       it('commits lastName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'lastName', 'Lustig')
+        expect(commit).toHaveBeenNthCalledWith(5, 'lastName', 'Lustig')
       })
 
       it('commits description', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'description', 'Nickelbrille')
+        expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
       })
     })
 
@@ -128,9 +120,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenCalledTimes(6)
       })
 
-      it('commits sessionId', () => {
+      it('commits token', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', null)
+        expect(commit).toHaveBeenNthCalledWith(1, 'token', null)
       })
 
       it('commits email', () => {
@@ -159,7 +151,7 @@ describe('Vuex store', () => {
       })
 
       // how to get this working?
-      it.skip('calls sessionStorage.clear()', () => {
+      it.skip('calls localStorage.clear()', () => {
         const clearStorageMock = jest.fn()
         global.sessionStorage = jest.fn(() => {
           return {

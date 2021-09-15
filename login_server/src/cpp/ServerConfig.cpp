@@ -51,6 +51,7 @@ namespace ServerConfig {
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
 	std::string g_frontend_checkEmailPath;
+	std::string g_frontend_resetPasswordPath;
 	int        g_phpServerPort;
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
@@ -238,8 +239,9 @@ namespace ServerConfig {
 		if ("" != app_secret_string) {
 			g_CryptoAppSecret = DataTypeConverter::hexToBin(app_secret_string);
 		}
-		std::string defaultCheckEmailPath = g_serverPath + "/checkEmail";
+		std::string defaultCheckEmailPath = "/account/checkEmail";
 		g_frontend_checkEmailPath = cfg.getString("frontend.checkEmailPath", defaultCheckEmailPath);
+		g_frontend_resetPasswordPath = cfg.getString("frontend.resetPasswordPath", defaultCheckEmailPath);
 		//g_CryptoAppSecret
 
 		// unsecure flags

@@ -9,9 +9,9 @@ fi
 mkdir build 
 cd build
 cmake -DWITH_SSL=OFF ..
-cd ../../
+cd ../../../
 
-if [! -d "./build" ] ; then
+if [ ! -d "./build" ] ; then
   mkdir build
 fi
 cd build
