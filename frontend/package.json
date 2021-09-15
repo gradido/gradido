@@ -10,7 +10,7 @@
     "dev": "yarn run serve",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
     "test": "jest --coverage",
-    "locales": "./scripts/missing-keys.sh && ./scripts/sort.sh"
+    "locales": "scripts/missing-keys.sh && scripts/sort.sh"
   },
   "dependencies": {
     "@babel/core": "^7.13.13",
