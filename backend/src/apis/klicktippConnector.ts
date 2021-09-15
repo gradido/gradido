@@ -39,7 +39,6 @@ export class KlicktippConnector {
     const res = await this.httpRequest('/account/login', 'POST', { username, password }, false)
 
     if (!res.isAxiosError) {
-      console.log('res.data', res.data)
       this.sessionId = res.data.sessid
       this.sessionName = res.data.session_name
 
@@ -398,7 +397,7 @@ export class KlicktippConnector {
    */
   async subscriberIndex(): Promise<[string]> {
     const res = await this.httpRequest('/subscriber', 'GET', undefined, true)
-    console.log('SubscriberIndex.res', res)
+
     if (!res.isAxiosError) {
       return res.data
     }
