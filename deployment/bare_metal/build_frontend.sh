@@ -4,6 +4,7 @@
 
 cd /var/www/html/gradido
 eval "echo \"$(cat .env.shell)\"" > .env
+export BUILD_COMMIT="$(git rev-parse HEAD)"
 cd frontend
 
 NPM_BIN=/root/.nvm/versions/node/v12.19.0/bin/npm
