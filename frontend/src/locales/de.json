@@ -45,8 +45,8 @@
   "setting": {
     "newsletter": "Newsletter",
     "changeNewsletter": "Newsletter Status ändern",
-    "newsletterTrue": "Du bist im Newslettersystem von Gradido eingetraten und erhällst regelmäsig Neuigkeiten und Informationen.",
-    "newsletterFalse": "Du bist aus Newslettersystem von Gradido ausgetragen."
+    "newsletterTrue": "Du bist im Newslettersystem eingetraten.",
+    "newsletterFalse": "Du bist aus Newslettersystem ausgetragen."
   },
   "form": {
     "cancel": "Abbrechen",

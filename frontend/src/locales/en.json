@@ -45,8 +45,8 @@
   "setting": {
     "newsletter": "Newsletter",
     "changeNewsletter": "Newsletter status change",
-    "newsletterTrue": "You have joined the Gradido newsletter system and receive news and information regularly.",
-    "newsletterFalse": "You are unsubscribed from Gradido's newsletter system."
+    "newsletterTrue": "You are subscribed to newsletter system.",
+    "newsletterFalse": "You are unsubscribed from newsletter system."
   },
   "form": {
     "cancel":"Cancel",

@@ -18,10 +18,12 @@
 
     <div v-if="showLanguage">
       <b-row class="mb-3">
-        <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-          <small>{{ $t('language') }}</small>
+        <b-col class="col-12">
+          <small>
+            <b>{{ $t('language') }}</b>
+          </small>
         </b-col>
-        <b-col class="h2 col-md-9 col-sm-10">{{ $store.state.language }}</b-col>
+        <b-col class="col-12">{{ $store.state.language }}</b-col>
       </b-row>
     </div>
 
@@ -29,18 +31,26 @@
       <div>
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-2">
-            <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-              <small>{{ $t('language') }}</small>
+            <b-col class="col-12">
+              <small>
+                <b>{{ $t('language') }}</b>
+              </small>
             </b-col>
-            <b-col class="col-md-9 col-sm-10">
+            <b-col class="col-12">
               <language-switch-select @update-language="updateLanguage" :language="language" />
             </b-col>
           </b-row>
 
           <b-row class="text-right">
             <b-col>
-              <div class="text-right">
-                <b-button type="submit" variant="primary" class="mt-4">
+              <div class="text-right" ref="submitButton">
+                <b-button
+                  :variant="loading ? 'default' : 'success'"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="loading"
+                >
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -62,15 +72,22 @@ export default {
     return {
       showLanguage: true,
       language: '',
+      loading: true,
     }
   },
   methods: {
     updateLanguage(e) {
       this.language = e
+      if (this.language !== this.$store.state.language) {
+        this.loading = false
+      } else {
+        this.loading = true
+      }
     },
     cancelEdit() {
       this.showLanguage = true
     },
+
     async onSubmit() {
       this.$apollo
         .query({
