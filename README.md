@@ -39,4 +39,3 @@ git submodule update --recursive --init
 ## Useful Links
 
 - [Gradido.net](https://gradido.net/)
-- [Discord](https://discord.gg/kA3zBAKQDC)
