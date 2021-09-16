@@ -42,6 +42,12 @@
     "toCommunity":"To the community",
     "noDecay": "No Decay"
   },
+  "setting": {
+    "newsletter": "Newsletter",
+    "changeNewsletter": "Newsletter status change",
+    "newsletterTrue": "You are subscribed to newsletter system.",
+    "newsletterFalse": "You are unsubscribed from newsletter system."
+  },
   "form": {
     "cancel":"Cancel",
     "reset": "Reset",

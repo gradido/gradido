@@ -117,10 +117,6 @@ describe('DashboardLayoutGdd', () => {
         )
       })
 
-      it('has a locale switch', () => {
-        expect(wrapper.find('div.language-switch').exists()).toBeTruthy()
-      })
-
       it('has a logout button', () => {
         expect(wrapper.findAll('ul').at(3).text()).toBe('logout')
       })

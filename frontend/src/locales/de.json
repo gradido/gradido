@@ -41,7 +41,13 @@
     "fromCommunity":"Aus der Gemeinschaft",
     "toCommunity":"An die Gemeinschaft",
     "noDecay": "Keine Vergänglichkeit"
-  }, 
+  },
+  "setting": {
+    "newsletter": "Newsletter",
+    "changeNewsletter": "Newsletter Status ändern",
+    "newsletterTrue": "Du bist im Newslettersystem eingetraten.",
+    "newsletterFalse": "Du bist aus Newslettersystem ausgetragen."
+  },
   "form": {
     "cancel": "Abbrechen",
     "reset": "Zurücksetzen",
