@@ -22,6 +22,7 @@ const database = {
 }
 
 const klicktipp = {
+  KLICKTIPP: process.env.KLICKTIPP === 'true' || false,
   KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
   KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'gradido_test',
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',

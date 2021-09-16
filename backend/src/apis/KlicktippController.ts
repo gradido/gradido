@@ -41,7 +41,7 @@ export const getKlickTippUser = async (email: string): Promise<any> => {
     const result = await klicktippConnector.subscriberGet(subscriberId)
     return result
   }
-  throw new Error()
+  return false
 }
 
 export const loginKlicktippUser = async (): Promise<boolean> => {
@@ -57,7 +57,7 @@ export const untagUser = async (email: string, tagId: string): Promise<boolean> 
   if (isLogin) {
     return await klicktippConnector.untag(email, tagId)
   }
-  throw new Error()
+  return false
 }
 
 export const tagUser = async (email: string, tagIds: string): Promise<boolean> => {
@@ -65,7 +65,7 @@ export const tagUser = async (email: string, tagIds: string): Promise<boolean> =
   if (isLogin) {
     return await klicktippConnector.tag(email, tagIds)
   }
-  throw new Error()
+  return false
 }
 
 export const getKlicktippTagMap = async () => {
@@ -73,5 +73,5 @@ export const getKlicktippTagMap = async () => {
   if (isLogin) {
     return await klicktippConnector.tagIndex()
   }
-  throw new Error()
+  return ''
 }

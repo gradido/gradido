@@ -1,6 +1,7 @@
 import { MiddlewareFn } from 'type-graphql'
 import { signIn, getKlickTippUser } from '../apis/KlicktippController'
 import { KlickTipp } from '../graphql/models/KlickTipp'
+import CONFIG from '../config/index'
 
 export const klicktippRegistrationMiddleware: MiddlewareFn = async (
   // Only for demo
@@ -21,8 +22,10 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
   next,
 ) => {
   const result = await next()
-  const klickTippUser = await getKlickTippUser(result.email)
-  const klickTipp = new KlickTipp(klickTippUser)
-  result.klickTipp = klickTipp
+  if (CONFIG.KLICKTIPP) {
+    const klickTippUser = await getKlickTippUser(result.email)
+    const klickTipp = new KlickTipp(klickTippUser)
+    result.klickTipp = klickTipp
+  }
   return result
 }
