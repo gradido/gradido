@@ -39,7 +39,7 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('description', data.description)
-    commit('newsletterState', data.klickTipp.newsletterState)
+    // commit('newsletterState', data.klickTipp.newsletterState)
   },
   logout: ({ commit, state }) => {
     commit('token', null)

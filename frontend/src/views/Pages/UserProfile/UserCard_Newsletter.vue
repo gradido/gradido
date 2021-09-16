@@ -14,11 +14,12 @@
         <b-col class="col-12">
           <b-form-checkbox
             class="Test-BFormCheckbox"
-            v-model="NewsletterStatus"
+            v-model="newsletterState"
             name="check-button"
             switch
+            @change="onSubmit"
           >
-            {{ NewsletterStatus ? $t('setting.newsletterTrue') : $t('setting.newsletterFalse') }}
+            {{ newsletterState ? $t('setting.newsletterTrue') : $t('setting.newsletterFalse') }}
           </b-form-checkbox>
         </b-col>
       </b-row>
@@ -26,36 +27,35 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/queries'
+import { subscribeNewsletter, unsubscribeNewsletter } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserNewsletter',
   data() {
     return {
-      showNewsletter: true,
-      NewsletterStatus: true,
+      newsletterState: this.$store.state.newsletterState,
     }
-  },
-  created() {
-    this.NewsletterStatus = this.$store.state.newsletter /* exestiert noch nicht im store */
   },
   methods: {
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: this.newsletterState ? subscribeNewsletter : unsubscribeNewsletter,
           variables: {
-            newsletter: this.$store.state.language /* exestiert noch nicht im store */,
+            email: this.$store.state.email,
+            language: this.$store.state.language,
           },
         })
         .then(() => {
+          this.$store.commit('newsletterState', this.newsletterState)
           this.$toasted.success(
-            this.NewsletterStatus
+            this.newsletterState
               ? this.$t('setting.newsletterTrue')
               : this.$t('setting.newsletterFalse'),
           )
         })
         .catch((error) => {
+          this.newsletterState = this.$store.state.newsletterState
           this.$toasted.error(error.message)
         })
     },

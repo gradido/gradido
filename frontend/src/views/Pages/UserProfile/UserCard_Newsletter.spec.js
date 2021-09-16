@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import UserCardNewsletter from './UserCard_Newsletter'
+import { unsubscribeNewsletter } from '../../../graphql/mutations'
 
 const localVue = global.localVue
 
@@ -8,6 +9,7 @@ const mockAPIcall = jest.fn()
 const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
+const newsletterStateMock = jest.fn().mockReturnValue(true)
 
 describe('UserCard_Newsletter', () => {
   let wrapper
@@ -17,6 +19,8 @@ describe('UserCard_Newsletter', () => {
     $store: {
       state: {
         language: 'de',
+        email: 'peter@lustig.de',
+        newsletterState: newsletterStateMock,
       },
       commit: storeCommitMock,
     },
@@ -25,7 +29,7 @@ describe('UserCard_Newsletter', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: mockAPIcall,
+      mutate: mockAPIcall,
     },
   }
 
@@ -44,6 +48,52 @@ describe('UserCard_Newsletter', () => {
 
     it('has an edit BFormCheckbox switch', () => {
       expect(wrapper.find('.Test-BFormCheckbox').exists()).toBeTruthy()
+    })
+
+    describe('unsubscribe with sucess', () => {
+      beforeEach(() => {
+        mockAPIcall.mockResolvedValue({
+          data: {
+            unsubscribeNewsletter: true,
+          },
+        })
+        wrapper.find('input').trigger('change')
+      })
+
+      it('calls the unsubscribe mutation', () => {
+        expect(mockAPIcall).toBeCalledWith({
+          mutation: unsubscribeNewsletter,
+          variables: {
+            email: 'peter@lustig.de',
+            language: 'de',
+          },
+        })
+      })
+
+      it('updates the store', () => {
+        expect(storeCommitMock).toBeCalledWith('newsletterState', false)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessMock).toBeCalledWith('setting.newsletterFalse')
+      })
+    })
+
+    describe('unsubscribe with server error', () => {
+      beforeEach(() => {
+        mockAPIcall.mockRejectedValue({
+          message: 'Ouch',
+        })
+        wrapper.find('input').trigger('change')
+      })
+
+      it('resets the newsletterState', () => {
+        expect(wrapper.vm.newsletterState).toBeTruthy()
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Ouch')
+      })
     })
   })
 })
