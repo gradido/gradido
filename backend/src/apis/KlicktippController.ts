@@ -5,7 +5,7 @@ import CONFIG from '../config'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const signin = async (
+export const signIn = async (
   email: string,
   language: string,
   firstName?: string,
@@ -52,18 +52,18 @@ export const logoutKlicktippUser = async (): Promise<boolean> => {
   return await klicktippConnector.logout()
 }
 
-export const untagUser = async (email: string, tagid: string): Promise<boolean> => {
+export const untagUser = async (email: string, tagId: string): Promise<boolean> => {
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    return await klicktippConnector.untag(email, tagid)
+    return await klicktippConnector.untag(email, tagId)
   }
   throw new Error()
 }
 
-export const tagUser = async (email: string, tagids: string): Promise<boolean> => {
+export const tagUser = async (email: string, tagIds: string): Promise<boolean> => {
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    return await klicktippConnector.tag(email, tagids)
+    return await klicktippConnector.tag(email, tagIds)
   }
   throw new Error()
 }

@@ -6,7 +6,7 @@ import {
   getKlickTippUser,
   getKlicktippTagMap,
   unsubscribe,
-  signin,
+  signIn,
 } from '../../apis/KlicktippController'
 import { SubscribeNewsletterArguments } from '../inputs/KlickTippInputs'
 
@@ -35,6 +35,6 @@ export class KlicktippResolver {
   async subscribeNewsletter(
     @Args() { email, language }: SubscribeNewsletterArguments,
   ): Promise<boolean> {
-    return await signin(email, language)
+    return await signIn(email, language)
   }
 }
