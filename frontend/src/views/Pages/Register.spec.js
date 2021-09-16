@@ -12,11 +12,6 @@ describe('Register', () => {
   let wrapper
 
   const mocks = {
-    $store: {
-      state: {
-        language: 'de',
-      },
-    },
     $i18n: {
       locale: 'en',
     },
