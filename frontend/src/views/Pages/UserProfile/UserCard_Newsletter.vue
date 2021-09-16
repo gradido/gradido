@@ -43,7 +43,7 @@ export default {
           mutation: this.newsletterState ? subscribeNewsletter : unsubscribeNewsletter,
           variables: {
             email: this.$store.state.email,
-            language: this.$store.state.language,
+            language: this.newsletterState ? this.$store.state.language : undefined,
           },
         })
         .then(() => {

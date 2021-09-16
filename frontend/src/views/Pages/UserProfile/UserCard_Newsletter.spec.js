@@ -65,7 +65,6 @@ describe('UserCard_Newsletter', () => {
           mutation: unsubscribeNewsletter,
           variables: {
             email: 'peter@lustig.de',
-            language: 'de',
           },
         })
       })
