@@ -117,7 +117,7 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
-    return 'sucess'
+    return 'success'
   }
 
   @Authorized()
