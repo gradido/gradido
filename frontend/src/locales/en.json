@@ -120,12 +120,22 @@
   },
   "select_language": "Please choose a language for the app and newsletter",
   "send": "Send",
+  "setting": {
+    "changeNewsletter": "Newsletter status change",
+    "newsletter": "Newsletter",
+    "newsletterFalse": "You are unsubscribed from newsletter system.",
+    "newsletterTrue": "You are subscribed to newsletter system."
+  },
   "signup": "Sign up",
   "site": {
     "404": {
       "back": "Back to dashboard!",
       "ooops": "Ooops!",
       "text": "Page not found. Do not worry though, we have plenty of other pages to explore"
+    },
+    "checkEmail": {
+      "errorText": "Could not verify the email.",
+      "title": "Verifing email"
     },
     "login": {
       "community": "A thousand thanks for being with us!",
@@ -162,6 +172,7 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
+      "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
       "register": "You are registred now.",
       "reset": "Your password has been changed.",

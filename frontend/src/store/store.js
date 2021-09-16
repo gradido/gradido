@@ -26,6 +26,9 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
   },
+  newsletterState: (state, newsletterState) => {
+    state.newsletterState = newsletterState
+  },
 }
 
 export const actions = {
@@ -36,6 +39,7 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('description', data.description)
+    commit('newsletterState', data.klickTipp.newsletterState)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -44,6 +48,7 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('description', '')
+    commit('newsletterState', null)
     localStorage.clear()
   },
 }
@@ -62,6 +67,7 @@ export const store = new Vuex.Store({
     username: '',
     description: '',
     token: null,
+    newsletterState: null,
   },
   getters: {},
   // Syncronous mutation of the state

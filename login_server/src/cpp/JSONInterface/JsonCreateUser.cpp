@@ -6,6 +6,7 @@
 
 #include "../SingletonManager/EmailManager.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/LanguageManager.h"
 
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 
@@ -17,6 +18,8 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	std::string password;
 	std::string username;
 	std::string description;
+	std::string language;
+
 	bool login_after_register = false;
 	int emailType;
 	int group_id = 1;
@@ -42,6 +45,7 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			auto group_id_obj = paramJsonObject->get("group_id");
 			auto username_obj = paramJsonObject->get("username");
 			auto description_obj = paramJsonObject->get("description");
+			auto language_obj = paramJsonObject->get("language");
 
 			if(!group_id_obj.isEmpty()) {
                 group_id_obj.convert(group_id);
@@ -51,6 +55,9 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 			}
 			if (!description_obj.isEmpty()) {
 				description_obj.convert(description);
+			}
+			if (!language_obj.isEmpty()) {
+				language_obj.convert(language);
 			}
 			if ((ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
 				paramJsonObject->get("password").convert(password);
@@ -96,15 +103,20 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
         group_was_not_set = true;
 	}
 	user = controller::User::create(email, first_name, last_name, group_id);
+	auto user_model = user->getModel();
 	if (username.size() > 3) {
 		if (user->isUsernameAlreadyUsed(username)) {
 			return stateError("username already in use");
 		}
-		user->getModel()->setUsername(username);
+		user_model->setUsername(username);
 	}
 	if (description.size() > 3) {
-		user->getModel()->setDescription(description);
+		user_model->setDescription(description);
 	}
+	if (LanguageManager::languageFromString(language) != LANG_NULL) {
+		user_model->setLanguageKey(language);
+	}
+	
 	auto userModel = user->getModel();
 	Session* session = nullptr;
 

@@ -120,12 +120,22 @@
   },
   "select_language": "Bitte wähle eine Sprache für die App und Newsletter",
   "send": "Senden",
+  "setting": {
+    "changeNewsletter": "Newsletter Status ändern",
+    "newsletter": "Newsletter",
+    "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
+    "newsletterTrue": "Du bist im Newslettersystem eingetraten."
+  },
   "signup": "Registrieren",
   "site": {
     "404": {
       "back": "Zurück zur Übersicht!",
       "ooops": "Ooops!",
       "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden"
+    },
+    "checkEmail": {
+      "errorText": "Email konnte nicht verifiziert werden.",
+      "title": "Email wird verifiziert"
     },
     "login": {
       "community": "Tausend Dank, weil du bei uns bist!",
@@ -162,6 +172,7 @@
       "uppercase": "Ein Großbuchstabe erforderlich."
     },
     "thx": {
+      "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
       "register": "Du bist jetzt regisriert.",
       "reset": "Dein Passwort wurde geändert.",
