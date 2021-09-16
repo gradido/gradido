@@ -62,8 +62,8 @@ describe('CheckEmail', () => {
       })
 
       it('has a message suggesting to contact the support', () => {
-        expect(wrapper.find('div.header').text()).toContain('check-email.title')
-        expect(wrapper.find('div.header').text()).toContain('check-email.error-text')
+        expect(wrapper.find('div.header').text()).toContain('checkEmail.title')
+        expect(wrapper.find('div.header').text()).toContain('checkEmail.errorText')
       })
     })
 
@@ -87,7 +87,7 @@ describe('CheckEmail', () => {
 
       describe('Register header', () => {
         it('has a welcome message', async () => {
-          expect(wrapper.find('div.header').text()).toContain('check-email.title')
+          expect(wrapper.find('div.header').text()).toContain('checkEmail.title')
         })
       })
 
