@@ -72,6 +72,9 @@ RUN yarn run build
 ##################################################################################
 FROM build as test
 
+# Install Additional Software
+RUN apk add --no-cache bash jq
+
 # Run command
 CMD /bin/sh -c "yarn run dev"
 
