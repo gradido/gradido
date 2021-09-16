@@ -1,5 +1,5 @@
 import { MiddlewareFn } from 'type-graphql'
-import { signin, getKlickTippUser } from '../apis/KlicktippController'
+import { signIn, getKlickTippUser } from '../apis/KlicktippController'
 import { KlickTipp } from '../graphql/models/KlickTipp'
 
 export const klicktippRegistrationMiddleware: MiddlewareFn = async (
@@ -11,11 +11,12 @@ export const klicktippRegistrationMiddleware: MiddlewareFn = async (
   // Do Something here before resolver is called
   const result = await next()
   // Do Something here after resolver is completed
-  signin(result.email, result.language, result.firstName, result.lastName)
+  await signIn(result.email, result.language, result.firstName, result.lastName)
   return result
 }
 
 export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   { root, args, context, info },
   next,
 ) => {
