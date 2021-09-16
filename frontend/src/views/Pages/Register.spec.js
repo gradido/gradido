@@ -27,6 +27,11 @@ describe('Register', () => {
     $apollo: {
       query: resgisterUserQueryMock,
     },
+    $store: {
+      state: {
+        language: null,
+      },
+    },
   }
 
   const stubs = {
@@ -43,7 +48,7 @@ describe('Register', () => {
     })
 
     it('renders the Register form', () => {
-      expect(wrapper.find('div.register-form').exists()).toBeTruthy()
+      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
 
     describe('Register header', () => {
@@ -86,11 +91,11 @@ describe('Register', () => {
         expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
       })
       it('has Language selected field', () => {
-        expect(wrapper.find('#selectedLanguage').exists()).toBeTruthy()
+        expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
       })
       it('selected Language value de', async () => {
-        wrapper.find('#selectedLanguage').findAll('option').at(1).setSelected()
-        expect(wrapper.find('#selectedLanguage').element.value).toBe('de')
+        wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
+        expect(wrapper.find('.selectedLanguage').element.value).toBe('de')
       })
 
       it('has 1 checkbox input fields', () => {
@@ -133,14 +138,14 @@ describe('Register', () => {
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('input[name="form.password"]').setValue('Aa123456')
         wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
-        wrapper.find('#selectedLanguage').findAll('option').at(1).setSelected()
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('input[name="site.signup.agree"]').setChecked(true)
       })
 
       it('reset selected value language', async () => {
         await wrapper.find('button.ml-2').trigger('click')
         await flushPromises()
-        expect(wrapper.find('#selectedLanguage').element.value).toBe('')
+        expect(wrapper.find('.language-switch-select').element.value).toBe(undefined)
       })
 
       it('resets the firstName field after clicking the reset button', async () => {
@@ -187,7 +192,7 @@ describe('Register', () => {
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('input[name="form.password"]').setValue('Aa123456')
         wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
-        wrapper.find('#selectedLanguage').findAll('option').at(1).setSelected()
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
       })
 
       describe('server sends back error', () => {

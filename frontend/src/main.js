@@ -20,7 +20,11 @@ const authLink = new ApolloLink((operation, forward) => {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
     },
   })
-  return forward(operation)
+  return forward(operation).map((response) => {
+    const newToken = operation.getContext().response.headers.get('token')
+    if (newToken) store.commit('token', newToken)
+    return response
+  })
 })
 
 const apolloClient = new ApolloClient({

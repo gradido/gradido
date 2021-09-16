@@ -2,7 +2,17 @@ import gql from 'graphql-tag'
 
 export const login = gql`
   query ($email: String!, $password: String!) {
-    login(email: $email, password: $password)
+    login(email: $email, password: $password) {
+      email
+      username
+      firstName
+      lastName
+      language
+      description
+      klickTipp {
+        newsletterState
+      }
+    }
   }
 `
 

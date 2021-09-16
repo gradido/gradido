@@ -1,5 +1,6 @@
 import { MiddlewareFn } from 'type-graphql'
 import { signin, getKlickTippUser } from '../apis/KlicktippController'
+import { KlickTipp } from '../graphql/models/KlickTipp'
 import decode from '../jwt/decode'
 
 export const klicktippRegistrationMiddleware: MiddlewareFn = async (
@@ -20,9 +21,11 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
   next,
 ) => {
   const result = await next()
-  const decodedResult = decode(result)
-  console.log('result', decodedResult)
-  const klickTippUser = getKlickTippUser(decodedResult.email)
+  const klickTippUser = await getKlickTippUser(result.email)
   console.log('klickTippUser', klickTippUser)
+  const klickTipp = new KlickTipp(klickTippUser)
+  console.log('klickTipp', klickTipp)
+  result.klickTipp = klickTipp
+  console.log('result', result)
   return result
 }

@@ -8,8 +8,8 @@ const klicktippConnector = new KlicktippConnector()
 export const signin = async (
   email: string,
   language: string,
-  firstName: string,
-  lastName: string,
+  firstName?: string,
+  lastName?: string,
 ): Promise<boolean> => {
   const fields = {
     fieldFirstName: firstName,
@@ -27,7 +27,11 @@ export const signout = async (email: string, language: string): Promise<boolean>
 }
 
 export const unsubscribe = async (email: string): Promise<boolean> => {
-  return await klicktippConnector.unsubscribe(email)
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.unsubscribe(email)
+  }
+  throw new Error(`Could not unsubscribe ${email}`)
 }
 
 export const getKlickTippUser = async (email: string): Promise<any> => {

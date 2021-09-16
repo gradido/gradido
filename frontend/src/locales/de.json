@@ -64,6 +64,7 @@
     "change": "ändern",
     "change-password": "Passwort ändern",
     "change-name": "Name ändern",
+    "changeLanguage": "Sprache ändern",
     "amount":"Betrag",
     "memo":"Nachricht",
     "message":"Nachricht",
@@ -142,15 +143,6 @@
       "send_gradido":"Gradido versenden",
       "add_work":"neuer Gemeinschaftsbeitrag"
     },
-    "profil": {
-      "activity": {
-        "new":"Neue Gemeinschaftsstunden eintragen",
-        "list":"Meine Gemeinschaftsstunden Liste"
-      },
-      "user-data": {
-        "change-success": "Deine Daten wurden gespeichert."
-      }
-    },
     "navbar" : {
       "my-profil":"Mein Profil",
       "settings":"Einstellungen",
@@ -188,8 +180,8 @@
     "formula":"Berechungsformel",
     "no-transactions":"Du hast zur Zeit keine Transaktionen",
     "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
-    "gdt-receive":"Aktion",
-    "your-share":"Geworbenes Mitglied",
+    "action":"Aktion",
+    "recruited-member":"Geworbenes Mitglied",
     "contribution":"Beitrag"
   }
 }

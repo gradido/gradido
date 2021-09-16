@@ -4,6 +4,7 @@ import { AuthChecker } from 'type-graphql'
 import decode from '../jwt/decode'
 import { apiGet } from '../apis/HttpRequest'
 import CONFIG from '../config'
+import encode from '../jwt/encode'
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info }, roles) => {
@@ -14,6 +15,7 @@ export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info
         `${CONFIG.LOGIN_API_URL}checkSessionState?session_id=${decoded.sessionId}`,
       )
       context.sessionId = decoded.sessionId
+      context.setHeaders.push({ key: 'token', value: encode(decoded.sessionId) })
       return result.success
     }
   }
