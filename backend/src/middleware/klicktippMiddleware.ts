@@ -22,10 +22,13 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
   next,
 ) => {
   const result = await next()
+  let klickTipp = new KlickTipp({ status: 'Unsubscribed' })
   if (CONFIG.KLICKTIPP) {
     const klickTippUser = await getKlickTippUser(result.email)
-    const klickTipp = new KlickTipp(klickTippUser)
-    result.klickTipp = klickTipp
+    if (klickTippUser) {
+      klickTipp = new KlickTipp(klickTippUser)
+    }
   }
+  result.klickTipp = klickTipp
   return result
 }
