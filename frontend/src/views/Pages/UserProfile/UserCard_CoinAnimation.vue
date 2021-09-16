@@ -47,7 +47,7 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
-            coinanimation: this.$store.state.coinanimation /* exestiert noch nicht im store */,
+            coinanimation: this.$store.state.coinanimation,
           },
         })
         .then(() => {
