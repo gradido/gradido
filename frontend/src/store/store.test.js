@@ -1,7 +1,15 @@
 import { mutations, actions } from './store'
 
-const { language, email, token, username, firstName, lastName, description, newsletterState } =
-  mutations
+const {
+  language,
+  email,
+  token,
+  username,
+  firstName,
+  lastName,
+  description,
+  newsletterState,
+} = mutations
 const { login, logout } = actions
 
 describe('Vuex store', () => {
