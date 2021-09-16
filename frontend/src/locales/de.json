@@ -41,7 +41,13 @@
     "fromCommunity":"Aus der Gemeinschaft",
     "toCommunity":"An die Gemeinschaft",
     "noDecay": "Keine Vergänglichkeit"
-  }, 
+  },
+  "setting": {
+    "coinanimation": "animierter Hintergrund (Gradido Coins)",
+    "changeCoinanimation": "animierten Hintergrund ändern",
+    "coinanimationTrue": "animierten Hintergrund angestellt.",
+    "coinanimationFalse": "animierten Hintergrund abgestellt."
+  },
   "form": {
     "cancel": "Abbrechen",
     "reset": "Zurücksetzen",

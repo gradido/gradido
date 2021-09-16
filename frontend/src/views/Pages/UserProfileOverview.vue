@@ -6,6 +6,8 @@
     <form-user-passwort />
     <hr />
     <form-user-language />
+    <hr />
+    <form-user-coin-animation />
   </div>
 </template>
 <script>
@@ -13,6 +15,7 @@ import UserCard from './UserProfile/UserCard.vue'
 import FormUserData from './UserProfile/UserCard_FormUserData.vue'
 import FormUserPasswort from './UserProfile/UserCard_FormUserPasswort.vue'
 import FormUserLanguage from './UserProfile/UserCard_Language.vue'
+import FormUserCoinAnimation from './UserProfile/UserCard_CoinAnimation.vue'
 
 export default {
   components: {
@@ -20,6 +23,7 @@ export default {
     FormUserData,
     FormUserPasswort,
     FormUserLanguage,
+    FormUserCoinAnimation,
   },
   props: {
     balance: { type: Number, default: 0 },

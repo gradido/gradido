@@ -1,7 +1,11 @@
 <template>
   <b-card class="bg-transparent">
     <div class="w-100 text-center">
-      <vue-qrcode :value="$store.state.email" type="image/png"></vue-qrcode>
+      <vue-qrcode
+        v-if="$store.state.email"
+        :value="$store.state.email"
+        type="image/png"
+      ></vue-qrcode>
     </div>
 
     <div class="card-profile-stats d-flex justify-content-center mt-md-5">
