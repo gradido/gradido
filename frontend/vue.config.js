@@ -2,8 +2,6 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 
-process.env.VUE_APP_BUILD_COMMIT = process.env.BUILD_COMMIT
-
 // vue.config.js
 module.exports = {
   devServer: {
