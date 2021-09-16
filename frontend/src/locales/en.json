@@ -28,6 +28,8 @@
     "decayStart": " - Starting block for decay at: ",
     "last_transaction": "Last transaction:",
     "past_time": "Past time",
+    "balanceForTransaction": "Balance before transaction",
+    "amountOfTransaction": "Amount of the transaction",
     "since_introduction": "Since the introduction of Decay",
     "year": "Years",
     "months": "Months",
