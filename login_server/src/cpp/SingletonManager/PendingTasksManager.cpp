@@ -15,10 +15,10 @@ PendingTasksManager::~PendingTasksManager()
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 	mCheckForFinishedTimer.stop();
 
-	for (auto it = mPendingTasks.begin(); it != mPendingTasks.end(); it++) {
+	for (auto it = mPendingGradidoTransactions.begin(); it != mPendingGradidoTransactions.end(); it++) {
 		delete it->second;
 	}
-	mPendingTasks.clear();
+	mPendingGradidoTransactions.clear();
 }
 
 PendingTasksManager* PendingTasksManager::getInstance()
@@ -37,30 +37,32 @@ int PendingTasksManager::load()
 	return 0;
 }
 
-int PendingTasksManager::addTask(Poco::AutoPtr<controller::PendingTask> task)
+
+int PendingTasksManager::addTask(Poco::AutoPtr<model::gradido::Transaction> gradidoTransactionTask)
 {
-	if (task.isNull() || !task->getModel()) {
+	if (gradidoTransactionTask.isNull() || !gradidoTransactionTask->getModel()) {
 		return -1;
 	}
-	auto model = task->getModel();
-	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	auto pending_task_list = getTaskListForUser(model->getUserId());
-	pending_task_list->push_back(task);
-	return 0;
 
+	auto model = gradidoTransactionTask->getModel();
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	auto pending_task_list = getGradidoTransactionsForUser(model->getUserId());
+	pending_task_list->push_back(gradidoTransactionTask);
+	return 0;
 }
 
-bool PendingTasksManager::removeTask(Poco::AutoPtr<controller::PendingTask> task)
+
+bool PendingTasksManager::removeTask(Poco::AutoPtr<model::gradido::Transaction> gradidoTransactionTask)
 {
-	if (task.isNull() || !task->getModel()) {
+	if (gradidoTransactionTask.isNull() || !gradidoTransactionTask->getModel()) {
 		return false;
 	}
-	auto model = task->getModel();
+	auto model = gradidoTransactionTask->getModel();
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	auto pending_task_list = getTaskListForUser(model->getUserId());
+	auto pending_task_list = getGradidoTransactionsForUser(model->getUserId());
 	bool removed = false;
 	for (auto it = pending_task_list->begin(); it != pending_task_list->end(); it++) {
-		if (task.get() == it->get()) {
+		if (gradidoTransactionTask.get() == it->get()) {
 			pending_task_list->erase(it);
 			removed = true;
 			break;
@@ -70,41 +72,42 @@ bool PendingTasksManager::removeTask(Poco::AutoPtr<controller::PendingTask> task
 	return removed;
 }
 
-PendingTasksManager::PendingTaskList* PendingTasksManager::getTaskListForUser(int userId)
+
+PendingTasksManager::PendingGradidoTaskList* PendingTasksManager::getGradidoTransactionsForUser(int userId)
 {
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	auto it = mPendingTasks.find(userId);
-	if (it == mPendingTasks.end()) {
-		auto pending_list = new PendingTaskList;
-		mPendingTasks.insert(std::pair<int, PendingTaskList*>(userId, pending_list));
+	auto it = mPendingGradidoTransactions.find(userId);
+	if (it == mPendingGradidoTransactions.end()) {
+		auto pending_list = new PendingGradidoTaskList;
+		mPendingGradidoTransactions.insert(std::pair<int, PendingGradidoTaskList*>(userId, pending_list));
 		return pending_list;
 	}
 	else {
 		return it->second;
 	}
-
 }
-const PendingTasksManager::PendingTaskList* PendingTasksManager::getTaskListForUser(int userId) const
+
+
+const PendingTasksManager::PendingGradidoTaskList* PendingTasksManager::getGradidoTransactionsForUser(int userId) const
 {
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	auto it = mPendingTasks.find(userId);
-	if (it != mPendingTasks.end()) {
+	auto it = mPendingGradidoTransactions.find(userId);
+	if (it != mPendingGradidoTransactions.end()) {
 		return it->second;
 	}
 	return nullptr;
 }
 
-bool PendingTasksManager::hasPendingTask(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
+bool PendingTasksManager::hasPendingGradidoTransaction(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
 {
 	auto model = user->getModel();
 	int user_id = model->getID();
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	auto it = mPendingTasks.find(user_id);
-	if (it != mPendingTasks.end()) {
+	auto it = mPendingGradidoTransactions.find(user_id);
+	if (it != mPendingGradidoTransactions.end()) {
 		auto task_list = it->second;
-		for (auto task = task_list->begin(); task != task_list->end(); it++) {
-			auto task_model = (*task)->getModel();
-			if (type == task_model->getTaskType()) {
+		for (auto taskIt = task_list->begin(); taskIt != task_list->end(); taskIt++) {
+			if ((*taskIt)->getModel()->getTaskType() == type) {
 				return true;
 			}
 		}
@@ -113,20 +116,21 @@ bool PendingTasksManager::hasPendingTask(Poco::AutoPtr<controller::User> user, m
 
 }
 
-std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getPendingTasks(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
+
+std::vector<Poco::AutoPtr<model::gradido::Transaction>> PendingTasksManager::getPendingGradidoTransactions(Poco::AutoPtr<controller::User> user, model::table::TaskType type)
 {
 	auto model = user->getModel();
 	int user_id = model->getID();
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	std::vector<Poco::AutoPtr<controller::PendingTask>> results;
+	std::vector<Poco::AutoPtr<model::gradido::Transaction>> results;
 
-	auto it = mPendingTasks.find(user_id);
-	if (it != mPendingTasks.end()) {
+	auto it = mPendingGradidoTransactions.find(user_id);
+	if (it != mPendingGradidoTransactions.end()) {
 		auto task_list = it->second;
 		results.reserve(task_list->size());
 		for (auto taskIt = task_list->begin(); taskIt != task_list->end(); taskIt++) {
 			auto task_model = (*taskIt)->getModel();
-			if (type == task_model->getTaskType()) {
+			if (task_model->getTaskType() == type) {
 				results.push_back(*taskIt);
 			}
 		}
@@ -134,44 +138,42 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getPend
 	return results;
 }
 
-std::vector<Poco::AutoPtr<controller::PendingTask>>  PendingTasksManager::getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user)
+std::vector<Poco::AutoPtr<model::gradido::Transaction>>  PendingTasksManager::getTransactionsUserMustSign(Poco::AutoPtr<controller::User> user)
 {
 	// TODO: don't use cast here, because can lead to errors
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_to_sign;
+	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
 
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++) 
+	for (auto map_it = mPendingGradidoTransactions.begin(); map_it != mPendingGradidoTransactions.end(); map_it++)
 	{
 		auto list = map_it->second;
 		for (auto list_it = list->begin(); list_it != list->end(); list_it++) 
 		{
-			if ((*list_it)->getModel()->isGradidoTransaction()) {
-				auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
-				if (transaction->mustSign(user)) {
-					transactions_to_sign.push_back(*list_it);
-				}
+			if((*list_it)->mustSign(user)) {
+				transactions_to_sign.push_back(*list_it);
 			}
 		}
 	}
 	return transactions_to_sign;
 }
 
-std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTransactionSomeoneMustSign(Poco::AutoPtr<controller::User> user)
+std::vector<Poco::AutoPtr<model::gradido::Transaction>> PendingTasksManager::getTransactionSomeoneMustSign(Poco::AutoPtr<controller::User> user)
 {
 	// TODO: don't use cast here, because can lead to errors
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	std::vector<Poco::AutoPtr<controller::PendingTask>> transactions_to_sign;
+	std::vector<Poco::AutoPtr<model::gradido::Transaction>> transactions_to_sign;
 
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
+	if (user->getModel()->getRole() != model::table::ROLE_ADMIN) {
+		return transactions_to_sign;
+	}
+
+	for (auto map_it = mPendingGradidoTransactions.begin(); map_it != mPendingGradidoTransactions.end(); map_it++)
 	{
 		auto list = map_it->second;
 		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
 		{
-			if ((*list_it)->getModel()->isGradidoTransaction()) {
-				auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
-				if (transaction->needSomeoneToSign(user)) {
-					transactions_to_sign.push_back(*list_it);
-				}
+			if ((*list_it)->needSomeoneToSign(user)) {
+				transactions_to_sign.push_back(*list_it);
 			}
 		}
 	}
@@ -180,15 +182,16 @@ std::vector<Poco::AutoPtr<controller::PendingTask>> PendingTasksManager::getTran
 
 void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 {
+	static const char* function_name = "PendingTasksManager::checkForFinishedTasks";
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	try {
 
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
-	{
-		auto list = map_it->second;
-		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+		for (auto map_it = mPendingGradidoTransactions.begin(); map_it != mPendingGradidoTransactions.end(); map_it++)
 		{
-			if ((*list_it)->getModel()->isGradidoTransaction()) {
-				auto transaction = dynamic_cast<model::gradido::Transaction*>(list_it->get());
+			auto list = map_it->second;
+			for (auto list_it = list->begin(); list_it != list->end(); list_it++)
+			{
+				auto transaction = *list_it;
 				auto json = transaction->getModel()->getResultJson();
 				bool removeIt = false;
 				if (!json.isNull()) {
@@ -200,17 +203,27 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 				if (removeIt) {
 					transaction->deleteFromDB();
 					list_it = list->erase(list_it);
-					if (!list->size()) break;
+					if (!list->size() || list_it == list->end()) break;
 				}
 			}
 		}
 	}
+	catch (Poco::Exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "poco exception", ex.displayText()));
+		errors.sendErrorsAsEmail();
+	} catch(std::exception& ex) {
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "std::exception", ex.what()));
+		errors.sendErrorsAsEmail();
+	}
 }
 
-Poco::AutoPtr<controller::PendingTask> PendingTasksManager::getPendingTask(int pendingTaskId)
+
+Poco::AutoPtr<model::gradido::Transaction> PendingTasksManager::getPendingGradidoTransaction(int pendingTaskId)
 {
 	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-	for (auto map_it = mPendingTasks.begin(); map_it != mPendingTasks.end(); map_it++)
+	for (auto map_it = mPendingGradidoTransactions.begin(); map_it != mPendingGradidoTransactions.end(); map_it++)
 	{
 		auto list = map_it->second;
 		for (auto list_it = list->begin(); list_it != list->end(); list_it++)
@@ -223,30 +236,3 @@ Poco::AutoPtr<controller::PendingTask> PendingTasksManager::getPendingTask(int p
 	return nullptr;
 }
 
-
-void PendingTasksManager::reportErrorToCommunityServer(Poco::AutoPtr<controller::PendingTask> task, std::string error, std::string errorDetails)
-{
-	// TODO: choose user specific server
-	JsonRequest phpServerRequest(ServerConfig::g_php_serverHost, ServerConfig::g_phpServerPort);
-	//Poco::Net::NameValueCollection payload;
-	Poco::JSON::Object payload;
-
-	auto task_model = task->getModel();
-	auto user_model = task->getUser()->getModel();
-
-	payload.set("created", task_model->getCreated());
-	payload.set("id", task_model->getID());
-	payload.set("type", task_model->getTaskTypeString());
-	payload.set("public_key", user_model->getPublicKeyHex());
-	payload.set("error", error);
-	payload.set("errorMessage", errorDetails);
-
-	auto ret = phpServerRequest.request("errorInTransaction", payload);
-	if (ret == JSON_REQUEST_RETURN_ERROR) 
-	{
-		auto em = ErrorManager::getInstance();
-		em->addError(new Error("PendingTasksManager::reportErrorToCommunityServer", "php server error"));
-		em->getErrors(&phpServerRequest);
-		em->sendErrorsAsEmail();
-	}
-}

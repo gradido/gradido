@@ -4,9 +4,9 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
-use Cake\Routing\Router;
 use Cake\Http\Client;
 use Cake\Core\Configure;
+use Cake\Mailer\Email;
 
 use Model\Transactions\TransactionTransfer;
 use Model\Transactions\Transaction;
@@ -332,33 +332,80 @@ class JsonRequestHandlerController extends AppController {
       }
       return $this->returnJson(['state' => 'success']);
     }
+    
+    private function sendEMailTransactionFailed($transaction, $reason_type)
+    {
+        $disable_email = Configure::read('disableEmail', false);  
+        if($disable_email) {
+            return;
+        }
+        $transaction_body = $transaction->getTransactionBody();
+        $senderUser = $transaction->getFirstSigningUser();
+        if($transaction_body != null) {
+            $transaction_type_name = $transaction_body->getTransactionTypeName();
+        
+            if($transaction_type_name === 'transfer') {
+                $senderUser = $transaction_body->getSpecificTransaction()->getSenderUser();
+            } 
+        }
+      // send notification email
+        $noReplyEmail = Configure::read('noReplyEmail');
+        if($senderUser) {
+          try {
+            $email = new Email();
+            $emailViewBuilder = $email->viewBuilder();
+            $emailViewBuilder->setTemplate('notificationTransactionFailed')
+                             ->setVars(['user' => $senderUser, 'transaction' => $transaction, 'reason' => $reason_type]);
+            $receiverNames = $senderUser->getNames();
+            if($receiverNames == '' || $senderUser->email == '') {
+              $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $senderUser->id);
+              return false;
+            }
+            $email->setFrom([$noReplyEmail => 'Gradido (nicht antworten)'])
+                  ->setTo([$senderUser->email => $senderUser->getNames()])
+                  ->setSubject(__('Gradido Transaktion fehlgeschlagen!'))
+                  ->send();
+          } catch(Exception $e) {
+                $this->addAdminError('JsonRequestController', 'sendEMailTransactionFailed', [$e->getMessage(), $reason_type], $senderUser->id);
+
+          }        
+       }
+    }
   
     private function putTransaction($transactionBase64) {
       $transaction = new Transaction($transactionBase64);
-      //echo "after new transaction<br>";
+      
       if($transaction->hasErrors()) {
+        $this->sendEMailTransactionFailed($transaction, 'parse');
         return $this->returnJson(['state' => 'error', 'msg' => 'error parsing transaction', 'details' => $transaction->getErrors()]);
       }
-      //echo "after check on errors<br>";
+      
       if(!$transaction->validate()) {
-        return $this->returnJsonSaveError($transaction, ['state' => 'error', 'msg' => 'error validate transaction', 'details' => $transaction->getErrors()]);
+          //$transaction_details
+        $this->sendEMailTransactionFailed($transaction, 'validate');
+        return $this->returnJsonSaveError($transaction, [
+            'state' => 'error',
+            'msg' => 'error validate transaction',
+            'details' => $transaction->getErrors()
+        ]);
       }
-      //echo "after validate <br>";
       
       if ($transaction->save()) {
-        
-        
+          $result = ['state' => 'success'];
+          if($transaction->hasWarnings()) {
+              $result['warnings'] = $transaction->getWarnings();
+          }
         // success
-        return $this->returnJson(['state' => 'success']);
+        return $this->returnJson($result);
       } else {
+          
+        $this->sendEMailTransactionFailed($transaction, 'save');
         return $this->returnJsonSaveError($transaction, [
             'state' => 'error', 
             'msg' => 'error saving transaction in db', 
             'details' => json_encode($transaction->getErrors())
         ]);
       }
-      
-      return $this->returnJson(['state' => 'success']);
     }
     
     private function moveTransaction($pubkeys, $memo, $session_id) {

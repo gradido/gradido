@@ -32,18 +32,63 @@ function loadLocaleMessages() {
 }
 
 const numberFormats = {
-  'en-US': {
-    currency: {
-      style: 'currency',
-      currency: 'GDD',
-      abbreviate: true,
+  en: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
     },
   },
-  'de-DE': {
-    currency: {
-      style: 'currency',
-      currency: 'GDD',
-      abbreviate: true,
+  de: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
+}
+
+const dateTimeFormats = {
+  en: {
+    short: {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    },
+    long: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
+  de: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
 }
@@ -53,4 +98,5 @@ export default new VueI18n({
   fallbackLocale: 'en',
   messages: loadLocaleMessages(),
   numberFormats,
+  dateTimeFormats,
 })

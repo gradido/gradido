@@ -20,6 +20,7 @@ enum JsonRequestReturn
 	JSON_REQUEST_RETURN_OK,
 	JSON_REQUEST_RETURN_PARSE_ERROR,
 	JSON_REQUEST_RETURN_ERROR,
+	JSON_REQUEST_PARAMETER_ERROR,
 	JSON_REQUEST_CONNECT_ERROR
 };
 
@@ -32,7 +33,6 @@ public:
 	JsonRequestReturn request(const char* methodName, const Poco::Net::NameValueCollection& payload);
 	JsonRequestReturn request(const char* methodName, const Poco::JSON::Object& payload);
 	JsonRequestReturn request(const char* methodName);
-	JsonRequestReturn requestGRPCRelay(const Poco::Net::NameValueCollection& payload);
 
 protected:
 	int mServerPort;

@@ -1,0 +1,48 @@
+Feature: 
+Neue User einladen, und im Partnerprogramm zuordnen
+
+Als Gradido-User und Publisher möchte ich weitere Leute zu Gradido einladen.
+
+Fall 1 über Internet mit Link
+
+Um einen Partner-Link (Publisher-Link) zu erzeugen hänge ich bei Gradido.net oder beim Registrierungslink die Zeichenfolge ?pid=12345 an. Statt "12345" nehme ich meine Publisher-Id. 
+
+Beispiele für selbst erzeugte Partnerlinks:
+
+Gradido-Webseite
+gradido.net/?pid=12345
+gradido.net/de/podcast/?pid=12345
+
+Community-Server, Registrierungsseite, z.B.:
+gradido-community.com/register/?pid=12345
+
+Wenn sich eine eingeladene Person registriert, wird die Publisher-Id des einladenden Users im neuem Konto als "Parent-Publisher-Id" gespeichert.
+
+
+Fall 2 von meinem Gradido-Link
+
+Ich gebe meinen Gradido-Link bekannt, z.B. gradido-community.com/meinUsername
+z.B. in einer Kleinanzeige, wo ich etwas mit GradidoRabatt anbiete.
+
+Ein Gradido-User kann diesen Link benutzen, um Gradido an mich zu überweisen
+Eine noch nicht registrierte Person kommt auf eine Registrierungsseite. Wenn sie sich registriert, wird die Publisher-Id aus der Datenbank ermittelt und in deren neuem Konto als "Parent-Publisher-Id" gespeichert.
+
+Fall 2 über QR-Code
+
+Im Wallet kann ich einen QR-Code anzeigen oder drucken lassen.
+Wenn die eingeladene Person den QR-Code mit der Kamera einscannt, gelangt sie auf eine Seite, von der sie das Wallet runterladen sich registrieren kann. Dabei wird die Pid im neuen Konto und als "Parent-Publisher-Id" gespeichert.
+
+Incentive zum registrieren des Mitgliederbereichs bei Elopage
+
+Nach der Registrierung wird dem neuen User ein Start-Kapital von 100 GDD (?) angeboten, wenn er sich seinen Mitgliederbereich bei Elopage registriert, d.h. dort ein entsprechendes Produkt (z.B. Gradido-Basis, kostenfrei) erwirbt. Dazu wir ein Link bzw. Button zur "Bezahlseite" (die heißt so, auch wenn es kostenfrei ist) generiert, der Vorname, Nachname, E-Mail und pid enthält. Der User muss nur noch den Button "Kostenfrei erwerben" o.ä. klicken.
+
+
+Bei Produkt-Erwerb wird bei Elopage neben dem "Käufer-Konto" automatisch ein zusätzliches "Publisher-Konto" angelegt. Beides ist über ein und denselben Login zugänglich. 
+
+Elopage meldet den Produkt-Erwerb über WebHook (?) an Gradido. Die eindeutige Zuordnung erfolgt über die E-Mail-Adresse. Dabei wird leider nur die Parent-Publisher-Id übermittelt.
+
+
+Background:
+Die Publisher-Id (pid) ist eine 3-9 stellige Ganzzahl. Ich finde sie entweder im Mitgliederbereich bei Elopage (Publisher-Konto) oder im Profil des Gradido-Wallet.
+
+Über das Elopage-API kann eine Liste aller Publisher abgerufen werden. Dies könnte in regelmäßigen Abständen per CronJob erfolgen. An Hand der E-Mail-Adresse kann die Publisher-Id dem neuen User zugeordnet werden.

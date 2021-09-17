@@ -1,35 +1,40 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
 
 import Register from './Register'
 
 const localVue = global.localVue
 
+const resgisterUserQueryMock = jest.fn()
+const routerPushMock = jest.fn()
+
 describe('Register', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $router: {
+      push: routerPushMock,
+    },
+    $apollo: {
+      query: resgisterUserQueryMock,
+    },
+    $store: {
+      state: {
+        language: null,
+      },
+    },
   }
 
-  let state = {
-    // loginfail: false,
-  }
-
-  let store = new Vuex.Store({
-    state,
-  })
-
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
   }
 
   const Wrapper = () => {
-    return mount(Register, { localVue, mocks, store, stubs })
+    return mount(Register, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -38,7 +43,7 @@ describe('Register', () => {
     })
 
     it('renders the Register form', () => {
-      expect(wrapper.find('div.register-form').exists()).toBeTruthy()
+      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
 
     describe('Register header', () => {
@@ -62,46 +67,181 @@ describe('Register', () => {
         expect(wrapper.find('form').exists()).toBeTruthy()
       })
 
-      it('has 3 text input fields', () => {
-        expect(wrapper.findAll('input[type="text"]').length).toBe(3)
+      it('has firstname input fields', () => {
+        expect(wrapper.find('#registerFirstname').exists()).toBeTruthy()
+      })
+      it('has lastname input fields', () => {
+        expect(wrapper.find('#registerLastname').exists()).toBeTruthy()
       })
 
-      it('has 2 password input fields', () => {
-        expect(wrapper.findAll('input[type="password"]').length).toBe(2)
+      it('has email input fields', () => {
+        expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
+      })
+
+      it('has password input fields', () => {
+        expect(wrapper.find('input[name="form.password"]').exists()).toBeTruthy()
+      })
+
+      it('has password repeat input fields', () => {
+        expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
+      })
+      it('has Language selected field', () => {
+        expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
+      })
+      it('selected Language value de', async () => {
+        wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
+        expect(wrapper.find('.selectedLanguage').element.value).toBe('de')
       })
 
       it('has 1 checkbox input fields', () => {
-        expect(wrapper.findAll('input[type="checkbox"]').length).toBe(1)
+        expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
       })
 
       it('has no submit button when not completely filled', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
       })
 
-      it('shows a warning when no valid Email is entered', async () => {
-        wrapper.findAll('input[type="text"]').at(2).setValue('no_valid@Email')
+      it('displays a message that Email is required', async () => {
+        await wrapper.find('form').trigger('submit')
         await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
-          'The Email field must be a valid email',
+        expect(wrapper.findAll('div.invalid-feedback').at(0).text()).toBe(
+          'validations.messages.required',
         )
       })
 
-      it('shows 4 warnings when no password is set', async () => {
-        const passwords = wrapper.findAll('input[type="password"]')
-        passwords.at(0).setValue('')
-        passwords.at(1).setValue('')
+      it('displays a message that password is required', async () => {
+        await wrapper.find('form').trigger('submit')
         await flushPromises()
-        await expect(wrapper.find('div.hints').text()).toContain(
-          'site.signup.lowercase',
-          'site.signup.uppercase',
-          'site.signup.minimum',
-          'site.signup.one_number',
+        expect(wrapper.findAll('div.invalid-feedback').at(1).text()).toBe(
+          'validations.messages.required',
         )
       })
 
-      // TODO test different invalid password combinations
+      it('displays a message that passwordConfirm is required', async () => {
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+        expect(wrapper.findAll('div.invalid-feedback').at(2).text()).toBe(
+          'validations.messages.required',
+        )
+      })
     })
 
-    // TODO test submit button
+    describe('resetForm', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('input[name="site.signup.agree"]').setChecked(true)
+      })
+
+      it('reset selected value language', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('.language-switch-select').element.value).toBe(undefined)
+      })
+
+      it('resets the firstName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#registerFirstname').element.value).toBe('')
+      })
+
+      it('resets the lastName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#registerLastname').element.value).toBe('')
+      })
+
+      it('resets the email field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('#Email-input-field').element.value).toBe('')
+      })
+
+      it.skip('resets the password field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.password"]').element.value).toBe('')
+      })
+
+      it.skip('resets the passwordRepeat field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="form.passwordRepeat"]').element.value).toBe('')
+      })
+
+      it('resets the firstName field after clicking the reset button', async () => {
+        await wrapper.find('button.ml-2').trigger('click')
+        await flushPromises()
+        expect(wrapper.find('input[name="site.signup.agree"]').props.checked).not.toBeTruthy()
+      })
+    })
+
+    describe('API calls', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+      })
+
+      describe('server sends back error', () => {
+        beforeEach(async () => {
+          resgisterUserQueryMock.mockRejectedValue({ message: 'Ouch!' })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('shows error message', () => {
+          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
+          expect(wrapper.find('span.alert-text').text()).toContain('error.error!')
+          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
+        })
+
+        it('button to dismisses error message is present', () => {
+          expect(wrapper.find('button.close').exists()).toBeTruthy()
+        })
+
+        it('dismisses error message', async () => {
+          await wrapper.find('button.close').trigger('click')
+          await flushPromises()
+          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+        })
+      })
+
+      describe('server sends back success', () => {
+        beforeEach(() => {
+          resgisterUserQueryMock.mockResolvedValue({
+            data: {
+              create: 'success',
+            },
+          })
+        })
+
+        it('routes to "/thx/register"', async () => {
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+          expect(resgisterUserQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'max.mustermann@gradido.net',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                password: 'Aa123456',
+                language: 'de',
+              },
+            }),
+          )
+          expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
+        })
+      })
+    })
+    // TODO: line 157
   })
 })

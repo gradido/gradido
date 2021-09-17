@@ -60,18 +60,21 @@ Router::scope('/', function (RouteBuilder $routes) {
         $whitelist = ['JsonRequestHandler', 'ElopageWebhook', 'AppRequests'];
         $ajaxWhitelist = ['TransactionSendCoins', 'TransactionCreations'];
 
+        $callerIp = $request->clientIp();
+        
         foreach($whitelist as $entry) {
           if($request->getParam('controller') === $entry) {
             if($entry == 'ElopageWebhook' || $entry == 'AppRequests') {
               return true;
             }
-            if($request->clientIp() == '127.0.0.1' || $request->clientIp() == 'localhost' || $request->clientIp() == '') {
-              return true;
+            $allowedIpLocalhost = ['127.0.0.1', 'localhost', '', '::1'];
+            if(in_array($callerIp, $allowedIpLocalhost)) {
+                return true;
             }
             $allowedCaller = Configure::read('API.allowedCaller');
             $ipPerHost = [];
             if($allowedCaller && count($allowedCaller) > 0) {
-                $callerIp = $request->clientIp();
+                
                 foreach($allowedCaller as $allowed) {
                   $ip = gethostbyname($allowed);
                   $ipPerHost[$allowed] = $ip;

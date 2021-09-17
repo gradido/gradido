@@ -170,13 +170,13 @@ class TransactionSendCoinsController extends AppController
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
 
             if(!isset($user['balance']) || $amountCent > $user['balance']) {
-              $this->Flash->error(__('Du hast nicht genug Geld!'));
+              $this->Flash->error(__('Du hast nicht genug Gradidos!'));
               return;
             }
             
             $receiverEmail = $requestData['email'];
             if($receiverEmail === $user['email']) {
-              $this->Flash->error(__('Du kannst dir leider nicht selbst Geld schicken!'));
+              $this->Flash->error(__('Du kannst dir selbst keine Gradidos senden!'));
               return;
             }
             $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
@@ -236,6 +236,11 @@ class TransactionSendCoinsController extends AppController
                    $this->Flash->error(__('Empfänger befindet sich nicht in Zielgruppe!'));
                    $this->set('timeUsed', microtime(true) - $startTime);
                    return;
+                 }
+                 if($answear_data['msg'] === 'memo is not set or not in expected range [5;150]') {
+                    $this->Flash->error(__('Ein Verwendungszweck zwischen 5 und 150 Zeichen wird benötig!'));
+                    $this->set('timeUsed', microtime(true) - $startTime);
+                    return;
                  }
                } else if($answear_data['state'] === 'not found' && $answear_data['msg'] === 'receiver not found') {
                   $this->Flash->error(__('Der Empfänger wurde nicht auf dem Login-Server gefunden, hat er sein Konto schon angelegt?'));

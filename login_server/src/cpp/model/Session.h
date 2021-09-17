@@ -14,11 +14,12 @@
 #include "../controller/User.h"
 
 #include "../lib/MultithreadContainer.h"
-#include "../tasks/ProcessingTransaction.h"
 
 #include "../SingletonManager/LanguageManager.h"
 
 #include "../controller/EmailVerificationCode.h"
+
+#include "model/gradido/Transaction.h"
 
 #include "Poco/Thread.h"
 #include "Poco/Types.h"
@@ -83,7 +84,7 @@ public:
 	// TODO: check if email exist and if not, fake waiting on password hashing with profiled times of real password hashing
 	UserState loadUser(const std::string& email, const std::string& password);
 	bool ifUserExist(const std::string& email);
-	
+
 	bool deleteUser();
 
 
@@ -102,7 +103,7 @@ public:
 	//! \return 2 = reset password email already shortly before
 	//! \return 0 = ok
 	int sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool passphraseMemorized, const std::string &baseUrl);
-	// 
+	//
 	//! \return 0 = not the same
 	//! \return 1 = same
 	//! \return -1 = error
@@ -111,23 +112,23 @@ public:
 
 	Poco::Net::HTTPCookie getLoginCookie();
 
-	
+
 	inline int getHandle() { return mHandleId; }
 
 	// ------------------------ Passphrase functions ----------------------------
-	
+
 	inline void setPassphrase(Poco::AutoPtr<Passphrase> passphrase) { mNewPassphrase = passphrase; }
 	inline Poco::AutoPtr<Passphrase> getPassphrase() { return mNewPassphrase; }
 
 	inline void setPassphrase(const std::string& passphrase) { mPassphrase = passphrase; }
-	
+
 	inline const std::string& getOldPassphrase() { return mPassphrase; }
-	
+
 	bool generateKeys(bool savePrivkey, bool savePassphrase);
 
 	inline void setClientIp(Poco::Net::IPAddress ip) { mClientLoginIP = ip; }
 	inline Poco::Net::IPAddress getClientIp() { return mClientLoginIP; }
-	 
+
 	inline bool isIPValid(Poco::Net::IPAddress ip) { return mClientLoginIP == ip; }
 	void reset();
 
@@ -135,9 +136,9 @@ public:
 	const char* getSessionStateString();
 	inline SessionStates getSessionState() { SessionStates s; lock("Session::getSessionState"); s = mState; unlock(); return s; }
 
-	inline Poco::UInt64 getEmailVerificationCode() { 
+	inline Poco::UInt64 getEmailVerificationCode() {
 		std::shared_lock<std::shared_mutex> _lock(mSharedMutex);
-		if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode(); 
+		if (mEmailVerificationCodeObject.isNull()) return 0; return mEmailVerificationCodeObject->getModel()->getCode();
 	}
 	inline void setEmailVerificationCodeObject(Poco::AutoPtr<controller::EmailVerificationCode> emailVerficationObject) {
 		std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
@@ -153,7 +154,7 @@ public:
 
 	//! \return -1 if session is locked
 	//! \return 1 if session is active
-	//! \return 0 
+	//! \return 0
 	int isActive();
 	//! \return false if session is locked
 	bool setActive(bool active);
@@ -164,12 +165,8 @@ public:
 
 	// ------------------------ transactions functions ----------------------------
 
-	//! \return true if succeed
-	bool startProcessingTransaction(const std::string& proto_message_base64, bool autoSign = false);
-	//! \param working if set will filled with transaction running
-	Poco::AutoPtr<ProcessingTransaction> getNextReadyTransaction(size_t* working = nullptr);
-	bool finalizeTransaction(bool sign, bool reject);
-	size_t getProcessingTransactionCount();
+	inline void setLastTransaction(Poco::AutoPtr<model::gradido::Transaction> lastTransaction) { lock(); mLastTransaction = lastTransaction; unlock(); }
+	bool lastTransactionTheSame(Poco::AutoPtr<model::gradido::Transaction> newTransaction);
 
 	inline LanguageCatalog* getLanguageCatalog() { return mLanguageCatalog.isNull() ? nullptr : mLanguageCatalog; }
 	void setLanguage(Languages lang);
@@ -187,14 +184,15 @@ public:
 protected:
 	void updateTimeout();
 	inline void setHandle(int newHandle) { mHandleId = newHandle; }
-	
+
 	void detectSessionState();
 	static const char* translateSessionStateToString(SessionStates state);
 
 	inline const std::string& getPassphrase() const { return mPassphrase; }
-	
 
-private: 
+
+private:
+
 	int mHandleId;
 	Poco::AutoPtr<controller::User> mNewUser;
 	std::string mPassphrase;
@@ -207,12 +205,11 @@ private:
 	Poco::AutoPtr<controller::EmailVerificationCode> mEmailVerificationCodeObject;
 	std::shared_mutex	 mSharedMutex;
 
+	Poco::AutoPtr<model::gradido::Transaction> mLastTransaction;
 
 	SessionStates mState;
 
 	bool mActive;
-	std::list<Poco::AutoPtr<ProcessingTransaction>> mProcessingTransactions;
-	Poco::AutoPtr<ProcessingTransaction> mCurrentActiveProcessingTransaction;
 
 	Poco::AutoPtr<LanguageCatalog> mLanguageCatalog;
 };

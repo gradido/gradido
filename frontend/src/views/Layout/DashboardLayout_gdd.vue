@@ -1,32 +1,64 @@
 <template>
-  <div class="wrapper">
-    <notifications></notifications>
-    <side-bar @logout="logout">
+  <div>
+    <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
-        <b-nav-item href="#!" to="/overview">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('send') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/transactions">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('transactions') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/profile">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.my-profil') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/profileedit">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.settings') }}</b-nav-text>
-        </b-nav-item>
-        <b-nav-item href="#!" to="/activity">
-          <b-nav-text class="p-0 text-lg text-muted">{{ $t('site.navbar.activity') }}</b-nav-text>
-        </b-nav-item>
+        <p></p>
+        <sidebar-item
+          :link="{
+            name: $t('send'),
+            path: '/overview',
+          }"
+        ></sidebar-item>
+        <sidebar-item
+          :link="{
+            name: $t('transactions'),
+            path: '/transactions',
+          }"
+        ></sidebar-item>
+        <sidebar-item
+          :link="{
+            name: $t('site.navbar.my-profil'),
+            path: '/profile',
+          }"
+        ></sidebar-item>
       </template>
     </side-bar>
-    <div class="main-content">
-      <dashboard-navbar :type="$route.meta.navbarType"></dashboard-navbar>
+    <div class="main-content" style="max-width: 1000px">
+      <div class="d-none d-md-block">
+        <b-navbar>
+          <b-navbar-nav class="ml-auto">
+            <b-nav-item>
+              <b-media no-body class="align-items-center">
+                <span class="pb-2 text-lg font-weight-bold">
+                  {{ $store.state.email }}
+                </span>
+                <b-media-body class="ml-2">
+                  <span class="avatar">
+                    <vue-qrcode
+                      v-if="$store.state.email"
+                      :value="$store.state.email"
+                      type="image/png"
+                    ></vue-qrcode>
+                  </span>
+                </b-media-body>
+              </b-media>
+            </b-nav-item>
+          </b-navbar-nav>
+        </b-navbar>
+      </div>
 
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
-          <!-- your content here -->
-          <router-view></router-view>
+          <router-view
+            ref="router-view"
+            :balance="balance"
+            :gdt-balance="GdtBalance"
+            :transactions="transactions"
+            :transactionCount="transactionCount"
+            :pending="pending"
+            @update-balance="updateBalance"
+            @update-transactions="updateTransactions"
+          ></router-view>
         </fade-transition>
       </div>
       <content-footer v-if="!$route.meta.hideFooter"></content-footer>
@@ -34,54 +66,75 @@
   </div>
 </template>
 <script>
-import PerfectScrollbar from 'perfect-scrollbar'
-import 'perfect-scrollbar/css/perfect-scrollbar.css'
-import loginAPI from '../../apis/loginAPI'
-
-function hasElement(className) {
-  return document.getElementsByClassName(className).length > 0
-}
-
-function initScrollbar(className) {
-  if (hasElement(className)) {
-    new PerfectScrollbar(`.${className}`)
-  } else {
-    // try to init it later in case this component is loaded async
-    setTimeout(() => {
-      initScrollbar(className)
-    }, 100)
-  }
-}
-
-import DashboardNavbar from './DashboardNavbar.vue'
+import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
-// import DashboardContent from './Content.vue';
 import { FadeTransition } from 'vue2-transitions'
+import VueQrcode from 'vue-qrcode'
 
 export default {
   components: {
-    DashboardNavbar,
     ContentFooter,
-    // DashboardContent,
+    VueQrcode,
     FadeTransition,
   },
-  methods: {
-    initScrollbar() {
-      let isWindows = navigator.platform.startsWith('Win')
-      if (isWindows) {
-        initScrollbar('sidenav')
-      }
-    },
-    async logout() {
-      const result = await loginAPI.logout(this.$store.state.session_id)
-      // do we have to check success?
-      this.$store.dispatch('logout')
-      this.$router.push('/login')
-    },
+  data() {
+    return {
+      balance: 0,
+      GdtBalance: 0,
+      transactions: [],
+      bookedBalance: 0,
+      transactionCount: 0,
+      pending: true,
+    }
   },
-  mounted() {
-    this.initScrollbar()
+  methods: {
+    async logout() {
+      this.$apollo
+        .query({
+          query: logout,
+        })
+        .then(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
+        .catch(() => {
+          this.$sidebar.displaySidebar(false)
+          this.$store.dispatch('logout')
+          this.$router.push('/login')
+        })
+    },
+    async updateTransactions(pagination) {
+      this.pending = true
+      this.$apollo
+        .query({
+          query: transactionsQuery,
+          variables: {
+            firstPage: pagination.firstPage,
+            items: pagination.items,
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          const {
+            data: { transactionList },
+          } = result
+          this.GdtBalance = Number(transactionList.gdtSum)
+          this.transactions = transactionList.transactions
+          this.balance = Number(transactionList.decay)
+          this.bookedBalance = Number(transactionList.balance)
+          this.transactionCount = transactionList.count
+          this.pending = false
+        })
+        .catch((error) => {
+          this.pending = true
+          this.$toasted.error(error.message)
+          // what to do when loading balance fails?
+        })
+    },
+    updateBalance(ammount) {
+      this.balance -= ammount
+    },
   },
 }
 </script>
-<style lang="scss"></style>

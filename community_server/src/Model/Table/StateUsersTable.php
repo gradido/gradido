@@ -122,9 +122,9 @@ class StateUsersTable extends Table
         // exchange back
         $involvedUserIds = array_flip($involvedUser_temp);
         $involvedUser = $this->find('all', [
-            'contain' => false,
+            'contain' => [],
             'where' => ['id IN' => $involvedUserIds],
-            'fields' => ['id', 'first_name', 'last_name', 'email']
+            'fields' => ['id', 'first_name', 'last_name', 'email'],
           ]);
         //var_dump($involvedUser->toArray());
         $involvedUserIndices = [];

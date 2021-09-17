@@ -108,7 +108,7 @@ namespace model {
 
 			if (mProtoCreation.receiver().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "receiver pubkey has invalid size"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
 
 			// TODO: check creation amount from last 3 month from node server

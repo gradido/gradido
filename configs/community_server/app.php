@@ -214,9 +214,8 @@ return [
             'timeout' => 30,
             'username' => null,
             'password' => null,
-            'client' => null,
-            'tls' => null,
-            'url' => env('EMAIL_TRANSPORT_DEFAULT_URL', null),
+            'className' => 'Smtp',
+            'tls' => true
         ],
     ],
 
@@ -304,11 +303,11 @@ return [
             'className' => Connection::class,
             'driver' => Mysql::class,
             'persistent' => false,
-            'host' => 'localhost',
+            'host' => 'mariadb',
             //'port' => 'non_standard_port_number',
-            'username' => 'my_app',
-            'password' => 'secret',
-            'database' => 'test_myapp',
+            'username' => 'root',
+            'password' => '',
+            'database' => 'gradido_community_test',
             //'encoding' => 'utf8mb4',
             'timezone' => 'UTC',
             'cacheMetadata' => true,
@@ -420,13 +419,13 @@ return [
 
     'GroupAlias' => 'docker',
     'GDTServer' => [
-        //'host' => 'gdt'
+        'host' => 'https://gdt.gradido.net' // staging
     ],
     'API' => [
         'allowedCaller' => ['login-server']
     ],
     'ServerAdminEmail' => 'info@gradido.net',
     'noReplyEmail' => 'no-reply@gradido.net',
-    'disableEmail' => false
+    'disableEmail' => true
    
 ];

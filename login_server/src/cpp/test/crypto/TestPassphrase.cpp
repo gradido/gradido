@@ -41,7 +41,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases1[] = {
 		"Fichte Heuschrecke Botschafter G&ouml;ttingen Leasing losfliegen simpel enorm erk&auml;mpft Werk Wolke vorhanden jene Slums stagnieren Verifizieren insgesamt Hanau simpel Inspiration delegieren umtauschen ablegen suggerieren ",
-		"ankommt gesamt gestorben m&uuml;de Argument stolz diskutiert Kette Leonardo riesig Igor berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml;hig diskutiert erwidern Hanau Plage Fossilien ethnisch ",
+		"ankommt gesamt gestorben m&uuml;de sind stolz Enkel geklappt Leonardo riesig Bezugsquelle berauben pr&uuml;fen bislang Villa Fortschritt moralisch unf&auml;hig Enkel erwidern Hanau Plage Fossilien ethnisch ",
 		"beauty slight skill maze wrap neither table term pizza journey unusual fence mind buzz scrap height critic service table knock fury shrimp curious fog "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -57,7 +57,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases2[] = {
 		"oftmals bist bietet spalten Datenbank Masse str&auml;flich hervor Derartig Hallo christlich Brief iPhone einpendeln telefonieren musizieren gigantisch Orchester zirkulieren essen gilt Erich Dollar money ",
-		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Umkehrschluss Fidel jeder Heinrich Engagement leihen gezogen Disziplin zufolge raffen Iris J&auml;ger ",
+		"Angst ausbeuten besser bekannt Bed&uuml;rfnisse Neidisch virtuell Pension gepr&auml;gt inmitten Abfall Absatzmarkt Wettbewerb Fidel jeder Heinrich Engagement leihen viertel Disziplin zufolge erwarten Iris J&auml;ger ",
 		"fresh hamster canvas lyrics chat mutual pair color airport estate fly assault suspect deliver similar fancy grass cliff tenant apple divert timber analyst seed "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -73,7 +73,7 @@ void PassphraseTest::SetUp()
 	};
 	std::string passphrases3[] = {
 		"tief Acker Abgaben jenseits Revolution verdeckt Entdeckung Sanktion sammeln Umdrehung regulieren murmeln Erkenntnis hart zwar zuspitzen indem fegen bomber zw&ouml;lf Mobbing divers Inspiration Krieg ",
-		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel spalten unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich R&uuml;cken Finnland sehen erwidern Abs&auml;tze ",
+		"aushalten absolut signifikant Bezahlung zukunftsf&auml;hig Wurzel ergr&uuml;nden unausweichlich dunkel halb Nagel nehmen Begabung bezwingen wehren Fohlen keiner Krankheit leiblich &Auml;ste Finnland sehen erwidern Abs&auml;tze ",
 		"rack gentle paddle illness feature fatigue teach ball dust decade dish kick skate income small pill collect often man trap doctor coffee knock excuse "
 	};
 	mPassphrasesForTesting.push_back(PassphraseDataSet(
@@ -83,7 +83,7 @@ void PassphraseTest::SetUp()
 		wordIndices3
 	));
 
-	
+
 }
 
 TEST_F(PassphraseTest, detectMnemonic) {
@@ -95,7 +95,7 @@ TEST_F(PassphraseTest, detectMnemonic) {
 			if (ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES == type) continue;
 			EXPECT_EQ(Passphrase::detectMnemonic(testDataSet.passphrases[type]), &ServerConfig::g_Mnemonic_WordLists[type]);
 		}
-		
+
 	}
 	EXPECT_FALSE(Passphrase::detectMnemonic("Dies ist eine ungültige Passphrase"));
 }
@@ -162,19 +162,19 @@ TEST_F(PassphraseTest, createAndTransform) {
 		auto test_data_set = *it;
 		auto mnemonic = &ServerConfig::g_Mnemonic_WordLists[test_data_set.mnemonicType];
 		auto tr = Passphrase::create(test_data_set.wordIndices, mnemonic);
-		
+
 		auto word_indices = tr->getWordIndices();
-		
+
 		for (int i = 0; i < PHRASE_WORD_COUNT; i++) {
 			EXPECT_EQ(word_indices[i], test_data_set.wordIndices[i]);
 		}
 		auto key_pair_ed25519 = KeyPairEd25519::create(tr);
-		//KeyPair key_pair; 
+		//KeyPair key_pair;
 		//key_pair.generateFromPassphrase(test_data_set.passphrases[test_data_set.mnemonicType].data(), mnemonic);
 		EXPECT_EQ(DataTypeConverter::pubkeyToHex(key_pair_ed25519->getPublicKey()), test_data_set.pubkeyHex);
 		//EXPECT_EQ(key_pair.getPubkeyHex(), test_data_set.pubkeyHex);
 
-		//auto key_pair_old 
+		//auto key_pair_old
 		delete key_pair_ed25519;
 		ASSERT_FALSE(tr.isNull());
 		EXPECT_TRUE(tr->checkIfValid());

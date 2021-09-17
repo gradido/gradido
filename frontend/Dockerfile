@@ -15,7 +15,7 @@ ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
 ## App relevant Envs
-ENV PORT="8080"
+ENV PORT="3000"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -72,6 +72,9 @@ RUN yarn run build
 ##################################################################################
 FROM build as test
 
+# Install Additional Software
+RUN apk add --no-cache bash jq
+
 # Run command
 CMD /bin/sh -c "yarn run dev"
 
@@ -82,15 +85,14 @@ FROM base as production
 
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/dist ./dist
-#COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-#COPY --from=build ${DOCKER_WORKDIR}/nuxt.config.js ./nuxt.config.js
+# We also copy the node_modules express and serve-static for the run script
+COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # Copy static files
-# TODO - this should be one Folder containign all stuff needed to be copied
-#COPY --from=build ${DOCKER_WORKDIR}/constants ./constants
-#COPY --from=build ${DOCKER_WORKDIR}/static ./static
-#COPY --from=build ${DOCKER_WORKDIR}/locales ./locales
+COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
+# Copy run scripts run/
+COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
 # Run command
 CMD /bin/sh -c "yarn run start"

@@ -58,7 +58,7 @@ class TransactionTransfer extends TransactionBase {
         //$this->addError('TransactionTransfer::validate', 'not implemented yet');
         //return false;
         //$time = microtime(true);
-        static $functionName = 'TransactionCreation::validate';
+        static $functionName = 'TransactionTransfer::validate';
         
         $sigPubHexs = [];
         foreach($sigPairs as $sigPair) 
@@ -99,12 +99,12 @@ class TransactionTransfer extends TransactionBase {
                   ->where(['public_key' => $senderPublic])
                   ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
         if(!$user) {
-          $this->addError($functionName, 'couldn\'t find sender ' . $i .' in db' );
+          $this->addError($functionName, 'couldn\'t find sender in db' );
           return false;
         }
         //var_dump($user);
         if(intval($user->state_balances[0]->amount) < intval($amount)) {
-          $this->addError($functionName, 'sender ' . $i . ' hasn\t enough GDD');
+          $this->addError($functionName, 'sender hasn\t enough GDD');
           return false;
         }
       
@@ -116,7 +116,7 @@ class TransactionTransfer extends TransactionBase {
         // check if receiver exist
         $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
         if(!$receiver_user) {
-            $this->addError($functionName, 'couldn\'t find receiver ' . $i .' in db' );
+            $this->addError($functionName, 'couldn\'t find receiver in db' );
             return false;
         }
         if($amount < 0) {
@@ -186,11 +186,9 @@ class TransactionTransfer extends TransactionBase {
       $local_transfer = $this->protoTransactionTransfer->getLocal();
       $sender = $local_transfer->getSender();
       $senderAmount = $sender->getAmount();
-      $senderUserId = $this->getStateUserId($sender->getPubkey());
-      $receiverUserId = $this->getStateUserId($local_transfer->getReceiver());
+      $senderUser = $this->getStateUserFromPublickey($sender->getPubkey());
+      $receiverUser = $this->getStateUserFromPublickey($local_transfer->getReceiver());
       
-      $receiverUser = $this->getStateUser($receiverUserId);
-      $senderUser   = $this->getStateUser($senderUserId);
       $serverAdminEmail = Configure::read('ServerAdminEmail');
 
       try {
@@ -206,16 +204,36 @@ class TransactionTransfer extends TransactionBase {
             $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
             return false;
           }
-        $email->setFrom([$serverAdminEmail => $senderUser->getNames() . ' via Gradido Community'])
+        $noReplyEmail = Configure::read('noReplyEmail');
+        $email->setFrom([$noReplyEmail => 'Gradido (nicht antworten)'])
               ->setTo([$receiverUser->email => $receiverUser->getNames()])
-              ->setReplyTo($senderUser->email)
               ->setSubject(__('Gradidos erhalten'))
               ->send();
       } catch(Exception $e) {
         //$this->addError('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
+          $this->addWarning('TransactionTransfer::sendNotificationEmail', 'error sending notification email: ' . $e->getMessage());
         return false;
       }
       return true;
+    }
+    
+    public function getSenderUser()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        return $this->getStateUserFromPublickey($local_transfer->getSender()->getPubkey());
+    }
+    
+    public function getReceiverUser()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        return $this->getStateUserFromPublickey($local_transfer->getReceiver());
+    }
+    
+    public function getAmount()
+    {
+        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $sender = $local_transfer->getSender();
+        return $sender->getAmount();
     }
     
     static public function fromEntity($transactionTransferEntity)

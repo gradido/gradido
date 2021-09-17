@@ -21,6 +21,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	// incoming
 
 	std::string email;
+	std::string username;
 	std::string password;
 
 	// if is json object
@@ -32,8 +33,17 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		/// not available for the given type.
 		/// Throws InvalidAccessException if Var is empty.
 		try {
-			paramJsonObject->get("email").convert(email);
+			//paramJsonObject->get("email").convert(email);
 			paramJsonObject->get("password").convert(password);
+			auto email_obj = paramJsonObject->get("email");
+			auto username_obj = paramJsonObject->get("username");
+
+			if (!email_obj.isEmpty()) {
+				email_obj.convert(email);
+			}
+			if (!username_obj.isEmpty()) {
+				username_obj.convert(username);
+			}
 		}
 		catch (Poco::Exception& ex) {
 			return stateError("json exception", ex.displayText());
@@ -43,25 +53,42 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		return stateError("parameter format unknown");
 	}
 
-
-	if (!email.size() || !sm->isValid(email, VALIDATE_EMAIL)) {
-		return stateError("invalid or empty email");
+	if (!email.size() && !username.size()) {
+		return stateError("no email or username given");
 	}
+	
 	auto user = controller::User::create();
-	if (1 != user->load(email)) {
-		return stateError("user with email not found", email);
+	std::string message;
+	std::string details;
+	if (email.size()) {
+		if (!sm->isValid(email, VALIDATE_EMAIL)) {
+			message = "invalid email";
+		}
+		if (1 != user->load(email)) {
+			message = "user with email not found";
+			details = email;
+		}
+	}
+	else if (username.size() > 0) {
+		if (1 != user->load(username)) {
+			message = "user with username not found";
+			details = username;
+		}
+		email = user->getModel()->getEmail();
+	}
+	if (message.size()) {
+		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
+		return stateError(message.data(), details);
 	}
 
 	NotificationList pwd_errors;
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 
-	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors)) {
-	
+	if (!password.size() || !sm->checkPwdValidation(password, &pwd_errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 		result->set("state", "error");
-		result->set("msg", pwd_errors.getLastError()->getString(false));
-		if (pwd_errors.errorCount()) {
-			result->set("details", pwd_errors.getLastError()->getString(false));
-		}
+		result->set("msg", "password incorrect");
+		
 		return result;
 	}
 	
@@ -118,7 +145,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	default: 
 		result->set("state", "error");
 		result->set("msg", "unknown user state");
-		result->set("details", USER_NO_GROUP);
+		result->set("details", user_state);
 	}
 	
 	sm->releaseSession(session);

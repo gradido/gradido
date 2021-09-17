@@ -7,6 +7,8 @@ class Notification
 {
 public:
 	Notification(const char* functionName, const char* message);
+	Notification(const char* functionName, const std::string& message);
+	Notification(const std::string& functionName, const std::string& message);
 
 	const char* getFunctionName() { return mFunctionName.data(); }
 	const char* getMessage() { return mMessage.data(); }
@@ -15,6 +17,7 @@ public:
 
 	virtual bool isError() { return false; }
 	virtual bool isSuccess() { return false; }
+	virtual bool isWarning() { return false; }
 
 protected:
 	std::string mFunctionName;

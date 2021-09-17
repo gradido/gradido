@@ -1,28 +1,57 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header bg-gradient-info py-7 py-lg-8 pt-lg-9">
+    <div class="header py-7 py-lg-8 pt-lg-9">
       <b-container>
         <div class="header-body text-center mb-7">
           <p class="h1">{{ $t('site.thx.title') }}</p>
-          <p class="h4">{{ $t('site.thx.subtitle') }}</p>
+          <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
-          <b-button to="/login">{{ $t('login') }}</b-button>
+          <b-button :to="displaySetup.linkTo">{{ $t(displaySetup.button) }}</b-button>
         </div>
       </b-container>
-      <div class="separator separator-bottom separator-skew zindex-100">
-        <svg
-          x="0"
-          y="0"
-          viewBox="0 0 2560 100"
-          preserveAspectRatio="none"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
-        </svg>
-      </div>
     </div>
     <!-- Page content -->
   </div>
 </template>
+<script>
+const textFields = {
+  password: {
+    subtitle: 'site.thx.email',
+    button: 'login',
+    linkTo: '/login',
+  },
+  reset: {
+    subtitle: 'site.thx.reset',
+    button: 'login',
+    linkTo: '/login',
+  },
+  register: {
+    subtitle: 'site.thx.register',
+    button: 'site.login.signin',
+    linkTo: '/overview',
+  },
+  checkEmail: {
+    subtitle: 'site.thx.checkEmail',
+    button: 'login',
+    linkTo: '/login',
+  },
+}
+
+export default {
+  name: 'Thx',
+  data() {
+    return {
+      displaySetup: {},
+    }
+  },
+  methods: {
+    setDisplaySetup(from) {
+      this.displaySetup = textFields[this.$route.params.comingFrom]
+    },
+  },
+  created() {
+    this.setDisplaySetup()
+  },
+}
+</script>

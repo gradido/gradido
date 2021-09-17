@@ -2,7 +2,7 @@
 #define __GRADIDO_LOGIN_SERVER_MODEL_GRADIDO_GROUP_MEMBER_UPDATE_H
 
 #include "TransactionBase.h"
-#include "../../proto/gradido/GroupMemberUpdate.pb.h"
+#include "proto/gradido/GroupMemberUpdate.pb.h"
 
 
 namespace model {
@@ -26,4 +26,4 @@ namespace model {
 	}
 }
 
-#endif 
+#endif

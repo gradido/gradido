@@ -32,7 +32,7 @@ namespace model {
 		public:
 			ModelBase(int id) :mID(id), mReferenceCount(1) {}
 			ModelBase() : mID(0), mReferenceCount(1) {}
-			virtual ~ModelBase();
+			
 
 			virtual const char* getTableName() const = 0;
 			//! called from within of some catch to give more information for debugging, don't lock mutex!
@@ -61,6 +61,12 @@ namespace model {
 			template<class T1, class T2> 
 			size_t loadFromDB(const std::vector<std::string>& fieldNames, const T1& field1Value, const T2& field2Value, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
 
+			template<class Tuple, class T1, class T2>
+			std::vector<Tuple> loadMultipleFromDB(
+				const std::vector<std::string>& fieldNames,
+				const T1& field1Value, const T2& field2Value,
+				MysqlConditionType conditionType = MYSQL_CONDITION_AND);
+
 			template<class Tuple, class T1, class T2, class T3, class T4>
 			std::vector<Tuple> loadMultipleFromDB(
 				const std::vector<std::string>& fieldNames,
@@ -84,6 +90,8 @@ namespace model {
 			void duplicate();
 			void release();
 		protected:
+			virtual ~ModelBase();
+
 			virtual Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName) = 0;
 			virtual Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType = MYSQL_CONDITION_AND);
@@ -98,6 +106,9 @@ namespace model {
 			int mReferenceCount;	
 
 			mutable std::shared_mutex mSharedMutex;
+
+		private:
+			
 
 		};
 
@@ -288,6 +299,43 @@ namespace model {
 				//addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
 			}
 			return resultCount;
+		}
+
+		template<class Tuple, class T1, class T2>
+		std::vector<Tuple> ModelBase::loadMultipleFromDB(
+			const std::vector<std::string>& fieldNames,
+			const T1& field1Value, const T2& field2Value,
+			MysqlConditionType conditionType/* = MYSQL_CONDITION_AND*/)
+		{
+			auto cm = ConnectionManager::getInstance();
+			std::vector<Tuple> results;
+			if (fieldNames.size() != 2) {
+				addError(new Error(getTableName(), "error in loadFromDB with 2 different field values, fieldNames count isn't 2"));
+				return results;
+			}
+			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+			Poco::Data::Statement select = _loadMultipleFromDB(session, fieldNames, conditionType);
+			select, Poco::Data::Keywords::into(results),
+				Poco::Data::Keywords::useRef(field1Value), Poco::Data::Keywords::useRef(field2Value);
+
+			size_t resultCount = 0;
+			try {
+				resultCount = select.execute();
+			}
+			catch (Poco::Exception& ex) {
+				lock();
+				addError(new ParamError(getTableName(), "mysql error by selecting with 2 different field types", ex.displayText()));
+				int count = 0;
+				for (auto it = fieldNames.begin(); it != fieldNames.end(); it++) {
+					addError(new ParamError(getTableName(), "field name for select: ", *it));
+				}
+
+				//addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
+				unlock();
+			}
+			return results;
 		}
 
 		template<class Tuple, class T1, class T2, class T3, class T4>

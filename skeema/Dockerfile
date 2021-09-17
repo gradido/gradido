@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /go/bin/skeema .
 #########################################################################################################
 # Run skeema
 #########################################################################################################
-From alpine:latest as skeema_run
+FROM alpine:3.13.5 as skeema_run
 
 ENV DOCKER_WORKDIR="/skeema"
 	
@@ -22,7 +22,5 @@ WORKDIR ${DOCKER_WORKDIR}
 COPY ./skeema/.skeema .
 COPY ./login_server/skeema/ .
 COPY ./mariadb/.skeema.login ./gradido_login/.skeema
-COPY ./community_server/skeema/ . 
-COPY ./mariadb/.skeema.community ./gradido_community/.skeema
 
-CMD skeema push
+CMD skeema push --allow-unsafe

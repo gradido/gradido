@@ -1,14 +1,12 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 use Cake\ORM\TableRegistry;
-use Cake\I18n\Date;
-use Cake\I18n\Time;
+use Cake\I18n\FrozenTime;
 
 /**
  * StateBalances Model
@@ -26,8 +24,9 @@ use Cake\I18n\Time;
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
-class StateBalancesTable extends Table
+class StateBalancesTable extends AppTable
 {
+    private static $startDecayDate = null;
     /**
      * Initialize method
      *
@@ -48,6 +47,15 @@ class StateBalancesTable extends Table
             'foreignKey' => 'state_user_id',
             'joinType' => 'INNER'
         ]);
+    }
+    
+    public static function getDecayStartDateCached()
+    {
+        if(self::$startDecayDate == null) {
+            $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+            self::$startDecayDate = $transactionsTable->getDecayStartDate();
+        }
+        return self::$startDecayDate;
     }
 
     /**
@@ -83,20 +91,70 @@ class StateBalancesTable extends Table
         return $rules;
     }
     
-    
-    public function sortTransactions($a, $b)
+    public function calculateDecay($startBalance, FrozenTime $startDate, FrozenTime $endDate, $withInterval = false)
     {
-        if ($a['date'] == $b['date']) {
-            return 0;
+        $decayStartDate = self::getDecayStartDateCached();
+        // if no start decay block exist, we just return input
+        // if start date for decay is after enddate, we also just return input
+        if($decayStartDate === null || $decayStartDate >= $endDate) {
+            if($withInterval) {
+                return [
+                    'balance' => $startBalance,
+                    'interval' => new \DateInterval('PT0S'),
+                    'start_date' => $startDate->getTimestamp(),
+                    'end_date' => $startDate->getTimestamp()
+                ];
+            } else {
+                return $startBalance;
+            }
         }
-        return ($a['date'] > $b['date']) ? -1 : 1;
+        $state_balance = $this->newEntity();
+        $state_balance->amount = $startBalance;
+        $interval = null;
+        // if decay start date is before start date we calculate decay for full duration
+        if($decayStartDate < $startDate) {
+            $state_balance->record_date = $startDate;
+            $interval = $endDate->diff($startDate);
+        } 
+        // if decay start in between start date and end date we caculcate decay from decay start time to end date
+        else {
+            $state_balance->record_date = $decayStartDate;
+            $interval = $endDate->diff($decayStartDate);
+        }
+        $decay = $state_balance->partDecay($endDate);
+        if($withInterval) {
+            return [
+                'balance' => $decay,
+                'interval' => $interval,
+                'start_date' => $state_balance->record_date->getTimestamp(),
+                'end_date' => $endDate->getTimestamp()
+            ];
+        } else {
+            return $decay;
+        }
+        
+        
     }
     
+    public function updateAllBalances()
+    {
+        $stateUserTable =  TableRegistry::getTableLocator()->get('StateUsers');
+        $state_users = $stateUserTable->find()->select(['id'])->contain([]);
+        foreach($state_users as $state_user) {
+            $result = $this->updateBalances($state_user->id);
+            if($result['success'] === false) {
+                $result['state_user_id'] = $state_user->id;
+                return $result;
+            }
+        }
+        return ['success' => true];
+    }
     
     public function updateBalances($stateUserId)
     {
         $stateUserTransactionsTable =  TableRegistry::getTableLocator()->get('StateUserTransactions');
         $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+        $now = new FrozenTime;
         // info: cakephp use lazy loading, query will be executed later only if needed
         $state_balances = $this->find('all')->where(['state_user_id' => $stateUserId]);
         $state_user_transactions = $stateUserTransactionsTable
@@ -107,7 +165,7 @@ class StateBalancesTable extends Table
                                             ;
         
         if(!$state_user_transactions || !$state_user_transactions->count()) {
-            return true;
+            return ['success' => true];
         }
         
         // first: decide what todo
@@ -128,18 +186,26 @@ class StateBalancesTable extends Table
             if($state_user_transactions->count() == 0){
                 $clear_state_balance = true;
             } else {
+                
+                $first_state_balance = $state_balances->first();
+                $first_state_balance_decayed = self::calculateDecay(
+                        $first_state_balance->amount, 
+                        $first_state_balance->record_date,
+                        $now);
+                
                 $last_state_user_transaction = $state_user_transactions->last();
-                $last_transaction = $this->newEntity();
-                $last_transaction->amount = $last_state_user_transaction->balance;
-                $last_transaction->record_date = $last_state_user_transaction->balance_date;
+                $last_state_user_transaction_decayed = self::calculateDecay(
+                        $last_state_user_transaction->balance, 
+                        $last_state_user_transaction->balance_date, 
+                        $now);
                 // if entrys are nearly the same, we don't need doing anything
-                if(abs($last_transaction->decay - $state_balances->first()->decay) > 100) {
+                if(floor($last_state_user_transaction_decayed/100) !== floor($first_state_balance_decayed/100)) {
                     $recalculate_state_user_transactions_balance = true;
                     $update_state_balance = true;
                 }
             }
         }
-        
+
         if(!$recalculate_state_user_transactions_balance) {
             $last_state_user_transaction = $state_user_transactions->last();
             if($last_state_user_transaction && $last_state_user_transaction->balance <= 0) {
@@ -180,7 +246,7 @@ class StateBalancesTable extends Table
         
             $transactions = $transactionsTable
                     ->find('all')
-                    ->where(['id IN' => array_keys($transaction_ids)])
+                    ->where(['Transactions.id IN' => array_keys($transaction_ids)])
                     ->contain(['TransactionCreations', 'TransactionSendCoins']);
 
             $transactions_indiced = [];
@@ -193,37 +259,28 @@ class StateBalancesTable extends Table
                 $transaction = $transactions_indiced[$state_user_transaction->transaction_id];
                 if($transaction->transaction_type_id > 2) {
                     continue;
-                }
-                //echo "transaction id: ".$transaction->id . "<br>";
-                $amount_date = null;
+                }                
                 $amount = 0;
                 
                 if($transaction->transaction_type_id == 1) { // creation                    
-                    $temp = $transaction->transaction_creations[0];
-
-                    /*$balance_temp = $this->newEntity();
-                    $balance_temp->amount = $temp->amount;
-                    $balance_temp->record_date = $temp->target_date;
-                    */
-                    $amount = intval($temp->amount);//$balance_temp->partDecay($transaction->received);
-                    $amount_date = $temp->target_date;
-
-                    //$amount_date = 
+                    $amount = intval($transaction->transaction_creation->amount);
                 } else if($transaction->transaction_type_id == 2) { // transfer
-
-                    $temp = $transaction->transaction_send_coins[0];
+                    $temp = $transaction->transaction_send_coin;
                     $amount = intval($temp->amount);
                     // reverse if sender
                     if($stateUserId == $temp->state_user_id) {
                         $amount *= -1.0;
                     }
-                    $amount_date = $transaction->received;
-
                 }
+                $amount_date = $transaction->received;
                 if($i == 0) {
                     $balance_cursor->amount = $amount;
                 } else {
-                    $balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                    
+                    //$balance_cursor->amount = $balance_cursor->partDecay($amount_date) + $amount;
+                    $balance_cursor->amount = 
+                            $this->calculateDecay($balance_cursor->amount, $balance_cursor->record_date, $amount_date) 
+                            + $amount;
                 }
                 //echo "new balance: " . $balance_cursor->amount . "<br>";
                
@@ -261,7 +318,7 @@ class StateBalancesTable extends Table
                  return ['success' => false, 'error' => 'error saving state balance', 'details' => $state_balance->getErrors()];
              }
         }
-        return true;
+        return ['success' => true];
 
     }
     

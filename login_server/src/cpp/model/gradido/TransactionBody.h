@@ -7,7 +7,7 @@
 #include "TransactionCreation.h"
 #include "TransactionTransfer.h"
 
-#include "../../proto/gradido/TransactionBody.pb.h"
+#include "proto/gradido/TransactionBody.pb.h"
 
 #include "../../lib/MultithreadContainer.h"
 
@@ -39,24 +39,24 @@ namespace model {
 			//! \brief GroupMemberUpdate Transaction
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias);
 			//! \brief GradidoTransfer Transaction
-			//! \param group if group.isNull() it is a local transfer, else cross group transfer, 
+			//! \param group if group.isNull() it is a local transfer, else cross group transfer,
 			//! \param group if group is same as sender group outbound, else inbound
 			static Poco::AutoPtr<TransactionBody> create(
 				const std::string& memo,
-				Poco::AutoPtr<controller::User> sender, 
-				const MemoryBin* receiverPublicKey, 
-				Poco::UInt32 amount, 
+				Poco::AutoPtr<controller::User> sender,
+				const MemoryBin* receiverPublicKey,
+				Poco::UInt32 amount,
 				BlockchainType blockchainType,
-				Poco::Timestamp pairedTransactionId = Poco::Timestamp(), 
+				Poco::Timestamp pairedTransactionId = Poco::Timestamp(),
 				Poco::AutoPtr<controller::Group> group = nullptr
 			);
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, const MemoryBin* senderPublicKey, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId = Poco::Timestamp(), Poco::AutoPtr<controller::Group> group = nullptr);
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, const MemoryBin* senderPublicKey, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, const std::string groupAlias, TransactionTransferType transferType, Poco::Timestamp pairedTransactionId = Poco::Timestamp());
 			//! \brief GradidoCreation Transaction
 			static Poco::AutoPtr<TransactionBody> create(
-				const std::string& memo, 
-				Poco::AutoPtr<controller::User> receiver, 
-				Poco::UInt32 amount, 
+				const std::string& memo,
+				Poco::AutoPtr<controller::User> receiver,
+				Poco::UInt32 amount,
 				Poco::DateTime targetDate,
 				BlockchainType blockchainType
 				);
@@ -68,7 +68,7 @@ namespace model {
 			static const char* transactionTypeToString(TransactionType type);
 			std::string getMemo();
 			void setMemo(const std::string& memo);
-			
+
 			bool isCreation() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_CREATION; }
 			bool isTransfer() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_TRANSFER; }
 			bool isGroupMemberUpdate() { Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex); return mType == TRANSACTION_GROUP_MEMBER_UPDATE; }

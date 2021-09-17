@@ -11,9 +11,7 @@
 #include "Poco/JSON/Array.h"
 #include "../SingletonManager/LanguageManager.h"
 
-#include "../proto/hedera/Timestamp.pb.h"
-#include "../proto/hedera/Duration.pb.h"
-#include "../proto/gradido/BasicTypes.pb.h"
+#include "proto/gradido/BasicTypes.pb.h"
 
 #include "sodium.h"
 
@@ -37,13 +35,13 @@ namespace DataTypeConverter {
 	MemoryBin* hexToBin(const std::string& hexString);
 	MemoryBin* base64ToBin(const std::string& base64String, int variant = sodium_base64_VARIANT_ORIGINAL);
 
-	
+
 	std::string binToBase64(const unsigned char* data, size_t size, int variant = sodium_base64_VARIANT_ORIGINAL);
 	inline std::string binToBase64(const MemoryBin* data, int variant = sodium_base64_VARIANT_ORIGINAL) { return binToBase64(data->data(), data->size(), variant); }
 	inline std::string binToBase64(const std::string& proto_bin, int variant = sodium_base64_VARIANT_ORIGINAL) {
 		return binToBase64((const unsigned char*)proto_bin.data(), proto_bin.size(), variant);
 	}
-	
+
 	std::string binToHex(const unsigned char* data, size_t size);
 	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);
 	inline std::string binToHex(const MemoryBin* data) { return binToHex(data->data(), data->size());}
@@ -58,15 +56,12 @@ namespace DataTypeConverter {
 	//! \brief convert duration in string showing seconds, minutes, hours or days
 	std::string convertTimespanToLocalizedString(Poco::Timespan duration, LanguageCatalog* lang);
 
-	Poco::Timestamp convertFromProtoTimestamp(const proto::Timestamp& timestamp);
 	Poco::Timestamp convertFromProtoTimestamp(const proto::gradido::Timestamp& timestamp);
-	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::Timestamp* protoTimestamp);
 	void convertToProtoTimestamp(const Poco::Timestamp pocoTimestamp, proto::gradido::Timestamp* protoTimestamp);
 	Poco::Timestamp convertFromProtoTimestampSeconds(const proto::gradido::TimestampSeconds& timestampSeconds);
 	inline void convertToProtoTimestampSeconds(const Poco::Timestamp pocoTimestamp, proto::gradido::TimestampSeconds* protoTimestampSeconds) {
 		protoTimestampSeconds->set_seconds(pocoTimestamp.epochTime());
 	}
-	Poco::Timespan  convertFromProtoDuration(const proto::Duration& duration);
 
 	//! \brief go through json object and replace every string entry in base64 format into hex format
 	//! \return count of replaced strings

@@ -21,7 +21,7 @@ use Cake\Routing\Router;
 use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\I18n\Time;
-use Cake\I18n\I18n;
+use Cake\I18n\FrozenTime;
 
 /**
  * Application Controller
@@ -88,19 +88,8 @@ class AppController extends Controller
         // load current balance
         $session = $this->getRequest()->getSession();
         $state_user_id = $session->read('StateUser.id');
-        if ($state_user_id) {
-            $stateBalancesTable = TableRegistry::getTableLocator()->get('stateBalances');
-            $stateBalanceQuery = $stateBalancesTable
-                  ->find('all')
-                  ->contain(false)
-                  ->where(['state_user_id' => $state_user_id]);
-            if ($stateBalanceQuery->count() == 1) {
-              //var_dump($stateBalanceEntry->first());
-                $session->write('StateUser.balance', $stateBalanceQuery->first()->decay);
-              //echo "stateUser.balance: " . $session->read('StateUser.balance');
-            }
-        }
-
+       
+        
         // load error count
         if ($state_user_id) {
             $stateErrorsTable = TableRegistry::getTableLocator()->get('stateErrors');
@@ -111,8 +100,6 @@ class AppController extends Controller
                   ->where(['state_user_id' => $state_user_id]);
             $session->write('StateUser.errorCount', $stateErrorQuery->count());
         }
-        //echo "initialize";
-
 
         // put current page into global for navi
         $GLOBALS["passed"] = null;
@@ -158,6 +145,7 @@ class AppController extends Controller
 
     protected function requestLogin($sessionId = 0, $redirect = true)
     {
+        $stateBalancesTable = TableRegistry::getTableLocator()->get('StateBalances');
         $session = $this->getRequest()->getSession();
         // check login
         // disable encryption for cookies
@@ -167,13 +155,15 @@ class AppController extends Controller
             $php_session_id = intval($session->read('session_id'));
         }
         $cookie_session_id = intval($this->request->getCookie('GRADIDO_LOGIN', ''));
-        if($php_session_id != 0) {
+        // decide in which order session_ids are tried
+        if($sessionId != 0) {
+            $session_id = $sessionId;
+        } else if($php_session_id != 0) {
             $session_id = $php_session_id;
         } else if($cookie_session_id != 0) {
             $session_id = $cookie_session_id;
-        } else {
-            $session_id = $sessionId;
-        }
+        } 
+
         $ip = $this->request->clientIp();
         if (!$session->check('client_ip')) {
             $session->write('client_ip', $ip);
@@ -188,12 +178,15 @@ class AppController extends Controller
             $transactionPendings = $session->read('Transactions.pending');
             $transactionExecutings = $session->read('Transactions.executing');
             $transaction_can_signed = $session->read('Transactions.can_signed');
+            
+            
 
             if ($session->read('session_id') != $session_id ||
              ( $userStored && (!isset($userStored['id']) || !$userStored['email_checked'])) ||
               intval($transactionPendings) > 0 ||
               intval($transactionExecutings) > 0 ||
-              intval($transaction_can_signed > 0)) {
+              intval($transaction_can_signed > 0)) 
+              {
                 $http = new Client();
 
                 try {
@@ -224,6 +217,7 @@ class AppController extends Controller
                             $session->write('Transactions.can_signed', $transaction_can_signed);
                             $session->write('session_id', $session_id);
                             $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
+                            
 
                             if (isset($json['user']['public_hex']) && $json['user']['public_hex'] != '') {
                                 $public_key_bin = hex2bin($json['user']['public_hex']);
@@ -252,11 +246,6 @@ class AppController extends Controller
                                             $this->Flash->error(__('error updating state user ' . json_encode($stateUser->errors())));
                                         }
                                     }
-                                  //var_dump($stateUser);
-                                    if (count($stateUser->state_balances) > 0) {
-
-                                        $session->write('StateUser.balance', $stateUser->state_balances[0]->decay);
-                                    }
                                     $session->write('StateUser.id', $stateUser->id);
                               //echo $stateUser['id'];
                                 } else {
@@ -284,7 +273,7 @@ class AppController extends Controller
                             }
                         } else {
                             if(!$redirect) {
-                                return ['state' => 'not found', 'msg' => 'invalid session'];
+                                return ['state' => 'not found', 'msg' => 'invalid session', 'details' => $json];
                             }
                             if ($json['state'] === 'not found') {
                                 $this->Flash->error(__('invalid session'));
@@ -307,6 +296,11 @@ class AppController extends Controller
                     return $this->redirect(['controller' => 'Dashboard', 'action' => 'errorHttpRequest']);
                   //continue;
                 }
+            }
+            $state_balance = $stateBalancesTable->find()->where(['state_user_id' => $session->read('StateUser.id')])->first();
+            if ($state_balance) {
+                $now = new FrozenTime;
+                $session->write('StateUser.balance', $stateBalancesTable->calculateDecay($state_balance->amount, $state_balance->record_date, $now));
             }
         } else {
           // no login

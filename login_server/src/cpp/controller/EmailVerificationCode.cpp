@@ -70,10 +70,13 @@ namespace controller {
 
 	Poco::AutoPtr<EmailVerificationCode> EmailVerificationCode::loadOrCreate(int user_id, model::table::EmailOptInType type)
 	{
-		model::table::EmailOptIn db;
+		auto db = new model::table::EmailOptIn();
 		std::vector<std::string> fields = { "user_id", "email_opt_in_type_id" };
 		std::vector<int> field_values = { user_id, (int)type };
-		auto results = db.loadFromDB<int, model::table::EmailOptInTuple>(fields, field_values);
+		auto results = db->loadFromDB<int, model::table::EmailOptInTuple>(fields, field_values);
+		db->release();
+		db = nullptr;
+
 		if (results.size() > 0) {
 			return Poco::AutoPtr<EmailVerificationCode>(new EmailVerificationCode(new model::table::EmailOptIn(results[0])));
 		}
@@ -122,10 +125,7 @@ namespace controller {
 	std::string EmailVerificationCode::getLink()
 	{
 		std::string link = mBaseUrl;
-		if (ServerConfig::g_frontend_checkEmailPath.size() > 1 && ServerConfig::g_frontend_checkEmailPath.data()[0] != '/') {
-			link += '/';
-		}
-		link += ServerConfig::g_frontend_checkEmailPath;
+		
 		if (link.data()[link.size() - 1] != '/') {
 			link += '/';
 		}

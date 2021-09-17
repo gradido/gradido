@@ -1,0 +1,42 @@
+{
+  "name": "gradido-database",
+  "version": "0.0.1",
+  "description": "Gradido Database Tool to execute database migrations",
+  "main": "src/index.ts",
+  "repository": "https://github.com/gradido/gradido/database",
+  "author": "Ulf Gebhardt",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "up": "cd build && node src/index.js up",
+    "down": "cd build && node src/index.js down",
+    "reset": "cd build && node src/index.js reset",
+    "dev_up": "nodemon -w ./ --ext ts --exec ts-node src/index.ts up",
+    "dev_down": "nodemon -w ./ --ext ts --exec ts-node src/index.ts down",
+    "dev_reset": "nodemon -w ./ --ext ts --exec ts-node src/index.ts reset",
+    "lint": "eslint . --ext .js,.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^16.7.1",
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-promise": "^5.1.0",
+    "nodemon": "^2.0.12",
+    "prettier": "^2.3.2",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "mysql2": "^2.3.0",
+    "ts-mysql-migrate": "^1.0.2"
+  }
+}

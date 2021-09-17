@@ -24,6 +24,7 @@
 
 enum SessionValidationTypes {
 	VALIDATE_NAME,
+	VALIDATE_USERNAME,
 	VALIDATE_EMAIL,
 	VALIDATE_PASSWORD,
 	VALIDATE_PASSPHRASE,
@@ -72,7 +73,7 @@ public:
 
 	bool isValid(const std::string& subject, SessionValidationTypes validationType);
 	//! \return true if password is valid
-	bool checkPwdValidation(const std::string& pwd, NotificationList* errorReciver);
+	bool checkPwdValidation(const std::string& pwd, NotificationList* errorReciver, Poco::AutoPtr<LanguageCatalog> lang);
 
 	void checkTimeoutSession();
 

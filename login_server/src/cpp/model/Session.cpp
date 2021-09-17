@@ -14,7 +14,6 @@
 
 #include "../tasks/PrepareEmailTask.h"
 #include "../tasks/SendEmailTask.h"
-#include "../tasks/SigningTransaction.h"
 #include "../tasks/AuthenticatedEncryptionCreateKeyTask.h"
 #include "../tasks/VerificationEmailResendTask.h"
 
@@ -53,8 +52,8 @@ Session::~Session()
 		unlock();
 		reset();
 	}
-	
-	
+
+
 	//printf("[Session::~Session] finished \n");
 }
 
@@ -70,59 +69,57 @@ void Session::reset()
 	// watch out
 	//updateTimeout();
 	mLastActivity = Poco::DateTime();
-	
+
 	mState = SESSION_STATE_EMPTY;
-	
+
 	mPassphrase = "";
 	mLastExternReferer = "";
 	mClientLoginIP = Poco::Net::IPAddress();
 	unlock();
 
-	// reset transactions
-	mCurrentActiveProcessingTransaction = nullptr;
-	mProcessingTransactions.clear();
 
 	//printf("[Session::reset] finished\n");
 }
 
 int Session::isActive()
 {
-	int ret = 0; 
-	try {
-		mWorkMutex.tryLock(100);
-	}
-	catch (Poco::TimeoutException &ex) {
-		return -1;
-	}
+	int ret = 0;
+
+    if(!mWorkMutex.tryLock(100)) {
+        return -1;
+    }
+
 	ret = (int)mActive;
-	unlock(); 
+
+	try {
+        unlock();
+    } catch(Poco::SystemException& ex) {
+        addError(new ParamError("Session::isActive", "exception unlocking mutex", ex.what()));
+        return -1;
+    }
 	return ret;
 
 }
 
 bool Session::isDeadLocked()
 {
-	try {
-		mWorkMutex.tryLock(200);
-		unlock();
-		return false;
-	}
-	catch (Poco::Exception& ex) {
-		
-	}
-	return true;
+    if(!mWorkMutex.tryLock(200)) {
+        return true;
+    };
+    unlock();
+    return false;
 }
 
 bool Session::setActive(bool active)
-{ 
+{
 	try {
 		mWorkMutex.tryLock(100);
 	}
 	catch (Poco::TimeoutException &ex) {
 		return false;
 	}
-	mActive = active; 
-	unlock(); 
+	mActive = active;
+	unlock();
 	return true;
 }
 
@@ -187,13 +184,13 @@ bool Session::adminCreateUser(const std::string& first_name, const std::string& 
 		addError(new Error(gettext("Email Verification Code"), gettext("Fehler beim speichern!")));
 		return false;
 	}
-	
-	
+
+
 	EmailManager::getInstance()->addEmail(new model::Email(email_verification_code, newUser, model::EMAIL_ADMIN_USER_VERIFICATION_CODE));
 
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 	mEmailVerificationCodeObject = email_verification_code;
-	
+
 
 	return true;
 }
@@ -207,6 +204,10 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	auto em = ErrorManager::getInstance();
 	auto email_manager = EmailManager::getInstance();
 
+	if (mLanguageCatalog.isNull()) {
+		mLanguageCatalog = LanguageManager::getInstance()->getFreeCatalog(LANG_DE);
+	}
+
 	if (!sm->isValid(first_name, VALIDATE_NAME)) {
 		addError(new Error(gettext("Vorname"), gettext("Bitte gebe einen Namen an. Mindestens 3 Zeichen, keines folgender Zeichen <>&;")), false);
 		return false;
@@ -219,7 +220,8 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 		addError(new Error(gettext("E-Mail"), gettext("Bitte gebe eine g&uuml;ltige E-Mail Adresse an.")), false);
 		return false;
 	}
-	if (!sm->checkPwdValidation(password, this)) {
+
+	if (!sm->checkPwdValidation(password, this, mLanguageCatalog)) {
 		return false;
 	}
 
@@ -242,7 +244,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 	auto user_model = mNewUser->getModel();
 	user_model->insertIntoDB(true);
 	auto user_id = user_model->getID();
-	
+
 	// one retry in case of connection error
 	if (!user_id) {
 		user_model->insertIntoDB(true);
@@ -272,7 +274,7 @@ bool Session::createUserDirect(const std::string& first_name, const std::string&
 
 	// email verification code
 	auto email_verification = controller::EmailVerificationCode::create(user_id, model::table::EMAIL_OPT_IN_REGISTER_DIRECT);
-	email_verification->setBaseUrl(baseUrl);
+	email_verification->setBaseUrl(baseUrl + "/checkEmail");
 	email_verification->getModel()->insertIntoDB(false);
 	mEmailVerificationCodeObject = email_verification;
 
@@ -312,17 +314,17 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 	// new mutex, will replace the Poco Mutex complete in the future
 	std::unique_lock<std::shared_mutex> _lock_shared(mSharedMutex);
 	Profiler usedTime;
-	
+
 	auto em = ErrorManager::getInstance();
 	if (mEmailVerificationCodeObject.isNull()) {
 		em->addError(new Error(funcName, "email verification object is zero"));
 		em->sendErrorsAsEmail();
-	
+
 		return -2;
 	}
 	auto email_verification_code_model = mEmailVerificationCodeObject->getModel();
 	assert(email_verification_code_model);
-	if(email_verification_code_model->getCode() == emailVerificationCode) 
+	if(email_verification_code_model->getCode() == emailVerificationCode)
 	{
 		// load correct user from db
 		if (mNewUser.isNull() || !mNewUser->getModel() || mNewUser->getModel()->getID() != email_verification_code_model->getUserId()) {
@@ -330,7 +332,7 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			if (1 != mNewUser->load(email_verification_code_model->getUserId())) {
 				em->addError(new ParamError(funcName, "user load didn't return 1 with user_id ", email_verification_code_model->getUserId()));
 				em->sendErrorsAsEmail();
-				
+
 				return -2;
 			}
 		}
@@ -339,14 +341,14 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 		assert(user_model);
 		bool first_email_activation = false;
 		auto verification_type = email_verification_code_model->getType();
-		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type || 
+		if (model::table::EMAIL_OPT_IN_REGISTER == verification_type ||
 			model::table::EMAIL_OPT_IN_EMPTY == verification_type    ||
 			model::table::EMAIL_OPT_IN_REGISTER_DIRECT == verification_type) {
 			first_email_activation = true;
 		}
 		if (first_email_activation && user_model->isEmailChecked()) {
 			addError(new Error(gettext("E-Mail Verification"), gettext("Du hast dein Konto bereits aktiviert!")), false);
-			
+
 			return 1;
 		}
 		if (first_email_activation) {
@@ -358,13 +360,13 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 			}
 
 			// no find all active sessions
-			
+
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 			return 0;
 		}
 
 		if (email_verification_code_model->getType() == model::table::EMAIL_OPT_IN_RESET_PASSWORD) {
-			
+
 			if (mEmailVerificationCodeObject->deleteFromDB()) {
 				mEmailVerificationCodeObject.assign(nullptr);
 			}
@@ -380,18 +382,18 @@ int Session::updateEmailVerification(Poco::UInt64 emailVerificationCode)
 
 		em->addError(new Error(funcName, "invalid code path"));
 		em->sendErrorsAsEmail();
-		
+
 		return -2;
-		
+
 	}
 	else {
 		addError(new Error(gettext("E-Mail Verification"), gettext("Falscher Code f&uuml;r aktiven Login")));
 		//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-		
+
 		return -1;
 	}
 	//printf("[%s] time: %s\n", funcName, usedTime.string().data());
-	
+
 	return 0;
 }
 
@@ -404,7 +406,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 
 	// creating email verification code also for user without passphrase
-	// first check if already exist		
+	// first check if already exist
 	// check if email was already send shortly before
 	bool frequent_resend = false;
 	bool email_already_send = false;
@@ -423,7 +425,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 	auto email_verification_model = mEmailVerificationCodeObject->getModel();
 	if (email_already_send) {
 		auto time_elapsed = Poco::DateTime() - email_verification_model->getUpdated();
-		if (time_elapsed.totalHours() < 1) {
+		if (time_elapsed.totalMinutes() < 10) {
 			frequent_resend = true;
 		}
 	}
@@ -445,7 +447,7 @@ int Session::sendResetPasswordEmail(Poco::AutoPtr<controller::User> user, bool p
 
 int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, const Mnemonic* wordSource)
 {
-	
+
 	static const char* functionName = "Session::comparePassphraseWithSavedKeys";
 	if (!wordSource) {
 		addError(new Error(functionName, "wordSource is empty"));
@@ -490,137 +492,6 @@ int Session::comparePassphraseWithSavedKeys(const std::string& inputPassphrase, 
 	return 0;
 }
 
-bool Session::startProcessingTransaction(const std::string& proto_message_base64, bool autoSign/* = false*/)
-{
-	static const char* funcName = "Session::startProcessingTransaction";
-	lock(funcName);
-	HASH hs = ProcessingTransaction::calculateHash(proto_message_base64);
-	// check if it is already running or waiting
-	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
-		if (it->isNull()) {
-			it = mProcessingTransactions.erase(it);
-		}
-		if (hs == (*it)->getHash()) {
-			addError(new Error(funcName, "transaction already in list"));
-			unlock();
-			return false;
-		}
-	}
-
-	Languages lang = LANG_DE;
-	if (!mNewUser.isNull()) {
-		lang = LanguageManager::languageFromString(mNewUser->getModel()->getLanguageKey());
-	}
-	auto user_model = mNewUser->getModel();
-	Poco::AutoPtr<ProcessingTransaction> processorTask(
-		new ProcessingTransaction(
-			proto_message_base64, 
-			DRMakeStringHash(user_model->getEmail().data()),
-			lang
-		)
-	);
-	if (autoSign && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) == ServerConfig::UNSECURE_AUTO_SIGN_TRANSACTIONS) {
-		if (processorTask->run() != 0) {
-			getErrors(processorTask);
-			unlock();
-			return false;
-		}
-		Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(processorTask, mNewUser));
-		//signingTransaction->scheduleTask(signingTransaction);
-		if (signingTransaction->run() != 0) {
-			getErrors(signingTransaction);
-			unlock();
-			return false;
-		}
-		
-	}
-	else {
-		processorTask->scheduleTask(processorTask);
-		mProcessingTransactions.push_back(processorTask);
-	}
-	unlock();
-	return true;
-	
-}
-
-Poco::AutoPtr<ProcessingTransaction> Session::getNextReadyTransaction(size_t* working/* = nullptr*/)
-{
-	lock("Session::getNextReadyTransaction");
-	if (working) {
-		*working = 0;
-	}
-	else if (!mCurrentActiveProcessingTransaction.isNull()) 
-	{
-		unlock();
-		return mCurrentActiveProcessingTransaction;	
-	}
-	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
-		if (working && !(*it)->isTaskFinished()) {
-			(*working)++;
-		}
-		if (mCurrentActiveProcessingTransaction.isNull() && (*it)->isTaskFinished()) {
-			if (!working) {
-				mCurrentActiveProcessingTransaction = *it;
-				unlock();
-				return mCurrentActiveProcessingTransaction;
-			}
-			// no early exit
-			else {
-				mCurrentActiveProcessingTransaction = *it;
-			}
-			
-		}
-	}
-	unlock();
-	return mCurrentActiveProcessingTransaction;
-}
-
-bool Session::finalizeTransaction(bool sign, bool reject)
-{
-	int result = -1;
-	lock("Session::finalizeTransaction");
-	if (mCurrentActiveProcessingTransaction.isNull()) {
-		unlock();
-		return false;
-	}
-	mProcessingTransactions.remove(mCurrentActiveProcessingTransaction);
-	
-	if (!reject) {
-		if (sign) {
-			Poco::AutoPtr<SigningTransaction> signingTransaction(new SigningTransaction(mCurrentActiveProcessingTransaction, mNewUser));
-			//signingTransaction->scheduleTask(signingTransaction);
-			result = signingTransaction->run();
-		}
-	}
-	mCurrentActiveProcessingTransaction.assign(nullptr);
-	unlock();
-	return result == 0;
-}
-
-size_t Session::getProcessingTransactionCount() 
-{ 
-	size_t count = 0;
-	lock("Session::getProcessingTransactionCount"); 
-
-	for (auto it = mProcessingTransactions.begin(); it != mProcessingTransactions.end(); it++) {
-
-		(*it)->lock();
-		if ((*it)->errorCount() > 0) {
-			(*it)->sendErrorsAsEmail();
-			(*it)->unlock();
-			it = mProcessingTransactions.erase(it);
-			if (it == mProcessingTransactions.end()) break;
-		}
-		else {
-			(*it)->unlock();
-		}
-
-	}
-	count = mProcessingTransactions.size();
-	unlock(); 
-	return count; 
-}
-
 UserState Session::loadUser(const std::string& email, const std::string& password)
 {
 	static const char* functionName = "Session::loadUser";
@@ -652,13 +523,19 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 	}
 	//printf("before get model\n");
 	auto user_model = mNewUser->getModel();
-	if (user_model && user_model->isDisabled()) {		
+	if (user_model && user_model->isDisabled()) {
 		return USER_DISABLED;
 	}
 	if (mNewUser->getUserState() >= USER_LOADED_FROM_DB) {
-		
+
 		NotificationList pwd_errors;
-		if (!sm->checkPwdValidation(password, &pwd_errors))
+		auto lm = LanguageManager::getInstance();
+		auto lang_key = mNewUser->getModel()->getLanguageKey();
+		if (mLanguageCatalog.isNull()) {
+			mLanguageCatalog = lm->getFreeCatalog(lm->languageFromString(lang_key));
+		}
+
+		if (!sm->checkPwdValidation(password, &pwd_errors, mLanguageCatalog))
 		{
 			Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
 			return USER_PASSWORD_INCORRECT;
@@ -666,9 +543,9 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 
 		int loginResult = mNewUser->login(password);
 		int exitCount = 0;
-		if (loginResult == -3) 
+		if (loginResult == -3)
 		{
-			do 
+			do
 			{
 				Poco::Thread::sleep(100);
 				loginResult = mNewUser->login(password);
@@ -691,7 +568,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 				return USER_PASSWORD_ENCRYPTION_IN_PROCESS;
 			}
 		}
-		
+
 		if (-1 == loginResult)
 		{
 			addError(new Error(functionName, "error in user data set, saved pubkey didn't match extracted pubkey from private key"));
@@ -700,7 +577,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 			//unlock();
 			//return USER_KEYS_DONT_MATCH;
 		}
-		if (0 == loginResult) 
+		if (0 == loginResult)
 		{
 			return USER_PASSWORD_INCORRECT;
 		}
@@ -713,9 +590,9 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 			auto user_backups = controller::UserBackup::load(user_model->getID());
 			for (auto it = user_backups.begin(); it != user_backups.end(); it++) {
 				auto key = std::unique_ptr<KeyPairEd25519>((*it)->createGradidoKeyPair());
-				if (key->isTheSame(user_model->getPublicKey())) 
+				if (key->isTheSame(user_model->getPublicKey()))
 				{
-					
+
 					// set valid key pair
 					if (1 == mNewUser->setGradidoKeyPair(key.release())) {
 						// save new encrypted private key
@@ -731,7 +608,7 @@ UserState Session::loadUser(const std::string& email, const std::string& passwor
 				}
 			}
 		}
-		
+
 	}
 	else {
 		Poco::Thread::sleep(ServerConfig::g_FakeLoginSleepTime);
@@ -840,7 +717,7 @@ void Session::detectSessionState()
 		else if (checkEmail != -1) {
 			mEmailVerificationCodeObject = emailVerificationCodeObjects[checkEmail];
 		}
-		
+
 	}
 	catch (Poco::Exception& ex) {
 		printf("[Session::detectSessionState] exception: %s\n", ex.displayText().data());
@@ -853,13 +730,13 @@ void Session::detectSessionState()
 			updateState(SESSION_STATE_EMAIL_VERIFICATION_WRITTEN);
 			return;
 		}
-		
+
 		updateState(SESSION_STATE_USER_WRITTEN);
 		return;
 	}
 
 	if (USER_NO_KEYS == userState) {
-		
+
 		auto user_id = mNewUser->getModel()->getID();
 		auto userBackups = controller::UserBackup::load(user_id);
 
@@ -892,8 +769,8 @@ void Session::detectSessionState()
 		auto dbConnection = ConnectionManager::getInstance()->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(dbConnection);
 		Poco::Nullable<Poco::Data::BLOB> passphrase;
-		
-		select << "SELECT passphrase from user_backups where user_id = ?;", 
+
+		select << "SELECT passphrase from user_backups where user_id = ?;",
 			into(passphrase), use(user_id);
 		try {
 			if (select.execute() == 1 && !passphrase.isNull()) {
@@ -916,7 +793,7 @@ void Session::detectSessionState()
 		updateState(SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED);
 		return;
 	}
-	
+
 	updateState(SESSION_STATE_KEY_PAIR_WRITTEN);
 
 	if (resetPasswd != -1) {
@@ -934,14 +811,14 @@ Poco::Net::HTTPCookie Session::getLoginCookie()
 //	keks.setHttpOnly();
 
 	keks.setPath("/");
-	// send cookie only via https, on linux, except in test builds 
+	// send cookie only via https, on linux, except in test builds
 #ifndef WIN32
 	if (ServerConfig::SERVER_TYPE_PRODUCTION == ServerConfig::g_ServerSetupType ||
 		ServerConfig::SERVER_TYPE_STAGING == ServerConfig::g_ServerSetupType) {
 		keks.setSecure(true);
 	}
 #endif
-	
+
 	return keks;
 }
 
@@ -1013,7 +890,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 	case SESSION_STATE_EMAIL_VERIFICATION_SEND: return "Verification E-Mail sended";
 	case SESSION_STATE_EMAIL_VERIFICATION_CODE_CHECKED: return "Verification Code checked";
 	case SESSION_STATE_PASSPHRASE_GENERATED: return "Passphrase generated";
-	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown"; 
+	case SESSION_STATE_PASSPHRASE_SHOWN: return "Passphrase shown";
 	case SESSION_STATE_PASSPHRASE_WRITTEN: return "Passphrase written";
 	case SESSION_STATE_KEY_PAIR_GENERATED: return "Gradido Address created";
 	case SESSION_STATE_KEY_PAIR_WRITTEN: return "Gradido Address saved";
@@ -1030,7 +907,7 @@ const char* Session::translateSessionStateToString(SessionStates state)
 bool Session::useOrGeneratePassphrase(const std::string& passphase)
 {
 	if (passphase != "" && User::validatePassphrase(passphase)) {
-		// passphrase is valid 
+		// passphrase is valid
 		setPassphrase(passphase);
 		updateState(SESSION_STATE_PASSPHRASE_SHOWN);
 		return true;
@@ -1043,6 +920,16 @@ bool Session::useOrGeneratePassphrase(const std::string& passphase)
 }
 */
 
+bool Session::lastTransactionTheSame(Poco::AutoPtr<model::gradido::Transaction> newTransaction)
+{
+	assert(!newTransaction.isNull());
+	Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
+	if (mLastTransaction.isNull()) {
+		return false;
+	}
+	bool result = mLastTransaction->isTheSameTransaction(newTransaction);
+	return result;
+}
 
 bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 {
@@ -1070,7 +957,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 	if (savePassphrase) {
 		auto user_backup = controller::UserBackup::create(user_model->getID(), passphrase->getString(), mnemonic_type);
 		// sync version
-		//user_backup->getModel()->insertIntoDB(false);	
+		//user_backup->getModel()->insertIntoDB(false);
 
 		// async version
 		UniLib::controller::TaskPtr save_user_backup_task = new model::table::ModelInsertTask(user_backup->getModel(), false, true);
@@ -1078,7 +965,7 @@ bool Session::generateKeys(bool savePrivkey, bool savePassphrase)
 		save_user_backup_task->scheduleTask(save_user_backup_task);
 	}
 
-	// keys	
+	// keys
 	auto gradido_key_pair = KeyPairEd25519::create(passphrase);
 	auto set_key_result = mNewUser->setGradidoKeyPair(gradido_key_pair);
 	size_t result_save_key = 0;

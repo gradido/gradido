@@ -1,35 +1,56 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
-
 import Login from './Login'
 
 const localVue = global.localVue
 
+const loginQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    login: 'token',
+  },
+})
+
+const toastErrorMock = jest.fn()
+const mockStoreDispach = jest.fn()
+const mockRouterPush = jest.fn()
+const spinnerHideMock = jest.fn()
+const spinnerMock = jest.fn(() => {
+  return {
+    hide: spinnerHideMock,
+  }
+})
+
 describe('Login', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $store: {
+      dispatch: mockStoreDispach,
+    },
+    $loading: {
+      show: spinnerMock,
+    },
+    $router: {
+      push: mockRouterPush,
+    },
+    $toasted: {
+      error: toastErrorMock,
+    },
+    $apollo: {
+      query: loginQueryMock,
+    },
   }
 
-  let state = {
-    loginfail: false,
-  }
-
-  let store = new Vuex.Store({
-    state,
-  })
-
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
   }
 
   const Wrapper = () => {
-    return mount(Login, { localVue, mocks, store, stubs })
+    return mount(Login, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -85,16 +106,82 @@ describe('Login', () => {
       it('has a Submit button', () => {
         expect(wrapper.find('button[type="submit"]').exists()).toBeTruthy()
       })
-
-      it('shows a warning when no valid Email is entered', async () => {
-        wrapper.find('input[placeholder="Email"]').setValue('no_valid@Email')
-        await flushPromises()
-        await expect(wrapper.find('.invalid-feedback').text()).toEqual(
-          'The Email field must be a valid email',
-        )
-      })
     })
 
-    // to do: test submit button
+    describe('submit', () => {
+      describe('no data', () => {
+        it('displays a message that Email is required', async () => {
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+          expect(wrapper.findAll('div.invalid-feedback').at(0).text()).toBe(
+            'validations.messages.required',
+          )
+        })
+
+        it('displays a message that password is required', async () => {
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+          expect(wrapper.findAll('div.invalid-feedback').at(1).text()).toBe(
+            'validations.messages.required',
+          )
+        })
+      })
+
+      describe('valid data', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+          await flushPromises()
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('calls the API with the given data', () => {
+          expect(loginQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'user@example.org',
+                password: '1234',
+              },
+            }),
+          )
+        })
+
+        it('creates a spinner', () => {
+          expect(spinnerMock).toBeCalled()
+        })
+
+        describe('login success', () => {
+          it('dispatches server response to store', () => {
+            expect(mockStoreDispach).toBeCalledWith('login', 'token')
+          })
+
+          it('redirects to overview page', () => {
+            expect(mockRouterPush).toBeCalledWith('/overview')
+          })
+
+          it('hides the spinner', () => {
+            expect(spinnerHideMock).toBeCalled()
+          })
+        })
+
+        describe('login fails', () => {
+          beforeEach(() => {
+            loginQueryMock.mockRejectedValue({
+              message: 'Ouch!',
+            })
+          })
+
+          it('hides the spinner', () => {
+            expect(spinnerHideMock).toBeCalled()
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorMock).toBeCalledWith('error.no-account')
+          })
+        })
+      })
+    })
   })
 })

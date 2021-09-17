@@ -7,18 +7,19 @@
 
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonCheckSessionState.h"
+#include "JsonCheckUsername.h"
 #include "JsonAppLogin.h"
 #include "JsonAquireAccessToken.h"
 #include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
 #include "JsonUnknown.h"
-#include "JsonTransaction.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
+#include "JsonResetPassword.h"
 #include "JsonSendEmail.h"
 #include "JsonAdminEmailVerificationResend.h"
 #include "JsonGetUserInfos.h"
@@ -28,7 +29,7 @@
 #include "JsonSearch.h"
 
 
-JsonRequestHandlerFactory::JsonRequestHandlerFactory()	
+JsonRequestHandlerFactory::JsonRequestHandlerFactory()
 	: mRemoveGETParameters("^/([a-zA-Z0-9_-]*)"), mLogging(Poco::Logger::get("requestLog"))
 {
 }
@@ -65,7 +66,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 
 	auto sm = SessionManager::getInstance();
 	Session*  s = nullptr;
-	if (!session_id) {
+	if (session_id) {
 		s = sm->getSession(session_id);
 	}
 
@@ -75,8 +76,8 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
 	}
-	else if (url_first_part == "/checkTransaction") {
-		return new JsonTransaction;
+	else if (url_first_part == "/checkUsername") {
+		return new JsonCheckUsername;
 	}
 	else if (url_first_part == "/createTransaction") {
 		return new JsonCreateTransaction;
@@ -86,7 +87,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/getUsers") {
 		return new JsonGetUsers;
-	} 
+	}
 	else if (url_first_part == "/networkInfos") {
 		return new JsonNetworkInfos;
 	}
@@ -100,7 +101,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		return new JsonGetUserInfos;
 	}
 	else if (url_first_part == "/updateUserInfos") {
-		return new JsonUpdateUserInfos;
+		return new JsonUpdateUserInfos(s);
 	}
 	else if (url_first_part == "/search") {
 		return new JsonSearch;
@@ -113,6 +114,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/sendEmail") {
 		return new JsonSendEmail;
+	}
+	else if (url_first_part == "/resetPassword") {
+		return new JsonResetPassword;
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
@@ -136,7 +140,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
 	}
-	
+
 	return new JsonUnknown;
 }
 

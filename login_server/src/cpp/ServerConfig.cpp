@@ -21,7 +21,6 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Environment.h"
 
-#include "model/table/HederaAccount.h"
 
 
 using Poco::Net::SSLManager;
@@ -52,6 +51,7 @@ namespace ServerConfig {
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
 	std::string g_frontend_checkEmailPath;
+	std::string g_frontend_resetPasswordPath;
 	int        g_phpServerPort;
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
@@ -62,22 +62,19 @@ namespace ServerConfig {
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
 	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
-	HederaConsensusMessageFormat g_ConsensusMessageFormat = HEDERA_CONSENSUS_FORMAT_BINARY;
-	HederaNetworkType g_HederaNetworkType = HEDERA_TESTNET;
-	Poco::Timespan  g_HederaDefaultTimeout;
 
-#ifdef __linux__ 
-#include <stdio.h>      
+#ifdef __linux__
+#include <stdio.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
-#include <netinet/in.h> 
-#include <string.h> 
+#include <netinet/in.h>
+#include <string.h>
 #include <arpa/inet.h>
-#endif //#ifdef __linux__ 
+#endif //#ifdef __linux__
 
 	std::string getHostIpString()
 	{
-#ifdef __linux__ 
+#ifdef __linux__
 		struct ifaddrs * ifAddrStruct = NULL;
 		struct ifaddrs * ifa = NULL;
 		void * tmpAddrPtr = NULL;
@@ -107,7 +104,7 @@ namespace ServerConfig {
 		}
 		if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
 		return ipAddressString;
-#else //__linux__ 
+#else //__linux__
 		std::string ipAddressString = "";
 		auto host = Poco::Net::DNS::thisHost();
 		for (auto it = host.addresses().begin(); it != host.addresses().end(); it++) {
@@ -126,10 +123,10 @@ namespace ServerConfig {
 			//break;
 		}
 		return ipAddressString;
-#endif // __linux__ 
+#endif // __linux__
 	}
 
-	bool replaceZeroIPWithLocalhostIP(std::string& url) 
+	bool replaceZeroIPWithLocalhostIP(std::string& url)
 	{
 		auto pos = url.find("0.0.0.0", 0);
 		if (pos != std::string::npos) {
@@ -138,7 +135,7 @@ namespace ServerConfig {
 				url.replace(pos, 7, ipAddressString);
 			}
 		}
-		
+
 		//printf("ipaddress: %s\n", ipAddress.data());
 
 		return true;
@@ -156,22 +153,6 @@ namespace ServerConfig {
 		}
 		return SERVER_TYPE_PRODUCTION;
 	}
-
-	HederaConsensusMessageFormat getHederaConsensusMessageFormatFromString(const std::string& hederaConsensusMessageFormatString)
-	{
-		if ("json" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_JSON;
-		}
-		if ("binary" == hederaConsensusMessageFormatString || "bin" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_BINARY;
-		}
-		if ("base64" == hederaConsensusMessageFormatString) {
-			return HEDERA_CONSENSUS_FORMAT_BASE64_URLSAVE_NO_PADDING;
-		}
-		return HEDERA_CONSENSUS_FORMAT_BINARY;
-	}
-
-	
 
 
 	bool loadMnemonicWordLists()
@@ -227,7 +208,7 @@ namespace ServerConfig {
 		g_ServerCryptoKey = new ObfusArray(realBinSize, key);
 		g_ServerKeySeed = new ObfusArray(9*8);
 		Poco::Int64 i1 = randombytes_random();
-		Poco::Int64 i2 = randombytes_random(); 
+		Poco::Int64 i2 = randombytes_random();
 		g_ServerKeySeed->put(0, i1 | (i2 << 8));
 
 		//g_ServerAdminPublic = cfg.getString("crypto.server_admin_public");
@@ -245,20 +226,12 @@ namespace ServerConfig {
 		replaceZeroIPWithLocalhostIP(g_php_serverPath);
 		g_php_serverHost = cfg.getString("phpServer.host", "");
 		replaceZeroIPWithLocalhostIP(g_php_serverHost);
-		//g_ServerSetupType 
+		//g_ServerSetupType
 		auto serverSetupTypeString = cfg.getString("ServerSetupType", "");
 		g_ServerSetupType = getServerSetupTypeFromString(serverSetupTypeString);
 
 		g_devDefaultGroup = cfg.getString("dev.default_group", "");
 
-		auto hedera_consensus_message_format_string = cfg.getString("hedera.consensus.message_format", "bin");
-		g_ConsensusMessageFormat = getHederaConsensusMessageFormatFromString(hedera_consensus_message_format_string);
-
-		auto hedera_network_type_string = cfg.getString("hedera.nettype", "Testnet");
-		g_HederaNetworkType = model::table::HederaAccount::hederaNetworkTypeFromString(hedera_network_type_string);
-		if (HEDERA_UNKNOWN == g_HederaNetworkType) {
-			g_HederaNetworkType = HEDERA_TESTNET;
-		}
 
 		// app secret for encrypt user private keys
 		// TODO: encrypt with server admin key
@@ -266,8 +239,9 @@ namespace ServerConfig {
 		if ("" != app_secret_string) {
 			g_CryptoAppSecret = DataTypeConverter::hexToBin(app_secret_string);
 		}
-		std::string defaultCheckEmailPath = g_serverPath + "/checkEmail";
+		std::string defaultCheckEmailPath = "/account/checkEmail";
 		g_frontend_checkEmailPath = cfg.getString("frontend.checkEmailPath", defaultCheckEmailPath);
+		g_frontend_resetPasswordPath = cfg.getString("frontend.resetPasswordPath", defaultCheckEmailPath);
 		//g_CryptoAppSecret
 
 		// unsecure flags
@@ -284,8 +258,7 @@ namespace ServerConfig {
 		if (cfg.getInt("unsecure.allow_all_passwords", 0) == 1) {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
 		}
-		
-		g_HederaDefaultTimeout = cfg.getInt("hedera.default_timeout", 5);
+
 
 		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
 
@@ -338,8 +311,8 @@ namespace ServerConfig {
 		try {
 #ifdef POCO_NETSSL_WIN
 		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "cacert.pem", Context::VERIFY_RELAXED, Context::OPT_DEFAULTS);
-#else 
-			
+#else
+
 		g_SSL_CLient_Context = new Context(Context::CLIENT_USE, "", "", Poco::Path::config() + "grd_login/cacert.pem", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 #endif
 		} catch(Poco::Exception& ex) {
@@ -391,7 +364,7 @@ namespace ServerConfig {
 		Poco::LocalDateTime now;
 
 		std::string dateTimeStr = Poco::DateTimeFormatter::format(now, Poco::DateTimeFormat::ISO8601_FORMAT);
-		file << dateTimeStr << std::endl; 
+		file << dateTimeStr << std::endl;
 
 		for (std::string line; std::getline(datas, line); ) {
 			file << line << std::endl;

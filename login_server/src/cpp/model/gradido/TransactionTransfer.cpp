@@ -1,7 +1,6 @@
 #include "TransactionTransfer.h"
 #include "Transaction.h"
 #include "../../SingletonManager/ErrorManager.h"
-#include "../../controller/HederaId.h"
 
 namespace model {
 	namespace gradido {
@@ -68,7 +67,7 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			const static char functionName[] = { "TransactionTransfer::prepare" };
 
-			mKontoTable.reserve(2);			
+			mKontoTable.reserve(2);
 
 			proto::gradido::TransferAmount* sender = nullptr;
 			std::string* receiver_pubkey = nullptr;
@@ -83,7 +82,7 @@ namespace model {
 				sender = inbound_transfer.mutable_sender();
 				receiver_pubkey = inbound_transfer.mutable_receiver();
 				return prepare(sender, receiver_pubkey);
-			} 
+			}
 			else if (mProtoTransfer.has_outbound()) {
 				auto outbound_transfer = mProtoTransfer.outbound();
 				sender = outbound_transfer.mutable_sender();
@@ -156,7 +155,7 @@ namespace model {
 				receiver_pubkey = outbound_transfer.mutable_receiver();
 				return validate(sender, receiver_pubkey);
 			}
-			
+
 			return TRANSACTION_VALID_CODE_ERROR;
 		}
 
@@ -176,11 +175,19 @@ namespace model {
 			}
 			if (receiver_pubkey->size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "invalid size of receiver pubkey"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
 			if (sender->pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "invalid size of sender pubkey"));
-				return TRANSCATION_VALID_INVALID_PUBKEY;
+				return TRANSACTION_VALID_INVALID_PUBKEY;
+			}
+			if(0 == memcmp(sender->pubkey().data(), receiver_pubkey->data(), KeyPairEd25519::getPublicKeySize())) {
+				addError(new Error(function_name, "sender and receiver are the same"));
+				return TRANSACTION_VALID_INVALID_PUBKEY;
+			}
+			if (mMemo.size() < 5 || mMemo.size() > 150) {
+				addError(new Error(function_name, "memo is not set or not in expected range [5;150]"));
+				return TRANSACTION_VALID_INVALID_MEMO;
 			}
 			return TRANSACTION_VALID_OK;
 		}
@@ -226,12 +233,11 @@ namespace model {
 			);
 
 			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
-			transaction->setTopicIdByGroup(mOwnGroupAlias);
 
 			mm->releaseMemory(receiver_pubkey);
 			mm->releaseMemory(sender_pubkey);
 			return transaction;
-			
+
 		}
 
 		Poco::AutoPtr<Transaction> TransactionTransfer::createInbound(const std::string& memo)
@@ -245,12 +251,12 @@ namespace model {
 			// Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo
 			//Transaction::createTransfer()
 			auto outbound = mProtoTransfer.outbound();
-			
+
 			auto sender_pubkey = mm->getFreeMemory(outbound.sender().pubkey().size());
 			memcpy(*sender_pubkey, outbound.sender().pubkey().data(), outbound.sender().pubkey().size());
 			auto receiver_pubkey = mm->getFreeMemory(outbound.receiver().size());
 			memcpy(*receiver_pubkey, outbound.receiver().data(), outbound.receiver().size());
-			
+
 			auto body = TransactionBody::create(
 				memo, sender_pubkey, receiver_pubkey,
 				outbound.sender().amount(), mOwnGroupAlias, TRANSFER_CROSS_GROUP_INBOUND,
@@ -258,8 +264,7 @@ namespace model {
 			);
 
 			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
-			transaction->setTopicIdByGroup(mTargetGroupAlias);
-			
+
 			mm->releaseMemory(receiver_pubkey);
 			mm->releaseMemory(sender_pubkey);
 			return transaction;
@@ -268,7 +273,7 @@ namespace model {
 		const std::string& TransactionTransfer::getKontoNameCell(int index)
 		{
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
-			
+
 			if (index >= mKontoTable.size()) {
 				return mInvalidIndexMessage;
 			}
@@ -291,7 +296,7 @@ namespace model {
 
 		}
 
-	
+
 
 	}
 }

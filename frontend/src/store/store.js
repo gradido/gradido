@@ -1,77 +1,76 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-Vue.use(Vuex)
-import communityAPI from '../apis/communityAPI'
 import createPersistedState from 'vuex-persistedstate'
+
+Vue.use(Vuex)
+
+export const mutations = {
+  language: (state, language) => {
+    state.language = language
+  },
+  email: (state, email) => {
+    state.email = email
+  },
+  username: (state, username) => {
+    state.username = username
+  },
+  firstName: (state, firstName) => {
+    state.firstName = firstName
+  },
+  lastName: (state, lastName) => {
+    state.lastName = lastName
+  },
+  description: (state, description) => {
+    state.description = description
+  },
+  token: (state, token) => {
+    state.token = token
+  },
+  newsletterState: (state, newsletterState) => {
+    state.newsletterState = newsletterState
+  },
+}
+
+export const actions = {
+  login: ({ dispatch, commit }, data) => {
+    commit('email', data.email)
+    commit('language', data.language)
+    commit('username', data.username)
+    commit('firstName', data.firstName)
+    commit('lastName', data.lastName)
+    commit('description', data.description)
+    commit('newsletterState', data.klickTipp.newsletterState)
+  },
+  logout: ({ commit, state }) => {
+    commit('token', null)
+    commit('email', null)
+    commit('username', '')
+    commit('firstName', '')
+    commit('lastName', '')
+    commit('description', '')
+    commit('newsletterState', null)
+    localStorage.clear()
+  },
+}
 
 export const store = new Vuex.Store({
   plugins: [
     createPersistedState({
-      storage: window.sessionStorage,
+      storage: window.localStorage,
     }),
   ],
   state: {
-    session_id: null,
     email: '',
-    language: 'en',
-    user: {
-      name: '',
-      balance: 0,
-      balance_gdt: 0,
-    },
-    modals: false,
-    optionAxios: {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': 'true',
-      },
-    },
+    language: null,
+    firstName: '',
+    lastName: '',
+    username: '',
+    description: '',
+    token: null,
+    newsletterState: null,
   },
   getters: {},
   // Syncronous mutation of the state
-  mutations: {
-    language: (state, language) => {
-      state.language = language
-    },
-    email: (state, email) => {
-      state.email = email
-    },
-    session_id: (state, session_id) => {
-      state.session_id = session_id
-    },
-    user_balance: (state, balance) => {
-      state.user.balance = balance / 10000
-    },
-    user_balance_gdt: (state, balance) => {
-      state.user.balance_gdt = balance / 10000
-    },
-  },
-  actions: {
-    login: ({ dispatch, commit }, data) => {
-      commit('session_id', data.session_id)
-      commit('email', data.email)
-    },
-    passwordReset: (data) => {},
-    schoepfen: (data) => {
-      // http://localhost/transaction-creations/ajaxCreate
-    },
-    createUser: ({ commit, dispatch }, data) => {
-      commit('session_id', data.session_id)
-      commit('email', data.email)
-    },
-    logout: ({ commit, state }) => {
-      commit('session_id', null)
-      commit('email', null)
-      sessionStorage.clear()
-    },
-    accountBalance: async ({ commit, dispatch, state }) => {
-      const result = await communityAPI.balance(state.session_id)
-      if (result.success) {
-        commit('user_balance', result.result.data.balance)
-      } else {
-        //dispatch('logout')
-      }
-    },
-  },
+  mutations,
+  actions,
 })

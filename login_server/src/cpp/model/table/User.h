@@ -20,6 +20,8 @@ namespace model {
 			USER_FIELD_EMAIL,
 			USER_FIELDS_FIRST_NAME,
 			USER_FIELDS_LAST_NAME,
+			USER_FIELDS_USERNAME,
+			USER_FIELDS_DESCRIPTION,
 			USER_FIELDS_PASSWORD,
 			USER_FIELDS_PUBLIC_KEY,
 			USER_FIELDS_PRIVATE_KEY,
@@ -28,7 +30,20 @@ namespace model {
 			USER_FIELDS_LANGUAGE
 		};
 
-		typedef Poco::Tuple<int, std::string, std::string, std::string, std::string, Poco::Nullable<Poco::Data::BLOB>, Poco::DateTime, int, int, int, int> UserTuple;
+		typedef Poco::Tuple<
+					int, // id 
+					std::string, // first name
+					std::string, // last name
+					std::string, // email 
+					std::string, // username
+					std::string, // description
+					Poco::Nullable<Poco::Data::BLOB>, // public key
+					Poco::DateTime, // created
+					int, // check email
+					int, // disabled
+					int, // group_id
+					int  // publisher_id
+		> UserTuple;
 
 		class User : public ModelBase 
 		{
@@ -36,7 +51,7 @@ namespace model {
 			User();
 			User(UserTuple tuple);
 			User(const std::string& email, const std::string& first_name, const std::string& last_name, int group_id, Poco::UInt64 passwordHashed = 0, std::string languageKey = "de");
-			~User();
+			
 
 			// generic db operations
 			const char* getTableName() const { return "users"; }
@@ -57,6 +72,7 @@ namespace model {
 			inline const std::string getFirstName() const { SHARED_LOCK; return mFirstName; }
 			inline const std::string getLastName() const { SHARED_LOCK; return mLastName; }
 			inline const std::string getUsername() const { SHARED_LOCK; return mUsername; }
+			inline const std::string getDescription() const { SHARED_LOCK; return mDescription; }
 			inline std::string getNameWithEmailHtml() const { SHARED_LOCK; return mFirstName + "&nbsp;" + mLastName + "&nbsp;&lt;" + mEmail + "&gt;"; }
 			inline const Poco::UInt64 getPasswordHashed() const { SHARED_LOCK; return mPasswordHashed; }
 			inline int getGroupId() const { SHARED_LOCK; return mGroupId; }
@@ -81,6 +97,7 @@ namespace model {
 			inline void setFirstName(const std::string& first_name) { UNIQUE_LOCK; mFirstName = first_name; }
 			inline void setLastName(const std::string& last_name) { UNIQUE_LOCK; mLastName = last_name; }
 			inline void setUsername(const std::string& username) { UNIQUE_LOCK; mUsername = username; }
+			inline void setDescription(const std::string& description) { UNIQUE_LOCK; mDescription = description; }
 			inline void setPasswordHashed(const Poco::UInt64& passwordHashed) { UNIQUE_LOCK; mPasswordHashed = passwordHashed; }
 			void setPublicKey(const unsigned char* publicKey);
 			//! \brief set encrypted private key
@@ -95,6 +112,7 @@ namespace model {
 			Poco::JSON::Object getJson();			
 
 		protected:
+			~User();
 
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
@@ -107,7 +125,7 @@ namespace model {
 			std::string mFirstName;
 			std::string mLastName;
 			std::string mUsername;
-
+			std::string mDescription;
 			Poco::UInt64 mPasswordHashed;
 
 			Poco::Nullable<Poco::Data::BLOB> mPublicKey;

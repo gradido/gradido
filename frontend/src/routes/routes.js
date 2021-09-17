@@ -9,28 +9,14 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('../views/Pages/KontoOverview.vue'),
+    component: () => import('../views/Pages/AccountOverview.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/profile',
-    component: () => import('../views/Pages/UserProfileCard.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: '/profileedit',
-    component: () => import('../views/Pages/UserProfileEdit.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: '/activity',
-    component: () => import('../views/Pages/UserProfileActivity.vue'),
+    component: () => import('../views/Pages/UserProfileOverview.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -47,12 +33,16 @@ const routes = [
     component: () => import('../views/Pages/Login.vue'),
   },
   {
-    path: '/thx',
+    path: '/thx/:comingFrom',
     component: () => import('../views/Pages/thx.vue'),
-  },
-  {
-    path: '/register',
-    component: () => import('../views/Pages/Register.vue'),
+    beforeEnter: (to, from, next) => {
+      const validFrom = ['password', 'reset', 'register']
+      if (!validFrom.includes(from.path.split('/')[1])) {
+        next({ path: '/login' })
+      } else {
+        next()
+      }
+    },
   },
   {
     path: '/password',
@@ -61,6 +51,10 @@ const routes = [
   {
     path: '/reset/:optin',
     component: () => import('../views/Pages/ResetPassword.vue'),
+  },
+  {
+    path: '/checkEmail/:optin',
+    component: () => import('../views/Pages/CheckEmail.vue'),
   },
   { path: '*', component: NotFound },
 ]

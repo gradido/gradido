@@ -26,7 +26,7 @@ namespace model {
 			EmailOptIn(const Poco::UInt64& code, EmailOptInType type);
 			EmailOptIn(const EmailOptInTuple& tuple);
 			EmailOptIn();
-			~EmailOptIn();
+			
 
 			// generic db operations
 			const char* getTableName() const { return "email_opt_in"; }
@@ -46,6 +46,8 @@ namespace model {
 			static const char* typeToString(EmailOptInType type);
 			static EmailOptInType stringToType(const std::string& typeString); 
 		protected:
+			~EmailOptIn();
+
 			Poco::Data::Statement _loadFromDB(Poco::Data::Session session, const std::string& fieldName);
 			Poco::Data::Statement _loadIdFromDB(Poco::Data::Session session);
 			Poco::Data::Statement _loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName);

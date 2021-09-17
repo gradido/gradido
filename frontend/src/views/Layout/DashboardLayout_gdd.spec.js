@@ -1,53 +1,60 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import VueRouter from 'vue-router'
-import Vuex from 'vuex'
 import flushPromises from 'flush-promises'
-import routes from '../../routes/routes'
 import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
 
 const localVue = global.localVue
 
-const router = new VueRouter({ routes })
-
-const transitionStub = () => ({
-  render(h) {
-    return this.$options._renderChildren
+const storeDispatchMock = jest.fn()
+const storeCommitMock = jest.fn()
+const routerPushMock = jest.fn()
+const apolloMock = jest.fn().mockResolvedValue({
+  data: {
+    logout: 'success',
   },
 })
+const toasterMock = jest.fn()
 
 describe('DashboardLayoutGdd', () => {
   let wrapper
 
-  let mocks = {
+  const mocks = {
     $i18n: {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
     $n: jest.fn(),
-  }
-
-  let state = {
-    user: {
-      name: 'Peter Lustig',
-      balance: 2546,
-      balance_gdt: 20,
+    $route: {
+      meta: {
+        hideFooter: false,
+      },
     },
-    email: 'peter.lustig@example.org',
+    $router: {
+      push: routerPushMock,
+    },
+    $toasted: {
+      error: toasterMock,
+    },
+    $apollo: {
+      query: apolloMock,
+    },
+    $store: {
+      state: {
+        email: 'user@example.org',
+      },
+      dispatch: storeDispatchMock,
+      commit: storeCommitMock,
+    },
   }
 
-  let stubs = {
+  const stubs = {
     RouterLink: RouterLinkStub,
-    FadeTransition: transitionStub(),
+    RouterView: true,
   }
-
-  let store = new Vuex.Store({
-    state,
-  })
 
   const Wrapper = () => {
-    return mount(DashboardLayoutGdd, { localVue, mocks, router, store, stubs })
+    return mount(DashboardLayoutGdd, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -57,10 +64,6 @@ describe('DashboardLayoutGdd', () => {
 
     it('has a sidebar', () => {
       expect(wrapper.find('nav#sidenav-main').exists()).toBeTruthy()
-    })
-
-    it('has a notifications component', () => {
-      expect(wrapper.find('div.notifications').exists()).toBeTruthy()
     })
 
     it('has a main content div', () => {
@@ -78,66 +81,164 @@ describe('DashboardLayoutGdd', () => {
         navbar = wrapper.findAll('ul.navbar-nav').at(0)
       })
 
-      it('has five items in the navbar', () => {
-        expect(navbar.findAll('ul > li')).toHaveLength(5)
+      it('has three items in the navbar', () => {
+        expect(navbar.findAll('ul > a')).toHaveLength(3)
       })
 
       it('has first item "send" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(0).text()).toEqual('send')
+        expect(navbar.findAll('ul > a').at(0).text()).toEqual('send')
       })
 
       it('has first item "send" linked to overview in navbar', () => {
-        navbar.findAll('ul > li').at(0).trigger('click')
+        navbar.findAll('ul > a').at(0).trigger('click')
         expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/overview')
       })
 
       it('has second item "transactions" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(1).text()).toEqual('transactions')
+        expect(navbar.findAll('ul > a').at(1).text()).toEqual('transactions')
       })
 
-      // to do: get this working!
-      it.skip('has second item "transactions" linked to transactions in navbar', async () => {
-        navbar.findAll('ul > li > a').at(1).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/transactions')
+      it('has second item "transactions" linked to transactions in navbar', async () => {
+        expect(wrapper.findAll('a').at(3).attributes('href')).toBe('/transactions')
       })
 
-      it('has third item "My profile" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(2).text()).toEqual('site.navbar.my-profil')
+      it('has three items in the navbar', () => {
+        expect(navbar.findAll('ul > a')).toHaveLength(3)
       })
 
-      it.skip('has third item "My profile" linked to profile in navbar', async () => {
-        navbar.findAll('ul > li > a').at(2).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profile')
+      it('has third item "My profile" linked to profile in navbar', async () => {
+        expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/profile')
       })
 
-      it('has fourth item "Settigs" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(3).text()).toEqual('site.navbar.settings')
+      it('has a link to the members area', () => {
+        expect(wrapper.findAll('ul').at(2).text()).toBe('members_area')
+        expect(wrapper.findAll('ul').at(2).find('a').attributes('href')).toBe(
+          'https://elopage.com/s/gradido/sign_in?locale=en',
+        )
       })
 
-      it.skip('has fourth item "Settings" linked to profileedit in navbar', async () => {
-        navbar.findAll('ul > li > a').at(3).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/profileedit')
+      it('has a logout button', () => {
+        expect(wrapper.findAll('ul').at(3).text()).toBe('logout')
       })
 
-      it('has fifth item "Activity" in navbar', () => {
-        expect(navbar.findAll('ul > li').at(4).text()).toEqual('site.navbar.activity')
+      describe('logout', () => {
+        beforeEach(async () => {
+          await apolloMock.mockResolvedValue({
+            data: {
+              logout: 'success',
+            },
+          })
+          await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
+          await flushPromises()
+        })
+
+        it('calls the API', async () => {
+          await expect(apolloMock).toBeCalled()
+        })
+
+        it('dispatches logout to store', () => {
+          expect(storeDispatchMock).toBeCalledWith('logout')
+        })
+
+        it('redirects to login page', () => {
+          expect(routerPushMock).toBeCalledWith('/login')
+        })
+
+        describe('logout fails', () => {
+          beforeEach(() => {
+            apolloMock.mockRejectedValue({
+              message: 'error',
+            })
+          })
+
+          it('dispatches logout to store', () => {
+            expect(storeDispatchMock).toBeCalledWith('logout')
+          })
+
+          it('redirects to login page', () => {
+            expect(routerPushMock).toBeCalledWith('/login')
+          })
+        })
       })
 
-      it.skip('has fourth item "Activity" linked to activity in navbar', async () => {
-        navbar.findAll('ul > li > a').at(4).trigger('click')
-        await flushPromises()
-        await jest.runAllTimers()
-        await flushPromises()
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/activity')
+      describe('update balance', () => {
+        it('updates the amount correctelly', async () => {
+          await wrapper.findComponent({ ref: 'router-view' }).vm.$emit('update-balance', 5)
+          await flushPromises()
+          expect(wrapper.vm.balance).toBe(-5)
+        })
+      })
+
+      describe('update transactions', () => {
+        beforeEach(async () => {
+          apolloMock.mockResolvedValue({
+            data: {
+              transactionList: {
+                gdtSum: 100,
+                count: 4,
+                balance: 1450,
+                decay: 1250,
+                transactions: ['transaction', 'transaction', 'transaction', 'transaction'],
+              },
+            },
+          })
+          await wrapper
+            .findComponent({ ref: 'router-view' })
+            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+          await flushPromises()
+        })
+
+        it('calls the API', () => {
+          expect(apolloMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                firstPage: 2,
+                items: 5,
+              },
+            }),
+          )
+        })
+
+        it('updates balance', () => {
+          expect(wrapper.vm.balance).toBe(1250)
+        })
+
+        it('updates transactions', () => {
+          expect(wrapper.vm.transactions).toEqual([
+            'transaction',
+            'transaction',
+            'transaction',
+            'transaction',
+          ])
+        })
+
+        it('updates GDT balance', () => {
+          expect(wrapper.vm.GdtBalance).toBe(100)
+        })
+
+        it('updates transaction count', () => {
+          expect(wrapper.vm.transactionCount).toBe(4)
+        })
+      })
+
+      describe('update transactions returns error', () => {
+        beforeEach(async () => {
+          apolloMock.mockRejectedValue({
+            message: 'Ouch!',
+          })
+          await wrapper
+            .findComponent({ ref: 'router-view' })
+            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+          await flushPromises()
+        })
+
+        it('sets pending to true', () => {
+          expect(wrapper.vm.pending).toBeTruthy()
+        })
+
+        it('calls $toasted.error method', () => {
+          expect(toasterMock).toBeCalledWith('Ouch!')
+        })
       })
     })
   })
