@@ -14,7 +14,7 @@ Document JsonNetworkInfos::handle(const Document& params)
 	Document result(kObjectType);
 	auto alloc = result.GetAllocator();
 
-	Value jsonNetworkInfos(kArrayType);
+	Value jsonNetworkInfos(kObjectType);
 
 	for (auto it = ask.Begin(); it != ask.End(); it++)
 	{
