@@ -64,7 +64,7 @@ export class User {
 */
   // what is publisherId?
   @Field(() => Number)
-  publisherId: number  
+  publisherId: number
 
   @Field(() => KlickTipp)
   klickTipp: KlickTipp
