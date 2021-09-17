@@ -42,7 +42,8 @@
     "created":"Created",
     "fromCommunity":"From the community",
     "toCommunity":"To the community",
-    "noDecay": "No Decay"
+    "noDecay": "No Decay",
+    "total":"Total"
   },
   "form": {
     "cancel":"Cancel",

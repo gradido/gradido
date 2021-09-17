@@ -84,8 +84,8 @@
           </div>
           <div class="d-flex">
             <div style="width: 40%" class="text-right pr-3 mr-2">
-              <div  v-if="type === 'send'">{{ $t('decay.sent') }}</div>
-              <div  v-if="type === 'receive'">{{ $t('decay.received') }}</div>
+              <div>{{ $t('decay.total') }}</div>
+             
             </div>
             <div style="width: 60%">
               <div v-if="type === 'send'"><b> {{ parseInt(balance) + decay.balance  }} </b></div>               

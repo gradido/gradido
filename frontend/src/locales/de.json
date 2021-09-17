@@ -43,7 +43,8 @@
     "created":"Geschöpft",
     "fromCommunity":"Aus der Gemeinschaft",
     "toCommunity":"An die Gemeinschaft",
-    "noDecay": "Keine Vergänglichkeit"
+    "noDecay": "Keine Vergänglichkeit",
+    "total":"Gesamt"
   }, 
   "form": {
     "cancel": "Abbrechen",
