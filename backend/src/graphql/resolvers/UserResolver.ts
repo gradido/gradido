@@ -78,6 +78,7 @@ export class UserResolver {
       emailType: 2,
       login_after_register: true,
       language: language,
+      publisher_id: 0,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {
@@ -131,6 +132,7 @@ export class UserResolver {
       description,
       username,
       language,
+      publisherId,
       password,
       passwordNew,
     }: UpdateUserInfosArgs,
@@ -145,6 +147,7 @@ export class UserResolver {
         'User.description': description || undefined,
         'User.username': username || undefined,
         'User.language': language || undefined,
+        'User.publisher_id': publisherId || undefined,
         'User.password': passwordNew || undefined,
         'User.password_old': password || undefined,
       },
