@@ -30,7 +30,8 @@ namespace model {
 			: ModelBase(tuple.get<0>()), 
 			mFirstName(tuple.get<1>()), mLastName(tuple.get<2>()), mEmail(tuple.get<3>()), mUsername(tuple.get<4>()),
 			mDescription(tuple.get<5>()), mPublicKey(tuple.get<6>()), mCreated(tuple.get<7>()), 
-			mEmailChecked(tuple.get<8>()), mDisabled(tuple.get<9>()), mGroupId(tuple.get<10>()), mPublisherId(tuple.get<11>())
+			mEmailChecked(tuple.get<8>()), mDisabled(tuple.get<9>()), mGroupId(tuple.get<10>()), mPublisherId(tuple.get<11>()),
+			mPasswordHashed(0), mLanguageKey("de"), mRole(ROLE_NOT_LOADED)
 		{
 
 		}
