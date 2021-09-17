@@ -132,7 +132,7 @@ class StateUserRolesController extends AppController
 
             $public_hex = hex2bin($requestData['public_hex']);
 
-            $stateUser = $this->StateUsers->find('all')->where(['public_key' => $public_hex])->first();
+            $stateUser = $this->StateUsers->find('all')->where(['pubkey' => $public_hex])->first();
 
             foreach($requestData['role_id'] as $role_id)
             {
@@ -158,7 +158,7 @@ class StateUserRolesController extends AppController
 
         $publichex = hex2bin($public_hex);
 
-        $stateUser = $this->StateUsers->find('all')->where(['public_key' => $publichex])->first();
+        $stateUser = $this->StateUsers->find('all')->where(['pubkey' => $publichex])->first();
 
         $stateUserRoles = $this->StateUserRoles->find('all')->where(['state_user_id' => $stateUser->id])->all();
 

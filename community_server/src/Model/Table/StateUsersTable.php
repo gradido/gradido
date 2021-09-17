@@ -37,18 +37,10 @@ class StateUsersTable extends Table
     {
         parent::initialize($config);
 
-        $this->setTable('state_users');
+        $this->setTable('user');
         $this->setDisplayField('email');
         $this->setPrimaryKey('id');
 
-        /*$this->belongsTo('Indices', [
-            'foreignKey' => 'index_id',
-            'joinType' => 'INNER'
-        ]);*/
-        $this->belongsTo('StateGroups', [
-            'foreignKey' => 'state_group_id',
-            'joinType' => 'INNER'
-        ]);
         $this->hasMany('StateBalances', [
             'foreignKey' => 'state_user_id'
         ]);
@@ -80,8 +72,8 @@ class StateUsersTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->requirePresence('public_key', 'create')
-            ->notEmptyString('public_key');
+            ->requirePresence('pubkey', 'create')
+            ->notEmptyString('pubkey');
 
         return $validator;
     }
@@ -124,7 +116,7 @@ class StateUsersTable extends Table
         $involvedUser = $this->find('all', [
             'contain' => [],
             'where' => ['id IN' => $involvedUserIds],
-            'fields' => ['id', 'first_name', 'last_name', 'email'],
+            'fields' => ['id', 'firstName', 'lastName', 'email'],
           ]);
         //var_dump($involvedUser->toArray());
         $involvedUserIndices = [];

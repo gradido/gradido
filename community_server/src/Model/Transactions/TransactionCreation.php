@@ -95,7 +95,7 @@ class TransactionCreation extends TransactionBase {
       $existingCreations2 = $this->transactionCreationsTable
               ->find('all')
               ->select(['amount', 'state_user_id', 'target_date'])
-              ->contain(['StateUsers' => ['fields' => ['StateUsers.public_key']]]);
+              ->contain(['StateUsers' => ['fields' => ['StateUsers.pubkey']]]);
       $q = $existingCreations2;
       $targetDate = $this->protoTransactionCreation->getTargetDate();
       
@@ -230,7 +230,7 @@ class TransactionCreation extends TransactionBase {
       
       
       $receiverAmount = new \Proto\Gradido\TransferAmount();
-      $receiverAmount->setPubkey(stream_get_contents($stateUser->public_key));
+      $receiverAmount->setPubkey(stream_get_contents($stateUser->pubkey));
       $receiverAmount->setAmount($transactionCreationEntity->amount);
       
       $protoCreation->setReceiver($receiverAmount);

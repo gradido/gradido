@@ -49,13 +49,13 @@ class TransactionBase {
     protected function getStateUserId($publicKey) {
       
       $stateUsersTable = self::getTable('state_users');
-      $stateUser = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $publicKey])->first();
+      $stateUser = $stateUsersTable->find('all')->select(['id'])->where(['pubkey' => $publicKey])->first();
       if($stateUser) {
         return $stateUser->id;
       }
       // create new entry
       $stateUserEntity = $stateUsersTable->newEntity();
-      $stateUserEntity->public_key = $publicKey;
+      $stateUserEntity->pubkey = $publicKey;
       if($stateUsersTable->save($stateUserEntity)) {
         return $stateUserEntity->id;
       } else {
@@ -77,7 +77,7 @@ class TransactionBase {
     
     protected function getStateUserFromPublickey($publicKey) {
         $stateUsersTable = self::getTable('state_users');
-        $stateUser = $stateUsersTable->find('all')->where(['public_key' => $publicKey])->first();
+        $stateUser = $stateUsersTable->find('all')->where(['pubkey' => $publicKey])->first();
         if($stateUser) {
           return $stateUser;
         }

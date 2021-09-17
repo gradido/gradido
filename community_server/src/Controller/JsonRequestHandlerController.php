@@ -308,7 +308,7 @@ class JsonRequestHandlerController extends AppController {
       $stateError = $stateErrorTable->newEntity();
       //
       $pubkey = hex2bin($jsonData->public_key);
-      $user_query = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $pubkey]);
+      $user_query = $stateUsersTable->find('all')->select(['id'])->where(['pubkey' => $pubkey]);
       if($user_query->count() != 1) {
         return $this->returnJson(['state' => 'error', 'msg' => 'user not found', 'details' => 'user pubkey hex:' . $jsonData->public_key]);
       }
@@ -412,7 +412,7 @@ class JsonRequestHandlerController extends AppController {
       //$pubkeys->sender
       //$pubkeys->receiver
       $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-      $user = $stateUserTable->find('all')->where(['public_key' => hex2bin($pubkeys->sender)])->contain(['StateBalances']);
+      $user = $stateUserTable->find('all')->where(['pubkey' => hex2bin($pubkeys->sender)])->contain(['StateBalances']);
       if(!$user->count()) {
         return $this->returnJson(['state' => 'not found', 'msg' => 'user not found or empty balance']);
       }
@@ -461,7 +461,7 @@ class JsonRequestHandlerController extends AppController {
     
     private function userDelete($userPubkeyHex) {
       $stateUserTable = TableRegistry::getTableLocator()->get('StateUsers');
-      $user = $stateUserTable->find('all')->where(['public_key' => hex2bin($userPubkeyHex)]);
+      $user = $stateUserTable->find('all')->where(['pubkey' => hex2bin($userPubkeyHex)]);
       if(!$user || $user->count == 0) {
         return $this->returnJson(['state' => 'error', 'msg' => 'user not found']);
       }

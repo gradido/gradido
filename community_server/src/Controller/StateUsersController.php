@@ -182,15 +182,15 @@ class StateUsersController extends AppController
 
                 if($account_state == 'email not activated') {
                     if(count($pubkeySorted) > 0) {
-                        $communityUsers->where(['hex(public_key) IN' => array_keys($pubkeySorted)]);
+                        $communityUsers->where(['hex(pubkey) IN' => array_keys($pubkeySorted)]);
                     } else {
                         $communityUsers = null;
                     }
                 } else {
                     $globalSearch = '%' . $searchString . '%';
             $communityUsers->where(['OR' => [
-                  'first_name LIKE' => $globalSearch,
-                  'last_name  LIKE' => $globalSearch,
+                  'firstName LIKE' => $globalSearch,
+                  'lastName  LIKE' => $globalSearch,
                   'email      LIKE' => $globalSearch
             ]]);
                 }
@@ -199,7 +199,7 @@ class StateUsersController extends AppController
             //var_dump($communityUsers->toArray());
                 if($communityUsers) {
             foreach($communityUsers as $u) {
-              $pubkey_hex = bin2hex(stream_get_contents($u->public_key));
+              $pubkey_hex = bin2hex(stream_get_contents($u->pubkey));
               $u->public_hex = $pubkey_hex;
               if(!isset($pubkeySorted[$pubkey_hex])) {
                 $pubkeySorted[$pubkey_hex] = ['login' => [], 'community' => []];
@@ -229,9 +229,9 @@ class StateUsersController extends AppController
                 $color = 'danger';
                 if(count($user['community']) == 1) {
                   $c_user = $user['community'][0];
-                  $finalUser['name'] = $c_user->first_name . ' ' . $c_user->last_name;
-                  $finalUser['first_name'] = $c_user->first_name;
-                  $finalUser['last_name'] = $c_user->last_name;
+                  $finalUser['name'] = $c_user->firstName . ' ' . $c_user->lastName;
+                  $finalUser['first_name'] = $c_user->firstName;
+                  $finalUser['last_name'] = $c_user->lastName;
                   $finalUser['email'] = $c_user->email;
                 }
               } else if(count($user['login']) == 1) {
@@ -415,7 +415,7 @@ class StateUsersController extends AppController
           //$user = $jsonData['user'];
           //var_dump($jsonData);
           $pubkey = hex2bin($jsonData['pubkeyhex']);
-          $stateUsers = $this->StateUsers->find('all')->where(['public_key' => $pubkey]);
+          $stateUsers = $this->StateUsers->find('all')->where(['pubkey' => $pubkey]);
           if($stateUsers->count() != 1) {
             return $this->returnJson(['state' => 'error', 'msg' => 'invalid result count']);
           }
@@ -448,7 +448,7 @@ class StateUsersController extends AppController
           $pubkey = hex2bin($jsonData['pubkeyhex']);
           $stateUsers = $this->StateUsers
                   ->find('all')
-                  ->where(['public_key' => $pubkey])
+                  ->where(['pubkey' => $pubkey])
                   ->select(['id']);
           if($stateUsers->count() != 1) {
             return $this->returnJson(['state' => 'error', 'msg' => 'invalid result count']);

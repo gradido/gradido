@@ -223,22 +223,22 @@ class AppController extends Controller
                                 $public_key_bin = hex2bin($json['user']['public_hex']);
                                 $stateUserQuery = $stateUserTable
                                 ->find('all')
-                                ->where(['public_key' => $public_key_bin])
+                                ->where(['pubkey' => $public_key_bin])
                                 ->contain('StateBalances', function ($q) {
                                             return $q->order(['record_date' => 'DESC'])
                                                      ->limit(1);
                                         });
                                 if ($stateUserQuery->count() == 1) {
                                     $stateUser = $stateUserQuery->first();
-                                    if ($stateUser->first_name != $json['user']['first_name'] ||
-                                        $stateUser->last_name  != $json['user']['last_name'] ||
+                                    if ($stateUser->firstName != $json['user']['first_name'] ||
+                                        $stateUser->lastName  != $json['user']['last_name'] ||
                                         $stateUser->disabled  != $json['user']['disabled'] ||
                                         //$stateUser->username  != $json['user']['username'] ||
                                         // -> throws error
                                         $stateUser->email      != $json['user']['email']
                                     ) {
-                                        $stateUser->first_name = $json['user']['first_name'];
-                                        $stateUser->last_name = $json['user']['last_name'];
+                                        $stateUser->firstName = $json['user']['first_name'];
+                                        $stateUser->lastName = $json['user']['last_name'];
                                         $stateUser->disabled = intval($json['user']['disabled']);
                                         //$stateUser->username = $json['user']['username'];
                                         $stateUser->email = $json['user']['email'];
@@ -250,9 +250,9 @@ class AppController extends Controller
                               //echo $stateUser['id'];
                                 } else {
                                     $newStateUser = $stateUserTable->newEntity();
-                                    $newStateUser->public_key = $public_key_bin;
-                                    $newStateUser->first_name = $json['user']['first_name'];
-                                    $newStateUser->last_name = $json['user']['last_name'];
+                                    $newStateUser->pubkey = $public_key_bin;
+                                    $newStateUser->firstName = $json['user']['first_name'];
+                                    $newStateUser->lastName = $json['user']['last_name'];
                                     $newStateUser->disabled = intval($json['user']['disabled']);
                                     //$newStateUser->username = $json['user']['username'];
                                     $newStateUser->email = $json['user']['email'];

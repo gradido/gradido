@@ -101,7 +101,7 @@ class TransactionCreationsController extends AppController
         $receiverProposal = [];
         foreach ($stateUsers as $stateUser) {
             $name = $stateUser->email;
-            $keyHex = bin2hex(stream_get_contents($stateUser->public_key));
+            $keyHex = bin2hex(stream_get_contents($stateUser->pubkey));
             if ($name === null) {
                 $name = $stateUser->first_name . ' ' . $stateUser->last_name;
             }
@@ -241,14 +241,14 @@ class TransactionCreationsController extends AppController
             $this->log("search for text: ".$requestData['searchText'], 'debug');
             $stateUsers = $stateUserTable
                 ->find('all')
-                ->select(['id', 'first_name', 'last_name', 'email'])
-                ->order(['first_name', 'last_name'])
+                ->select(['id', 'firstName', 'lastName', 'email'])
+                ->order(['firstName', 'lastName'])
                 ->where(
                     ['AND' => [
                         'disabled' => 0,
                             'OR' => [
-                                      'LOWER(first_name) LIKE' => '%'.strtolower($requestData['searchText']).'%',
-                                      'LOWER(last_name) LIKE' => '%'.strtolower($requestData['searchText']).'%',
+                                      'LOWER(firstName) LIKE' => '%'.strtolower($requestData['searchText']).'%',
+                                      'LOWER(lastName) LIKE' => '%'.strtolower($requestData['searchText']).'%',
                                       'LOWER(email) LIKE' => '%'.strtolower($requestData['searchText']).'%'
                                     ]
                                 ]
@@ -265,10 +265,10 @@ class TransactionCreationsController extends AppController
         } else {
             $stateUsers = $stateUserTable
                 ->find('all')
-                ->select(['id', 'first_name', 'last_name', 'email'])
+                ->select(['id', 'firstName', 'lastName', 'email'])
                 //->order(['id'])
 				->where(['disabled' => 0])
-                ->order(['first_name', 'last_name'])
+                ->order(['firstName', 'lastName'])
                 ->contain(['TransactionCreations' => [
                     'fields' => [
                         'TransactionCreations.amount',
@@ -300,7 +300,7 @@ class TransactionCreationsController extends AppController
 
           //if($sumAmount < 20000000) {
             array_push($possibleReceivers, [
-                'name' => $stateUser->first_name . '&nbsp;' . $stateUser->last_name,
+                'name' => $stateUser->firstName . '&nbsp;' . $stateUser->lastName,
                 'id' => $stateUser->id,
                 'email' => $stateUser->email,
                 'amount' => $sumAmount,
@@ -353,7 +353,7 @@ class TransactionCreationsController extends AppController
                 }
                 $receiverUsers = $stateUserTable->find('all')
                                                 ->where(['id IN' => array_keys($users)])
-                                                ->select(['public_key', 'email', 'id'])
+                                                ->select(['pubkey', 'email', 'id'])
                                                 ->contain(false);
                 
                 foreach ($receiverUsers as $receiverUser) {
@@ -371,7 +371,7 @@ class TransactionCreationsController extends AppController
                     } else {
                         $pendings[$id] = $localAmountCent;
                     }
-                    $pubKeyHex = bin2hex(stream_get_contents($receiverUser->public_key));
+                    $pubKeyHex = bin2hex(stream_get_contents($receiverUser->pubkey));
                     $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([
                         'session_id' => $session->read('session_id'),
                         'email' => $receiverUser->email,
