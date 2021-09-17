@@ -532,6 +532,8 @@ namespace model {
 		{
 			static const char* function_name = "Transaction::runSendTransactionMysql";
 			auto mm = MemoryManager::getInstance();
+			
+			
 			std::string raw_message = mProtoTransaction.SerializeAsString();
 			if (raw_message == "") {
 				addError(new Error("SigningTransaction", "error serializing final transaction"));
@@ -546,6 +548,20 @@ namespace model {
 				return -7;
 			}
 
+			static Poco::FastMutex log_file_mutex;
+			{
+				std::string json_transaction = getTransactionAsJson(true);
+				std::string date_time_string = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d%m%yT%H%M%S") + "\n";
+
+				Poco::ScopedLock<Poco::FastMutex> _lock(log_file_mutex);
+
+				FILE* f = fopen("transactions.log", "a");
+				fwrite(date_time_string.data(), 1, date_time_string.size(), f);
+				fwrite(json_transaction.data(), 1, json_transaction.size(), f);
+				fwrite(base_64_message.data(), 1, base_64_message.size(), f);
+				fwrite("\n", sizeof("\n"), 1, f);
+				fclose(f);
+			}
 
 			// create json request
 			auto user = getUser();
