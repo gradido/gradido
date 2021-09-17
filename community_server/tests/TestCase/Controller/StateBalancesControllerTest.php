@@ -24,7 +24,7 @@ class StateBalancesControllerTest extends TestCase
     public $fixtures = [
         'app.TransactionCreations',
         'app.Transactions',
-        'app.StateUsers',
+        'app.User',
         'app.StateUserTransactions',
         'app.StateErrors',
         'app.TransactionSignatures',

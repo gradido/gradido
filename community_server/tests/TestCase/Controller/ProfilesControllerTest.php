@@ -20,7 +20,7 @@ class ProfilesControllerTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'app.StateUsers',
+        'app.User',
         'app.CommunityProfiles',
     ];
 

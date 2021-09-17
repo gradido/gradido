@@ -22,7 +22,7 @@ class TransactionCreationsControllerTest extends TestCase
     public $fixtures = [
         'app.TransactionCreations',
         'app.Transactions',
-        'app.StateUsers'
+        'app.User'
     ];
 
     /**
