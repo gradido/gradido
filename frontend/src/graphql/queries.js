@@ -62,24 +62,6 @@ export const transactionsQuery = gql`
   }
 `
 
-export const resgisterUserQuery = gql`
-  query(
-    $firstName: String!
-    $lastName: String!
-    $email: String!
-    $password: String!
-    $language: String!
-  ) {
-    create(
-      email: $email
-      firstName: $firstName
-      lastName: $lastName
-      password: $password
-      language: $language
-    )
-  }
-`
-
 export const sendCoins = gql`
   query($email: String!, $amount: Float!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)

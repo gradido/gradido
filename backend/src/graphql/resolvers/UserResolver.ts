@@ -66,8 +66,8 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => String)
-  async create(
+  @Mutation(() => String)
+  async createUser(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
     const payload = {

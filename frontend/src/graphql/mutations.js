@@ -43,3 +43,21 @@ export const updateUserInfos = gql`
     }
   }
 `
+
+export const resgisterUser = gql`
+  mutation(
+    $firstName: String!
+    $lastName: String!
+    $email: String!
+    $password: String!
+    $language: String!
+  ) {
+    createUser(
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      password: $password
+      language: $language
+    )
+  }
+`
