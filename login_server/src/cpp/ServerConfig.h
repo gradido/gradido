@@ -73,6 +73,7 @@ namespace ServerConfig {
 	extern int         g_FakeLoginSleepTime;
 	extern std::string g_versionString;
 	extern bool		   g_disableEmail;
+	extern bool		   g_resendTransactionOnStart;
 	extern ServerSetupType g_ServerSetupType;
 	extern std::string g_devDefaultGroup;
 	extern std::string g_gRPCRelayServerFullURL;
