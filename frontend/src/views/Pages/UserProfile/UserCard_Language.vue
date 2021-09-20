@@ -29,7 +29,7 @@
 
     <div v-else>
       <div>
-        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+        <b-form @submit.stop.prevent="onSubmit">
           <b-row class="mb-2">
             <b-col class="col-12">
               <small>
@@ -64,6 +64,7 @@
 <script>
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
 import { updateUserInfos } from '../../../graphql/mutations'
+import { localeChanged } from 'vee-validate'
 
 export default {
   name: 'FormUserLanguage',
@@ -87,19 +88,23 @@ export default {
     cancelEdit() {
       this.showLanguage = true
     },
-
     async onSubmit() {
       this.$apollo
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            language: this.$store.state.language,
+            email: this.$store.state.email,
+            language: this.language,
           },
         })
         .then(() => {
+          this.$store.commit('language', this.language)
+          this.$i18n.locale = this.language
+          localeChanged(this.language)
           this.cancelEdit()
         })
         .catch((error) => {
+          this.language = this.$store.state.language
           this.$toasted.error(error.message)
         })
     },

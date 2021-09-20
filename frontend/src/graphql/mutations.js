@@ -19,7 +19,7 @@ export const resetPassword = gql`
 `
 
 export const updateUserInfos = gql`
-  query(
+  mutation(
     $email: String!
     $firstName: String
     $lastName: String

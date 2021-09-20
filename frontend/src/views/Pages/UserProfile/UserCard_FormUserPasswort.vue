@@ -74,7 +74,7 @@ export default {
     async onSubmit() {
       this.$apollo
         .mutate({
-          mutations: updateUserInfos,
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             password: this.form.password,
