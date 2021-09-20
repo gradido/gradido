@@ -38,12 +38,6 @@
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!"
   },
-  "setting": {
-    "coinanimation": "animated background (Gradido Coins)",
-    "changeCoinanimation": "change animated background",
-    "coinanimationTrue": "animated background turned on",
-    "coinanimationFalse": "animated background turned off."
-  },
   "form": {
     "amount": "Amount",
     "at": "at",
