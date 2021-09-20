@@ -9,6 +9,9 @@ export const login = gql`
       lastName
       language
       description
+      klickTipp {
+        newsletterState
+      }
     }
   }
 `
@@ -92,8 +95,20 @@ export const transactionsQuery = gql`
 `
 
 export const resgisterUserQuery = gql`
-  query($firstName: String!, $lastName: String!, $email: String!, $password: String!) {
-    create(email: $email, firstName: $firstName, lastName: $lastName, password: $password)
+  query(
+    $firstName: String!
+    $lastName: String!
+    $email: String!
+    $password: String!
+    $language: String!
+  ) {
+    create(
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      password: $password
+      language: $language
+    )
   }
 `
 
@@ -133,6 +148,15 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
+    }
+  }
+`
+
+export const checkEmailQuery = gql`
+  query($optin: String!) {
+    checkEmail(optin: $optin) {
+      email
+      sessionId
     }
   }
 `

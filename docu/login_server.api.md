@@ -151,7 +151,7 @@ with:
 {
 	"email":"max.musterman@gmail.de",
 	"first_name":"Max",
-	"last_name":"Musterman",
+	"last_name":"Musterman" ,
 	"username": "Maxilein",
 	"description": "Tischler",
     "emailType": 2,
@@ -231,7 +231,8 @@ with:
 		"User.disabled": 0,
 		"User.language": "de",
 		"User.password": "1234",
-		"User.password_old": "4321"
+		"User.password_old": "4321",
+		"User.publisher_id": "1"
   	}
 }
 ```
@@ -304,7 +305,8 @@ with:
 		"user.description",
 		"user.disabled",
 		"user.email_checked",
-		"user.language"
+		"user.language",
+		"user.publisher_id"
   	]
 }
 ```
@@ -342,6 +344,7 @@ Return only the fields which are defined in request
 is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible. Disabled User cannot login and cannot receive transactions. 
 - `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1
 - `language`: Language Key for User, currently 'de' or 'en'
+- `publisher_id`: elopage publisher ip
 - `errors`: array of strings if error occure 
 
 ## Login by Email Verification Code
