@@ -28,13 +28,9 @@
       </div>
     </div>
     <pagination-buttons
-      v-if="transactionGdtCount > pageSize"
-      :has-next="hasNext"
-      :has-previous="hasPrevious"
-      :total-pages="totalPages"
-      :current-page="currentPage"
-      @show-next="showNext"
-      @show-previous="showPrevious"
+      v-model="currentPage"
+      :per-page="pageSize"
+      :total-rows="transactionGdtCount"
     ></pagination-buttons>
   </div>
 </template>
@@ -52,22 +48,11 @@ export default {
   },
   data() {
     return {
-      transactionsGdt: { default: () => [] },
+      transactionsGdt: [],
       transactionGdtCount: { type: Number, default: 0 },
       currentPage: 1,
       pageSize: 25,
     }
-  },
-  computed: {
-    hasNext() {
-      return this.currentPage * this.pageSize < this.transactionGdtCount
-    },
-    hasPrevious() {
-      return this.currentPage > 1
-    },
-    totalPages() {
-      return Math.ceil(this.transactionGdtCount / this.pageSize)
-    },
   },
   methods: {
     async updateGdt() {
@@ -85,24 +70,20 @@ export default {
           } = result
           this.transactionsGdt = listGDTEntries.gdtEntries
           this.transactionGdtCount = listGDTEntries.count
+          window.scrollTo(0, 0)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
     },
-    showNext() {
-      this.currentPage++
-      this.updateGdt()
-      window.scrollTo(0, 0)
-    },
-    showPrevious() {
-      this.currentPage--
-      this.updateGdt()
-      window.scrollTo(0, 0)
-    },
   },
   mounted() {
     this.updateGdt()
+  },
+  watch: {
+    currentPage() {
+      this.updateGdt()
+    },
   },
 }
 </script>

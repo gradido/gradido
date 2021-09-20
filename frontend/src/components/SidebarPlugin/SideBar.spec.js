@@ -113,12 +113,6 @@ describe('SideBar', () => {
           expect(wrapper.emitted('logout')).toEqual([[]])
         })
       })
-
-      describe('language-switch', () => {
-        it('has a language-switch button', () => {
-          expect(wrapper.find('div.language-switch').exists()).toBeTruthy()
-        })
-      })
     })
   })
 })
