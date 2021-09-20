@@ -140,7 +140,7 @@ services:
     build:
       context: .
       dockerfile: ./skeema/Dockerfile
-      target: skeema_run
+      target: skeema_dev_run
     depends_on:
       - mariadb
     networks: 

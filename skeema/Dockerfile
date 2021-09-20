@@ -7,7 +7,22 @@ WORKDIR /go/src/github.com/skeema/skeema
 RUN go install github.com/skeema/skeema@v1.5.3
 
 #########################################################################################################
-# Run skeema
+# Run skeema for dev (dynamic)
+#########################################################################################################
+FROM skeema_build as skeema_dev_run
+
+ENV DOCKER_WORKDIR="/skeema"
+
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+COPY ./skeema/.skeema .
+COPY ./mariadb/.skeema.login .
+
+CMD cp .skeema.login ./gradido_login/.skeema && skeema push --allow-unsafe && rm ./gradido_login/.skeema
+
+#########################################################################################################
+# Run skeema 
 #########################################################################################################
 FROM skeema_build as skeema_run
 
@@ -17,7 +32,8 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 COPY ./skeema/.skeema .
-#COPY ./login_server/skeema/ .
-COPY ./mariadb/.skeema.login .
+COPY ./login_server/skeema/ .
+COPY ./mariadb/.skeema.login ./gradido_login/.skeema
 
-CMD cp .skeema.login ./gradido_login/.skeema && skeema push --allow-unsafe && rm ./gradido_login/.skeema
+CMD skeema push --allow-unsafe
+

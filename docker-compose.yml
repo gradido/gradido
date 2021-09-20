@@ -157,6 +157,19 @@ services:
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
 
+  #########################################################
+  ## skeema for updating dbs if changes happend ###########
+  #########################################################
+  skeema: 
+    build:
+      context: .
+      dockerfile: ./skeema/Dockerfile
+      target: skeema_run
+    depends_on:
+      - mariadb
+    networks: 
+      - internal-net
+
   #########################################################  
   ## GRADIDO NODE v1 ######################################
   #########################################################
