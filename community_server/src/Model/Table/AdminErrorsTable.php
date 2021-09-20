@@ -40,7 +40,7 @@ class AdminErrorsTable extends Table
 
         $this->addBehavior('Timestamp');
 
-        $this->belongsTo('StateUsers', [
+        $this->belongsTo('User', [
             'foreignKey' => 'state_user_id',
             'joinType' => 'INNER'
         ]);
@@ -100,7 +100,7 @@ class AdminErrorsTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['state_user_id'], 'StateUsers'));
+        $rules->add($rules->existsIn(['state_user_id'], 'User'));
 
         return $rules;
     }
