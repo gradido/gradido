@@ -29,7 +29,7 @@ describe('UserCard_FormUserData', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: mockAPIcall,
+      mutate: mockAPIcall,
     },
   }
 

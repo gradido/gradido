@@ -11,3 +11,35 @@ export const unsubscribeNewsletter = gql`
     unsubscribeNewsletter(email: $email)
   }
 `
+
+export const resetPassword = gql`
+  mutation($sessionId: Float!, $email: String!, $password: String!) {
+    resetPassword(sessionId: $sessionId, email: $email, password: $password)
+  }
+`
+
+export const updateUserInfos = gql`
+  query(
+    $email: String!
+    $firstName: String
+    $lastName: String
+    $description: String
+    $username: String
+    $password: String
+    $passwordNew: String
+    $locale: String
+  ) {
+    updateUserInfos(
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      description: $description
+      username: $username
+      password: $password
+      passwordNew: $passwordNew
+      language: $locale
+    ) {
+      validValues
+    }
+  }
+`

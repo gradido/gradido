@@ -7,6 +7,7 @@ import flushPromises from 'flush-promises'
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockRejectedValue({ message: 'error' })
+const apolloMutationMock = jest.fn()
 
 const toasterMock = jest.fn()
 const routerPushMock = jest.fn()
@@ -36,6 +37,7 @@ describe('ResetPassword', () => {
       }),
     },
     $apollo: {
+      mutate: apolloMutationMock,
       query: apolloQueryMock,
     },
   }
@@ -146,7 +148,7 @@ describe('ResetPassword', () => {
 
         describe('server response with error', () => {
           beforeEach(() => {
-            apolloQueryMock.mockRejectedValue({ message: 'error' })
+            apolloMutationMock.mockRejectedValue({ message: 'error' })
           })
           it('toasts an error message', () => {
             expect(toasterMock).toHaveBeenCalledWith('error')
@@ -155,14 +157,14 @@ describe('ResetPassword', () => {
 
         describe('server response with success', () => {
           beforeEach(() => {
-            apolloQueryMock.mockResolvedValue({
+            apolloMutationMock.mockResolvedValue({
               data: {
                 resetPassword: 'success',
               },
             })
           })
           it('calls the API', () => {
-            expect(apolloQueryMock).toBeCalledWith(
+            expect(apolloMutationMock).toBeCalledWith(
               expect.objectContaining({
                 variables: {
                   sessionId: 1,

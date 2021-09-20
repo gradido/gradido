@@ -25,7 +25,7 @@ describe('UserCard_Language', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: mockAPIcall,
+      mutate: mockAPIcall,
     },
   }
 
