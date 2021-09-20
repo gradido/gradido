@@ -10,7 +10,6 @@
     </span>
 
     <div v-if="decaytyp === 'new'">
-   
       <b-list-group style="border: 0px">
         <b-list-group-item style="border: 0px; background-color: #f1f1f1">
           <div class="d-flex" v-if="!decay.decayStartBlock">
@@ -19,7 +18,6 @@
               <b>{{ $t('decay.calculation_decay') }}</b>
             </div>
           </div>
-
 
           <div class="d-flex">
             <div style="width: 40%" class="text-right pr-3 mr-2">
@@ -65,33 +63,36 @@
             </div>
           </div>
           <div v-if="decay.balance > 0">
-          <div class="d-flex" >
-            <div style="width: 40%" class="text-right pr-3 mr-2">
-              <div v-if="type === 'send'">{{ $t('form.amount') }} </div>
-              <div v-if="type === 'receive'">{{ $t('form.amount') }} </div>
+            <div class="d-flex">
+              <div style="width: 40%" class="text-right pr-3 mr-2">
+                <div v-if="type === 'send'">{{ $t('form.amount') }}</div>
+                <div v-if="type === 'receive'">{{ $t('form.amount') }}</div>
+              </div>
+              <div style="width: 60%">
+                <div>{{ balance }}</div>
+              </div>
             </div>
-            <div style="width: 60%">
-              <div> {{balance}} </div>               
+            <div class="d-flex">
+              <div style="width: 40%" class="text-right pr-3 mr-2">
+                <div>{{ $t('decay.decay') }}</div>
+              </div>
+              <div style="width: 60%">
+                <div>{{ decay.balance }}</div>
+              </div>
             </div>
-          </div>
-           <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
-              <div>{{ $t('decay.decay') }}</div>
+            <div class="d-flex">
+              <div style="width: 40%" class="text-right pr-3 mr-2">
+                <div>{{ $t('decay.total') }}</div>
+              </div>
+              <div style="width: 60%">
+                <div v-if="type === 'send'">
+                  <b>{{ parseInt(balance) + decay.balance }}</b>
+                </div>
+                <div v-if="type === 'receive'">
+                  <b>{{ parseInt(balance) - decay.balance }}</b>
+                </div>
+              </div>
             </div>
-            <div style="width: 60%">
-              <div> {{ decay.balance }} </div>               
-            </div>
-          </div>
-          <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
-              <div>{{ $t('decay.total') }}</div>
-             
-            </div>
-            <div style="width: 60%">
-              <div v-if="type === 'send'"><b> {{ parseInt(balance) + decay.balance  }} </b></div>               
-              <div v-if="type === 'receive'"><b> {{ parseInt(balance) - decay.balance  }} </b></div>
-            </div>
-          </div>
           </div>
         </b-list-group-item>
       </b-list-group>
