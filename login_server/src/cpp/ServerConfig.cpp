@@ -57,7 +57,7 @@ namespace ServerConfig {
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
-	bool	    g_resendTransactionOnStart = false;
+	bool	    g_resendUnfinishedTransactionOnStart = false;
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 	std::string g_devDefaultGroup = "";
 	std::string g_gRPCRelayServerFullURL;
@@ -260,7 +260,7 @@ namespace ServerConfig {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
 		}
 
-		g_resendTransactionOnStart = cfg.getBool("dev.resend_unfinished_transactions_on_start", false);
+		g_resendUnfinishedTransactionOnStart = cfg.getBool("dev.resend_unfinished_transactions_on_start", false);
 
 		return true;
 	}

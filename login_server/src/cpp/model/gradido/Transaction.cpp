@@ -204,7 +204,7 @@ namespace model {
 				}
 			}
 			// try not finished but signed transactions again
-			if (!finished && ServerConfig::g_resendTransactionOnStart) {
+			if (!finished && ServerConfig::g_resendUnfinishedTransactionOnStart) {
 				transaction->ifEnoughSignsProceed(nullptr);
 			}
 
