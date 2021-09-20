@@ -2,7 +2,7 @@
 
 import { AuthChecker } from 'type-graphql'
 import decode from '../jwt/decode'
-import { apiGet } from '../apis/loginAPI'
+import { apiGet } from '../apis/HttpRequest'
 import CONFIG from '../config'
 import encode from '../jwt/encode'
 

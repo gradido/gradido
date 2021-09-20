@@ -64,23 +64,18 @@
             </a>
           </li>
         </ul>
-        <div class="mt-5 ml-4">
-          <language-switch />
-        </div>
       </div>
     </div>
   </nav>
 </template>
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
-import LanguageSwitch from '@/components/LanguageSwitch.vue'
 import VueQrcode from 'vue-qrcode'
 
 export default {
   name: 'sidebar',
   components: {
     NavbarToggleButton,
-    LanguageSwitch,
     VueQrcode,
   },
   props: {

@@ -4,7 +4,7 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import CONFIG from '../../config'
 import { Balance } from '../models/Balance'
-import { apiGet } from '../../apis/loginAPI'
+import { apiGet } from '../../apis/HttpRequest'
 
 @Resolver()
 export class BalanceResolver {

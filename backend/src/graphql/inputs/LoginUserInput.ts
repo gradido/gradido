@@ -22,6 +22,9 @@ export class CreateUserArgs {
 
   @Field(() => String)
   password: string
+
+  @Field(() => String)
+  language: string
 }
 
 @ArgsType()
@@ -55,6 +58,9 @@ export class UpdateUserInfosArgs {
 
   @Field({ nullable: true })
   language?: string
+
+  @Field({ nullable: true })
+  publisherId?: number
 
   @Field({ nullable: true })
   password?: string
