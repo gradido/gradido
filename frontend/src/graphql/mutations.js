@@ -61,3 +61,9 @@ export const resgisterUser = gql`
     )
   }
 `
+
+export const sendCoins = gql`
+  mutation($email: String!, $amount: Float!, $memo: String!) {
+    sendCoins(email: $email, amount: $amount, memo: $memo)
+  }
+`

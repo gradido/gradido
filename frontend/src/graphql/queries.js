@@ -62,12 +62,6 @@ export const transactionsQuery = gql`
   }
 `
 
-export const sendCoins = gql`
-  query($email: String!, $amount: Float!, $memo: String!) {
-    sendCoins(email: $email, amount: $amount, memo: $memo)
-  }
-`
-
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
     sendResetPasswordEmail(email: $email) {

@@ -51,7 +51,7 @@ import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter
 import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
-import { sendCoins } from '../../graphql/queries.js'
+import { sendCoins } from '../../graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
   email: '',
@@ -105,8 +105,8 @@ export default {
     async sendTransaction() {
       this.loading = true
       this.$apollo
-        .query({
-          query: sendCoins,
+        .mutate({
+          mutation: sendCoins,
           variables: this.transactionData,
         })
         .then(() => {
