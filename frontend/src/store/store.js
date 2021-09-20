@@ -68,7 +68,7 @@ export const store = new Vuex.Store({
     description: '',
     token: null,
     coinanimation: true,
-    newsletterState: null
+    newsletterState: null,
   },
   getters: {},
   // Syncronous mutation of the state

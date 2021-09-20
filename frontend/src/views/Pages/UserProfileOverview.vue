@@ -5,7 +5,7 @@
     <hr />
     <form-user-passwort />
     <hr />
-    <form-user-language />    
+    <form-user-language />
     <hr />
     <form-user-newsletter />
     <hr />
@@ -25,7 +25,7 @@ export default {
     UserCard,
     FormUserData,
     FormUserPasswort,
-    FormUserLanguage,    
+    FormUserLanguage,
     FormUserNewsletter,
     FormUserCoinAnimation,
   },
