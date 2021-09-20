@@ -17,7 +17,7 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 COPY ./skeema/.skeema .
-COPY ./login_server/skeema/ .
-COPY ./mariadb/.skeema.login ./gradido_login/.skeema
+#COPY ./login_server/skeema/ .
+COPY ./mariadb/.skeema.login .
 
-CMD skeema push --allow-unsafe
+CMD cp .skeema.login ./gradido_login/.skeema && skeema push --allow-unsafe && rm ./gradido_login/.skeema
