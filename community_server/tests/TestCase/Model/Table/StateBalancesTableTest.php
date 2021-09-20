@@ -24,7 +24,7 @@ class StateBalancesTableTest extends TestCase
      */
     public $fixtures = [
         'app.StateBalances',
-        'app.StateUsers',
+        'app.User',
     ];
 
     /**

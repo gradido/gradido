@@ -24,7 +24,7 @@ class StateErrorsTableTest extends TestCase
      */
     public $fixtures = [
         'app.StateErrors',
-        'app.StateUsers',
+        'app.User',
         'app.TransactionTypes'
     ];
 

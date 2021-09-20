@@ -23,7 +23,7 @@ class StateUsersTableTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'app.StateUsers',
+        'app.User',
         'app.StateGroups',
         'app.StateBalances',
         'app.StateCreated',
@@ -39,8 +39,8 @@ class StateUsersTableTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $config = TableRegistry::getTableLocator()->exists('StateUsers') ? [] : ['className' => StateUsersTable::class];
-        $this->StateUsersTable = TableRegistry::getTableLocator()->get('StateUsers', $config);
+        $config = TableRegistry::getTableLocator()->exists('User') ? [] : ['className' => StateUsersTable::class];
+        $this->StateUsersTable = TableRegistry::getTableLocator()->get('User', $config);
     }
 
     /**
