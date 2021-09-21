@@ -52,7 +52,7 @@ export default {
         })
         .then(() => {
           this.$toasted.success(
-            this.NewsletterStatus
+            this.CoinAnimationStatus
               ? this.$t('setting.coinanimationTrue')
               : this.$t('setting.coinanimationFalse'),
           )
