@@ -139,11 +139,13 @@ services:
     build:
       context: .
       dockerfile: ./skeema/Dockerfile
-      target: skeema_run
+      target: skeema_dev_run
     depends_on:
       - mariadb
     networks: 
       - internal-net
+    volumes:
+      - ./login_server/skeema/gradido_login:/skeema/gradido_login
    
 volumes:
   frontend_node_modules:
