@@ -13,7 +13,7 @@ const database = {
 
 const migrations = {
   MIGRATIONS_TABLE: process.env.MIGRATIONS_TABLE || 'migrations',
-  MIGRATIONS_DIRECTORY: process.env.MIGRATIONS_DIRECTORY || './migrations/',
+  MIGRATIONS_DIRECTORY: process.env.MIGRATIONS_DIRECTORY || './build/migrations/',
 }
 
 const CONFIG = { ...database, ...migrations }
