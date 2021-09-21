@@ -8,6 +8,7 @@ use Cake\TestSuite\Fixture\TestFixture;
  */
 class UserFixture extends BaseTestFixture
 {
+    public $import = [ 'model' => 'StateUsers', 'connection' => 'test' ];
     /**
      * Fields
      *
