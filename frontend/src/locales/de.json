@@ -1,182 +1,193 @@
 {
-  "message": "hallo gradido !!",
-  "welcome":"Willkommen!",
+  "back": "Zurück",
   "community": "Gemeinschaft",
-  "logout":"Abmelden",
-  "login":"Anmeldung",
-  "signup": "Registrieren",
-  "reset": "Passwort zurücksetzen",
-  "imprint":"Impressum",
-  "privacy_policy":"Datenschutzerklärung",
-  "members_area": "Mitgliederbereich",
-  "whitepaper": "Whitepaper",
-  "back":"Zurück",
-  "send":"Senden",
-  "transactions":"Transaktionen",
-  "language":"Sprache",
-  "languages":{
-    "de": "Deutsch",
-    "en": "English"
+  "communitys": {
+    "form": {
+      "date_period": "Datum / Zeitraum",
+      "hours": "Stunden",
+      "hours_report": "Stundenbericht",
+      "more_hours": "weitere Stunden",
+      "submit": "Einreichen"
+    }
   },
-  "select_language": "Bitte wähle eine Sprache für die App und Newsletter",
   "decay": {
+    "calculation_decay": "Berechnung der Vergänglichkeit",
+    "created": "Geschöpft",
+    "days": "Tage",
     "decay": "Vergänglichkeit",
-    "decay_since_last_transaction":"Vergänglichkeit seit der letzten Transaktion",
-    "calculation_decay":"Berechnung der Vergänglichkeit",
-    "Starting_block_decay":"Startblock Vergänglichkeit",
-    "decay_introduced":"Die Vergänglichkeit wurde Eingeführt am ",
     "decayStart": " - Startblock für Vergänglichkeit am: ",
-    "last_transaction":"Letzte Transaktion",
-    "past_time":"Vergangene Zeit",
-    "since_introduction":"seit Einführung der Vergänglichkeit",
-    "year":"Jahre",
-    "months":"Monate",
-    "days":"Tage",
-    "hours":"Stunden",
-    "minutes":"Minuten",
-    "seconds":"Sekunden",
-    "received":"Empfangen",
-    "sent":"Gesendet",
-    "created":"Geschöpft",
-    "fromCommunity":"Aus der Gemeinschaft",
-    "toCommunity":"An die Gemeinschaft",
-    "noDecay": "Keine Vergänglichkeit"
-  }, 
+    "decay_introduced": "Die Vergänglichkeit wurde Eingeführt am ",
+    "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "fromCommunity": "Aus der Gemeinschaft",
+    "hours": "Stunden",
+    "last_transaction": "Letzte Transaktion",
+    "minutes": "Minuten",
+    "months": "Monate",
+    "noDecay": "Keine Vergänglichkeit",
+    "past_time": "Vergangene Zeit",
+    "received": "Empfangen",
+    "seconds": "Sekunden",
+    "sent": "Gesendet",
+    "since_introduction": "seit Einführung der Vergänglichkeit",
+    "Starting_block_decay": "Startblock Vergänglichkeit",
+    "toCommunity": "An die Gemeinschaft",
+    "year": "Jahre"
+  },
+  "error": {
+    "change-password": "Fehler beim Ändern des Passworts",
+    "error": "Fehler",
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!"
+  },
   "form": {
+    "amount": "Betrag",
+    "at": "am",
     "cancel": "Abbrechen",
-    "reset": "Zurücksetzen",
-    "close": "schließen",
-    "edit": "bearbeiten",
-    "save": "speichern",
-    "recipient":"Empfänger",
-    "sender":"Absender",
-    "username":"Username",
-    "firstname":"Vorname",
-    "lastname":"Nachname",
-    "description": "Beschreibung",
-    "email":"E-Mail",
-    "email_repeat":"eMail wiederholen",
-    "password":"Passwort",
-    "passwordRepeat":"Passwort wiederholen",
-    "password_old":"altes Passwort",
-    "password_new":"neues Passwort",
-    "password_new_repeat":"neues Passwort wiederholen",
     "change": "ändern",
-    "change-password": "Passwort ändern",
     "change-name": "Name ändern",
+    "change-password": "Passwort ändern",
     "changeLanguage": "Sprache ändern",
-    "amount":"Betrag",
-    "memo":"Nachricht",
-    "message":"Nachricht",
-    "date":"Datum",
-    "from":"von",
-    "to":"bis",
-    "to1":"an",
-    "at":"am",
-    "time":"Zeit",
-    "send_now":"Jetzt senden",
-    "scann_code":"<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "max_gdd_info":"Maximale anzahl GDD zum versenden erreicht!",
-    "send_check":"Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
-    "thx":"Danke",
-    "sorry":"Entschuldigung",
-    "send_transaction_success":"Deine Transaktion wurde erfolgreich ausgeführt",
-    "send_transaction_error":"Leider konnte die Transaktion nicht ausgeführt werden!",
+    "change_username_info": "Einmal gespeichert, kann der Username ncht mehr geändert werden!",
+    "close": "schließen",
+    "date": "Datum",
+    "description": "Beschreibung",
+    "edit": "bearbeiten",
+    "email": "E-Mail",
+    "email_repeat": "eMail wiederholen",
+    "firstname": "Vorname",
+    "from": "von",
+    "lastname": "Nachname",
+    "max_gdd_info": "Maximale anzahl GDD zum versenden erreicht!",
+    "memo": "Nachricht",
+    "message": "Nachricht",
+    "password": "Passwort",
+    "passwordRepeat": "Passwort wiederholen",
+    "password_new": "neues Passwort",
+    "password_new_repeat": "neues Passwort wiederholen",
+    "password_old": "altes Passwort",
+    "recipient": "Empfänger",
+    "reset": "Zurücksetzen",
+    "save": "speichern",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "sender": "Absender",
+    "send_check": "Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
+    "send_now": "Jetzt senden",
+    "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
+    "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
+    "sorry": "Entschuldigung",
+    "thx": "Danke",
+    "time": "Zeit",
+    "to": "bis",
+    "to1": "an",
+    "username": "Username",
     "validation": {
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
-      "usernmae-unique": "Der Username ist bereits vergeben.",
-      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen auf den mindestens zwei alfanumerische Zeichen folgen müssen."
-    },
-    "change_username_info": "Einmal gespeichert, kann der Username ncht mehr geändert werden!"
-  },
-  "error": {
-    "error":"Fehler",
-    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
-    "change-password": "Fehler beim Ändern des Passworts"
-  },
-  "transaction":{
-    "show_all":"Alle <strong>{count}</strong> Transaktionen ansehen",
-    "nullTransactions":"Du hast noch keine Transaktionen auf deinem Konto.",
-    "more": "mehr",
-    "receiverNotFound":"Empfänger nicht gefunden",
-    "gdd-text":"Gradido Transaktionen",
-    "gdt-text":"Gradido Transform Transaktionen"
-  },
-  "site": {
-    "login": {
-      "community":"Tausend Dank, weil du bei uns bist!",
-      "remember":"Passwort merken",
-      "signin":"Anmelden",
-      "forgot_pwd":"Passwort vergessen?",
-      "new_wallet":"Neues Konto erstellen"
-    },
-    "signup": {
-      "title": "Erstelle dein Gradido-Konto",
-      "subtitle": "Werde Teil der Gemeinschaft!",
-      "agree":"Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
-      "lowercase":"Ein Kleinbuchstabe erforderlich.",
-      "uppercase":"Ein Großbuchstabe erforderlich.",
-      "minimum":"Mindestens 8 Zeichen.",
-      "one_number":"Eine Zahl erforderlich.",
-      "dont_match":"Die Passwörter stimmen nicht überein."
-    },
-    "password": {
-      "title": "Passwort zurücksetzen",
-      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
-      "send_now": "Jetzt senden"
-    },
-    "thx": {
-      "title": "Danke!",
-      "email": "Wir haben dir eine eMail gesendet.",
-      "reset": "Dein Passwort wurde geändert.",
-      "register": "Du bist jetzt regisriert."      
-    },
-    "overview":{
-      "account_overview":"Kontoübersicht",
-      "since_last_month": "seid letzten Monat",
-      "send_gradido":"Gradido versenden",
-      "add_work":"neuer Gemeinschaftsbeitrag"
-    },
-    "navbar" : {
-      "my-profil":"Mein Profil",
-      "settings":"Einstellungen",
-      "activity":"Aktivität",
-      "support":"Support"
-    },
-    "404" : {
-      "ooops" : "Ooops!",
-      "text" : "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden",
-      "back" : "Zurück zur Übersicht!"
+      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen auf den mindestens zwei alfanumerische Zeichen folgen müssen.",
+      "usernmae-unique": "Der Username ist bereits vergeben."
     }
-  },
-  "communitys":{
-    "form":{
-      "hours":"Stunden",
-      "date_period":"Datum / Zeitraum",
-      "more_hours":"weitere Stunden",
-      "submit":"Einreichen",
-      "hours_report":"Stundenbericht"
-    }
-  },
-  "reset-password": {
-    "title": "Passwort zurücksetzen",
-    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst.",
-    "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support."
   },
   "gdt": {
-    "gdt-received":"Gradido Transform (GDT) erhalten",
-    "factor":"Faktor",
-    "raise": "Erhöhung",
+    "action": "Aktion",
+    "calculation": "Berechnung der Gradido Transform",
+    "contribution": "Beitrag",
+    "conversion": "Umrechnung",
+    "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
-    "conversion-gdt-euro":"Umrechnung Euro / Gradido Transform (GDT)",
-    "calculation":"Berechnung der Gradido Transform",
-    "conversion":"Umrechnung",
-    "formula":"Berechungsformel",
-    "no-transactions":"Du hast zur Zeit keine Transaktionen",
-    "publisher":"Dein geworbenes Mitglied hat einen Beitrag bezahlt",
-    "action":"Aktion",
-    "recruited-member":"Geworbenes Mitglied",
-    "contribution":"Beitrag"
-  }
+    "factor": "Faktor",
+    "formula": "Berechungsformel",
+    "gdt-received": "Gradido Transform (GDT) erhalten",
+    "no-transactions": "Du hast zur Zeit keine Transaktionen",
+    "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
+    "raise": "Erhöhung",
+    "recruited-member": "Geworbenes Mitglied"
+  },
+  "imprint": "Impressum",
+  "language": "Sprache",
+  "languages": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "login": "Anmeldung",
+  "logout": "Abmelden",
+  "members_area": "Mitgliederbereich",
+  "message": "hallo gradido !!",
+  "privacy_policy": "Datenschutzerklärung",
+  "reset": "Passwort zurücksetzen",
+  "reset-password": {
+    "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
+    "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst.",
+    "title": "Passwort zurücksetzen"
+  },
+  "select_language": "Bitte wähle eine Sprache für die App und Newsletter",
+  "send": "Senden",
+  "setting": {
+    "changeNewsletter": "Newsletter Status ändern",
+    "newsletter": "Newsletter",
+    "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
+    "newsletterTrue": "Du bist im Newslettersystem eingetraten."
+  },
+  "signup": "Registrieren",
+  "site": {
+    "404": {
+      "back": "Zurück zur Übersicht!",
+      "ooops": "Ooops!",
+      "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden"
+    },
+    "checkEmail": {
+      "errorText": "Email konnte nicht verifiziert werden.",
+      "title": "Email wird verifiziert"
+    },
+    "login": {
+      "community": "Tausend Dank, weil du bei uns bist!",
+      "forgot_pwd": "Passwort vergessen?",
+      "new_wallet": "Neues Konto erstellen",
+      "remember": "Passwort merken",
+      "signin": "Anmelden"
+    },
+    "navbar": {
+      "activity": "Aktivität",
+      "my-profil": "Mein Profil",
+      "settings": "Einstellungen",
+      "support": "Support"
+    },
+    "overview": {
+      "account_overview": "Kontoübersicht",
+      "add_work": "neuer Gemeinschaftsbeitrag",
+      "send_gradido": "Gradido versenden",
+      "since_last_month": "seid letzten Monat"
+    },
+    "password": {
+      "send_now": "Jetzt senden",
+      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen.",
+      "title": "Passwort zurücksetzen"
+    },
+    "signup": {
+      "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
+      "dont_match": "Die Passwörter stimmen nicht überein.",
+      "lowercase": "Ein Kleinbuchstabe erforderlich.",
+      "minimum": "Mindestens 8 Zeichen.",
+      "one_number": "Eine Zahl erforderlich.",
+      "subtitle": "Werde Teil der Gemeinschaft!",
+      "title": "Erstelle dein Gradido-Konto",
+      "uppercase": "Ein Großbuchstabe erforderlich."
+    },
+    "thx": {
+      "checkEmail": "Deine Email würde erfolgreich verifiziert.",
+      "email": "Wir haben dir eine eMail gesendet.",
+      "register": "Du bist jetzt regisriert.",
+      "reset": "Dein Passwort wurde geändert.",
+      "title": "Danke!"
+    }
+  },
+  "transaction": {
+    "gdd-text": "Gradido Transaktionen",
+    "gdt-text": "Gradido Transform Transaktionen",
+    "more": "mehr",
+    "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "receiverNotFound": "Empfänger nicht gefunden",
+    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
+  },
+  "transactions": "Transaktionen",
+  "welcome": "Willkommen!",
+  "whitepaper": "Whitepaper"
 }

@@ -1,6 +1,15 @@
 import { mutations, actions } from './store'
 
-const { language, email, token, username, firstName, lastName, description } = mutations
+const {
+  language,
+  email,
+  token,
+  username,
+  firstName,
+  lastName,
+  description,
+  newsletterState,
+} = mutations
 const { login, logout } = actions
 
 describe('Vuex store', () => {
@@ -60,6 +69,14 @@ describe('Vuex store', () => {
         expect(state.description).toEqual('Nickelbrille')
       })
     })
+
+    describe('newsletterState', () => {
+      it('sets the state of newsletterState', () => {
+        const state = { newsletterState: null }
+        newsletterState(state, true)
+        expect(state.newsletterState).toEqual(true)
+      })
+    })
   })
 
   describe('actions', () => {
@@ -73,11 +90,14 @@ describe('Vuex store', () => {
         firstName: 'Peter',
         lastName: 'Lustig',
         description: 'Nickelbrille',
+        klickTipp: {
+          newsletterState: true,
+        },
       }
 
       it('calls seven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(6)
+        expect(commit).toHaveBeenCalledTimes(7)
       })
 
       it('commits email', () => {
@@ -109,6 +129,11 @@ describe('Vuex store', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
       })
+
+      it('commits newsletterState', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', true)
+      })
     })
 
     describe('logout', () => {
@@ -117,7 +142,7 @@ describe('Vuex store', () => {
 
       it('calls six commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(6)
+        expect(commit).toHaveBeenCalledTimes(7)
       })
 
       it('commits token', () => {
@@ -148,6 +173,11 @@ describe('Vuex store', () => {
       it('commits description', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(6, 'description', '')
+      })
+
+      it('commits newsletterState', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', null)
       })
 
       // how to get this working?

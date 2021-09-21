@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Arg, Authorized, Ctx } from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
@@ -16,11 +16,16 @@ import {
   UnsecureLoginArgs,
   UpdateUserInfosArgs,
 } from '../inputs/LoginUserInput'
-import { apiPost, apiGet } from '../../apis/loginAPI'
-
+import { apiPost, apiGet } from '../../apis/HttpRequest'
+import {
+  klicktippRegistrationMiddleware,
+  klicktippNewsletterStateMiddleware,
+} from '../../middleware/klicktippMiddleware'
+import { CheckEmailResponse } from '../models/CheckEmailResponse'
 @Resolver()
 export class UserResolver {
   @Query(() => User)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
@@ -62,7 +67,9 @@ export class UserResolver {
   }
 
   @Query(() => String)
-  async create(@Args() { email, firstName, lastName, password }: CreateUserArgs): Promise<string> {
+  async create(
+    @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
+  ): Promise<string> {
     const payload = {
       email,
       first_name: firstName,
@@ -70,11 +77,14 @@ export class UserResolver {
       password,
       emailType: 2,
       login_after_register: true,
+      language: language,
+      publisher_id: 0,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {
       throw new Error(result.data)
     }
+
     return 'success'
   }
 
@@ -88,7 +98,9 @@ export class UserResolver {
       email_verification_code_type: 'resetPassword',
     }
     const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
-    if (!response.success) throw new Error(response.data)
+    if (!response.success) {
+      throw new Error(response.data)
+    }
     return new SendPasswordResetEmailResponse(response.data)
   }
 
@@ -103,8 +115,10 @@ export class UserResolver {
       password,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
-    if (!result.success) throw new Error(result.data)
-    return 'sucess'
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return 'success'
   }
 
   @Authorized()
@@ -118,6 +132,7 @@ export class UserResolver {
       description,
       username,
       language,
+      publisherId,
       password,
       passwordNew,
     }: UpdateUserInfosArgs,
@@ -132,6 +147,7 @@ export class UserResolver {
         'User.description': description || undefined,
         'User.username': username || undefined,
         'User.language': language || undefined,
+        'User.publisher_id': publisherId || undefined,
         'User.password': passwordNew || undefined,
         'User.password_old': password || undefined,
       },
@@ -150,5 +166,17 @@ export class UserResolver {
     )
     if (!response.success) throw new Error(response.data)
     return new CheckUsernameResponse(response.data)
+  }
+
+  @Query(() => CheckEmailResponse)
+  @UseMiddleware(klicktippRegistrationMiddleware)
+  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
+    const result = await apiGet(
+      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
+    )
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return new CheckEmailResponse(result.data)
   }
 }

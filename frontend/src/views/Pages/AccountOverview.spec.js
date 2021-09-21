@@ -6,6 +6,8 @@ sendMock.mockResolvedValue('success')
 
 const localVue = global.localVue
 
+window.scrollTo = jest.fn()
+
 describe('AccountOverview', () => {
   let wrapper
 

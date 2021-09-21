@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
+import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
 export class User {
@@ -17,6 +18,7 @@ export class User {
     this.description = json.description
     this.pubkey = json.public_hex
     this.language = json.language
+    this.publisherId = json.publisher_id
   }
 
   @Field(() => String)
@@ -62,9 +64,11 @@ export class User {
   /* I suggest to have a group as type here
   @Field(() => ID)
   groupId: number
-
-  // what is puvlisherId?
-  @Field(() => ID)
+*/
+  // what is publisherId?
+  @Field(() => Number)
   publisherId: number
-  */
+
+  @Field(() => KlickTipp)
+  klickTipp: KlickTipp
 }

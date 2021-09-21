@@ -1,16 +1,16 @@
 <template>
-  <div class="pagination-buttons">
+  <div class="pagination-buttons" v-if="totalRows > perPage">
     <b-row class="m-4">
       <b-col class="text-right">
-        <b-button class="previous-page" :disabled="!hasPrevious" @click="$emit('show-previous')">
+        <b-button class="previous-page" :disabled="!hasPrevious" @click="currentValue--">
           <b-icon icon="chevron-left" variant="primary"></b-icon>
         </b-button>
       </b-col>
       <b-col cols="3">
-        <p class="text-center pt-2">{{ currentPage }} / {{ totalPages }}</p>
+        <p class="text-center pt-2">{{ value }} / {{ totalPages }}</p>
       </b-col>
       <b-col>
-        <b-button class="next-page" :disabled="!hasNext" @click="$emit('show-next')">
+        <b-button class="next-page" :disabled="!hasNext" @click="currentValue++">
           <b-icon icon="chevron-right" variant="primary"></b-icon>
         </b-button>
       </b-col>
@@ -21,10 +21,33 @@
 export default {
   name: 'PaginationButtons',
   props: {
-    hasNext: { type: Boolean, default: false },
-    hasPrevious: { type: Boolean, default: false },
-    totalPages: { type: Number, default: 1 },
-    currentPage: { type: Number, default: 1 },
+    totalRows: { required: true },
+    perPage: { type: Number, required: true },
+    value: { type: Number, required: true },
+  },
+  data() {
+    return {
+      currentValue: { type: Number, default: 1 },
+    }
+  },
+  computed: {
+    hasNext() {
+      return this.value * this.perPage < this.totalRows
+    },
+    hasPrevious() {
+      return this.value > 1
+    },
+    totalPages() {
+      return Math.ceil(this.totalRows / this.perPage)
+    },
+  },
+  created() {
+    this.currentValue = this.value
+  },
+  watch: {
+    currentValue() {
+      if (this.currentValue !== this.value) this.$emit('input', this.currentValue)
+    },
   },
 }
 </script>

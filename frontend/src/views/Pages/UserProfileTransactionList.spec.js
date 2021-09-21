@@ -3,6 +3,8 @@ import UserProfileTransactionList from './UserProfileTransactionList'
 
 const localVue = global.localVue
 
+window.scrollTo = jest.fn()
+
 describe('UserProfileTransactionList', () => {
   let wrapper
 

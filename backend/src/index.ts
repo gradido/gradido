@@ -16,6 +16,7 @@ import { UserResolver } from './graphql/resolvers/UserResolver'
 import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
 import { GdtResolver } from './graphql/resolvers/GdtResolver'
 import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
+import { KlicktippResolver } from './graphql/resolvers/KlicktippResolver'
 
 import { isAuthorized } from './auth/auth'
 
@@ -55,7 +56,7 @@ async function main() {
   }
 
   const schema = await buildSchema({
-    resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver],
+    resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver, KlicktippResolver],
     authChecker: isAuthorized,
   })
 

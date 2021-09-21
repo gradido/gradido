@@ -4,7 +4,7 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import CONFIG from '../../config'
 import { Balance } from '../models/Balance'
-import { apiGet } from '../../apis/loginAPI'
+import { apiGet } from '../../apis/HttpRequest'
 import { User as tUser } from '../../typeorm/entity/User'
 import { Balance as tBalance } from '../../typeorm/entity/Balance'
 import calculateDecay from '../../util/decay'
