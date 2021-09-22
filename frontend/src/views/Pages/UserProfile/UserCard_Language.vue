@@ -100,6 +100,7 @@ export default {
         .then(() => {
           this.$store.commit('language', this.language)
           this.cancelEdit()
+          this.$toasted.success(this.$t('languages.success'))
         })
         .catch((error) => {
           this.$toasted.error(error.message)
