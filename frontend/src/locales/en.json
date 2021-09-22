@@ -1,15 +1,22 @@
 {
   "back": "Back",
-  "community": "Community",
-  "communitys": {
-    "form": {
-      "date_period": "Date / Period",
-      "hours": "hours",
-      "hours_report": "Hourly report",
-      "more_hours": "more hours",
-      "submit": "submit"
-    }
-  },
+  "community": {
+    "choose-another-aommunity":"Choose another community",
+    "community": "Community",
+    "communitys": {
+      "form": {
+        "date_period": "Date / Period",
+        "hours": "hours",
+        "hours_report": "Hourly report",
+        "more_hours": "more hours",
+        "submit": "submit"
+      }
+    },
+    "continue-to-registration":"Continue to registration",
+    "current-community":"Current community",
+    "other-communities":"Other communities",
+    "switch-to-this-community":"switch to this community"
+  }, 
   "decay": {
     "calculation_decay": "Calculation of Decay",
     "created": "Created",
@@ -17,8 +24,7 @@
     "decay": "Decay",
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was Introduced on",
-    "decay_since_last_transaction": "Decay since the last transaction",
-    "fromCommunity": "From the community",
+    "decay_since_last_transaction": "Decay since the last transaction",    
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
@@ -29,8 +35,7 @@
     "seconds": "Seconds",
     "sent": "Sent",
     "since_introduction": "Since the introduction of Decay",
-    "Starting_block_decay": "Starting Block Decay",
-    "toCommunity": "To the community",
+    "Starting_block_decay": "Starting Block Decay",    
     "year": "Years"
   },
   "error": {

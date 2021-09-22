@@ -21,7 +21,7 @@
       </div>
       <div>
         <span class="heading">--</span>
-        <span class="description">{{ $t('community') }}</span>
+        <span class="description">{{ $t('community.community') }}</span>
       </div>
     </div>
   </b-card>
