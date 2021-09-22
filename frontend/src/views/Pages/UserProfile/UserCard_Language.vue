@@ -23,13 +23,13 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
-        <b-col class="col-12">{{ $store.state.language }}</b-col>
+        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>
 
     <div v-else>
       <div>
-        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+        <b-form @submit.stop.prevent="onSubmit">
           <b-row class="mb-2">
             <b-col class="col-12">
               <small>
@@ -93,15 +93,21 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
-            language: this.$store.state.language,
+            email: this.$store.state.email,
+            locale: this.language,
           },
         })
         .then(() => {
+          this.$store.commit('language', this.language)
           this.cancelEdit()
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+
+    buildTagFromLanguageString() {
+      return 'languages.' + this.$store.state.language
     },
   },
 }
