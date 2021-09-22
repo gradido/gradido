@@ -12,13 +12,17 @@
             {{ $store.state.community.description }}, Location:
             {{ $store.state.community.location }}
           </b-card-text>
-          <b-button size="sm" to="/register">{{$t('community.continue-to-registration')}}</b-button>
+          <b-button size="sm" to="/register">
+            {{ $t('community.continue-to-registration') }}
+          </b-button>
         </b-card>
       </div>
 
       <hr />
       <div class="text-center py-lg-4">
-        <router-link to="/select-community" class="mt-3">{{$t('community.choose-another-aommunity')}}</router-link>
+        <router-link to="/select-community" class="mt-3">
+          {{ $t('community.choose-another-aommunity') }}
+        </router-link>
       </div>
 
       <hr />

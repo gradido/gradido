@@ -14,7 +14,9 @@
             {{ $store.state.community.description }}, Location:
             {{ $store.state.community.location }}
           </b-card-text>
-          <b-button size="sm" to="/register">{{ $t('community.continue-to-registration') }}</b-button>
+          <b-button size="sm" to="/register">
+            {{ $t('community.continue-to-registration') }}
+          </b-button>
         </b-card>
       </div>
 
@@ -28,10 +30,12 @@
           :header="community.name"
         >
           <b-card-text>beschreibung für community 1, Location:</b-card-text>
-          <b-button size="sm" :href="community.url">{{ $t('community.switch-to-this-community')}}</b-button>
+          <b-button size="sm" :href="community.url">
+            {{ $t('community.switch-to-this-community') }}
+          </b-button>
         </b-card>
       </div>
- 
+
       <hr />
       <div class="text-center py-lg-4">
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
@@ -40,16 +44,15 @@
   </div>
 </template>
 <script>
-import json from '/public/json-example/communitys.json'
+import MyCommunitys from '../../../public/json-example/communitys.json'
 
 export default {
   name: 'registerSelectCommunity',
   data() {
     return {
-      communitys: json,
+      communitys: MyCommunitys,
     }
   },
-  methods: {},
 }
 </script>
 <style></style>

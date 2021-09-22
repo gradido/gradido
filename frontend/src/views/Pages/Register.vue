@@ -1,21 +1,22 @@
 <template>
   <div id="registerform">
     <div class="justify-content-center container">
-        <b-card
-          bg-variant="info"
-          text-variant=""
-          :header="$store.state.community_name"
-          class="text-center"
-        >
-          <b-card-text>
-            {{ $store.state.community.description }}, Location:
-            {{ $store.state.community.location }}
-          </b-card-text>
-         
-        </b-card>
+      <b-card
+        bg-variant="info"
+        text-variant=""
+        :header="$store.state.community_name"
+        class="text-center"
+      >
+        <b-card-text>
+          {{ $store.state.community.description }}, Location:
+          {{ $store.state.community.location }}
+        </b-card-text>
+      </b-card>
     </div>
     <div class="text-center py-lg-4">
-       <router-link to="/select-community" class="mt-3">{{$t('community.choose-another-aommunity')}}</router-link>
+      <router-link to="/select-community" class="mt-3">
+        {{ $t('community.choose-another-aommunity') }}
+      </router-link>
     </div>
 
     <!-- Header -->
