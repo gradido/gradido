@@ -23,7 +23,7 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
-        <b-col class="col-12">{{ $t(buildLanguage()) }}</b-col>
+        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>
 
@@ -106,7 +106,7 @@ export default {
         })
     },
 
-    buildLanguage() {
+    buildTagFromLanguageString() {
       return 'languages.' + this.$store.state.language
     },
   },
