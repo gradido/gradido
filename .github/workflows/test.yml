@@ -423,9 +423,6 @@ jobs:
                  --health-timeout=5s
                  --health-retries=3
     steps:
-      - name: get mariadb container id
-        run: echo "::set-output name=id::$(docker container ls | grep mariadb | awk '{ print $1 }')"
-        id: mariadb_container
       - name: get automatic created network
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
