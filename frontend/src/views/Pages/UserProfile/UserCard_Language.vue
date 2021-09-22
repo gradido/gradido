@@ -93,6 +93,7 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
+            email: this.$store.email,
             language: this.$store.state.language,
           },
         })
