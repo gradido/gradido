@@ -413,22 +413,31 @@ jobs:
     needs: [build_test_community_server]
     services: 
       mariadb:
-        image: gradido/mariadb:test
+        image: mariadb/server:10.5
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
-       # ports: 
-        #  - 3306:3306
+           MARIADB_DATABASE: gradido_community_test
         options: --health-cmd="mysqladmin ping"
                  --health-interval=5s
                  --health-timeout=5s
                  --health-retries=3
+      database:
+        image: gradido/database:production_up
+        build:
+          context: ./database
+          target: production_up
+        depends_on:
+          - mariadb
+        networks:
+          - internal-net
+        environment:
+          - NODE_ENV="production"
+          - DB_HOST=mariadb
     steps:
       - name: get mariadb container id
         run: echo "::set-output name=id::$(docker container ls | grep mariadb | awk '{ print $1 }')"
         id: mariadb_container
-      - name: show networks
-        run: echo "$(docker network ls)"
       - name: get automatic created network
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
@@ -452,12 +461,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
-        
-      # for debugging login-server
-      - name: check login-server
-        run: docker logs ${{ steps.login_server_container.outputs.id }}
-      - name: check mariadb
-        run: docker logs ${{ steps.mariadb_container.outputs.id }}
       ##########################################################################
       # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
       ##########################################################################
