@@ -422,11 +422,6 @@ jobs:
                  --health-interval=5s
                  --health-timeout=5s
                  --health-retries=3
-      database:
-        image: gradido/database:production_up
-        env:
-           NODE_ENV: "production"
-           DB_HOST: mariadb
     steps:
       - name: get mariadb container id
         run: echo "::set-output name=id::$(docker container ls | grep mariadb | awk '{ print $1 }')"
