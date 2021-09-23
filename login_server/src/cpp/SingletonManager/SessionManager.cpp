@@ -46,7 +46,7 @@ bool SessionManager::init()
 		case VALIDATE_NAME: mValidations[i] = new Poco::RegularExpression("^[^<>&;]{2,}$"); break;
 		case VALIDATE_USERNAME: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z][a-zA-Z0-9_-]*$"); break;
 		case VALIDATE_EMAIL: mValidations[i] = new Poco::RegularExpression("^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"); break;
-		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&+-_])[A-Za-z0-9@$!%*?&+-_]{8,}$"); break;
+		case VALIDATE_PASSWORD: mValidations[i] = new Poco::RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$"); break;
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
 		case VALIDATE_GROUP_ALIAS: mValidations[i] = new Poco::RegularExpression("^[a-z0-9-]{3,120}"); break;
 		case VALIDATE_HEDERA_ID: mValidations[i] = new Poco::RegularExpression("^[0-9]*\.[0-9]*\.[0-9]\.$"); break;
@@ -56,7 +56,7 @@ bool SessionManager::init()
 		case VALIDATE_ONLY_HEX: mValidations[i] = new Poco::RegularExpression("^(0x)?[a-fA-F0-9]*$"); break;
 		//case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$"); break;
 		case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/?"); break;
-		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[@$!%*?&+-].*"); break;
+		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[^a-zA-Z0-9].*"); break;
 		case VALIDATE_HAS_UPPERCASE_LETTER:
 			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*");
 			ServerConfig::g_ServerKeySeed->put(i, DRRandom::r64());
@@ -601,7 +601,7 @@ bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList
 	if (!isValid(pwd, VALIDATE_PASSWORD)) {
 		errorReciver->addError(new Error(
 			lang->gettext("Password"),
-			lang->gettext("Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character (@$!%*?&+-_)!")));
+			lang->gettext("Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!")));
 
 		// @$!%*?&+-
 		if (pwd.size() < 8) {
@@ -627,7 +627,7 @@ bool SessionManager::checkPwdValidation(const std::string& pwd, NotificationList
 		else if (!isValid(pwd, VALIDATE_HAS_SPECIAL_CHARACTER)) {
 			errorReciver->addError(new Error(
 				lang->gettext("Password"),
-				lang->gettext("Your password does not contain special characters (@$!%*?&+-)!")));
+				lang->gettext("Your password does not contain special characters!")));
 		}
 
 		return false;
