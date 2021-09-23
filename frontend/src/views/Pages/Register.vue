@@ -141,7 +141,7 @@
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
-import { resgisterUserQuery } from '../../graphql/queries'
+import { registerUser } from '../../graphql/mutations'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
@@ -190,8 +190,8 @@ export default {
     },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: resgisterUserQuery,
+        .mutate({
+          mutation: registerUser,
           variables: {
             email: this.form.email,
             firstName: this.form.firstname,

@@ -46,7 +46,6 @@
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="loading ? 'default' : 'success'"
-                  @click="onSubmit"
                   type="submit"
                   class="mt-4"
                   :disabled="loading"
@@ -64,7 +63,7 @@
 <script>
 import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserLanguage',
@@ -88,24 +87,24 @@ export default {
     cancelEdit() {
       this.showLanguage = true
     },
-
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             locale: this.language,
           },
         })
         .then(() => {
+          this.$store.commit('language', this.language)
           this.$i18n.locale = this.language
-          this.$store.commit('language', this.$i18n.locale)
-          localeChanged(this.$i18n.locale)
+          localeChanged(this.language)
           this.cancelEdit()
           this.$toasted.success(this.$t('languages.success'))
         })
         .catch((error) => {
+          this.language = this.$store.state.language
           this.$toasted.error(error.message)
         })
     },

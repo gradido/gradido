@@ -14,7 +14,7 @@
 <script>
 import { localeChanged } from 'vee-validate'
 import locales from '../locales/'
-import { updateUserInfos } from '../graphql/queries'
+import { updateUserInfos } from '../graphql/mutations'
 
 export default {
   name: 'LanguageSwitch',
@@ -36,8 +36,8 @@ export default {
       this.setLocale(locale)
       if (this.$store.state.email) {
         this.$apollo
-          .query({
-            query: updateUserInfos,
+          .mutate({
+            mutation: updateUserInfos,
             variables: {
               email: this.$store.state.email,
               locale: locale,

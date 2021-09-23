@@ -32,7 +32,7 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserMail',
@@ -45,8 +45,8 @@ export default {
   methods: {
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             newEmail: this.newEmail,
