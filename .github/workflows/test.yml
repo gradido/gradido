@@ -417,7 +417,6 @@ jobs:
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
-           MARIADB_DATABASE: gradido_community_test
         options: --health-cmd="mysqladmin ping"
                  --health-interval=5s
                  --health-timeout=5s
