@@ -417,8 +417,6 @@ jobs:
         env:
            MARIADB_ALLOW_EMPTY_PASSWORD: 1
            MARIADB_USER: root
-       # ports: 
-        #  - 3306:3306
         options: --health-cmd="mysqladmin ping"
                  --health-interval=5s
                  --health-timeout=5s
@@ -427,11 +425,14 @@ jobs:
       - name: get mariadb container id
         run: echo "::set-output name=id::$(docker container ls | grep mariadb | awk '{ print $1 }')"
         id: mariadb_container
-      - name: show networks
-        run: echo "$(docker network ls)"
       - name: get automatic created network
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
+      - name: Start database migration
+        run: docker run --network ${{ steps.network.outputs.id }} --name=database -d gradido/database:production_up --env NODE_ENV=production --env DB_HOST=mariadb --target production_up
+      - name: get database migration container id
+        run: echo "::set-output name=id::$(docker container ls | grep database | awk '{ print $1 }')"
+        id: database_container
       - name: Start Login-Server
         run: docker run --network ${{ steps.network.outputs.id }} --name=login-server -d gradido/login_server:with-config
       - name: get login-server container id
@@ -452,12 +453,13 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
-        
       # for debugging login-server
       - name: check login-server
         run: docker logs ${{ steps.login_server_container.outputs.id }}
       - name: check mariadb
         run: docker logs ${{ steps.mariadb_container.outputs.id }}
+      - name: check migration
+        run: docker logs ${{ steps.database_container.outputs.id }}
       ##########################################################################
       # UNIT TESTS BACKEND COMMUNITY-SERVER  #######################################
       ##########################################################################
