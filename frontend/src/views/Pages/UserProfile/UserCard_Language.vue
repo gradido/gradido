@@ -46,7 +46,6 @@
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="loading ? 'default' : 'success'"
-                  @click="onSubmit"
                   type="submit"
                   class="mt-4"
                   :disabled="loading"
