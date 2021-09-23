@@ -20,10 +20,10 @@
           </div>
 
           <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
+            <div style="width: 47%" class="text-right pr-3 mr-2">
               <div v-if="!decay.decayStartBlock">{{ $t('decay.last_transaction') }}</div>
             </div>
-            <div style="width: 60%">
+            <div style="width: 53%">
               <div v-if="decay.decayStartBlock > 0">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
@@ -32,7 +32,7 @@
                 </div>
               </div>
               <div>
-                <span v-if="!decay.decayStart">
+                <span v-if="decay.decayStart">
                   {{ $d($moment.unix(decay.decayStart), 'long') }}
                   {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                 </span>
@@ -41,10 +41,10 @@
           </div>
 
           <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
+            <div style="width: 47%" class="text-right pr-3 mr-2">
               <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
             </div>
-            <div style="width: 60%">
+            <div style="width: 53%">
               <div v-if="decay.decayStartBlock > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
@@ -64,29 +64,31 @@
           </div>
           <div v-if="decay.balance > 0">
             <div class="d-flex">
-              <div style="width: 40%" class="text-right pr-3 mr-2">
-                <div v-if="type === 'send'">{{ $t('form.amount') }}</div>
-                <div v-if="type === 'receive'">{{ $t('form.amount') }}</div>
+              <div style="width: 47%" class="text-right pr-3 mr-2">
+                <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
+                <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
               </div>
-              <div style="width: 60%">
-                <div>{{ balance }}</div>
+              <div style="width: 53%">
+                <div v-if="type === 'send'">- {{ balance }}</div>
+                <div v-if="type === 'receive'">+ {{ balance }}</div>
               </div>
             </div>
             <div class="d-flex">
-              <div style="width: 40%" class="text-right pr-3 mr-2">
+              <div style="width: 47%" class="text-right pr-3 mr-2">
                 <div>{{ $t('decay.decay') }}</div>
               </div>
-              <div style="width: 60%">
-                <div>{{ decay.balance }}</div>
+              <div style="width: 53%">
+                <div>- {{ decay.balance }}</div>
               </div>
             </div>
+            <hr class="mt-2 mb-2" />
             <div class="d-flex">
-              <div style="width: 40%" class="text-right pr-3 mr-2">
+              <div style="width: 47%" class="text-right pr-3 mr-2">
                 <div>{{ $t('decay.total') }}</div>
               </div>
-              <div style="width: 60%">
+              <div style="width: 53%">
                 <div v-if="type === 'send'">
-                  <b>{{ parseInt(balance) + decay.balance }}</b>
+                  <b>- {{ parseInt(balance) + decay.balance }}</b>
                 </div>
                 <div v-if="type === 'receive'">
                   <b>{{ parseInt(balance) - decay.balance }}</b>
@@ -103,7 +105,7 @@
 export default {
   name: 'DecayInformation',
   props: {
-    balance: { type: String, default: '' },
+    balance: { type: Number },
     type: { type: String, default: '' },
     decay: {
       balance: '',
