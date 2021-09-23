@@ -56,17 +56,17 @@
             {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </div>
         </b-row>
-      </div>
 
-      <!-- collaps trancaction info-->
-      <b-collapse :id="'a' + date + ''" class="pb-4">
-        <transaction-collapse
-          :amount="amount"
-          :gdtEntryType="gdtEntryType"
-          :factor="factor"
-          :gdt="gdt"
-        ></transaction-collapse>
-      </b-collapse>
+        <!-- collaps trancaction info-->
+        <b-collapse :id="'a' + date + ''" class="mt-2 pb-4">
+          <transaction-collapse
+            :amount="amount"
+            :gdtEntryType="gdtEntryType"
+            :factor="factor"
+            :gdt="gdt"
+          ></transaction-collapse>
+        </b-collapse>
+      </div>
     </div>
   </div>
 </template>

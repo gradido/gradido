@@ -1,8 +1,11 @@
 <template>
-  <div class="gdt-transaction-collapse">
+  <div
+    class="gdt-transaction-collapse p-2 pt-4 pb-4 mb-4"
+    style="border: 0px; background-color: #f1f1f1"
+  >
     <b-row class="gdt-list-collapse-header-text text-center pb-3">
-      <div id="collapse-headline" class="col h4">
-        {{ getLinesByType(gdtEntryType).headline }}
+      <div id="collapse-headline" class="col">
+        <b>{{ getLinesByType(gdtEntryType).headline }}</b>
       </div>
     </b-row>
     <b-row class="gdt-list-collapse-box--all">
