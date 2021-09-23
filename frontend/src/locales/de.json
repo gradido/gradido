@@ -1,7 +1,7 @@
 {
   "back": "Zurück",
   "community": {
-    "choose-another-aommunity":"Eine andere Gemeinschaft auswählen",
+    "choose-another-aommunity": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "communitys": {
       "form": {
@@ -12,11 +12,11 @@
         "submit": "Einreichen"
       }
     },
-    "continue-to-registration":"weiter zur Registrierung",
-    "current-community":"Aktuelle Gemeinschaft",
-    "other-communities":"weitere Gemeinschaften",
-    "switch-to-this-community":"zu dieser Gemeinschaft wechseln"
-  }, 
+    "continue-to-registration": "weiter zur Registrierung",
+    "current-community": "Aktuelle Gemeinschaft",
+    "other-communities": "weitere Gemeinschaften",
+    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
+  },
   "decay": {
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "created": "Geschöpft",
@@ -24,7 +24,7 @@
     "decay": "Vergänglichkeit",
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde Eingeführt am ",
-    "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",    
+    "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
     "minutes": "Minuten",
@@ -35,7 +35,7 @@
     "seconds": "Sekunden",
     "sent": "Gesendet",
     "since_introduction": "seit Einführung der Vergänglichkeit",
-    "Starting_block_decay": "Startblock Vergänglichkeit",    
+    "Starting_block_decay": "Startblock Vergänglichkeit",
     "year": "Jahre"
   },
   "error": {
