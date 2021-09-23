@@ -2,7 +2,7 @@
   <b-card
     id="formusercoinanimation"
     class="bg-transparent"
-    style="background-color: #ebebeba3 !important;  border-radius: 0px"
+    style="background-color: #ebebeba3 !important; border-radius: 0px"
   >
     <div>
       <b-row class="mb-3">
