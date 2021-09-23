@@ -44,7 +44,7 @@ export const updateUserInfos = gql`
   }
 `
 
-export const resgisterUser = gql`
+export const registerUser = gql`
   mutation(
     $firstName: String!
     $lastName: String!
