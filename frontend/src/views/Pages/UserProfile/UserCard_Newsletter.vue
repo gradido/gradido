@@ -2,7 +2,7 @@
   <b-card
     id="formusernewsletter"
     class="bg-transparent"
-    style="background-color: #ebebeba3 !important"
+    style="background-color: #ebebeba3 !important; border-radius: 0px"
   >
     <div>
       <b-row class="mb-3">

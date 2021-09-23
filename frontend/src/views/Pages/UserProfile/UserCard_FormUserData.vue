@@ -1,5 +1,9 @@
 <template>
-  <b-card id="userdata_form" class="bg-transparent" style="background-color: #ebebeba3 !important">
+  <b-card
+    id="userdata_form"
+    class="bg-transparent"
+    style="background-color: #ebebeba3 !important; border-radius: 0px"
+  >
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
