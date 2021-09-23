@@ -65,7 +65,6 @@
 import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
 import { updateUserInfos } from '../../../graphql/mutations'
-import { localeChanged } from 'vee-validate'
 
 export default {
   name: 'FormUserLanguage',
