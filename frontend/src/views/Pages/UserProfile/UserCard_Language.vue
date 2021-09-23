@@ -23,7 +23,7 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
-        <b-col class="col-12">{{ $store.state.language }}</b-col>
+        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>
 
@@ -62,6 +62,7 @@
   </b-card>
 </template>
 <script>
+import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
 import { updateUserInfos } from '../../../graphql/mutations'
 import { localeChanged } from 'vee-validate'
@@ -102,11 +103,16 @@ export default {
           this.$i18n.locale = this.language
           localeChanged(this.language)
           this.cancelEdit()
+          this.$toasted.success(this.$t('languages.success'))
         })
         .catch((error) => {
           this.language = this.$store.state.language
           this.$toasted.error(error.message)
         })
+    },
+
+    buildTagFromLanguageString() {
+      return 'languages.' + this.$store.state.language
     },
   },
 }

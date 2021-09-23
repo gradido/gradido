@@ -105,7 +105,8 @@
   "language": "Sprache",
   "languages": {
     "de": "Deutsch",
-    "en": "English"
+    "en": "English",
+    "success": "Deine Sprache wurde erfolgreich geändert."
   },
   "login": "Anmeldung",
   "logout": "Abmelden",

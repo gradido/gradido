@@ -105,7 +105,8 @@
   "language": "Language",
   "languages": {
     "de": "Deutsch",
-    "en": "English"
+    "en": "English",
+    "success": "Your language has been successfully updated."
   },
   "login": "Login",
   "logout": "Logout",

@@ -15,6 +15,13 @@
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
             App version {{ version }}
           </a>
+          <a
+            v-if="hash"
+            :href="'https://github.com/gradido/gradido/commit/' + hash"
+            target="_blank"
+          >
+            ({{ shortHash }})
+          </a>
         </div>
       </b-col>
     </b-row>
@@ -59,6 +66,8 @@ export default {
     return {
       year: new Date().getFullYear(),
       version: CONFIG.APP_VERSION,
+      hash: CONFIG.BUILD_COMMIT,
+      shortHash: CONFIG.BUILD_COMMIT_SHORT,
     }
   },
 }
