@@ -5,7 +5,7 @@ import Register from './Register'
 
 const localVue = global.localVue
 
-const resgisterUserMutationMock = jest.fn()
+const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
 
 describe('Register', () => {
@@ -20,7 +20,7 @@ describe('Register', () => {
       push: routerPushMock,
     },
     $apollo: {
-      mutate: resgisterUserMutationMock,
+      mutate: registerUserMutationMock,
     },
     $store: {
       state: {
@@ -193,7 +193,7 @@ describe('Register', () => {
 
       describe('server sends back error', () => {
         beforeEach(async () => {
-          resgisterUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
+          registerUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
         })
@@ -218,7 +218,7 @@ describe('Register', () => {
 
       describe('server sends back success', () => {
         beforeEach(() => {
-          resgisterUserMutationMock.mockResolvedValue({
+          registerUserMutationMock.mockResolvedValue({
             data: {
               create: 'success',
             },
@@ -228,7 +228,7 @@ describe('Register', () => {
         it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
-          expect(resgisterUserMutationMock).toBeCalledWith(
+          expect(registerUserMutationMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'max.mustermann@gradido.net',
