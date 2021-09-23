@@ -96,7 +96,7 @@ class TransactionTransfer extends TransactionBase {
         $user = $stateUsersTable
                   ->find('all')
                   ->select(['id'])
-                  ->where(['pubkey' => $senderPublic])
+                  ->where(['public_key' => $senderPublic])
                   ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
         if(!$user) {
           $this->addError($functionName, 'couldn\'t find sender in db' );
@@ -114,7 +114,7 @@ class TransactionTransfer extends TransactionBase {
           return false;
         }
         // check if receiver exist
-        $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['pubkey' => $receiver_public_key])->first();
+        $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
         if(!$receiver_user) {
             $this->addError($functionName, 'couldn\'t find receiver in db' );
             return false;

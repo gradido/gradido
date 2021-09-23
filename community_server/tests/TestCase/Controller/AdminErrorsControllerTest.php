@@ -21,7 +21,7 @@ class AdminErrorsControllerTest extends TestCase
      */
     public $fixtures = [
         'app.AdminErrors',
-        'app.User'
+        'app.StateUsers'
     ];
 
     /**

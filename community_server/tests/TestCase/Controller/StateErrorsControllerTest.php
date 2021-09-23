@@ -21,7 +21,7 @@ class StateErrorsControllerTest extends TestCase
      */
     public $fixtures = [
         'app.StateErrors',
-        'app.User',
+        'app.StateUsers',
         'app.TransactionTypes'
     ];
 

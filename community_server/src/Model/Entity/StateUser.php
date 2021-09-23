@@ -30,14 +30,16 @@ class StateUser extends Entity
      * @var array
      */
     protected $_accessible = [
-        'groupId' => true,
-        'pubkey' => true,
+        'index_id' => true,
+        'state_group_id' => true,
+        'public_key' => true,
         'email' => true,
-        'firstName' => true,
-        'lastName' => true,
+        'first_name' => true,
+        'last_name' => true,
         'disabled' => true,
         'username' => true,
         'index' => true,
+        'state_group' => true,
         'state_balances' => true,
         'state_created' => true,
         'transaction_creations' => true,
@@ -46,11 +48,11 @@ class StateUser extends Entity
 
     public function getEmailWithName()
     {
-        return $this->firstName . ' ' . $this->lastName . ' <' . $this->email . '>';
+        return $this->first_name . ' ' . $this->last_name . ' <' . $this->email . '>';
     }
 
     public function getNames()
     {
-        return $this->firstName . ' ' . $this->lastName;
+        return $this->first_name . ' ' . $this->last_name;
     }
 }
