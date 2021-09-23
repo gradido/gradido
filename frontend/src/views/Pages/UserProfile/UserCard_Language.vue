@@ -95,7 +95,7 @@ export default {
           mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
-            language: this.language,
+            locale: this.language,
           },
         })
         .then(() => {
