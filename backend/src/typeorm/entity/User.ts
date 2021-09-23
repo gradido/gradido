@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 // import { Group } from "./Group"
-@Entity()
+@Entity('state_users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
@@ -9,16 +9,16 @@ export class User extends BaseEntity {
   //   @ManyToOne(type => Group, group => group.users)
   //    group: Group;
 
-  @Column({ type: 'binary', length: 32 })
+  @Column({ type: 'binary', length: 32, name: 'public_key' })
   pubkey: Buffer
 
   @Column()
   email: string
 
-  @Column()
+  @Column({ name: 'first_name' })
   firstName: string
 
-  @Column()
+  @Column({ name: 'last_name' })
   lastName: string
 
   @Column()
