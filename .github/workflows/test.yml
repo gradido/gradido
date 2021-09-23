@@ -429,7 +429,7 @@ jobs:
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start database migration
-        run: docker run --network ${{ steps.network.outputs.id }} --name=database -d gradido/database:production_up --env NODE_ENV=production --env DB_HOST=mariadb --target production_up
+        run: docker run --network ${{ steps.network.outputs.id }} --name=database --env NODE_ENV=production --env DB_HOST=mariadb -d gradido/database:production_up
       - name: get database migration container id
         run: echo "::set-output name=id::$(docker container ls | grep database | awk '{ print $1 }')"
         id: database_container
