@@ -36,7 +36,8 @@
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
     "error": "Fehler",
-    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!"
+    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
+    "session-expired": "Sitzung abgelaufen!"
   },
   "form": {
     "amount": "Betrag",
