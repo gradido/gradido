@@ -6,7 +6,7 @@ import CONFIG from '../../config'
 import { GdtEntryList } from '../models/GdtEntryList'
 import { GdtTransactionSessionIdInput } from '../inputs/GdtInputs'
 import { apiGet } from '../../apis/HttpRequest'
-import { User as tUser } from '../../typeorm/entity/User'
+import { User as dbUser } from '../../typeorm/entity/User'
 
 @Resolver()
 export class GdtResolver {
@@ -23,7 +23,7 @@ export class GdtResolver {
     if (!result.success) throw new Error(result.data)
 
     // load user
-    const userEntity = await tUser.findByPubkeyHex(result.data.user.public_hex)
+    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
 
     const resultGDT = await apiGet(
       `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
