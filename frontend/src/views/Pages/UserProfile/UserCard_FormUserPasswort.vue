@@ -1,9 +1,5 @@
 <template>
-  <b-card
-    id="change_pwd"
-    class="bg-transparent"
-    style="background-color: #ebebeba3 !important; border-radius: 0px 5px 5px 0px; border: 0px"
-  >
+  <b-card id="change_pwd" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
