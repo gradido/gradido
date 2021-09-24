@@ -2,7 +2,6 @@
 
 import 'reflect-metadata'
 import express from 'express'
-import cors from 'cors'
 import { ApolloServer } from 'apollo-server-express'
 
 // config
@@ -12,26 +11,18 @@ import CONFIG from './config'
 import connection from './typeorm/connection'
 import getDBVersion from './typeorm/getDBVersion'
 
+// server
+import cors from './server/cors'
+import context from './server/context'
+import plugins from './server/plugins'
+
 // graphql
-import { schema } from './graphql'
+import schema from './graphql/schema'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 const DB_VERSION = '0001-init_db'
-
-const context = (args: any) => {
-  const authorization = args.req.headers.authorization
-  let token = null
-  if (authorization) {
-    token = authorization.replace(/^Bearer /, '')
-  }
-  const context = {
-    token,
-    setHeaders: [],
-  }
-  return context
-}
 
 async function main() {
   // open mysql connection
@@ -53,28 +44,8 @@ async function main() {
   // Express Server
   const server = express()
 
-  const corsOptions = {
-    origin: '*',
-    exposedHeaders: ['token'],
-  }
-
-  server.use(cors(corsOptions))
-
-  const plugins = [
-    {
-      requestDidStart() {
-        return {
-          willSendResponse(requestContext: any) {
-            const { setHeaders = [] } = requestContext.context
-            setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
-              requestContext.response.http.headers.append(key, value)
-            })
-            return requestContext
-          },
-        }
-      },
-    },
-  ]
+  // cors
+  server.use(cors)
 
   // Apollo Server
   const apollo = new ApolloServer({

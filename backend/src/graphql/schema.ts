@@ -11,4 +11,4 @@ const schema = async (): Promise<GraphQLSchema> => {
   })
 }
 
-export { schema }
+export default schema
