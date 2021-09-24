@@ -26,10 +26,7 @@ const DB_VERSION = '0001-init_db'
 
 async function main() {
   // open mysql connection
-  let con = null
-  try {
-    con = await connection()
-  } catch (error) {}
+  const con = await connection()
   if (!con || !con.isConnected) {
     throw new Error(`Couldn't open connection to database`)
   }
