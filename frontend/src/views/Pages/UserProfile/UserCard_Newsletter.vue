@@ -1,11 +1,7 @@
 <template>
   <b-card
     id="formusernewsletter"
-    style="
-      background-color: #ebebeba3 !important;
-      border-radius: 0px 5px 5px 0px;
-      border: 0px;
-    "
+    style="background-color: #ebebeba3 !important; border-radius: 0px 5px 5px 0px; border: 0px"
   >
     <div>
       <b-row class="mb-3">
