@@ -1,5 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
-import { UserTransaction } from './UserTransaction'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 // import { Group } from "./Group"
 
