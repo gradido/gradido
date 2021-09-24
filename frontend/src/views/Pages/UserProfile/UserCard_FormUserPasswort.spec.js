@@ -25,7 +25,7 @@ describe('UserCard_FormUserPasswort', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: changePasswordProfileMock,
+      mutate: changePasswordProfileMock,
     },
   }
 

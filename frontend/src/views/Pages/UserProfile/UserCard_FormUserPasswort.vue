@@ -42,7 +42,7 @@
 <script>
 import InputPassword from '../../../components/Inputs/InputPassword'
 import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserPasswort',
@@ -73,8 +73,8 @@ export default {
     },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             password: this.form.password,

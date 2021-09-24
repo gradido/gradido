@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware } from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
@@ -66,8 +66,8 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => String)
-  async create(
+  @Mutation(() => String)
+  async createUser(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
     const payload = {
@@ -104,7 +104,7 @@ export class UserResolver {
     return new SendPasswordResetEmailResponse(response.data)
   }
 
-  @Query(() => String)
+  @Mutation(() => String)
   async resetPassword(
     @Args()
     { sessionId, email, password }: ChangePasswordArgs,
@@ -122,7 +122,7 @@ export class UserResolver {
   }
 
   @Authorized()
-  @Query(() => UpdateUserInfosResponse)
+  @Mutation(() => UpdateUserInfosResponse)
   async updateUserInfos(
     @Args()
     {
