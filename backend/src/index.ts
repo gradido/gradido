@@ -6,18 +6,17 @@ import cors from 'cors'
 import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
 
+// config
 import CONFIG from './config'
 
+// database
 import connection from './typeorm/connection'
 import getDBVersion from './typeorm/getDBVersion'
 
-// TODO move to extern
-import { UserResolver } from './graphql/resolvers/UserResolver'
-import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
-import { GdtResolver } from './graphql/resolvers/GdtResolver'
-import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
-import { KlicktippResolver } from './graphql/resolvers/KlicktippResolver'
+// graphql
+import resolvers from './graphql/resolvers'
 
+// auth
 import { isAuthorized } from './auth/auth'
 
 // TODO implement
@@ -56,7 +55,7 @@ async function main() {
   }
 
   const schema = await buildSchema({
-    resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver, KlicktippResolver],
+    resolvers: resolvers(),
     authChecker: isAuthorized,
   })
 
