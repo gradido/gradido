@@ -19,8 +19,6 @@
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde Eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
-    "formula_total_received": "(Empfangen minus Vergänglichkeit)",
-    "formula_total_sent": "(Gesendet plus Vergänglichkeit)",
     "fromCommunity": "Aus der Gemeinschaft",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",

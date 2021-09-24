@@ -113,13 +113,6 @@
                 </div>
               </b-col>
             </b-row>
-
-            <b-row>
-              <b-col class="text-center pt-3 pb-2">
-                <small v-if="type === 'send'">{{ $t('decay.formula_total_sent') }}</small>
-                <small v-if="type === 'receive'">{{ $t('decay.formula_total_received') }}</small>
-              </b-col>
-            </b-row>
           </div>
         </b-list-group-item>
       </b-list-group>

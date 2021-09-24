@@ -19,8 +19,6 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was Introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
-    "formula_total_received": "(Received minus decay)",
-    "formula_total_sent": "(Sent plus decay)",
     "fromCommunity": "From the community",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
