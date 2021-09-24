@@ -19,42 +19,42 @@
 
         <!-- type  -->
         <b-row>
-          <div class="col-6 text-right">
+          <b-col col="6" class="text-right">
             {{ getLinesByType(gdtEntryType).description }}
-          </div>
-          <div class="col-6">
+          </b-col>
+          <b-col col="6">
             {{ getLinesByType(gdtEntryType).descriptiontext }}
-          </div>
+          </b-col>
         </b-row>
 
         <!-- credit -->
         <b-row>
-          <div class="col-6 text-right">
+          <b-col col="6" class="text-right">
             {{ $t('gdt.credit') }}
-          </div>
-          <div class="col-6">
+          </b-col>
+          <b-col col="6">
             {{ getLinesByType(gdtEntryType).credittext }}
-          </div>
+          </b-col>
         </b-row>
 
         <!-- Message-->
         <b-row v-if="comment && gdtEntryType !== 7">
-          <div class="col-6 text-right">
+          <b-col col="6" class="text-right">
             {{ $t('form.memo') }}
-          </div>
-          <div class="col-6">
+          </b-col>
+          <b-col col="6">
             {{ comment }}
-          </div>
+          </b-col>
         </b-row>
 
         <!-- date-->
         <b-row class="gdt-list-row text-header">
-          <div class="col-6 text-right">
+          <b-col col="6" class="text-right">
             {{ $t('form.date') }}
-          </div>
-          <div class="col-6">
+          </b-col>
+          <b-col col="6">
             {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-          </div>
+          </b-col>
         </b-row>
 
         <!-- collaps trancaction info-->
