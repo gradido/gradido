@@ -21,10 +21,10 @@
 
           <b-row>
             <b-col col="6" class="text-right">
-               <div v-if="!decay.decayStartBlock">{{ $t('decay.last_transaction') }}</div>
+              <div v-if="!decay.decayStartBlock">{{ $t('decay.last_transaction') }}</div>
             </b-col>
             <b-col col="6">
-                <div v-if="decay.decayStartBlock > 0">
+              <div v-if="decay.decayStartBlock > 0">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
                   {{ $t('decay.decay_introduced') }} :
@@ -45,7 +45,7 @@
               <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
             </b-col>
             <b-col col="6">
-                <div v-if="decay.decayStartBlock > 0">{{ $t('decay.since_introduction') }}</div>
+              <div v-if="decay.decayStartBlock > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
                 <span v-if="duration.months > 0">
@@ -62,7 +62,7 @@
               </span>
             </b-col>
           </b-row>
-          
+
           <div v-if="decay.balance > 0">
             <!-- Decay-->
             <b-row>
@@ -73,10 +73,10 @@
                 <div>- {{ decay.balance }}</div>
               </b-col>
             </b-row>
-<hr class="mt-2 mb-2" />
+            <hr class="mt-2 mb-2" />
             <b-row>
               <b-col class="text-center pt-3 pb-2">
-                <b>Berechnung der Gesamtsumme </b>                
+                <b>{{ $t('decay.calculation_total') }}</b>
               </b-col>
             </b-row>
             <!-- Type-->
@@ -90,11 +90,19 @@
                 <div v-if="type === 'receive'">+ {{ balance }}</div>
               </b-col>
             </b-row>
-            
+            <!-- Decay-->
+            <b-row>
+              <b-col col="6" class="text-right">
+                <div>{{ $t('decay.decay') }}</div>
+              </b-col>
+              <b-col col="6">
+                <div>- {{ decay.balance }}</div>
+              </b-col>
+            </b-row>
             <!-- Total-->
             <b-row>
               <b-col col="6" class="text-right">
-                 <div>{{ $t('decay.total') }}</div>
+                <div>{{ $t('decay.total') }}</div>
               </b-col>
               <b-col col="6">
                 <div v-if="type === 'send'">
@@ -105,16 +113,14 @@
                 </div>
               </b-col>
             </b-row>
-           
+
             <b-row>
               <b-col class="text-center pt-3 pb-2">
-                 <small v-if="type === 'send'">(Vergänglichkeit plus Gesendet)</small>
-                <small v-if="type === 'receive'">(Vergänglichkeit minus Empfangen)</small>              
+                <small v-if="type === 'send'">{{ $t('decay.formula_total_sent') }}</small>
+                <small v-if="type === 'receive'">{{ $t('decay.formula_total_received') }}</small>
               </b-col>
             </b-row>
-             
-               
-          </div> 
+          </div>
         </b-list-group-item>
       </b-list-group>
     </div>
