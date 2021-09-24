@@ -1,6 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Timestamp, ManyToOne } from 'typeorm'
-import { User } from './User'
-
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Timestamp } from 'typeorm'
 
 @Entity('state_user_transactions')
 export class UserTransaction extends BaseEntity {
@@ -21,15 +19,18 @@ export class UserTransaction extends BaseEntity {
 
   @Column({ name: 'balance_date', type: 'timestamp' })
   balanceDate: Timestamp
-  
-  static findByUserPaged(userId: number, limit: number, offset: number, order: "ASC" | "DESC")
-            :Promise<[UserTransaction[], number]>
-  {
+
+  static findByUserPaged(
+    userId: number,
+    limit: number,
+    offset: number,
+    order: 'ASC' | 'DESC',
+  ): Promise<[UserTransaction[], number]> {
     return this.createQueryBuilder('userTransaction')
-        .where('userTransaction.userId = :userId', { userId })
-        .orderBy('userTransaction.balanceDate', order)
-        .limit(limit)
-        .offset(offset)
-        .getManyAndCount()
+      .where('userTransaction.userId = :userId', { userId })
+      .orderBy('userTransaction.balanceDate', order)
+      .limit(limit)
+      .offset(offset)
+      .getManyAndCount()
   }
 }

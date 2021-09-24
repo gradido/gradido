@@ -6,8 +6,8 @@ import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
 import { apiGet, apiPost } from '../../apis/HttpRequest'
-import { User } from '../../typeorm/entity/User'
-import { Balance } from '../../typeorm/entity/Balance'
+import { User as dbUser } from '../../typeorm/entity/User'
+import { Balance as dbBalance } from '../../typeorm/entity/Balance'
 import listTransactions from './listTransactions'
 import { roundFloorFrom4 } from '../../util/round'
 import calculateDecay from '../../util/decay'
@@ -25,24 +25,26 @@ export class TransactionResolver {
     if (!result.success) throw new Error(result.data)
 
     // load user
-    const userEntity = await User.findByPubkeyHex(result.data.user.public_hex)
+    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
 
     const transactions = await listTransactions(firstPage, items, order, userEntity)
 
-    // get gdt sum 
-    const resultGDTSum = await apiPost(
-      `${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {email: userEntity.email}
-    )
+    // get gdt sum
+    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+      email: userEntity.email,
+    })
     if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
     transactions.gdtSum = resultGDTSum.data.sum
 
     // get balance
-    const balanceEntity = await Balance.findByUser(userEntity.id)
+    const balanceEntity = await dbBalance.findByUser(userEntity.id)
     const now = new Date()
     transactions.balance = roundFloorFrom4(balanceEntity.amount)
-    transactions.decay = roundFloorFrom4(calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now))
+    transactions.decay = roundFloorFrom4(
+      calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+    )
     transactions.decayDate = now.toString()
-    
+
     return transactions
   }
 
