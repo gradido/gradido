@@ -1,6 +1,5 @@
 name: gradido test CI
 
-
 on: [push]
 
 jobs:
