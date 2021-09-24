@@ -10,18 +10,22 @@ import { Decay } from './Decay'
 
 @ObjectType()
 export class Transaction {
-  constructor(json: any) {
-    this.type = json.type
-    this.balance = Number(json.balance)
-    this.decayStart = json.decay_start
-    this.decayEnd = json.decay_end
-    this.decayDuration = json.decay_duration
-    this.memo = json.memo
-    this.transactionId = json.transaction_id
-    this.name = json.name
-    this.email = json.email
-    this.date = json.date
-    this.decay = json.decay ? new Decay(json.decay) : undefined
+  constructor()
+  constructor(json: any)
+  constructor(json?: any) {
+    if(json) {
+      this.type = json.type
+      this.balance = Number(json.balance)
+      this.decayStart = json.decay_start
+      this.decayEnd = json.decay_end
+      this.decayDuration = json.decay_duration
+      this.memo = json.memo
+      this.transactionId = json.transaction_id
+      this.name = json.name
+      this.email = json.email
+      this.date = json.date
+      this.decay = json.decay ? new Decay(json.decay) : undefined
+    } 
   }
 
   @Field(() => String)
