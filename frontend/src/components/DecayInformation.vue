@@ -39,7 +39,6 @@
               </div>
             </b-col>
           </b-row>
-
           <b-row>
             <b-col col="6" class="text-right">
               <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
