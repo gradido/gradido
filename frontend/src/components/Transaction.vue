@@ -19,40 +19,40 @@
 
         <!-- type  -->
         <b-row>
-          <b-col col="6" class="text-right">
+          <b-col cols="6" class="text-right">
             {{ getLinesByType(gdtEntryType).description }}
           </b-col>
-          <b-col col="6">
+          <b-col cols="6">
             {{ getLinesByType(gdtEntryType).descriptiontext }}
           </b-col>
         </b-row>
 
         <!-- credit -->
         <b-row>
-          <b-col col="6" class="text-right">
+          <b-col cols="6" class="text-right">
             {{ $t('gdt.credit') }}
           </b-col>
-          <b-col col="6">
+          <b-col cols="6">
             {{ getLinesByType(gdtEntryType).credittext }}
           </b-col>
         </b-row>
 
         <!-- Message-->
         <b-row v-if="comment && gdtEntryType !== 7">
-          <b-col col="6" class="text-right">
+          <b-col cols="6" class="text-right">
             {{ $t('form.memo') }}
           </b-col>
-          <b-col col="6">
+          <b-col cols="6">
             {{ comment }}
           </b-col>
         </b-row>
 
         <!-- date-->
         <b-row class="gdt-list-row text-header">
-          <b-col col="6" class="text-right">
+          <b-col cols="6" class="text-right">
             {{ $t('form.date') }}
           </b-col>
-          <b-col col="6">
+          <b-col cols="6">
             {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </b-col>
         </b-row>

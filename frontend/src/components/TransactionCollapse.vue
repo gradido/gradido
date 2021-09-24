@@ -4,21 +4,21 @@
     style="border: 0px; background-color: #f1f1f1"
   >
     <b-row class="gdt-list-collapse-header-text text-center pb-3">
-      <div id="collapse-headline" class="col">
+      <b-col id="collapse-headline">
         <b>{{ getLinesByType(gdtEntryType).headline }}</b>
-      </div>
+      </b-col>
     </b-row>
     <b-row class="gdt-list-collapse-box--all">
-      <div class="col-6 text-right collapse-col-left">
+      <b-col cols="6" class="text-right collapse-col-left">
         <div id="collapse-first">{{ getLinesByType(gdtEntryType).first }}</div>
         <div id="collapse-second">{{ getLinesByType(gdtEntryType).second }}</div>
-      </div>
-      <div class="col-6 collapse-col-right">
+      </b-col>
+      <b-col cols="6" class="collapse-col-right">
         <div id="collapse-firstMath">{{ getLinesByType(gdtEntryType).firstMath }}</div>
         <div id="collapse-secondMath">
           {{ getLinesByType(gdtEntryType).secondMath }}
         </div>
-      </div>
+      </b-col>
     </b-row>
   </div>
 </template>
@@ -33,6 +33,8 @@ export default {
   },
   methods: {
     getLinesByType(givenType) {
+      if (givenType === 2 || givenType === 3 || givenType === 5 || givenType === 6) givenType = 1
+
       const linesByType = {
         1: {
           headline: this.$t('gdt.calculation'),
