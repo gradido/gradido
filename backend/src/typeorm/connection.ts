@@ -15,8 +15,6 @@ const connection = async (): Promise<Connection> => {
     synchronize: false,
   })
 
-  // await con.connect()
-
   return con
 }
 

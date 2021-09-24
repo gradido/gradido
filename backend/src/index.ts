@@ -23,7 +23,7 @@ import { isAuthorized } from './auth/auth'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-const DB_VERSION = '0002-update_user'
+const DB_VERSION = '0001-init_db'
 
 const context = (args: any) => {
   const authorization = args.req.headers.authorization

@@ -23,13 +23,13 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
-        <b-col class="col-12">{{ $store.state.language }}</b-col>
+        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>
 
     <div v-else>
       <div>
-        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+        <b-form @submit.stop.prevent="onSubmit">
           <b-row class="mb-2">
             <b-col class="col-12">
               <small>
@@ -62,6 +62,7 @@
   </b-card>
 </template>
 <script>
+import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
 import { updateUserInfos } from '../../../graphql/queries'
 
@@ -93,15 +94,24 @@ export default {
         .query({
           query: updateUserInfos,
           variables: {
-            language: this.$store.state.language,
+            email: this.$store.state.email,
+            locale: this.language,
           },
         })
         .then(() => {
+          this.$i18n.locale = this.language
+          this.$store.commit('language', this.$i18n.locale)
+          localeChanged(this.$i18n.locale)
           this.cancelEdit()
+          this.$toasted.success(this.$t('languages.success'))
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+
+    buildTagFromLanguageString() {
+      return 'languages.' + this.$store.state.language
     },
   },
 }

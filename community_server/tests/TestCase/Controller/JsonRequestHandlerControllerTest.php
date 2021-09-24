@@ -21,7 +21,7 @@ class JsonRequestHandlerControllerTest extends TestCase
     public $fixtures = [
         'app.TransactionCreations',
         'app.Transactions',
-        'app.User',
+        'app.StateUsers',
         'app.StateUserTransactions',
         'app.StateErrors',
         'app.TransactionSignatures',
