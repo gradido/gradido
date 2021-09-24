@@ -3,7 +3,6 @@
 import 'reflect-metadata'
 import express from 'express'
 import cors from 'cors'
-import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
 
 // config
@@ -14,10 +13,7 @@ import connection from './typeorm/connection'
 import getDBVersion from './typeorm/getDBVersion'
 
 // graphql
-import resolvers from './graphql/resolvers'
-
-// auth
-import { isAuthorized } from './auth/auth'
+import { schema } from './graphql'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -54,14 +50,6 @@ async function main() {
     )
   }
 
-  const schema = await buildSchema({
-    resolvers: resolvers(),
-    authChecker: isAuthorized,
-  })
-
-  // Graphiql interface
-  const playground = CONFIG.GRAPHIQL
-
   // Express Server
   const server = express()
 
@@ -89,7 +77,12 @@ async function main() {
   ]
 
   // Apollo Server
-  const apollo = new ApolloServer({ schema, playground, context, plugins })
+  const apollo = new ApolloServer({
+    schema: await schema(),
+    playground: CONFIG.GRAPHIQL,
+    context,
+    plugins,
+  })
   apollo.applyMiddleware({ app: server })
 
   // Start Server
