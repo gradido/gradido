@@ -6,6 +6,7 @@ import CONFIG from '../../config'
 import { GdtEntryList } from '../models/GdtEntryList'
 import { GdtTransactionSessionIdInput } from '../inputs/GdtInputs'
 import { apiGet } from '../../apis/HttpRequest'
+import { User as tUser } from '../../typeorm/entity/User'
 
 @Resolver()
 export class GdtResolver {
@@ -17,13 +18,20 @@ export class GdtResolver {
     { currentPage = 1, pageSize = 5, order = 'DESC' }: GdtTransactionSessionIdInput,
     @Ctx() context: any,
   ): Promise<GdtEntryList> {
-    const result = await apiGet(
-      `${CONFIG.COMMUNITY_API_URL}listGDTTransactions/${currentPage}/${pageSize}/${order}/${context.sessionId}`,
+    // get public key for current logged in user
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
+    if (!result.success) throw new Error(result.data)
+
+    // load user
+    const userEntity = await tUser.findByPubkeyHex(result.data.user.public_hex)
+
+    const resultGDT = await apiGet(
+      `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
     )
-    if (!result.success) {
+    if (!resultGDT.success) {
       throw new Error(result.data)
     }
 
-    return new GdtEntryList(result.data)
+    return new GdtEntryList(resultGDT.data)
   }
 }
