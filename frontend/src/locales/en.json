@@ -12,6 +12,7 @@
   },
   "decay": {
     "calculation_decay": "Calculation of Decay",
+    "calculation_total": "Calculation of the grand total",
     "created": "Created",
     "days": "Days",
     "decay": "Decay",
@@ -31,6 +32,7 @@
     "since_introduction": "Since the introduction of Decay",
     "Starting_block_decay": "Starting Block Decay",
     "toCommunity": "To the community",
+    "total": "Total",
     "year": "Years"
   },
   "error": {

@@ -12,6 +12,7 @@
   },
   "decay": {
     "calculation_decay": "Berechnung der Vergänglichkeit",
+    "calculation_total": "Berechnung der Gesamtsumme",
     "created": "Geschöpft",
     "days": "Tage",
     "decay": "Vergänglichkeit",
@@ -31,6 +32,7 @@
     "since_introduction": "seit Einführung der Vergänglichkeit",
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "toCommunity": "An die Gemeinschaft",
+    "total": "Gesamt",
     "year": "Jahre"
   },
   "error": {
