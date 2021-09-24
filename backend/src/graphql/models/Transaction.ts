@@ -30,6 +30,9 @@ export class Transaction {
   @Field(() => Number)
   balance: number
 
+  @Field(() => Number)
+  totalBalance: number
+
   @Field({ nullable: true })
   decayStart?: number
 
