@@ -10,12 +10,4 @@ export class Migration extends BaseEntity {
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   date: Date
-
-  /*
-  static findByUser(userId: number): Promise<Balance> {
-    return this.createQueryBuilder('balance')
-      .where('balance.userId = :userId', { userId })
-      .getOneOrFail()
-  }
-  */
 }
