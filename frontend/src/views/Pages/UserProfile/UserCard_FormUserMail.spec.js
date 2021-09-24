@@ -21,7 +21,7 @@ describe('UserCard_FormUserMail', () => {
       },
     },
     $apollo: {
-      query: mockAPIcall,
+      mutate: mockAPIcall,
     },
   }
 

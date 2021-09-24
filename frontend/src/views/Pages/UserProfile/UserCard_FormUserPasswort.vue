@@ -1,5 +1,5 @@
 <template>
-  <b-card id="change_pwd" class="bg-transparent" style="background-color: #ebebeba3 !important">
+  <b-card id="change_pwd" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
@@ -42,7 +42,7 @@
 <script>
 import InputPassword from '../../../components/Inputs/InputPassword'
 import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserPasswort',
@@ -73,8 +73,8 @@ export default {
     },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             password: this.form.password,

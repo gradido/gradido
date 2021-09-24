@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Authorized, Ctx } from 'type-graphql'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
@@ -49,7 +49,7 @@ export class TransactionResolver {
   }
 
   @Authorized()
-  @Query(() => String)
+  @Mutation(() => String)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: any,

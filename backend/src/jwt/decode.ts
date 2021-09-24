@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 import CONFIG from '../config/'
 
 export default (token: string): any => {
-  if (!token) return null
+  if (!token) return new Error('401 Unauthorized')
   let sessionId = null
   try {
     const decoded = jwt.verify(token, CONFIG.JWT_SECRET)
@@ -15,6 +15,6 @@ export default (token: string): any => {
       sessionId,
     }
   } catch (err) {
-    return null
+    throw new Error('403.13 - Client certificate revoked')
   }
 }

@@ -19,11 +19,11 @@
             </div>
           </div>
 
-          <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
+          <b-row>
+            <b-col col="6" class="text-right">
               <div v-if="!decay.decayStartBlock">{{ $t('decay.last_transaction') }}</div>
-            </div>
-            <div style="width: 60%">
+            </b-col>
+            <b-col col="6">
               <div v-if="decay.decayStartBlock > 0">
                 <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
                 <div>
@@ -32,19 +32,18 @@
                 </div>
               </div>
               <div>
-                <span v-if="!decay.decayStart">
+                <span v-if="decay.decayStart">
                   {{ $d($moment.unix(decay.decayStart), 'long') }}
                   {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div class="d-flex">
-            <div style="width: 40%" class="text-right pr-3 mr-2">
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col col="6" class="text-right">
               <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
-            </div>
-            <div style="width: 60%">
+            </b-col>
+            <b-col col="6">
               <div v-if="decay.decayStartBlock > 0">{{ $t('decay.since_introduction') }}</div>
               <span v-if="duration">
                 <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
@@ -60,7 +59,59 @@
                   {{ duration.seconds }} {{ $t('decay.seconds') }}
                 </span>
               </span>
-            </div>
+            </b-col>
+          </b-row>
+
+          <div v-if="decay.balance > 0">
+            <!-- Decay-->
+            <b-row>
+              <b-col col="6" class="text-right">
+                <div>{{ $t('decay.decay') }}</div>
+              </b-col>
+              <b-col col="6">
+                <div>- {{ decay.balance }}</div>
+              </b-col>
+            </b-row>
+            <hr class="mt-2 mb-2" />
+            <b-row>
+              <b-col class="text-center pt-3 pb-2">
+                <b>{{ $t('decay.calculation_total') }}</b>
+              </b-col>
+            </b-row>
+            <!-- Type-->
+            <b-row>
+              <b-col col="6" class="text-right">
+                <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
+                <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
+              </b-col>
+              <b-col col="6">
+                <div v-if="type === 'send'">- {{ balance }}</div>
+                <div v-if="type === 'receive'">+ {{ balance }}</div>
+              </b-col>
+            </b-row>
+            <!-- Decay-->
+            <b-row>
+              <b-col col="6" class="text-right">
+                <div>{{ $t('decay.decay') }}</div>
+              </b-col>
+              <b-col col="6">
+                <div>- {{ decay.balance }}</div>
+              </b-col>
+            </b-row>
+            <!-- Total-->
+            <b-row>
+              <b-col col="6" class="text-right">
+                <div>{{ $t('decay.total') }}</div>
+              </b-col>
+              <b-col col="6">
+                <div v-if="type === 'send'">
+                  <b>- {{ parseInt(balance) + decay.balance }}</b>
+                </div>
+                <div v-if="type === 'receive'">
+                  <b>{{ parseInt(balance) - decay.balance }}</b>
+                </div>
+              </b-col>
+            </b-row>
           </div>
         </b-list-group-item>
       </b-list-group>
@@ -71,6 +122,8 @@
 export default {
   name: 'DecayInformation',
   props: {
+    balance: { type: Number },
+    type: { type: String, default: '' },
     decay: {
       balance: '',
       decayDuration: '',

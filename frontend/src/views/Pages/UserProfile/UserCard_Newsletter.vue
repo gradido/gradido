@@ -1,9 +1,5 @@
 <template>
-  <b-card
-    id="formusernewsletter"
-    class="bg-transparent"
-    style="background-color: #ebebeba3 !important"
-  >
+  <b-card id="formusernewsletter" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-3">
         <b-col class="mb-2 col-12">
