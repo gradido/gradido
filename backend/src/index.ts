@@ -8,6 +8,7 @@ import { ApolloServer } from 'apollo-server-express'
 import { RowDataPacket } from 'mysql2/promise'
 
 import connection from './database/connection'
+import typeOrmConnection from './typeorm/connection'
 import CONFIG from './config'
 
 // TODO move to extern
@@ -49,7 +50,11 @@ async function main() {
     throw new Error(`Wrong database version - the backend requires '${DB_VERSION}'`)
   }
 
-  // const connection = await createConnection()
+  const toCon = await typeOrmConnection()
+  if (!toCon.isConnected) {
+    throw new Error(`Couldn't open typeorm db connection`)
+  }
+
   const schema = await buildSchema({
     resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver, KlicktippResolver],
     authChecker: isAuthorized,
