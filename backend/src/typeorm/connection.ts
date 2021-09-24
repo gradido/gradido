@@ -13,7 +13,7 @@ const connection = async (): Promise<Connection | null> => {
       username: CONFIG.DB_USER,
       password: CONFIG.DB_PASSWORD,
       database: CONFIG.DB_DATABASE,
-      entities: [path.join(__dirname, 'entity', '*.ts')],
+      entities: [path.join(__dirname, 'entity', '*.{ts,js}')],
       synchronize: false,
     })
   } catch (error) {}
