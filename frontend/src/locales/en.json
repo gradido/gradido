@@ -12,6 +12,7 @@
   },
   "decay": {
     "calculation_decay": "Calculation of Decay",
+    "calculation_total": "Calculation of the grand total",
     "created": "Created",
     "days": "Days",
     "decay": "Decay",
@@ -37,7 +38,8 @@
   "error": {
     "change-password": "Error while changing password",
     "error": "Error",
-    "no-account": "Unfortunately we could not find an account to the given data!"
+    "no-account": "Unfortunately we could not find an account to the given data!",
+    "session-expired": "The session expired"
   },
   "form": {
     "amount": "Amount",
@@ -106,7 +108,8 @@
   "language": "Language",
   "languages": {
     "de": "Deutsch",
-    "en": "English"
+    "en": "English",
+    "success": "Your language has been successfully updated."
   },
   "login": "Login",
   "logout": "Logout",

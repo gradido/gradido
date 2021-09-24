@@ -48,7 +48,8 @@
 </template>
 <script>
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
-import { resetPassword, loginViaEmailVerificationCode } from '../../graphql/queries'
+import { loginViaEmailVerificationCode } from '../../graphql/queries'
+import { resetPassword } from '../../graphql/mutations'
 
 export default {
   name: 'ResetPassword',
@@ -71,8 +72,8 @@ export default {
   methods: {
     async onSubmit() {
       this.$apollo
-        .query({
-          query: resetPassword,
+        .mutate({
+          mutation: resetPassword,
           variables: {
             sessionId: this.sessionId,
             email: this.email,

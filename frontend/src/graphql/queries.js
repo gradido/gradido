@@ -22,43 +22,11 @@ export const logout = gql`
   }
 `
 
-export const resetPassword = gql`
-  query($sessionId: Float!, $email: String!, $password: String!) {
-    resetPassword(sessionId: $sessionId, email: $email, password: $password)
-  }
-`
-
 export const loginViaEmailVerificationCode = gql`
   query($optin: String!) {
     loginViaEmailVerificationCode(optin: $optin) {
       sessionId
       email
-    }
-  }
-`
-
-export const updateUserInfos = gql`
-  query(
-    $email: String!
-    $firstName: String
-    $lastName: String
-    $description: String
-    $username: String
-    $password: String
-    $passwordNew: String
-    $locale: String
-  ) {
-    updateUserInfos(
-      email: $email
-      firstName: $firstName
-      lastName: $lastName
-      description: $description
-      username: $username
-      password: $password
-      passwordNew: $passwordNew
-      language: $locale
-    ) {
-      validValues
     }
   }
 `
@@ -91,30 +59,6 @@ export const transactionsQuery = gql`
         }
       }
     }
-  }
-`
-
-export const resgisterUserQuery = gql`
-  query(
-    $firstName: String!
-    $lastName: String!
-    $email: String!
-    $password: String!
-    $language: String!
-  ) {
-    create(
-      email: $email
-      firstName: $firstName
-      lastName: $lastName
-      password: $password
-      language: $language
-    )
-  }
-`
-
-export const sendCoins = gql`
-  query($email: String!, $amount: Float!, $memo: String!) {
-    sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `
 

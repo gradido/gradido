@@ -1,5 +1,5 @@
 <template>
-  <b-card id="userdata_form" class="bg-transparent" style="background-color: #ebebeba3 !important">
+  <b-card id="userdata_form" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
@@ -72,7 +72,7 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserData',
@@ -108,8 +108,8 @@ export default {
     async onSubmit(event) {
       event.preventDefault()
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             firstName: this.form.firstName,
