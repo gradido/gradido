@@ -20,4 +20,11 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'blockchain_type_id' })
   blockchainTypeId: number
 
+  static async findByTransactionTypeId(transactionTypeId: number): Promise<Transaction[]> {
+    return this.createQueryBuilder('transaction')
+      .where('transaction.transactionTypeId = :transactionTypeId', { transactionTypeId: transactionTypeId})
+      .getMany()
+  }
+
+
 }
