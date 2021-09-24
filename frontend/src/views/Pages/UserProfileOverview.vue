@@ -31,4 +31,16 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+.card-border-radius {
+  border-radius: 0px 5px 5px 0px !important;
+}
+@media screen and (max-width: 1235px) {
+  .card-border-radius {
+    border-radius: 0px !important;
+  }
+}
+.card-background-gray {
+  background-color: #ebebeba3 !important;
+}
+</style>
