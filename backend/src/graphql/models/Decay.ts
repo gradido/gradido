@@ -5,8 +5,7 @@ import { Transaction } from '../../typeorm/entity/Transaction'
 
 @ObjectType()
 export class Decay {
-  constructor()
-  constructor(json?: any) {
+  constructor(json: any) {
     if (json) {
       this.balance = Number(json.balance)
       this.decayStart = json.decay_start

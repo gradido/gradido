@@ -18,7 +18,7 @@ export class Transaction {
       this.balance = Number(json.balance)
       this.decayStart = json.decay_start
       this.decayEnd = json.decay_end
-      this.decayDuration = parseFloat(json.decay_duration)
+
       this.memo = json.memo
       this.transactionId = json.transaction_id
       this.name = json.name

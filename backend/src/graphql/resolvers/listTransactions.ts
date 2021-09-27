@@ -12,7 +12,7 @@ async function calculateAndAddDecayTransactions(
   decay: boolean,
   skipFirstTransaction: boolean,
 ): Promise<Transaction[]> {
-  const finalTransactions: Transaction[] = []
+  let finalTransactions: Transaction[] = []
   const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
@@ -29,14 +29,14 @@ async function calculateAndAddDecayTransactions(
     .createQueryBuilder('transaction')
     .where('transaction.id IN (:...transactions)', { transactions: transactionIds })
     .leftJoinAndSelect(
-      'transaction.sendCoin',
-      'transactionSendCoin',
-      'transactionSendCoin.transactionid = transaction.id',
+      'transaction.transactionSendCoin',
+      'transactionSendCoin'
+      //'transactionSendCoin.transaction_id = transaction.id',
     )
     .leftJoinAndSelect(
-      'transaction.creation',
-      'transactionCreation',
-      'transactionSendCoin.transactionid = transaction.id',
+      'transaction.transactionCreation',
+      'transactionCreation'
+      //'transactionSendCoin.transaction_id = transaction.id',
     )
     .getMany()
 
@@ -47,7 +47,7 @@ async function calculateAndAddDecayTransactions(
 
   const decayStartTransaction = await Decay.getDecayStartBlock()
 
-  userTransactions.forEach(async (userTransaction: dbUserTransaction, i: number) => {
+  await userTransactions.forEach(async (userTransaction: dbUserTransaction, i: number) => {
     const transaction = transactionIndiced[userTransaction.transactionId]
     const finalTransaction = new Transaction()
     finalTransaction.transactionId = transaction.id
@@ -117,6 +117,7 @@ async function calculateAndAddDecayTransactions(
     if (i > 0 || !skipFirstTransaction) {
       finalTransactions.push(finalTransaction)
     }
+    
     if (i === userTransactions.length - 1 && decay) {
       const now = new Date()
       const decay = await calculateDecayWithInterval(
@@ -135,7 +136,6 @@ async function calculateAndAddDecayTransactions(
         finalTransactions.push(decayTransaction)
       }
     }
-    return finalTransactions
   })
 
   return finalTransactions
@@ -176,7 +176,7 @@ export default async function listTransactions(
       user,
       decay,
       skipFirstTransaction,
-    )
+    )    
     if (order === 'DESC') {
       transactions = transactions.reverse()
     }

@@ -23,7 +23,7 @@ async function calculateDecayWithInterval(
   to: number,
 ): Promise<Decay> {
   const decayStartBlock = await Decay.getDecayStartBlock()
-  const result = new Decay()
+  const result = new Decay(undefined)
   result.balance = amount
   result.decayStart = from
   result.decayEnd = from

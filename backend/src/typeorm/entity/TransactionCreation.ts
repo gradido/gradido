@@ -27,6 +27,6 @@ export class TransactionCreation extends BaseEntity {
   targetDate: Timestamp
 
   @OneToOne(() => Transaction)
-  @JoinColumn()
+  @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction
 }

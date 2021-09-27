@@ -25,6 +25,6 @@ export class TransactionSendCoin extends BaseEntity {
   amount: number
 
   @OneToOne(() => Transaction)
-  @JoinColumn()
+  @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction
 }
