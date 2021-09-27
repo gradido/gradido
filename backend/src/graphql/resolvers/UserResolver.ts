@@ -24,6 +24,7 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -37,7 +38,10 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(result.data.session_id, result.data.user.public_hex),
+    })
 
     return new User(result.data.user)
   }
