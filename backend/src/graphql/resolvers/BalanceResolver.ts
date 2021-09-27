@@ -19,7 +19,9 @@ export class BalanceResolver {
     const now = new Date()
     return new Balance({
       balance: roundFloorFrom4(balanceEntity.amount),
-      decay: roundFloorFrom4(calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now)),
+      decay: roundFloorFrom4(
+        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+      ),
       decay_date: now.toString(),
     })
   }

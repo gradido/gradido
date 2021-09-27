@@ -15,7 +15,7 @@ export class TransactionSendCoin extends BaseEntity {
   @Column({ name: 'state_user_id' })
   userId: number
 
-  @Column({ name: 'receiver_public_key', type: 'binary', length: 32})
+  @Column({ name: 'receiver_public_key', type: 'binary', length: 32 })
   recipiantPublic: Buffer
 
   @Column({ name: 'receiver_user_id' })
@@ -25,7 +25,6 @@ export class TransactionSendCoin extends BaseEntity {
   amount: number
 
   @OneToOne(() => Transaction)
-  @JoinColumn() 
+  @JoinColumn()
   transaction: Transaction
-
 }
