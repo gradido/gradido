@@ -15,7 +15,8 @@ export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info
         `${CONFIG.LOGIN_API_URL}checkSessionState?session_id=${decoded.sessionId}`,
       )
       context.sessionId = decoded.sessionId
-      context.setHeaders.push({ key: 'token', value: encode(decoded.sessionId) })
+      context.pubKey = decoded.pubKey
+      context.setHeaders.push({ key: 'token', value: encode(decoded.sessionId, decoded.pubKey) })
       return result.success
     }
   }
