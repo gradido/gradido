@@ -105,12 +105,13 @@ describe('UserCard_FormUserPasswort', () => {
       describe('validation', () => {
         it('displays all password requirements', () => {
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(5)
+          expect(feedbackArray).toHaveLength(6)
           expect(feedbackArray.at(0).text()).toBe('validations.messages.required')
           expect(feedbackArray.at(1).text()).toBe('site.signup.lowercase')
           expect(feedbackArray.at(2).text()).toBe('site.signup.uppercase')
           expect(feedbackArray.at(3).text()).toBe('site.signup.one_number')
           expect(feedbackArray.at(4).text()).toBe('site.signup.minimum')
+          expect(feedbackArray.at(5).text()).toBe('site.signup.special-char')
         })
 
         it('removes first message when a character is given', async () => {
@@ -125,7 +126,7 @@ describe('UserCard_FormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('a')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(3)
+          expect(feedbackArray).toHaveLength(4)
           expect(feedbackArray.at(0).text()).toBe('site.signup.uppercase')
         })
 
@@ -133,7 +134,7 @@ describe('UserCard_FormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('Aa')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(2)
+          expect(feedbackArray).toHaveLength(3)
           expect(feedbackArray.at(0).text()).toBe('site.signup.one_number')
         })
 
@@ -141,12 +142,20 @@ describe('UserCard_FormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('Aa1')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(1)
+          expect(feedbackArray).toHaveLength(2)
           expect(feedbackArray.at(0).text()).toBe('site.signup.minimum')
         })
 
-        it('removes all messages when all rules are fulfilled', async () => {
+        it('removes the first five messages when a eight lowercase, uppercase and numeric characters are given', async () => {
           await wrapper.findAll('input').at(1).setValue('Aa123456')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(1)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.special-char')
+        })
+
+        it('removes all messages when a eight lowercase, uppercase and numeric characters are given', async () => {
+          await wrapper.findAll('input').at(1).setValue('Aa123456_')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
           expect(feedbackArray).toHaveLength(0)
@@ -164,8 +173,8 @@ describe('UserCard_FormUserPasswort', () => {
               },
             })
             await form.findAll('input').at(0).setValue('1234')
-            await form.findAll('input').at(1).setValue('Aa123456')
-            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.findAll('input').at(1).setValue('Aa123456_')
+            await form.findAll('input').at(2).setValue('Aa123456_')
             await form.trigger('submit')
             await flushPromises()
           })
@@ -176,7 +185,7 @@ describe('UserCard_FormUserPasswort', () => {
                 variables: {
                   email: 'user@example.org',
                   password: '1234',
-                  passwordNew: 'Aa123456',
+                  passwordNew: 'Aa123456_',
                 },
               }),
             )
@@ -197,8 +206,8 @@ describe('UserCard_FormUserPasswort', () => {
               message: 'error',
             })
             await form.findAll('input').at(0).setValue('1234')
-            await form.findAll('input').at(1).setValue('Aa123456')
-            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.findAll('input').at(1).setValue('Aa123456_')
+            await form.findAll('input').at(2).setValue('Aa123456_')
             await form.trigger('submit')
             await flushPromises()
           })
