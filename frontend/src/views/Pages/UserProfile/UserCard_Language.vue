@@ -82,6 +82,7 @@ export default {
     },
     cancelEdit() {
       this.showLanguage = true
+      this.language = this.$store.state.language
     },
     async onSubmit() {
       this.$apollo
@@ -104,7 +105,6 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-
     buildTagFromLanguageString() {
       return 'languages.' + this.$store.state.language
     },
