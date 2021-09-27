@@ -5,13 +5,13 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('reset-password.title') }}</h1>
+              <h1>{{ $t('setting.password.reset') }}</h1>
               <div class="pb-4" v-if="!pending">
                 <span v-if="authenticated">
-                  {{ $t('reset-password.text') }}
+                  {{ $t('setting.password.reset-password.text') }}
                 </span>
                 <span v-else>
-                  {{ $t('reset-password.not-authenticated') }}
+                  {{ $t('setting.password.reset-password.not-authenticated') }}
                 </span>
               </div>
             </b-col>
@@ -29,7 +29,7 @@
                   <input-password-confirmation v-model="form" :register="register" />
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
-                      {{ $t('reset') }}
+                      {{ $t('setting.password.reset') }}
                     </b-button>
                   </div>
                 </b-form>

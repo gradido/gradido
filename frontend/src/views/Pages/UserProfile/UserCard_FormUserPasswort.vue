@@ -4,7 +4,7 @@
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a @click="showPassword ? (showPassword = !showPassword) : cancelEdit()">
-            <span class="pointer mr-3">{{ $t('form.change-password') }}</span>
+            <span class="pointer mr-3">{{ $t('setting.password.change-password') }}</span>
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>

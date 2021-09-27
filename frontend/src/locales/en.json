@@ -45,21 +45,14 @@
     "amount": "Amount",
     "at": "at",
     "cancel": "Cancel",
-    "change": "change",
-    "change-name": "Change name",
-    "change-password": "Change password",
-    "changeLanguage": "Change language",
-    "change_username_info": "Once saved, the username cannot be changed again!",
     "close": "Close",
     "date": "Date",
     "description": "Description",
     "edit": "Edit",
     "email": "Email",
-    "email_repeat": "Repeat Email",
     "firstname": "Firstname",
     "from": "from",
     "lastname": "Lastname",
-    "max_gdd_info": "Maximum number of GDDs to be sent has been reached!",
     "memo": "Message",
     "message": "Message",
     "password": "Password",
@@ -81,12 +74,9 @@
     "time": "Time",
     "to": "to",
     "to1": "to",
-    "username": "Username",
     "validation": {
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits",
-      "is-not": "You cannot send Gradidos to yourself",
-      "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
-      "usernmae-unique": "The username is already taken."
+      "is-not": "You cannot send Gradidos to yourself"
     }
   },
   "gdt": {
@@ -106,29 +96,40 @@
   },
   "imprint": "Legal notice",
   "language": "Language",
-  "languages": {
-    "de": "Deutsch",
-    "en": "English",
-    "success": "Your language has been successfully updated."
-  },
   "login": "Login",
   "logout": "Logout",
   "members_area": "Member's area",
   "message": "hello gradido !!",
   "privacy_policy": "Privacy policy",
-  "reset": "Reset password",
-  "reset-password": {
-    "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
-    "text": "Now you can save a new password to login to the Gradido-App in the future.",
-    "title": "Reset Password"
-  },
-  "select_language": "Please choose a language for the app and newsletter",
   "send": "Send",
   "setting": {
-    "changeNewsletter": "Newsletter status change",
-    "newsletter": "Newsletter",
-    "newsletterFalse": "You are unsubscribed from newsletter system.",
-    "newsletterTrue": "You are subscribed to newsletter system."
+    "language": {
+      "changeLanguage": "Change language",
+      "de": "Deutsch",
+      "en": "English",
+      "select_language": "Please choose a language.",
+      "success": "Your language has been successfully updated."
+    },
+    "name": {
+      "change-name": "Change name",
+      "change-success": "Your name has been successfully changed."
+    },
+    "newsletter": {
+      "newsletter": "Newsletter",
+      "newsletterFalse": "You are unsubscribed from newsletter system.",
+      "newsletterTrue": "You are subscribed to newsletter system."
+    },
+    "password": {
+      "change-password": "Change password",
+      "forgot_pwd": "Forgot password?",
+      "reset": "Reset password",
+      "reset-password": {
+        "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
+        "text": "Now you can save a new password to login to the Gradido-App in the future."
+      },
+      "send_now": "Send now",
+      "subtitle": "If you have forgotten your password, you can reset it here."
+    }
   },
   "signup": "Sign up",
   "site": {
@@ -143,27 +144,12 @@
     },
     "login": {
       "community": "A thousand thanks for being with us!",
-      "forgot_pwd": "Forgot password?",
       "new_wallet": "Create new account",
-      "remember": "Remember password",
       "signin": "Sign in"
     },
     "navbar": {
-      "activity": "Activity",
       "my-profil": "My profile",
-      "settings": "Settings",
       "support": "Support"
-    },
-    "overview": {
-      "account_overview": "Account overview",
-      "add_work": "New Community Contribution",
-      "send_gradido": "Send Gradido",
-      "since_last_month": "since last month"
-    },
-    "password": {
-      "send_now": "Send now",
-      "subtitle": "If you have forgotten your password, you can reset it here.",
-      "title": "Reset password"
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
@@ -192,6 +178,5 @@
     "show_all": "View all <strong>{count}</strong> transactions."
   },
   "transactions": "Transactions",
-  "welcome": "Welcome!",
   "whitepaper": "Whitepaper"
 }

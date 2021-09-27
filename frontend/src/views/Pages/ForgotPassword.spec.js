@@ -39,11 +39,11 @@ describe('ForgotPassword', () => {
     })
 
     it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('site.password.title')
+      expect(wrapper.find('h1').text()).toEqual('setting.password.reset')
     })
 
     it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('site.password.subtitle')
+      expect(wrapper.find('p.text-lead').text()).toEqual('setting.password.subtitle')
     })
 
     describe('back button', () => {

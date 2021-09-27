@@ -40,7 +40,7 @@
           <b-row class="mt-3">
             <b-col cols="6">
               <router-link to="/password">
-                {{ $t('site.login.forgot_pwd') }}
+                {{ $t('setting.password.forgot_pwd') }}
               </router-link>
             </b-col>
             <b-col cols="6" class="text-right" v-show="allowRegister">
