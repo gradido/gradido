@@ -7,7 +7,7 @@ import { Balance } from '../models/Balance'
 import { apiGet } from '../../apis/HttpRequest'
 import { User as dbUser } from '../../typeorm/entity/User'
 import { Balance as dbBalance } from '../../typeorm/entity/Balance'
-import calculateDecay from '../../util/decay'
+import { calculateDecay } from '../../util/decay'
 import { roundFloorFrom4 } from '../../util/round'
 
 @Resolver()

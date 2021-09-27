@@ -10,7 +10,7 @@ import { User as dbUser } from '../../typeorm/entity/User'
 import { Balance as dbBalance } from '../../typeorm/entity/Balance'
 import listTransactions from './listTransactions'
 import { roundFloorFrom4 } from '../../util/round'
-import calculateDecay from '../../util/decay'
+import { calculateDecay } from '../../util/decay'
 
 @Resolver()
 export class TransactionResolver {
@@ -41,7 +41,7 @@ export class TransactionResolver {
     const now = new Date()
     transactions.balance = roundFloorFrom4(balanceEntity.amount)
     transactions.decay = roundFloorFrom4(
-      calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+      await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
     )
     transactions.decayDate = now.toString()
 
