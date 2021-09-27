@@ -36,12 +36,12 @@ export class User extends BaseEntity {
   static async getUsersIndiced(userIds: number[]): Promise<User[]> {
     const users = await this.createQueryBuilder('user')
       .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .where('user.id IN (:...users)', { users: userIds})
+      .where('user.id IN (:...users)', { users: userIds })
       .getMany()
-    let usersIndiced: User[] = []
-    users.forEach((value,  index) => {
+    const usersIndiced: User[] = []
+    users.forEach((value, index) => {
       usersIndiced[index] = value
-    }) 
+    })
     return usersIndiced
   }
 }

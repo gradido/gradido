@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Timestamp } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity('state_user_transactions')
 export class UserTransaction extends BaseEntity {
@@ -18,7 +18,7 @@ export class UserTransaction extends BaseEntity {
   balance: number
 
   @Column({ name: 'balance_date', type: 'timestamp' })
-  balanceDate: Timestamp
+  balanceDate: number
 
   static findByUserPaged(
     userId: number,
