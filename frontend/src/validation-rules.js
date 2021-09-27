@@ -112,6 +112,13 @@ export const loadAllRules = (i18nCallback) => {
     message: (_, values) => i18nCallback.t('site.signup.minimum', values),
   })
 
+  extend('atLeastOneSpecialCharater', {
+    validate(value) {
+      return !!value.match(/[^a-zA-Z0-9 \t\n]/)
+    },
+    message: (_, values) => i18nCallback.t('site.signup.special-char', values),
+  })
+
   extend('samePassword', {
     validate(value, [pwd]) {
       return value === pwd
