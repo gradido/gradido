@@ -140,8 +140,8 @@ describe('ResetPassword', () => {
         beforeEach(async () => {
           await wrapper.setData({ authenticated: true, sessionId: 1 })
           await wrapper.vm.$nextTick()
-          await wrapper.findAll('input').at(0).setValue('Aa123456')
-          await wrapper.findAll('input').at(1).setValue('Aa123456')
+          await wrapper.findAll('input').at(0).setValue('Aa123456_')
+          await wrapper.findAll('input').at(1).setValue('Aa123456_')
           await flushPromises()
           await wrapper.find('form').trigger('submit')
         })
@@ -169,7 +169,7 @@ describe('ResetPassword', () => {
                 variables: {
                   sessionId: 1,
                   email: 'user@example.org',
-                  password: 'Aa123456',
+                  password: 'Aa123456_',
                 },
               }),
             )

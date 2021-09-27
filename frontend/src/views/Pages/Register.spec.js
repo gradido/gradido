@@ -132,8 +132,8 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456_')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('input[name="site.signup.agree"]').setChecked(true)
       })
@@ -186,8 +186,8 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456_')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
       })
 
@@ -234,7 +234,7 @@ describe('Register', () => {
                 email: 'max.mustermann@gradido.net',
                 firstName: 'Max',
                 lastName: 'Mustermann',
-                password: 'Aa123456',
+                password: 'Aa123456_',
                 language: 'de',
               },
             }),
