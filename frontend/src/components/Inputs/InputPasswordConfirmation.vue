@@ -10,6 +10,7 @@
             containsNumericCharacter: true,
             atLeastEightCharactera: true,
             atLeastOneSpecialCharater: true,
+            noWhitespaceCharacters: true,
           }"
           :label="register ? $t('form.password') : $t('form.password_new')"
           :showAllErrors="true"

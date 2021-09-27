@@ -167,6 +167,7 @@
       "dont_match": "Passwords don't match.",
       "lowercase": "One lowercase letter required.",
       "minimum": "8 characters minimum.",
+      "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
       "special-char": "One special character required (e.g. _ or ä)",
       "subtitle": "Become a part of the community!",

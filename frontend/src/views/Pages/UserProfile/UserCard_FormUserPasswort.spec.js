@@ -105,13 +105,14 @@ describe('UserCard_FormUserPasswort', () => {
       describe('validation', () => {
         it('displays all password requirements', () => {
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(6)
+          expect(feedbackArray).toHaveLength(7)
           expect(feedbackArray.at(0).text()).toBe('validations.messages.required')
           expect(feedbackArray.at(1).text()).toBe('site.signup.lowercase')
           expect(feedbackArray.at(2).text()).toBe('site.signup.uppercase')
           expect(feedbackArray.at(3).text()).toBe('site.signup.one_number')
           expect(feedbackArray.at(4).text()).toBe('site.signup.minimum')
           expect(feedbackArray.at(5).text()).toBe('site.signup.special-char')
+          expect(feedbackArray.at(6).text()).toBe('site.signup.no-whitespace')
         })
 
         it('removes first message when a character is given', async () => {

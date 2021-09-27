@@ -114,9 +114,16 @@ export const loadAllRules = (i18nCallback) => {
 
   extend('atLeastOneSpecialCharater', {
     validate(value) {
-      return !!value.match(/[^a-zA-Z0-9 \t\n]/)
+      return !!value.match(/[^a-zA-Z0-9]/)
     },
     message: (_, values) => i18nCallback.t('site.signup.special-char', values),
+  })
+
+  extend('noWhitespaceCharacters', {
+    validate(value) {
+      return !!value.match(/[^ \t\n\r]/)
+    },
+    message: (_, values) => i18nCallback.t('site.signup.no-whitespace', values),
   })
 
   extend('samePassword', {

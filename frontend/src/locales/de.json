@@ -167,6 +167,7 @@
       "dont_match": "Die Passwörter stimmen nicht überein.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
+      "no-whitespace": "Keine Leerzeichen und Tabulatoren",
       "one_number": "Eine Zahl erforderlich.",
       "special-char": "Ein Sonderzeichen erforderlich (z.B. _ oder ä)",
       "subtitle": "Werde Teil der Gemeinschaft!",
