@@ -50,18 +50,18 @@ bool SessionManager::init()
 		case VALIDATE_PASSPHRASE: mValidations[i] = new Poco::RegularExpression("^(?:[a-z]* ){23}[a-z]*\s*$"); break;
 		case VALIDATE_GROUP_ALIAS: mValidations[i] = new Poco::RegularExpression("^[a-z0-9-]{3,120}"); break;
 		case VALIDATE_HEDERA_ID: mValidations[i] = new Poco::RegularExpression("^[0-9]*\.[0-9]*\.[0-9]\.$"); break;
-		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression(".*[0-9].*"); break;
+		case VALIDATE_HAS_NUMBER: mValidations[i] = new Poco::RegularExpression("[0-9]"); break;
 		case VALIDATE_ONLY_INTEGER: mValidations[i] = new Poco::RegularExpression("^[0-9]*$"); break;
 		case VALIDATE_ONLY_DECIMAL: mValidations[i] = new Poco::RegularExpression("^[0-9]*(\.|,)[0-9]*$"); break;
 		case VALIDATE_ONLY_HEX: mValidations[i] = new Poco::RegularExpression("^(0x)?[a-fA-F0-9]*$"); break;
 		//case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$"); break;
 		case VALIDATE_ONLY_URL: mValidations[i] = new Poco::RegularExpression("^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/?"); break;
-		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression(".*[^a-zA-Z0-9].*"); break;
+		case VALIDATE_HAS_SPECIAL_CHARACTER: mValidations[i] = new Poco::RegularExpression("[^a-zA-Z0-9]"); break;
 		case VALIDATE_HAS_UPPERCASE_LETTER:
-			mValidations[i] = new Poco::RegularExpression(".*[A-Z].*");
+			mValidations[i] = new Poco::RegularExpression("[A-Z]");
 			ServerConfig::g_ServerKeySeed->put(i, DRRandom::r64());
 			break;
-		case VALIDATE_HAS_LOWERCASE_LETTER: mValidations[i] = new Poco::RegularExpression(".*[a-z].*"); break;
+		case VALIDATE_HAS_LOWERCASE_LETTER: mValidations[i] = new Poco::RegularExpression("[a-z]"); break;
 		default: printf("[SessionManager::%s] unknown validation type\n", __FUNCTION__);
 		}
 	}
