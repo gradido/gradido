@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import UserCardNewsletter from './UserCard_Newsletter'
-import { unsubscribeNewsletter } from '../../../graphql/mutations'
+import { unsubscribeNewsletter, subscribeNewsletter } from '../../../graphql/mutations'
 
 const localVue = global.localVue
 
@@ -9,7 +9,6 @@ const mockAPIcall = jest.fn()
 const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
-const newsletterStateMock = jest.fn().mockReturnValue(true)
 
 describe('UserCard_Newsletter', () => {
   let wrapper
@@ -20,7 +19,7 @@ describe('UserCard_Newsletter', () => {
       state: {
         language: 'de',
         email: 'peter@lustig.de',
-        newsletterState: newsletterStateMock,
+        newsletterState: true,
       },
       commit: storeCommitMock,
     },
@@ -51,13 +50,14 @@ describe('UserCard_Newsletter', () => {
     })
 
     describe('unsubscribe with sucess', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
+        await wrapper.setData({ newsletterState: false })
         mockAPIcall.mockResolvedValue({
           data: {
             unsubscribeNewsletter: true,
           },
         })
-        wrapper.find('input').trigger('change')
+        await wrapper.find('input').trigger('change')
       })
 
       it('calls the unsubscribe mutation', () => {
@@ -75,6 +75,36 @@ describe('UserCard_Newsletter', () => {
 
       it('toasts a success message', () => {
         expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterFalse')
+      })
+    })
+
+    describe('subscribe with sucess', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ newsletterState: true })
+        mockAPIcall.mockResolvedValue({
+          data: {
+            subscribeNewsletter: true,
+          },
+        })
+        wrapper.find('input').trigger('change')
+      })
+
+      it('calls the subscribe mutation', () => {
+        expect(mockAPIcall).toBeCalledWith({
+          mutation: subscribeNewsletter,
+          variables: {
+            email: 'peter@lustig.de',
+            language: 'de',
+          },
+        })
+      })
+
+      it('updates the store', () => {
+        expect(storeCommitMock).toBeCalledWith('newsletterState', true)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessMock).toBeCalledWith('setting.newsletterFalse')
       })
     })
 
