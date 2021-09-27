@@ -168,7 +168,7 @@
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "one_number": "Eine Zahl erforderlich.",
-      "special-char": "Ein Sonderzeichen required (z.B. _ oder ä)",
+      "special-char": "Ein Sonderzeichen erforderlich (z.B. _ oder ä)",
       "subtitle": "Werde Teil der Gemeinschaft!",
       "title": "Erstelle dein Gradido-Konto",
       "uppercase": "Ein Großbuchstabe erforderlich."
