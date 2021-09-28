@@ -74,7 +74,7 @@ describe('UserCard_Newsletter', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('setting.newsletter.newsletterFalse')
+        expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterFalse')
       })
     })
 

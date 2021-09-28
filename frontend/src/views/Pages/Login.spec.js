@@ -71,7 +71,7 @@ describe('Login', () => {
     describe('links', () => {
       it('has a link "Forgot Password?"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
-          'setting.password.forgot_pwd',
+          'settings.password.forgot_pwd',
         )
       })
 

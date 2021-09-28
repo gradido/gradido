@@ -5,8 +5,8 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('setting.password.reset') }}</h1>
-              <p class="text-lead">{{ $t('setting.password.subtitle') }}</p>
+              <h1>{{ $t('settings.password.reset') }}</h1>
+              <p class="text-lead">{{ $t('settings.password.subtitle') }}</p>
             </b-col>
           </b-row>
         </div>
@@ -22,7 +22,7 @@
                   <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
-                      {{ $t('setting.password.send_now') }}
+                      {{ $t('settings.password.send_now') }}
                     </b-button>
                   </div>
                 </b-form>

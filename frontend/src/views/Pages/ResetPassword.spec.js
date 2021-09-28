@@ -71,9 +71,9 @@ describe('ResetPassword', () => {
       })
 
       it('has a message suggesting to contact the support', () => {
-        expect(wrapper.find('div.header').text()).toContain('setting.password.reset')
+        expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
         expect(wrapper.find('div.header').text()).toContain(
-          'setting.password.reset-password.not-authenticated',
+          'settings.password.reset-password.not-authenticated',
         )
       })
     })
@@ -101,9 +101,9 @@ describe('ResetPassword', () => {
 
       describe('Register header', () => {
         it('has a welcome message', async () => {
-          expect(wrapper.find('div.header').text()).toContain('setting.password.reset')
+          expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
           expect(wrapper.find('div.header').text()).toContain(
-            'setting.password.reset-password.text',
+            'settings.password.reset-password.text',
           )
         })
       })

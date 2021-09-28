@@ -125,7 +125,7 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('toasts an success message', () => {
-            expect(toastSuccessMock).toBeCalledWith('setting.name.change-success')
+            expect(toastSuccessMock).toBeCalledWith('settings.name.change-success')
           })
 
           it('has no edit button anymore', () => {
