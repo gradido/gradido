@@ -2,12 +2,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
+import { from_hex } from 'libsodium-wrappers'
+import { getRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
+import { User as dbUser} from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
 import {
   ChangePasswordArgs,
@@ -84,7 +87,19 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+    const qluser = new User(result.data.user)
+    let user = new dbUser
+    user.pubkey = Buffer.from(from_hex(qluser.pubkey))
+    user.email = qluser.email
+    user.firstName = qluser.firstName
+    user.lastName = qluser.lastName
+    user.username = qluser.username
 
+    const repository = getRepository(dbUser);
+    repository.save(user).catch(() => {
+      throw new Error('error saving user')
+    });
+    
     return 'success'
   }
 
