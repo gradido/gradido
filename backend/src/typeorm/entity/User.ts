@@ -26,10 +26,4 @@ export class User extends BaseEntity {
 
   @Column()
   disabled: boolean
-
-  static findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
-      .getOneOrFail()
-  }
 }

@@ -20,8 +20,11 @@ export class BalanceResolver {
     if (!result.success) throw new Error(result.data)
 
     // load user and balance
-    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
-    const balanceEntity = await dbBalance.findByUser(userEntity.id)
+    const userEntity = await dbUser
+      .createQueryBuilder('user')
+      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex: result.data.user.public_hex })
+      .getOneOrFail()
+    const balanceEntity = await dbBalance.findOneOrFail({ where: { userId: userEntity.id } })
     const now = new Date()
     const balance = new Balance({
       balance: roundFloorFrom4(balanceEntity.amount),

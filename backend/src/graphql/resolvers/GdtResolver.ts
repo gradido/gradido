@@ -23,7 +23,10 @@ export class GdtResolver {
     if (!result.success) throw new Error(result.data)
 
     // load user
-    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+    const userEntity = await dbUser
+      .createQueryBuilder('user')
+      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex: result.data.user.public_hex })
+      .getOneOrFail()
 
     const resultGDT = await apiGet(
       `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
