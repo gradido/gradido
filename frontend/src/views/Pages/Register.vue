@@ -116,13 +116,19 @@
                     </span>
                   </b-alert>
 
-                  <div
-                    class="text-center"
-                    v-if="namesFilled && emailFilled && form.agree && languageFilled"
-                  >
+                  <div class="text-center">
                     <div class="text-center">
-                      <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
-                      <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
+                      <b-button class="ml-2 test-button-back" to="/login">
+                        {{ $t('back') }}
+                      </b-button>
+
+                      <b-button
+                        :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
+                        type="submit"
+                        variant="primary"
+                      >
+                        {{ $t('signup') }}
+                      </b-button>
                     </div>
                   </div>
                 </b-form>
@@ -131,9 +137,6 @@
           </b-card>
         </b-col>
       </b-row>
-      <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
     </b-container>
   </div>
 </template>
@@ -171,22 +174,6 @@ export default {
     },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
-    },
-    resetForm() {
-      this.form = {
-        firstname: '',
-        lastname: '',
-        email: '',
-        password: {
-          password: '',
-          passwordRepeat: '',
-        },
-        agree: false,
-      }
-      this.language = ''
-      this.$nextTick(() => {
-        this.$refs.observer.reset()
-      })
     },
     async onSubmit() {
       this.$apollo
