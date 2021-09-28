@@ -225,7 +225,7 @@ export default {
       return this.form.email !== ''
     },
     languageFilled() {
-      return this.language !== null && this.language !== ''
+      return !!this.language
     },
   },
 }

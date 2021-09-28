@@ -91,7 +91,7 @@ describe('Register', () => {
       })
       it('selected Language value de', async () => {
         wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
-        expect(wrapper.find('.selectedLanguage').element.value).toBe('de')
+        expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
       })
 
       it('has 1 checkbox input fields', () => {
@@ -185,7 +185,7 @@ describe('Register', () => {
                 firstName: 'Max',
                 lastName: 'Mustermann',
                 password: 'Aa123456_',
-                language: 'de',
+                language: 'en',
               },
             }),
           )
