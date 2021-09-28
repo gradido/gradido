@@ -16,6 +16,7 @@ export class BalanceResolver {
     // load user and balance
     const userEntity = await dbUser.findByPubkeyHex(context.pubKey)
     const balanceEntity = await dbBalance.findByUser(userEntity.id)
+    let balance: Balance
     const now = new Date()
     return new Balance({
       balance: roundFloorFrom4(balanceEntity.amount),

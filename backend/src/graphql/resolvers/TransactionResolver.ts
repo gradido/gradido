@@ -38,12 +38,14 @@ export class TransactionResolver {
 
     // get balance
     const balanceEntity = await dbBalance.findByUser(userEntity.id)
-    const now = new Date()
-    transactions.balance = roundFloorFrom4(balanceEntity.amount)
-    transactions.decay = roundFloorFrom4(
-      await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
-    )
-    transactions.decayDate = now.toString()
+    if (balanceEntity) {
+      const now = new Date()
+      transactions.balance = roundFloorFrom4(balanceEntity.amount)
+      transactions.decay = roundFloorFrom4(
+        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+      )
+      transactions.decayDate = now.toString()
+    }
 
     return transactions
   }
