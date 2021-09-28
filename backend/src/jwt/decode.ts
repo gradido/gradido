@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import CONFIG from '../config/'
 
@@ -9,8 +6,14 @@ interface CustomJwtPayload extends JwtPayload {
   pubKey: Buffer
 }
 
-export default (token: string): any => {
-  if (!token) return new Error('401 Unauthorized')
+type DecodedJwt = {
+  token: string
+  sessionId: number
+  pubKey: Buffer
+}
+
+export default (token: string): DecodedJwt => {
+  if (!token) throw new Error('401 Unauthorized')
   let sessionId = null
   let pubKey = null
   try {

@@ -20,5 +20,5 @@ export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info
       return result.success
     }
   }
-  return false
+  throw new Error('401 Unauthorized')
 }
