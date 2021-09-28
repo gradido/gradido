@@ -47,7 +47,7 @@ describe('UserCard_FormUserPasswort', () => {
     })
 
     it('has a change password button with text "form.change-password"', () => {
-      expect(wrapper.find('a').text()).toEqual('form.change-password')
+      expect(wrapper.find('a').text()).toEqual('settings.password.change-password')
     })
 
     it('has a change password button with a pencil icon', () => {
