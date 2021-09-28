@@ -99,7 +99,7 @@ describe('Register', () => {
       })
 
       it('has disabled submit button when not completely filled', () => {
-        expect(wrapper.find('button[type="submit"]').is('[disabled]')).toBe(true)
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
       it('displays a message that Email is required', async () => {
@@ -135,6 +135,10 @@ describe('Register', () => {
         wrapper.find('input[name="form.password"]').setValue('Aa123456_')
         wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+      })
+
+      it('has enabled submit button when completely filled', () => {
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
       describe('server sends back error', () => {
