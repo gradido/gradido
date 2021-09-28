@@ -1,5 +1,24 @@
 <template>
   <div id="registerform">
+    <div class="justify-content-center container">
+      <b-card
+        bg-variant="info"
+        text-variant=""
+        :header="$store.state.community_name"
+        class="text-center"
+      >
+        <b-card-text>
+          {{ $store.state.community.description }}, Location:
+          {{ $store.state.community.location }}
+        </b-card-text>
+      </b-card>
+    </div>
+    <div class="text-center py-lg-4">
+      <router-link to="/select-community" class="mt-3">
+        {{ $t('community.choose-another-aommunity') }}
+      </router-link>
+    </div>
+
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -13,9 +32,11 @@
         </div>
       </b-container>
     </div>
+
     <!-- Page content -->
     <b-container class="mt--8 p-1">
       <!-- Table -->
+
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">

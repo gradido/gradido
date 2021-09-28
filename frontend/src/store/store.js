@@ -68,6 +68,14 @@ export const store = new Vuex.Store({
     description: '',
     token: null,
     newsletterState: null,
+    community_name: 'Community 1',
+    community: {
+      name: 'Community 1',
+      name2: 'Community 1',
+      location: 'Ort 1',
+      description:
+        'description 1 description 1 description 1 description 1 description 1 description 1',
+    },
   },
   getters: {},
   // Syncronous mutation of the state

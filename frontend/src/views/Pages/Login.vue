@@ -21,6 +21,12 @@
               <div class="text-center text-muted mb-4">
                 <small>{{ $t('login') }}</small>
               </div>
+              <div class="text-center text-muted mb-4">
+                {{ $store.state.community_name }}
+              </div>
+              <div class="text-center text-muted mb-4">
+                {{ $store.state.community.description }}
+              </div>
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
                   <input-email v-model="form.email"></input-email>
@@ -44,7 +50,7 @@
               </router-link>
             </b-col>
             <b-col cols="6" class="text-right" v-show="allowRegister">
-              <router-link to="/register">
+              <router-link to="/regist-community">
                 {{ $t('site.login.new_wallet') }}
               </router-link>
             </b-col>
