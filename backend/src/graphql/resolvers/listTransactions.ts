@@ -54,8 +54,8 @@ async function calculateAndAddDecayTransactions(
     finalTransaction.date = transaction.received.toString()
     finalTransaction.memo = transaction.memo
     finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
-
     const prev = i > 0 ? userTransactions[i - 1] : null
+
     if (prev && prev.balance > 0) {
       const current = userTransaction
       const decay = await calculateDecayWithInterval(
@@ -63,12 +63,17 @@ async function calculateAndAddDecayTransactions(
         prev.balanceDate,
         current.balanceDate,
       )
+      console.log("decay: %o for transaction %o", decay, i)
       const balance = prev.balance - decay.balance
+      console.log("balance: %o", balance)
 
       if (balance) {
         finalTransaction.decay = decay
-        finalTransaction.decay.balance = roundFloorFrom4(finalTransaction.decay.balance)
+        console.log("final transaction decay: %o", decay)
+        console.log("round balance: %o", balance)
         finalTransaction.decay.balance = roundFloorFrom4(balance)
+        console.log("final transaction decay: %o after setting balance", decay)
+        console.log("rounded: %o", finalTransaction.decay.balance)
         if (
           decayStartTransaction &&
           prev.transactionId < decayStartTransaction.id &&
@@ -76,6 +81,8 @@ async function calculateAndAddDecayTransactions(
         ) {
           finalTransaction.decay.decayStartBlock = decayStartTransaction.received.getTime()
         }
+      } else {
+        console.log("balance isn't true: %o", balance)
       }
     }
 

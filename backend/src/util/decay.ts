@@ -46,7 +46,6 @@ async function calculateDecayWithInterval(
   // js use timestamp in milliseconds but we calculate with seconds
   result.decayDuration /= 1000
   result.balance = decayFormula(amount, result.decayDuration)
-
   return result
 }
 
