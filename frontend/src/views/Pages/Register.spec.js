@@ -25,7 +25,7 @@ describe('Register', () => {
     $store: {
       state: {
         email: 'peter@lustig.de',
-        language: null,
+        language: 'en',
       },
     },
   }
@@ -89,7 +89,7 @@ describe('Register', () => {
       it('has Language selected field', () => {
         expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
       })
-      it('selected Language value de', async () => {
+      it('selects Language value en', async () => {
         wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
         expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
       })
