@@ -14,9 +14,9 @@ export default {
     return {
       selected: null,
       options: [
-        { value: null, text: this.$t('select_language') },
-        { value: 'de', text: this.$t('languages.de') },
-        { value: 'en', text: this.$t('languages.en') },
+        { value: null, text: this.$t('settings.language.select_language') },
+        { value: 'de', text: this.$t('settings.language.de') },
+        { value: 'en', text: this.$t('settings.language.en') },
       ],
     }
   },
