@@ -49,7 +49,7 @@ describe('UserCard_Newsletter', () => {
       expect(wrapper.find('.Test-BFormCheckbox').exists()).toBeTruthy()
     })
 
-    describe('unsubscribe with sucess', () => {
+    describe('unsubscribe with success', () => {
       beforeEach(async () => {
         await wrapper.setData({ newsletterState: false })
         mockAPIcall.mockResolvedValue({
@@ -78,7 +78,7 @@ describe('UserCard_Newsletter', () => {
       })
     })
 
-    describe('subscribe with sucess', () => {
+    describe('subscribe with success', () => {
       beforeEach(async () => {
         await wrapper.setData({ newsletterState: true })
         mockAPIcall.mockResolvedValue({
