@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { from_hex } from 'libsodium-wrappers'
+import { from_hex as fromHex } from 'libsodium-wrappers'
 import { getRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
@@ -10,7 +10,7 @@ import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
-import { User as dbUser} from '../../typeorm/entity/User'
+import { User as DbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
 import {
   ChangePasswordArgs,
@@ -88,18 +88,18 @@ export class UserResolver {
       throw new Error(result.data)
     }
     const qluser = new User(result.data.user)
-    let user = new dbUser
-    user.pubkey = Buffer.from(from_hex(qluser.pubkey))
+    const user = new DbUser()
+    user.pubkey = Buffer.from(fromHex(qluser.pubkey))
     user.email = qluser.email
     user.firstName = qluser.firstName
     user.lastName = qluser.lastName
     user.username = qluser.username
 
-    const repository = getRepository(dbUser);
+    const repository = getRepository(DbUser)
     repository.save(user).catch(() => {
       throw new Error('error saving user')
-    });
-    
+    })
+
     return 'success'
   }
 
