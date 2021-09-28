@@ -12,7 +12,7 @@ async function calculateAndAddDecayTransactions(
   decay: boolean,
   skipFirstTransaction: boolean,
 ): Promise<Transaction[]> {
-  let finalTransactions: Transaction[] = []
+  const finalTransactions: Transaction[] = []
   const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
@@ -30,13 +30,13 @@ async function calculateAndAddDecayTransactions(
     .where('transaction.id IN (:...transactions)', { transactions: transactionIds })
     .leftJoinAndSelect(
       'transaction.transactionSendCoin',
-      'transactionSendCoin'
-      //'transactionSendCoin.transaction_id = transaction.id',
+      'transactionSendCoin',
+      // 'transactionSendCoin.transaction_id = transaction.id',
     )
     .leftJoinAndSelect(
       'transaction.transactionCreation',
-      'transactionCreation'
-      //'transactionSendCoin.transaction_id = transaction.id',
+      'transactionCreation',
+      // 'transactionSendCoin.transaction_id = transaction.id',
     )
     .getMany()
 
@@ -63,17 +63,11 @@ async function calculateAndAddDecayTransactions(
         prev.balanceDate,
         current.balanceDate,
       )
-      console.log("decay: %o for transaction %o", decay, i)
       const balance = prev.balance - decay.balance
-      console.log("balance: %o", balance)
 
       if (balance) {
         finalTransaction.decay = decay
-        console.log("final transaction decay: %o", decay)
-        console.log("round balance: %o", balance)
         finalTransaction.decay.balance = roundFloorFrom4(balance)
-        console.log("final transaction decay: %o after setting balance", decay)
-        console.log("rounded: %o", finalTransaction.decay.balance)
         if (
           decayStartTransaction &&
           prev.transactionId < decayStartTransaction.id &&
@@ -81,8 +75,6 @@ async function calculateAndAddDecayTransactions(
         ) {
           finalTransaction.decay.decayStartBlock = decayStartTransaction.received.getTime()
         }
-      } else {
-        console.log("balance isn't true: %o", balance)
       }
     }
 
@@ -124,7 +116,7 @@ async function calculateAndAddDecayTransactions(
     if (i > 0 || !skipFirstTransaction) {
       finalTransactions.push(finalTransaction)
     }
-    
+
     if (i === userTransactions.length - 1 && decay) {
       const now = new Date()
       const decay = await calculateDecayWithInterval(
@@ -183,7 +175,7 @@ export default async function listTransactions(
       user,
       decay,
       skipFirstTransaction,
-    )    
+    )
     if (order === 'DESC') {
       transactions = transactions.reverse()
     }
