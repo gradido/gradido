@@ -2,98 +2,58 @@
 
 import 'reflect-metadata'
 import express from 'express'
-import cors from 'cors'
-import { buildSchema } from 'type-graphql'
 import { ApolloServer } from 'apollo-server-express'
-import { RowDataPacket } from 'mysql2/promise'
 
-import connection from './database/connection'
-import typeOrmConnection from './typeorm/connection'
+// config
 import CONFIG from './config'
 
-// TODO move to extern
-import { UserResolver } from './graphql/resolvers/UserResolver'
-import { BalanceResolver } from './graphql/resolvers/BalanceResolver'
-import { GdtResolver } from './graphql/resolvers/GdtResolver'
-import { TransactionResolver } from './graphql/resolvers/TransactionResolver'
-import { KlicktippResolver } from './graphql/resolvers/KlicktippResolver'
+// database
+import connection from './typeorm/connection'
+import getDBVersion from './typeorm/getDBVersion'
 
-import { isAuthorized } from './auth/auth'
+// server
+import cors from './server/cors'
+import context from './server/context'
+import plugins from './server/plugins'
+
+// graphql
+import schema from './graphql/schema'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 const DB_VERSION = '0001-init_db'
 
-const context = (args: any) => {
-  const authorization = args.req.headers.authorization
-  let token = null
-  if (authorization) {
-    token = authorization.replace(/^Bearer /, '')
-  }
-  const context = {
-    token,
-    setHeaders: [],
-  }
-  return context
-}
-
 async function main() {
-  // check for correct database version
+  // open mysql connection
   const con = await connection()
-  const [rows] = await con.query(`SELECT * FROM migrations ORDER BY version DESC LIMIT 1;`)
-  if (
-    (<RowDataPacket>rows).length === 0 ||
-    !(<RowDataPacket>rows)[0].fileName ||
-    (<RowDataPacket>rows)[0].fileName.indexOf(DB_VERSION) === -1
-  ) {
-    throw new Error(`Wrong database version - the backend requires '${DB_VERSION}'`)
+  if (!con || !con.isConnected) {
+    throw new Error(`Couldn't open connection to database`)
   }
 
-  const toCon = await typeOrmConnection()
-  if (!toCon.isConnected) {
-    throw new Error(`Couldn't open typeorm db connection`)
-  }
-
-  const schema = await buildSchema({
-    resolvers: [UserResolver, BalanceResolver, TransactionResolver, GdtResolver, KlicktippResolver],
-    authChecker: isAuthorized,
-  })
-
-  // Graphiql interface
-  let playground = false
-  if (CONFIG.GRAPHIQL) {
-    playground = true
+  // check for correct database version
+  const dbVersion = await getDBVersion()
+  if (!dbVersion || dbVersion.indexOf(DB_VERSION) === -1) {
+    throw new Error(
+      `Wrong database version - the backend requires '${DB_VERSION}' but found '${
+        dbVersion || 'None'
+      }'`,
+    )
   }
 
   // Express Server
   const server = express()
 
-  const corsOptions = {
-    origin: '*',
-    exposedHeaders: ['token'],
-  }
-
-  server.use(cors(corsOptions))
-
-  const plugins = [
-    {
-      requestDidStart() {
-        return {
-          willSendResponse(requestContext: any) {
-            const { setHeaders = [] } = requestContext.context
-            setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
-              requestContext.response.http.headers.append(key, value)
-            })
-            return requestContext
-          },
-        }
-      },
-    },
-  ]
+  // cors
+  server.use(cors)
 
   // Apollo Server
-  const apollo = new ApolloServer({ schema, playground, context, plugins })
+  const apollo = new ApolloServer({
+    schema: await schema(),
+    playground: CONFIG.GRAPHIQL,
+    context,
+    plugins,
+  })
   apollo.applyMiddleware({ app: server })
 
   // Start Server

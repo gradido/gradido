@@ -18,13 +18,13 @@
             </b-button>
           </div>
 
-          <b-row>
+          <div>
             <!-- ICON  -->
             <div class="col-1 gdd-transaction-list-item-icon">
               <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
             </div>
 
-            <div class="col col-11">
+            <div>
               <!-- Betrag / Name Email -->
               <b-row>
                 <div class="col-5 text-right">
@@ -70,7 +70,7 @@
                 </div>
               </b-row>
             </div>
-          </b-row>
+          </div>
 
           <!-- Collaps Start -->
 
