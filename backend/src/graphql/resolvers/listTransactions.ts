@@ -73,7 +73,9 @@ async function calculateAndAddDecayTransactions(
           prev.transactionId < decayStartTransaction.id &&
           current.transactionId > decayStartTransaction.id
         ) {
-          finalTransaction.decay.decayStartBlock = decayStartTransaction.received.getTime()
+          finalTransaction.decay.decayStartBlock = (
+            decayStartTransaction.received.getTime() / 1000
+          ).toString()
         }
       }
     }
@@ -181,14 +183,8 @@ export default async function listTransactions(
     }
   }
 
-  const transactionList = new TransactionList({
-    gdtSum: 0,
-    count: userTransactionsCount,
-    balance: 0,
-    decay: 0,
-    decay_date: '',
-    transactions: transactions,
-  })
-
+  const transactionList = new TransactionList()
+  transactionList.count = userTransactionsCount
+  transactionList.transactions = transactions
   return transactionList
 }

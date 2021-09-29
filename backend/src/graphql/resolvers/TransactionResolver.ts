@@ -46,7 +46,6 @@ export class TransactionResolver {
       )
       transactions.decayDate = now.toString()
     }
-
     return transactions
   }
 

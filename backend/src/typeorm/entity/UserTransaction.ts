@@ -18,7 +18,7 @@ export class UserTransaction extends BaseEntity {
   balance: number
 
   @Column({ name: 'balance_date', type: 'timestamp' })
-  balanceDate: number
+  balanceDate: Date
 
   static findByUserPaged(
     userId: number,

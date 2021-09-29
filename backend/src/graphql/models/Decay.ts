@@ -25,17 +25,19 @@ export class Decay {
   @Field(() => Number)
   balance: number
 
+  // timestamp in seconds
   @Field(() => Int, { nullable: true })
-  decayStart: number
+  decayStart: string
 
+  // timestamp in seconds
   @Field(() => Int, { nullable: true })
-  decayEnd: number
+  decayEnd: string
 
   @Field(() => String, { nullable: true })
   decayDuration?: number
 
   @Field(() => Int, { nullable: true })
-  decayStartBlock?: number
+  decayStartBlock?: string
 
   static decayStartBlockTransaction: Transaction | undefined
 }
