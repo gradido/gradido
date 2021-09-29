@@ -17,29 +17,31 @@ async function calculateDecay(amount: number, from: Date, to: Date): Promise<num
 
 async function calculateDecayWithInterval(
   amount: number,
-  from: number,
-  to: number,
+  from: number | Date,
+  to: number | Date,
 ): Promise<Decay> {
   const decayStartBlock = await Decay.getDecayStartBlock()
   const result = new Decay(undefined)
   result.balance = amount
-  result.decayStart = from
-  result.decayEnd = from
+  const fromMillis = typeof from === 'number' ? from : from.getTime()
+  const toMillis = typeof to === 'number' ? to : to.getTime()
+  result.decayStart = (fromMillis / 1000).toString()
+  result.decayEnd = (toMillis / 1000).toString()
 
   // (amount, from.getTime(), to.getTime())
 
   // if no decay start block exist or decay startet after end date
-  if (decayStartBlock === undefined || decayStartBlock.received.getTime() > to) {
+  if (decayStartBlock === undefined || decayStartBlock.received.getTime() > toMillis) {
     return result
   }
 
   // if decay start date is before start date we calculate decay for full duration
-  if (decayStartBlock.received.getTime() < from) {
-    result.decayDuration = to - from
+  if (decayStartBlock.received.getTime() < fromMillis) {
+    result.decayDuration = toMillis - fromMillis
   }
   // if decay start in between start date and end date we caculcate decay from decay start time to end date
   else {
-    result.decayDuration = to - decayStartBlock.received.getTime()
+    result.decayDuration = toMillis - decayStartBlock.received.getTime()
   }
   // js use timestamp in milliseconds but we calculate with seconds
   result.decayDuration /= 1000
