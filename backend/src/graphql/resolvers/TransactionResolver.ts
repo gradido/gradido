@@ -11,6 +11,8 @@ import { Balance as dbBalance } from '../../typeorm/entity/Balance'
 import listTransactions from './listTransactions'
 import { roundFloorFrom4 } from '../../util/round'
 import { calculateDecay } from '../../util/decay'
+import sendCoins from './sendCoins'
+import getPublicKey from './getPublicKey'
 
 @Resolver()
 export class TransactionResolver {
@@ -69,6 +71,21 @@ export class TransactionResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+
+    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
+    if(!recipiantPublicKey) {
+      throw new Error('recipiant not known')
+    }
+
+    // get public key for current logged in user
+    const loginResult = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
+    if (!loginResult.success) throw new Error(result.data)
+
+    // load user and balance
+    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+
+    const transaction = sendCoins(userEntity, recipiantPublicKey, amount, memo)
+
     return 'success'
   }
 }
