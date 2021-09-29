@@ -18,12 +18,7 @@ async function calculateAndAddDecayTransactions(
 
   userTransactions.forEach((userTransaction: dbUserTransaction) => {
     transactionIds.push(userTransaction.transactionId)
-    involvedUserIds.push(userTransaction.userId)
   })
-  // remove duplicates
-  // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-  const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
-  const userIndiced = await dbUser.getUsersIndiced(involvedUsersUnique)
 
   const transactions = await dbTransaction
     .createQueryBuilder('transaction')
@@ -43,15 +38,24 @@ async function calculateAndAddDecayTransactions(
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
+    if (transaction.transactionTypeId === 2) {
+      involvedUserIds.push(transaction.transactionSendCoin.userId)
+      involvedUserIds.push(transaction.transactionSendCoin.recipiantUserId)
+    }
   })
+  // remove duplicates
+  // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+  const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
+  const userIndiced = await dbUser.getUsersIndiced(involvedUsersUnique)
 
   const decayStartTransaction = await Decay.getDecayStartBlock()
 
-  await userTransactions.forEach(async (userTransaction: dbUserTransaction, i: number) => {
+  for (let i = 0; i < userTransactions.length; i++) {
+    const userTransaction = userTransactions[i]
     const transaction = transactionIndiced[userTransaction.transactionId]
     const finalTransaction = new Transaction()
     finalTransaction.transactionId = transaction.id
-    finalTransaction.date = transaction.received.toString()
+    finalTransaction.date = transaction.received.toISOString()
     finalTransaction.memo = transaction.memo
     finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
     const prev = i > 0 ? userTransactions[i - 1] : null
@@ -137,7 +141,7 @@ async function calculateAndAddDecayTransactions(
         finalTransactions.push(decayTransaction)
       }
     }
-  })
+  }
 
   return finalTransactions
 }
