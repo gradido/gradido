@@ -1,44 +1,49 @@
 <template>
   <div id="register-select-community">
-    <b-container class="justify-content-center text-center">
-      <div class="mb-4">{{ $t('community.current-community') }}</div>
+    <b-container class="text-center">
+      <div class="pb-3">{{ $t('community.current-community') }}</div>
 
-      <div v-for="community in communitys.community" :key="community.id" class="pb-3">
+      <div v-for="community in communitys.community" :key="community.name">
         <b-card
-          v-show="community.name === $store.state.community_name"
-          bg-variant="success"
-          text-variant=""
-          :header="community.name"
+          v-show="community.name === $store.state.community.name"
+          class="border-0 mb-0"
+          bg-variant="primary"
         >
-          <b-card-text>
-            {{ $store.state.community.description }}, Location:
-            {{ $store.state.community.location }}
-          </b-card-text>
-          <b-button size="sm" to="/register">
+          <b>{{ community.name }}</b>
+          <br />
+          {{ $store.state.community.description }}
+          <br />
+          <b-button variant="outline-secondary" to="/register">
             {{ $t('community.continue-to-registration') }}
           </b-button>
         </b-card>
       </div>
 
       <hr />
+
       <div>{{ $t('community.other-communities') }}</div>
-      <div v-for="community in communitys.community" :key="community.id" class="pb-5">
-        <b-card
-          v-show="community.name != $store.state.community_name"
-          bg-variant="info"
-          text-variant=""
-          :header="community.name"
-        >
-          <b-card-text>beschreibung für community 1, Location:</b-card-text>
-          <b-button size="sm" :href="community.url">
+
+      <div v-for="community in communitys.community" :key="community.id" class="pb-3">
+        <b-card v-show="community.name != $store.state.community.name" bg-variant="secondary">
+          <b>{{ community.name }}</b>
+          <br />
+          {{ community.description }}
+          <br />
+          Location:
+          <b>
+            <small>
+              <b-link :href="community.url">{{ community.url }}</b-link>
+            </small>
+          </b>
+          <br />
+          <b-button variant="outline-secondary" :href="community.url">
             {{ $t('community.switch-to-this-community') }}
           </b-button>
         </b-card>
       </div>
 
-      <hr />
       <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
+        <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
       </div>
     </b-container>
   </div>
@@ -55,4 +60,20 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+.alert-light {
+  color: #424543;
+  background-color: #bac1c84a;
+  border-color: #ffffff00;
+}
+.bg-primary {
+  background-color: #5e72e41f !important;
+}
+.bg-secondary {
+  background-color: #525f7f0f !important;
+}
+
+.card-footer {
+  background-color: #ffffff5e !important;
+}
+</style>

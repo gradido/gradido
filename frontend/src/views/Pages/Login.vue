@@ -19,14 +19,13 @@
           <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
               <div class="text-center text-muted mb-4">
-                <small>{{ $t('login') }}</small>
+                <b>{{ $store.state.community.name }}</b>
+                <p class="text-lead">
+                  {{ $store.state.community.description }}
+                </p>
+                {{ $t('login') }}
               </div>
-              <div class="text-center text-muted mb-4">
-                {{ $store.state.community_name }}
-              </div>
-              <div class="text-center text-muted mb-4">
-                {{ $store.state.community.description }}
-              </div>
+
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
                   <input-email v-model="form.email"></input-email>
@@ -44,15 +43,19 @@
             </b-card-body>
           </b-card>
           <b-row class="mt-3">
-            <b-col cols="6">
-              <router-link to="/password">
+            <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
+              <b-button variant="outline-secondary" to="/password">
                 {{ $t('settings.password.forgot_pwd') }}
-              </router-link>
+              </b-button>
             </b-col>
-            <b-col cols="6" class="text-right" v-show="allowRegister">
-              <router-link to="/regist-community">
+            <b-col
+              cols="6"
+              class="text-center text-sm-right col-12 col-sm-6"
+              v-show="allowRegister"
+            >
+              <b-button variant="outline-secondary" to="/regist-community">
                 {{ $t('site.login.new_wallet') }}
-              </router-link>
+              </b-button>
             </b-col>
           </b-row>
         </b-col>

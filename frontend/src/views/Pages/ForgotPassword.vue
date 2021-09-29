@@ -32,7 +32,7 @@
         </b-col>
       </b-row>
       <div class="text-center py-lg-4">
-        <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+        <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
       </div>
     </b-container>
   </div>

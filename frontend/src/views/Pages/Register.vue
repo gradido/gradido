@@ -1,24 +1,5 @@
 <template>
   <div id="registerform">
-    <div class="justify-content-center container">
-      <b-card
-        bg-variant="info"
-        text-variant=""
-        :header="$store.state.community_name"
-        class="text-center"
-      >
-        <b-card-text>
-          {{ $store.state.community.description }}, Location:
-          {{ $store.state.community.location }}
-        </b-card-text>
-      </b-card>
-    </div>
-    <div class="text-center py-lg-4">
-      <router-link to="/select-community" class="mt-3">
-        {{ $t('community.choose-another-aommunity') }}
-      </router-link>
-    </div>
-
     <!-- Header -->
     <div class="header p-4">
       <b-container class="container">
@@ -27,6 +8,14 @@
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>{{ $t('site.signup.title') }}</h1>
               <p class="text-lead">{{ $t('site.signup.subtitle') }}</p>
+            </b-col>
+          </b-row>
+          <b-row class="justify-content-center pb-3">
+            <b-col xl="5" lg="6" md="8" class="px-2">
+              <b>{{ $store.state.community.name }}</b>
+              <p class="text-lead">
+                {{ $store.state.community.description }}
+              </p>
             </b-col>
           </b-row>
         </div>
@@ -139,9 +128,7 @@
 
                   <div class="text-center">
                     <div class="text-center">
-                      <b-button class="ml-2 test-button-back" to="/login">
-                        {{ $t('back') }}
-                      </b-button>
+                      <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
 
                       <b-button
                         :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
@@ -159,6 +146,11 @@
         </b-col>
       </b-row>
     </b-container>
+    <div class="text-center pt-4">
+      <b-button variant="outline-secondary" to="/select-community">
+        {{ $t('community.choose-another-aommunity') }}
+      </b-button>
+    </div>
   </div>
 </template>
 <script>

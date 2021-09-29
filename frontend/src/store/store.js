@@ -68,13 +68,11 @@ export const store = new Vuex.Store({
     description: '',
     token: null,
     newsletterState: null,
-    community_name: 'Community 1',
     community: {
-      name: 'Community 1',
-      name2: 'Community 1',
-      location: 'Ort 1',
-      description:
-        'description 1 description 1 description 1 description 1 description 1 description 1',
+      name: 'Gradido Entwicklung',
+      url: 'http://localhost:3000/vue/',
+      registerUrl: 'http://localhost:3000/vue/register',
+      description: 'Die lokale Entwicklungsumgebung von Gradido.',
     },
   },
   getters: {},

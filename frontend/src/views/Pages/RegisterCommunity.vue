@@ -1,35 +1,45 @@
 <template>
   <div id="register-select-community">
-    <b-container class="container text-center">
-      <div class="justify-content-center container">
-        <b-card
-          bg-variant="info"
-          text-variant=""
-          :header="$store.state.community_name"
-          class="text-center"
-        >
-          <b-card-text>
-            {{ $store.state.community.description }}, Location:
-            {{ $store.state.community.location }}
-          </b-card-text>
-          <b-button size="sm" to="/register">
-            {{ $t('community.continue-to-registration') }}
-          </b-button>
-        </b-card>
-      </div>
+    <!-- Header -->
+    <div class="p-3">
+      <b-container>
+        <div class="text-center mb-7 header">
+          <b-row class="justify-content-center">
+            <b-col xl="5" lg="6" md="8" class="px-2">
+              <h1>{{ $store.state.community.name }}</h1>
+              <p class="text-lead">
+                {{ $store.state.community.description }},
+                <br />
+                Location:
+                {{ $store.state.community.url }}
+              </p>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col class="text-center">
+              <b-button variant="outline-secondary" to="/register">
+                {{ $t('community.continue-to-registration') }}
+              </b-button>
+            </b-col>
+          </b-row>
 
-      <hr />
-      <div class="text-center py-lg-4">
-        <router-link to="/select-community" class="mt-3">
-          {{ $t('community.choose-another-aommunity') }}
-        </router-link>
-      </div>
-
-      <hr />
-      <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
-    </b-container>
+          <hr />
+          <b-row>
+            <b-col class="text-center">
+              <b-button variant="outline-secondary" to="/select-community">
+                {{ $t('community.choose-another-aommunity') }}
+              </b-button>
+            </b-col>
+          </b-row>
+          <hr />
+          <b-row>
+            <b-col class="text-center">
+              <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
+            </b-col>
+          </b-row>
+        </div>
+      </b-container>
+    </div>
   </div>
 </template>
 <script>
