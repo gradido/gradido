@@ -2,5 +2,6 @@
 module.exports = {
   verbose: true,
   preset: 'ts-jest',
-  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!**/?(*.)+test.ts'],
+  collectCoverage: true,
+  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
 }
