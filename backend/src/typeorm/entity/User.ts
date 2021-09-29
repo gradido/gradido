@@ -44,8 +44,8 @@ export class User extends BaseEntity {
       .where('user.id IN (:...users)', { users: userIds })
       .getMany()
     const usersIndiced: User[] = []
-    users.forEach((value, index) => {
-      usersIndiced[index] = value
+    users.forEach((value) => {
+      usersIndiced[value.id] = value
     })
     return usersIndiced
   }

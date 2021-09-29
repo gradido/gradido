@@ -23,6 +23,7 @@ async function calculateDecayWithInterval(
   to: number | Date,
 ): Promise<Decay> {
   const decayStartBlock = await Decay.getDecayStartBlock()
+
   const result = new Decay(undefined)
   result.balance = amount
   const fromMillis = typeof from === 'number' ? from : from.getTime()
@@ -36,14 +37,16 @@ async function calculateDecayWithInterval(
   if (decayStartBlock === undefined || decayStartBlock.received.getTime() > toMillis) {
     return result
   }
+  const decayStartBlockMillis = decayStartBlock.received.getTime()
 
   // if decay start date is before start date we calculate decay for full duration
-  if (decayStartBlock.received.getTime() < fromMillis) {
+  if (decayStartBlockMillis < fromMillis) {
     result.decayDuration = toMillis - fromMillis
   }
   // if decay start in between start date and end date we caculcate decay from decay start time to end date
   else {
-    result.decayDuration = toMillis - decayStartBlock.received.getTime()
+    result.decayDuration = toMillis - decayStartBlockMillis
+    result.decayStart = (decayStartBlockMillis / 1000).toString()
   }
   // js use timestamp in milliseconds but we calculate with seconds
   result.decayDuration /= 1000
