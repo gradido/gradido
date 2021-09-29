@@ -369,7 +369,7 @@ jobs:
           name: docker-backend-test
           path: /tmp
       - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
+        run: docker load < /tmp/backend.tar
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
