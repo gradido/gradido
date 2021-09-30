@@ -49,7 +49,7 @@ describe('RegisterCommunity', () => {
 
       it('has a current community location', () => {
         expect(wrapper.find('.header p.community-location').text()).toBe(
-          'Location: http://localhost:3000/vue/',
+          'community.location http://localhost:3000/vue/',
         )
       })
     })

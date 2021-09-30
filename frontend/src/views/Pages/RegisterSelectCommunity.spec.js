@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import RegisterSelectCommunity from './RegisterSelectCommunity'
+// const testObject = require('../../../public/json-example/communities.json')
 
 const localVue = global.localVue
 

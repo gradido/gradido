@@ -10,7 +10,9 @@
               <p class="text-lead">
                 {{ $store.state.community.description }}
               </p>
-              <p class="text-lead community-location">Location: {{ $store.state.community.url }}</p>
+              <p class="text-lead community-location">
+                {{ $t('community.location') }} {{ $store.state.community.url }}
+              </p>
             </b-col>
           </b-row>
           <b-row>

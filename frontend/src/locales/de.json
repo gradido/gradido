@@ -2,8 +2,7 @@
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
-    "community": "Gemeinschaft",
-    "communitys": {
+    "communities": {
       "form": {
         "date_period": "Datum / Zeitraum",
         "hours": "Stunden",
@@ -12,8 +11,10 @@
         "submit": "Einreichen"
       }
     },
+    "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
+    "location": "Ort:",
     "other-communities": "Weitere Gemeinschaften",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },

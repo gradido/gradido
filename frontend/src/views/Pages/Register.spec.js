@@ -59,6 +59,18 @@ describe('Register', () => {
       })
     })
 
+    describe('Community Data', () => {
+      it('has a Community name?', () => {
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description?', () => {
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
+        )
+      })
+    })
+
     describe('links', () => {
       it('has a link "Back"', () => {
         expect(wrapper.find('.test-button-back').text()).toEqual('back')

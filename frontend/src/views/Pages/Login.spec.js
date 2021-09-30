@@ -76,6 +76,18 @@ describe('Login', () => {
       })
     })
 
+    describe('Community Data', () => {
+      it('has a Community name?', () => {
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description?', () => {
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
+        )
+      })
+    })
+
     describe('links', () => {
       it('has a link "Forgot Password?"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
@@ -94,7 +106,9 @@ describe('Login', () => {
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/regist-community')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe(
+          '/register-community',
+        )
       })
     })
 

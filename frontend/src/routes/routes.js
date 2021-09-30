@@ -49,7 +49,7 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
-    path: '/regist-community',
+    path: '/register-community',
     component: () => import('../views/Pages/RegisterCommunity.vue'),
   },
   {

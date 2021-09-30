@@ -2,8 +2,7 @@
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
-    "community": "Community",
-    "communitys": {
+    "communities": {
       "form": {
         "date_period": "Date / Period",
         "hours": "hours",
@@ -12,8 +11,10 @@
         "submit": "submit"
       }
     },
+    "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
+    "location": "Location:",
     "other-communities": "Other communities",
     "switch-to-this-community": "switch to this community"
   },

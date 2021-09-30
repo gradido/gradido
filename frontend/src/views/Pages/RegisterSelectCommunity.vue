@@ -3,9 +3,9 @@
     <b-container class="text-center">
       <div class="pb-3">{{ $t('community.current-community') }}</div>
 
-      <div v-for="community in communitys.community" :key="community.name">
+      <div v-for="community in communities.community" :key="community.name">
         <b-card
-          v-show="community.name === $store.state.community.name"
+          v-if="community.name === $store.state.community.name"
           class="border-0 mb-0"
           bg-variant="primary"
         >
@@ -23,13 +23,13 @@
 
       <div>{{ $t('community.other-communities') }}</div>
 
-      <div v-for="community in communitys.community" :key="community.id" class="pb-3">
-        <b-card v-show="community.name != $store.state.community.name" bg-variant="secondary">
+      <div v-for="community in communities.community" :key="community.id" class="pb-3">
+        <b-card v-if="community.name != $store.state.community.name" bg-variant="secondary">
           <b>{{ community.name }}</b>
           <br />
           {{ community.description }}
           <br />
-          Location:
+          {{ $t('community.location') }}
           <b>
             <small>
               <b-link :href="community.url">{{ community.url }}</b-link>
@@ -49,13 +49,13 @@
   </div>
 </template>
 <script>
-import MyCommunitys from '../../../public/json-example/communitys.json'
+import MyCommunities from '../../../public/json-example/communities.json'
 
 export default {
   name: 'registerSelectCommunity',
   data() {
     return {
-      communitys: MyCommunitys,
+      communities: MyCommunities,
     }
   },
 }
