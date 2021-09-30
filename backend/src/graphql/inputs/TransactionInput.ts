@@ -9,7 +9,7 @@ export class TransactionListInput {
   items: number
 
   @Field(() => String)
-  order: string
+  order: 'ASC' | 'DESC'
 }
 
 @ArgsType()
