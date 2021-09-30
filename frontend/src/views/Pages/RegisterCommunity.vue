@@ -1,5 +1,5 @@
 <template>
-  <div id="register-select-community">
+  <div id="register-community">
     <!-- Header -->
     <div class="p-3">
       <b-container>
@@ -8,10 +8,10 @@
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>{{ $store.state.community.name }}</h1>
               <p class="text-lead">
-                {{ $store.state.community.description }},
-                <br />
-                Location:
-                {{ $store.state.community.url }}
+                {{ $store.state.community.description }}
+              </p>
+              <p class="text-lead community-location">
+                Location: {{ $store.state.community.url }}
               </p>
             </b-col>
           </b-row>
