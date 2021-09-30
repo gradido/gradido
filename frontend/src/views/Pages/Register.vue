@@ -10,14 +10,6 @@
               <p class="text-lead">{{ $t('site.signup.subtitle') }}</p>
             </b-col>
           </b-row>
-          <b-row class="justify-content-center pb-3">
-            <b-col xl="5" lg="6" md="8" class="px-2">
-              <b>{{ $store.state.community.name }}</b>
-              <p class="text-lead">
-                {{ $store.state.community.description }}
-              </p>
-            </b-col>
-          </b-row>
         </div>
       </b-container>
     </div>
@@ -31,7 +23,11 @@
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
               <div class="text-center text-muted mb-4">
-                <small>{{ $t('signup') }}</small>
+                <b>{{ $store.state.community.name }}</b>
+                <p class="text-lead">
+                  {{ $store.state.community.description }}
+                </p>
+                <div>{{ $t('signup') }}</div>
               </div>
 
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
@@ -128,7 +124,9 @@
 
                   <div class="text-center">
                     <div class="text-center">
-                      <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
+                      <b-button class="test-button-back" variant="outline-secondary" to="/login">
+                        {{ $t('back') }}
+                      </b-button>
 
                       <b-button
                         :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
@@ -147,8 +145,12 @@
       </b-row>
     </b-container>
     <div class="text-center pt-4">
-      <b-button variant="outline-secondary" to="/select-community">
-        {{ $t('community.choose-another-aommunity') }}
+      <b-button
+        class="test-button-another-community"
+        variant="outline-secondary"
+        to="/select-community"
+      >
+        {{ $t('community.choose-another-community') }}
       </b-button>
     </div>
   </div>

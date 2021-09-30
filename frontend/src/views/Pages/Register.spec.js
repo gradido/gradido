@@ -26,6 +26,12 @@ describe('Register', () => {
       state: {
         email: 'peter@lustig.de',
         language: 'en',
+        community: {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost:3000/vue/',
+          registerUrl: 'http://localhost:3000/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        },
       },
     },
   }
@@ -124,6 +130,18 @@ describe('Register', () => {
         expect(wrapper.findAll('div.invalid-feedback').at(2).text()).toBe(
           'validations.messages.required',
         )
+      })
+    })
+
+    describe('link Choose another community', () => {
+      it('has a link "Choose another community"', () => {
+        expect(wrapper.find('.test-button-another-community').text()).toEqual(
+          'community.choose-another-community',
+        )
+      })
+
+      it('links to /select-community when clicking "Choose another community"', () => {
+        expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
       })
     })
 

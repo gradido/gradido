@@ -44,18 +44,18 @@
           </b-card>
           <b-row class="mt-3">
             <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
-              <b-button variant="outline-secondary" to="/password">
+              <router-link to="/password" class="mt-3">
                 {{ $t('settings.password.forgot_pwd') }}
-              </b-button>
+              </router-link>
             </b-col>
             <b-col
               cols="6"
               class="text-center text-sm-right col-12 col-sm-6"
               v-show="allowRegister"
             >
-              <b-button variant="outline-secondary" to="/regist-community">
+              <router-link to="/regist-community" class="mt-3">
                 {{ $t('site.login.new_wallet') }}
-              </b-button>
+              </router-link>
             </b-col>
           </b-row>
         </b-col>

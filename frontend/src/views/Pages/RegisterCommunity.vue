@@ -27,7 +27,7 @@
           <b-row>
             <b-col class="text-center">
               <b-button variant="outline-secondary" to="/select-community">
-                {{ $t('community.choose-another-aommunity') }}
+                {{ $t('community.choose-another-community') }}
               </b-button>
             </b-col>
           </b-row>

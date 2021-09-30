@@ -30,6 +30,14 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
     $store: {
       dispatch: mockStoreDispach,
+      state: {
+        community: {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost:3000/vue/',
+          registerUrl: 'http://localhost:3000/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        },
+      },
     },
     $loading: {
       show: spinnerMock,
@@ -86,7 +94,7 @@ describe('Login', () => {
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/regist-community')
       })
     })
 
