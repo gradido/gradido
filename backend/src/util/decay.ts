@@ -34,7 +34,7 @@ async function calculateDecayWithInterval(
   // (amount, from.getTime(), to.getTime())
 
   // if no decay start block exist or decay startet after end date
-  if (decayStartBlock === undefined || decayStartBlock.received.getTime() > toMillis) {
+  if (!decayStartBlock || decayStartBlock.received.getTime() > toMillis) {
     return result
   }
   const decayStartBlockMillis = decayStartBlock.received.getTime()
