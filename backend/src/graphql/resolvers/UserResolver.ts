@@ -3,7 +3,6 @@
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { from_hex as fromHex } from 'libsodium-wrappers'
-import { getRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
@@ -95,8 +94,7 @@ export class UserResolver {
     user.lastName = qluser.lastName
     user.username = qluser.username
 
-    const repository = getRepository(DbUser)
-    repository.save(user).catch(() => {
+    user.save().catch(() => {
       throw new Error('error saving user')
     })
 
