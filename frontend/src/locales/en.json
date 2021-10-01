@@ -1,7 +1,7 @@
 {
   "back": "Back",
   "community": {
-    "choose-another-aommunity":"Choose another community",
+    "choose-another-aommunity": "Choose another community",
     "community": "Community",
     "communitys": {
       "form": {
@@ -12,11 +12,11 @@
         "submit": "submit"
       }
     },
-    "continue-to-registration":"Continue to registration",
-    "current-community":"Current community",
-    "other-communities":"Other communities",
-    "switch-to-this-community":"switch to this community"
-  }, 
+    "continue-to-registration": "Continue to registration",
+    "current-community": "Current community",
+    "other-communities": "Other communities",
+    "switch-to-this-community": "switch to this community"
+  },
   "decay": {
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the grand total",
@@ -25,7 +25,7 @@
     "decay": "Decay",
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was Introduced on",
-    "decay_since_last_transaction": "Decay since the last transaction",    
+    "decay_since_last_transaction": "Decay since the last transaction",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
