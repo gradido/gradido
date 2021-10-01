@@ -52,4 +52,4 @@ async function calculateDecayWithInterval(
   return result
 }
 
-export { calculateDecay, calculateDecayWithInterval }
+export default { calculateDecay, calculateDecayWithInterval }
