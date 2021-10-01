@@ -11,13 +11,11 @@ import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
 import { User as DbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
-import {
-  ChangePasswordArgs,
-  CheckUsernameArgs,
-  CreateUserArgs,
-  UnsecureLoginArgs,
-  UpdateUserInfosArgs,
-} from '../inputs/LoginUserInput'
+import ChangePasswordArgs from '../args/ChangePasswordArgs'
+import CheckUsernameArgs from '../args/CheckUsernameArgs'
+import CreateUserArgs from '../args/CreateUserArgs'
+import UnsecureLoginArgs from '../args/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '../args/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
