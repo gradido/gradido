@@ -2,12 +2,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { TransactionList } from '../models/Transaction'
 import { TransactionListInput, TransactionSendArgs } from '../inputs/TransactionInput'
 import { apiGet, apiPost } from '../../apis/HttpRequest'
-import { User as dbUser } from '../../typeorm/entity/User'
-import { Balance as dbBalance } from '../../typeorm/entity/Balance'
+import { BalanceRepository } from '../../typeorm/repository/Balance'
+import { UserRepository } from '../../typeorm/repository/User'
 import listTransactions from './listTransactions'
 import { roundFloorFrom4 } from '../../util/round'
 import { calculateDecay } from '../../util/decay'
@@ -25,7 +26,8 @@ export class TransactionResolver {
     if (!result.success) throw new Error(result.data)
 
     // load user
-    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(result.data.user.public_hex)
 
     const transactions = await listTransactions(firstPage, items, order, userEntity)
 
@@ -37,7 +39,8 @@ export class TransactionResolver {
     transactions.gdtSum = resultGDTSum.data.sum
 
     // get balance
-    const balanceEntity = await dbBalance.findByUser(userEntity.id)
+    const balanceRepository = getCustomRepository(BalanceRepository)
+    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
     if (balanceEntity) {
       const now = new Date()
       transactions.balance = roundFloorFrom4(balanceEntity.amount)
