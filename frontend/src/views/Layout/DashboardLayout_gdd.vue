@@ -101,7 +101,7 @@ export default {
         .catch(() => {
           this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
-          this.$router.push('/login')
+          if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')
         })
     },
     async updateTransactions(pagination) {
