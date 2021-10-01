@@ -57,7 +57,7 @@ describe('UserCard_Language', () => {
     })
 
     it('has change language as text', () => {
-      expect(wrapper.find('a').text()).toBe('form.changeLanguage')
+      expect(wrapper.find('a').text()).toBe('settings.language.changeLanguage')
     })
 
     it('has no select field by default', () => {
@@ -87,23 +87,23 @@ describe('UserCard_Language', () => {
 
       describe('change language', () => {
         it('does not enable the submit button when same language is chosen', () => {
-          wrapper.findAll('option').at(1).setSelected()
+          wrapper.findAll('option').at(0).setSelected()
           expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
         })
 
         it('enables the submit button when other language is chosen', async () => {
-          await wrapper.findAll('option').at(2).setSelected()
+          await wrapper.findAll('option').at(1).setSelected()
           expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
         })
 
         it('updates language data in component', async () => {
-          await wrapper.findAll('option').at(2).setSelected()
+          await wrapper.findAll('option').at(1).setSelected()
           expect(wrapper.vm.language).toBe('en')
         })
 
         describe('cancel edit', () => {
           beforeEach(async () => {
-            await wrapper.findAll('option').at(2).setSelected()
+            await wrapper.findAll('option').at(1).setSelected()
             wrapper.find('a').trigger('click')
           })
 
@@ -118,7 +118,7 @@ describe('UserCard_Language', () => {
 
         describe('submit', () => {
           beforeEach(async () => {
-            await wrapper.findAll('option').at(2).setSelected()
+            await wrapper.findAll('option').at(1).setSelected()
             wrapper.find('form').trigger('submit')
           })
 
@@ -147,7 +147,7 @@ describe('UserCard_Language', () => {
             })
 
             it('toasts a success message', () => {
-              expect(toastSuccessMock).toBeCalledWith('languages.success')
+              expect(toastSuccessMock).toBeCalledWith('settings.language.success')
             })
           })
 
