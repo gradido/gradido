@@ -1,6 +1,5 @@
 import { calculateDecay } from './decay'
 
-
 describe('utils/decay', () => {
   it.skip('has base 0.99999997802044727', async () => {
     const now = new Date()
