@@ -15,13 +15,6 @@ export class Decay {
     }
   }
 
-  static async getDecayStartBlock(): Promise<Transaction | undefined> {
-    if (!this.decayStartBlockTransaction) {
-      this.decayStartBlockTransaction = await Transaction.getDecayStartBlock()
-    }
-    return this.decayStartBlockTransaction
-  }
-
   @Field(() => Number)
   balance: number
 
@@ -38,6 +31,4 @@ export class Decay {
 
   @Field(() => Int, { nullable: true })
   decayStartBlock?: string
-
-  static decayStartBlockTransaction: Transaction | undefined
 }

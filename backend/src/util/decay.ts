@@ -1,4 +1,6 @@
+import { getCustomRepository } from 'typeorm'
 import { Decay } from '../graphql/models/Decay'
+import { TransactionRepository } from '../typeorm/repository/Transaction'
 
 function decayFormula(amount: number, durationInSeconds: number): number {
   return amount * Math.pow(0.99999997802044727, durationInSeconds)
@@ -6,7 +8,8 @@ function decayFormula(amount: number, durationInSeconds: number): number {
 
 async function calculateDecay(amount: number, from: Date, to: Date): Promise<number> {
   // load decay start block
-  const decayStartBlock = await Decay.getDecayStartBlock()
+  const transactionRepository = getCustomRepository(TransactionRepository)
+  const decayStartBlock = await transactionRepository.findDecayStartBlock()
 
   // if decay hasn't started yet we return input amount
   if (!decayStartBlock) return amount
@@ -22,7 +25,8 @@ async function calculateDecayWithInterval(
   from: number | Date,
   to: number | Date,
 ): Promise<Decay> {
-  const decayStartBlock = await Decay.getDecayStartBlock()
+  const transactionRepository = getCustomRepository(TransactionRepository)
+  const decayStartBlock = await transactionRepository.findDecayStartBlock()
 
   const result = new Decay(undefined)
   result.balance = amount
