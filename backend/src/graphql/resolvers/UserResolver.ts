@@ -8,6 +8,7 @@ import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
+import { User as dbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
 import {
   ChangePasswordArgs,
@@ -22,6 +23,10 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
+import { getCustomRepository } from 'typeorm'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { Setting } from '../../types'
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -135,6 +140,7 @@ export class UserResolver {
       publisherId,
       password,
       passwordNew,
+      coinanimation,
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
   ): Promise<UpdateUserInfosResponse> {
@@ -152,9 +158,47 @@ export class UserResolver {
         'User.password_old': password || undefined,
       },
     }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
-    if (!result.success) throw new Error(result.data)
-    return new UpdateUserInfosResponse(result.data)
+    let response: UpdateUserInfosResponse | undefined
+    if (
+      firstName ||
+      lastName ||
+      description ||
+      username ||
+      language ||
+      publisherId ||
+      passwordNew ||
+      password
+    ) {
+      const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+      if (!result.success) throw new Error(result.data)
+      response = new UpdateUserInfosResponse(result.data)
+    }
+
+    if (coinanimation) {
+      // get public key for current logged in user
+      const result = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
+      if (!result.success) throw new Error(result.data)
+
+      // load user and balance
+      const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+
+      const userSettingRepository = getCustomRepository(UserSettingRepository)
+      userSettingRepository.setOrUpdate(
+        userEntity.id,
+        Setting.COIN_ANIMATION,
+        coinanimation.toString(),
+      )
+
+      if (!response) {
+        response = new UpdateUserInfosResponse({ valid_values: 1 })
+      } else {
+        response.validValues++
+      }
+    }
+    if (!response) {
+      throw new Error('no valid response')
+    }
+    return response
   }
 
   @Query(() => CheckUsernameResponse)
