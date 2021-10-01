@@ -29,6 +29,9 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  community: (state, community) => {
+    state.community = community
+  },
 }
 
 export const actions = {
@@ -40,6 +43,7 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('description', data.description)
     commit('newsletterState', data.klickTipp.newsletterState)
+    commit('community', data.community)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -49,6 +53,7 @@ export const actions = {
     commit('lastName', '')
     commit('description', '')
     commit('newsletterState', null)
+    commit('community', null)
     localStorage.clear()
   },
 }
@@ -68,12 +73,7 @@ export const store = new Vuex.Store({
     description: '',
     token: null,
     newsletterState: null,
-    community: {
-      name: 'Gradido Entwicklung',
-      url: 'http://localhost:3000/vue/',
-      registerUrl: 'http://localhost:3000/vue/register',
-      description: 'Die lokale Entwicklungsumgebung von Gradido.',
-    },
+    community: null,
   },
   getters: {},
   // Syncronous mutation of the state

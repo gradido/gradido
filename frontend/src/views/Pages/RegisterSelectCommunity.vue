@@ -3,43 +3,45 @@
     <b-container class="text-center">
       <div class="pb-3">{{ $t('community.current-community') }}</div>
 
-      <div v-for="community in communities.community" :key="community.name">
-        <b-card
-          v-if="community.name === $store.state.community.name"
-          class="border-0 mb-0"
-          bg-variant="primary"
-        >
-          <b>{{ community.name }}</b>
-          <br />
-          {{ $store.state.community.description }}
-          <br />
-          <b-button variant="outline-secondary" to="/register">
-            {{ $t('community.continue-to-registration') }}
-          </b-button>
-        </b-card>
-      </div>
+      <div v-if="!pending">
+        <div v-for="community in communities" :key="community.name">
+          <b-card
+            v-if="community.name === $store.state.community.name"
+            class="border-0 mb-0"
+            bg-variant="primary"
+          >
+            <b>{{ community.name }}</b>
+            <br />
+            {{ $store.state.community.description }}
+            <br />
+            <b-button variant="outline-secondary" to="/register">
+              {{ $t('community.continue-to-registration') }}
+            </b-button>
+          </b-card>
+        </div>
 
-      <hr />
+        <hr />
 
-      <div>{{ $t('community.other-communities') }}</div>
+        <div>{{ $t('community.other-communities') }}</div>
 
-      <div v-for="community in communities.community" :key="community.id" class="pb-3">
-        <b-card v-if="community.name != $store.state.community.name" bg-variant="secondary">
-          <b>{{ community.name }}</b>
-          <br />
-          {{ community.description }}
-          <br />
-          {{ $t('community.location') }}
-          <b>
-            <small>
-              <b-link :href="community.url">{{ community.url }}</b-link>
-            </small>
-          </b>
-          <br />
-          <b-button variant="outline-secondary" :href="community.url">
-            {{ $t('community.switch-to-this-community') }}
-          </b-button>
-        </b-card>
+        <div v-for="community in communities" :key="community.id" class="pb-3">
+          <b-card v-if="community.name != $store.state.community.name" bg-variant="secondary">
+            <b>{{ community.name }}</b>
+            <br />
+            {{ community.description }}
+            <br />
+            {{ $t('community.location') }}
+            <b>
+              <small>
+                <b-link :href="community.url">{{ community.url }}</b-link>
+              </small>
+            </b>
+            <br />
+            <b-button variant="outline-secondary" :href="community.url">
+              {{ $t('community.switch-to-this-community') }}
+            </b-button>
+          </b-card>
+        </div>
       </div>
 
       <div class="text-center py-lg-4">
@@ -49,14 +51,37 @@
   </div>
 </template>
 <script>
-import MyCommunities from '../../../public/json-example/communities.json'
+import communities from '../../graphql/queries'
 
 export default {
   name: 'registerSelectCommunity',
   data() {
     return {
-      communities: MyCommunities,
+      communities: [],
+      pending: true,
     }
+  },
+  methods: {
+    async getCommunities() {
+      const loader = this.$loading.show({
+        container: this.$refs.header,
+      })
+      this.$apollo
+        .query({
+          query: communities,
+        })
+        .then((response) => {
+          this.communities = response.data.communities
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+      loader.hide()
+      this.pending = false
+    },
+  },
+  created() {
+    this.getCommunities()
   },
 }
 </script>
