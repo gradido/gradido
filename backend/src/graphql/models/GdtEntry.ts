@@ -1,16 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
-
-export enum GdtEntryType {
-  FORM = 1,
-  CVS = 2,
-  ELOPAGE = 3,
-  ELOPAGE_PUBLISHER = 4,
-  DIGISTORE = 5,
-  CVS2 = 6,
-  GLOBAL_MODIFICATOR = 7,
-}
+import { GdtEntryType } from '../enum/GdtEntryType'
 
 @ObjectType()
 export class GdtEntry {
@@ -46,7 +37,7 @@ export class GdtEntry {
   @Field(() => String)
   couponCode: string
 
-  @Field(() => Number)
+  @Field(() => GdtEntryType)
   gdtEntryType: GdtEntryType
 
   @Field(() => Number)

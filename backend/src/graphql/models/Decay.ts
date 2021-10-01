@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field, Int } from 'type-graphql'
-import { Transaction } from '../../typeorm/entity/Transaction'
 
 @ObjectType()
 export class Decay {
