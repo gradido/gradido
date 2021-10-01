@@ -189,7 +189,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper
             .findComponent({ ref: 'router-view' })
-            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+            .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
           await flushPromises()
         })
 
@@ -197,8 +197,8 @@ describe('DashboardLayoutGdd', () => {
           expect(apolloMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                firstPage: 2,
-                items: 5,
+                currentPage: 2,
+                pageSize: 5,
               },
             }),
           )
@@ -233,7 +233,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper
             .findComponent({ ref: 'router-view' })
-            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+            .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
           await flushPromises()
         })
 
