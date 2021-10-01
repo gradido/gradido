@@ -18,18 +18,14 @@ export class GdtResolver {
     { currentPage = 1, pageSize = 5, order = 'DESC' }: GdtTransactionSessionIdInput,
     @Ctx() context: any,
   ): Promise<GdtEntryList> {
-    // get public key for current logged in user
-    const result = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
-    if (!result.success) throw new Error(result.data)
-
     // load user
-    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+    const userEntity = await dbUser.findByPubkeyHex(context.pubKey)
 
     const resultGDT = await apiGet(
       `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
     )
     if (!resultGDT.success) {
-      throw new Error(result.data)
+      throw new Error(resultGDT.data)
     }
 
     return new GdtEntryList(resultGDT.data)
