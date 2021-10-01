@@ -116,13 +116,19 @@
                     </span>
                   </b-alert>
 
-                  <div
-                    class="text-center"
-                    v-if="namesFilled && emailFilled && form.agree && languageFilled"
-                  >
+                  <div class="text-center">
                     <div class="text-center">
-                      <b-button class="ml-2" @click="resetForm()">{{ $t('form.reset') }}</b-button>
-                      <b-button type="submit" variant="primary">{{ $t('signup') }}</b-button>
+                      <b-button class="ml-2 test-button-back" to="/login">
+                        {{ $t('back') }}
+                      </b-button>
+
+                      <b-button
+                        :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
+                        type="submit"
+                        variant="primary"
+                      >
+                        {{ $t('signup') }}
+                      </b-button>
                     </div>
                   </div>
                 </b-form>
@@ -131,9 +137,6 @@
           </b-card>
         </b-col>
       </b-row>
-      <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
     </b-container>
   </div>
 </template>
@@ -141,7 +144,7 @@
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
-import { resgisterUserQuery } from '../../graphql/queries'
+import { registerUser } from '../../graphql/mutations'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
@@ -172,26 +175,10 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    resetForm() {
-      this.form = {
-        firstname: '',
-        lastname: '',
-        email: '',
-        password: {
-          password: '',
-          passwordRepeat: '',
-        },
-        agree: false,
-      }
-      this.language = ''
-      this.$nextTick(() => {
-        this.$refs.observer.reset()
-      })
-    },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: resgisterUserQuery,
+        .mutate({
+          mutation: registerUser,
           variables: {
             email: this.form.email,
             firstName: this.form.firstname,
@@ -238,7 +225,7 @@ export default {
       return this.form.email !== ''
     },
     languageFilled() {
-      return this.language !== null && this.language !== ''
+      return !!this.language
     },
   },
 }

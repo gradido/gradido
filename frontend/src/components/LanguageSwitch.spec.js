@@ -3,7 +3,7 @@ import LanguageSwitch from './LanguageSwitch'
 
 const localVue = global.localVue
 
-const updateUserInfosQueryMock = jest.fn().mockResolvedValue({
+const updateUserInfosMutationMock = jest.fn().mockResolvedValue({
   data: {
     updateUserInfos: {
       validValues: 1,
@@ -28,7 +28,7 @@ describe('LanguageSwitch', () => {
       locale: 'en',
     },
     $apollo: {
-      query: updateUserInfosQueryMock,
+      mutate: updateUserInfosMutationMock,
     },
   }
 
@@ -119,7 +119,7 @@ describe('LanguageSwitch', () => {
     describe('calls the API', () => {
       it("with locale 'en'", () => {
         wrapper.findAll('li').at(0).find('a').trigger('click')
-        expect(updateUserInfosQueryMock).toBeCalledWith(
+        expect(updateUserInfosMutationMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
               email: 'he@ho.he',
@@ -131,7 +131,7 @@ describe('LanguageSwitch', () => {
 
       it("with locale 'de'", () => {
         wrapper.findAll('li').at(1).find('a').trigger('click')
-        expect(updateUserInfosQueryMock).toBeCalledWith(
+        expect(updateUserInfosMutationMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
               email: 'he@ho.he',

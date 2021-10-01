@@ -1,14 +1,10 @@
 <template>
-  <b-card
-    id="formuserlanguage"
-    class="bg-transparent"
-    style="background-color: #ebebeba3 !important"
-  >
+  <b-card id="formuserlanguage" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()">
-            <span class="pointer mr-3">{{ $t('form.changeLanguage') }}</span>
+            <span class="pointer mr-3">{{ $t('settings.language.changeLanguage') }}</span>
             <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
@@ -23,13 +19,13 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
-        <b-col class="col-12">{{ $store.state.language }}</b-col>
+        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>
 
     <div v-else>
       <div>
-        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+        <b-form @submit.stop.prevent="onSubmit">
           <b-row class="mb-2">
             <b-col class="col-12">
               <small>
@@ -46,7 +42,6 @@
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="loading ? 'default' : 'success'"
-                  @click="onSubmit"
                   type="submit"
                   class="mt-4"
                   :disabled="loading"
@@ -62,8 +57,9 @@
   </b-card>
 </template>
 <script>
+import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserLanguage',
@@ -87,21 +83,30 @@ export default {
     cancelEdit() {
       this.showLanguage = true
     },
-
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
-            language: this.$store.state.language,
+            email: this.$store.state.email,
+            locale: this.language,
           },
         })
         .then(() => {
+          this.$store.commit('language', this.language)
+          this.$i18n.locale = this.language
+          localeChanged(this.language)
           this.cancelEdit()
+          this.$toasted.success(this.$t('settings.language.success'))
         })
         .catch((error) => {
+          this.language = this.$store.state.language
           this.$toasted.error(error.message)
         })
+    },
+
+    buildTagFromLanguageString() {
+      return 'languages.' + this.$store.state.language
     },
   },
 }

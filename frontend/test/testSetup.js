@@ -1,6 +1,7 @@
 import { createLocalVue } from '@vue/test-utils'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import Vuex from 'vuex'
+import Vue from 'vue'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import * as rules from 'vee-validate/dist/rules'
@@ -47,3 +48,8 @@ global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 global.localVue.directive('click-outside', clickOutside)
 global.localVue.directive('focus', focus)
+
+// throw errors for vue warnings to force the programmers to take care about warnings
+Vue.config.warnHandler = (w) => {
+  throw new Error(w)
+}

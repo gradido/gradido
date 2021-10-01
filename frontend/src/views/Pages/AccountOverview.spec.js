@@ -25,7 +25,7 @@ describe('AccountOverview', () => {
       },
     },
     $apollo: {
-      query: sendMock,
+      mutate: sendMock,
     },
   }
 

@@ -1,10 +1,10 @@
 <template>
-  <b-card id="change_pwd" class="bg-transparent" style="background-color: #ebebeba3 !important">
+  <b-card id="change_pwd" class="card-border-radius card-background-gray">
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a @click="showPassword ? (showPassword = !showPassword) : cancelEdit()">
-            <span class="pointer mr-3">{{ $t('form.change-password') }}</span>
+            <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
@@ -42,7 +42,7 @@
 <script>
 import InputPassword from '../../../components/Inputs/InputPassword'
 import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserPasswort',
@@ -73,8 +73,8 @@ export default {
     },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             password: this.form.password,
