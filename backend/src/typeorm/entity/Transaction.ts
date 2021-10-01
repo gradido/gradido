@@ -27,19 +27,4 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => TransactionCreation, (transactionCreation) => transactionCreation.transaction)
   transactionCreation: TransactionCreation
-
-  static async findByTransactionTypeId(transactionTypeId: number): Promise<Transaction[]> {
-    return this.createQueryBuilder('transaction')
-      .where('transaction.transactionTypeId = :transactionTypeId', {
-        transactionTypeId: transactionTypeId,
-      })
-      .getMany()
-  }
-
-  static async getDecayStartBlock(): Promise<Transaction | undefined> {
-    return this.createQueryBuilder('transaction')
-      .where('transaction.transactionTypeId = :transactionTypeId', { transactionTypeId: 9 })
-      .orderBy('received', 'ASC')
-      .getOne()
-  }
 }

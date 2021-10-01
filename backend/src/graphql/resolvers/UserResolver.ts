@@ -10,13 +10,11 @@ import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
 import { User as dbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
-import {
-  ChangePasswordArgs,
-  CheckUsernameArgs,
-  CreateUserArgs,
-  UnsecureLoginArgs,
-  UpdateUserInfosArgs,
-} from '../inputs/LoginUserInput'
+import ChangePasswordArgs from '../args/ChangePasswordArgs'
+import CheckUsernameArgs from '../args/CheckUsernameArgs'
+import CreateUserArgs from '../args/CreateUserArgs'
+import UnsecureLoginArgs from '../args/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '../args/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
@@ -25,7 +23,8 @@ import {
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
 import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../../types'
+import { Setting } from '../../graphql/enum/Setting'
+import { UserRepository } from '../../typeorm/repository/User'
 
 @Resolver()
 export class UserResolver {
@@ -40,7 +39,10 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(result.data.session_id, result.data.user.public_hex),
+    })
 
     return new User(result.data.user)
   }
@@ -180,7 +182,8 @@ export class UserResolver {
       if (!result.success) throw new Error(result.data)
 
       // load user and balance
-      const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+      const userRepository = getCustomRepository(UserRepository)
+      const userEntity = await userRepository.findByPubkeyHex(result.data.user.public_hex)
 
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository.setOrUpdate(

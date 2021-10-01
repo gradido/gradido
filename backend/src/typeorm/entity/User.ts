@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 import { UserSetting } from './UserSetting'
 
-// import { Group } from "./Group"
+// Moriz: I do not like the idea of having two user tables
 @Entity('state_users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -30,22 +30,4 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
   settings: UserSetting[]
-
-  static findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
-      .getOneOrFail()
-  }
-
-  static async getUsersIndiced(userIds: number[]): Promise<User[]> {
-    const users = await this.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .where('user.id IN (:...users)', { users: userIds })
-      .getMany()
-    const usersIndiced: User[] = []
-    users.forEach((value) => {
-      usersIndiced[value.id] = value
-    })
-    return usersIndiced
-  }
 }
