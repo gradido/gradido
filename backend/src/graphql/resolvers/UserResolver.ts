@@ -47,9 +47,11 @@ export class UserResolver {
     // read additional settings from settings table
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const userEntity = await dbUser.findByPubkeyHex(user.pubkey)
-    const coinanimation = await userSettingRepository.readBoolean(userEntity.id, Setting.COIN_ANIMATION).catch((error) => {
-      throw new Error(error)
-    })
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
     user.coinanimation = coinanimation
     return user
   }
@@ -191,13 +193,11 @@ export class UserResolver {
       const userEntity = await userRepository.findByPubkeyHex(result.data.user.public_hex)
 
       const userSettingRepository = getCustomRepository(UserSettingRepository)
-      userSettingRepository.setOrUpdate(
-        userEntity.id,
-        Setting.COIN_ANIMATION,
-        coinanimation.toString(),
-      ).catch((error) => {
-        throw new Error(error)
-      })
+      userSettingRepository
+        .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
+        .catch((error) => {
+          throw new Error(error)
+        })
 
       if (!response) {
         response = new UpdateUserInfosResponse({ valid_values: 1 })

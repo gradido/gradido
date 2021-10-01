@@ -2,7 +2,8 @@ import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 't
 import { User } from './User'
 
 @Entity()
-export class UserSetting { //extends BaseEntity {
+export class UserSetting {
+  // extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
