@@ -17,9 +17,7 @@ export class Balance extends BaseEntity {
   @Column({ type: 'bigint' })
   amount: number
 
-  static findByUser(userId: number): Promise<Balance> {
-    return this.createQueryBuilder('balance')
-      .where('balance.userId = :userId', { userId })
-      .getOneOrFail()
+  static findByUser(userId: number): Promise<Balance | undefined> {
+    return this.createQueryBuilder('balance').where('balance.userId = :userId', { userId }).getOne()
   }
 }

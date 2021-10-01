@@ -4,7 +4,7 @@
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()">
-            <span class="pointer mr-3">{{ $t('form.changeLanguage') }}</span>
+            <span class="pointer mr-3">{{ $t('settings.language.changeLanguage') }}</span>
             <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
@@ -82,6 +82,7 @@ export default {
     },
     cancelEdit() {
       this.showLanguage = true
+      this.language = this.$store.state.language
     },
     async onSubmit() {
       this.$apollo
@@ -97,14 +98,13 @@ export default {
           this.$i18n.locale = this.language
           localeChanged(this.language)
           this.cancelEdit()
-          this.$toasted.success(this.$t('languages.success'))
+          this.$toasted.success(this.$t('settings.language.success'))
         })
         .catch((error) => {
           this.language = this.$store.state.language
           this.$toasted.error(error.message)
         })
     },
-
     buildTagFromLanguageString() {
       return 'languages.' + this.$store.state.language
     },

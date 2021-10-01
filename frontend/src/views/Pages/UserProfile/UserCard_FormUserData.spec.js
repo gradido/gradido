@@ -139,7 +139,7 @@ describe('UserCard_FormUserData', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessMock).toBeCalledWith('site.profil.user-data.change-success')
+          expect(toastSuccessMock).toBeCalledWith('settings.name.change-success')
         })
 
         it('has an edit button again', () => {

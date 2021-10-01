@@ -4,7 +4,7 @@
       <b-row class="mb-3">
         <b-col class="mb-2 col-12">
           <small>
-            <b>{{ $t('setting.newsletter') }}</b>
+            <b>{{ $t('settings.newsletter.newsletter') }}</b>
           </small>
         </b-col>
         <b-col class="col-12">
@@ -15,7 +15,11 @@
             switch
             @change="onSubmit"
           >
-            {{ newsletterState ? $t('setting.newsletterTrue') : $t('setting.newsletterFalse') }}
+            {{
+              newsletterState
+                ? $t('settings.newsletter.newsletterTrue')
+                : $t('settings.newsletter.newsletterFalse')
+            }}
           </b-form-checkbox>
         </b-col>
       </b-row>
@@ -46,8 +50,8 @@ export default {
           this.$store.commit('newsletterState', this.newsletterState)
           this.$toasted.success(
             this.newsletterState
-              ? this.$t('setting.newsletterTrue')
-              : this.$t('setting.newsletterFalse'),
+              ? this.$t('settings.newsletter.newsletterTrue')
+              : this.$t('settings.newsletter.newsletterFalse'),
           )
         })
         .catch((error) => {

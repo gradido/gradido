@@ -4,7 +4,7 @@
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a @click="showUserData ? (showUserData = !showUserData) : cancelEdit()">
-            <span class="pointer mr-3">{{ $t('form.change-name') }}</span>
+            <span class="pointer mr-3">{{ $t('settings.name.change-name') }}</span>
             <b-icon v-if="showUserData" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
@@ -122,7 +122,7 @@ export default {
           this.$store.commit('lastName', this.form.lastName)
           this.$store.commit('description', this.form.description)
           this.showUserData = true
-          this.$toasted.success(this.$t('site.profil.user-data.change-success'))
+          this.$toasted.success(this.$t('settings.name.change-success'))
         })
         .catch((error) => {
           this.$toasted.error(error.message)
