@@ -2,5 +2,6 @@
 /.env
 /build/
 
+coverage
 # emacs
 *~
