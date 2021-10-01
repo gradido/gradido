@@ -19,18 +19,4 @@ export class UserTransaction extends BaseEntity {
 
   @Column({ name: 'balance_date', type: 'timestamp' })
   balanceDate: Date
-
-  static findByUserPaged(
-    userId: number,
-    limit: number,
-    offset: number,
-    order: 'ASC' | 'DESC',
-  ): Promise<[UserTransaction[], number]> {
-    return this.createQueryBuilder('userTransaction')
-      .where('userTransaction.userId = :userId', { userId })
-      .orderBy('userTransaction.balanceDate', order)
-      .limit(limit)
-      .offset(offset)
-      .getManyAndCount()
-  }
 }
