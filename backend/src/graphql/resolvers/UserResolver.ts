@@ -43,8 +43,15 @@ export class UserResolver {
       key: 'token',
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
-
-    return new User(result.data.user)
+    const user = new User(result.data.user)
+    // read additional settings from settings table
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const userEntity = await dbUser.findByPubkeyHex(user.pubkey)
+    const coinanimation = await userSettingRepository.readBoolean(userEntity.id, Setting.COIN_ANIMATION).catch((error) => {
+      throw new Error(error)
+    })
+    user.coinanimation = coinanimation
+    return user
   }
 
   @Query(() => LoginViaVerificationCode)
@@ -133,7 +140,6 @@ export class UserResolver {
   async updateUserInfos(
     @Args()
     {
-      email,
       firstName,
       lastName,
       description,
@@ -148,7 +154,6 @@ export class UserResolver {
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: context.sessionId,
-      email,
       update: {
         'User.first_name': firstName || undefined,
         'User.last_name': lastName || undefined,
@@ -190,7 +195,9 @@ export class UserResolver {
         userEntity.id,
         Setting.COIN_ANIMATION,
         coinanimation.toString(),
-      )
+      ).catch((error) => {
+        throw new Error(error)
+      })
 
       if (!response) {
         response = new UpdateUserInfosResponse({ valid_values: 1 })

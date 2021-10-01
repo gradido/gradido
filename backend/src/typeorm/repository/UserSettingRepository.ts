@@ -3,8 +3,9 @@ import { UserSetting } from '../entity/UserSetting'
 import { Setting } from '../../types'
 import { isStringBoolean } from '../../util/validate'
 
-@EntityRepository()
+@EntityRepository(UserSetting)
 export class UserSettingRepository extends Repository<UserSetting> {
+
   async setOrUpdate(userId: number, key: Setting, value: string): Promise<UserSetting> {
     switch (key) {
       case Setting.COIN_ANIMATION:
@@ -22,5 +23,13 @@ export class UserSettingRepository extends Repository<UserSetting> {
     }
     entity.value = value
     return this.save(entity)
+  }
+
+  async readBoolean(userId: number, key: Setting): Promise<boolean> {
+    let entity = await this.findOne({ userId: userId, key: key })
+    if(!entity || !isStringBoolean(entity.value)) {
+      return false
+    }
+    return entity.value.toLowerCase() === 'true'
   }
 }

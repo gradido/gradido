@@ -17,6 +17,7 @@
             v-model="CoinAnimationStatus"
             name="check-button"
             switch
+            @change="onSubmit"
           >
             {{
               CoinAnimationStatus
@@ -30,7 +31,7 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 export default {
   name: 'FormUserCoinAnimation',
   data() {
@@ -39,13 +40,13 @@ export default {
     }
   },
   created() {
-    this.CoinAnimationStatus = this.$store.state.coinanimation /* exestiert noch nicht im store */
+    this.CoinAnimationStatus = this.$store.state.coinanimation /* existiert noch nicht im store */
   },
   methods: {
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             coinanimation: this.$store.state.coinanimation,
           },
