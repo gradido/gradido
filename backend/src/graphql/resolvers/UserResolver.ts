@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware } from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
@@ -22,6 +22,7 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -35,7 +36,10 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(result.data.session_id, result.data.user.public_hex),
+    })
 
     return new User(result.data.user)
   }
@@ -66,8 +70,8 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => String)
-  async create(
+  @Mutation(() => String)
+  async createUser(
     @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
   ): Promise<string> {
     const payload = {
@@ -104,7 +108,7 @@ export class UserResolver {
     return new SendPasswordResetEmailResponse(response.data)
   }
 
-  @Query(() => String)
+  @Mutation(() => String)
   async resetPassword(
     @Args()
     { sessionId, email, password }: ChangePasswordArgs,
@@ -122,7 +126,7 @@ export class UserResolver {
   }
 
   @Authorized()
-  @Query(() => UpdateUserInfosResponse)
+  @Mutation(() => UpdateUserInfosResponse)
   async updateUserInfos(
     @Args()
     {

@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken'
 import CONFIG from '../config/'
 
 // Generate an Access Token
-export default function encode(sessionId: string): string {
-  const token = jwt.sign({ sessionId }, CONFIG.JWT_SECRET, {
+export default function encode(sessionId: number, pubKey: Buffer): string {
+  const token = jwt.sign({ sessionId, pubKey }, CONFIG.JWT_SECRET, {
     expiresIn: CONFIG.JWT_EXPIRES_IN,
     subject: sessionId.toString(),
   })

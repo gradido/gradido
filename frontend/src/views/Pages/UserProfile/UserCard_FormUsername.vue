@@ -67,7 +67,7 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/queries'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUsername',
@@ -87,8 +87,8 @@ export default {
     },
     async onSubmit() {
       this.$apollo
-        .query({
-          query: updateUserInfos,
+        .mutate({
+          mutation: updateUserInfos,
           variables: {
             email: this.$store.state.email,
             username: this.form.username,
@@ -98,7 +98,7 @@ export default {
           this.$store.commit('username', this.form.username)
           this.username = this.form.username
           this.showUsername = true
-          this.$toasted.success(this.$t('site.profil.user-data.change-success'))
+          this.$toasted.success(this.$t('settings.name.change-success'))
         })
         .catch((error) => {
           this.$toasted.error(error.message)

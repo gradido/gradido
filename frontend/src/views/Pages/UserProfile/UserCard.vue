@@ -1,5 +1,5 @@
 <template>
-  <b-card class="bg-transparent">
+  <b-card class="bg-transparent border-0">
     <div class="w-100 text-center">
       <vue-qrcode
         v-if="$store.state.email"

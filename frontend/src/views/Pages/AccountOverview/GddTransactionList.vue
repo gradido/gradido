@@ -18,13 +18,13 @@
             </b-button>
           </div>
 
-          <b-row>
+          <div>
             <!-- ICON  -->
             <div class="col-1 gdd-transaction-list-item-icon">
               <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
             </div>
 
-            <div class="col col-11">
+            <div>
               <!-- Betrag / Name Email -->
               <b-row>
                 <div class="col-5 text-right">
@@ -70,13 +70,19 @@
                 </div>
               </b-row>
             </div>
-          </b-row>
+          </div>
 
           <!-- Collaps Start -->
 
           <b-collapse v-if="type != 'decay'" class="pb-4" :id="'a' + date + ''">
             <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
-              <decay-information v-if="decay" decaytyp="new" :decay="decay" />
+              <decay-information
+                v-if="decay"
+                decaytyp="new"
+                :balance="balance"
+                :decay="decay"
+                :type="type"
+              />
             </div>
           </b-collapse>
 

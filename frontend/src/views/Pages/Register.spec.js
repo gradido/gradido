@@ -5,7 +5,7 @@ import Register from './Register'
 
 const localVue = global.localVue
 
-const resgisterUserQueryMock = jest.fn()
+const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
 
 describe('Register', () => {
@@ -20,11 +20,12 @@ describe('Register', () => {
       push: routerPushMock,
     },
     $apollo: {
-      query: resgisterUserQueryMock,
+      mutate: registerUserMutationMock,
     },
     $store: {
       state: {
-        language: null,
+        email: 'peter@lustig.de',
+        language: 'en',
       },
     },
   }
@@ -54,11 +55,11 @@ describe('Register', () => {
 
     describe('links', () => {
       it('has a link "Back"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
+        expect(wrapper.find('.test-button-back').text()).toEqual('back')
       })
 
       it('links to /login when clicking "Back"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
+        expect(wrapper.find('.test-button-back').props().to).toBe('/login')
       })
     })
 
@@ -88,17 +89,17 @@ describe('Register', () => {
       it('has Language selected field', () => {
         expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
       })
-      it('selected Language value de', async () => {
+      it('selects Language value en', async () => {
         wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
-        expect(wrapper.find('.selectedLanguage').element.value).toBe('de')
+        expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
       })
 
       it('has 1 checkbox input fields', () => {
         expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
       })
 
-      it('has no submit button when not completely filled', () => {
-        expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
+      it('has disabled submit button when not completely filled', () => {
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
       it('displays a message that Email is required', async () => {
@@ -126,73 +127,23 @@ describe('Register', () => {
       })
     })
 
-    describe('resetForm', () => {
-      beforeEach(() => {
-        wrapper.find('#registerFirstname').setValue('Max')
-        wrapper.find('#registerLastname').setValue('Mustermann')
-        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
-        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-        wrapper.find('input[name="site.signup.agree"]').setChecked(true)
-      })
-
-      it('reset selected value language', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('.language-switch-select').element.value).toBe(undefined)
-      })
-
-      it('resets the firstName field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('#registerFirstname').element.value).toBe('')
-      })
-
-      it('resets the lastName field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('#registerLastname').element.value).toBe('')
-      })
-
-      it('resets the email field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('#Email-input-field').element.value).toBe('')
-      })
-
-      it.skip('resets the password field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('input[name="form.password"]').element.value).toBe('')
-      })
-
-      it.skip('resets the passwordRepeat field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('input[name="form.passwordRepeat"]').element.value).toBe('')
-      })
-
-      it('resets the firstName field after clicking the reset button', async () => {
-        await wrapper.find('button.ml-2').trigger('click')
-        await flushPromises()
-        expect(wrapper.find('input[name="site.signup.agree"]').props.checked).not.toBeTruthy()
-      })
-    })
-
     describe('API calls', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456')
+        wrapper.find('input[name="form.password"]').setValue('Aa123456_')
+        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+      })
+
+      it('has enabled submit button when completely filled', () => {
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
       describe('server sends back error', () => {
         beforeEach(async () => {
-          resgisterUserQueryMock.mockRejectedValue({ message: 'Ouch!' })
+          registerUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
         })
@@ -217,7 +168,7 @@ describe('Register', () => {
 
       describe('server sends back success', () => {
         beforeEach(() => {
-          resgisterUserQueryMock.mockResolvedValue({
+          registerUserMutationMock.mockResolvedValue({
             data: {
               create: 'success',
             },
@@ -227,14 +178,14 @@ describe('Register', () => {
         it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
-          expect(resgisterUserQueryMock).toBeCalledWith(
+          expect(registerUserMutationMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'max.mustermann@gradido.net',
                 firstName: 'Max',
                 lastName: 'Mustermann',
-                password: 'Aa123456',
-                language: 'de',
+                password: 'Aa123456_',
+                language: 'en',
               },
             }),
           )

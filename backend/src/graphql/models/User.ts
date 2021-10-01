@@ -16,6 +16,7 @@ export class User {
     this.lastName = json.last_name
     this.username = json.username
     this.description = json.description
+    this.pubkey = json.public_hex
     this.language = json.language
     this.publisherId = json.publisher_id
   }
@@ -35,6 +36,8 @@ export class User {
   @Field(() => String)
   description: string
 
+  @Field(() => String)
+  pubkey: string
   /*
   @Field(() => String)
   pubkey: string
