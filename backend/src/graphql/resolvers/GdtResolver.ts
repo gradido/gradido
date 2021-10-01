@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Ctx, Authorized } from 'type-graphql'
+import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { GdtEntryList } from '../models/GdtEntryList'
 import { GdtTransactionSessionIdInput } from '../inputs/GdtInputs'
 import { apiGet } from '../../apis/HttpRequest'
-import { User as dbUser } from '../../typeorm/entity/User'
+import { UserRepository } from '../../typeorm/repository/User'
 
 @Resolver()
 export class GdtResolver {
@@ -19,7 +20,8 @@ export class GdtResolver {
     @Ctx() context: any,
   ): Promise<GdtEntryList> {
     // load user
-    const userEntity = await dbUser.findByPubkeyHex(context.pubKey)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
     const resultGDT = await apiGet(
       `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
