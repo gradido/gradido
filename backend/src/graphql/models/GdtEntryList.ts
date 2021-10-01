@@ -4,20 +4,6 @@ import { GdtEntry } from './GdtEntry'
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class GdtSumPerEmail {
-  constructor(email: string, summe: number) {
-    this.email = email
-    this.summe = summe
-  }
-
-  @Field(() => String)
-  email: string
-
-  @Field(() => Number)
-  summe: number
-}
-
-@ObjectType()
 export class GdtEntryList {
   constructor(json: any) {
     this.state = json.state
