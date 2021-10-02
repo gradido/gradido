@@ -1,25 +1,25 @@
 import gql from 'graphql-tag'
 
 export const subscribeNewsletter = gql`
-  mutation ($email: String!, $language: String!) {
+  mutation($email: String!, $language: String!) {
     subscribeNewsletter(email: $email, language: $language)
   }
 `
 
 export const unsubscribeNewsletter = gql`
-  mutation ($email: String!) {
+  mutation($email: String!) {
     unsubscribeNewsletter(email: $email)
   }
 `
 
 export const resetPassword = gql`
-  mutation ($sessionId: Float!, $email: String!, $password: String!) {
+  mutation($sessionId: Float!, $email: String!, $password: String!) {
     resetPassword(sessionId: $sessionId, email: $email, password: $password)
   }
 `
 
 export const updateUserInfos = gql`
-  mutation (
+  mutation(
     $firstName: String
     $lastName: String
     $description: String
@@ -45,7 +45,7 @@ export const updateUserInfos = gql`
 `
 
 export const registerUser = gql`
-  mutation (
+  mutation(
     $firstName: String!
     $lastName: String!
     $email: String!
@@ -63,7 +63,7 @@ export const registerUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation ($email: String!, $amount: Float!, $memo: String!) {
+  mutation($email: String!, $amount: Float!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `

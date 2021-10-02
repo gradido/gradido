@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const login = gql`
-  query ($email: String!, $password: String!) {
+  query($email: String!, $password: String!) {
     login(email: $email, password: $password) {
       email
       username
@@ -24,7 +24,7 @@ export const logout = gql`
 `
 
 export const loginViaEmailVerificationCode = gql`
-  query ($optin: String!) {
+  query($optin: String!) {
     loginViaEmailVerificationCode(optin: $optin) {
       sessionId
       email
@@ -33,7 +33,7 @@ export const loginViaEmailVerificationCode = gql`
 `
 
 export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       gdtSum
       count
@@ -64,7 +64,7 @@ export const transactionsQuery = gql`
 `
 
 export const sendResetPasswordEmail = gql`
-  query ($email: String!) {
+  query($email: String!) {
     sendResetPasswordEmail(email: $email) {
       state
     }
@@ -72,7 +72,7 @@ export const sendResetPasswordEmail = gql`
 `
 
 export const checkUsername = gql`
-  query ($username: String!) {
+  query($username: String!) {
     checkUsername(username: $username) {
       state
     }
@@ -80,7 +80,7 @@ export const checkUsername = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query ($currentPage: Int!, $pageSize: Int!) {
+  query($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
       count
       gdtEntries {
@@ -98,7 +98,7 @@ export const listGDTEntriesQuery = gql`
 `
 
 export const checkEmailQuery = gql`
-  query ($optin: String!) {
+  query($optin: String!) {
     checkEmail(optin: $optin) {
       email
       sessionId
