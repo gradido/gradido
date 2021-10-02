@@ -8,7 +8,6 @@ import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
-import { User as dbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../args/ChangePasswordArgs'
 import CheckUsernameArgs from '../args/CheckUsernameArgs'
@@ -45,8 +44,10 @@ export class UserResolver {
     })
     const user = new User(result.data.user)
     // read additional settings from settings table
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
+
     const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const userEntity = await dbUser.findByPubkeyHex(user.pubkey)
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
       .catch((error) => {
