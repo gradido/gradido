@@ -8,7 +8,7 @@
       <b-row class="mb-3">
         <b-col class="mb-2 col-12">
           <small>
-            <b>{{ $t('setting.coinanimation') }}</b>
+            <b>{{ $t('settings.coinanimation.coinanimation') }}</b>
           </small>
         </b-col>
         <b-col class="col-12">
@@ -21,8 +21,8 @@
           >
             {{
               CoinAnimationStatus
-                ? $t('setting.coinanimationTrue')
-                : $t('setting.coinanimationFalse')
+                ? $t('settings.coinanimation.True')
+                : $t('settings.coinanimation.False')
             }}
           </b-form-checkbox>
         </b-col>

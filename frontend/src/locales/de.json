@@ -105,6 +105,12 @@
   "privacy_policy": "Datenschutzerklärung",
   "send": "Senden",
   "settings": {
+    "coinanimation": {
+      "coinanimation": "Münzanimation",
+      "False": "Münzanimation ausgeschaltet", 
+      "True" : "Münzanimation eingeschaltet"
+    },
+    "coinanimationTrue": "",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
