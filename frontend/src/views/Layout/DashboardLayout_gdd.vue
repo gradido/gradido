@@ -110,8 +110,8 @@ export default {
         .query({
           query: transactionsQuery,
           variables: {
-            firstPage: pagination.firstPage,
-            items: pagination.items,
+            currentPage: pagination.currentPage,
+            pageSize: pagination.pageSize,
           },
           fetchPolicy: 'network-only',
         })
