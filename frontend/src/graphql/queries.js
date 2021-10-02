@@ -9,6 +9,7 @@ export const login = gql`
       lastName
       language
       description
+      coinanimation
       klickTipp {
         newsletterState
       }

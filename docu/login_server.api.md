@@ -222,7 +222,6 @@ with:
 ```json 
 {
 	"session_id": -127182,
-	"email": "max.musterman@gmail.de",
 	"update": {
 		"User.first_name": "Max",
 		"User.last_name" : "Musterman",

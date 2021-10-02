@@ -30,7 +30,6 @@ export class GdtResolver {
     if (!resultGDT.success) {
       throw new Error(resultGDT.data)
     }
-
     return new GdtEntryList(resultGDT.data)
   }
 }
