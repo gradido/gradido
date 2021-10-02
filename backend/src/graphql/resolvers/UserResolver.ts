@@ -184,13 +184,9 @@ export class UserResolver {
     }
 
     if (coinanimation) {
-      // get public key for current logged in user
-      const result = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
-      if (!result.success) throw new Error(result.data)
-
       // load user and balance
       const userRepository = getCustomRepository(UserRepository)
-      const userEntity = await userRepository.findByPubkeyHex(result.data.user.public_hex)
+      const userEntity = await userRepository.findByPubkeyHex(context.pubkey)
 
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository

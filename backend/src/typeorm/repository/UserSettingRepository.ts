@@ -1,6 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm'
 import { UserSetting } from '../entity/UserSetting'
-import { Setting } from '../../types'
+import { Setting } from '../../graphql/enum/Setting'
 import { isStringBoolean } from '../../util/validate'
 
 @EntityRepository(UserSetting)
