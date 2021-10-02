@@ -28,25 +28,4 @@ export class User extends BaseEntity {
 
   @Column()
   disabled: boolean
-
-  // Moriz: I am voting for the data mapper implementation.
-  // see: https://typeorm.io/#/active-record-data-mapper/what-is-the-data-mapper-pattern
-  // We should discuss this ASAP
-  static findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
-      .getOneOrFail()
-  }
-
-  static async getUsersIndiced(userIds: number[]): Promise<User[]> {
-    const users = await this.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .where('user.id IN (:...users)', { users: userIds })
-      .getMany()
-    const usersIndiced: User[] = []
-    users.forEach((value) => {
-      usersIndiced[value.id] = value
-    })
-    return usersIndiced
-  }
 }

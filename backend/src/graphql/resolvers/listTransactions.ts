@@ -1,8 +1,11 @@
+import { getCustomRepository } from 'typeorm'
 import { User as dbUser } from '../../typeorm/entity/User'
+import { UserRepository } from '../../typeorm/repository/User'
 import { TransactionList, Transaction } from '../models/Transaction'
 import { UserTransaction as dbUserTransaction } from '../../typeorm/entity/UserTransaction'
+import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { Transaction as dbTransaction } from '../../typeorm/entity/Transaction'
-import { Decay } from '../models/Decay'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { calculateDecayWithInterval } from '../../util/decay'
 import { roundFloorFrom4 } from '../../util/round'
 
@@ -20,20 +23,8 @@ async function calculateAndAddDecayTransactions(
     transactionIds.push(userTransaction.transactionId)
   })
 
-  const transactions = await dbTransaction
-    .createQueryBuilder('transaction')
-    .where('transaction.id IN (:...transactions)', { transactions: transactionIds })
-    .leftJoinAndSelect(
-      'transaction.transactionSendCoin',
-      'transactionSendCoin',
-      // 'transactionSendCoin.transaction_id = transaction.id',
-    )
-    .leftJoinAndSelect(
-      'transaction.transactionCreation',
-      'transactionCreation',
-      // 'transactionSendCoin.transaction_id = transaction.id',
-    )
-    .getMany()
+  const transactionRepository = getCustomRepository(TransactionRepository)
+  const transactions = await transactionRepository.joinFullTransactionsByIds(transactionIds)
 
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
@@ -46,9 +37,10 @@ async function calculateAndAddDecayTransactions(
   // remove duplicates
   // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
   const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
-  const userIndiced = await dbUser.getUsersIndiced(involvedUsersUnique)
+  const userRepository = getCustomRepository(UserRepository)
+  const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
 
-  const decayStartTransaction = await Decay.getDecayStartBlock()
+  const decayStartTransaction = await transactionRepository.findDecayStartBlock()
 
   for (let i = 0; i < userTransactions.length; i++) {
     const userTransaction = userTransactions[i]
@@ -163,7 +155,8 @@ export default async function listTransactions(
   if (offset && order === 'ASC') {
     offset--
   }
-  let [userTransactions, userTransactionsCount] = await dbUserTransaction.findByUserPaged(
+  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+  let [userTransactions, userTransactionsCount] = await userTransactionRepository.findByUserPaged(
     user.id,
     limit,
     offset,
