@@ -50,7 +50,7 @@ async function calculateAndAddDecayTransactions(
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
-    if (transaction.transactionTypeId === 2) {
+    if (transaction.transactionTypeId === TransactionTypeId.SEND) {
       involvedUserIds.push(transaction.transactionSendCoin.userId)
       involvedUserIds.push(transaction.transactionSendCoin.recipiantUserId)
     }
@@ -97,7 +97,7 @@ async function calculateAndAddDecayTransactions(
       }
     }
 
-    // sender or receiver when user has sended money
+    // sender or receiver when user has sent money
     // group name if creation
     // type: gesendet / empfangen / geschöpft
     // transaktion nr / id
