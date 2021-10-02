@@ -12,7 +12,8 @@ export class UserSettingRepository extends Repository<UserSetting> {
           throw new Error("coinanimation value isn't boolean")
         }
         break
-      default: throw new Error('key isn\'t defined: ' + key)
+      default:
+        throw new Error("key isn't defined: " + key)
     }
     let entity = await this.findOne({ userId: userId, key: key })
 
