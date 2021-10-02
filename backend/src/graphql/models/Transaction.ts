@@ -10,18 +10,11 @@ import { Decay } from './Decay'
 
 @ObjectType()
 export class Transaction {
-  constructor(json: any) {
-    this.type = json.type
-    this.balance = Number(json.balance)
-    this.decayStart = json.decay_start
-    this.decayEnd = json.decay_end
-    this.decayDuration = json.decay_duration
-    this.memo = json.memo
-    this.transactionId = json.transaction_id
-    this.name = json.name
-    this.email = json.email
-    this.date = json.date
-    this.decay = json.decay ? new Decay(json.decay) : undefined
+  constructor() {
+    this.type = ''
+    this.balance = 0
+    this.totalBalance = 0
+    this.memo = ''
   }
 
   @Field(() => String)
@@ -30,14 +23,17 @@ export class Transaction {
   @Field(() => Number)
   balance: number
 
-  @Field({ nullable: true })
-  decayStart?: number
+  @Field(() => Number)
+  totalBalance: number
 
   @Field({ nullable: true })
-  decayEnd?: number
+  decayStart?: string
 
   @Field({ nullable: true })
-  decayDuration?: string
+  decayEnd?: string
+
+  @Field({ nullable: true })
+  decayDuration?: number
 
   @Field(() => String)
   memo: string
@@ -56,36 +52,4 @@ export class Transaction {
 
   @Field({ nullable: true })
   decay?: Decay
-}
-
-@ObjectType()
-export class TransactionList {
-  constructor(json: any) {
-    this.gdtSum = Number(json.gdtSum)
-    this.count = json.count
-    this.balance = Number(json.balance)
-    this.decay = Number(json.decay)
-    this.decayDate = json.decay_date
-    this.transactions = json.transactions.map((el: any) => {
-      return new Transaction(el)
-    })
-  }
-
-  @Field(() => Number)
-  gdtSum: number
-
-  @Field(() => Number)
-  count: number
-
-  @Field(() => Number)
-  balance: number
-
-  @Field(() => Number)
-  decay: number
-
-  @Field(() => String)
-  decayDate: string
-
-  @Field(() => [Transaction])
-  transactions: Transaction[]
 }

@@ -1,6 +1,8 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 // import { Group } from "./Group"
+
+// Moriz: I do not like the idea of having two user tables
 @Entity('state_users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -26,10 +28,4 @@ export class User extends BaseEntity {
 
   @Column()
   disabled: boolean
-
-  static findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
-      .getOneOrFail()
-  }
 }

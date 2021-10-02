@@ -327,7 +327,9 @@ describe('GddTransactionList', () => {
 
       it('emits update-transactions when next button is clicked', async () => {
         await paginationButtons.find('button.next-page').trigger('click')
-        expect(wrapper.emitted('update-transactions')[1]).toEqual([{ firstPage: 2, items: 25 }])
+        expect(wrapper.emitted('update-transactions')[1]).toEqual([
+          { currentPage: 2, pageSize: 25 },
+        ])
       })
 
       it('shows text "2 / 2" when next button is clicked', async () => {
@@ -348,7 +350,9 @@ describe('GddTransactionList', () => {
       it('emits update-transactions when preivous button is clicked after next buton', async () => {
         await paginationButtons.find('button.next-page').trigger('click')
         await paginationButtons.find('button.previous-page').trigger('click')
-        expect(wrapper.emitted('update-transactions')[2]).toEqual([{ firstPage: 1, items: 25 }])
+        expect(wrapper.emitted('update-transactions')[2]).toEqual([
+          { currentPage: 1, pageSize: 25 },
+        ])
         expect(scrollToMock).toBeCalled()
       })
     })

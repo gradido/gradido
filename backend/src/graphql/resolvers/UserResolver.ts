@@ -11,19 +11,18 @@ import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
 import { User as DbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
-import {
-  ChangePasswordArgs,
-  CheckUsernameArgs,
-  CreateUserArgs,
-  UnsecureLoginArgs,
-  UpdateUserInfosArgs,
-} from '../inputs/LoginUserInput'
+import ChangePasswordArgs from '../args/ChangePasswordArgs'
+import CheckUsernameArgs from '../args/CheckUsernameArgs'
+import CreateUserArgs from '../args/CreateUserArgs'
+import UnsecureLoginArgs from '../args/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '../args/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -37,7 +36,10 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    context.setHeaders.push({ key: 'token', value: encode(result.data.session_id) })
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(result.data.session_id, result.data.user.public_hex),
+    })
 
     return new User(result.data.user)
   }
