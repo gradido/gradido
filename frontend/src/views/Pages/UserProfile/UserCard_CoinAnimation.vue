@@ -48,14 +48,15 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            coinanimation: this.$store.state.coinanimation,
+            coinanimation: this.CoinAnimationStatus,
           },
         })
         .then(() => {
+          this.$store.state.coinanimation = this.CoinAnimationStatus
           this.$toasted.success(
             this.CoinAnimationStatus
-              ? this.$t('setting.coinanimationTrue')
-              : this.$t('setting.coinanimationFalse'),
+              ? this.$t('settings.coinanimation.True')
+              : this.$t('settings.coinanimation.False'),
           )
         })
         .catch((error) => {

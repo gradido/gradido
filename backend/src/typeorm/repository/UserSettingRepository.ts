@@ -27,7 +27,7 @@ export class UserSettingRepository extends Repository<UserSetting> {
   async readBoolean(userId: number, key: Setting): Promise<boolean> {
     const entity = await this.findOne({ userId: userId, key: key })
     if (!entity || !isStringBoolean(entity.value)) {
-      return false
+      return true
     }
     return entity.value.toLowerCase() === 'true'
   }
