@@ -107,8 +107,8 @@
   "settings": {
     "coinanimation": {
       "coinanimation": "Coin animation",
-      "False": "Coin animation disabled", 
-      "True" : "Coin animation enabled"
+      "False": "Coin animation disabled",
+      "True": "Coin animation enabled"
     },
     "language": {
       "changeLanguage": "Change language",
