@@ -231,7 +231,7 @@ export class TransactionResolver {
       email: userEntity.email,
     })
     if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = resultGDTSum.data.sum
+    transactions.gdtSum = resultGDTSum.data.sum || 0
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
