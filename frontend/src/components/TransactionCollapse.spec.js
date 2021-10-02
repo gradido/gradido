@@ -32,8 +32,8 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(1)
+    it('checks the prop gdtEntryType', () => {
+      expect(wrapper.props().gdtEntryType).toBe('FORM')
     })
 
     it('renders the component collapse-header', () => {
@@ -78,7 +78,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('checks the prop gdtEntryType', () => {
-      expect(wrapper.props().gdtEntryType).toBe(7)
+      expect(wrapper.props().gdtEntryType).toBe('GLOBAL_MODIFICATOR')
     })
 
     it('renders the component collapse-header', () => {
@@ -122,8 +122,8 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(4)
+    it('checks the prop gdtEntryType', () => {
+      expect(wrapper.props().gdtEntryType).toBe('ELOPAGE_PUBLISHER')
     })
 
     it('renders the component collapse-header', () => {
