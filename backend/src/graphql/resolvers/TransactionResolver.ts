@@ -23,7 +23,7 @@ import { User as dbUser } from '../../typeorm/entity/User'
 import { UserTransaction as dbUserTransaction } from '../../typeorm/entity/UserTransaction'
 import { Transaction as dbTransaction } from '../../typeorm/entity/Transaction'
 
-import { apiGet, apiPost } from '../../apis/HttpRequest'
+import { apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4 } from '../../util/round'
 import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
@@ -216,13 +216,9 @@ export class TransactionResolver {
     @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
-    // get public key for current logged in user
-    const result = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
-    if (!result.success) throw new Error(result.data)
-
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(result.data.user.public_hex)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
     const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
 
