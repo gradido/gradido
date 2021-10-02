@@ -181,35 +181,28 @@ export class UserResolver {
     ) {
       const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
       if (!result.success) throw new Error(result.data)
-      response = new UpdateUserInfosResponse(result.data)    
+      response = new UpdateUserInfosResponse(result.data)
     }
-    console.log("before coinaimation, coinanimation: %o", coinanimation)
     if (coinanimation !== undefined) {
       // load user and balance
       const userRepository = getCustomRepository(UserRepository)
-      console.log("get user repository")
-      console.log("try to find: %o", context.pubKey)
       const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-      console.log("user entity: %o", userEntity )
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
         .catch((error) => {
           throw new Error(error)
         })
-      
+
       if (!response) {
-        console.log("new response")
         response = new UpdateUserInfosResponse({ valid_values: 1 })
       } else {
         response.validValues++
       }
-      console.log("response should be set")
     }
     if (!response) {
       throw new Error('no valid response')
     }
-    console.log(response)
     return response
   }
 
