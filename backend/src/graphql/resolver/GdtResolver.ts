@@ -4,7 +4,7 @@
 import { Resolver, Query, Args, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
-import { GdtEntryList } from '../models/GdtEntryList'
+import { GdtEntryList } from '../model/GdtEntryList'
 import Paginated from '../args/Paginated'
 import { apiGet } from '../../apis/HttpRequest'
 import { UserRepository } from '../../typeorm/repository/User'

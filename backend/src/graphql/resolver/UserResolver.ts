@@ -3,11 +3,11 @@
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import CONFIG from '../../config'
-import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
-import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
-import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
-import { User } from '../models/User'
+import { CheckUsernameResponse } from '../model/CheckUsernameResponse'
+import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
+import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
+import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
+import { User } from '../model/User'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../args/ChangePasswordArgs'
 import CheckUsernameArgs from '../args/CheckUsernameArgs'
@@ -19,10 +19,10 @@ import {
   klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
-import { CheckEmailResponse } from '../models/CheckEmailResponse'
+import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../../graphql/enum/Setting'
+import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 
 @Resolver()
