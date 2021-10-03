@@ -67,12 +67,13 @@ describe('GddSend', () => {
 
         it('trims the email after blur', async () => {
           await wrapper.find('#input-group-1').find('input').setValue('  valid@email.com  ')
+          await wrapper.find('#input-group-1').find('input').trigger('blur')
           await flushPromises()
           expect(wrapper.vm.form.email).toBe('valid@email.com')
         })
       })
 
-      describe('ammount field', () => {
+      describe('amount field', () => {
         it('has an input field of type text', () => {
           expect(wrapper.find('#input-group-2').find('input').attributes('type')).toBe('text')
         })
@@ -89,6 +90,13 @@ describe('GddSend', () => {
           expect(wrapper.find('#input-group-2').find('input').attributes('placeholder')).toBe(
             '0.01',
           )
+        })
+
+        it('does not update form amount when invalid', async () => {
+          await wrapper.find('#input-group-2').find('input').setValue('invalid')
+          await wrapper.find('#input-group-2').find('input').trigger('blur')
+          await flushPromises()
+          expect(wrapper.vm.form.amountValue).toBe(0)
         })
 
         it('flushes an error message when no valid amount is given', async () => {
@@ -150,11 +158,11 @@ describe('GddSend', () => {
         it('clears all fields on click', async () => {
           await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
           await wrapper.find('#input-group-2').find('input').setValue('87.23')
-          await wrapper.find('#input-group-3').find('textarea').setValue('Long enugh')
+          await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
           await flushPromises()
           expect(wrapper.vm.form.email).toBe('someone@watches.tv')
           expect(wrapper.vm.form.amount).toBe('87.23')
-          expect(wrapper.vm.form.memo).toBe('Long enugh')
+          expect(wrapper.vm.form.memo).toBe('Long enough')
           await wrapper.find('button[type="reset"]').trigger('click')
           await flushPromises()
           expect(wrapper.vm.form.email).toBe('')
@@ -167,7 +175,7 @@ describe('GddSend', () => {
         beforeEach(async () => {
           await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
           await wrapper.find('#input-group-2').find('input').setValue('87.23')
-          await wrapper.find('#input-group-3').find('textarea').setValue('Long enugh')
+          await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
           await wrapper.find('form').trigger('submit')
           await flushPromises()
         })
@@ -179,7 +187,7 @@ describe('GddSend', () => {
               {
                 email: 'someone@watches.tv',
                 amount: 87.23,
-                memo: 'Long enugh',
+                memo: 'Long enough',
               },
             ],
           ])
