@@ -32,6 +32,9 @@ export const mutations = {
   community: (state, community) => {
     state.community = community
   },
+  coinanimation: (state, coinanimation) => {
+    state.coinanimation = coinanimation
+  },
 }
 
 export const actions = {
@@ -42,6 +45,7 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('description', data.description)
+    commit('coinanimation', data.coinanimation)
     commit('newsletterState', data.klickTipp.newsletterState)
   },
   logout: ({ commit, state }) => {
@@ -51,6 +55,7 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('description', '')
+    commit('coinanimation', true)
     commit('newsletterState', null)
     localStorage.clear()
   },
