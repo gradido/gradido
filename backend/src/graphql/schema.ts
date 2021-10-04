@@ -1,12 +1,12 @@
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
+import path from 'path'
 
-import resolvers from './resolvers'
-import { isAuthorized } from '../auth/auth'
+import isAuthorized from './directive/isAuthorized'
 
 const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
-    resolvers: resolvers(),
+    resolvers: [path.join(__dirname, 'resolver', `*.{js,ts}`)],
     authChecker: isAuthorized,
   })
 }

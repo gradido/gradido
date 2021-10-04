@@ -3,7 +3,7 @@
 
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
-import { Balance } from '../models/Balance'
+import { Balance } from '../model/Balance'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { calculateDecay } from '../../util/decay'

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query } from 'type-graphql'
-import { Community } from '../models/Community'
+import { Community } from '../model/Community'
 
 @Resolver()
 export class CommunityResolver {
