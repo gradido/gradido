@@ -7,6 +7,7 @@ describe('utils/decay', () => {
       const seconds = 1
       expect(await decayFormula(amount, seconds)).toBe(0.99999997802044727)
     })
+    // Not sure if the following skiped tests make sence!?
     it.skip('has negative decay?', async () => {
       const amount = -1.0
       const seconds = 1
