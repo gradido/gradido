@@ -116,7 +116,6 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          console.log('community', result)
           this.$store.commit('community', result)
         })
         .catch((error) => {

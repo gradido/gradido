@@ -63,7 +63,6 @@ export default {
           query: communities,
         })
         .then((result) => {
-          console.log('result', result.data.communities)
           this.communities = result.data.communities
         })
         .catch((error) => {
