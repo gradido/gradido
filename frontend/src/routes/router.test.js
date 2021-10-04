@@ -55,6 +55,10 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
+      it('has ten routes defined', () => {
+        expect(routes).toHaveLength(10)
+      })
+
       describe('overview', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/overview').meta.requiresAuth).toBeTruthy()
