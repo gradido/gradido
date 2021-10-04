@@ -69,6 +69,9 @@ export class User {
   @Field(() => Number)
   publisherId: number
 
+  @Field(() => Boolean)
+  coinanimation: boolean
+
   @Field(() => KlickTipp)
   klickTipp: KlickTipp
 }

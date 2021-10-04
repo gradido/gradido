@@ -111,6 +111,11 @@
   "privacy_policy": "Privacy policy",
   "send": "Send",
   "settings": {
+    "coinanimation": {
+      "coinanimation": "Coin animation",
+      "False": "Coin animation disabled",
+      "True": "Coin animation enabled"
+    },
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",
