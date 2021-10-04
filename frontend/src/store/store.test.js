@@ -155,7 +155,7 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls six commits', () => {
+      it('calls eight commits', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenCalledTimes(8)
       })
