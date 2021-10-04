@@ -15,11 +15,6 @@ describe('UserCard_FormUserPasswort', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        email: 'user@example.org',
-      },
-    },
     $toasted: {
       success: toastSuccessMock,
       error: toastErrorMock,
@@ -191,7 +186,6 @@ describe('UserCard_FormUserPasswort', () => {
             expect(changePasswordProfileMock).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
-                  email: 'user@example.org',
                   password: '1234',
                   passwordNew: 'Aa123456_',
                 },
