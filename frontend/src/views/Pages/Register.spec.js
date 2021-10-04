@@ -26,6 +26,11 @@ describe('Register', () => {
       state: {
         email: 'peter@lustig.de',
         language: 'en',
+        community: {
+          name: 'test 1',
+          description: 'test description 1',
+          location: 'Test location 1',
+        },
       },
     },
   }
