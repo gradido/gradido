@@ -65,7 +65,7 @@ describe('UserCard_CoinAnimation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: updateUserInfos,
           variables: {
-            coinanimation: false,
+            coinanimation: true,
           },
         })
       })
