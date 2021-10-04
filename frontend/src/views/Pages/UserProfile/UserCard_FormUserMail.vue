@@ -48,7 +48,6 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            email: this.$store.state.email,
             newEmail: this.newEmail,
           },
         })

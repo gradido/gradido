@@ -122,7 +122,6 @@ describe('LanguageSwitch', () => {
         expect(updateUserInfosMutationMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              email: 'he@ho.he',
               locale: 'en',
             },
           }),
@@ -134,7 +133,6 @@ describe('LanguageSwitch', () => {
         expect(updateUserInfosMutationMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              email: 'he@ho.he',
               locale: 'de',
             },
           }),
