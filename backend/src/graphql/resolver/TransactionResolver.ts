@@ -9,8 +9,8 @@ import CONFIG from '../../config'
 import { Transaction } from '../model/Transaction'
 import { TransactionList } from '../model/TransactionList'
 
-import TransactionSendArgs from '../args/TransactionSendArgs'
-import Paginated from '../args/Paginated'
+import TransactionSendArgs from '../arg/TransactionSendArgs'
+import Paginated from '../arg/Paginated'
 
 import { Order } from '../enum/Order'
 

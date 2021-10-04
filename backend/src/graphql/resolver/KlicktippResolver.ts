@@ -8,7 +8,7 @@ import {
   unsubscribe,
   signIn,
 } from '../../apis/KlicktippController'
-import SubscribeNewsletterArgs from '../args/SubscribeNewsletterArgs'
+import SubscribeNewsletterArgs from '../arg/SubscribeNewsletterArgs'
 
 @Resolver()
 export class KlicktippResolver {
