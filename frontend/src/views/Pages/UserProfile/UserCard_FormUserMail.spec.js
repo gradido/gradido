@@ -12,6 +12,14 @@ describe('UserCard_FormUserMail', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $store: {
+      state: {
+        email: 'user@example.org',
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        description: '',
+      },
+    },
     $apollo: {
       mutate: mockAPIcall,
     },

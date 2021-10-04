@@ -24,6 +24,9 @@ describe('UserCard_FormUsername', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $store: {
+      state: {
+        username: '',
+      },
       commit: storeCommitMock,
     },
     $toasted: {

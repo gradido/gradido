@@ -21,6 +21,9 @@ describe('UserCard_Language', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $store: {
+      state: {
+        language: 'de',
+      },
       commit: storeCommitMock,
     },
     $toasted: {
