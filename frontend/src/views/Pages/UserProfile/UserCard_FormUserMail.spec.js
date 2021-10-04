@@ -12,14 +12,6 @@ describe('UserCard_FormUserMail', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        email: 'user@example.org',
-        firstName: 'Peter',
-        lastName: 'Lustig',
-        description: '',
-      },
-    },
     $apollo: {
       mutate: mockAPIcall,
     },
@@ -75,7 +67,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 newEmail: 'test@example.org',
               },
             }),
@@ -104,7 +95,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 newEmail: 'test@example.org',
               },
             }),

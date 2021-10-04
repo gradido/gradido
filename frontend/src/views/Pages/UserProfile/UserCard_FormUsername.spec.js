@@ -24,10 +24,6 @@ describe('UserCard_FormUsername', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $store: {
-      state: {
-        email: 'user@example.org',
-        username: '',
-      },
       commit: storeCommitMock,
     },
     $toasted: {
@@ -109,7 +105,6 @@ describe('UserCard_FormUsername', () => {
             expect(mockAPIcall).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
-                  email: 'user@example.org',
                   username: 'username',
                 },
               }),
@@ -148,7 +143,6 @@ describe('UserCard_FormUsername', () => {
             expect(mockAPIcall).toHaveBeenCalledWith(
               expect.objectContaining({
                 variables: {
-                  email: 'user@example.org',
                   username: 'username',
                 },
               }),

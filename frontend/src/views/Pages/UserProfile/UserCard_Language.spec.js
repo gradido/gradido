@@ -21,10 +21,6 @@ describe('UserCard_Language', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $store: {
-      state: {
-        language: 'de',
-        email: 'peter@lustig.de',
-      },
       commit: storeCommitMock,
     },
     $toasted: {
@@ -127,7 +123,6 @@ describe('UserCard_Language', () => {
               expect(mockAPIcall).toBeCalledWith(
                 expect.objectContaining({
                   variables: {
-                    email: 'peter@lustig.de',
                     locale: 'en',
                   },
                 }),
