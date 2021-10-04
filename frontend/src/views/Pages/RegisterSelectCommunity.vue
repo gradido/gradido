@@ -3,9 +3,9 @@
     <b-container class="justify-content-center text-center">
       <div class="mb-4">{{ $t('community.current-community') }}</div>
 
-      <div v-for="community in communitys.community" :key="community.id" class="pb-3">
+      <div v-for="community in communities" :key="community.id" class="pb-3">
         <b-card
-          v-show="community.name === $store.state.community_name"
+          v-show="community.name === $store.state.community.name"
           bg-variant="success"
           text-variant=""
           :header="community.name"
@@ -22,14 +22,17 @@
 
       <hr />
       <div>{{ $t('community.other-communities') }}</div>
-      <div v-for="community in communitys.community" :key="community.id" class="pb-5">
+      <div v-for="community in communities" :key="community.id" class="pb-5">
         <b-card
-          v-show="community.name != $store.state.community_name"
+          v-show="community.name != $store.state.community.name"
           bg-variant="info"
           text-variant=""
           :header="community.name"
         >
-          <b-card-text>beschreibung für community 1, Location:</b-card-text>
+          <b-card-text>
+            {{ community.description }}, Location:
+            {{ community.location }}
+          </b-card-text>
           <b-button size="sm" :href="community.url">
             {{ $t('community.switch-to-this-community') }}
           </b-button>
@@ -44,14 +47,32 @@
   </div>
 </template>
 <script>
-import MyCommunitys from '../../../public/json-example/communitys.json'
+import { communities } from '../../graphql/queries'
 
 export default {
   name: 'registerSelectCommunity',
   data() {
     return {
-      communitys: MyCommunitys,
+      communities: [],
     }
+  },
+  methods: {
+    async onCreated() {
+      this.$apollo
+        .query({
+          query: communities,
+        })
+        .then((result) => {
+          console.log('result', result.data.communities)
+          this.communities = result.data.communities
+        })
+        .catch((error) => {
+          this.$toasted.error(error)
+        })
+    },
+  },
+  created() {
+    this.onCreated()
   },
 }
 </script>

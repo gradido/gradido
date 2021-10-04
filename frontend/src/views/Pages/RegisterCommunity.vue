@@ -5,7 +5,7 @@
         <b-card
           bg-variant="info"
           text-variant=""
-          :header="$store.state.community_name"
+          :header="$store.state.community.name"
           class="text-center"
         >
           <b-card-text>

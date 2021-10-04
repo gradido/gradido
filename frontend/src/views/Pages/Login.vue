@@ -22,7 +22,7 @@
                 <small>{{ $t('login') }}</small>
               </div>
               <div class="text-center text-muted mb-4">
-                {{ $store.state.community_name }}
+                {{ $store.state.community.name }}
               </div>
               <div class="text-center text-muted mb-4">
                 {{ $store.state.community.description }}
@@ -64,7 +64,7 @@
 import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
-import { login } from '../../graphql/queries'
+import { login, communityInfo } from '../../graphql/queries'
 
 export default {
   name: 'login',
@@ -107,6 +107,20 @@ export default {
         .catch(() => {
           loader.hide()
           this.$toasted.error(this.$t('error.no-account'))
+        })
+    },
+    async onCreated() {
+      this.$apollo
+        .query({
+          query: communityInfo,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          console.log('community', result)
+          this.$store.commit('community', result)
+        })
+        .catch((error) => {
+          this.$toasted.error(error)
         })
     },
   },
