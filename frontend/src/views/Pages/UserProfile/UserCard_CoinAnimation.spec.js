@@ -50,7 +50,7 @@ describe('UserCard_CoinAnimation', () => {
 
     describe('enable with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ CoinAnimationStatus: false })
+        mocks.$store.state.coinanimation = false
         mockAPIcall.mockResolvedValue({
           data: {
             updateUserInfos: {
@@ -81,7 +81,7 @@ describe('UserCard_CoinAnimation', () => {
 
     describe('disable with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ CoinAnimationStatus: true })
+        mocks.$store.state.coinanimation = true
         mockAPIcall.mockResolvedValue({
           data: {
             updateUserInfos: {
@@ -96,7 +96,7 @@ describe('UserCard_CoinAnimation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: updateUserInfos,
           variables: {
-            coinanimation: true,
+            coinanimation: false,
           },
         })
       })
