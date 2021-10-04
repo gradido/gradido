@@ -18,6 +18,7 @@ import FormUserLanguage from './UserProfile/UserCard_Language.vue'
 import FormUserNewsletter from './UserProfile/UserCard_Newsletter.vue'
 
 export default {
+  name: 'UserProfile',
   components: {
     UserCard,
     FormUserData,
