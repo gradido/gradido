@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { AuthChecker } from 'type-graphql'
-import decode from '../jwt/decode'
-import { apiGet } from '../apis/HttpRequest'
-import CONFIG from '../config'
-import encode from '../jwt/encode'
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info }, roles) => {
+import CONFIG from '../../config'
+import { apiGet } from '../../apis/HttpRequest'
+
+import decode from '../../jwt/decode'
+import encode from '../../jwt/encode'
+
+const isAuthorized: AuthChecker<any> = async (
+  { /* root, args, */ context /*, info */ } /*, roles */,
+) => {
   if (context.token) {
     const decoded = decode(context.token)
     if (decoded.sessionId && decoded.sessionId !== 0) {
@@ -22,3 +25,5 @@ export const isAuthorized: AuthChecker<any> = async ({ root, args, context, info
   }
   throw new Error('401 Unauthorized')
 }
+
+export default isAuthorized
