@@ -6,12 +6,18 @@ const localVue = global.localVue
 
 const loginQueryMock = jest.fn().mockResolvedValue({
   data: {
-    login: 'token',
+    community: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
+    },
   },
 })
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
+const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -30,6 +36,15 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
     $store: {
       dispatch: mockStoreDispach,
+      commit: mockStoreCommit,
+      state: {
+        community: {
+          name: 'test1',
+          description: 'test community',
+          url: 'http://test.test/',
+          registerUrl: 'http://test.test/vue/register',
+        },
+      },
     },
     $loading: {
       show: spinnerMock,
@@ -62,6 +77,15 @@ describe('Login', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
+    it('calls the communityInfo', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        description: 'test community 12',
+        name: 'test12',
+        registerUrl: 'http://test12.test12/vue/register',
+        url: 'http://test12.test12/',
+      })
+    })
+
     describe('Login header', () => {
       it('has a welcome message', () => {
         expect(wrapper.find('div.header').text()).toBe('Gradido site.login.community')
@@ -85,8 +109,8 @@ describe('Login', () => {
         )
       })
 
-      it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
+      it('links to /regist-community when clicking "Create new account"', () => {
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/regist-community')
       })
     })
 
@@ -135,6 +159,11 @@ describe('Login', () => {
           await flushPromises()
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+          loginQueryMock.mockResolvedValue({
+            data: {
+              login: 'token',
+            },
+          })
         })
 
         it('calls the API with the given data', () => {

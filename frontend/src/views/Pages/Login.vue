@@ -113,15 +113,17 @@ export default {
       this.$apollo
         .query({
           query: communityInfo,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
-          this.$store.commit('community', result)
+          this.$store.commit('community', result.data.community)
         })
         .catch((error) => {
           this.$toasted.error(error)
         })
     },
+  },
+  created() {
+    this.onCreated()
   },
 }
 </script>
