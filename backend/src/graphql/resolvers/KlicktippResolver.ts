@@ -8,7 +8,7 @@ import {
   unsubscribe,
   signIn,
 } from '../../apis/KlicktippController'
-import { SubscribeNewsletterArguments } from '../inputs/KlickTippInputs'
+import SubscribeNewsletterArgs from '../args/SubscribeNewsletterArgs'
 
 @Resolver()
 export class KlicktippResolver {
@@ -33,7 +33,7 @@ export class KlicktippResolver {
   @Authorized()
   @Mutation(() => Boolean)
   async subscribeNewsletter(
-    @Args() { email, language }: SubscribeNewsletterArguments,
+    @Args() { email, language }: SubscribeNewsletterArgs,
   ): Promise<boolean> {
     return await signIn(email, language)
   }

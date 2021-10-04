@@ -23,58 +23,65 @@
   </div>
 </template>
 <script>
+import { GdtEntryType } from '../graphql/enums'
+
 export default {
   name: 'TransactionCollapse',
   props: {
     amount: { type: Number },
-    gdtEntryType: { type: Number, default: 1 },
+    gdtEntryType: { type: String, default: GdtEntryType.FORM },
     factor: { type: Number },
     gdt: { type: Number },
   },
   methods: {
     getLinesByType(givenType) {
-      if (givenType === 2 || givenType === 3 || givenType === 5 || givenType === 6) givenType = 1
-
-      const linesByType = {
-        1: {
-          headline: this.$t('gdt.calculation'),
-          first: this.$t('gdt.factor'),
-          firstMath: this.factor + ' GDT pro €',
-          second: this.$t('gdt.formula'),
-          secondMath:
-            this.$n(this.amount, 'decimal') +
-            ' € * ' +
-            this.factor +
-            ' GDT / € = ' +
-            this.$n(this.gdt, 'decimal') +
-            ' GDT',
-        },
-        4: {
-          headline: this.$t('gdt.publisher'),
-          first: null,
-          firstMath: null,
-          second: null,
-          secondMath: null,
-        },
-        7: {
-          headline: this.$t('gdt.conversion-gdt-euro'),
-          first: this.$t('gdt.raise'),
-          firstMath: this.factor * 100 + ' % ',
-          second: this.$t('gdt.conversion'),
-          secondMath:
-            this.$n(this.amount, 'decimal') +
-            ' GDT * ' +
-            this.factor * 100 +
-            ' % = ' +
-            this.$n(this.gdt, 'decimal') +
-            ' GDT',
-        },
+      switch (givenType) {
+        case GdtEntryType.FORM:
+        case GdtEntryType.CVS:
+        case GdtEntryType.ELOPAGE:
+        case GdtEntryType.DIGISTORE:
+        case GdtEntryType.CVS2: {
+          return {
+            headline: this.$t('gdt.calculation'),
+            first: this.$t('gdt.factor'),
+            firstMath: this.factor + ' GDT pro €',
+            second: this.$t('gdt.formula'),
+            secondMath:
+              this.$n(this.amount, 'decimal') +
+              ' € * ' +
+              this.factor +
+              ' GDT / € = ' +
+              this.$n(this.gdt, 'decimal') +
+              ' GDT',
+          }
+        }
+        case GdtEntryType.ELOPAGE_PUBLISHER: {
+          return {
+            headline: this.$t('gdt.publisher'),
+            first: null,
+            firstMath: null,
+            second: null,
+            secondMath: null,
+          }
+        }
+        case GdtEntryType.GLOBAL_MODIFICATOR: {
+          return {
+            headline: this.$t('gdt.conversion-gdt-euro'),
+            first: this.$t('gdt.raise'),
+            firstMath: this.factor * 100 + ' % ',
+            second: this.$t('gdt.conversion'),
+            secondMath:
+              this.$n(this.amount, 'decimal') +
+              ' GDT * ' +
+              this.factor * 100 +
+              ' % = ' +
+              this.$n(this.gdt, 'decimal') +
+              ' GDT',
+          }
+        }
+        default:
+          throw new Error('no additional transaction info for this type: ' + givenType)
       }
-
-      const type = linesByType[givenType]
-
-      if (type) return type
-      throw new Error('no additional transaction info for this type: ' + givenType)
     },
   },
 }

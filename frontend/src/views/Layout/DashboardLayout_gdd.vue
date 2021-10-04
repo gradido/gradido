@@ -101,7 +101,7 @@ export default {
         .catch(() => {
           this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
-          this.$router.push('/login')
+          if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')
         })
     },
     async updateTransactions(pagination) {
@@ -110,8 +110,8 @@ export default {
         .query({
           query: transactionsQuery,
           variables: {
-            firstPage: pagination.firstPage,
-            items: pagination.items,
+            currentPage: pagination.currentPage,
+            pageSize: pagination.pageSize,
           },
           fetchPolicy: 'network-only',
         })

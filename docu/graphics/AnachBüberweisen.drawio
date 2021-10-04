@@ -1,0 +1,103 @@
+<mxfile host="65bd71144e">
+    <diagram id="ZvjvITeOyjQP4YKfGS0G" name="Page-1">
+        <mxGraphModel dx="923" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="29" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="135" width="120" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#60a917;strokeColor=#2D7600;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="540" y="135" width="120" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3c800;strokeColor=#B09500;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="135" width="120" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0a30a;strokeColor=#BD7000;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="135" width="120" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fa6800;strokeColor=#C73500;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="135" width="120" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e51400;strokeColor=#B20000;fontColor=#ffffff;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="135" width="110" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fillColor=#008a00;strokeColor=#005700;jumpSize=6;endSize=6;startSize=6;strokeWidth=3;" edge="1" parent="1" source="2" target="3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fillColor=#008a00;strokeColor=#005700;strokeWidth=3;" edge="1" parent="1" source="2" target="4">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="1.5.0&lt;br&gt;Register" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="200" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="3" target="7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;fillColor=#60a917;strokeColor=#2D7600;" edge="1" parent="1" source="3" target="10">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="1.6.0&lt;br&gt;Kubernetes" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="150" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;fillColor=#60a917;strokeColor=#2D7600;" edge="1" parent="1" source="4" target="7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;fillColor=#60a917;strokeColor=#2D7600;" edge="1" parent="1" source="4" target="10">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="1.6.0&lt;br&gt;Overview&lt;br&gt;Page" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="250" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;fillColor=#e3c800;strokeColor=#B09500;" edge="1" parent="1" source="7" target="15">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="1.7.0&lt;br&gt;Federation" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="150" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;fillColor=#e3c800;strokeColor=#B09500;" edge="1" parent="1" source="10" target="15">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="1.7.0&lt;br&gt;Statistics(?)" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="250" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;fillColor=#f0a30a;strokeColor=#BD7000;strokeWidth=3;" edge="1" parent="1" source="15" target="18">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="1.8.0&lt;br&gt;Activities" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="200" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;fillColor=#fa6800;strokeColor=#C73500;strokeWidth=3;" edge="1" parent="1" source="18" target="19">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="1.X.0&lt;br&gt;???" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="200" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="Von A nach B überweisen&amp;nbsp;" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2A2A2A;strokeColor=#F0F0F0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="200" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="The background color symbolizes how far away we are from the goal. The arrow color symbolizes how sure we can be that this will be the course of action" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="640" width="330" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Our current release" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="360" width="110" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="The Release 1.6.0 will make sure we can actually deploy multiple instances of our Software.&lt;br&gt;Additionally we will create the Overview Page in the Frontend" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="185" y="360" width="110" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="The Release 1.7.0 will focus on the Federation. Maybe we will be able to send Coins at this stage, but its likely this will be done in the next steps. Here we most likely get to know the other communties only.&lt;br&gt;In the Frontend we consider to show some statisticts with the amount of known Communities" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="305" y="361" width="110" height="239" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="The Release 1.8.0 will implement Activities in order to allow other communities to actually create GDD." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="425" y="360" width="110" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="More Steps might be needed to have the usable full functionallity of sending from A to B." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="545" y="360" width="110" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Be aware that we might decide to split some Releases into two. Especially the Federation Release might need a followup Release in oder to actually send coins, since this will not be part of the Federation itself." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#F0F0F0;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="710" width="330" height="50" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
