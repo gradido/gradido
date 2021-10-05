@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import RegisterSelectCommunity from './RegisterSelectCommunity'
-// const testObject = require('../../../public/json-example/communities.json')
 
 const localVue = global.localVue
 
@@ -16,8 +15,8 @@ describe('RegisterSelectCommunity', () => {
       state: {
         community: {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost:3000/vue/',
-          registerUrl: 'http://localhost:3000/vue/register',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
       },

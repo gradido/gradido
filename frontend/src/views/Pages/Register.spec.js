@@ -28,8 +28,8 @@ describe('Register', () => {
         language: 'en',
         community: {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost:3000/vue/',
-          registerUrl: 'http://localhost:3000/vue/register',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
       },

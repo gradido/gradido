@@ -40,8 +40,8 @@ describe('Login', () => {
       state: {
         community: {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost:3000/vue/',
-          registerUrl: 'http://localhost:3000/vue/register',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
       },
@@ -77,7 +77,7 @@ describe('Login', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
-    it('calls the communityInfo', () => {
+    it('commits the community info to the store', () => {
       expect(mockStoreCommit).toBeCalledWith('community', {
         name: 'test12',
         description: 'test community 12',
@@ -93,11 +93,11 @@ describe('Login', () => {
     })
 
     describe('Community Data', () => {
-      it('has a Community name?', () => {
+      it('has a Community name', () => {
         expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
       })
 
-      it('has a Community description?', () => {
+      it('has a Community description', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
@@ -105,13 +105,13 @@ describe('Login', () => {
     })
 
     describe('links', () => {
-      it('has a link "Forgot Password?"', () => {
+      it('has a link "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
           'settings.password.forgot_pwd',
         )
       })
 
-      it('links to /password when clicking "Forgot Password?"', () => {
+      it('links to /password when clicking "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/password')
       })
 

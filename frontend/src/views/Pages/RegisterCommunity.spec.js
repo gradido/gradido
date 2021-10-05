@@ -15,8 +15,8 @@ describe('RegisterCommunity', () => {
       state: {
         community: {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost:3000/vue/',
-          registerUrl: 'http://localhost:3000/vue/register',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
       },
@@ -48,9 +48,7 @@ describe('RegisterCommunity', () => {
       })
 
       it('has a current community location', () => {
-        expect(wrapper.find('.header p.community-location').text()).toBe(
-          'http://localhost:3000/vue/',
-        )
+        expect(wrapper.find('.header p.community-location').text()).toBe('http://localhost/vue/')
       })
     })
 
