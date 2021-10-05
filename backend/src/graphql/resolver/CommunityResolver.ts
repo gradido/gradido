@@ -40,7 +40,7 @@ export class CommunityResolver {
         id: 3,
         name: 'Gradido-Akademie',
         description: 'Freies Institut für Wirtschaftsbionik.',
-        url: 'https://gdd1.gradido.com/vue/',
+        url: 'https://gradido.net',
         registerUrl: 'https://gdd1.gradido.com/vue/register-community',
       }),
     )
