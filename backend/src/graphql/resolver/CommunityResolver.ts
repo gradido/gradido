@@ -3,48 +3,47 @@
 
 import { Resolver, Query } from 'type-graphql'
 import CONFIG from '../../config'
-import { Community } from '../models/Community'
+import { Community } from '../model/Community'
 
 @Resolver()
 export class CommunityResolver {
-  @Query(() => [Community])
-  async communities(): Promise<Community[]> {
-    const communities = [
-      {
-        id: 1,
-        name: 'Gradido Entwicklung',
-        url: 'http://localhost:3000/vue/',
-        description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        registerUrl: 'http://localhost:3000/vue/register',
-      },
-      {
-        id: 2,
-        name: 'Gradido Staging',
-        url: 'https://stage1.gradido.net/vue/',
-        description: 'Der Testserver der Gradido Akademie.',
-        registerUrl: 'https://stage1.gradido.net/vue/register',
-      },
-      {
-        id: 3,
-        name: 'Gradido-Akademie',
-        url: 'https://gdd1.gradido.com/vue/',
-        description: 'Freies Institut für Wirtschaftsbionik.',
-        registerUrl: 'https://gdd1.gradido.com/vue/register',
-      },
-    ]
-    return communities.map((el: any) => {
-      return new Community(el)
+  @Query(() => Community)
+  async getCommunityInfo(): Promise<Community> {
+    return new Community({
+      name: CONFIG.COMMUNITY_NAME,
+      description: CONFIG.COMMUNITY_DESCRIPTION,
+      url: CONFIG.COMMUNITY_URL,
+      registerUrl: CONFIG.COMMUNITY_REGISTER_URL,
     })
   }
 
-  @Query(() => Community)
-  async serverInformation(): Promise<Community> {
-    const community = {
-      name: CONFIG.COMMUNITY_NAME,
-      url: CONFIG.COMMUNITY_URL,
-      description: CONFIG.COMMUNITY_DESCRIPTION,
-      registerUrl: CONFIG.COMMUNITY_REGISTER_URL,
-    }
-    return new Community(community)
+  @Query(() => [Community])
+  async communities(): Promise<Community[]> {
+    const communities: Community[] = []
+
+    communities.push(
+      new Community({
+        id: 1,
+        name: 'Gradido Entwicklung',
+        description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        url: 'http://localhost:3000/vue/',
+        registerUrl: 'http://localhost:3000/vue/register-community',
+      }),
+      new Community({
+        id: 2,
+        name: 'Gradido Staging',
+        description: 'Der Testserver der Gradido Akademie.',
+        url: 'https://stage1.gradido.net/vue/',
+        registerUrl: 'https://stage1.gradido.net/vue/register-community',
+      }),
+      new Community({
+        id: 3,
+        name: 'Gradido-Akademie',
+        description: 'Freies Institut für Wirtschaftsbionik.',
+        url: 'https://gradido.net/',
+        registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+      }),
+    )
+    return communities
   }
 }

@@ -4,12 +4,14 @@ import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
 export class Community {
-  constructor(json: any) {
-    this.id = Number(json.id)
-    this.name = json.name
-    this.url = json.url
-    this.description = json.description
-    this.registerUrl = json.registerUrl
+  constructor(json?: any) {
+    if (json) {
+      this.id = Number(json.id)
+      this.name = json.name
+      this.url = json.url
+      this.description = json.description
+      this.registerUrl = json.registerUrl
+    }
   }
 
   @Field(() => Number)
