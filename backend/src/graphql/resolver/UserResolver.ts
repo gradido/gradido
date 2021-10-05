@@ -8,12 +8,17 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
-import CheckUsernameArgs from '../arg/CheckUsernameArgs'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
+import { Setting } from '../../types'
+import {
+  ChangePasswordArgs,
+  CheckUsernameArgs,
+  CreateUserArgs,
+  UnsecureLoginArgs,
+  UpdateUserInfosArgs,
+} from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
@@ -25,6 +30,7 @@ import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepos
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 
+import { getCustomRepository } from 'typeorm'
 @Resolver()
 export class UserResolver {
   @Query(() => User)
