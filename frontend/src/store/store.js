@@ -43,7 +43,6 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('description', data.description)
     commit('newsletterState', data.klickTipp.newsletterState)
-    commit('community', data.community)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -53,7 +52,6 @@ export const actions = {
     commit('lastName', '')
     commit('description', '')
     commit('newsletterState', null)
-    commit('community', null)
     localStorage.clear()
   },
 }

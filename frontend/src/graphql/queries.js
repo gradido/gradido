@@ -106,13 +106,13 @@ export const checkEmailQuery = gql`
   }
 `
 
-export const serverInformation = gql`
+export const communityInfo = gql`
   query {
-    serverInformation {
-      community {
-        name
-        description
-      }
+    getCommunityInfo {
+      name
+      description
+      registerUrl
+      url
     }
   }
 `

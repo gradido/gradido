@@ -1,7 +1,0 @@
-{
-  "community": [
-    {"id": 1, "name": "Gradido Entwicklung", "url": "http://localhost:3000/vue/", "description":"Die lokale Entwicklungsumgebung von Gradido.", "registerUrl": "http://localhost:3000/vue/register"},
-    {"id": 2, "name": "Gradido Staging", "url": "https://stage1.gradido.net/vue/", "description":"Der Testserver der Gradido Akademie.", "registerUrl": "https://stage1.gradido.net/vue/register"},
-    {"id": 3, "name": "Gradido-Akademie", "url": "https://gdd1.gradido.com/vue/", "description":"Freies Institut für Wirtschaftsbionik.", "registerUrl": "https://gdd1.gradido.com/vue/register"}
-  ]
-}

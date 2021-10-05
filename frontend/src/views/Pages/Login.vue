@@ -67,7 +67,7 @@
 import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
-import { login } from '../../graphql/queries'
+import { login, communityInfo } from '../../graphql/queries'
 
 export default {
   name: 'login',
@@ -112,6 +112,21 @@ export default {
           this.$toasted.error(this.$t('error.no-account'))
         })
     },
+    async onCreated() {
+      this.$apollo
+        .query({
+          query: communityInfo,
+        })
+        .then((result) => {
+          this.$store.commit('community', result.data.getCommunityInfo)
+        })
+        .catch((error) => {
+          this.$toasted.error(error)
+        })
+    },
+  },
+  created() {
+    this.onCreated()
   },
 }
 </script>

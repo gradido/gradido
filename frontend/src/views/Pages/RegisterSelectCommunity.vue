@@ -37,7 +37,7 @@
               </small>
             </b>
             <br />
-            <b-button variant="outline-secondary" :href="community.url">
+            <b-button variant="outline-secondary" :href="community.registerUrl">
               {{ $t('community.switch-to-this-community') }}
             </b-button>
           </b-card>
@@ -51,7 +51,7 @@
   </div>
 </template>
 <script>
-import communities from '../../graphql/queries'
+import { communities } from '../../graphql/queries'
 
 export default {
   name: 'registerSelectCommunity',
@@ -69,11 +69,14 @@ export default {
       this.$apollo
         .query({
           query: communities,
+          fetchPolicy: 'network-only',
         })
         .then((response) => {
+          console.log('got communities:', response.data.communities)
           this.communities = response.data.communities
         })
         .catch((error) => {
+          console.log('Huston got a problem', error.message)
           this.$toasted.error(error.message)
         })
       loader.hide()

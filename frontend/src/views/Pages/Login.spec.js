@@ -4,14 +4,20 @@ import Login from './Login'
 
 const localVue = global.localVue
 
-const loginQueryMock = jest.fn().mockResolvedValue({
+const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    login: 'token',
+    getCommunityInfo: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
+    },
   },
 })
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
+const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -30,6 +36,7 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
     $store: {
       dispatch: mockStoreDispach,
+      commit: mockStoreCommit,
       state: {
         community: {
           name: 'Gradido Entwicklung',
@@ -49,7 +56,7 @@ describe('Login', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: loginQueryMock,
+      query: apolloQueryMock,
     },
   }
 
@@ -68,6 +75,15 @@ describe('Login', () => {
 
     it('renders the Login form', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
+    })
+
+    it('calls the communityInfo', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        name: 'test12',
+        description: 'test community 12',
+        url: 'http://test12.test12/',
+        registerUrl: 'http://test12.test12/vue/register',
+      })
     })
 
     describe('Login header', () => {
@@ -157,10 +173,15 @@ describe('Login', () => {
           await flushPromises()
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+          apolloQueryMock.mockResolvedValue({
+            data: {
+              login: 'token',
+            },
+          })
         })
 
         it('calls the API with the given data', () => {
-          expect(loginQueryMock).toBeCalledWith(
+          expect(apolloQueryMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'user@example.org',
@@ -190,7 +211,7 @@ describe('Login', () => {
 
         describe('login fails', () => {
           beforeEach(() => {
-            loginQueryMock.mockRejectedValue({
+            apolloQueryMock.mockRejectedValue({
               message: 'Ouch!',
             })
           })
