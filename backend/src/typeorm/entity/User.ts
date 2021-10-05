@@ -1,4 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { UserSetting } from './UserSetting'
 
 // import { Group } from "./Group"
 @Entity('state_users')
@@ -26,6 +27,9 @@ export class User extends BaseEntity {
 
   @Column()
   disabled: boolean
+
+  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
+  settings: UserSetting[]
 
   static findByPubkeyHex(pubkeyHex: string): Promise<User> {
     return this.createQueryBuilder('user')

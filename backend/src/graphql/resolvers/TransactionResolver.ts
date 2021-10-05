@@ -73,7 +73,7 @@ export class TransactionResolver {
     }
 
     const recipiantPublicKey = await getPublicKey(email, context.sessionId)
-    if(!recipiantPublicKey) {
+    if (!recipiantPublicKey) {
       throw new Error('recipiant not known')
     }
 

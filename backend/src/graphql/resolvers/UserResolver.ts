@@ -8,7 +8,9 @@ import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
 import { User } from '../models/User'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
+import { Setting } from '../../types'
 import {
   ChangePasswordArgs,
   CheckUsernameArgs,
@@ -22,6 +24,7 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../models/CheckEmailResponse'
+import { getCustomRepository } from 'typeorm'
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -154,7 +157,7 @@ export class UserResolver {
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
     if (!result.success) throw new Error(result.data)
-    return new UpdateUserInfosResponse(result.data)
+    return new UpdateUserInfosResponse(result.data)    
   }
 
   @Query(() => CheckUsernameResponse)

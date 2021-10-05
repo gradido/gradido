@@ -1,6 +1,1 @@
-
-
-export default function createTransaction()
-{
-    
-}
+export default function createTransaction() {}
