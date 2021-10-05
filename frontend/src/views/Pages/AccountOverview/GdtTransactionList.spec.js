@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { GdtEntryType } from '../../../graphql/enums'
 import GdtTransactionList from './GdtTransactionList'
 
 const localVue = global.localVue
@@ -14,7 +15,7 @@ const apolloMock = jest.fn().mockResolvedValue({
           factor: 17,
           comment: '',
           date: '2021-05-02T17:20:11+00:00',
-          gdtEntryType: 1,
+          gdtEntryType: GdtEntryType.FORM,
         },
         {
           amount: 1810,
@@ -22,7 +23,7 @@ const apolloMock = jest.fn().mockResolvedValue({
           factor: 0.2,
           comment: 'Dezember 20',
           date: '2020-12-31T12:00:00+00:00',
-          gdtEntryType: 7,
+          gdtEntryType: GdtEntryType.GLOBAL_MODIFICATOR,
         },
         {
           amount: 100,
@@ -30,7 +31,7 @@ const apolloMock = jest.fn().mockResolvedValue({
           factor: 17,
           comment: '',
           date: '2020-05-07T17:00:00+00:00',
-          gdtEntryType: 1,
+          gdtEntryType: GdtEntryType.FORM,
         },
         {
           amount: 100,
@@ -38,7 +39,7 @@ const apolloMock = jest.fn().mockResolvedValue({
           factor: 22,
           comment: '',
           date: '2020-04-10T13:28:00+00:00',
-          gdtEntryType: 4,
+          gdtEntryType: GdtEntryType.ELOPAGE_PUBLISHER,
         },
       ],
     },

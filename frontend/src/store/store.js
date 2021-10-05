@@ -72,6 +72,7 @@ export const store = new Vuex.Store({
     username: '',
     description: '',
     token: null,
+    coinanimation: true,
     newsletterState: null,
     community: null,
   },

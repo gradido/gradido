@@ -12,9 +12,11 @@
     "clean": "tsc --build --clean",
     "start": "node build/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
-    "lint": "eslint . --ext .js,.ts"
+    "lint": "eslint . --ext .js,.ts",
+    "test": "jest --coverage"
   },
   "dependencies": {
+    "@types/jest": "^27.0.2",
     "apollo-server-express": "^2.25.2",
     "axios": "^0.21.1",
     "class-validator": "^0.13.1",
@@ -22,9 +24,11 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "graphql": "^15.5.1",
+    "jest": "^27.2.4",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
+    "ts-jest": "^27.0.5",
     "type-graphql": "^1.1.1",
     "typeorm": "^0.2.37"
   },

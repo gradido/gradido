@@ -328,7 +328,7 @@ jobs:
           docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
           cp -r ~/coverage ./coverage
       ##########################################################################
-      # COVERAGE REPORT FRONTEND ################################################
+      # COVERAGE REPORT FRONTEND ###############################################
       ##########################################################################
       #- name: frontend | Coverage report
       #  uses: romeovs/lcov-reporter-action@v0.2.21
@@ -344,9 +344,51 @@ jobs:
           report_name: Coverage Frontend
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 67
+          min_coverage: 69
           token: ${{ github.token }}
   
+  ##############################################################################
+  # JOB: UNIT TEST BACKEND  ####################################################
+  ##############################################################################
+  unit_test_backend:
+    name: Unit tests - Backend
+    runs-on: ubuntu-latest
+    needs: [build_test_backend]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGES #################################################
+      ##########################################################################
+      - name: Download Docker Image (Backend)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-backend-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/backend.tar
+      ##########################################################################
+      # UNIT TESTS BACKEND #####################################################
+      ##########################################################################
+      - name: backend | Unit tests
+        run: |
+          docker run -v ~/coverage:/app/coverage --rm gradido/backend:test yarn run test
+          cp -r ~/coverage ./coverage
+      ##########################################################################
+      # COVERAGE CHECK BACKEND #################################################
+      ##########################################################################
+      - name: backend | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Backend
+          type: lcov
+          result_path: ./coverage/lcov.info
+          min_coverage: 4
+          token: ${{ github.token }}
+
   ##############################################################################
   # JOB: UNIT TEST LOGIN-SERVER  ###############################################
   ##############################################################################
@@ -428,7 +470,7 @@ jobs:
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
       - name: Start database migration
-        run: docker run --network ${{ steps.network.outputs.id }} --name=database --env NODE_ENV=production --env DB_HOST=mariadb -d gradido/database:production_up
+        run: docker run --network ${{ steps.network.outputs.id }} --name=database --env NODE_ENV=production --env DB_HOST=mariadb --env DB_DATABASE=gradido_community_test -d gradido/database:production_up
       - name: get database migration container id
         run: echo "::set-output name=id::$(docker container ls | grep database | awk '{ print $1 }')"
         id: database_container
