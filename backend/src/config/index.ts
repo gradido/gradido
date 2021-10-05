@@ -32,7 +32,7 @@ const klicktipp = {
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
-  COMMUNITY_URL: process.env.COMMUNITY_URL || 'https://gradido.net/',
+  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost:3000/vue/',
   COMMUNITY_REGISTER_URL:
     process.env.COMMUNITY_REGISTER_URL || 'http://localhost:3000/vue/register',
   COMMUNITY_DESCRIPTION:

@@ -30,7 +30,6 @@
             <br />
             {{ community.description }}
             <br />
-            {{ $t('community.location') }}
             <b>
               <small>
                 <b-link :href="community.url">{{ community.url }}</b-link>
