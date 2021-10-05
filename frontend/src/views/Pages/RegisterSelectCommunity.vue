@@ -72,11 +72,9 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((response) => {
-          console.log('got communities:', response.data.communities)
           this.communities = response.data.communities
         })
         .catch((error) => {
-          console.log('Huston got a problem', error.message)
           this.$toasted.error(error.message)
         })
       loader.hide()
