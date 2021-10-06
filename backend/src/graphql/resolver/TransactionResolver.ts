@@ -28,6 +28,9 @@ import { roundFloorFrom4 } from '../../util/round'
 import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
+import { hasUserAmount, isHexPublicKey } from '../../util/validate'
+import protobuf from '@apollo/protobufjs'
+import { from_hex } from 'libsodium-wrappers'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
@@ -208,6 +211,88 @@ async function listTransactions(
   return transactionList
 }
 
+// helper function 
+/**
+ *
+ * @param senderPublicKey as hex string
+ * @param recipiantPublicKey as hex string
+ * @param amount as float
+ * @param memo
+ * @param groupId
+ */
+async function sendCoins(
+  senderUser: dbUser,
+  recipiantPublicKey: string,
+  amount: number,
+  memo: string,
+  groupId = 0,
+) {
+  if (senderUser.pubkey.length != 32) {
+    throw new Error('invalid sender public key')
+  }
+  if (!isHexPublicKey(recipiantPublicKey)) {
+    throw new Error('invalid recipiant public key')
+  }
+  if (amount <= 0) {
+    throw new Error('invalid amount')
+  }
+  if (!hasUserAmount(senderUser, amount)) {
+    throw new Error("user hasn't enough GDD")
+  }
+  const protoRoot = await protobuf.load('../../proto/gradido/GradidoTransfer.proto')
+
+  const GradidoTransfer = protoRoot.lookupType('proto.gradido.GradidoTransfer')
+  const TransferAmount = protoRoot.lookupType('proto.gradido.TransferAmount')
+
+  const transferAmount = TransferAmount.create({
+    pubkey: senderUser.pubkey,
+    amount: amount / 10000,
+  })
+
+  // no group id is given so we assume it is a local transfer
+  if (!groupId) {
+    const LocalTransfer = protoRoot.lookupType('proto.gradido.LocalTransfer')
+    const localTransfer = LocalTransfer.create({
+      sender: transferAmount,
+      recipiant: from_hex(recipiantPublicKey),
+    })
+    return GradidoTransfer.create({ local: localTransfer })
+  }
+}
+
+// helper function 
+// target can be email, username or public_key
+// groupId if not null and another community, try to get public key from there
+async function getPublicKey(
+  target: string,
+  sessionId: number,
+  groupId = 0,
+): Promise<string | undefined> {
+  // if it is already a public key, return it
+  if (isHexPublicKey(target)) {
+    return target
+  }
+
+  // assume it is a email address if it's contain a @
+  if (/@/i.test(target)) {
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', {
+      session_id: sessionId,
+      email: target,
+      ask: ['user.pubkeyhex'],
+    })
+    if (result.success) {
+      return result.data.userData.pubkeyhex
+    }
+  }
+
+  // if username is used add code here
+
+  // if we have multiple communities add code here
+
+  return undefined
+}
+
+
 @Resolver()
 export class TransactionResolver {
   @Authorized()
@@ -267,6 +352,24 @@ export class TransactionResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
+    if (!recipiantPublicKey) {
+      throw new Error('recipiant not known')
+    }
+
+    // get public key for current logged in user
+    const loginResult = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
+    if (!loginResult.success) throw new Error(result.data)
+
+    // load user and balance
+    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+
+    const transaction = sendCoins(userEntity, recipiantPublicKey, amount, memo)
+
+    return 'success'
+    
     return 'success'
   }
 }
+
+
