@@ -106,7 +106,7 @@ export default {
         })
     },
     buildTagFromLanguageString() {
-      return 'languages.' + this.$store.state.language
+      return 'settings.language.' + this.$store.state.language
     },
   },
 }
