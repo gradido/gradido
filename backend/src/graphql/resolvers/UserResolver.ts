@@ -88,6 +88,7 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+
     const user = new User(result.data.user)
     const dbuser = new DbUser()
     dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
