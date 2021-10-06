@@ -19,9 +19,7 @@ export class CommunityResolver {
 
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
-    const communities: Community[] = []
-
-    communities.push(
+    return [
       new Community({
         id: 1,
         name: 'Gradido Entwicklung',
@@ -43,7 +41,6 @@ export class CommunityResolver {
         url: 'https://gradido.net',
         registerUrl: 'https://gdd1.gradido.com/vue/register-community',
       }),
-    )
-    return communities
+    ]
   }
 }

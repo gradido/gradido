@@ -18,6 +18,7 @@
   "dependencies": {
     "@types/jest": "^27.0.2",
     "apollo-server-express": "^2.25.2",
+    "apollo-server-testing": "^2.25.2",
     "axios": "^0.21.1",
     "class-validator": "^0.13.1",
     "cors": "^2.8.5",
