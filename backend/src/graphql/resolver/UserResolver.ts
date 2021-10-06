@@ -9,6 +9,7 @@ import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailR
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import { Setting } from '../../types'
@@ -30,6 +31,7 @@ import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepos
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 
+import { getCustomRepository } from 'typeorm'
 import { getCustomRepository } from 'typeorm'
 @Resolver()
 export class UserResolver {
