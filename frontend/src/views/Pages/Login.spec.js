@@ -91,7 +91,7 @@ describe('Login', () => {
         apolloQueryMock.mockRejectedValue({
           message: 'Failed to get communities',
         })
-        wrapper = new Wrapper()
+        wrapper = Wrapper()
       })
 
       it('toasts an error message', () => {

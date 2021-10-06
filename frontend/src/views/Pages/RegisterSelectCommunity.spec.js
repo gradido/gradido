@@ -9,6 +9,19 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    communities: [
+      {
+        name: 'test1',
+        description: 'description 1',
+        url: 'http://test.test/vue',
+        registerUrl: 'http://localhost/vue/register-community',
+      },
+    ],
+  },
+})
+const toasterMock = jest.fn()
 
 describe('RegisterSelectCommunity', () => {
   let wrapper
@@ -28,8 +41,14 @@ describe('RegisterSelectCommunity', () => {
         },
       },
     },
+    $apollo: {
+      query: apolloQueryMock,
+    },
     $loading: {
       show: spinnerMock,
+    },
+    $toasted: {
+      error: toasterMock,
     },
   }
 
@@ -44,6 +63,19 @@ describe('RegisterSelectCommunity', () => {
 
     it('renders the Div Element "#register-select-community"', () => {
       expect(wrapper.find('div#register-select-community').exists()).toBeTruthy()
+    })
+
+    describe('calls the apollo query', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Wrong thing',
+        })
+        wrapper = Wrapper()
+      })
+
+      it('toast an error', () => {
+        expect(toasterMock).toBeCalledWith('Wrong thing')
+      })
     })
   })
 })
