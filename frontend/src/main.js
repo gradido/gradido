@@ -6,7 +6,7 @@ import { loadAllRules } from './validation-rules'
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
-
+import VueCharts from 'vue-chartjs'
 import { store } from './store/store'
 
 import router from './routes/router'
@@ -64,5 +64,6 @@ new Vue({
   store,
   i18n,
   apolloProvider,
+  VueCharts,
   render: (h) => h(App),
 })

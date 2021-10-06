@@ -2,11 +2,16 @@
   <div>
     <side-bar @logout="logout" :balance="balance" :pending="pending">
       <template slot="links">
-        <p></p>
+        <sidebar-item
+          :link="{
+            name: $t('overview'),
+            path: '/overview',
+          }"
+        ></sidebar-item>
         <sidebar-item
           :link="{
             name: $t('send'),
-            path: '/overview',
+            path: '/send',
           }"
         ></sidebar-item>
         <sidebar-item
