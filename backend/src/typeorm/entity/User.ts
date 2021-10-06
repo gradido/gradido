@@ -1,7 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 import { UserSetting } from './UserSetting'
-import { UserSetting } from './UserSetting'
-import { UserSetting } from './UserSetting'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('state_users')

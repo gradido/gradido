@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository, getConnection, getRepository } from 'typeorm'
 
 import CONFIG from '../../config'
 
@@ -20,8 +20,11 @@ import { UserTransactionRepository } from '../../typeorm/repository/UserTransact
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '../../typeorm/entity/User'
-import { UserTransaction as dbUserTransaction } from '../../typeorm/entity/UserTransaction'
-import { Transaction as dbTransaction } from '../../typeorm/entity/Transaction'
+import { UserTransaction as DbUserTransaction } from '../../typeorm/entity/UserTransaction'
+import { Transaction as DbTransaction } from '../../typeorm/entity/Transaction'
+import { TransactionSignature as DbTransactionSignature } from '../../typeorm/entity/TransactionSignature'
+import { TransactionSendCoin as DbTransactionSendCoin } from '../../typeorm/entity/TransactionSendCoin'
+import { Balance as DbBalance } from '../../typeorm/entity/Balance'
 
 import { apiGet, apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4 } from '../../util/round'
@@ -30,11 +33,21 @@ import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import protobuf from '@apollo/protobufjs'
-import { from_hex } from 'libsodium-wrappers'
+import {
+  from_hex as fromHex,
+  to_base64 as toBase64,
+  from_base64 as fromBase64,
+  base64_variants as base64Variants,
+  crypto_sign_verify_detached as cryptoSignVerifyDetached,
+  crypto_generichash_init as cryptoGenerichashInit,
+  crypto_generichash_update as cryptoGenerichashUpdate,
+  crypto_generichash_final as cryptoGenerichashFinal,
+  crypto_generichash_BYTES as cryptoGenericHashBytes,
+} from 'libsodium-wrappers'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
-  userTransactions: dbUserTransaction[],
+  userTransactions: DbUserTransaction[],
   user: dbUser,
   decay: boolean,
   skipFirstTransaction: boolean,
@@ -43,15 +56,15 @@ async function calculateAndAddDecayTransactions(
   const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
-  userTransactions.forEach((userTransaction: dbUserTransaction) => {
+  userTransactions.forEach((userTransaction: DbUserTransaction) => {
     transactionIds.push(userTransaction.transactionId)
   })
 
   const transactionRepository = getCustomRepository(TransactionRepository)
   const transactions = await transactionRepository.joinFullTransactionsByIds(transactionIds)
 
-  const transactionIndiced: dbTransaction[] = []
-  transactions.forEach((transaction: dbTransaction) => {
+  const transactionIndiced: DbTransaction[] = []
+  transactions.forEach((transaction: DbTransaction) => {
     transactionIndiced[transaction.id] = transaction
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
       involvedUserIds.push(transaction.transactionSendCoin.userId)
@@ -211,7 +224,63 @@ async function listTransactions(
   return transactionList
 }
 
-// helper function 
+// helper helper function
+async function updateStateBalance(
+  user: dbUser,
+  centAmount: number,
+  received: Date,
+): Promise<number> {
+  const balanceRepository = getCustomRepository(BalanceRepository)
+  let balance = await balanceRepository.findByUser(user.id)
+  if (!balance) {
+    balance = new DbBalance()
+    balance.userId = user.id
+    balance.amount = centAmount
+  } else {
+    balance.amount =
+      (await calculateDecay(balance.amount, balance.recordDate, received)) + centAmount
+  }
+  if (balance.amount <= 0) {
+    throw new Error('error new balance <= 0')
+  }
+  balance.recordDate = received
+  balanceRepository.save(balance).catch(() => {
+    throw new Error('error saving balance')
+  })
+  return balance.amount
+}
+
+// helper helper function
+async function addUserTransaction(user: dbUser, transaction: DbTransaction, centAmount: number) {
+  let newBalance = centAmount
+
+  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+  const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
+  if (lastUserTransaction) {
+    newBalance += await calculateDecay(
+      lastUserTransaction.balance,
+      lastUserTransaction.balanceDate,
+      transaction.received,
+    )
+  }
+  if (newBalance <= 0) {
+    throw new Error('error new balance <= 0')
+  }
+
+  const newUserTransaction = new DbUserTransaction()
+  newUserTransaction.userId = user.id
+  newUserTransaction.transactionId = transaction.id
+  newUserTransaction.transactionTypeId = transaction.transactionTypeId
+  newUserTransaction.balance = newBalance
+  newUserTransaction.balanceDate = transaction.received
+
+  userTransactionRepository.save(newUserTransaction).catch(() => {
+    throw new Error('Error saving user transaction')
+  })
+  return newBalance
+}
+
+// helper function
 /**
  *
  * @param senderPublicKey as hex string
@@ -226,8 +295,8 @@ async function sendCoins(
   amount: number,
   memo: string,
   groupId = 0,
-) {
-  if (senderUser.pubkey.length != 32) {
+): Promise<boolean> {
+  if (senderUser.pubkey.length !== 32) {
     throw new Error('invalid sender public key')
   }
   if (!isHexPublicKey(recipiantPublicKey)) {
@@ -243,10 +312,10 @@ async function sendCoins(
 
   const GradidoTransfer = protoRoot.lookupType('proto.gradido.GradidoTransfer')
   const TransferAmount = protoRoot.lookupType('proto.gradido.TransferAmount')
-
+  const centAmount = Math.trunc(amount * 10000)
   const transferAmount = TransferAmount.create({
     pubkey: senderUser.pubkey,
-    amount: amount / 10000,
+    amount: centAmount,
   })
 
   // no group id is given so we assume it is a local transfer
@@ -254,13 +323,126 @@ async function sendCoins(
     const LocalTransfer = protoRoot.lookupType('proto.gradido.LocalTransfer')
     const localTransfer = LocalTransfer.create({
       sender: transferAmount,
-      recipiant: from_hex(recipiantPublicKey),
+      recipiant: fromHex(recipiantPublicKey),
     })
-    return GradidoTransfer.create({ local: localTransfer })
+    const createTransaction = GradidoTransfer.create({ local: localTransfer })
+    const TransactionBody = protoRoot.lookupType('proto.gradido.TransactionBody')
+
+    const transactionBody = TransactionBody.create({
+      memo: memo,
+      created: new Date(),
+      data: createTransaction,
+    })
+
+    const bodyBytes = TransactionBody.encode(transactionBody).finish()
+    const bodyBytesBase64 = toBase64(bodyBytes, base64Variants.ORIGINAL)
+    // let Login-Server sign transaction
+
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'signTransaction', {
+      bodyBytes: bodyBytesBase64,
+    })
+    if (!result.success) throw new Error(result.data)
+    // verify
+    const sign = fromBase64(result.data.sign, base64Variants.ORIGINAL)
+    if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+      throw new Error('Could not verify signature')
+    }
+    const SignatureMap = protoRoot.lookupType('proto.gradido.SignatureMap')
+    const SignaturePair = protoRoot.lookupType('proto.gradido.SignaturePair')
+    const sigPair = SignaturePair.create({
+      pubKey: senderUser.pubkey,
+      signature: { ed25519: sign },
+    })
+    const sigMap = SignatureMap.create({ sigPair: [sigPair] })
+
+    // created transaction, now save it to db
+    await getConnection().transaction(async (transactionalEntityManager) => {
+      // transaction
+      const transaction = new DbTransaction()
+      transaction.transactionTypeId = TransactionTypeId.SEND
+      transaction.memo = memo
+      const transactionRepository = getCustomRepository(TransactionRepository)
+      transactionRepository.save(transaction).catch(() => {
+        throw new Error('error saving transaction')
+      })
+      console.log('transaction after saving: %o', transaction)
+
+      const userRepository = getCustomRepository(UserRepository)
+      const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
+      if (!recipiantUser) {
+        throw new Error('Cannot find recipiant user by local send coins transaction')
+      }
+
+      // update state balance
+      const senderStateBalance = updateStateBalance(senderUser, -centAmount, transaction.received)
+      const recipiantStateBalance = updateStateBalance(
+        recipiantUser,
+        centAmount,
+        transaction.received,
+      )
+
+      // update user transactions
+      const senderUserTransactionBalance = addUserTransaction(senderUser, transaction, -centAmount)
+      const recipiantUserTransactionBalance = addUserTransaction(
+        recipiantUser,
+        transaction,
+        centAmount,
+      )
+
+      if ((await senderStateBalance) !== (await senderUserTransactionBalance)) {
+        throw new Error('db data corrupted')
+      }
+      if ((await recipiantStateBalance) !== (await recipiantUserTransactionBalance)) {
+        throw new Error('db data corrupted')
+      }
+
+      // transactionSendCoin
+      const transactionSendCoin = new DbTransactionSendCoin()
+      transactionSendCoin.transactionId = transaction.id
+      transactionSendCoin.userId = senderUser.id
+      transactionSendCoin.senderPublic = senderUser.pubkey
+      transactionSendCoin.recipiantUserId = recipiantUser.id
+      transactionSendCoin.recipiantPublic = Buffer.from(fromHex(recipiantPublicKey))
+      transactionSendCoin.amount = centAmount
+      const transactionSendCoinRepository = getRepository(DbTransactionSendCoin)
+      transactionSendCoinRepository.save(transactionSendCoin).catch(() => {
+        throw new Error('error saving transaction send coin')
+      })
+
+      // tx hash
+      const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
+      if (transaction.id > 1) {
+        const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
+        if (!previousTransaction) {
+          throw new Error('Error previous transaction not found')
+        }
+        cryptoGenerichashUpdate(state, previousTransaction.txHash)
+      }
+      cryptoGenerichashUpdate(state, transaction.id.toString())
+      // should match previous used format: yyyy-MM-dd HH:mm:ss
+      const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
+      cryptoGenerichashUpdate(state, receivedString)
+      cryptoGenerichashUpdate(state, SignatureMap.encode(sigMap).finish())
+      transaction.txHash = Buffer.from(cryptoGenerichashFinal(state, cryptoGenericHashBytes))
+      transactionRepository.save(transaction).catch(() => {
+        throw new Error('error saving transaction with tx hash')
+      })
+
+      // save signature
+      const signature = new DbTransactionSignature()
+      signature.transactionId = transaction.id
+      signature.signature = Buffer.from(sign)
+      signature.pubkey = senderUser.pubkey
+      signature.save().catch(() => {
+        throw new Error('error saving signature')
+      })
+    })
+    // send notification email
   }
+  return true
 }
 
-// helper function 
+// helper function
 // target can be email, username or public_key
 // groupId if not null and another community, try to get public key from there
 async function getPublicKey(
@@ -291,7 +473,6 @@ async function getPublicKey(
 
   return undefined
 }
-
 
 @Resolver()
 export class TransactionResolver {
@@ -348,28 +529,23 @@ export class TransactionResolver {
       transaction_type: 'transfer',
       blockchain_type: 'mysql',
     }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
+    /* const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
     if (!result.success) {
       throw new Error(result.data)
-    }
+    } */
     const recipiantPublicKey = await getPublicKey(email, context.sessionId)
     if (!recipiantPublicKey) {
       throw new Error('recipiant not known')
     }
 
-    // get public key for current logged in user
-    const loginResult = await apiGet(CONFIG.LOGIN_API_URL + 'login?session_id=' + context.sessionId)
-    if (!loginResult.success) throw new Error(result.data)
-
-    // load user and balance
-    const userEntity = await dbUser.findByPubkeyHex(result.data.user.public_hex)
+    // load logged in user
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
     const transaction = sendCoins(userEntity, recipiantPublicKey, amount, memo)
-
-    return 'success'
-    
+    if (!transaction) {
+      throw new Error('error sending coins')
+    }
     return 'success'
   }
 }
-
-

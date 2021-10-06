@@ -8,8 +8,11 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import {
+  UserSettingRepository,
+  UserSettingRepository,
+  UserSettingRepository,
+} from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import { Setting } from '../../types'
@@ -26,13 +29,10 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
-import { getCustomRepository } from 'typeorm'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { getCustomRepository, getCustomRepository, getCustomRepository } from 'typeorm'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 
-import { getCustomRepository } from 'typeorm'
-import { getCustomRepository } from 'typeorm'
 @Resolver()
 export class UserResolver {
   @Query(() => User)
