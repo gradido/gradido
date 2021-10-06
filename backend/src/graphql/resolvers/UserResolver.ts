@@ -88,15 +88,15 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
-    const qluser = new User(result.data.user)
-    const user = new DbUser()
-    user.pubkey = Buffer.from(fromHex(qluser.pubkey))
-    user.email = qluser.email
-    user.firstName = qluser.firstName
-    user.lastName = qluser.lastName
-    user.username = qluser.username
+    const user = new User(result.data.user)
+    const dbuser = new DbUser()
+    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
+    dbuser.email = user.email
+    dbuser.firstName = user.firstName
+    dbuser.lastName = user.lastName
+    dbuser.username = user.username
 
-    user.save().catch(() => {
+    dbuser.save().catch(() => {
       throw new Error('error saving user')
     })
 
