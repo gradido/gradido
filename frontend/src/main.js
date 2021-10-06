@@ -50,6 +50,11 @@ Vue.config.productionTip = false
 loadAllRules(i18n)
 
 router.beforeEach((to, from, next) => {
+  const publisherId = to.query.pid
+  if (publisherId) {
+    store.commit('publisherId', publisherId)
+    to.query.pid = undefined
+  }
   if (to.meta.requiresAuth && !store.state.token) {
     next({ path: '/login' })
   } else {

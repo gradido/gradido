@@ -9,6 +9,7 @@ const {
   lastName,
   description,
   newsletterState,
+  publisherId,
 } = mutations
 const { login, logout } = actions
 
@@ -75,6 +76,14 @@ describe('Vuex store', () => {
         const state = { newsletterState: null }
         newsletterState(state, true)
         expect(state.newsletterState).toEqual(true)
+      })
+    })
+
+    describe('publisherId', () => {
+      it('sets the state of publisherId', () => {
+        const state = {}
+        publisherId(state, 42)
+        expect(state.publisherId).toEqual(42)
       })
     })
   })

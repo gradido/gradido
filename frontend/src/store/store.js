@@ -29,6 +29,9 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  publisherId: (state, publisherId) => {
+    state.publisherId = publisherId
+  },
 }
 
 export const actions = {
