@@ -53,7 +53,7 @@ router.beforeEach((to, from, next) => {
   const publisherId = to.query.pid
   if (publisherId) {
     store.commit('publisherId', publisherId)
-    to.query.pid = undefined
+    delete to.query.pid
   }
   if (to.meta.requiresAuth && !store.state.token) {
     next({ path: '/login' })
