@@ -35,6 +35,9 @@ module.exports = {
         // 'process.env.PORT': JSON.stringify(process.env.PORT),
       }),
     ],
+    infrastructureLogging: {
+      level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
+    },
   },
   css: {
     // Enable CSS source maps.

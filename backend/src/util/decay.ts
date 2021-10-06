@@ -1,9 +1,9 @@
 import { getCustomRepository } from 'typeorm'
-import { Decay } from '../graphql/models/Decay'
+import { Decay } from '../graphql/model/Decay'
 import { TransactionRepository } from '../typeorm/repository/Transaction'
 
-function decayFormula(amount: number, durationInSeconds: number): number {
-  return amount * Math.pow(0.99999997802044727, durationInSeconds)
+function decayFormula(amount: number, seconds: number): number {
+  return amount * Math.pow(0.99999997802044727, seconds) // This number represents 50% decay a year
 }
 
 async function calculateDecay(amount: number, from: Date, to: Date): Promise<number> {
@@ -58,4 +58,4 @@ async function calculateDecayWithInterval(
   return result
 }
 
-export { calculateDecay, calculateDecayWithInterval }
+export { decayFormula, calculateDecay, calculateDecayWithInterval }

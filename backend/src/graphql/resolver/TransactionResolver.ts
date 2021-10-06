@@ -6,11 +6,11 @@ import { getCustomRepository } from 'typeorm'
 
 import CONFIG from '../../config'
 
-import { Transaction } from '../models/Transaction'
-import { TransactionList } from '../models/TransactionList'
+import { Transaction } from '../model/Transaction'
+import { TransactionList } from '../model/TransactionList'
 
-import TransactionSendArgs from '../args/TransactionSendArgs'
-import Paginated from '../args/Paginated'
+import TransactionSendArgs from '../arg/TransactionSendArgs'
+import Paginated from '../arg/Paginated'
 
 import { Order } from '../enum/Order'
 
@@ -50,7 +50,7 @@ async function calculateAndAddDecayTransactions(
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
-    if (transaction.transactionTypeId === 2) {
+    if (transaction.transactionTypeId === TransactionTypeId.SEND) {
       involvedUserIds.push(transaction.transactionSendCoin.userId)
       involvedUserIds.push(transaction.transactionSendCoin.recipiantUserId)
     }
@@ -97,7 +97,7 @@ async function calculateAndAddDecayTransactions(
       }
     }
 
-    // sender or receiver when user has sended money
+    // sender or receiver when user has sent money
     // group name if creation
     // type: gesendet / empfangen / geschöpft
     // transaktion nr / id
@@ -227,7 +227,7 @@ export class TransactionResolver {
       email: userEntity.email,
     })
     if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = resultGDTSum.data.sum
+    transactions.gdtSum = resultGDTSum.data.sum || 0
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)

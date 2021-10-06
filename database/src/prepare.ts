@@ -25,12 +25,6 @@ export default async (): Promise<void> => {
       DEFAULT CHARACTER SET utf8mb4
       DEFAULT COLLATE utf8mb4_unicode_ci;`)
 
-  // Create Database `gradido_community_test` for tests
-  await con.query(`
-    CREATE DATABASE IF NOT EXISTS ${CONFIG.DB_DATABASE}_test 
-      DEFAULT CHARACTER SET utf8mb4
-      DEFAULT COLLATE utf8mb4_unicode_ci;`)
-
   // Check if old migration table is present, delete if needed
   const [rows] = await con.query(`SHOW TABLES FROM \`${CONFIG.DB_DATABASE}\` LIKE 'migrations';`)
   if ((<RowDataPacket>rows).length > 0) {

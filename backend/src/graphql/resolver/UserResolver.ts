@@ -4,24 +4,28 @@
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { from_hex as fromHex } from 'libsodium-wrappers'
 import CONFIG from '../../config'
-import { CheckUsernameResponse } from '../models/CheckUsernameResponse'
-import { LoginViaVerificationCode } from '../models/LoginViaVerificationCode'
-import { SendPasswordResetEmailResponse } from '../models/SendPasswordResetEmailResponse'
-import { UpdateUserInfosResponse } from '../models/UpdateUserInfosResponse'
-import { User } from '../models/User'
+import { CheckUsernameResponse } from '../model/CheckUsernameResponse'
+import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
+import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
+import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
+import { User } from '../model/User'
 import { User as DbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
-import ChangePasswordArgs from '../args/ChangePasswordArgs'
-import CheckUsernameArgs from '../args/CheckUsernameArgs'
-import CreateUserArgs from '../args/CreateUserArgs'
-import UnsecureLoginArgs from '../args/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../args/UpdateUserInfosArgs'
+import ChangePasswordArgs from '../arg/ChangePasswordArgs'
+import CheckUsernameArgs from '../arg/CheckUsernameArgs'
+import CreateUserArgs from '../arg/CreateUserArgs'
+import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
-import { CheckEmailResponse } from '../models/CheckEmailResponse'
+import { CheckEmailResponse } from '../model/CheckEmailResponse'
+import { getCustomRepository } from 'typeorm'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { Setting } from '../enum/Setting'
+import { UserRepository } from '../../typeorm/repository/User'
 
 @Resolver()
 export class UserResolver {
@@ -40,8 +44,19 @@ export class UserResolver {
       key: 'token',
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
+    const user = new User(result.data.user)
+    // read additional settings from settings table
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
 
-    return new User(result.data.user)
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    return user
   }
 
   @Query(() => LoginViaVerificationCode)
@@ -142,7 +157,6 @@ export class UserResolver {
   async updateUserInfos(
     @Args()
     {
-      email,
       firstName,
       lastName,
       description,
@@ -151,12 +165,12 @@ export class UserResolver {
       publisherId,
       password,
       passwordNew,
+      coinanimation,
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
   ): Promise<UpdateUserInfosResponse> {
     const payload = {
       session_id: context.sessionId,
-      email,
       update: {
         'User.first_name': firstName || undefined,
         'User.last_name': lastName || undefined,
@@ -168,9 +182,42 @@ export class UserResolver {
         'User.password_old': password || undefined,
       },
     }
+    let response: UpdateUserInfosResponse | undefined
+    if (
+      firstName ||
+      lastName ||
+      description ||
+      username ||
+      language ||
+      publisherId ||
+      passwordNew ||
+      password
+    ) {
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
     if (!result.success) throw new Error(result.data)
-    return new UpdateUserInfosResponse(result.data)
+      response = new UpdateUserInfosResponse(result.data)
+  }
+    if (coinanimation !== undefined) {
+      // load user and balance
+      const userRepository = getCustomRepository(UserRepository)
+      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      const userSettingRepository = getCustomRepository(UserSettingRepository)
+      userSettingRepository
+        .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
+        .catch((error) => {
+          throw new Error(error)
+        })
+
+      if (!response) {
+        response = new UpdateUserInfosResponse({ valid_values: 1 })
+      } else {
+        response.validValues++
+      }
+    }
+    if (!response) {
+      throw new Error('no valid response')
+    }
+    return response
   }
 
   @Query(() => CheckUsernameResponse)

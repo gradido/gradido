@@ -9,6 +9,7 @@ export const login = gql`
       lastName
       language
       description
+      coinanimation
       klickTipp {
         newsletterState
       }
@@ -32,7 +33,7 @@ export const loginViaEmailVerificationCode = gql`
 `
 
 export const transactionsQuery = gql`
-  query($currentPage: Int = 1, $pageSize: Int = 25, $order: String = "DESC") {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       gdtSum
       count

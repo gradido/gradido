@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import TransactionCollapse from './TransactionCollapse'
+import { GdtEntryType } from '../graphql/enums'
 
 const localVue = global.localVue
 
@@ -15,13 +16,13 @@ describe('TransactionCollapse', () => {
     return mount(TransactionCollapse, { localVue, mocks, propsData })
   }
 
-  describe('mount with gdtEntryType: 1', () => {
+  describe('mount with gdtEntryType: FORM', () => {
     beforeEach(() => {
       const propsData = {
         amount: 100,
         gdt: 110,
         factor: 22,
-        gdtEntryType: 1,
+        gdtEntryType: GdtEntryType.FORM,
       }
 
       wrapper = Wrapper(propsData)
@@ -31,8 +32,8 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(1)
+    it('checks the prop gdtEntryType', () => {
+      expect(wrapper.props().gdtEntryType).toBe('FORM')
     })
 
     it('renders the component collapse-header', () => {
@@ -60,13 +61,13 @@ describe('TransactionCollapse', () => {
     })
   })
 
-  describe('mount with gdtEntryType: 7', () => {
+  describe('mount with gdtEntryType: GLOBAL_MODIFICATOR', () => {
     beforeEach(() => {
       const propsData = {
         amount: 100,
         gdt: 2200,
         factor: 22,
-        gdtEntryType: 7,
+        gdtEntryType: GdtEntryType.GLOBAL_MODIFICATOR,
       }
 
       wrapper = Wrapper(propsData)
@@ -76,8 +77,8 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(7)
+    it('checks the prop gdtEntryType', () => {
+      expect(wrapper.props().gdtEntryType).toBe('GLOBAL_MODIFICATOR')
     })
 
     it('renders the component collapse-header', () => {
@@ -105,13 +106,13 @@ describe('TransactionCollapse', () => {
     })
   })
 
-  describe('mount with gdtEntryType: 4', () => {
+  describe('mount with gdtEntryType: ELOPAGE_PUBLISHER', () => {
     beforeEach(() => {
       const propsData = {
         amount: 100,
         gdt: 2200,
         factor: 22,
-        gdtEntryType: 4,
+        gdtEntryType: GdtEntryType.ELOPAGE_PUBLISHER,
       }
 
       wrapper = Wrapper(propsData)
@@ -121,8 +122,8 @@ describe('TransactionCollapse', () => {
       expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
     })
 
-    it('checks the prop gdtEntryType  ', () => {
-      expect(wrapper.props().gdtEntryType).toBe(4)
+    it('checks the prop gdtEntryType', () => {
+      expect(wrapper.props().gdtEntryType).toBe('ELOPAGE_PUBLISHER')
     })
 
     it('renders the component collapse-header', () => {
