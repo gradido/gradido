@@ -6,6 +6,7 @@ import { loadAllRules } from './validation-rules'
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
+import addNavigationGuards from './routes/guards'
 
 import { store } from './store/store'
 
@@ -49,18 +50,7 @@ Vue.config.productionTip = false
 
 loadAllRules(i18n)
 
-router.beforeEach((to, from, next) => {
-  const publisherId = to.query.pid
-  if (publisherId) {
-    store.commit('publisherId', publisherId)
-    delete to.query.pid
-  }
-  if (to.meta.requiresAuth && !store.state.token) {
-    next({ path: '/login' })
-  } else {
-    next()
-  }
-})
+addNavigationGuards(router, store)
 
 /* eslint-disable no-new */
 new Vue({
