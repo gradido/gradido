@@ -86,6 +86,19 @@ describe('Login', () => {
       })
     })
 
+    describe('communities gives back error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Failed to get communities',
+        })
+        wrapper = new Wrapper()
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+      })
+    })
+
     describe('Login header', () => {
       it('has a welcome message', () => {
         expect(wrapper.find('div.header').text()).toBe('Gradido site.login.community')

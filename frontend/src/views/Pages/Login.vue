@@ -121,7 +121,7 @@ export default {
           this.$store.commit('community', result.data.getCommunityInfo)
         })
         .catch((error) => {
-          this.$toasted.error(error)
+          this.$toasted.error(error.message)
         })
     },
   },
