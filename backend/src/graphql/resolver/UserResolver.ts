@@ -193,10 +193,10 @@ export class UserResolver {
       passwordNew ||
       password
     ) {
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
-    if (!result.success) throw new Error(result.data)
+      const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
+      if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
-  }
+    }
     if (coinanimation !== undefined) {
       // load user and balance
       const userRepository = getCustomRepository(UserRepository)
