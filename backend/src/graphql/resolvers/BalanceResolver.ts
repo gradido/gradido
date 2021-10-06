@@ -20,8 +20,17 @@ export class BalanceResolver {
 
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
     const balanceEntity = await balanceRepository.findByUser(userEntity.id)
-    let balance: Balance
     const now = new Date()
+
+    // No balance found
+    if (!balanceEntity) {
+      return new Balance({
+        balance: 0,
+        decay: 0,
+        decay_date: now.toString(),
+      })
+    }
+
     return new Balance({
       balance: roundFloorFrom4(balanceEntity.amount),
       decay: roundFloorFrom4(
