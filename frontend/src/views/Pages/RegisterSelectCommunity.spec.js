@@ -3,6 +3,13 @@ import RegisterSelectCommunity from './RegisterSelectCommunity'
 
 const localVue = global.localVue
 
+const spinnerHideMock = jest.fn()
+const spinnerMock = jest.fn(() => {
+  return {
+    hide: spinnerHideMock,
+  }
+})
+
 describe('RegisterSelectCommunity', () => {
   let wrapper
 
@@ -20,6 +27,9 @@ describe('RegisterSelectCommunity', () => {
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
       },
+    },
+    $loading: {
+      show: spinnerMock,
     },
   }
 
