@@ -18,21 +18,30 @@ describe('navigation guards', () => {
   })
 
   describe('publisher ID', () => {
-    it('commits the pid to the store when present', () => {
-      router.push({ path: 'login', query: { pid: 42 } })
+    it('commits the pid to the store when present', async () => {
+      await router.push({ path: 'register', query: { pid: 42 } })
       expect(storeCommitMock).toBeCalledWith('publisherId', '42')
     })
 
-    it('does not commit the pid when not present', () => {
-      router.push({ path: 'register' })
+    it('does not commit the pid when not present', async () => {
+      await router.push({ path: 'password' })
       expect(storeCommitMock).not.toBeCalled()
     })
   })
 
   describe('authorization', () => {
-    it.skip('redirects to login when not authorized', async () => {
-      router.push({ path: 'overview' })
-      expect(router.history.current.path).toBe('/login')
+    const navGuard = router.beforeHooks[0]
+    const next = jest.fn()
+
+    it('redirects to login when not authorized', () => {
+      navGuard({ meta: { requiresAuth: true }, query: {} }, {}, next)
+      expect(next).toBeCalledWith({ path: '/login' })
+    })
+
+    it('does not redirect to login when authorized', () => {
+      store.state.token = 'valid token'
+      navGuard({ meta: { requiresAuth: true }, query: {} }, {}, next)
+      expect(next).toBeCalledWith()
     })
   })
 })
