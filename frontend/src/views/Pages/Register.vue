@@ -124,8 +124,8 @@
 
                   <div class="text-center">
                     <div class="text-center">
-                      <router-link to="/login">
-                        <b-button class="test-button-back" variant="outline-secondary">
+                      <router-link class="test-button-back" to="/login">
+                        <b-button variant="outline-secondary">
                           {{ $t('back') }}
                         </b-button>
                       </router-link>
@@ -146,8 +146,8 @@
       </b-row>
     </b-container>
     <div class="text-center pt-4">
-      <router-link to="/select-community">
-        <b-button class="test-button-another-community" variant="outline-secondary">
+      <router-link class="test-button-another-community" to="/select-community">
+        <b-button variant="outline-secondary">
           {{ $t('community.choose-another-community') }}
         </b-button>
       </router-link>
