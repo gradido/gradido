@@ -131,6 +131,20 @@ describe('router', () => {
         })
       })
 
+      describe('register-community', () => {
+        it('loads the "registerCommunity" component', async () => {
+          const component = await routes.find((r) => r.path === '/register-community').component()
+          expect(component.default.name).toBe('registerCommunity')
+        })
+      })
+
+      describe('select-community', () => {
+        it('loads the "registerSelectCommunity" component', async () => {
+          const component = await routes.find((r) => r.path === '/select-community').component()
+          expect(component.default.name).toBe('registerSelectCommunity')
+        })
+      })
+
       describe('reset', () => {
         it('loads the "ResetPassword" component', async () => {
           const component = await routes.find((r) => r.path === '/reset/:optin').component()

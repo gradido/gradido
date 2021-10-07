@@ -14,9 +14,11 @@
             <br />
             {{ $store.state.community.description }}
             <br />
-            <b-button variant="outline-secondary" to="/register">
-              {{ $t('community.continue-to-registration') }}
-            </b-button>
+            <router-link to="/register">
+              <b-button variant="outline-secondary">
+                {{ $t('community.continue-to-registration') }}
+              </b-button>
+            </router-link>
           </b-card>
         </div>
 
@@ -44,7 +46,9 @@
       </div>
 
       <div class="text-center py-lg-4">
-        <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
+        <router-link to="/login">
+          <b-button variant="outline-secondary">{{ $t('back') }}</b-button>
+        </router-link>
       </div>
     </b-container>
   </div>

@@ -17,24 +17,30 @@
           </b-row>
           <b-row>
             <b-col class="text-center">
-              <b-button variant="outline-secondary" to="/register">
-                {{ $t('community.continue-to-registration') }}
-              </b-button>
+              <router-link to="/register">
+                <b-button variant="outline-secondary">
+                  {{ $t('community.continue-to-registration') }}
+                </b-button>
+              </router-link>
             </b-col>
           </b-row>
 
           <hr />
           <b-row>
             <b-col class="text-center">
-              <b-button variant="outline-secondary" to="/select-community">
-                {{ $t('community.choose-another-community') }}
-              </b-button>
+              <router-link to="/select-community">
+                <b-button variant="outline-secondary">
+                  {{ $t('community.choose-another-community') }}
+                </b-button>
+              </router-link>
             </b-col>
           </b-row>
           <hr />
           <b-row>
             <b-col class="text-center">
-              <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
+              <router-link to="/login">
+                <b-button variant="outline-secondary">{{ $t('back') }}</b-button>
+              </router-link>
             </b-col>
           </b-row>
         </div>
@@ -44,7 +50,7 @@
 </template>
 <script>
 export default {
-  name: 'registerSelectCommunity',
+  name: 'registerCommunity',
   data() {
     return {}
   },
