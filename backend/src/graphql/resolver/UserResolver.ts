@@ -10,6 +10,11 @@ import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
+import ChangePasswordArgs from '../arg/ChangePasswordArgs'
+import CheckUsernameArgs from '../arg/CheckUsernameArgs'
+import CreateUserArgs from '../arg/CreateUserArgs'
+import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
@@ -19,11 +24,6 @@ import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { getCustomRepository } from 'typeorm'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import ChangePasswordArgs from '../arg/ChangePasswordArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
-import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 
 @Resolver()
 export class UserResolver {
