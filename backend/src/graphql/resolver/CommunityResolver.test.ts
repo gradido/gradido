@@ -13,7 +13,7 @@ describe('CommunityResolver', () => {
 
   const getCommunityInfoQuery = `
     query {
-      getCommunityInfo() {
+      getCommunityInfo {
         name
         description
         url
@@ -24,7 +24,7 @@ describe('CommunityResolver', () => {
 
   describe('getCommunityInfo', () => {
     it('returns the default values', async () => {
-      await expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
+      expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
         data: {
           getCommunityInfo: {
             name: 'Gradido Entwicklung',

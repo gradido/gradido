@@ -19,7 +19,7 @@ const createTestServer = async () => {
   const apollo = new ApolloServer({
     schema: await schema(),
     playground: CONFIG.GRAPHIQL,
-    context,
+//    context,
     plugins,
   })
   apollo.applyMiddleware({ app: server })
