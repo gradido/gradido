@@ -1,5 +1,6 @@
 const addNavigationGuards = (router, store) => {
   router.beforeEach((to, from, next) => {
+    // handle publisherId
     const publisherId = to.query.pid
     if (publisherId) {
       store.commit('publisherId', publisherId)
