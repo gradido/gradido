@@ -1,14 +1,22 @@
 {
   "back": "Zurück",
-  "community": "Gemeinschaft",
-  "communitys": {
-    "form": {
-      "date_period": "Datum / Zeitraum",
-      "hours": "Stunden",
-      "hours_report": "Stundenbericht",
-      "more_hours": "weitere Stunden",
-      "submit": "Einreichen"
-    }
+  "community": {
+    "choose-another-community": "Eine andere Gemeinschaft auswählen",
+    "communities": {
+      "form": {
+        "date_period": "Datum / Zeitraum",
+        "hours": "Stunden",
+        "hours_report": "Stundenbericht",
+        "more_hours": "weitere Stunden",
+        "submit": "Einreichen"
+      }
+    },
+    "community": "Gemeinschaft",
+    "continue-to-registration": "Weiter zur Registrierung",
+    "current-community": "Aktuelle Gemeinschaft",
+    "location": "Ort:",
+    "other-communities": "Weitere Gemeinschaften",
+    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "decay": {
     "calculation_decay": "Berechnung der Vergänglichkeit",
@@ -19,7 +27,6 @@
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde Eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
-    "fromCommunity": "Aus der Gemeinschaft",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
     "minutes": "Minuten",

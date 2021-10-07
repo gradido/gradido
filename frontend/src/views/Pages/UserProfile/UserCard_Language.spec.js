@@ -23,7 +23,6 @@ describe('UserCard_Language', () => {
     $store: {
       state: {
         language: 'de',
-        email: 'peter@lustig.de',
       },
       commit: storeCommitMock,
     },
@@ -127,7 +126,6 @@ describe('UserCard_Language', () => {
               expect(mockAPIcall).toBeCalledWith(
                 expect.objectContaining({
                   variables: {
-                    email: 'peter@lustig.de',
                     locale: 'en',
                   },
                 }),

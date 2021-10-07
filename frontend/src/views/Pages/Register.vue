@@ -13,15 +13,21 @@
         </div>
       </b-container>
     </div>
+
     <!-- Page content -->
     <b-container class="mt--8 p-1">
       <!-- Table -->
+
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
-              <div class="text-center text-muted mb-4">
-                <small>{{ $t('signup') }}</small>
+              <div class="text-center text-muted mb-4 test-communitydata">
+                <b>{{ $store.state.community.name }}</b>
+                <p class="text-lead">
+                  {{ $store.state.community.description }}
+                </p>
+                <div>{{ $t('signup') }}</div>
               </div>
 
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
@@ -118,12 +124,12 @@
 
                   <div class="text-center">
                     <div class="text-center">
-                      <b-button class="ml-2 test-button-back" to="/login">
+                      <b-button class="test-button-back" variant="outline-secondary" to="/login">
                         {{ $t('back') }}
                       </b-button>
 
                       <b-button
-                        :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
+                        :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
                         type="submit"
                         variant="primary"
                       >
@@ -138,6 +144,15 @@
         </b-col>
       </b-row>
     </b-container>
+    <div class="text-center pt-4">
+      <b-button
+        class="test-button-another-community"
+        variant="outline-secondary"
+        to="/select-community"
+      >
+        {{ $t('community.choose-another-community') }}
+      </b-button>
+    </div>
   </div>
 </template>
 <script>
@@ -223,9 +238,6 @@ export default {
     },
     emailFilled() {
       return this.form.email !== ''
-    },
-    languageFilled() {
-      return !!this.language
     },
   },
 }
