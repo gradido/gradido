@@ -31,6 +31,7 @@ namespace model {
 		{
 		public:
 			ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData);
+			ElopageBuy();
 			
 			// generic db operations
 			const char* getTableName() const { return "elopage_buys"; }

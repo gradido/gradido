@@ -9,6 +9,11 @@ namespace model {
 			"product[affiliate_program_id]", "publisher[id]", "order_id", "product_id",
 			"product[price]", "payer[email]", "publisher[email]", "payment_state", "success_date", "event" };
 
+		ElopageBuy::ElopageBuy()
+		{
+
+		}
+
 		ElopageBuy::ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData)
 			: mPayed(false)
 		{
