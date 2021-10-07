@@ -368,8 +368,9 @@ async function sendCoins(
       transactionRepository.save(transaction).catch(() => {
         throw new Error('error saving transaction')
       })
-      console.log('transaction after saving: %o', transaction)  
-      
+      // eslint-disable-next-line no-console
+      console.log('transaction after saving: %o', transaction)
+
       if (!recipiantUser) {
         throw new Error('Cannot find recipiant user by local send coins transaction')
       }
@@ -439,32 +440,48 @@ async function sendCoins(
       })
     })
     // send notification email
-    if(CONFIG.EMAIL) {
-      let transporter = createTransport({
+    if (CONFIG.EMAIL) {
+      const transporter = createTransport({
         host: CONFIG.EMAIL_SMTP_URL,
         port: Number(CONFIG.EMAIL_SMTP_PORT),
         secure: false, // true for 465, false for other ports
         requireTLS: true,
         auth: {
           user: CONFIG.EMAIL_USERNAME,
-          pass: CONFIG.EMAIL_PASSWORD, 
+          pass: CONFIG.EMAIL_PASSWORD,
         },
-      });
-    
+      })
+
       // send mail with defined transport object
       // TODO: translate
-      let info = await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: 'Gradido (nicht antworten) <' + CONFIG.EMAIL_SENDER + '>', // sender address
-        to: recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>', // list of receivers
-        subject: 'Gradido Überweisung', // Subject line 
-        text: 'Hallo ' + recipiantUser.firstName + ' ' + recipiantUser.lastName + ',\n\n'
-            + 'Du hast soeben ' + amount + ' GDD von ' + senderUser.firstName + ' ' + senderUser.lastName + ' erhalten.\n'
-            + senderUser.firstName + ' ' + senderUser.lastName + ' schreibt: \n\n'
-            + memo + '\n\n'
-            + 'Bitte antworte nicht auf diese E-Mail!\n\n'
-            + 'Mit freundlichen Grüßen\ņ Gradido Community Server', // plain text body
-      });
-      if(!info.messageId) {
+        to:
+          recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>', // list of receivers
+        subject: 'Gradido Überweisung', // Subject line
+        text:
+          'Hallo ' +
+          recipiantUser.firstName +
+          ' ' +
+          recipiantUser.lastName +
+          ',\n\n' +
+          'Du hast soeben ' +
+          amount +
+          ' GDD von ' +
+          senderUser.firstName +
+          ' ' +
+          senderUser.lastName +
+          ' erhalten.\n' +
+          senderUser.firstName +
+          ' ' +
+          senderUser.lastName +
+          ' schreibt: \n\n' +
+          memo +
+          '\n\n' +
+          'Bitte antworte nicht auf diese E-Mail!\n\n' +
+          'Mit freundlichen Grüßenņ Gradido Community Server', // plain text body
+      })
+      if (!info.messageId) {
         throw new Error('error sending notification email, but transaction succeed')
       }
     }

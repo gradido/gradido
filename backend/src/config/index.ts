@@ -50,6 +50,6 @@ const email = {
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...community }
+const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...email }
 
 export default CONFIG
