@@ -8,30 +8,22 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
-import {
-  UserSettingRepository,
-  UserSettingRepository,
-  UserSettingRepository,
-} from '../../typeorm/repository/UserSettingRepository'
+import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import encode from '../../jwt/encode'
-import ChangePasswordArgs from '../arg/ChangePasswordArgs'
-import { Setting } from '../../types'
-import {
-  ChangePasswordArgs,
-  CheckUsernameArgs,
-  CreateUserArgs,
-  UnsecureLoginArgs,
-  UpdateUserInfosArgs,
-} from '../inputs/LoginUserInput'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
   klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
-import { getCustomRepository, getCustomRepository, getCustomRepository } from 'typeorm'
+import { getCustomRepository } from 'typeorm'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
+import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
+import CreateUserArgs from '../arg/CreateUserArgs'
+import ChangePasswordArgs from '../arg/ChangePasswordArgs'
+import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
+import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 
 @Resolver()
 export class UserResolver {
