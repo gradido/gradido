@@ -14,6 +14,8 @@ async function calculateDecay(amount: number, from: Date, to: Date): Promise<num
   // if decay hasn't started yet we return input amount
   if (!decayStartBlock) return amount
 
+  // what happens when from > to
+  // Do we want to have negative decay?
   const decayDuration = (to.getTime() - from.getTime()) / 1000
   return decayFormula(amount, decayDuration)
 }
