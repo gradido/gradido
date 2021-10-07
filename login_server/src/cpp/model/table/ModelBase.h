@@ -171,7 +171,7 @@ namespace model {
 				<< " WHERE " << fieldName << " = ?"
 				, Poco::Data::Keywords::into(id), Poco::Data::Keywords::useRef(fieldValue);
 			try {
-				if (select.execute() == 1) {
+				if (select.execute() >= 1) {
 					return true;
 				}
 			}
