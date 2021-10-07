@@ -29,6 +29,9 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  community: (state, community) => {
+    state.community = community
+  },
 }
 
 export const actions = {
@@ -69,6 +72,7 @@ export const store = new Vuex.Store({
     token: null,
     coinanimation: true,
     newsletterState: null,
+    community: null,
   },
   getters: {},
   // Syncronous mutation of the state

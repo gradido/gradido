@@ -30,6 +30,14 @@ const klicktipp = {
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
 }
 
+const community = {
+  COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
+  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/vue/',
+  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/vue/register',
+  COMMUNITY_DESCRIPTION:
+    process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+}
+
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -42,6 +50,6 @@ const email = {
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...email }
+const CONFIG = { ...server, ...database, ...klicktipp, ...community }
 
 export default CONFIG

@@ -105,3 +105,26 @@ export const checkEmailQuery = gql`
     }
   }
 `
+
+export const communityInfo = gql`
+  query {
+    getCommunityInfo {
+      name
+      description
+      registerUrl
+      url
+    }
+  }
+`
+
+export const communities = gql`
+  query {
+    communities {
+      id
+      name
+      url
+      description
+      registerUrl
+    }
+  }
+`
