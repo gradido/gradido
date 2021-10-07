@@ -6,6 +6,7 @@ const addNavigationGuards = (router, store) => {
       store.commit('publisherId', publisherId)
       delete to.query.pid
     }
+    // handle authentication
     if (to.meta.requiresAuth && !store.state.token) {
       next({ path: '/login' })
     } else {
