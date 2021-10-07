@@ -244,14 +244,11 @@ export class UserResolver {
   }
 
   @Query(() => Boolean)
-  async hasElopage(@Ctx() context: any): Promise<Boolean> {
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId,
-    )
+  async hasElopage(@Ctx() context: any): Promise<boolean> {
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
     if (!result.success) {
       throw new Error(result.data)
     }
     return result.data.hasElopage
   }
-
 }
