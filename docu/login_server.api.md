@@ -593,3 +593,29 @@ or:
 	"msg": "session not found"
 }
 ```
+
+## Check if User has an Elopage Account
+Check if logged in user has already an elopage account
+
+### Request
+`GET http://localhost/login_api/hasElopage?session_id=-127182`
+
+### Response
+In case of success returns:
+
+```json
+{
+	"state":"success",
+	"hasElopage": true
+}
+```
+
+or:
+
+```json
+{
+	"state":"not found",
+	"msg": "session not found"
+}
+```
+
