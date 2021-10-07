@@ -97,8 +97,8 @@ describe('RegisterSelectCommunity', () => {
           expect(apolloQueryMock).toBeCalled()
         })
 
-        it('has two communities', () => {
-          expect(wrapper.vm.communities).toHaveLength(2)
+        it('shows two other communities', () => {
+          expect(wrapper.findAll('div.bg-secondary')).toHaveLength(2)
         })
 
         it('hides the spinner', () => {
