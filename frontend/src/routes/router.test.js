@@ -55,8 +55,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has ten routes defined', () => {
-        expect(routes).toHaveLength(10)
+      it('has 12 routes defined', () => {
+        expect(routes).toHaveLength(12)
       })
 
       describe('overview', () => {

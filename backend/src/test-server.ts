@@ -1,25 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 import cors from './server/cors'
-import context from './server/context'
+// import context from './server/context'
 import plugins from './server/plugins'
 import CONFIG from './config'
 
 // graphql
 import schema from './graphql/schema'
 
-const createTestServer = async () => {
+const createTestServer = async (): Promise<any> => {
   // Express Server
   const server = express()
 
   // cors
   server.use(cors)
-  
+
   // Apollo Server
   const apollo = new ApolloServer({
     schema: await schema(),
     playground: CONFIG.GRAPHIQL,
-//    context,
+    //    context,
     plugins,
   })
   apollo.applyMiddleware({ app: server })

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createTestClient } from 'apollo-server-testing'
 import createTestServer from '../../test-server'
 
@@ -8,9 +11,8 @@ beforeAll(async () => {
 
   query = createTestClient(await apollo).query
 })
-  
-describe('CommunityResolver', () => {
 
+describe('CommunityResolver', () => {
   const getCommunityInfoQuery = `
     query {
       getCommunityInfo {
