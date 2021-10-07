@@ -71,11 +71,11 @@ describe('UserCard_CoinAnimation', () => {
       })
 
       it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('coinanimation', false)
+        expect(storeCommitMock).toBeCalledWith('coinanimation', true)
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('settings.coinanimation.False')
+        expect(toastSuccessMock).toBeCalledWith('settings.coinanimation.True')
       })
     })
 
@@ -102,11 +102,11 @@ describe('UserCard_CoinAnimation', () => {
       })
 
       it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('coinanimation', true)
+        expect(storeCommitMock).toBeCalledWith('coinanimation', false)
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('settings.coinanimation.True')
+        expect(toastSuccessMock).toBeCalledWith('settings.coinanimation.False')
       })
     })
 
