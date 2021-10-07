@@ -3,6 +3,7 @@
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, getRepository } from 'typeorm'
+import { createTransport } from 'nodemailer'
 
 import CONFIG from '../../config'
 
@@ -354,6 +355,8 @@ async function sendCoins(
       signature: { ed25519: sign },
     })
     const sigMap = SignatureMap.create({ sigPair: [sigPair] })
+    const userRepository = getCustomRepository(UserRepository)
+    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
 
     // created transaction, now save it to db
     await getConnection().transaction(async (transactionalEntityManager) => {
@@ -365,10 +368,8 @@ async function sendCoins(
       transactionRepository.save(transaction).catch(() => {
         throw new Error('error saving transaction')
       })
-      console.log('transaction after saving: %o', transaction)
-
-      const userRepository = getCustomRepository(UserRepository)
-      const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
+      console.log('transaction after saving: %o', transaction)  
+      
       if (!recipiantUser) {
         throw new Error('Cannot find recipiant user by local send coins transaction')
       }
@@ -438,6 +439,35 @@ async function sendCoins(
       })
     })
     // send notification email
+    if(CONFIG.EMAIL) {
+      let transporter = createTransport({
+        host: CONFIG.EMAIL_SMTP_URL,
+        port: Number(CONFIG.EMAIL_SMTP_PORT),
+        secure: false, // true for 465, false for other ports
+        requireTLS: true,
+        auth: {
+          user: CONFIG.EMAIL_USERNAME,
+          pass: CONFIG.EMAIL_PASSWORD, 
+        },
+      });
+    
+      // send mail with defined transport object
+      // TODO: translate
+      let info = await transporter.sendMail({
+        from: 'Gradido (nicht antworten) <' + CONFIG.EMAIL_SENDER + '>', // sender address
+        to: recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>', // list of receivers
+        subject: 'Gradido Überweisung', // Subject line 
+        text: 'Hallo ' + recipiantUser.firstName + ' ' + recipiantUser.lastName + ',\n\n'
+            + 'Du hast soeben ' + amount + ' GDD von ' + senderUser.firstName + ' ' + senderUser.lastName + ' erhalten.\n'
+            + senderUser.firstName + ' ' + senderUser.lastName + ' schreibt: \n\n'
+            + memo + '\n\n'
+            + 'Bitte antworte nicht auf diese E-Mail!\n\n'
+            + 'Mit freundlichen Grüßen\ņ Gradido Community Server', // plain text body
+      });
+      if(!info.messageId) {
+        throw new Error('error sending notification email, but transaction succeed')
+      }
+    }
   }
   return true
 }

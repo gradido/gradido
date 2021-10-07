@@ -36,7 +36,7 @@ const email = {
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || 587,
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
 }
 
 // This is needed by graphql-directive-auth
