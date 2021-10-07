@@ -129,7 +129,7 @@
                       </b-button>
 
                       <b-button
-                        :disabled="!(namesFilled && emailFilled && form.agree && languageFilled)"
+                        :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
                         type="submit"
                         variant="primary"
                       >
@@ -238,9 +238,6 @@ export default {
     },
     emailFilled() {
       return this.form.email !== ''
-    },
-    languageFilled() {
-      return !!this.language
     },
   },
 }

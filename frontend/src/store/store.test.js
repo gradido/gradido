@@ -8,6 +8,7 @@ const {
   firstName,
   lastName,
   description,
+  coinanimation,
   newsletterState,
 } = mutations
 const { login, logout } = actions
@@ -70,6 +71,14 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('coinanimation', () => {
+      it('sets the state of coinanimation', () => {
+        const state = { coinanimation: true }
+        coinanimation(state, false)
+        expect(state.coinanimation).toEqual(false)
+      })
+    })
+
     describe('newsletterState', () => {
       it('sets the state of newsletterState', () => {
         const state = { newsletterState: null }
@@ -90,14 +99,15 @@ describe('Vuex store', () => {
         firstName: 'Peter',
         lastName: 'Lustig',
         description: 'Nickelbrille',
+        coinanimation: false,
         klickTipp: {
           newsletterState: true,
         },
       }
 
-      it('calls seven commits', () => {
+      it('calls eight commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(7)
+        expect(commit).toHaveBeenCalledTimes(8)
       })
 
       it('commits email', () => {
@@ -130,9 +140,14 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
       })
 
+      it('commits coinanimation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', false)
+      })
+
       it('commits newsletterState', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', true)
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', true)
       })
     })
 
@@ -140,9 +155,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls six commits', () => {
+      it('calls eight commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(7)
+        expect(commit).toHaveBeenCalledTimes(8)
       })
 
       it('commits token', () => {
@@ -175,9 +190,14 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'description', '')
       })
 
+      it('commits coinanimation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', true)
+      })
+
       it('commits newsletterState', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', null)
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', null)
       })
 
       // how to get this working?
