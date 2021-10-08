@@ -8,6 +8,8 @@
 
 #include "../lib/DataTypeConverter.h"
 
+#include "../model/table/ElopageBuy.h"
+
 Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 {
 
@@ -23,6 +25,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	std::string email;
 	std::string username;
 	std::string password;
+	bool hasElopage = false;
 
 	// if is json object
 	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
@@ -37,6 +40,11 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 			paramJsonObject->get("password").convert(password);
 			auto email_obj = paramJsonObject->get("email");
 			auto username_obj = paramJsonObject->get("username");
+
+			auto hasElopage_obj = paramJsonObject->get("hasElopage");
+			if (!hasElopage_obj.isEmpty()) {
+				hasElopage_obj.convert(hasElopage);
+			}
 
 			if (!email_obj.isEmpty()) {
 				email_obj.convert(email);
@@ -140,6 +148,10 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		session->setClientIp(mClientIP);
 		if(infos.size() > 0) {
 			result->set("info", infos);
+		}
+		if (hasElopage) {
+			auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
+			result->set("hasElopage", elopage_buy->isExistInDB("email", mSession->getNewUser()->getModel()->getEmail()));
 		}
 		return result;
 	default: 

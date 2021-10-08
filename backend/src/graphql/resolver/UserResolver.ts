@@ -31,9 +31,16 @@ import { UserRepository } from '../../typeorm/repository/User'
 export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
+  async login(
+    @Args() { email, password, hasElopage }: UnsecureLoginArgs,
+    @Ctx() context: any,
+  ): Promise<User> {
     email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
+    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', {
+      email,
+      password,
+      hasElopage,
+    })
 
     // if there is no user, throw an authentication error
     if (!result.success) {

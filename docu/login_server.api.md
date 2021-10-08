@@ -40,10 +40,12 @@ with:
 	"email": "max.musterman@gmail.de",
 	"username": "Maxilein", 
 	"password": "123abcDE&"
+	"hasElopage": true
 }
 ```
 `username` or `email` must be present!
 If booth present, `email` will be used. 
+`hasElopage`: optional, if set to true login will also check if user has an elopage account  
 
 ### Response
 In case of success returns:
@@ -67,6 +69,7 @@ In case of success returns:
 		"username": ""
 	},
 	"session_id": -127182,
+	"hasElopage": tr
 	"clientIP":"123.123.123.123"
 }
 ```
@@ -86,6 +89,7 @@ In case of success returns:
   - `role`: role of user currently only "none" or "admin"
   - `username`: not used yet
 - `clientIP`: should be the same as where the js-client is running, else maybe a man-in-the-middle attacks is happening or 
+- `hasElopage`: only present if hasElopage was set to true in request, true if user has an elopage account
 nginx was wrong configured.
 - `session_id`: can be also negative
 
