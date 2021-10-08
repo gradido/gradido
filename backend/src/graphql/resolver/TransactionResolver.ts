@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation, Root } from 'type-graphql'
-import { getCustomRepository, getConnection, getRepository } from 'typeorm'
+import { getCustomRepository, getConnection, EntityManager, Connection, QueryRunner } from 'typeorm'
 import { createTransport } from 'nodemailer'
 
 import CONFIG from '../../config'
@@ -24,7 +24,10 @@ import { User as dbUser } from '../../typeorm/entity/User'
 import { UserTransaction as DbUserTransaction } from '../../typeorm/entity/UserTransaction'
 import { Transaction as DbTransaction } from '../../typeorm/entity/Transaction'
 import { TransactionSignature as DbTransactionSignature } from '../../typeorm/entity/TransactionSignature'
-import { TransactionSendCoin as DbTransactionSendCoin } from '../../typeorm/entity/TransactionSendCoin'
+import {
+  TransactionSendCoin as DbTransactionSendCoin,
+  TransactionSendCoin,
+} from '../../typeorm/entity/TransactionSendCoin'
 import { Balance as DbBalance } from '../../typeorm/entity/Balance'
 
 import { apiGet, apiPost } from '../../apis/HttpRequest'
@@ -232,7 +235,8 @@ async function updateStateBalance(
   user: dbUser,
   centAmount: number,
   received: Date,
-): Promise<number> {
+  queryRunner: QueryRunner,
+): Promise<DbBalance> {
   const balanceRepository = getCustomRepository(BalanceRepository)
   let balance = await balanceRepository.findByUser(user.id)
   if (!balance) {
@@ -247,25 +251,31 @@ async function updateStateBalance(
     throw new Error('error new balance <= 0')
   }
   balance.recordDate = received
-  balanceRepository.save(balance).catch(() => {
-    throw new Error('error saving balance')
+  return queryRunner.manager.save(balance).catch((error) => {
+    throw new Error('error saving balance:' + error)
   })
-  return balance.amount
 }
 
 // helper helper function
-async function addUserTransaction(user: dbUser, transaction: DbTransaction, centAmount: number) {
+async function addUserTransaction(
+  user: dbUser,
+  transaction: DbTransaction,
+  centAmount: number,
+  queryRunner: QueryRunner,
+): Promise<DbUserTransaction> {
   let newBalance = centAmount
   const userTransactionRepository = getCustomRepository(UserTransactionRepository)
   const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
   if (lastUserTransaction) {
-    newBalance += Number(await calculateDecay(
-      Number(lastUserTransaction.balance),
-      lastUserTransaction.balanceDate,
-      transaction.received,
-    ))
+    newBalance += Number(
+      await calculateDecay(
+        Number(lastUserTransaction.balance),
+        lastUserTransaction.balanceDate,
+        transaction.received,
+      ),
+    )
   }
-  
+
   if (newBalance <= 0) {
     throw new Error('error new balance <= 0')
   }
@@ -277,10 +287,9 @@ async function addUserTransaction(user: dbUser, transaction: DbTransaction, cent
   newUserTransaction.balance = newBalance
   newUserTransaction.balanceDate = transaction.received
 
-  userTransactionRepository.save(newUserTransaction).catch(() => {
-    throw new Error('Error saving user transaction')
+  return queryRunner.manager.save(newUserTransaction).catch((error) => {
+    throw new Error('Error saving user transaction: ' + error)
   })
-  return newBalance
 }
 
 // helper function
@@ -355,14 +364,18 @@ async function sendCoins(
     const userRepository = getCustomRepository(UserRepository)
     const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
 
-    // created transaction, now save it to db
-    await getConnection().transaction(async (transactionalEntityManager) => {
+    // process db updates as transaction to able to rollback if an error occure
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try {
       // transaction
       const transaction = new DbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
       const transactionRepository = getCustomRepository(TransactionRepository)
-      transactionRepository.save(transaction).catch(() => {
+      queryRunner.manager.save(transaction).catch(() => {
         throw new Error('error saving transaction')
       })
       // eslint-disable-next-line no-console
@@ -373,26 +386,40 @@ async function sendCoins(
       }
 
       // update state balance
-      const senderStateBalance = updateStateBalance(senderUser, -centAmount, transaction.received)
+      const senderStateBalance = updateStateBalance(
+        senderUser,
+        -centAmount,
+        transaction.received,
+        queryRunner,
+      )
       const recipiantStateBalance = updateStateBalance(
         recipiantUser,
         centAmount,
         transaction.received,
+        queryRunner,
       )
 
       // update user transactions
-      const senderUserTransactionBalance = addUserTransaction(senderUser, transaction, -centAmount)
+      const senderUserTransactionBalance = addUserTransaction(
+        senderUser,
+        transaction,
+        -centAmount,
+        queryRunner,
+      )
       const recipiantUserTransactionBalance = addUserTransaction(
         recipiantUser,
         transaction,
         centAmount,
+        queryRunner,
       )
 
-      if ((await senderStateBalance) !== (await senderUserTransactionBalance)) {
-        throw new Error('db data corrupted')
+      if ((await senderStateBalance).amount !== (await senderUserTransactionBalance).balance) {
+        throw new Error('db data corrupted, sender')
       }
-      if ((await recipiantStateBalance) !== (await recipiantUserTransactionBalance)) {
-        throw new Error('db data corrupted')
+      if (
+        (await recipiantStateBalance).amount !== (await recipiantUserTransactionBalance).balance
+      ) {
+        throw new Error('db data corrupted, recipiant')
       }
 
       // transactionSendCoin
@@ -403,8 +430,7 @@ async function sendCoins(
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(fromHex(recipiantPublicKey))
       transactionSendCoin.amount = centAmount
-      const transactionSendCoinRepository = getRepository(DbTransactionSendCoin)
-      transactionSendCoinRepository.save(transactionSendCoin).catch(() => {
+      queryRunner.manager.save(transactionSendCoin).catch(() => {
         throw new Error('error saving transaction send coin')
       })
 
@@ -432,10 +458,19 @@ async function sendCoins(
       signature.transactionId = transaction.id
       signature.signature = Buffer.from(sign)
       signature.pubkey = senderUser.pubkey
-      signature.save().catch(() => {
+      queryRunner.manager.save(signature).catch(() => {
         throw new Error('error saving signature')
       })
-    })
+      console.log('commit transaction')
+      queryRunner.commitTransaction()
+    } catch (e) {
+      console.log('call rollback')
+      await queryRunner.rollbackTransaction()
+      throw new Error(JSON.stringify(e))
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release()
+    }
     // send notification email
     if (CONFIG.EMAIL) {
       const transporter = createTransport({
@@ -586,10 +621,9 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    const transaction = sendCoins(userEntity, recipiantPublicKey, amount, memo, context.sessionId)
-    if (!transaction) {
-      throw new Error('error sending coins')
-    }
+    sendCoins(userEntity, recipiantPublicKey, amount, memo, context.sessionId).catch((error) => {
+      throw new Error('error sending coins (' + error + ')')
+    })
     return 'success'
   }
 }
