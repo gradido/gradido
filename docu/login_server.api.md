@@ -69,7 +69,7 @@ In case of success returns:
 		"username": ""
 	},
 	"session_id": -127182,
-	"hasElopage": tr
+	"hasElopage": true,
 	"clientIP":"123.123.123.123"
 }
 ```
