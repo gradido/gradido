@@ -49,7 +49,6 @@ import {
 } from 'libsodium-wrappers'
 
 import { proto } from '../../proto/bundle'
-import context from '../../server/context'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
@@ -244,8 +243,9 @@ async function updateStateBalance(
     balance.userId = user.id
     balance.amount = centAmount
   } else {
-    balance.amount =
-      Number(await calculateDecay(balance.amount, balance.recordDate, received)) + centAmount
+      const decaiedBalance = calculateDecay(balance.amount, balance.recordDate, received)
+                             .catch(() => {throw new Error('error by calculating decay')})
+    balance.amount = Number(await decaiedBalance) + centAmount
   }
   if (balance.amount <= 0) {
     throw new Error('error new balance <= 0')
@@ -272,7 +272,7 @@ async function addUserTransaction(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         transaction.received,
-      ),
+      ).catch(() => {throw new Error('error by calculating decay')}),
     )
   }
 
@@ -378,6 +378,7 @@ async function sendCoins(
       queryRunner.manager.save(transaction).catch(() => {
         throw new Error('error saving transaction')
       })
+
       // eslint-disable-next-line no-console
       console.log('transaction after saving: %o', transaction)
 
@@ -386,13 +387,13 @@ async function sendCoins(
       }
 
       // update state balance
-      const senderStateBalance = updateStateBalance(
+      const senderStateBalance = await updateStateBalance(
         senderUser,
         -centAmount,
         transaction.received,
         queryRunner,
       )
-      const recipiantStateBalance = updateStateBalance(
+      const recipiantStateBalance = await updateStateBalance(
         recipiantUser,
         centAmount,
         transaction.received,
@@ -400,24 +401,24 @@ async function sendCoins(
       )
 
       // update user transactions
-      const senderUserTransactionBalance = addUserTransaction(
+      const senderUserTransactionBalance = await addUserTransaction(
         senderUser,
         transaction,
         -centAmount,
         queryRunner,
       )
-      const recipiantUserTransactionBalance = addUserTransaction(
+      const recipiantUserTransactionBalance = await addUserTransaction(
         recipiantUser,
         transaction,
         centAmount,
         queryRunner,
       )
 
-      if ((await senderStateBalance).amount !== (await senderUserTransactionBalance).balance) {
+      if (senderStateBalance.amount !== senderUserTransactionBalance.balance) {
         throw new Error('db data corrupted, sender')
       }
       if (
-        (await recipiantStateBalance).amount !== (await recipiantUserTransactionBalance).balance
+        recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance
       ) {
         throw new Error('db data corrupted, recipiant')
       }
@@ -461,12 +462,10 @@ async function sendCoins(
       queryRunner.manager.save(signature).catch(() => {
         throw new Error('error saving signature')
       })
-      console.log('commit transaction')
       queryRunner.commitTransaction()
     } catch (e) {
-      console.log('call rollback')
       await queryRunner.rollbackTransaction()
-      throw new Error(JSON.stringify(e))
+      throw e
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release()
@@ -621,9 +620,7 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    sendCoins(userEntity, recipiantPublicKey, amount, memo, context.sessionId).catch((error) => {
-      throw new Error('error sending coins (' + error + ')')
-    })
+    await sendCoins(userEntity, recipiantPublicKey, amount, memo, context.sessionId)
     return 'success'
   }
 }
