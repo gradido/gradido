@@ -124,10 +124,11 @@
 
                   <div class="text-center">
                     <div class="text-center">
-                      <b-button class="test-button-back" variant="outline-secondary" to="/login">
-                        {{ $t('back') }}
-                      </b-button>
-
+                      <router-link class="test-button-back" to="/login">
+                        <b-button variant="outline-secondary">
+                          {{ $t('back') }}
+                        </b-button>
+                      </router-link>
                       <b-button
                         :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
                         type="submit"
@@ -145,13 +146,11 @@
       </b-row>
     </b-container>
     <div class="text-center pt-4">
-      <b-button
-        class="test-button-another-community"
-        variant="outline-secondary"
-        to="/select-community"
-      >
-        {{ $t('community.choose-another-community') }}
-      </b-button>
+      <router-link class="test-button-another-community" to="/select-community">
+        <b-button variant="outline-secondary">
+          {{ $t('community.choose-another-community') }}
+        </b-button>
+      </router-link>
     </div>
   </div>
 </template>

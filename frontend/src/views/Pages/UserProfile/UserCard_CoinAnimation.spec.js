@@ -37,6 +37,7 @@ describe('UserCard_CoinAnimation', () => {
 
   describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -50,7 +51,7 @@ describe('UserCard_CoinAnimation', () => {
 
     describe('enable with success', () => {
       beforeEach(async () => {
-        mocks.$store.state.coinanimation = false
+        await wrapper.setData({ CoinAnimationStatus: false })
         mockAPIcall.mockResolvedValue({
           data: {
             updateUserInfos: {
@@ -58,7 +59,7 @@ describe('UserCard_CoinAnimation', () => {
             },
           },
         })
-        await wrapper.find('input').trigger('change')
+        await wrapper.find('input').setChecked()
       })
 
       it('calls the updateUserInfos mutation', () => {
@@ -81,7 +82,7 @@ describe('UserCard_CoinAnimation', () => {
 
     describe('disable with success', () => {
       beforeEach(async () => {
-        mocks.$store.state.coinanimation = true
+        await wrapper.setData({ CoinAnimationStatus: true })
         mockAPIcall.mockResolvedValue({
           data: {
             updateUserInfos: {
@@ -89,7 +90,7 @@ describe('UserCard_CoinAnimation', () => {
             },
           },
         })
-        wrapper.find('input').trigger('change')
+        await wrapper.find('input').setChecked(false)
       })
 
       it('calls the subscribe mutation', () => {

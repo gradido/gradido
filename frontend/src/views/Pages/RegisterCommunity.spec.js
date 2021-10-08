@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import RegisterCommunity from './RegisterCommunity'
 
 const localVue = global.localVue
@@ -23,8 +23,12 @@ describe('RegisterCommunity', () => {
     },
   }
 
+  const stubs = {
+    RouterLink: RouterLinkStub,
+  }
+
   const Wrapper = () => {
-    return mount(RegisterCommunity, { localVue, mocks })
+    return mount(RegisterCommunity, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
