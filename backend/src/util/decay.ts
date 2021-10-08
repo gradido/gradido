@@ -7,6 +7,9 @@ function decayFormula(amount: number, seconds: number): number {
 }
 
 async function calculateDecay(amount: number, from: Date, to: Date): Promise<number> {
+  if(amount === undefined || !from || !to) {
+    throw new Error('at least one parameter is undefined')
+  }
   // load decay start block
   const transactionRepository = getCustomRepository(TransactionRepository)
   const decayStartBlock = await transactionRepository.findDecayStartBlock()

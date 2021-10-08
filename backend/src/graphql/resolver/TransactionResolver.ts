@@ -368,19 +368,20 @@ async function sendCoins(
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
       // transaction
-      const transaction = new DbTransaction()
+      let transaction = new DbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
       const transactionRepository = getCustomRepository(TransactionRepository)
-      queryRunner.manager.save(transaction).catch(() => {
-        throw new Error('error saving transaction')
+      queryRunner.manager.save(transaction).catch((error) => {
+        throw new Error('error saving transaction: ' + error)
       })
-
-      // eslint-disable-next-line no-console
-      console.log('transaction after saving: %o', transaction)
+      const insertResult = await queryRunner.manager.insert(DbTransaction, transaction)
+      transaction = await queryRunner.manager.findOneOrFail(DbTransaction, insertResult.generatedMaps[0].id).catch((error) => {
+        throw new Error('error loading saved transaction: ' + error)
+      })
 
       if (!recipiantUser) {
         throw new Error('Cannot find recipiant user by local send coins transaction')
@@ -431,13 +432,15 @@ async function sendCoins(
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(fromHex(recipiantPublicKey))
       transactionSendCoin.amount = centAmount
-      queryRunner.manager.save(transactionSendCoin).catch(() => {
-        throw new Error('error saving transaction send coin')
+      transactionSendCoin.senderFinalBalance = senderStateBalance.amount 
+      await queryRunner.manager.save(transactionSendCoin).catch((error) => {
+        throw new Error('error saving transaction send coin: ' + error)
       })
 
       // tx hash
       const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
       if (transaction.id > 1) {
+        
         const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
         if (!previousTransaction) {
           throw new Error('Error previous transaction not found')
@@ -450,21 +453,28 @@ async function sendCoins(
       cryptoGenerichashUpdate(state, receivedString)
       cryptoGenerichashUpdate(state, proto.gradido.SignatureMap.encode(sigMap).finish())
       transaction.txHash = Buffer.from(cryptoGenerichashFinal(state, cryptoGenericHashBytes))
-      transactionRepository.save(transaction).catch(() => {
-        throw new Error('error saving transaction with tx hash')
+      await queryRunner.manager.save(transaction).catch((error) => {
+        throw new Error('error saving transaction with tx hash: ' + error)
       })
-
+      
       // save signature
       const signature = new DbTransactionSignature()
       signature.transactionId = transaction.id
       signature.signature = Buffer.from(sign)
       signature.pubkey = senderUser.pubkey
-      queryRunner.manager.save(signature).catch(() => {
-        throw new Error('error saving signature')
+      await queryRunner.manager.save(signature).catch((error) => {
+        throw new Error('error saving signature: ' + error)
       })
-      queryRunner.commitTransaction()
+      await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
+      const count = await queryRunner.manager.count(DbTransaction)
+      // fix autoincrement value which seems not effected from rollback      
+      await queryRunner.query('ALTER TABLE `transactions` auto_increment = ?', [ count ]).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log("problems with reset auto increment: %o", error)
+      })
+
       throw e
     } finally {
       // you need to release query runner which is manually created:
@@ -514,6 +524,8 @@ async function sendCoins(
       })
       if (!info.messageId) {
         throw new Error('error sending notification email, but transaction succeed')
+      } else {
+        console.log('send email: %o', info)
       }
     }
   }
