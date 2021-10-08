@@ -151,7 +151,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		}
 		if (hasElopage) {
 			auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
-			result->set("hasElopage", elopage_buy->isExistInDB("email", mSession->getNewUser()->getModel()->getEmail()));
+			result->set("hasElopage", elopage_buy->isExistInDB("email", user_model->getEmail()));
 		}
 		return result;
 	default: 
