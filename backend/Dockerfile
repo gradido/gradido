@@ -61,9 +61,9 @@ CMD /bin/sh -c "yarn install && yarn run dev"
 FROM base as build
 
 # Copy everything
-COPY . .
+COPY ./backend ./
 # Also copy external enities from database
-COPY ../database/entity/ ../database/entity/ 
+COPY ./database/entity/ ../database/entity/ 
 # npm install
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 # npm build
