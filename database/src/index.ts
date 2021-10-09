@@ -1,13 +1,15 @@
+import 'reflect-metadata'
 import { createPool, PoolConfig } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import CONFIG from './config'
 import prepare from './prepare'
+import connection from './typeorm/connection'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
   await prepare()
 
-  // Database connection
+  // Database connection for Migrations
   const poolConfig: PoolConfig = {
     host: CONFIG.DB_HOST,
     port: CONFIG.DB_PORT,
@@ -25,6 +27,12 @@ const run = async (command: string) => {
     tableName: CONFIG.MIGRATIONS_TABLE,
     dir: CONFIG.MIGRATIONS_DIRECTORY,
   })
+
+  // Database connection for TypeORM
+  const con = await connection()
+  if (!con || !con.isConnected) {
+    throw new Error(`Couldn't open connection to database`)
+  }
 
   await migration.initialize()
 
