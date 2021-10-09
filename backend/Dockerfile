@@ -31,8 +31,8 @@ LABEL org.label-schema.schema-version="1.0"
 LABEL maintainer="support@gradido.net"
 
 # Install Additional Software
-## install: git
-#RUN apk --no-cache add git
+## install: sudo
+RUN apk --no-cache add sudo
 
 # Settings
 ## Expose Container Port
@@ -64,7 +64,7 @@ FROM base as build
 COPY ./backend/ ./
 # Also copy external enities from database
 COPY ./database/entity/ ../database/entity/ 
-RUN mount -o bind ./node_modules ../node_modules/
+RUN sudo mount -o bind ./node_modules ../node_modules/
 
 # npm install
 RUN yarn install --production=false --frozen-lockfile --non-interactive
