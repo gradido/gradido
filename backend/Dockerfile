@@ -70,7 +70,7 @@ COPY ./database/entity/ ../database/entity/
 # npm install
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
-COPY ./backend/node_modules ../node_modules
+COPY ./node_modules ../node_modules
 
 # npm build
 RUN yarn run build
