@@ -63,7 +63,8 @@ FROM base as build
 # Copy everything
 COPY ./backend/ ./
 # Also copy external enities from database
-COPY ./database/entity/ ../database/entity/ 
+COPY ./database/entity/ ../database/entity/
+RUN mkdir -p ../node_modules/
 RUN sudo mount -o bind ./node_modules ../node_modules/
 
 # npm install
