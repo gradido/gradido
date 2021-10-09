@@ -64,13 +64,9 @@ FROM base as build
 COPY ./backend/ ./
 # Also copy external enities from database
 COPY ./database/entity/ ../database/entity/
-# RUN mkdir -p ../node_modules/
-# RUN sudo mount -o bind ./node_modules ../node_modules/
 
 # npm install
 RUN yarn install --production=false --frozen-lockfile --non-interactive
-
-COPY ./node_modules ../node_modules
 
 # npm build
 RUN yarn run build
