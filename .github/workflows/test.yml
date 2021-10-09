@@ -47,7 +47,7 @@ jobs:
       ##########################################################################
       - name: Backend | Build `test` image
         run: |
-          docker build --target test -t "gradido/backend:test" backend/
+          docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
           docker save "gradido/backend:test" > /tmp/backend.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
