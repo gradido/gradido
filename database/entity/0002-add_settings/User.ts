@@ -7,9 +7,6 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  //   @ManyToOne(type => Group, group => group.users)
-  //    group: Group;
-
   @Column({ type: 'binary', length: 32, name: 'public_key' })
   pubkey: Buffer
 
