@@ -10,10 +10,10 @@ async function calculateDecay(amount: number, from: Date, to: Date): Promise<num
   if (amount === undefined || !from || !to) {
     throw new Error('at least one parameter is undefined')
   }
-  if(from === to) { 
+  if (from === to) {
     return amount
   }
-  if(to < from) {
+  if (to < from) {
     throw new Error('to < from, so the target date is in the past?')
   }
   // load decay start block
