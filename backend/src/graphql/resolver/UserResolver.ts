@@ -31,10 +31,7 @@ import { UserRepository } from '../../typeorm/repository/User'
 export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(
-    @Args() { email, password }: UnsecureLoginArgs,
-    @Ctx() context: any,
-  ): Promise<User> {
+  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', {
       email,
