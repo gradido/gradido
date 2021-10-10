@@ -108,6 +108,14 @@ namespace model {
 
 			return select;
 		}
+
+		// --------------------------- Tasks --------------------------------------------
+		int UserHasElopageTask::run()
+		{
+			auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
+			bool hasElopage = elopage_buy->isExistInDB("email", mEmail);
+			return 0;
+		}
 	}
 }
 

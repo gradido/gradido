@@ -32,14 +32,13 @@ export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
-    @Args() { email, password, hasElopage }: UnsecureLoginArgs,
+    @Args() { email, password }: UnsecureLoginArgs,
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', {
       email,
       password,
-      hasElopage,
     })
 
     // if there is no user, throw an authentication error

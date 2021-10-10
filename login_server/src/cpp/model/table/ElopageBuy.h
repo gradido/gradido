@@ -52,6 +52,22 @@ namespace model {
 			Poco::DateTime mSuccessDate;
 			std::string mEvent;
 		};
+
+
+		// check for user existing
+		class UserHasElopageTask : public UniLib::controller::CPUTask
+		{
+		public:
+			UserHasElopageTask(std::string email) : mEmail(email), mHasElopage(false) {}
+
+			int run();
+			const char* getResourceType() const { return "UserHasElopageTask"; };
+			bool hasElopage() const { return mHasElopage; }
+
+		protected:
+			std::string mEmail;
+			bool mHasElopage;
+		};
 	}
 }
 

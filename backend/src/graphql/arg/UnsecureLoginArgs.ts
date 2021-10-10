@@ -7,7 +7,4 @@ export default class UnsecureLoginArgs {
 
   @Field(() => String)
   password: string
-
-  @Field(() => Boolean)
-  hasElopage?: boolean
 }
