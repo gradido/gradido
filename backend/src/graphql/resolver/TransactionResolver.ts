@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Authorized, Ctx, Mutation, Root } from 'type-graphql'
-import { getCustomRepository, getConnection, EntityManager, Connection, QueryRunner } from 'typeorm'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { getCustomRepository, getConnection, QueryRunner } from 'typeorm'
 import { createTransport } from 'nodemailer'
 
 import CONFIG from '../../config'
@@ -24,10 +24,7 @@ import { User as dbUser } from '../../typeorm/entity/User'
 import { UserTransaction as DbUserTransaction } from '../../typeorm/entity/UserTransaction'
 import { Transaction as DbTransaction } from '../../typeorm/entity/Transaction'
 import { TransactionSignature as DbTransactionSignature } from '../../typeorm/entity/TransactionSignature'
-import {
-  TransactionSendCoin as DbTransactionSendCoin,
-  TransactionSendCoin,
-} from '../../typeorm/entity/TransactionSendCoin'
+import { TransactionSendCoin as DbTransactionSendCoin } from '../../typeorm/entity/TransactionSendCoin'
 import { Balance as DbBalance } from '../../typeorm/entity/Balance'
 
 import { apiGet, apiPost } from '../../apis/HttpRequest'
@@ -243,8 +240,11 @@ async function updateStateBalance(
     balance.userId = user.id
     balance.amount = centAmount
   } else {
-      const decaiedBalance = calculateDecay(balance.amount, balance.recordDate, received)
-                             .catch(() => {throw new Error('error by calculating decay')})
+    const decaiedBalance = calculateDecay(balance.amount, balance.recordDate, received).catch(
+      () => {
+        throw new Error('error by calculating decay')
+      },
+    )
     balance.amount = Number(await decaiedBalance) + centAmount
   }
   if (balance.amount <= 0) {
@@ -272,7 +272,9 @@ async function addUserTransaction(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         transaction.received,
-      ).catch(() => {throw new Error('error by calculating decay')}),
+      ).catch(() => {
+        throw new Error('error by calculating decay')
+      }),
     )
   }
 
@@ -367,6 +369,8 @@ async function sendCoins(
     // process db updates as transaction to able to rollback if an error occure
 
     const queryRunner = getConnection().createQueryRunner()
+    // belong to debugging mysql query / typeorm line
+    // const startTime = new Date()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
@@ -375,13 +379,12 @@ async function sendCoins(
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
       const transactionRepository = getCustomRepository(TransactionRepository)
-      queryRunner.manager.save(transaction).catch((error) => {
-        throw new Error('error saving transaction: ' + error)
-      })
       const insertResult = await queryRunner.manager.insert(DbTransaction, transaction)
-      transaction = await queryRunner.manager.findOneOrFail(DbTransaction, insertResult.generatedMaps[0].id).catch((error) => {
-        throw new Error('error loading saved transaction: ' + error)
-      })
+      transaction = await queryRunner.manager
+        .findOneOrFail(DbTransaction, insertResult.generatedMaps[0].id)
+        .catch((error) => {
+          throw new Error('error loading saved transaction: ' + error)
+        })
 
       if (!recipiantUser) {
         throw new Error('Cannot find recipiant user by local send coins transaction')
@@ -418,9 +421,7 @@ async function sendCoins(
       if (senderStateBalance.amount !== senderUserTransactionBalance.balance) {
         throw new Error('db data corrupted, sender')
       }
-      if (
-        recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance
-      ) {
+      if (recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance) {
         throw new Error('db data corrupted, recipiant')
       }
 
@@ -432,7 +433,7 @@ async function sendCoins(
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(fromHex(recipiantPublicKey))
       transactionSendCoin.amount = centAmount
-      transactionSendCoin.senderFinalBalance = senderStateBalance.amount 
+      transactionSendCoin.senderFinalBalance = senderStateBalance.amount
       await queryRunner.manager.save(transactionSendCoin).catch((error) => {
         throw new Error('error saving transaction send coin: ' + error)
       })
@@ -440,10 +441,12 @@ async function sendCoins(
       // tx hash
       const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
       if (transaction.id > 1) {
-        
         const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
         if (!previousTransaction) {
-          throw new Error('Error previous transaction not found')
+          throw new Error('Error previous transaction not found, please try again')
+        }
+        if (!previousTransaction.txHash) {
+          throw new Error('Previous tx hash is null')
         }
         cryptoGenerichashUpdate(state, previousTransaction.txHash)
       }
@@ -456,7 +459,7 @@ async function sendCoins(
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
       })
-      
+
       // save signature
       const signature = new DbTransactionSignature()
       signature.transactionId = transaction.id
@@ -466,14 +469,20 @@ async function sendCoins(
         throw new Error('error saving signature: ' + error)
       })
       await queryRunner.commitTransaction()
+
+      // great way de debug mysql querys / typeorm
+      // const result = await queryRunner.query("SELECT * FROM mysql.general_log WHERE thread_id IN (SELECT ID FROM information_schema.processlist WHERE DB = 'gradido_community') AND event_time > ?; ", [startTime])
+      // console.log("start time: %o, transaction log: %o", startTime.getTime(), result)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       const count = await queryRunner.manager.count(DbTransaction)
-      // fix autoincrement value which seems not effected from rollback      
-      await queryRunner.query('ALTER TABLE `transactions` auto_increment = ?', [ count ]).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log("problems with reset auto increment: %o", error)
-      })
+      // fix autoincrement value which seems not effected from rollback
+      await queryRunner
+        .query('ALTER TABLE `transactions` auto_increment = ?', [count])
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.log('problems with reset auto increment: %o', error)
+        })
 
       throw e
     } finally {
@@ -524,8 +533,6 @@ async function sendCoins(
       })
       if (!info.messageId) {
         throw new Error('error sending notification email, but transaction succeed')
-      } else {
-        console.log('send email: %o', info)
       }
     }
   }
@@ -610,19 +617,6 @@ export class TransactionResolver {
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: any,
   ): Promise<string> {
-    const payload = {
-      session_id: context.sessionId,
-      target_email: email,
-      amount: amount * 10000,
-      memo,
-      auto_sign: true,
-      transaction_type: 'transfer',
-      blockchain_type: 'mysql',
-    }
-    /* const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
-    if (!result.success) {
-      throw new Error(result.data)
-    } */
     const recipiantPublicKey = await getPublicKey(email, context.sessionId)
     if (!recipiantPublicKey) {
       throw new Error('recipiant not known')
