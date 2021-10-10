@@ -4,28 +4,24 @@
       <div class="pb-3">{{ $t('community.current-community') }}</div>
 
       <div v-if="!pending">
-        <div v-for="community in communities" :key="community.name">
-          <b-card
-            v-if="community.name === $store.state.community.name"
-            class="border-0 mb-0"
-            bg-variant="primary"
-          >
-            <b>{{ community.name }}</b>
-            <br />
-            {{ $store.state.community.description }}
-            <br />
-            <b-button variant="outline-secondary" to="/register">
+        <b-card class="border-0 mb-0" bg-variant="primary">
+          <b>{{ $store.state.community.name }}</b>
+          <br />
+          {{ $store.state.community.description }}
+          <br />
+          <router-link to="/register">
+            <b-button variant="outline-secondary">
               {{ $t('community.continue-to-registration') }}
             </b-button>
-          </b-card>
-        </div>
+          </router-link>
+        </b-card>
 
         <hr />
 
         <div>{{ $t('community.other-communities') }}</div>
 
         <div v-for="community in communities" :key="community.id" class="pb-3">
-          <b-card v-if="community.name != $store.state.community.name" bg-variant="secondary">
+          <b-card bg-variant="secondary">
             <b>{{ community.name }}</b>
             <br />
             {{ community.description }}
@@ -44,7 +40,9 @@
       </div>
 
       <div class="text-center py-lg-4">
-        <b-button variant="outline-secondary" to="/login">{{ $t('back') }}</b-button>
+        <router-link to="/login">
+          <b-button variant="outline-secondary">{{ $t('back') }}</b-button>
+        </router-link>
       </div>
     </b-container>
   </div>
@@ -71,7 +69,9 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((response) => {
-          this.communities = response.data.communities
+          this.communities = response.data.communities.filter(
+            (c) => c.name !== this.$store.state.community.name,
+          )
         })
         .catch((error) => {
           this.$toasted.error(error.message)

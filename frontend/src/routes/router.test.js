@@ -55,8 +55,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has ten routes defined', () => {
-        expect(routes).toHaveLength(10)
+      it('has twelve routes defined', () => {
+        expect(routes).toHaveLength(12)
       })
 
       describe('overview', () => {
@@ -128,6 +128,20 @@ describe('router', () => {
         it('loads the "Password" component', async () => {
           const component = await routes.find((r) => r.path === '/password').component()
           expect(component.default.name).toBe('password')
+        })
+      })
+
+      describe('register-community', () => {
+        it('loads the "registerCommunity" component', async () => {
+          const component = await routes.find((r) => r.path === '/register-community').component()
+          expect(component.default.name).toBe('registerCommunity')
+        })
+      })
+
+      describe('select-community', () => {
+        it('loads the "registerSelectCommunity" component', async () => {
+          const component = await routes.find((r) => r.path === '/select-community').component()
+          expect(component.default.name).toBe('registerSelectCommunity')
         })
       })
 

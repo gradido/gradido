@@ -89,7 +89,6 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            email: this.$store.state.email,
             locale: this.language,
           },
         })
