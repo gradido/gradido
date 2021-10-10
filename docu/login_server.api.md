@@ -39,7 +39,7 @@ with:
 {
 	"email": "max.musterman@gmail.de",
 	"username": "Maxilein", 
-	"password": "123abcDE&"
+	"password": "123abcDE&",
 	"hasElopage": true
 }
 ```
