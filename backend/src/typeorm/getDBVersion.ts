@@ -1,4 +1,4 @@
-import { Migration } from "@entity/Migration"
+import { Migration } from '@entity/Migration'
 
 const getDBVersion = async (): Promise<string | null> => {
   try {
