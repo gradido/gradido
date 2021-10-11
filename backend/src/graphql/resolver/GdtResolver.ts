@@ -36,7 +36,7 @@ export class GdtResolver {
   @Authorized()
   @Query(() => Number)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async checkPid(@Arg('pid') pid: number): Promise<number> {
+  async existPid(@Arg('pid') pid: number): Promise<number> {
     // load user
     const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
     if (!resultPID.success) {
