@@ -65,13 +65,13 @@ COPY ./backend/ ./
 # Copy everything from database
 COPY ./database/ ../database/
 
-# npm install
+# yarn install backend
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
-# npm install database
+# yarn install database
 RUN cd ../database && yarn install --production=false --frozen-lockfile --non-interactive
 
-# npm build
+# yarn build
 RUN yarn run build
 
 ##################################################################################
