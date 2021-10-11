@@ -42,6 +42,8 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+RUN mkdir -p /database
+
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
@@ -51,9 +53,9 @@ FROM base as development
 # local filesystem which will need a rebuild anyway
 
 # Run command
-# (for development we need to execute npm install since the
+# (for development we need to execute yarn install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "yarn install && yarn run dev"
+CMD /bin/sh -c "cd /database && yarn install && cd /app && yarn install && yarn run dev"
 
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################
@@ -89,8 +91,10 @@ FROM base as production
 
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
+COPY --from=build ${DOCKER_WORKDIR}/../database/build ../database/build
 # We also copy the node_modules express and serve-static for the run script
-# COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --from=build ${DOCKER_WORKDIR}/../database/node_modules ../database/node_modules
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
