@@ -68,6 +68,9 @@ COPY ./database/ ../database/
 # npm install
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
+# npm install database
+RUN cd ../database && yarn install --production=false --frozen-lockfile --non-interactive
+
 # npm build
 RUN yarn run build
 
