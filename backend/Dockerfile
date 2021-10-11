@@ -31,8 +31,8 @@ LABEL org.label-schema.schema-version="1.0"
 LABEL maintainer="support@gradido.net"
 
 # Install Additional Software
-## install: sudo
-RUN apk --no-cache add sudo
+## install: git
+#RUN apk --no-cache add git
 
 # Settings
 ## Expose Container Port
