@@ -47,7 +47,22 @@ export class UserResolver {
     const user = new User(result.data.user)
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
+    let userEntity: void | DbUser
+    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+      userEntity = new DbUser()
+      userEntity.firstName = user.firstName
+      userEntity.lastName = user.lastName
+      userEntity.username = user.username
+      userEntity.email = user.email
+      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+
+      userEntity.save().catch(() => {
+        throw new Error('error by save userEntity')
+      })
+    })
+    if (!userEntity) {
+      throw new Error('error with cannot happen')
+    }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
