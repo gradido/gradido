@@ -56,7 +56,7 @@ export class UserResolver {
       userEntity.username = user.username
       userEntity.email = user.email
       userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
-      userEntity.disabled = user.disabled
+      
 
       userEntity.save().catch(() => {
         throw new Error('error by save userEntity')
@@ -125,7 +125,6 @@ export class UserResolver {
     dbuser.firstName = user.firstName
     dbuser.lastName = user.lastName
     dbuser.username = user.username
-    dbuser.disabled = user.disabled
 
     dbuser.save().catch(() => {
       throw new Error('error saving user')

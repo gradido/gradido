@@ -19,7 +19,6 @@ export class User {
     this.pubkey = json.public_hex
     this.language = json.language
     this.publisherId = json.publisher_id
-    this.disabled = json.disabled
   }
 
   @Field(() => String)
@@ -57,8 +56,10 @@ export class User {
   @Field(() => String)
   language: string
 
+  /*
   @Field(() => Boolean)
   disabled: boolean
+  */
 
   /* I suggest to have a group as type here
   @Field(() => ID)
