@@ -242,4 +242,13 @@ export class UserResolver {
     }
     return new CheckEmailResponse(result.data)
   }
+
+  @Query(() => Boolean)
+  async hasElopage(@Ctx() context: any): Promise<boolean> {
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return result.data.hasElopage
+  }
 }

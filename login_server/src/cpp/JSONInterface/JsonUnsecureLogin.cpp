@@ -8,6 +8,8 @@
 
 #include "../lib/DataTypeConverter.h"
 
+#include "../model/table/ElopageBuy.h"
+
 Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 {
 
@@ -105,6 +107,10 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		USER_COMPLETE,
 		USER_DISABLED
 	*/
+	// run query for checking if user has already an account async
+	Poco::AutoPtr<model::table::UserHasElopageTask> hasElopageTask = new model::table::UserHasElopageTask(email);
+	hasElopageTask->scheduleTask(hasElopageTask);
+
 	auto user_state = session->loadUser(email, password);
 	auto user_model = session->getNewUser()->getModel();
 	Poco::JSON::Array infos;
@@ -140,7 +146,9 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		session->setClientIp(mClientIP);
 		if(infos.size() > 0) {
 			result->set("info", infos);
-		}
+		}		
+		AWAIT(hasElopageTask)
+		result->set("hasElopage", hasElopageTask->hasElopage());
 		return result;
 	default: 
 		result->set("state", "error");

@@ -31,6 +31,7 @@ namespace model {
 		{
 		public:
 			ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData);
+			ElopageBuy();
 			
 			// generic db operations
 			const char* getTableName() const { return "elopage_buys"; }
@@ -50,6 +51,22 @@ namespace model {
 			bool mPayed;
 			Poco::DateTime mSuccessDate;
 			std::string mEvent;
+		};
+
+
+		// check for user existing
+		class UserHasElopageTask : public UniLib::controller::CPUTask
+		{
+		public:
+			UserHasElopageTask(std::string email) : mEmail(email), mHasElopage(false) {}
+
+			int run();
+			const char* getResourceType() const { return "UserHasElopageTask"; };
+			bool hasElopage() const { return mHasElopage; }
+
+		protected:
+			std::string mEmail;
+			bool mHasElopage;
 		};
 	}
 }
