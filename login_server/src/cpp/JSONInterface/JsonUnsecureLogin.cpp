@@ -112,7 +112,7 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 	// AUTOMATIC ERROR CORRECTION
 	// if something went wrong by initial key generation for user, generate keys again
 	if (user_state >= USER_LOADED_FROM_DB && !user_model->getPublicKey()) {
-		if (mSession->generateKeys(true, true)) {
+		if (session->generateKeys(true, true)) {
 			user_state = session->getNewUser()->getUserState();
 		}
 	}
