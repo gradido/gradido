@@ -39,13 +39,11 @@ with:
 {
 	"email": "max.musterman@gmail.de",
 	"username": "Maxilein", 
-	"password": "123abcDE&",
-	"hasElopage": true
+	"password": "123abcDE&"
 }
 ```
 `username` or `email` must be present!
 If booth present, `email` will be used. 
-`hasElopage`: optional, if set to true login will also check if user has an elopage account  
 
 ### Response
 In case of success returns:
