@@ -47,20 +47,21 @@ export class UserResolver {
     const user = new User(result.data.user)
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
-    let userEntity: void | DbUser = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {})
-    if(!userEntity) {
-      // create user if it don't exist with this pubkey
-      userEntity = new DbUser
+    let userEntity: void | DbUser
+    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+      userEntity = new DbUser()
       userEntity.firstName = user.firstName
       userEntity.lastName = user.lastName
       userEntity.username = user.username
       userEntity.email = user.email
       userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
-      
 
       userEntity.save().catch(() => {
         throw new Error('error by save userEntity')
       })
+    })
+    if (!userEntity) {
+      throw new Error('error with cannot happen')
     }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
