@@ -20,7 +20,6 @@ export const resetPassword = gql`
 
 export const updateUserInfos = gql`
   mutation(
-    $email: String!
     $firstName: String
     $lastName: String
     $description: String
@@ -28,9 +27,9 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
+    $coinanimation: Boolean
   ) {
     updateUserInfos(
-      email: $email
       firstName: $firstName
       lastName: $lastName
       description: $description
@@ -38,6 +37,7 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
+      coinanimation: $coinanimation
     ) {
       validValues
     }

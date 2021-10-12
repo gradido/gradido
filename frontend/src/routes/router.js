@@ -5,10 +5,9 @@ import CONFIG from '../config'
 
 Vue.use(VueRouter)
 
-// configure router
 const router = new VueRouter({
   base: '/vue',
-  routes, // short for routes: routes
+  routes,
   linkActiveClass: 'active',
   mode: 'history',
   scrollBehavior: (to, from, savedPosition) => {

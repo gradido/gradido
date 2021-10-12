@@ -49,6 +49,14 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
+    path: '/register-community',
+    component: () => import('../views/Pages/RegisterCommunity.vue'),
+  },
+  {
+    path: '/select-community',
+    component: () => import('../views/Pages/RegisterSelectCommunity.vue'),
+  },
+  {
     path: '/reset/:optin',
     component: () => import('../views/Pages/ResetPassword.vue'),
   },

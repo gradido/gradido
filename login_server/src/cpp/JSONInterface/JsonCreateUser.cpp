@@ -150,16 +150,16 @@ Poco::JSON::Object* JsonCreateUser::handle(Poco::Dynamic::Var params)
 	emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
 	em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
 
+	Poco::JSON::Object* result = stateSuccess();
+	result->set("user", user->getJson());
 	if (login_after_register && session) {
-		Poco::JSON::Object* result = stateSuccess();
         if(group_was_not_set) {
             Poco::JSON::Array infos;
             infos.add("group_id was not set, use 1 as default!");
             result->set("info", infos);
         }
 		result->set("session_id", session->getHandle());
-		return result;
 	}
 
-	return stateSuccess();
+	return result;
 }

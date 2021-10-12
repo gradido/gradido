@@ -111,7 +111,6 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            email: this.$store.state.email,
             firstName: this.form.firstName,
             lastName: this.form.lastName,
             description: this.form.description,

@@ -82,13 +82,13 @@ export default {
     },
     cancelEdit() {
       this.showLanguage = true
+      this.language = this.$store.state.language
     },
     async onSubmit() {
       this.$apollo
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            email: this.$store.state.email,
             locale: this.language,
           },
         })
@@ -104,9 +104,8 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-
     buildTagFromLanguageString() {
-      return 'languages.' + this.$store.state.language
+      return 'settings.language.' + this.$store.state.language
     },
   },
 }

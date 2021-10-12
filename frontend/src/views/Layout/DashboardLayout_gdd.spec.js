@@ -32,6 +32,9 @@ describe('DashboardLayoutGdd', () => {
     },
     $router: {
       push: routerPushMock,
+      currentRoute: {
+        path: '/overview',
+      },
     },
     $toasted: {
       error: toasterMock,
@@ -143,21 +146,23 @@ describe('DashboardLayoutGdd', () => {
         it('redirects to login page', () => {
           expect(routerPushMock).toBeCalledWith('/login')
         })
+      })
 
-        describe('logout fails', () => {
-          beforeEach(() => {
-            apolloMock.mockRejectedValue({
-              message: 'error',
-            })
+      describe('logout fails', () => {
+        beforeEach(async () => {
+          apolloMock.mockRejectedValue({
+            message: 'error',
           })
+          await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
+          await flushPromises()
+        })
 
-          it('dispatches logout to store', () => {
-            expect(storeDispatchMock).toBeCalledWith('logout')
-          })
+        it('dispatches logout to store', () => {
+          expect(storeDispatchMock).toBeCalledWith('logout')
+        })
 
-          it('redirects to login page', () => {
-            expect(routerPushMock).toBeCalledWith('/login')
-          })
+        it('redirects to login page', () => {
+          expect(routerPushMock).toBeCalledWith('/login')
         })
       })
 
@@ -184,7 +189,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper
             .findComponent({ ref: 'router-view' })
-            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+            .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
           await flushPromises()
         })
 
@@ -192,8 +197,8 @@ describe('DashboardLayoutGdd', () => {
           expect(apolloMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                firstPage: 2,
-                items: 5,
+                currentPage: 2,
+                pageSize: 5,
               },
             }),
           )
@@ -228,7 +233,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper
             .findComponent({ ref: 'router-view' })
-            .vm.$emit('update-transactions', { firstPage: 2, items: 5 })
+            .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
           await flushPromises()
         })
 

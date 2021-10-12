@@ -36,16 +36,16 @@ describe('UserProfileTransactionList', () => {
 
     it('emits update-transactions after creation', () => {
       expect(wrapper.emitted('update-transactions')).toEqual(
-        expect.arrayContaining([expect.arrayContaining([{ firstPage: 1, items: 25 }])]),
+        expect.arrayContaining([expect.arrayContaining([{ currentPage: 1, pageSize: 25 }])]),
       )
     })
 
     it('emist update-transactions when update-transactions is called', () => {
       wrapper
         .findComponent({ name: 'GddTransactionList' })
-        .vm.$emit('update-transactions', { firstPage: 2, items: 25 })
+        .vm.$emit('update-transactions', { currentPage: 2, pageSize: 25 })
       expect(wrapper.emitted('update-transactions')).toEqual(
-        expect.arrayContaining([expect.arrayContaining([{ firstPage: 2, items: 25 }])]),
+        expect.arrayContaining([expect.arrayContaining([{ currentPage: 2, pageSize: 25 }])]),
       )
     })
 

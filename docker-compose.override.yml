@@ -43,11 +43,13 @@ services:
   # DATABASE ##############################################
   ########################################################
   database:
-    # we always run on prouction here since else the service lingers
+    # we always run on production here since else the service lingers
     # feel free to change this behaviour if it seems useful
-    #image: gradido/database:test_up
-    #build:
-    #  target: test_up
+    # Due to problems with the volume caching the built files
+    # we changed this to test build. This keeps the service running.
+    image: gradido/database:test_up
+    build:
+      target: test_up
     #networks:
     #  - external-net
     #  - internal-net

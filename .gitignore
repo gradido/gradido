@@ -6,3 +6,4 @@ messages.pot
 nbproject
 .metadata
 /.env
+package-lock.json

@@ -134,8 +134,8 @@ export default {
   methods: {
     updateTransactions() {
       this.$emit('update-transactions', {
-        firstPage: this.currentPage,
-        items: this.pageSize,
+        currentPage: this.currentPage,
+        pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)
     },
