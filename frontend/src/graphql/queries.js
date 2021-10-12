@@ -13,6 +13,7 @@ export const login = gql`
       klickTipp {
         newsletterState
       }
+      hasElopage
     }
   }
 `
