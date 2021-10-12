@@ -45,6 +45,7 @@ export class UserResolver {
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
     const user = new User(result.data.user)
+    user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
