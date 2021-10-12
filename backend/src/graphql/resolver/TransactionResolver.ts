@@ -324,6 +324,12 @@ async function sendCoins(
     throw new Error("user hasn't enough GDD")
   }
 
+  const userRepository = getCustomRepository(UserRepository)
+  const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
+  if(recipiantUser && recipiantUser.disabled) {
+    throw new Error('recipiant user account is disabled')
+  }
+
   const centAmount = Math.trunc(amount * 10000)
   const transferAmount = new proto.gradido.TransferAmount({
     pubkey: senderUser.pubkey,
@@ -332,6 +338,7 @@ async function sendCoins(
 
   // no group id is given so we assume it is a local transfer
   if (!groupId) {
+    
     const localTransfer = new proto.gradido.LocalTransfer({
       sender: transferAmount,
       recipiant: fromHex(recipiantPublicKey),
@@ -363,8 +370,8 @@ async function sendCoins(
       ed25519: sign,
     })
     const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
-    const userRepository = getCustomRepository(UserRepository)
-    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
+    
+    
 
     // process db updates as transaction to able to rollback if an error occure
 
