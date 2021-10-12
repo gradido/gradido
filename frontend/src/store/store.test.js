@@ -12,6 +12,7 @@ const {
   newsletterState,
   publisherId,
   community,
+  hasElopage,
 } = mutations
 const { login, logout } = actions
 
@@ -114,6 +115,14 @@ describe('Vuex store', () => {
         })
       })
     })
+
+    describe('hasElopage', () => {
+      it('sets the state of hasElopage', () => {
+        const state = { hasElopage: false }
+        hasElopage(state, true)
+        expect(state.hasElopage).toBeTruthy()
+      })
+    })
   })
 
   describe('actions', () => {
@@ -131,11 +140,12 @@ describe('Vuex store', () => {
         klickTipp: {
           newsletterState: true,
         },
+        hasElopage: false,
       }
 
-      it('calls eight commits', () => {
+      it('calls nine commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(8)
+        expect(commit).toHaveBeenCalledTimes(9)
       })
 
       it('commits email', () => {
@@ -177,15 +187,20 @@ describe('Vuex store', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', true)
       })
+
+      it('commits hasElopage', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
     })
 
     describe('logout', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls eight commits', () => {
+      it('calls nine commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(8)
+        expect(commit).toHaveBeenCalledTimes(9)
       })
 
       it('commits token', () => {
@@ -226,6 +241,11 @@ describe('Vuex store', () => {
       it('commits newsletterState', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', null)
+      })
+
+      it('commits hasElopage', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
       })
 
       // how to get this working?
