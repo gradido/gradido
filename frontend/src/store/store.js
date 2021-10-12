@@ -38,6 +38,9 @@ export const mutations = {
   coinanimation: (state, coinanimation) => {
     state.coinanimation = coinanimation
   },
+  hasElopage: (state, hasElopage) => {
+    state.hasElopage = hasElopage
+  },
 }
 
 export const actions = {
@@ -50,6 +53,7 @@ export const actions = {
     commit('description', data.description)
     commit('coinanimation', data.coinanimation)
     commit('newsletterState', data.klickTipp.newsletterState)
+    commit('hasElopage', data.hasElopage)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -60,6 +64,7 @@ export const actions = {
     commit('description', '')
     commit('coinanimation', true)
     commit('newsletterState', null)
+    commit('hasElopage', false)
     localStorage.clear()
   },
 }
@@ -81,6 +86,7 @@ export const store = new Vuex.Store({
     coinanimation: true,
     newsletterState: null,
     community: null,
+    hasElopage: false,
   },
   getters: {},
   // Syncronous mutation of the state
