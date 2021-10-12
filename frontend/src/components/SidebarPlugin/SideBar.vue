@@ -47,12 +47,9 @@
         <hr class="my-2" />
         <ul class="navbar-nav ml-3">
           <li class="nav-item">
-            <a
-              :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
-              class="nav-link"
-              target="_blank"
-            >
-              {{ $t('members_area') }}
+            <a :href="getElopageLink()" class="nav-link" target="_blank">
+              {{ $t('members_area') }}&nbsp;
+              <b-badge v-if="!this.$store.state.hasElopage" pill variant="danger">!</b-badge>
             </a>
           </li>
         </ul>
@@ -113,6 +110,11 @@ export default {
     },
     logout() {
       this.$emit('logout')
+    },
+    getElopageLink() {
+      return this.$store.state.hasElopage
+        ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}&email=${this.$store.state.email}`
+        : `https://elopage.com/s/gradido/basic-de/payment?locale=de&prid=111&pid=${this.$store.state.publisherId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`
     },
   },
 }
