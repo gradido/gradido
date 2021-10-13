@@ -96,7 +96,7 @@ export default {
           variables: {
             email: this.form.email,
             password: this.form.password,
-            publisherId: parseInt(this.$store.state.publisherId),
+            publisherId: this.$store.state.publisherId,
           },
           fetchPolicy: 'network-only',
         })
