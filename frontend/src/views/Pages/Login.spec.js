@@ -44,6 +44,7 @@ describe('Login', () => {
           registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
+        publisherId: 12345,
       },
     },
     $loading: {
@@ -199,6 +200,7 @@ describe('Login', () => {
               variables: {
                 email: 'user@example.org',
                 password: '1234',
+                publisherId: 12345,
               },
             }),
           )

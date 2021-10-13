@@ -32,6 +32,7 @@ describe('Register', () => {
           registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
+        publisherId: 12345,
       },
     },
   }
@@ -216,6 +217,7 @@ describe('Register', () => {
                 lastName: 'Mustermann',
                 password: 'Aa123456_',
                 language: 'en',
+                publisherId: 12345,
               },
             }),
           )

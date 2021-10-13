@@ -68,6 +68,7 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
+import { CONFIG } from '../../config'
 
 export default {
   name: 'sidebar',
@@ -112,9 +113,14 @@ export default {
       this.$emit('logout')
     },
     getElopageLink() {
-      return this.$store.state.hasElopage
-        ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
-        : encodeURL(`https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${this.$store.state.publisherId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email})`
+      const pId = this.$store.state.publisherId
+        ? this.$store.state.publisherId
+        : CONFIG.DEFAULT_PUBLISHER_ID
+      return encodeURI(
+        this.$store.state.hasElopage
+          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
+          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
+      )
     },
   },
 }

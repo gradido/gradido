@@ -96,6 +96,12 @@ describe('Vuex store', () => {
         publisherId(state, 42)
         expect(state.publisherId).toEqual(42)
       })
+
+      it('sets publisherId to null with NaN', () => {
+        const state = {}
+        publisherId(state, 'abc')
+        expect(state.publisherId).toEqual(null)
+      })
     })
 
     describe('community', () => {
@@ -141,11 +147,12 @@ describe('Vuex store', () => {
           newsletterState: true,
         },
         hasElopage: false,
+        publisherId: 1234,
       }
 
-      it('calls nine commits', () => {
+      it('calls ten commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits email', () => {
@@ -192,15 +199,20 @@ describe('Vuex store', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
       })
+
+      it('commits publisherId', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', 1234)
+      })
     })
 
     describe('logout', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls nine commits', () => {
+      it('calls ten commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits token', () => {
@@ -246,6 +258,11 @@ describe('Vuex store', () => {
       it('commits hasElopage', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
+
+      it('commits publisherId', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', null)
       })
 
       // how to get this working?
