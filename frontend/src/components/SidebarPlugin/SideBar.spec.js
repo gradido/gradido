@@ -109,7 +109,7 @@ describe('SideBar', () => {
           })
         })
 
-        describe('with hasElopage is true', () => {
+        describe('member's area with publisher ID', () => {
           beforeEach(() => {
             mocks.$store.state.hasElopage = true
           })
