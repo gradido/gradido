@@ -11,7 +11,7 @@ const server = {
   LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://login-server:1201/',
   COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://nginx/api/',
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
-  PRODUCTION: process.env.PRODUCTION === 'true' || false,
+  PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
 const database = {
