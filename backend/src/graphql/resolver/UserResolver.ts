@@ -48,6 +48,9 @@ export class UserResolver {
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
     const user = new User(result.data.user)
+    if (user.publisherId === 0) {
+      user.publisherId = undefined
+    }
     user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
@@ -68,8 +71,7 @@ export class UserResolver {
       throw new Error('error with cannot happen')
     }
 
-    if (publisherId) {
-      // Save it
+    if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       await this.updateUserInfos(
         { publisherId },
@@ -115,7 +117,7 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
+    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     const payload = {
       email,
@@ -125,7 +127,7 @@ export class UserResolver {
       emailType: 2,
       login_after_register: true,
       language: language,
-      publisher_id: 0,
+      publisher_id: publisherId,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {

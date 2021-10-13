@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
@@ -66,8 +66,8 @@ export class User {
   groupId: number
 */
   // what is publisherId?
-  @Field(() => Number)
-  publisherId: number
+  @Field(() => Int, { nullable: true })
+  publisherId?: number
 
   @Field(() => Boolean)
   coinanimation: boolean

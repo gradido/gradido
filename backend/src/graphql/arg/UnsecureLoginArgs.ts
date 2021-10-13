@@ -1,4 +1,4 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export default class UnsecureLoginArgs {
@@ -8,6 +8,6 @@ export default class UnsecureLoginArgs {
   @Field(() => String)
   password: string
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   publisherId: number
 }
