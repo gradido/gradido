@@ -7,4 +7,7 @@ export default class UnsecureLoginArgs {
 
   @Field(() => String)
   password: string
+
+  @Field(() => Number, { nullable: true })
+  publisherId: number
 }

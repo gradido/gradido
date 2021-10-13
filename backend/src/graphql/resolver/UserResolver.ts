@@ -31,7 +31,10 @@ import { UserRepository } from '../../typeorm/repository/User'
 export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
+  async login(
+    @Args() { email, password, publisherId }: UnsecureLoginArgs,
+    @Ctx() context: any,
+  ): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -63,6 +66,15 @@ export class UserResolver {
     })
     if (!userEntity) {
       throw new Error('error with cannot happen')
+    }
+
+    if (publisherId) {
+      // Save it
+      user.publisherId = publisherId
+      await this.updateUserInfos(
+        { publisherId },
+        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
+      )
     }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)

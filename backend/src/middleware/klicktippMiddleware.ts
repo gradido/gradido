@@ -29,9 +29,7 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
       if (klickTippUser) {
         klickTipp = new KlickTipp(klickTippUser)
       }
-    } catch (err) {
-      console.log('Something went wrong', err)
-    }
+    } catch (err) {}
   }
   result.klickTipp = klickTipp
   return result

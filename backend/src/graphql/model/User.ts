@@ -19,7 +19,6 @@ export class User {
     this.pubkey = json.public_hex
     this.language = json.language
     this.publisherId = json.publisher_id
-    this.hasElopage = json.hasElopage
   }
 
   @Field(() => String)
