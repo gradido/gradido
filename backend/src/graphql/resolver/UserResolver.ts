@@ -72,6 +72,7 @@ export class UserResolver {
       throw new Error('error with cannot happen')
     }
 
+    // Save publisherId if Elopage is not yet registered
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       await this.updateUserInfos(
