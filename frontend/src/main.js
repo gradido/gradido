@@ -6,7 +6,7 @@ import { loadAllRules } from './validation-rules'
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
-import VueCharts from 'vue-chartjs'
+import VueApexCharts from 'vue-apexcharts'
 import { store } from './store/store'
 
 import router from './routes/router'
@@ -57,6 +57,9 @@ router.beforeEach((to, from, next) => {
   }
 })
 
+Vue.use(VueApexCharts)
+Vue.component('apexchart', VueApexCharts)
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
@@ -64,6 +67,5 @@ new Vue({
   store,
   i18n,
   apolloProvider,
-  VueCharts,
   render: (h) => h(App),
 })

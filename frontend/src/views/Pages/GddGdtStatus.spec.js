@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import GddStatus from './GddStatus'
+import GddStatus from './GddGdtStatus'
 
 const localVue = global.localVue
 
@@ -26,11 +26,11 @@ describe('GddStatus', () => {
 
     describe('balance is loading', () => {
       it('it displays em-dash as the ammount of GDD', () => {
-        expect(wrapper.findAll('div.card-body').at(0).text()).toEqual('— GDD')
+        expect(wrapper.find('div.gdd-status-gdd').text()).toEqual('— GDD')
       })
 
       it('it displays em-dash as the ammount of GDT', () => {
-        expect(wrapper.findAll('div.card-body').at(1).text()).toEqual('— GDT')
+        expect(wrapper.find('div.gdd-status-gdt').text()).toEqual('— GDT')
       })
     })
 
@@ -42,11 +42,11 @@ describe('GddStatus', () => {
       })
 
       it('it displays the ammount of GDD', () => {
-        expect(wrapper.findAll('div.card-body').at(0).text()).toEqual('1234 GDD')
+        expect(wrapper.find('div.gdd-status-gdd').text()).toEqual('1234 GDD')
       })
 
       it('it displays the ammount of GDT', () => {
-        expect(wrapper.findAll('div.card-body').at(1).text()).toEqual('9876 GDT')
+        expect(wrapper.find('div.gdd-status-gdt').text()).toEqual('9876 GDT')
       })
     })
   })

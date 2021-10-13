@@ -1,12 +1,18 @@
 <template>
   <div>
     <b-container fluid>
-      <gdd-status
-        v-if="showContext"
-        :pending="pending"
-        :balance="balance"
-        :gdt-balance="GdtBalance"
-      />
+      <b-row>
+        <b-col class="bg-gray text-white text-center p-3">
+          <gdd-status
+            v-if="showContext"
+            :pending="pending"
+            :balance="balance"
+            :gdt-balance="GdtBalance"
+            :gdt="false"
+          />
+        </b-col>
+      </b-row>
+
       <br />
       <gdd-send :currentTransactionStep="currentTransactionStep">
         <template #transaction-form>
@@ -35,12 +41,12 @@
   </div>
 </template>
 <script>
-import GddStatus from './AccountOverview/GddStatus.vue'
-import GddSend from './AccountOverview/GddSend.vue'
+import GddStatus from './GddGdtStatus.vue'
+import GddSend from './SendOverview/GddSend.vue'
 
-import TransactionForm from './AccountOverview/GddSend/TransactionForm.vue'
-import TransactionConfirmation from './AccountOverview/GddSend/TransactionConfirmation.vue'
-import TransactionResult from './AccountOverview/GddSend/TransactionResult.vue'
+import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
+import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
+import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
 import { sendCoins } from '../../graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
@@ -50,7 +56,7 @@ const EMPTY_TRANSACTION_DATA = {
 }
 
 export default {
-  name: 'Overview',
+  name: 'SendOverview',
   components: {
     GddStatus,
     GddSend,

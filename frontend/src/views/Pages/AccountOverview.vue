@@ -1,29 +1,56 @@
 <template>
   <div>
     <b-container fluid>
-      <gdd-status
-        v-if="showContext"
-        :pending="pending"
-        :balance="balance"
-        :gdt-balance="GdtBalance"
-      />
+      <b-row>
+        <b-col class="col-6">
+          <b-row>
+            <b-col class="col-11 bg-gray text-white p-3">
+              <gdd-status
+                v-if="showContext"
+                :pending="pending"
+                :balance="balance"
+                :gdt-balance="GdtBalance"
+                :gdt="false"
+              />
+            </b-col>
+          </b-row>
+        </b-col>
+        <b-col class="col-6 text-right">
+          <b-row>
+            <b-col class="bg-white text-gray p-3">
+              <gdd-status
+                v-if="showContext"
+                :pending="pending"
+                :balance="balance"
+                :gdt-balance="GdtBalance"
+                :gdd="false"
+              />
+            </b-col>
+          </b-row>
+        </b-col>
+      </b-row>
       <br />
-      <hr>
-      GDD Statistik
-      
 
-      <hr>
-      GDT Statistik
-     
-   
- 
+      <b-row>
+        <b-col class="col-12 col-md-6">
+          GDD Bar
+          <div>
+            <apexchart type="bar" :options="chartOptions" :series="series"></apexchart>
+          </div>
+        </b-col>
+        <b-col class="col-12 col-md-6">
+          GDD Line
+          <div>
+            <apexchart type="line" :options="chartOptions" :series="series"></apexchart>
+          </div>
+        </b-col>
+      </b-row>
+      <hr />
 
       <template #transaction-form>
         <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
       </template>
 
- 
-      <hr />
       <gdd-transaction-list
         v-if="showContext"
         :transactions="transactions"
@@ -33,43 +60,58 @@
         @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer v-if="showContext" :count="transactionCount" />
-    <hr>
-      UserAccount Statistik
-   
     </b-container>
+    <hr />
+    example
+    <chart-example />
   </div>
 </template>
 <script>
-
-import GddStatus from './AccountOverview/GddStatus.vue'
- 
+import GddStatus from './GddGdtStatus.vue'
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
-
-const EMPTY_TRANSACTION_DATA = {
-  email: '',
-  amount: 0,
-  memo: '',
-}
+import ChartExample from '../../components/charts/ChartExample.vue'
 
 export default {
   name: 'Overview',
   components: {
     GddStatus,
-   
     GddTransactionList,
     GddTransactionListFooter,
+    ChartExample,
   },
   data() {
     return {
       timestamp: Date.now(),
-      transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
       errorResult: '',
       currentTransactionStep: 0,
       loading: false,
       datacollectionGdd: null,
       datacollectionGdt: null,
+
+      chartOptions: {
+        chart: {
+          id: 'vuechart-example',
+        },
+        xaxis: {
+          categories: ['Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt'],
+        },
+      },
+      series: [
+        {
+          name: 'Einnahmen',
+          data: [30, 40, 35, 50, 49, 60, 70, 91],
+        },
+        {
+          name: 'Ausgaben',
+          data: [20, 10, 45, 60, 59, 30, 50, 81],
+        },
+        {
+          name: 'geschöpft',
+          data: [1000, 500, 700, 1000, 800, 500, 1000, 810],
+        },
+      ],
     }
   },
   props: {
@@ -91,19 +133,16 @@ export default {
   },
   methods: {
     setTransaction(data) {
-      this.transactionData = { ...data }
       this.currentTransactionStep = 1
     },
 
     onReset() {
-      this.transactionData = { ...EMPTY_TRANSACTION_DATA }
       this.currentTransactionStep = 0
     },
+
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
- 
   },
-  
 }
 </script>
