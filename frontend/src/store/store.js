@@ -91,6 +91,7 @@ export const store = new Vuex.Store({
     newsletterState: null,
     community: null,
     hasElopage: false,
+    publisherId: null,
   },
   getters: {},
   // Syncronous mutation of the state
