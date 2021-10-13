@@ -48,6 +48,7 @@ export class UserResolver {
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
     const user = new User(result.data.user)
+    // Hack: Database Field is not validated properly and not nullable
     if (user.publisherId === 0) {
       user.publisherId = undefined
     }
