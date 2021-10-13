@@ -82,7 +82,7 @@ describe('SideBar', () => {
     })
 
     describe('static menu items', () => {
-      describe("member's area", () => {
+      describe("member's area without publisher ID", () => {
         it('has a link to the elopage', () => {
           expect(wrapper.findAll('li').at(0).text()).toContain('members_area')
         })
