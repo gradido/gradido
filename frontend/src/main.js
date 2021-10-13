@@ -6,7 +6,11 @@ import { loadAllRules } from './validation-rules'
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
+
 import VueApexCharts from 'vue-apexcharts'
+
+import addNavigationGuards from './routes/guards'
+
 import { store } from './store/store'
 
 import router from './routes/router'
@@ -49,13 +53,7 @@ Vue.config.productionTip = false
 
 loadAllRules(i18n)
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !store.state.token) {
-    next({ path: '/login' })
-  } else {
-    next()
-  }
-})
+addNavigationGuards(router, store)
 
 Vue.use(VueApexCharts)
 Vue.component('apexchart', VueApexCharts)

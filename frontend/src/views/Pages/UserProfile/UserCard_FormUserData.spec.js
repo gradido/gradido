@@ -17,7 +17,6 @@ describe('UserCard_FormUserData', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        email: 'user@example.org',
         firstName: 'Peter',
         lastName: 'Lustig',
         description: '',
@@ -117,7 +116,6 @@ describe('UserCard_FormUserData', () => {
           expect(mockAPIcall).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 firstName: 'Petra',
                 lastName: 'Lustiger',
                 description: 'Keine Nickelbrille',
@@ -165,7 +163,6 @@ describe('UserCard_FormUserData', () => {
           expect(mockAPIcall).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 firstName: 'Petra',
                 lastName: 'Lustiger',
                 description: 'Keine Nickelbrille',

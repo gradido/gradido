@@ -89,7 +89,6 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            email: this.$store.state.email,
             locale: this.language,
           },
         })
@@ -106,7 +105,7 @@ export default {
         })
     },
     buildTagFromLanguageString() {
-      return 'languages.' + this.$store.state.language
+      return 'settings.language.' + this.$store.state.language
     },
   },
 }

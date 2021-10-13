@@ -4,14 +4,20 @@ import Login from './Login'
 
 const localVue = global.localVue
 
-const loginQueryMock = jest.fn().mockResolvedValue({
+const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    login: 'token',
+    getCommunityInfo: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
+    },
   },
 })
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
+const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -30,6 +36,15 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
     $store: {
       dispatch: mockStoreDispach,
+      commit: mockStoreCommit,
+      state: {
+        community: {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        },
+      },
     },
     $loading: {
       show: spinnerMock,
@@ -41,7 +56,7 @@ describe('Login', () => {
       error: toastErrorMock,
     },
     $apollo: {
-      query: loginQueryMock,
+      query: apolloQueryMock,
     },
   }
 
@@ -62,20 +77,54 @@ describe('Login', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
+    it('commits the community info to the store', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        name: 'test12',
+        description: 'test community 12',
+        url: 'http://test12.test12/',
+        registerUrl: 'http://test12.test12/vue/register',
+      })
+    })
+
+    describe('communities gives back error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Failed to get communities',
+        })
+        wrapper = Wrapper()
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+      })
+    })
+
     describe('Login header', () => {
       it('has a welcome message', () => {
         expect(wrapper.find('div.header').text()).toBe('Gradido site.login.community')
       })
     })
 
+    describe('Community Data', () => {
+      it('has a Community name', () => {
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description', () => {
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
+        )
+      })
+    })
+
     describe('links', () => {
-      it('has a link "Forgot Password?"', () => {
+      it('has a link "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
           'settings.password.forgot_pwd',
         )
       })
 
-      it('links to /password when clicking "Forgot Password?"', () => {
+      it('links to /password when clicking "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/password')
       })
 
@@ -86,7 +135,9 @@ describe('Login', () => {
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe(
+          '/register-community',
+        )
       })
     })
 
@@ -135,10 +186,15 @@ describe('Login', () => {
           await flushPromises()
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+          apolloQueryMock.mockResolvedValue({
+            data: {
+              login: 'token',
+            },
+          })
         })
 
         it('calls the API with the given data', () => {
-          expect(loginQueryMock).toBeCalledWith(
+          expect(apolloQueryMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'user@example.org',
@@ -168,7 +224,7 @@ describe('Login', () => {
 
         describe('login fails', () => {
           beforeEach(() => {
-            loginQueryMock.mockRejectedValue({
+            apolloQueryMock.mockRejectedValue({
               message: 'Ouch!',
             })
           })

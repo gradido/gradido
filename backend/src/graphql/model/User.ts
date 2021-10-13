@@ -19,6 +19,7 @@ export class User {
     this.pubkey = json.public_hex
     this.language = json.language
     this.publisherId = json.publisher_id
+    if (json.hasElopage) this.hasElopage = json.hasElopage
   }
 
   @Field(() => String)
@@ -74,4 +75,7 @@ export class User {
 
   @Field(() => KlickTipp)
   klickTipp: KlickTipp
+
+  @Field(() => Boolean)
+  hasElopage?: boolean
 }

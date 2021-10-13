@@ -38,6 +38,7 @@ describe('UserCard_Newsletter', () => {
 
   describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -51,13 +52,13 @@ describe('UserCard_Newsletter', () => {
 
     describe('unsubscribe with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ newsletterState: false })
+        await wrapper.setData({ newsletterState: true })
         mockAPIcall.mockResolvedValue({
           data: {
             unsubscribeNewsletter: true,
           },
         })
-        await wrapper.find('input').trigger('change')
+        await wrapper.find('input').setChecked(false)
       })
 
       it('calls the unsubscribe mutation', () => {
@@ -80,13 +81,13 @@ describe('UserCard_Newsletter', () => {
 
     describe('subscribe with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ newsletterState: true })
+        await wrapper.setData({ newsletterState: false })
         mockAPIcall.mockResolvedValue({
           data: {
             subscribeNewsletter: true,
           },
         })
-        wrapper.find('input').trigger('change')
+        await wrapper.find('input').setChecked()
       })
 
       it('calls the subscribe mutation', () => {
@@ -104,7 +105,7 @@ describe('UserCard_Newsletter', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterFalse')
+        expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterTrue')
       })
     })
 

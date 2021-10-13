@@ -2,12 +2,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
+import { from_hex as fromHex } from 'libsodium-wrappers'
 import CONFIG from '../../config'
 import { CheckUsernameResponse } from '../model/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
+import { User as DbUser } from '../../typeorm/entity/User'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
@@ -45,7 +47,22 @@ export class UserResolver {
     const user = new User(result.data.user)
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
+    let userEntity: void | DbUser
+    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+      userEntity = new DbUser()
+      userEntity.firstName = user.firstName
+      userEntity.lastName = user.lastName
+      userEntity.username = user.username
+      userEntity.email = user.email
+      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+
+      userEntity.save().catch(() => {
+        throw new Error('error by save userEntity')
+      })
+    })
+    if (!userEntity) {
+      throw new Error('error with cannot happen')
+    }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
@@ -101,6 +118,18 @@ export class UserResolver {
     if (!result.success) {
       throw new Error(result.data)
     }
+
+    const user = new User(result.data.user)
+    const dbuser = new DbUser()
+    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
+    dbuser.email = user.email
+    dbuser.firstName = user.firstName
+    dbuser.lastName = user.lastName
+    dbuser.username = user.username
+
+    dbuser.save().catch(() => {
+      throw new Error('error saving user')
+    })
 
     return 'success'
   }
@@ -227,5 +256,14 @@ export class UserResolver {
       throw new Error(result.data)
     }
     return new CheckEmailResponse(result.data)
+  }
+
+  @Query(() => Boolean)
+  async hasElopage(@Ctx() context: any): Promise<boolean> {
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return result.data.hasElopage
   }
 }

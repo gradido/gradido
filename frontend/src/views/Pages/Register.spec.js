@@ -26,6 +26,12 @@ describe('Register', () => {
       state: {
         email: 'peter@lustig.de',
         language: 'en',
+        community: {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        },
       },
     },
   }
@@ -50,6 +56,18 @@ describe('Register', () => {
     describe('Register header', () => {
       it('has a welcome message', () => {
         expect(wrapper.find('div.header').text()).toBe('site.signup.title site.signup.subtitle')
+      })
+    })
+
+    describe('Community Data', () => {
+      it('has a Community name?', () => {
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description?', () => {
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
+        )
       })
     })
 
@@ -124,6 +142,18 @@ describe('Register', () => {
         expect(wrapper.findAll('div.invalid-feedback').at(2).text()).toBe(
           'validations.messages.required',
         )
+      })
+    })
+
+    describe('link Choose another community', () => {
+      it('has a link "Choose another community"', () => {
+        expect(wrapper.find('.test-button-another-community').text()).toEqual(
+          'community.choose-another-community',
+        )
+      })
+
+      it('links to /select-community when clicking "Choose another community"', () => {
+        expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
       })
     })
 

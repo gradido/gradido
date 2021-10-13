@@ -10,6 +10,7 @@ export class UserRepository extends Repository<User> {
   }
 
   async getUsersIndiced(userIds: number[]): Promise<User[]> {
+    if (!userIds.length) return []
     const users = await this.createQueryBuilder('user')
       .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
       .where('user.id IN (:...users)', { users: userIds })

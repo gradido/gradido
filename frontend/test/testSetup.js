@@ -14,7 +14,7 @@ import VueQrcode from 'vue-qrcode'
 import VueMoment from 'vue-moment'
 import VueApexCharts from 'vue-apexcharts'
 
-import clickOutside from '@/directives/click-ouside.js'
+// import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
 import { loadAllRules } from '../src/validation-rules'
@@ -48,7 +48,7 @@ global.localVue.use(VueMoment)
 global.localVue.use(VueApexCharts)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
-global.localVue.directive('click-outside', clickOutside)
+// global.localVue.directive('click-outside', clickOutside)
 global.localVue.directive('focus', focus)
 
 // throw errors for vue warnings to force the programmers to take care about warnings

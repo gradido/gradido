@@ -18,9 +18,14 @@
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
-              <div class="text-center text-muted mb-4">
-                <small>{{ $t('login') }}</small>
+              <div class="text-center text-muted mb-4 test-communitydata">
+                <b>{{ $store.state.community.name }}</b>
+                <p class="text-lead">
+                  {{ $store.state.community.description }}
+                </p>
+                {{ $t('login') }}
               </div>
+
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
                   <input-email v-model="form.email"></input-email>
@@ -38,13 +43,17 @@
             </b-card-body>
           </b-card>
           <b-row class="mt-3">
-            <b-col cols="6">
-              <router-link to="/password">
+            <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
+              <router-link to="/password" class="mt-3">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
-            <b-col cols="6" class="text-right" v-show="allowRegister">
-              <router-link to="/register">
+            <b-col
+              cols="6"
+              class="text-center text-sm-right col-12 col-sm-6"
+              v-show="allowRegister"
+            >
+              <router-link to="/register-community" class="mt-3">
                 {{ $t('site.login.new_wallet') }}
               </router-link>
             </b-col>
@@ -58,7 +67,7 @@
 import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
-import { login } from '../../graphql/queries'
+import { login, communityInfo } from '../../graphql/queries'
 
 export default {
   name: 'login',
@@ -103,6 +112,21 @@ export default {
           this.$toasted.error(this.$t('error.no-account'))
         })
     },
+    async onCreated() {
+      this.$apollo
+        .query({
+          query: communityInfo,
+        })
+        .then((result) => {
+          this.$store.commit('community', result.data.getCommunityInfo)
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
+  },
+  created() {
+    this.onCreated()
   },
 }
 </script>
