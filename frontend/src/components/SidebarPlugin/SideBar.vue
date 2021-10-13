@@ -114,7 +114,7 @@ export default {
     getElopageLink() {
       return this.$store.state.hasElopage
         ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
-        : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${this.$store.state.publisherId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`
+        : encodeURL(`https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${this.$store.state.publisherId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email})`
     },
   },
 }
