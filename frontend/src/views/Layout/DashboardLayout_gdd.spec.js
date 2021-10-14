@@ -119,7 +119,7 @@ describe('DashboardLayoutGdd', () => {
         expect(navbar.findAll('ul > a').at(3).text()).toEqual('site.navbar.my-profil')
       })
 
-      it('has third item "My profile" linked to profile in navbar', async () => {
+      it('has fourth item "My profile" linked to profile in navbar', async () => {
         expect(wrapper.findAll('a').at(7).attributes('href')).toBe('/profile')
       })
 
