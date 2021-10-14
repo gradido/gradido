@@ -68,7 +68,7 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
-import { CONFIG } from '../../config'
+import CONFIG from '../../config'
 
 export default {
   name: 'sidebar',
