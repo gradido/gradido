@@ -2,7 +2,7 @@
   <div class="decayinformation">
     <span v-if="decaytyp === 'short'">
       <span v-if="decay.balance > 0">
-        {{ decay ? ' -' + decay.balance + ' ' + decayStartBlockTextShort : '' }}
+        {{ decay ? ' -' + $n(decay.balance, 'decimal') + ' ' + decayStartBlockTextShort : '' }}
       </span>
       <span v-else>
         {{ $t('decay.noDecay') }}
@@ -65,7 +65,7 @@
             <div>{{ $t('decay.decay') }}</div>
           </b-col>
           <b-col cols="6">
-            <div>- {{ decay.balance }}</div>
+            <div>- {{ $n(decay.balance, 'decimal') }}</div>
           </b-col>
         </b-row>
         <hr class="mt-2 mb-2" />
@@ -81,8 +81,8 @@
             <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
           </b-col>
           <b-col cols="6">
-            <div v-if="type === 'send'">- {{ balance }}</div>
-            <div v-if="type === 'receive'">+ {{ balance }}</div>
+            <div v-if="type === 'send'">- {{ $n(balance, 'decimal') }}</div>
+            <div v-if="type === 'receive'">+ {{ $n(balance, 'decimal') }}</div>
           </b-col>
         </b-row>
         <!-- Decay-->
@@ -91,7 +91,7 @@
             <div>{{ $t('decay.decay') }}</div>
           </b-col>
           <b-col cols="6">
-            <div>- {{ decay.balance }}</div>
+            <div>- {{ $n(decay.balance, 'decimal') }}</div>
           </b-col>
         </b-row>
         <!-- Total-->
@@ -101,10 +101,10 @@
           </b-col>
           <b-col cols="6">
             <div v-if="type === 'send'">
-              <b>- {{ parseInt(balance) + decay.balance }}</b>
+              <b>- {{ $n(parseInt(balance) + decay.balance, 'decimal') }}</b>
             </div>
             <div v-if="type === 'receive'">
-              <b>{{ parseInt(balance) - decay.balance }}</b>
+              <b>{{ $n(parseInt(balance) - decay.balance, 'decimal') }}</b>
             </div>
           </b-col>
         </b-row>
