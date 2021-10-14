@@ -48,12 +48,8 @@
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
-            <b-col
-              cols="6"
-              class="text-center text-sm-right col-12 col-sm-6"
-              v-show="allowRegister"
-            >
-              <router-link to="/register-community" class="mt-3">
+            <b-col cols="6" class="text-center text-sm-right col-12 col-sm-6">
+              <router-link to="/register" class="mt-3">
                 {{ $t('site.login.new_wallet') }}
               </router-link>
             </b-col>
@@ -64,7 +60,6 @@
   </div>
 </template>
 <script>
-import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
 import { login, communityInfo } from '../../graphql/queries'
@@ -81,7 +76,6 @@ export default {
         email: '',
         password: '',
       },
-      allowRegister: CONFIG.ALLOW_REGISTER,
       passwordVisible: false,
     }
   },

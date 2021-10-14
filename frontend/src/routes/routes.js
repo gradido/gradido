@@ -33,6 +33,10 @@ const routes = [
     component: () => import('../views/Pages/Login.vue'),
   },
   {
+    path: '/register',
+    component: () => import('../views/Pages/Register.vue'),
+  },
+  {
     path: '/thx/:comingFrom',
     component: () => import('../views/Pages/thx.vue'),
     beforeEnter: (to, from, next) => {
