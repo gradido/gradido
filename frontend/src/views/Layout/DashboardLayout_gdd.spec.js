@@ -106,7 +106,7 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findAll('a').at(3).attributes('href')).toBe('/send')
       })
 
-      it('has three item "transactions" in navbar', () => {
+      it('has third item "transactions" in navbar', () => {
         expect(navbar.findAll('ul > a').at(2).text()).toEqual('transactions')
       })
 
