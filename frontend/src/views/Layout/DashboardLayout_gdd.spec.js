@@ -110,7 +110,7 @@ describe('DashboardLayoutGdd', () => {
         expect(navbar.findAll('ul > a').at(2).text()).toEqual('transactions')
       })
 
-      it('has three item "transactions" linked to transactions in navbar', async () => {
+      it('has third item "transactions" linked to transactions in navbar', async () => {
         navbar.findAll('ul > a').at(2).trigger('click')
         expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/transactions')
       })
