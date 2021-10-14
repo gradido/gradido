@@ -92,23 +92,24 @@ export default {
 
       chartOptions: {
         chart: {
-          id: 'vuechart-example',
+          class: 'vuechart',
         },
         xaxis: {
           categories: ['Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt'],
         },
       },
+   
       series: [
         {
-          name: 'Einnahmen',
+          name: this.$t('decay.received'),
           data: [30, 40, 35, 50, 49, 60, 70, 91],
         },
         {
-          name: 'Ausgaben',
+          name: this.$t('decay.sent'),
           data: [20, 10, 45, 60, 59, 30, 50, 81],
         },
         {
-          name: 'geschöpft',
+          name: this.$t('decay.created'),
           data: [1000, 500, 700, 1000, 800, 500, 1000, 810],
         },
       ],
