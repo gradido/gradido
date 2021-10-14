@@ -199,6 +199,7 @@ export default {
             lastName: this.form.lastname,
             password: this.form.password.password,
             language: this.language,
+            publisherId: this.$store.state.publisherId,
           },
         })
         .then(() => {

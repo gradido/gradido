@@ -10,7 +10,7 @@ Poco::JSON::Object* JsonHasElopage::handle(Poco::Dynamic::Var params)
 	auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
 	
 	result = stateSuccess();
-	result->set("hasElopage", elopage_buy->isExistInDB("email", mSession->getNewUser()->getModel()->getEmail()));
+	result->set("hasElopage", elopage_buy->isExistInDB("payer_email", mSession->getNewUser()->getModel()->getEmail()));
 
 	return result;
 }

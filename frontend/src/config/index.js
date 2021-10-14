@@ -15,6 +15,7 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
+  DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID || 2896,
 }
 
 const server = {

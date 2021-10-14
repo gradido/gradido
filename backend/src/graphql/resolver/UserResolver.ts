@@ -31,7 +31,10 @@ import { UserRepository } from '../../typeorm/repository/User'
 export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
+  async login(
+    @Args() { email, password, publisherId }: UnsecureLoginArgs,
+    @Ctx() context: any,
+  ): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -45,6 +48,11 @@ export class UserResolver {
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
     const user = new User(result.data.user)
+    // Hack: Database Field is not validated properly and not nullable
+    if (user.publisherId === 0) {
+      user.publisherId = undefined
+    }
+    user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
@@ -62,6 +70,15 @@ export class UserResolver {
     })
     if (!userEntity) {
       throw new Error('error with cannot happen')
+    }
+
+    // Save publisherId if Elopage is not yet registered
+    if (!user.hasElopage && publisherId) {
+      user.publisherId = publisherId
+      await this.updateUserInfos(
+        { publisherId },
+        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
+      )
     }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
@@ -102,7 +119,7 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
+    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     const payload = {
       email,
@@ -112,7 +129,7 @@ export class UserResolver {
       emailType: 2,
       login_after_register: true,
       language: language,
-      publisher_id: 0,
+      publisher_id: publisherId,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {

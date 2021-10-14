@@ -47,12 +47,9 @@
         <hr class="my-2" />
         <ul class="navbar-nav ml-3">
           <li class="nav-item">
-            <a
-              :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
-              class="nav-link"
-              target="_blank"
-            >
-              {{ $t('members_area') }}
+            <a :href="getElopageLink()" class="nav-link" target="_blank">
+              {{ $t('members_area') }}&nbsp;
+              <b-badge v-if="!this.$store.state.hasElopage" pill variant="danger">!</b-badge>
             </a>
           </li>
         </ul>
@@ -71,6 +68,7 @@
 <script>
 import NavbarToggleButton from '@/components/NavbarToggleButton'
 import VueQrcode from 'vue-qrcode'
+import { CONFIG } from '../../config'
 
 export default {
   name: 'sidebar',
@@ -113,6 +111,16 @@ export default {
     },
     logout() {
       this.$emit('logout')
+    },
+    getElopageLink() {
+      const pId = this.$store.state.publisherId
+        ? this.$store.state.publisherId
+        : CONFIG.DEFAULT_PUBLISHER_ID
+      return encodeURI(
+        this.$store.state.hasElopage
+          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
+          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
+      )
     },
   },
 }

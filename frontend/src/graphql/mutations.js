@@ -51,6 +51,7 @@ export const registerUser = gql`
     $email: String!
     $password: String!
     $language: String!
+    $publisherId: Int!
   ) {
     createUser(
       email: $email
@@ -58,6 +59,7 @@ export const registerUser = gql`
       lastName: $lastName
       password: $password
       language: $language
+      publisherId: $publisherId
     )
   }
 `
