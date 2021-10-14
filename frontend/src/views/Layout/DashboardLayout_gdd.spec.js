@@ -115,7 +115,7 @@ describe('DashboardLayoutGdd', () => {
         expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/transactions')
       })
 
-      it('has three item "profil" in navbar', () => {
+      it('has fourth item "M profile" in navbar', () => {
         expect(navbar.findAll('ul > a').at(3).text()).toEqual('site.navbar.my-profil')
       })
 
