@@ -19,57 +19,83 @@
           </div>
 
           <div>
-            <!-- ICON  -->
-            <div class="col-1 gdd-transaction-list-item-icon">
-              <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
-            </div>
+            <b-row>
+              <!-- ICON  -->
+              <b-col cols="1">
+                <div class="gdd-transaction-list-item-icon">
+                  <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
+                </div>
+              </b-col>
 
-            <div>
-              <!-- Betrag / Name Email -->
-              <b-row>
-                <div class="col-5 text-right">
-                  <span class="gdd-transaction-list-item-operator">
-                    {{ getProperties(type).operator }}
-                  </span>
-                  <span class="gdd-transaction-list-item-amount">{{ $n(balance, 'decimal') }}</span>
-                </div>
-                <div class="col-7 gdd-transaction-list-item-name">
-                  {{ type !== 'decay' ? name : $t('decay.decay_since_last_transaction') }}
-                </div>
-              </b-row>
+              <b-col cols="11">
+                <!-- Betrag / Name Email -->
+                <b-row>
+                  <b-col cols="5">
+                    <div class="text-right">
+                      <span class="gdd-transaction-list-item-operator">
+                        {{ getProperties(type).operator }}
+                      </span>
+                      <span class="gdd-transaction-list-item-amount">
+                        {{ $n(balance, 'decimal') }}
+                      </span>
+                    </div>
+                  </b-col>
+                  <b-col cols="7">
+                    <div class="gdd-transaction-list-item-name">
+                      {{ type !== 'decay' ? name : $t('decay.decay_since_last_transaction') }}
+                    </div>
+                  </b-col>
+                </b-row>
 
-              <!-- Nachricht -->
-              <b-row v-if="type !== 'decay'">
-                <div class="col-5 text-right">{{ $t('form.memo') }}</div>
-                <div class="col-7 gdd-transaction-list-message">{{ memo }}</div>
-              </b-row>
+                <!-- Nachricht -->
+                <b-row v-if="type !== 'decay'">
+                  <b-col cols="5">
+                    <div class="text-right">{{ $t('form.memo') }}</div>
+                  </b-col>
+                  <b-col cols="7">
+                    <div class="gdd-transaction-list-message">{{ memo }}</div>
+                  </b-col>
+                </b-row>
 
-              <!-- Datum -->
-              <b-row v-if="type !== 'decay'">
-                <div class="col-5 text-right">{{ $t('form.date') }}</div>
-                <div class="col-7 gdd-transaction-list-item-date">
-                  {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-                </div>
-              </b-row>
+                <!-- Datum -->
+                <b-row v-if="type !== 'decay'">
+                  <b-col cols="5">
+                    <div class="text-right">{{ $t('form.date') }}</div>
+                  </b-col>
+                  <b-col cols="7">
+                    <div class="gdd-transaction-list-item-date">
+                      {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+                    </div>
+                  </b-col>
+                </b-row>
 
-              <!-- Decay -->
-              <b-row v-if="decay && !decay.decayStartBlock">
-                <div class="col-5 text-right">
-                  <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
-                </div>
-                <div class="col-7 gdd-transaction-list-item-decay">
-                  <decay-information v-if="decay" decaytyp="short" :decay="decay" />
-                </div>
-              </b-row>
-              <b-row v-if="decay && decay.decayStartBlock">
-                <div class="col-5 text-right">
-                  <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
-                </div>
-                <div class="col-7 gdd-transaction-list-item-decay">
-                  <b>{{ $t('decay.Starting_block_decay') }}</b>
-                </div>
-              </b-row>
-            </div>
+                <!-- Decay -->
+                <b-row v-if="decay && !decay.decayStartBlock">
+                  <b-col cols="5">
+                    <div class="text-right">
+                      <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
+                    </div>
+                  </b-col>
+                  <b-col cols="7">
+                    <div class="gdd-transaction-list-item-decay">
+                      <decay-information v-if="decay" decaytyp="short" :decay="decay" />
+                    </div>
+                  </b-col>
+                </b-row>
+                <b-row v-if="decay && decay.decayStartBlock">
+                  <b-col cols="5">
+                    <div class="text-right">
+                      <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
+                    </div>
+                  </b-col>
+                  <b-col cols="7">
+                    <div class="gdd-transaction-list-item-decay">
+                      <b>{{ $t('decay.Starting_block_decay') }}</b>
+                    </div>
+                  </b-col>
+                </b-row>
+              </b-col>
+            </b-row>
           </div>
 
           <!-- Collaps Start -->
