@@ -101,10 +101,13 @@
           </b-col>
           <b-col cols="6">
             <div v-if="type === 'send'">
-              <b>- {{ $n(parseInt(balance) + decay.balance, 'decimal') }}</b>
+              <b>- {{ $n(balance + decay.balance, 'decimal') }}</b>
             </div>
             <div v-if="type === 'receive'">
-              <b>{{ $n(parseInt(balance) - decay.balance, 'decimal') }}</b>
+              <b>{{ $n(balance - decay.balance, 'decimal') }}</b>
+            </div>
+            <div v-if="type === 'creation'">
+              <b>- {{ $n(balance - decay.balance, 'decimal') }}</b>
             </div>
           </b-col>
         </b-row>
