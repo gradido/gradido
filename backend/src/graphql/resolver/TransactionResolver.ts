@@ -73,7 +73,7 @@ async function calculateAndAddDecayTransactions(
     finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
     const prev = i > 0 ? userTransactions[i - 1] : null
 
-    if (prev && prev.balance > 0) {
+    if (prev) {
       const current = userTransaction
       const decay = await calculateDecayWithInterval(
         prev.balance,
@@ -82,7 +82,7 @@ async function calculateAndAddDecayTransactions(
       )
       const balance = prev.balance - decay.balance
 
-      if (balance > 99) {
+      if (decayStartTransaction.received >= prev.balanceDate) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
@@ -144,15 +144,14 @@ async function calculateAndAddDecayTransactions(
         now.getTime(),
       )
       const balance = userTransaction.balance - decay.balance
-      if (balance > 99) {
-        const decayTransaction = new Transaction()
-        decayTransaction.type = 'decay'
-        decayTransaction.balance = roundFloorFrom4(balance)
-        decayTransaction.decayDuration = decay.decayDuration
-        decayTransaction.decayStart = decay.decayStart
-        decayTransaction.decayEnd = decay.decayEnd
-        finalTransactions.push(decayTransaction)
-      }
+
+      const decayTransaction = new Transaction()
+      decayTransaction.type = 'decay'
+      decayTransaction.balance = roundFloorFrom4(balance)
+      decayTransaction.decayDuration = decay.decayDuration
+      decayTransaction.decayStart = decay.decayStart
+      decayTransaction.decayEnd = decay.decayEnd
+      finalTransactions.push(decayTransaction)
     }
   }
 
