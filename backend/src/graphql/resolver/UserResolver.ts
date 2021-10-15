@@ -233,6 +233,24 @@ export class UserResolver {
       // load user and balance
       const userRepository = getCustomRepository(UserRepository)
       const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      let userEntityChanged = false
+      if (firstName) {
+        userEntity.firstName = firstName
+        userEntityChanged = true
+      }
+      if (lastName) {
+        userEntity.lastName = lastName
+        userEntityChanged = true
+      }
+      if (username) {
+        userEntity.username = username
+        userEntityChanged = true
+      }
+      if (userEntityChanged) {
+        userEntity.save().catch((error) => {
+          throw new Error(error)
+        })
+      }
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
