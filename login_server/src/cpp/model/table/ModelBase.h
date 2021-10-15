@@ -166,20 +166,19 @@ namespace model {
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 			Poco::Data::Statement select(session);
 			int id;
-			select << "SELECT " << "id "
+			select << "SELECT " << "count(*) as id"
 				<< " FROM " << getTableName()
 				<< " WHERE " << fieldName << " = ?"
 				, Poco::Data::Keywords::into(id), Poco::Data::Keywords::useRef(fieldValue);
 			try {
-				if (select.execute() >= 1) {
-					return true;
-				}
+				select.execute();
+				return id != 0;
 			}
 			catch (Poco::Exception& ex) {
-				/*lock();
+				lock();
 				addError(new ParamError(getTableName(), "mysql error by isExistInDB", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "field name for select: ", fieldName.data()));
-				unlock();*/
+				unlock();
 			}
 			return false;
 		}
