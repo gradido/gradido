@@ -22,9 +22,7 @@ const server = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
 }
 
-const options = {
-  ALLOW_REGISTER: process.env.ALLOW_REGISTER !== 'false',
-}
+const options = {}
 
 const CONFIG = {
   ...version,

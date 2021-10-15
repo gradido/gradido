@@ -136,9 +136,7 @@ describe('Login', () => {
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe(
-          '/register-community',
-        )
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
       })
     })
 
