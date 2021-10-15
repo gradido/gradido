@@ -6,7 +6,10 @@
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <div class="list-group-item gdd-transaction-list-item" v-b-toggle="'a' + date + ''">
+        <div
+          class="list-group-item gdd-transaction-list-item"
+          v-b-toggle="'decay-' + transactionId"
+        >
           <!-- Collaps Button  -->
           <div
             v-if="type != 'decay' && decay"
@@ -100,7 +103,7 @@
 
           <!-- Collaps Start -->
 
-          <b-collapse v-if="type != 'decay'" class="pb-4" :id="'a' + date + ''">
+          <b-collapse v-if="type != 'decay' && decay" class="pb-4" :id="'decay-' + transactionId">
             <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
               <decay-information
                 v-if="decay"
