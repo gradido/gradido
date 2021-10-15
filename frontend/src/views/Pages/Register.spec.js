@@ -146,6 +146,7 @@ describe('Register', () => {
       })
     })
 
+    /*
     describe('link Choose another community', () => {
       it('has a link "Choose another community"', () => {
         expect(wrapper.find('.test-button-another-community').text()).toEqual(
@@ -157,6 +158,7 @@ describe('Register', () => {
         expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
       })
     })
+    */
 
     describe('API calls', () => {
       beforeEach(() => {
