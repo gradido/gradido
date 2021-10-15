@@ -82,16 +82,18 @@ async function calculateAndAddDecayTransactions(
       )
       const balance = prev.balance - decay.balance
 
-      finalTransaction.decay = decay
-      finalTransaction.decay.balance = roundFloorFrom4(balance)
-      if (
-        decayStartTransaction &&
-        prev.transactionId < decayStartTransaction.id &&
-        current.transactionId > decayStartTransaction.id
-      ) {
-        finalTransaction.decay.decayStartBlock = (
-          decayStartTransaction.received.getTime() / 1000
-        ).toString()
+      if (balance) {
+        finalTransaction.decay = decay
+        finalTransaction.decay.balance = roundFloorFrom4(balance)
+        if (
+          decayStartTransaction &&
+          prev.transactionId < decayStartTransaction.id &&
+          current.transactionId > decayStartTransaction.id
+        ) {
+          finalTransaction.decay.decayStartBlock = (
+            decayStartTransaction.received.getTime() / 1000
+          ).toString()
+        }
       }
     }
 
@@ -142,14 +144,15 @@ async function calculateAndAddDecayTransactions(
         now.getTime(),
       )
       const balance = userTransaction.balance - decay.balance
-
-      const decayTransaction = new Transaction()
-      decayTransaction.type = 'decay'
-      decayTransaction.balance = roundFloorFrom4(balance)
-      decayTransaction.decayDuration = decay.decayDuration
-      decayTransaction.decayStart = decay.decayStart
-      decayTransaction.decayEnd = decay.decayEnd
-      finalTransactions.push(decayTransaction)
+      if (balance) {
+        const decayTransaction = new Transaction()
+        decayTransaction.type = 'decay'
+        decayTransaction.balance = roundFloorFrom4(balance)
+        decayTransaction.decayDuration = decay.decayDuration
+        decayTransaction.decayStart = decay.decayStart
+        decayTransaction.decayEnd = decay.decayEnd
+        finalTransactions.push(decayTransaction)
+      }
     }
   }
 
