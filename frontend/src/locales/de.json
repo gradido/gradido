@@ -180,7 +180,7 @@
     "thx": {
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
-      "register": "Du bist jetzt regisriert.",
+      "register": "Du bist jetzt registriert.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
     }
