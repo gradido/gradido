@@ -215,6 +215,8 @@ export class UserResolver {
       },
     }
     let response: UpdateUserInfosResponse | undefined
+    const userRepository = getCustomRepository(UserRepository)
+
     if (
       firstName ||
       lastName ||
@@ -228,10 +230,7 @@ export class UserResolver {
       const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
       if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
-    }
-    if (coinanimation !== undefined) {
-      // load user and balance
-      const userRepository = getCustomRepository(UserRepository)
+
       const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
       let userEntityChanged = false
       if (firstName) {
@@ -251,6 +250,12 @@ export class UserResolver {
           throw new Error(error)
         })
       }
+    }
+    if (coinanimation !== undefined) {
+      // load user and balance
+
+      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
