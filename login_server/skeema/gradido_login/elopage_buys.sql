@@ -1,6 +1,6 @@
 CREATE TABLE `elopage_buys` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `elopage_user_id` int NOT NULL,
+  `elopage_user_id` int DEFAULT 0,
   `affiliate_program_id` int NOT NULL,
   `publisher_id` int NOT NULL,
   `order_id` int NOT NULL,
