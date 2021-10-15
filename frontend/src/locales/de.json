@@ -101,7 +101,8 @@
     "no-transactions": "Du hast zur Zeit keine Transaktionen",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
-    "recruited-member": "Geworbenes Mitglied"
+    "recruited-member": "Geworbenes Mitglied",
+    "funding":"Zu den Förderbeiträgen"
   },
   "imprint": "Impressum",
   "language": "Sprache",
