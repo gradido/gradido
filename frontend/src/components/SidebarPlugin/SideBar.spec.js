@@ -125,20 +125,20 @@ describe('SideBar', () => {
           })
         })
 
-        describe("member's area with default publisher ID", () => {
+        describe("member's area with default publisher ID  and no elopage", () => {
           beforeEach(() => {
             mocks.$store.state.publisherId = null
-            mocks.$store.state.hasElopage = true
+            mocks.$store.state.hasElopage = false
           })
 
           it('links to the elopage member area with default publisher ID', () => {
             expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
-              'https://elopage.com/s/gradido/sign_in?locale=de',
+              'https://elopage.com/s/gradido/basic-de/payment?locale=de&prid=111&pid=2896&firstName=test&lastName=example&email=test@example.org',
             )
           })
 
-          it('has no badge', () => {
-            expect(wrapper.findAll('li').at(0).text()).not.toContain('!')
+          it('has a badge', () => {
+            expect(wrapper.findAll('li').at(0).text()).toContain('!')
           })
         })
       })
