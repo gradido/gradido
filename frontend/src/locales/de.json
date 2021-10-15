@@ -97,12 +97,12 @@
     "credit": "Gutschrift",
     "factor": "Faktor",
     "formula": "Berechungsformel",
+    "funding": "Zu den Förderbeiträgen",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "no-transactions": "Du hast zur Zeit keine Transaktionen",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
-    "recruited-member": "Geworbenes Mitglied",
-    "funding":"Zu den Förderbeiträgen"
+    "recruited-member": "Geworbenes Mitglied"
   },
   "imprint": "Impressum",
   "language": "Sprache",
