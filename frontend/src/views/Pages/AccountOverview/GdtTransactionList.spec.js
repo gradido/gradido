@@ -51,10 +51,18 @@ const windowScrollToMock = jest.fn()
 
 window.scrollTo = windowScrollToMock
 
+const state = {
+  language: null,
+}
+
 describe('GdtTransactionList', () => {
   let wrapper
 
   const mocks = {
+    $store: {
+      state,
+      commit: jest.fn(),
+    },
     $i18n: {
       locale: 'en',
     },

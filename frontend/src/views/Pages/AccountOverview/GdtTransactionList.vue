@@ -1,7 +1,7 @@
 <template>
   <div class="gdt-transaction-list">
-    <div class="list-group" style="background-color: #fff">
-      <div v-if="transactionGdtCount === 0">
+    <div class="list-group">
+      <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}
         <hr />
         <b-button :href="link" target="_blank">{{ $t('gdt.funding') }}</b-button>
