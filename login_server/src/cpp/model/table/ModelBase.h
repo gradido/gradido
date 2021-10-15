@@ -171,7 +171,6 @@ namespace model {
 				<< " WHERE " << fieldName << " = ?"
 				, Poco::Data::Keywords::into(id), Poco::Data::Keywords::useRef(fieldValue);
 			try {
-				auto result = select.execute();
 				select.execute();
 				return id != 0;
 			}
