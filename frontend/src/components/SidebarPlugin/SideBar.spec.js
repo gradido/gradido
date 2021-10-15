@@ -124,6 +124,23 @@ describe('SideBar', () => {
             expect(wrapper.findAll('li').at(0).text()).not.toContain('!')
           })
         })
+
+        describe("member's area with default publisher ID", () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = null
+            mocks.$store.state.hasElopage = true
+          })
+
+          it('links to the elopage member area with default publisher ID', () => {
+            expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
+              'https://elopage.com/s/gradido/sign_in?locale=de',
+            )
+          })
+
+          it('has no badge', () => {
+            expect(wrapper.findAll('li').at(0).text()).not.toContain('!')
+          })
+        })
       })
 
       describe('logout', () => {
