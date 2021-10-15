@@ -82,7 +82,7 @@ async function calculateAndAddDecayTransactions(
       )
       const balance = prev.balance - decay.balance
 
-      if (balance) {
+      if (balance > 99) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
@@ -144,7 +144,7 @@ async function calculateAndAddDecayTransactions(
         now.getTime(),
       )
       const balance = userTransaction.balance - decay.balance
-      if (balance) {
+      if (balance > 99) {
         const decayTransaction = new Transaction()
         decayTransaction.type = 'decay'
         decayTransaction.balance = roundFloorFrom4(balance)
