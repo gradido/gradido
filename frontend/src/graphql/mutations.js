@@ -51,7 +51,7 @@ export const registerUser = gql`
     $email: String!
     $password: String!
     $language: String!
-    $publisherId: Int!
+    $publisherId: Int
   ) {
     createUser(
       email: $email
