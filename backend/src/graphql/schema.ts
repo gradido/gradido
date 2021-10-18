@@ -6,7 +6,8 @@ import isAuthorized from './directive/isAuthorized'
 
 const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
-    resolvers: [path.join(__dirname, 'resolver', `*.{js,ts}`)],
+    // ?!.*\.test\.js$
+    resolvers: [path.join(__dirname, 'resolver', `!(*.test).{js,ts}`)],
     authChecker: isAuthorized,
   })
 }

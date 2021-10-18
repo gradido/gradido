@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { createTestClient } from 'apollo-server-testing'
-import createTestServer from '../../test-server'
+import createServer from '../../server/createServer'
 
 let query: any
 
 beforeAll(async () => {
-  const apollo = createTestServer()
+  const { apollo } = await createServer({})
 
-  query = createTestClient(await apollo).query
+  query = createTestClient(apollo).query
 })
 
 describe('CommunityResolver', () => {

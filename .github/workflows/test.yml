@@ -373,10 +373,10 @@ jobs:
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
-      - name: backend | Unit tests
-        run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/backend:test yarn run test
-          cp -r ~/coverage ./coverage
+      - name: backend database | docker-compose
+        run: docker-compose -f docker-compose.yml up --detach mariadb
+      - name: backend Unit tests | up
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml run -T backend yarn run test
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
       ##########################################################################
