@@ -8,7 +8,11 @@ const {
   firstName,
   lastName,
   description,
+  coinanimation,
   newsletterState,
+  publisherId,
+  community,
+  hasElopage,
 } = mutations
 const { login, logout } = actions
 
@@ -70,11 +74,59 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('coinanimation', () => {
+      it('sets the state of coinanimation', () => {
+        const state = { coinanimation: true }
+        coinanimation(state, false)
+        expect(state.coinanimation).toEqual(false)
+      })
+    })
+
     describe('newsletterState', () => {
       it('sets the state of newsletterState', () => {
         const state = { newsletterState: null }
         newsletterState(state, true)
         expect(state.newsletterState).toEqual(true)
+      })
+    })
+
+    describe('publisherId', () => {
+      it('sets the state of publisherId', () => {
+        const state = {}
+        publisherId(state, 42)
+        expect(state.publisherId).toEqual(42)
+      })
+
+      it('sets publisherId to null with NaN', () => {
+        const state = {}
+        publisherId(state, 'abc')
+        expect(state.publisherId).toEqual(null)
+      })
+    })
+
+    describe('community', () => {
+      it('sets the state of community', () => {
+        const state = {}
+        community(state, {
+          name: 'test12',
+          description: 'test community 12',
+          url: 'http://test12.test12/',
+          registerUrl: 'http://test12.test12/vue/register',
+        })
+        expect(state.community).toEqual({
+          name: 'test12',
+          description: 'test community 12',
+          url: 'http://test12.test12/',
+          registerUrl: 'http://test12.test12/vue/register',
+        })
+      })
+    })
+
+    describe('hasElopage', () => {
+      it('sets the state of hasElopage', () => {
+        const state = { hasElopage: false }
+        hasElopage(state, true)
+        expect(state.hasElopage).toBeTruthy()
       })
     })
   })
@@ -90,14 +142,17 @@ describe('Vuex store', () => {
         firstName: 'Peter',
         lastName: 'Lustig',
         description: 'Nickelbrille',
+        coinanimation: false,
         klickTipp: {
           newsletterState: true,
         },
+        hasElopage: false,
+        publisherId: 1234,
       }
 
-      it('calls seven commits', () => {
+      it('calls ten commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(7)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits email', () => {
@@ -130,9 +185,24 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
       })
 
+      it('commits coinanimation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', false)
+      })
+
       it('commits newsletterState', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', true)
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', true)
+      })
+
+      it('commits hasElopage', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
+
+      it('commits publisherId', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', 1234)
       })
     })
 
@@ -140,9 +210,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls six commits', () => {
+      it('calls ten commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(7)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits token', () => {
@@ -175,9 +245,24 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'description', '')
       })
 
+      it('commits coinanimation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', true)
+      })
+
       it('commits newsletterState', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'newsletterState', null)
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', null)
+      })
+
+      it('commits hasElopage', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
+
+      it('commits publisherId', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', null)
       })
 
       // how to get this working?

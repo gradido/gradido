@@ -19,6 +19,16 @@ export class CommunityResolver {
 
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
+    if (CONFIG.PRODUCTION)
+      return [
+        new Community({
+          id: 3,
+          name: 'Gradido-Akademie',
+          description: 'Freies Institut für Wirtschaftsbionik.',
+          url: 'https://gradido.net',
+          registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+        }),
+      ]
     return [
       new Community({
         id: 1,

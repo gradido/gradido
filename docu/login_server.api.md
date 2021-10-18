@@ -67,6 +67,7 @@ In case of success returns:
 		"username": ""
 	},
 	"session_id": -127182,
+	"hasElopage": true,
 	"clientIP":"123.123.123.123"
 }
 ```
@@ -86,6 +87,7 @@ In case of success returns:
   - `role`: role of user currently only "none" or "admin"
   - `username`: not used yet
 - `clientIP`: should be the same as where the js-client is running, else maybe a man-in-the-middle attacks is happening or 
+- `hasElopage`: only present if hasElopage was set to true in request, true if user has an elopage account
 nginx was wrong configured.
 - `session_id`: can be also negative
 
@@ -593,3 +595,29 @@ or:
 	"msg": "session not found"
 }
 ```
+
+## Check if User has an Elopage Account
+Check if logged in user has already an elopage account
+
+### Request
+`GET http://localhost/login_api/hasElopage?session_id=-127182`
+
+### Response
+In case of success returns:
+
+```json
+{
+	"state":"success",
+	"hasElopage": true
+}
+```
+
+or:
+
+```json
+{
+	"state":"not found",
+	"msg": "session not found"
+}
+```
+

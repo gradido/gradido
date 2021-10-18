@@ -328,6 +328,7 @@ const Poco::UInt16* Passphrase::getWordIndices() const
 
 bool Passphrase::checkIfValid()
 {
+	if (!mWordSource) return false;
 	std::istringstream iss(mPassphraseString);
 	std::vector<std::string> results(std::istream_iterator<std::string>{iss},
 	std::istream_iterator<std::string>());

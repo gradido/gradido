@@ -75,7 +75,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 newEmail: 'test@example.org',
               },
             }),
@@ -104,7 +103,6 @@ describe('UserCard_FormUserMail', () => {
           expect(mockAPIcall).toHaveBeenCalledWith(
             expect.objectContaining({
               variables: {
-                email: 'user@example.org',
                 newEmail: 'test@example.org',
               },
             }),

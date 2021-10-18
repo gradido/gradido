@@ -36,11 +36,8 @@ export default {
   name: 'FormUserCoinAnimation',
   data() {
     return {
-      CoinAnimationStatus: true,
+      CoinAnimationStatus: this.$store.state.coinanimation,
     }
-  },
-  created() {
-    this.CoinAnimationStatus = this.$store.state.coinanimation /* existiert noch nicht im store */
   },
   methods: {
     async onSubmit() {
@@ -52,7 +49,7 @@ export default {
           },
         })
         .then(() => {
-          this.$store.state.coinanimation = this.CoinAnimationStatus
+          this.$store.commit('coinanimation', this.CoinAnimationStatus)
           this.$toasted.success(
             this.CoinAnimationStatus
               ? this.$t('settings.coinanimation.True')
@@ -60,6 +57,7 @@ export default {
           )
         })
         .catch((error) => {
+          this.CoinAnimationStatus = this.$store.state.coinanimation
           this.$toasted.error(error.message)
         })
     },
