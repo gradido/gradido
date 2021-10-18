@@ -15,15 +15,14 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
+  DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID || 2896,
 }
 
 const server = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
 }
 
-const options = {
-  ALLOW_REGISTER: process.env.ALLOW_REGISTER !== 'false',
-}
+const options = {}
 
 const CONFIG = {
   ...version,

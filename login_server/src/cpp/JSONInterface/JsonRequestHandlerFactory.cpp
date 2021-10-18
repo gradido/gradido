@@ -16,6 +16,7 @@
 #include "JsonUnknown.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonHasElopage.h"
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
@@ -139,6 +140,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
+	}
+	else if (url_first_part == "/hasElopage") {
+		return new JsonHasElopage;
 	}
 
 	return new JsonUnknown;

@@ -71,24 +71,27 @@ async function calculateAndAddDecayTransactions(
     finalTransaction.date = transaction.received.toISOString()
     finalTransaction.memo = transaction.memo
     finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
-    const prev = i > 0 ? userTransactions[i - 1] : null
+    const previousTransaction = i > 0 ? userTransactions[i - 1] : null
 
-    if (prev && prev.balance > 0) {
-      const current = userTransaction
+    if (previousTransaction) {
+      const currentTransaction = userTransaction
       const decay = await calculateDecayWithInterval(
-        prev.balance,
-        prev.balanceDate,
-        current.balanceDate,
+        previousTransaction.balance,
+        previousTransaction.balanceDate,
+        currentTransaction.balanceDate,
       )
-      const balance = prev.balance - decay.balance
+      const balance = previousTransaction.balance - decay.balance
 
-      if (balance) {
+      if (
+        decayStartTransaction &&
+        decayStartTransaction.received < currentTransaction.balanceDate
+      ) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
           decayStartTransaction &&
-          prev.transactionId < decayStartTransaction.id &&
-          current.transactionId > decayStartTransaction.id
+          previousTransaction.transactionId < decayStartTransaction.id &&
+          currentTransaction.transactionId > decayStartTransaction.id
         ) {
           finalTransaction.decay.decayStartBlock = (
             decayStartTransaction.received.getTime() / 1000
@@ -144,15 +147,14 @@ async function calculateAndAddDecayTransactions(
         now.getTime(),
       )
       const balance = userTransaction.balance - decay.balance
-      if (balance) {
-        const decayTransaction = new Transaction()
-        decayTransaction.type = 'decay'
-        decayTransaction.balance = roundFloorFrom4(balance)
-        decayTransaction.decayDuration = decay.decayDuration
-        decayTransaction.decayStart = decay.decayStart
-        decayTransaction.decayEnd = decay.decayEnd
-        finalTransactions.push(decayTransaction)
-      }
+
+      const decayTransaction = new Transaction()
+      decayTransaction.type = 'decay'
+      decayTransaction.balance = roundFloorFrom4(balance)
+      decayTransaction.decayDuration = decay.decayDuration
+      decayTransaction.decayStart = decay.decayStart
+      decayTransaction.decayEnd = decay.decayEnd
+      finalTransactions.push(decayTransaction)
     }
   }
 

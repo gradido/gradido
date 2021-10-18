@@ -32,6 +32,7 @@ describe('Register', () => {
           registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
+        publisherId: 12345,
       },
     },
   }
@@ -145,6 +146,7 @@ describe('Register', () => {
       })
     })
 
+    /*
     describe('link Choose another community', () => {
       it('has a link "Choose another community"', () => {
         expect(wrapper.find('.test-button-another-community').text()).toEqual(
@@ -156,6 +158,7 @@ describe('Register', () => {
         expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
       })
     })
+    */
 
     describe('API calls', () => {
       beforeEach(() => {
@@ -216,6 +219,7 @@ describe('Register', () => {
                 lastName: 'Mustermann',
                 password: 'Aa123456_',
                 language: 'en',
+                publisherId: 12345,
               },
             }),
           )

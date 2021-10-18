@@ -44,6 +44,7 @@ describe('Login', () => {
           registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         },
+        publisherId: 12345,
       },
     },
     $loading: {
@@ -135,9 +136,7 @@ describe('Login', () => {
       })
 
       it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe(
-          '/register-community',
-        )
+        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
       })
     })
 
@@ -199,6 +198,7 @@ describe('Login', () => {
               variables: {
                 email: 'user@example.org',
                 password: '1234',
+                publisherId: 12345,
               },
             }),
           )

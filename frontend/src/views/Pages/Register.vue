@@ -125,7 +125,7 @@
                   <div class="text-center">
                     <div class="text-center">
                       <router-link class="test-button-back" to="/login">
-                        <b-button variant="outline-secondary">
+                        <b-button variant="outline-secondary" class="mr-4">
                           {{ $t('back') }}
                         </b-button>
                       </router-link>
@@ -145,6 +145,7 @@
         </b-col>
       </b-row>
     </b-container>
+    <!--
     <div class="text-center pt-4">
       <router-link class="test-button-another-community" to="/select-community">
         <b-button variant="outline-secondary">
@@ -152,6 +153,7 @@
         </b-button>
       </router-link>
     </div>
+    -->
   </div>
 </template>
 <script>
@@ -199,6 +201,7 @@ export default {
             lastName: this.form.lastname,
             password: this.form.password.password,
             language: this.language,
+            publisherId: this.$store.state.publisherId,
           },
         })
         .then(() => {

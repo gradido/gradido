@@ -45,6 +45,9 @@ describe('DashboardLayoutGdd', () => {
     $store: {
       state: {
         email: 'user@example.org',
+        publisherId: 123,
+        firstName: 'User',
+        lastName: 'Example',
       },
       dispatch: storeDispatchMock,
       commit: storeCommitMock,
@@ -114,9 +117,10 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has a link to the members area', () => {
-        expect(wrapper.findAll('ul').at(2).text()).toBe('members_area')
+        expect(wrapper.findAll('ul').at(2).text()).toContain('members_area')
+        expect(wrapper.findAll('ul').at(2).text()).toContain('!')
         expect(wrapper.findAll('ul').at(2).find('a').attributes('href')).toBe(
-          'https://elopage.com/s/gradido/sign_in?locale=en',
+          'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=User&lastName=Example&email=user@example.org',
         )
       })
 

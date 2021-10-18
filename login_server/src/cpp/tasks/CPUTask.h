@@ -68,5 +68,7 @@ namespace UniLib {
     }
 }
 
+#define AWAIT(task) while (!hasElopageTask->isTaskFinished()) { Poco::Thread::sleep(10); }
+
 #endif //__DR_UNIVERSUM_LIB_CONTROLLER_CPU_TASK_H__
         
