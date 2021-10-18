@@ -76,6 +76,9 @@ RUN cd ../database && yarn install --production=false --frozen-lockfile --non-in
 # yarn build
 RUN yarn run build
 
+# yarn build database
+RUN cd ../database && yarn run build
+
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
