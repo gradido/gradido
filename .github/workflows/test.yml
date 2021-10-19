@@ -353,7 +353,7 @@ jobs:
   unit_test_backend:
     name: Unit tests - Backend
     runs-on: ubuntu-latest
-    needs: [build_test_backend, build_test_database_up]
+    needs: [build_test_backend,build_test_mariadb]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -363,13 +363,13 @@ jobs:
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
-      - name: Download Docker Image (Database)
+      - name: Download Docker Image (Mariadb)
         uses: actions/download-artifact@v2
         with:
-          name: docker-database-test_up
+          name: docker-mariadb-test
           path: /tmp
       - name: Load Docker Image
-        run: docker load < /tmp/database_up.tar
+        run: docker load < /tmp/mariadb.tar
       - name: Download Docker Image (Backend)
         uses: actions/download-artifact@v2
         with:
@@ -381,9 +381,7 @@ jobs:
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
       - name: backend | docker-compose
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database backend
-      - name: backend Unit tests | database up
-        run: docker-compose run -T database yarn up
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb backend
       - name: backend Unit tests | test
         run: docker-compose exec -T backend yarn test
       ##########################################################################
