@@ -9,10 +9,17 @@ jest.mock('../../config')
 
 let query: any
 
-beforeAll(async () => {
-  const { apollo } = await createServer({})
+// to do: We need a setup for the tests that closes the connection
+let con: any
 
-  query = createTestClient(apollo).query
+beforeAll(async () => {
+  const server = await createServer({})
+  con = server.con
+  query = createTestClient(server.apollo).query
+})
+
+afterAll(async () => {
+  await con.close()
 })
 
 describe('CommunityResolver', () => {

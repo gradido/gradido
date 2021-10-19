@@ -57,7 +57,7 @@ const createServer = async (context: any = serverContext): Promise<any> => {
     plugins,
   })
   apollo.applyMiddleware({ app })
-  return { apollo, app }
+  return { apollo, app, con }
 }
 
 export default createServer
