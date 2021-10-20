@@ -1,6 +1,6 @@
 import { createConnection, Connection } from 'typeorm'
 import CONFIG from '../config'
-import { entities } from '@entity/index'
+import { entities } from '../../entity/index'
 
 const connection = async (): Promise<Connection | null> => {
   let con = null
