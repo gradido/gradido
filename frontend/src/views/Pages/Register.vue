@@ -220,7 +220,6 @@ export default {
       this.form.lastname = ''
       this.form.password.password = ''
       this.form.password.passwordRepeat = ''
-      this.language = ''
     },
   },
   computed: {
@@ -243,7 +242,6 @@ export default {
     this.form.lastname = ''
     this.form.password.password = ''
     this.form.password.passwordRepeat = ''
-    this.language = ''
   },
 }
 </script>
