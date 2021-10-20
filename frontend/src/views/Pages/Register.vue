@@ -205,7 +205,7 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/register')       
+          this.$router.push('/thx/register')
         })
         .catch((error) => {
           this.showError = true
