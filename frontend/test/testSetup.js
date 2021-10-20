@@ -12,7 +12,6 @@ import SideBar from '@/components/SidebarPlugin'
 import VueQrcode from 'vue-qrcode'
 
 import VueMoment from 'vue-moment'
-import VueApexCharts from 'vue-apexcharts'
 
 // import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
@@ -45,7 +44,6 @@ global.localVue.use(RegeneratorRuntime)
 global.localVue.use(SideBar)
 global.localVue.use(VueQrcode)
 global.localVue.use(VueMoment)
-global.localVue.use(VueApexCharts)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)

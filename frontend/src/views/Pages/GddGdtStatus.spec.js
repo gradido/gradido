@@ -12,7 +12,7 @@ describe('GddStatus', () => {
 
   const propsData = {
     balance: 1234,
-    GdtBalance: 9876,
+    statusText: 'GDD',
   }
 
   const Wrapper = () => {
@@ -24,16 +24,6 @@ describe('GddStatus', () => {
       wrapper = Wrapper()
     })
 
-    describe('balance is loading', () => {
-      it('it displays em-dash as the ammount of GDD', () => {
-        expect(wrapper.find('div.gdd-status-gdd').text()).toEqual('— GDD')
-      })
-
-      it('it displays em-dash as the ammount of GDT', () => {
-        expect(wrapper.find('div.gdd-status-gdt').text()).toEqual('— GDT')
-      })
-    })
-
     describe('balance is loaded', () => {
       beforeEach(() => {
         wrapper.setProps({
@@ -42,11 +32,7 @@ describe('GddStatus', () => {
       })
 
       it('it displays the ammount of GDD', () => {
-        expect(wrapper.find('div.gdd-status-gdd').text()).toEqual('1234 GDD')
-      })
-
-      it('it displays the ammount of GDT', () => {
-        expect(wrapper.find('div.gdd-status-gdt').text()).toEqual('9876 GDT')
+        expect(wrapper.find('div.gdd-status-div').text()).toEqual('1234 GDD')
       })
     })
   })

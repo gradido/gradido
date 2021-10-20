@@ -38,7 +38,7 @@ describe('SendOverview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a status GDD line', () => {
+    it('has a status GDD line gdd-status-gdd', () => {
       expect(wrapper.find('div.gdd-status-gdd').exists()).toBeTruthy()
     })
 

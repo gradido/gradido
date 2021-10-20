@@ -4,9 +4,6 @@ import VueI18n from 'vue-i18n'
 import en from 'vee-validate/dist/locale/en'
 import de from 'vee-validate/dist/locale/de'
 
-import enCharts from 'apexcharts/dist/locales/en'
-import deCharts from 'apexcharts/dist/locales/de'
-
 Vue.use(VueI18n)
 
 function loadLocaleMessages() {
@@ -20,14 +17,12 @@ function loadLocaleMessages() {
       if (locale === 'de') {
         messages[locale] = {
           validations: de,
-          charts: deCharts,
           ...messages[locale],
         }
       }
       if (locale === 'en') {
         messages[locale] = {
           validations: en,
-          charts: enCharts,
           ...messages[locale],
         }
       }

@@ -7,8 +7,6 @@ import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
 
-import VueApexCharts from 'vue-apexcharts'
-
 import addNavigationGuards from './routes/guards'
 
 import { store } from './store/store'
@@ -54,9 +52,6 @@ Vue.config.productionTip = false
 loadAllRules(i18n)
 
 addNavigationGuards(router, store)
-
-Vue.use(VueApexCharts)
-Vue.component('apexchart', VueApexCharts)
 
 /* eslint-disable no-new */
 new Vue({

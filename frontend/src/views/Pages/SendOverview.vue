@@ -4,11 +4,11 @@
       <b-row>
         <b-col class="bg-gray text-white text-center p-3">
           <gdd-status
+            class="gdd-status-gdd"
             v-if="showContext"
             :pending="pending"
             :balance="balance"
-            :gdt-balance="GdtBalance"
-            :gdt="false"
+            status-text="GDD"
           />
         </b-col>
       </b-row>

@@ -6,11 +6,11 @@
           <b-row>
             <b-col class="col-11 bg-gray text-white p-3">
               <gdd-status
+                class="gdd-status-gdd"
                 v-if="showContext"
                 :pending="pending"
                 :balance="balance"
-                :gdt-balance="GdtBalance"
-                :gdt="false"
+                status-text="GDD"
               />
             </b-col>
           </b-row>
@@ -19,33 +19,17 @@
           <b-row>
             <b-col class="bg-white text-gray p-3">
               <gdd-status
+                class="gdd-status-gdt"
                 v-if="showContext"
                 :pending="pending"
-                :balance="balance"
-                :gdt-balance="GdtBalance"
-                :gdd="false"
+                :balance="GdtBalance"
+                status-text="GDT"
               />
             </b-col>
           </b-row>
         </b-col>
       </b-row>
       <br />
-
-      <b-row>
-        <b-col class="col-12 col-md-6">
-          GDD Bar
-          <div>
-            <apexchart type="bar" :options="chartOptions" :series="series"></apexchart>
-          </div>
-        </b-col>
-        <b-col class="col-12 col-md-6">
-          GDD Line
-          <div>
-            <apexchart type="line" :options="chartOptions" :series="series"></apexchart>
-          </div>
-        </b-col>
-      </b-row>
-      <hr />
 
       <template #transaction-form>
         <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
@@ -61,16 +45,12 @@
       />
       <gdd-transaction-list-footer v-if="showContext" :count="transactionCount" />
     </b-container>
-    <hr />
-    example
-    <chart-example />
   </div>
 </template>
 <script>
 import GddStatus from './GddGdtStatus.vue'
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
-import ChartExample from '../../components/charts/ChartExample.vue'
 
 export default {
   name: 'Overview',
@@ -78,7 +58,6 @@ export default {
     GddStatus,
     GddTransactionList,
     GddTransactionListFooter,
-    ChartExample,
   },
   data() {
     return {
@@ -89,30 +68,6 @@ export default {
       loading: false,
       datacollectionGdd: null,
       datacollectionGdt: null,
-
-      chartOptions: {
-        chart: {
-          class: 'vuechart',
-        },
-        xaxis: {
-          categories: ['Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt'],
-        },
-      },
-   
-      series: [
-        {
-          name: this.$t('decay.received'),
-          data: [30, 40, 35, 50, 49, 60, 70, 91],
-        },
-        {
-          name: this.$t('decay.sent'),
-          data: [20, 10, 45, 60, 59, 30, 50, 81],
-        },
-        {
-          name: this.$t('decay.created'),
-          data: [1000, 500, 700, 1000, 800, 500, 1000, 810],
-        },
-      ],
     }
   },
   props: {
