@@ -4,6 +4,8 @@ import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
 
+jest.setTimeout(30000)
+
 const localVue = global.localVue
 
 const storeDispatchMock = jest.fn()
