@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import 'reflect-metadata'
+import 'module-alias/register'
 
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
