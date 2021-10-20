@@ -137,6 +137,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
+          await wrapper.vm.$nextTick()
         })
 
         it('calls the API', async () => {
@@ -167,6 +168,17 @@ describe('DashboardLayoutGdd', () => {
 
         it('redirects to login page', () => {
           expect(routerPushMock).toBeCalledWith('/login')
+        })
+
+        describe('redirect to login already done', () => {
+          beforeEach(() => {
+            mocks.$router.currentRoute.path = '/login'
+            jest.resetAllMocks()
+          })
+
+          it('does not call the redirect to login', () => {
+            expect(routerPushMock).not.toBeCalled()
+          })
         })
       })
 
