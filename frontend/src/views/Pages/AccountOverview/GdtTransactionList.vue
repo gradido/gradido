@@ -6,16 +6,8 @@
       </div>
       <div
         v-else
-        v-for="{
-          transactionId,
-          amount,
-          date,
-          comment,
-          gdtEntryType,
-          factor,
-          gdt,
-        } in transactionsGdt"
-        :key="transactionId"
+        v-for="{ id, amount, date, comment, gdtEntryType, factor, gdt } in transactionsGdt"
+        :key="id"
       >
         <transaction
           :amount="amount"
@@ -24,6 +16,7 @@
           :gdtEntryType="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
+          :id="id"
         ></transaction>
       </div>
     </div>
