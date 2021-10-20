@@ -205,13 +205,7 @@ export default {
           },
         })
         .then(() => {
-          this.form.email = ''
-          this.form.firstname = ''
-          this.form.lastname = ''
-          this.form.password.password = ''
-          this.form.password.passwordRepeat = ''
-          this.language = ''
-          this.$router.push('/thx/register')
+          this.$router.push('/thx/register')       
         })
         .catch((error) => {
           this.showError = true
@@ -241,6 +235,15 @@ export default {
     emailFilled() {
       return this.form.email !== ''
     },
+  },
+  created() {
+    this.messageError = ''
+    this.form.email = ''
+    this.form.firstname = ''
+    this.form.lastname = ''
+    this.form.password.password = ''
+    this.form.password.passwordRepeat = ''
+    this.language = ''
   },
 }
 </script>
