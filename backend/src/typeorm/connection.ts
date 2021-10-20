@@ -16,7 +16,10 @@ const connection = async (): Promise<Connection | null> => {
       entities: [path.join(__dirname, 'entity', '*.{ts,js}')],
       synchronize: false,
     })
-  } catch (error) {}
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(error)
+  }
 
   return con
 }
