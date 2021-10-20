@@ -19,12 +19,12 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
-import { User as dbUser } from '../../typeorm/entity/User'
-import { UserTransaction as dbUserTransaction } from '../../typeorm/entity/UserTransaction'
-import { Transaction as dbTransaction } from '../../typeorm/entity/Transaction'
+import { User as dbUser } from '@entity/User'
+import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
+import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '../../apis/HttpRequest'
-import { roundFloorFrom4 } from '../../util/round'
+import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
 import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
@@ -150,7 +150,7 @@ async function calculateAndAddDecayTransactions(
 
       const decayTransaction = new Transaction()
       decayTransaction.type = 'decay'
-      decayTransaction.balance = roundFloorFrom4(balance)
+      decayTransaction.balance = roundCeilFrom4(balance)
       decayTransaction.decayDuration = decay.decayDuration
       decayTransaction.decayStart = decay.decayStart
       decayTransaction.decayEnd = decay.decayEnd

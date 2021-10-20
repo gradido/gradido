@@ -6,6 +6,7 @@ import { loadAllRules } from './validation-rules'
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from './config'
+
 import addNavigationGuards from './routes/guards'
 
 import { store } from './store/store'

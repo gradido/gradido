@@ -62,4 +62,8 @@ export default {
   background-color: aquamarine;
   font-size: larger;
 }
+
+.nav-tabs > li > a {
+  outline: none !important;
+}
 </style>

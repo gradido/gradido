@@ -35,9 +35,8 @@ services:
   #########################################################
   mariadb:
     build:
-      context: .
-      dockerfile: ./mariadb/Dockerfile
-      target: mariadb_server_test
+      context: ./mariadb
+      target: mariadb_server
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
@@ -54,7 +53,10 @@ services:
   backend:
     image: gradido/backend:latest
     build:
-      context: ./backend
+      # since we have to include the entities from ./database we cannot define the context as ./backend
+      # this might blow build image size to the moon ?!
+      context: ./
+      dockerfile: ./backend/Dockerfile
       target: production
     networks:
       - internal-net
@@ -155,41 +157,6 @@ services:
       - internal-net
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-
-  #########################################################
-  ## skeema for updating dbs if changes happend ###########
-  #########################################################
-  skeema: 
-    build:
-      context: .
-      dockerfile: ./skeema/Dockerfile
-      target: skeema_run
-    depends_on:
-      - mariadb
-    networks: 
-      - internal-net
-
-  #########################################################  
-  ## GRADIDO NODE v1 ######################################
-  #########################################################
- # gradido-node:
- #   build:
- #     context: .
- #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
- #   volumes:
- #     - ${GN_INSTANCE_FOLDER}:/opt/instance
- #   container_name: ${GN_CONTAINER_NAME}
-
-  #########################################################  
-  ## GRADIDO NODE test ###################################
-  #########################################################
- # gradido-node-test:
- #   build:
- #     context: .
- #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
- #   container_name: gn-test
- #   working_dir: /opt/gn/build
- #   command: ["./unit_tests"]
       
 networks:
   external-net:
