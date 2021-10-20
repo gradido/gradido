@@ -5,8 +5,8 @@
         <!-- icon  -->
         <div class="text-right" style="position: absolute">
           <b-icon
-            :icon="getLinesByType(gdtEntryType).icon"
-            :class="getLinesByType(gdtEntryType).iconclasses"
+            :icon="getLinesByType.icon"
+            :class="getLinesByType.iconclasses"
           ></b-icon>
         </div>
 
@@ -20,10 +20,10 @@
         <!-- type  -->
         <b-row>
           <b-col cols="6" class="text-right">
-            {{ getLinesByType(gdtEntryType).description }}
+            {{ getLinesByType.description }}
           </b-col>
           <b-col cols="6">
-            {{ getLinesByType(gdtEntryType).descriptiontext }}
+            {{ getLinesByType.descriptiontext }}
           </b-col>
         </b-row>
 
@@ -33,7 +33,7 @@
             {{ $t('gdt.credit') }}
           </b-col>
           <b-col cols="6">
-            {{ getLinesByType(gdtEntryType).credittext }}
+            {{ getLinesByType.credittext }}
           </b-col>
         </b-row>
 
@@ -71,65 +71,63 @@
   </div>
 </template>
 <script>
-import TransactionCollapse from './TransactionCollapse.vue'
-import { GdtEntryType } from '../graphql/enums'
+ import TransactionCollapse from './TransactionCollapse.vue'
+ import { GdtEntryType } from '../graphql/enums'
 
-export default {
-  name: 'Transaction',
-  components: {
-    TransactionCollapse,
-  },
-  props: {
-    amount: { type: Number },
-    date: { type: String },
-    comment: { type: String },
-    gdtEntryType: { type: String, default: GdtEntryType.FORM },
-    factor: { type: Number },
-    gdt: { type: Number },
-  },
-  computed: {
-    isGlobalModificator: function () {
-      return this.gdtEntryType === GdtEntryType.GLOBAL_MODIFICATOR
-    },
-  },
-  methods: {
-    getLinesByType(givenType) {
-      switch (givenType) {
-        case GdtEntryType.FORM:
-        case GdtEntryType.CVS:
-        case GdtEntryType.ELOPAGE:
-        case GdtEntryType.DIGISTORE:
-        case GdtEntryType.CVS2: {
-          return {
-            icon: 'heart',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-            description: this.$t('gdt.contribution'),
-            descriptiontext: this.$n(this.amount, 'decimal') + ' €',
-            credittext: this.$n(this.gdt, 'decimal') + ' GDT',
-          }
-        }
-        case GdtEntryType.ELOPAGE_PUBLISHER: {
-          return {
-            icon: 'person-check',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-            description: this.$t('gdt.recruited-member'),
-            descriptiontext: '5%',
-            credittext: this.$n(this.amount, 'decimal') + ' GDT',
-          }
-        }
-        case GdtEntryType.GLOBAL_MODIFICATOR: {
-          return {
-            icon: 'gift',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
-            description: this.$t('gdt.gdt-received'),
-            descriptiontext: this.comment,
-            credittext: this.$n(this.gdt, 'decimal') + ' GDT',
-          }
-        }
-        default:
-          throw new Error('no lines for this type: ' + givenType)
-      }
-    },
-  },
-}
+ export default {
+   name: 'Transaction',
+   components: {
+     TransactionCollapse,
+   },
+   props: {
+     amount: { type: Number },
+     date: { type: String },
+     comment: { type: String },
+     gdtEntryType: { type: String, default: GdtEntryType.FORM },
+     factor: { type: Number },
+     gdt: { type: Number },
+   },
+   computed: {
+     isGlobalModificator() {
+       return this.gdtEntryType === GdtEntryType.GLOBAL_MODIFICATOR
+     },
+     getLinesByType() {
+       switch (this.gdtEntryType) {
+         case GdtEntryType.FORM:
+         case GdtEntryType.CVS:
+         case GdtEntryType.ELOPAGE:
+         case GdtEntryType.DIGISTORE:
+         case GdtEntryType.CVS2: {
+           return {
+             icon: 'heart',
+             iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+             description: this.$t('gdt.contribution'),
+             descriptiontext: this.$n(this.amount, 'decimal') + ' €',
+             credittext: this.$n(this.gdt, 'decimal') + ' GDT',
+           }
+         }
+         case GdtEntryType.ELOPAGE_PUBLISHER: {
+           return {
+             icon: 'person-check',
+             iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+             description: this.$t('gdt.recruited-member'),
+             descriptiontext: '5%',
+             credittext: this.$n(this.amount, 'decimal') + ' GDT',
+           }
+         }
+         case GdtEntryType.GLOBAL_MODIFICATOR: {
+           return {
+             icon: 'gift',
+             iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+             description: this.$t('gdt.gdt-received'),
+             descriptiontext: this.comment,
+             credittext: this.$n(this.gdt, 'decimal') + ' GDT',
+           }
+         }
+         default:
+           throw new Error('no lines for this type: ' + this.gdtEntryType)
+       }
+     },
+   },
+ }
 </script>
