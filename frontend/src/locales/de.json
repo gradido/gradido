@@ -131,7 +131,7 @@
     "newsletter": {
       "newsletter": "Newsletter",
       "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
-      "newsletterTrue": "Du bist im Newslettersystem eingetraten."
+      "newsletterTrue": "Du bist im Newslettersystem eingetragen."
     },
     "password": {
       "change-password": "Passwort ändern",
