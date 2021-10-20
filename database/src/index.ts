@@ -50,6 +50,10 @@ const run = async (command: string) => {
     default:
       throw new Error(`Unsupported command ${command}`)
   }
+
+  // Terminate connections gracefully
+  await con.close()
+  pool.end()
 }
 
 run(process.argv[2])
