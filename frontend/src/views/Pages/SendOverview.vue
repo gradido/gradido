@@ -115,7 +115,6 @@ export default {
       this.loading = false
     },
     onReset() {
-      this.transactionData = { ...EMPTY_TRANSACTION_DATA }
       this.currentTransactionStep = 0
     },
     updateTransactions(pagination) {

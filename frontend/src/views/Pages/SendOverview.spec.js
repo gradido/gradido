@@ -77,9 +77,9 @@ describe('SendOverview', () => {
         await wrapper.findComponent({ name: 'TransactionConfirmation' }).vm.$emit('on-reset')
         expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
         expect(wrapper.vm.transactionData).toEqual({
-          email: '',
-          amount: 0,
-          memo: '',
+          email: 'user@example.org',
+          amount: 23.45,
+          memo: 'Make the best of it!',
         })
       })
 
