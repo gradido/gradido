@@ -98,6 +98,11 @@ describe('GdtTransactionList ', () => {
     it('renders the funding button ', () => {
       expect(wrapper.find('.gdt-funding').exists()).toBe(true)
     })
+
+    it('links to https://gradido.net/en/memberships/ when clicking', async () => {
+      const link = 'https://gradido.net/' + state.language + '/memberships/'
+      expect(wrapper.find('.gdt-funding').attributes('href')).toBe(link)
+    })
   })
 })
 
