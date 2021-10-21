@@ -5,7 +5,7 @@
         <b-col class="col-6">
           <b-row>
             <b-col class="col-11 bg-gray text-white p-3">
-              <gdd-status
+              <status
                 class="gdd-status-gdd"
                 :pending="pending"
                 :balance="balance"
@@ -17,7 +17,7 @@
         <b-col class="col-6 text-right">
           <b-row>
             <b-col class="bg-white text-gray p-3">
-              <gdd-status
+              <status
                 class="gdd-status-gdt"
                 :pending="pending"
                 :balance="GdtBalance"
@@ -40,14 +40,14 @@
   </div>
 </template>
 <script>
-import GddStatus from './GddGdtStatus.vue'
+import Status from '../../components/Status.vue'
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
 
 export default {
   name: 'Overview',
   components: {
-    GddStatus,
+    Status,
     GddTransactionList,
     GddTransactionListFooter,
   },

@@ -3,7 +3,7 @@
     <b-container fluid>
       <b-row>
         <b-col class="bg-gray text-white text-center p-3">
-          <gdd-status
+          <status
             class="gdd-status-gdd"
             v-if="showContext"
             :pending="pending"
@@ -41,7 +41,7 @@
   </div>
 </template>
 <script>
-import GddStatus from './GddGdtStatus.vue'
+import Status from '../../components/Status.vue'
 import GddSend from './SendOverview/GddSend.vue'
 
 import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
@@ -58,7 +58,7 @@ const EMPTY_TRANSACTION_DATA = {
 export default {
   name: 'SendOverview',
   components: {
-    GddStatus,
+    Status,
     GddSend,
 
     TransactionForm,

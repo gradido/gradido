@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
-import GddStatus from './GddGdtStatus'
+import Status from './Status'
 
 const localVue = global.localVue
 
-describe('GddStatus', () => {
+describe('Status', () => {
   let wrapper
 
   const mocks = {
@@ -16,7 +16,7 @@ describe('GddStatus', () => {
   }
 
   const Wrapper = () => {
-    return mount(GddStatus, { localVue, mocks, propsData })
+    return mount(Status, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

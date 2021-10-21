@@ -8,7 +8,7 @@
 
 <script>
 export default {
-  name: 'GddStatus',
+  name: 'Status',
   props: {
     balance: { type: Number, default: 0 },
     pending: {
