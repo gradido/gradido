@@ -4,6 +4,15 @@ import GdtTransactionList from './GdtTransactionList'
 
 const localVue = global.localVue
 
+const apolloMockNull = jest.fn().mockResolvedValue({
+  data: {
+    listGDTEntries: {
+      count: 0,
+      gdtEntries: [],
+    },
+  },
+})
+
 const apolloMock = jest.fn().mockResolvedValue({
   data: {
     listGDTEntries: {
@@ -52,8 +61,45 @@ const windowScrollToMock = jest.fn()
 window.scrollTo = windowScrollToMock
 
 const state = {
-  language: null,
+  language: 'en',
 }
+
+describe('GdtTransactionList ', () => {
+  let wrapper
+
+  const mocks = {
+    $store: {
+      state,
+      commit: jest.fn(),
+    },
+    $i18n: {
+      locale: 'en',
+    },
+    $t: jest.fn((t) => t),
+    $n: jest.fn((n) => n),
+    $d: jest.fn((d) => d),
+    $toasted: {
+      error: toastErrorMock,
+    },
+    $apollo: {
+      query: apolloMockNull,
+    },
+  }
+
+  const Wrapper = () => {
+    return mount(GdtTransactionList, { localVue, mocks })
+  }
+
+  describe('mount - When no transactions are loaded', () => {
+    beforeEach(() => {
+      wrapper = Wrapper()
+    })
+
+    it('renders the funding button ', () => {
+      expect(wrapper.find('.gdt-funding').exists()).toBe(true)
+    })
+  })
+})
 
 describe('GdtTransactionList', () => {
   let wrapper
@@ -81,13 +127,17 @@ describe('GdtTransactionList', () => {
     return mount(GdtTransactionList, { localVue, mocks })
   }
 
-  describe('mount', () => {
+  describe('mount - When transactions are loaded', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
 
     it('renders the component', () => {
       expect(wrapper.find('div.gdt-transaction-list').exists()).toBeTruthy()
+    })
+
+    it('renders the not funding button ', () => {
+      expect(wrapper.find('.gdt-funding').exists()).toBe(false)
     })
 
     describe('server returns valid data', () => {

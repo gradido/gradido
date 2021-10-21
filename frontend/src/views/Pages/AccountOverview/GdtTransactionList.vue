@@ -4,7 +4,9 @@
       <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}
         <hr />
-        <b-button :href="link" target="_blank">{{ $t('gdt.funding') }}</b-button>
+        <b-button class="gdt-funding" :href="link" target="_blank">
+          {{ $t('gdt.funding') }}
+        </b-button>
       </div>
       <div
         v-else
