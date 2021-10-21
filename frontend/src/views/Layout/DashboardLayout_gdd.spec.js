@@ -4,6 +4,8 @@ import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
 
+jest.setTimeout(30000)
+
 const localVue = global.localVue
 
 const storeDispatchMock = jest.fn()
@@ -45,6 +47,9 @@ describe('DashboardLayoutGdd', () => {
     $store: {
       state: {
         email: 'user@example.org',
+        publisherId: 123,
+        firstName: 'User',
+        lastName: 'Example',
       },
       dispatch: storeDispatchMock,
       commit: storeCommitMock,
@@ -124,9 +129,10 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has a link to the members area', () => {
-        expect(wrapper.findAll('ul').at(2).text()).toBe('members_area')
+        expect(wrapper.findAll('ul').at(2).text()).toContain('members_area')
+        expect(wrapper.findAll('ul').at(2).text()).toContain('!')
         expect(wrapper.findAll('ul').at(2).find('a').attributes('href')).toBe(
-          'https://elopage.com/s/gradido/sign_in?locale=en',
+          'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=User&lastName=Example&email=user@example.org',
         )
       })
 
@@ -143,6 +149,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
+          await wrapper.vm.$nextTick()
         })
 
         it('calls the API', async () => {
@@ -173,6 +180,17 @@ describe('DashboardLayoutGdd', () => {
 
         it('redirects to login page', () => {
           expect(routerPushMock).toBeCalledWith('/login')
+        })
+
+        describe('redirect to login already done', () => {
+          beforeEach(() => {
+            mocks.$router.currentRoute.path = '/login'
+            jest.resetAllMocks()
+          })
+
+          it('does not call the redirect to login', () => {
+            expect(routerPushMock).not.toBeCalled()
+          })
         })
       })
 

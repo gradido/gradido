@@ -132,7 +132,7 @@
     "newsletter": {
       "newsletter": "Newsletter",
       "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
-      "newsletterTrue": "Du bist im Newslettersystem eingetraten."
+      "newsletterTrue": "Du bist im Newslettersystem eingetragen."
     },
     "password": {
       "change-password": "Passwort ändern",
@@ -181,7 +181,7 @@
     "thx": {
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
-      "register": "Du bist jetzt regisriert.",
+      "register": "Du bist jetzt registriert.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
     }

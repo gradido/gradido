@@ -44,12 +44,6 @@ describe('router', () => {
       })
     })
 
-    describe('register page', () => {
-      it('is not present', () => {
-        expect(routes.find((r) => r.path === '/register')).toBe(undefined)
-      })
-    })
-
     describe('routes', () => {
       it('has "/login" as default', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
@@ -107,6 +101,13 @@ describe('router', () => {
         it('loads the "Login" component', async () => {
           const component = await routes.find((r) => r.path === '/login').component()
           expect(component.default.name).toBe('login')
+        })
+      })
+
+      describe('register', () => {
+        it('loads the "register" component', async () => {
+          const component = await routes.find((r) => r.path === '/register').component()
+          expect(component.default.name).toBe('register')
         })
       })
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import 'reflect-metadata'
+import 'module-alias/register'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 

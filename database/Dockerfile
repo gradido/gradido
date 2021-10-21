@@ -73,7 +73,7 @@ RUN yarn run build
 FROM build as test_up
 
 # Run command
-CMD /bin/sh -c "yarn run dev_up"
+CMD /bin/sh -c "yarn install && yarn run dev_up"
 
 ##################################################################################
 # TEST RESET #####################################################################
@@ -81,7 +81,7 @@ CMD /bin/sh -c "yarn run dev_up"
 FROM build as test_reset
 
 # Run command
-CMD /bin/sh -c "yarn run dev_reset"
+CMD /bin/sh -c "yarn install && yarn run dev_reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
@@ -89,7 +89,7 @@ CMD /bin/sh -c "yarn run dev_reset"
 FROM build as test_down
 
 # Run command
-CMD /bin/sh -c "yarn run dev_down"
+CMD /bin/sh -c "yarn install && yarn run dev_down"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
