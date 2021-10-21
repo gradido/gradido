@@ -439,6 +439,7 @@ namespace controller {
 		return 0;
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
+		auto db = new model::table::User();
 		static const char* function_name = "User::checkIfVerificationEmailsShouldBeResend";
 
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -520,6 +521,7 @@ namespace controller {
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
+		auto db = new model::table::User();
 		static const char* function_name = "User::addMissingEmailHashes";
 
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
