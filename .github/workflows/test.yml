@@ -383,7 +383,6 @@ jobs:
       - name: backend | docker-compose
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database
       - name: backend Unit tests | test
-        shell: 'script -q -e -c "bash {0}"'
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec backend yarn test
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
