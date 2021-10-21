@@ -103,12 +103,13 @@ namespace model {
 			}
 			Poco::Data::Statement select(session);
 
-			std::string table_name_user_roles = "login_user_roles"
+			std::string table_name_user_roles = "login_user_roles";
 
-			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, description, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, publisher_id, user_roles.role_id " 
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, description, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, publisher_id, " << table_name_user_roles << ".role_id " 
 				   << " FROM " << getTableName() 
-				   << " LEFT JOIN " << table_name_user_roles << " ON " << getTableName() << ".id = " << table_name_user_roles << ".user_id "
-				   << " WHERE " << _fieldName << " = ?" ,
+				   << " LEFT JOIN " << table_name_user_roles
+				   << " ON " << getTableName() << ".id = " << table_name_user_roles << ".user_id "
+				   << " WHERE " << _fieldName << " = ?; " ,
 				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mUsername), into(mDescription), into(mPasswordHashed),
 				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked), 
 				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mPublisherId), into(mRole);
