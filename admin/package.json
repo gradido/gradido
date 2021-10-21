@@ -1,0 +1,9 @@
+{
+  "name": "admin",
+  "version": "1.0.0",
+  "description": "Administraion Interface for Gradido",
+  "main": "index.js",
+  "author": "Moriz Wahl",
+  "license": "MIT",
+  "private": false
+}
