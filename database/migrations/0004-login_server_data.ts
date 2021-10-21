@@ -42,6 +42,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     INSERT INTO \`login_users\` SELECT * FROM ${LOGIN_SERVER_DB}.\`users\`;
   `)
+
+  // TODO clarify if we need this on non docker environment?
+  await queryFn(`
+    INSERT IGNORE INTO \`login_groups\` (\`id\`, \`alias\`, \`name\`, \`url\`, \`host\`, \`home\`, \`description\`) VALUES
+      (1, 'docker', 'docker gradido group', 'localhost', 'nginx', '/', 'gradido test group for docker and stage2 with blockchain db');
+  `)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {

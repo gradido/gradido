@@ -147,7 +147,7 @@ jobs:
       ##########################################################################
       - name: mariadb | Build `test` image
         run: |
-          docker build --target mariadb_server_test -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
+          docker build --target mariadb_server -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
           docker save "gradido/mariadb:test" > /tmp/mariadb.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
