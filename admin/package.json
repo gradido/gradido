@@ -5,5 +5,8 @@
   "main": "index.js",
   "author": "Moriz Wahl",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "vue": "^2.6.14"
+  }
 }
