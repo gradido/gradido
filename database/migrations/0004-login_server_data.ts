@@ -9,9 +9,18 @@
  * databases.
  */
 
-const LOGIN_SERVER_DB = '`gradido_login`'
+const LOGIN_SERVER_DB = 'gradido_login'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  const loginDatabaseExists = await queryFn(`
+    SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${LOGIN_SERVER_DB}'
+    `)
+  if (loginDatabaseExists.length === 0) {
+    // eslint-disable-next-line no-console
+    console.log(`Skipping Login Server Database migration - Database ${LOGIN_SERVER_DB} not found`)
+    return
+  }
+
   await queryFn(`
     INSERT INTO \`login_app_access_tokens\` SELECT * FROM ${LOGIN_SERVER_DB}.\`app_access_tokens\`;
   `)
