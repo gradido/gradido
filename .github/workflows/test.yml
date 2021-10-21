@@ -380,12 +380,8 @@ jobs:
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
-      - name: backend | docker-compose mariadb database
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database
-      - name: backend | docker-compose stop database
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml stop database
-      - name: backend | docker-compose backend
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend
+      - name: backend | docker-compose
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database backend
       - name: backend Unit tests | test
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
       ##########################################################################
