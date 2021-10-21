@@ -83,11 +83,11 @@ namespace model {
 
 		
 			if (mPasswordHashed) {
-				insert << "INSERT INTO users (email, first_name, last_name, username, description, password, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?,?,?);",
+				insert << "INSERT INTO " << getTableName() << " (email, first_name, last_name, username, description, password, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?,?,?);",
 					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mDescription), bind(mPasswordHashed), use(mEmailHash), use(mLanguageKey), use(mGroupId), use(mPublisherId);
 			}
 			else {
-				insert << "INSERT INTO users (email, first_name, last_name, username, description, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?,?);",
+				insert << "INSERT INTO " << getTableName() << " (email, first_name, last_name, username, description, email_hash, language, group_id, publisher_id) VALUES(?,?,?,?,?,?,?,?,?);",
 					use(mEmail), use(mFirstName), use(mLastName), use(mUsername), use(mDescription), use(mEmailHash), use(mLanguageKey), use(mGroupId), use(mPublisherId);
 
 			}
@@ -103,9 +103,11 @@ namespace model {
 			}
 			Poco::Data::Statement select(session);
 
+			std::string table_name_user_roles = "login_user_roles"
+
 			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, description, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, publisher_id, user_roles.role_id " 
 				   << " FROM " << getTableName() 
-				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
+				   << " LEFT JOIN " << table_name_user_roles << " ON " << getTableName() << ".id = " << table_name_user_roles << ".user_id "
 				   << " WHERE " << _fieldName << " = ?" ,
 				into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mUsername), into(mDescription), into(mPasswordHashed),
 				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked), 
@@ -194,7 +196,7 @@ namespace model {
 
 			Poco::Data::Statement update(session);
 
-			update << "UPDATE users SET password = ?, privkey = ? where id = ?;",
+			update << "UPDATE " << getTableName() << " SET password = ?, privkey = ? where id = ?;",
 				bind(mPasswordHashed), use(mPrivateKey), use(mID);
 			
 
@@ -221,7 +223,7 @@ namespace model {
 
 			Poco::Data::Statement update(session);
 
-			update << "UPDATE users SET pubkey = ?, privkey = ? where id = ?;",
+			update << "UPDATE " << getTableName() << " SET pubkey = ?, privkey = ? where id = ?;",
 				use(mPublicKey), use(mPrivateKey), use(mID);
 
 
@@ -246,7 +248,7 @@ namespace model {
 			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 
 			Poco::Data::Statement update(session);
-			update << "UPDATE users SET first_name = ?, last_name = ?, username = ?, description = ?, disabled = ?, language = ?, publisher_id = ? where id = ?;",
+			update << "UPDATE " << getTableName() << " SET first_name = ?, last_name = ?, username = ?, description = ?, disabled = ?, language = ?, publisher_id = ? where id = ?;",
 				use(mFirstName), use(mLastName), use(mUsername), use(mDescription), use(mDisabled), use(mLanguageKey), use(mPublisherId), use(mID);
 			
 			try {
