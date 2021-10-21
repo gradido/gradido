@@ -106,7 +106,7 @@ describe('DashboardLayoutGdd', () => {
         expect(navbar.findAll('ul > a').at(1).text()).toEqual('send')
       })
 
-      it('has second item "send" linked to sendoverview in navbar', () => {
+      it('has second item "send" linked to /send in navbar', () => {
         navbar.findAll('ul > a').at(1).trigger('click')
         expect(wrapper.findAll('ul > a').at(1).attributes('href')).toBe('/send')
       })
