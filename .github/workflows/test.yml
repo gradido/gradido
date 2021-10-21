@@ -419,8 +419,6 @@ jobs:
       - name: get automatic created network
         run: echo "::set-output name=id::$(docker network ls | grep github_network | awk '{ print $1 }')"
         id: network
-      - name: Start database migration
-        run: docker run --network ${{ steps.network.outputs.id }} --name=database --env NODE_ENV=production --env DB_HOST=mariadb --env DB_DATABASE=gradido_community_test -d gradido/database:production_up
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
@@ -428,6 +426,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
+      # Database migration
+      - name: Start database migration
+        run: docker run --network ${{ steps.network.outputs.id }} --name=database --env NODE_ENV=production --env DB_HOST=mariadb --env DB_DATABASE=gradido_community_test -d --target production_up  ./database
       ##########################################################################
       # Build Login-Server Test Docker image ###################################
       ##########################################################################
