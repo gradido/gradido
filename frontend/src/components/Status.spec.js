@@ -24,6 +24,12 @@ describe('Status', () => {
       wrapper = Wrapper()
     })
 
+    describe('balance is pending', () => {
+      it('it displays an en-dash', () => {
+        expect(wrapper.find('div.gdd-status-div').text()).toEqual('— GDD')
+      })
+    })
+
     describe('balance is loaded', () => {
       beforeEach(() => {
         wrapper.setProps({
