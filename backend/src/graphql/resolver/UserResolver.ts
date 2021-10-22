@@ -26,6 +26,7 @@ import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
+import { LoginUser } from '@entity/LoginUser'
 
 @Resolver()
 export class UserResolver {
@@ -276,14 +277,26 @@ export class UserResolver {
   }
 
   @Query(() => CheckUsernameResponse)
-  async checkUsername(
-    @Args() { username, groupId = 1 }: CheckUsernameArgs,
-  ): Promise<CheckUsernameResponse> {
-    const response = await apiGet(
-      CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`,
-    )
-    if (!response.success) throw new Error(response.data)
-    return new CheckUsernameResponse(response.data)
+  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<CheckUsernameResponse> {
+    // Username empty?
+    if (username === '') {
+      throw new Error('Username must be set.')
+    }
+
+    // Do we fullfil the minimum character length?
+    const MIN_CHARACTERS_USERNAME = 2
+    if (username.length < MIN_CHARACTERS_USERNAME) {
+      throw new Error(`Username must be at minimum ${MIN_CHARACTERS_USERNAME} characters long.`)
+    }
+
+    const usersFound = await LoginUser.count({ username })
+
+    // Username already present?
+    if (usersFound !== 0) {
+      throw new Error(`Username "${username}" already taken.`)
+    }
+
+    return new CheckUsernameResponse({ state: 'success' })
   }
 
   @Query(() => CheckEmailResponse)
