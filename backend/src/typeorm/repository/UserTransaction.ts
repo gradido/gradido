@@ -1,6 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm'
 import { Order } from '../../graphql/enum/Order'
-import { UserTransaction } from '../entity/UserTransaction'
+import { UserTransaction } from '@entity/UserTransaction'
 
 @EntityRepository(UserTransaction)
 export class UserTransactionRepository extends Repository<UserTransaction> {

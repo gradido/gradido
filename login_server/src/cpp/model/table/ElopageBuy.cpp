@@ -9,6 +9,11 @@ namespace model {
 			"product[affiliate_program_id]", "publisher[id]", "order_id", "product_id",
 			"product[price]", "payer[email]", "publisher[email]", "payment_state", "success_date", "event" };
 
+		ElopageBuy::ElopageBuy()
+		{
+
+		}
+
 		ElopageBuy::ElopageBuy(const Poco::Net::NameValueCollection& elopage_webhook_requestData)
 			: mPayed(false)
 		{
@@ -102,6 +107,14 @@ namespace model {
 				, into(mID), use(mIDs[ELOPAGE_BUY_ORDER_ID]);
 
 			return select;
+		}
+
+		// --------------------------- Tasks --------------------------------------------
+		int UserHasElopageTask::run()
+		{
+			auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
+			mHasElopage = elopage_buy->isExistInDB("payer_email", mEmail);
+			return 0;
 		}
 	}
 }

@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
 export const login = gql`
-  query($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  query($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
       email
       username
       firstName
@@ -13,6 +13,8 @@ export const login = gql`
       klickTipp {
         newsletterState
       }
+      hasElopage
+      publisherId
     }
   }
 `

@@ -1,5 +1,5 @@
-import { User as dbUser } from '../typeorm/entity/User'
-import { Balance as dbBalance } from '../typeorm/entity/Balance'
+import { User as dbUser } from '@entity/User'
+import { Balance as dbBalance } from '@entity/Balance'
 import { getRepository } from 'typeorm'
 import { calculateDecay } from './decay'
 

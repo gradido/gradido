@@ -20,15 +20,15 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
-import { User as dbUser } from '../../typeorm/entity/User'
-import { UserTransaction as DbUserTransaction } from '../../typeorm/entity/UserTransaction'
-import { Transaction as DbTransaction } from '../../typeorm/entity/Transaction'
-import { TransactionSignature as DbTransactionSignature } from '../../typeorm/entity/TransactionSignature'
-import { TransactionSendCoin as DbTransactionSendCoin } from '../../typeorm/entity/TransactionSendCoin'
-import { Balance as DbBalance } from '../../typeorm/entity/Balance'
+import { User as dbUser } from '@entity/User'
+import { UserTransaction as DbUserTransaction } from '@entity/UserTransaction'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionSignature as DbTransactionSignature } from '@entity/TransactionSignature'
+import { TransactionSendCoin as DbTransactionSendCoin } from '@entity/TransactionSendCoin'
+import { Balance as DbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
-import { roundFloorFrom4 } from '../../util/round'
+import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
 import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
@@ -89,24 +89,27 @@ async function calculateAndAddDecayTransactions(
     finalTransaction.date = transaction.received.toISOString()
     finalTransaction.memo = transaction.memo
     finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
-    const prev = i > 0 ? userTransactions[i - 1] : null
+    const previousTransaction = i > 0 ? userTransactions[i - 1] : null
 
-    if (prev && prev.balance > 0) {
-      const current = userTransaction
+    if (previousTransaction) {
+      const currentTransaction = userTransaction
       const decay = await calculateDecayWithInterval(
-        prev.balance,
-        prev.balanceDate,
-        current.balanceDate,
+        previousTransaction.balance,
+        previousTransaction.balanceDate,
+        currentTransaction.balanceDate,
       )
-      const balance = prev.balance - decay.balance
+      const balance = previousTransaction.balance - decay.balance
 
-      if (balance) {
+      if (
+        decayStartTransaction &&
+        decayStartTransaction.received < currentTransaction.balanceDate
+      ) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
           decayStartTransaction &&
-          prev.transactionId < decayStartTransaction.id &&
-          current.transactionId > decayStartTransaction.id
+          previousTransaction.transactionId < decayStartTransaction.id &&
+          currentTransaction.transactionId > decayStartTransaction.id
         ) {
           finalTransaction.decay.decayStartBlock = (
             decayStartTransaction.received.getTime() / 1000
@@ -162,15 +165,14 @@ async function calculateAndAddDecayTransactions(
         now.getTime(),
       )
       const balance = userTransaction.balance - decay.balance
-      if (balance) {
-        const decayTransaction = new Transaction()
-        decayTransaction.type = 'decay'
-        decayTransaction.balance = roundFloorFrom4(balance)
-        decayTransaction.decayDuration = decay.decayDuration
-        decayTransaction.decayStart = decay.decayStart
-        decayTransaction.decayEnd = decay.decayEnd
-        finalTransactions.push(decayTransaction)
-      }
+
+      const decayTransaction = new Transaction()
+      decayTransaction.type = 'decay'
+      decayTransaction.balance = roundCeilFrom4(balance)
+      decayTransaction.decayDuration = decay.decayDuration
+      decayTransaction.decayStart = decay.decayStart
+      decayTransaction.decayEnd = decay.decayEnd
+      finalTransactions.push(decayTransaction)
     }
   }
 

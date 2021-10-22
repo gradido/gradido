@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query, Args, Ctx, Authorized } from 'type-graphql'
+import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { GdtEntryList } from '../model/GdtEntryList'
@@ -31,5 +31,17 @@ export class GdtResolver {
       throw new Error(resultGDT.data)
     }
     return new GdtEntryList(resultGDT.data)
+  }
+
+  @Authorized()
+  @Query(() => Number)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async existPid(@Arg('pid') pid: number): Promise<number> {
+    // load user
+    const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
+    if (!resultPID.success) {
+      throw new Error(resultPID.data)
+    }
+    return resultPID.data.pid
   }
 }

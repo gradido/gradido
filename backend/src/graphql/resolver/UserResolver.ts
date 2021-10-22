@@ -9,7 +9,7 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
-import { User as DbUser } from '../../typeorm/entity/User'
+import { User as DbUser } from '@entity/User'
 import encode from '../../jwt/encode'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
@@ -31,7 +31,10 @@ import { UserRepository } from '../../typeorm/repository/User'
 export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(@Args() { email, password }: UnsecureLoginArgs, @Ctx() context: any): Promise<User> {
+  async login(
+    @Args() { email, password, publisherId }: UnsecureLoginArgs,
+    @Ctx() context: any,
+  ): Promise<User> {
     email = email.trim().toLowerCase()
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
 
@@ -45,9 +48,38 @@ export class UserResolver {
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
     const user = new User(result.data.user)
+    // Hack: Database Field is not validated properly and not nullable
+    if (user.publisherId === 0) {
+      user.publisherId = undefined
+    }
+    user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(user.pubkey)
+    let userEntity: void | DbUser
+    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+      userEntity = new DbUser()
+      userEntity.firstName = user.firstName
+      userEntity.lastName = user.lastName
+      userEntity.username = user.username
+      userEntity.email = user.email
+      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+
+      userEntity.save().catch(() => {
+        throw new Error('error by save userEntity')
+      })
+    })
+    if (!userEntity) {
+      throw new Error('error with cannot happen')
+    }
+
+    // Save publisherId if Elopage is not yet registered
+    if (!user.hasElopage && publisherId) {
+      user.publisherId = publisherId
+      await this.updateUserInfos(
+        { publisherId },
+        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
+      )
+    }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
@@ -87,7 +119,7 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language }: CreateUserArgs,
+    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     const payload = {
       email,
@@ -97,7 +129,7 @@ export class UserResolver {
       emailType: 2,
       login_after_register: true,
       language: language,
-      publisher_id: 0,
+      publisher_id: publisherId,
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
     if (!result.success) {
@@ -183,6 +215,8 @@ export class UserResolver {
       },
     }
     let response: UpdateUserInfosResponse | undefined
+    const userRepository = getCustomRepository(UserRepository)
+
     if (
       firstName ||
       lastName ||
@@ -196,11 +230,32 @@ export class UserResolver {
       const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
       if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
+
+      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      let userEntityChanged = false
+      if (firstName) {
+        userEntity.firstName = firstName
+        userEntityChanged = true
+      }
+      if (lastName) {
+        userEntity.lastName = lastName
+        userEntityChanged = true
+      }
+      if (username) {
+        userEntity.username = username
+        userEntityChanged = true
+      }
+      if (userEntityChanged) {
+        userEntity.save().catch((error) => {
+          throw new Error(error)
+        })
+      }
     }
     if (coinanimation !== undefined) {
       // load user and balance
-      const userRepository = getCustomRepository(UserRepository)
+
       const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
@@ -241,5 +296,14 @@ export class UserResolver {
       throw new Error(result.data)
     }
     return new CheckEmailResponse(result.data)
+  }
+
+  @Query(() => Boolean)
+  async hasElopage(@Ctx() context: any): Promise<boolean> {
+    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return result.data.hasElopage
   }
 }

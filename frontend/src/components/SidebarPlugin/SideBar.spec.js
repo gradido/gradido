@@ -18,6 +18,10 @@ describe('SideBar', () => {
     $store: {
       state: {
         email: 'test@example.org',
+        publisherId: 123,
+        firstName: 'test',
+        lastName: 'example',
+        hasElopage: false,
       },
       commit: jest.fn(),
     },
@@ -78,14 +82,18 @@ describe('SideBar', () => {
     })
 
     describe('static menu items', () => {
-      describe("member's area", () => {
+      describe("member's area without publisher ID", () => {
         it('has a link to the elopage', () => {
-          expect(wrapper.findAll('li').at(0).text()).toBe('members_area')
+          expect(wrapper.findAll('li').at(0).text()).toContain('members_area')
         })
 
-        it('links to the elopage', () => {
+        it('has a badge', () => {
+          expect(wrapper.findAll('li').at(0).text()).toContain('!')
+        })
+
+        it('links to the elopage registration', () => {
           expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
-            'https://elopage.com/s/gradido/sign_in?locale=en',
+            'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=test&lastName=example&email=test@example.org',
           )
         })
 
@@ -94,10 +102,43 @@ describe('SideBar', () => {
             mocks.$i18n.locale = 'de'
           })
 
-          it('links to the German elopage when locale is set to de', () => {
+          it('links to the German elopage registration when locale is set to de', () => {
+            expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
+              'https://elopage.com/s/gradido/basic-de/payment?locale=de&prid=111&pid=123&firstName=test&lastName=example&email=test@example.org',
+            )
+          })
+        })
+
+        describe("member's area with publisher ID", () => {
+          beforeEach(() => {
+            mocks.$store.state.hasElopage = true
+          })
+
+          it('links to the elopage member area', () => {
             expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
               'https://elopage.com/s/gradido/sign_in?locale=de',
             )
+          })
+
+          it('has no badge', () => {
+            expect(wrapper.findAll('li').at(0).text()).not.toContain('!')
+          })
+        })
+
+        describe("member's area with default publisher ID  and no elopage", () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = null
+            mocks.$store.state.hasElopage = false
+          })
+
+          it('links to the elopage member area with default publisher ID', () => {
+            expect(wrapper.findAll('li').at(0).find('a').attributes('href')).toBe(
+              'https://elopage.com/s/gradido/basic-de/payment?locale=de&prid=111&pid=2896&firstName=test&lastName=example&email=test@example.org',
+            )
+          })
+
+          it('has a badge', () => {
+            expect(wrapper.findAll('li').at(0).text()).toContain('!')
           })
         })
       })
