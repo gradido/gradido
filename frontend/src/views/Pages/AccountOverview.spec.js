@@ -35,5 +35,13 @@ describe('AccountOverview', () => {
     it('has a transactions table', () => {
       expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
     })
+
+    describe('timestamp updates', () => {
+      it('emits update transactions', async () => {
+        expect(wrapper.emitted('update-transactions')).toHaveLength(1)
+        await wrapper.setData({ timestamp: Date.now() })
+        expect(wrapper.emitted('update-transactions')).toHaveLength(2)
+      })
+    })
   })
 })

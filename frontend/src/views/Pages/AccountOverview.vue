@@ -54,11 +54,6 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      error: false,
-      errorResult: '',
-      loading: false,
-      datacollectionGdd: null,
-      datacollectionGdt: null,
     }
   },
   props: {
