@@ -33,19 +33,7 @@ import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
-import {
-  from_hex as fromHex,
-  to_base64 as toBase64,
-  from_base64 as fromBase64,
-  base64_variants as base64Variants,
-  crypto_sign_verify_detached as cryptoSignVerifyDetached,
-  crypto_generichash_init as cryptoGenerichashInit,
-  crypto_generichash_update as cryptoGenerichashUpdate,
-  crypto_generichash_final as cryptoGenerichashFinal,
-  crypto_generichash_BYTES as cryptoGenericHashBytes,
-} from 'libsodium-wrappers'
-
-import { proto } from '../../proto/bundle'
+import { from_hex as fromHex } from 'libsodium-wrappers'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
@@ -241,13 +229,15 @@ async function updateStateBalance(
     balance = new DbBalance()
     balance.userId = user.id
     balance.amount = centAmount
+    balance.modified = received
   } else {
-    const decaiedBalance = calculateDecay(balance.amount, balance.recordDate, received).catch(
+    const decaiedBalance = await calculateDecay(balance.amount, balance.recordDate, received).catch(
       () => {
         throw new Error('error by calculating decay')
       },
     )
-    balance.amount = Number(await decaiedBalance) + centAmount
+    balance.amount = Number(decaiedBalance) + centAmount
+    balance.modified = new Date()
   }
   if (balance.amount <= 0) {
     throw new Error('error new balance <= 0')
@@ -310,7 +300,6 @@ async function sendCoins(
   recipiantPublicKey: string,
   amount: number,
   memo: string,
-  sessionId: number,
   groupId = 0,
 ): Promise<boolean> {
   if (senderUser.pubkey.length !== 32) {
@@ -333,44 +322,44 @@ async function sendCoins(
   }
 
   const centAmount = Math.trunc(amount * 10000)
-  const transferAmount = new proto.gradido.TransferAmount({
-    pubkey: senderUser.pubkey,
-    amount: centAmount,
-  })
+  // const transferAmount = new proto.gradido.TransferAmount({
+  //   pubkey: senderUser.pubkey,
+  //   amount: centAmount,
+  // })
 
   // no group id is given so we assume it is a local transfer
   if (!groupId) {
-    const localTransfer = new proto.gradido.LocalTransfer({
-      sender: transferAmount,
-      recipiant: fromHex(recipiantPublicKey),
-    })
-    const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
-    const transactionBody = new proto.gradido.TransactionBody({
-      memo: memo,
-      created: { seconds: new Date().getTime() / 1000 },
-      transfer: transferTransaction,
-    })
+    // const localTransfer = new proto.gradido.LocalTransfer({
+    //   sender: transferAmount,
+    //   recipiant: fromHex(recipiantPublicKey),
+    // })
+    // const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
+    // const transactionBody = new proto.gradido.TransactionBody({
+    //   memo: memo,
+    //   created: { seconds: new Date().getTime() / 1000 },
+    //   transfer: transferTransaction,
+    // })
 
-    const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
-    const bodyBytesBase64 = toBase64(bodyBytes, base64Variants.ORIGINAL)
+    // const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+    // const bodyBytesBase64 = toBase64(bodyBytes, base64Variants.ORIGINAL)
     // let Login-Server sign transaction
 
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'signTransaction', {
-      session_id: sessionId,
-      bodyBytes: bodyBytesBase64,
-    })
-    if (!result.success) throw new Error(result.data)
-    // verify
-    const sign = fromBase64(result.data.sign, base64Variants.ORIGINAL)
-    if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
-      throw new Error('Could not verify signature')
-    }
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'signTransaction', {
+    //   session_id: sessionId,
+    //   bodyBytes: bodyBytesBase64,
+    // })
+    // if (!result.success) throw new Error(result.data)
+    // // verify
+    // const sign = fromBase64(result.data.sign, base64Variants.ORIGINAL)
+    // if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+    //   throw new Error('Could not verify signature')
+    // }
 
-    const sigPair = new proto.gradido.SignaturePair({
-      pubKey: senderUser.pubkey,
-      ed25519: sign,
-    })
-    const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
+    // const sigPair = new proto.gradido.SignaturePair({
+    //   pubKey: senderUser.pubkey,
+    //   ed25519: sign,
+    // })
+    // const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
 
     // process db updates as transaction to able to rollback if an error occure
 
@@ -445,35 +434,35 @@ async function sendCoins(
       })
 
       // tx hash
-      const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
-      if (transaction.id > 1) {
-        const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
-        if (!previousTransaction) {
-          throw new Error('Error previous transaction not found, please try again')
-        }
-        if (!previousTransaction.txHash) {
-          throw new Error('Previous tx hash is null')
-        }
-        cryptoGenerichashUpdate(state, previousTransaction.txHash)
-      }
-      cryptoGenerichashUpdate(state, transaction.id.toString())
-      // should match previous used format: yyyy-MM-dd HH:mm:ss
-      const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
-      cryptoGenerichashUpdate(state, receivedString)
-      cryptoGenerichashUpdate(state, proto.gradido.SignatureMap.encode(sigMap).finish())
-      transaction.txHash = Buffer.from(cryptoGenerichashFinal(state, cryptoGenericHashBytes))
+      // const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
+      // if (transaction.id > 1) {
+      //   const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
+      //   if (!previousTransaction) {
+      //     throw new Error('Error previous transaction not found, please try again')
+      //   }
+      //   if (!previousTransaction.txHash) {
+      //     throw new Error('Previous tx hash is null')
+      //   }
+      //   cryptoGenerichashUpdate(state, previousTransaction.txHash)
+      // }
+      // cryptoGenerichashUpdate(state, transaction.id.toString())
+      // // should match previous used format: yyyy-MM-dd HH:mm:ss
+      // const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
+      // cryptoGenerichashUpdate(state, receivedString)
+      // cryptoGenerichashUpdate(state, proto.gradido.SignatureMap.encode(sigMap).finish())
+      // transaction.txHash = Buffer.from(cryptoGenerichashFinal(state, cryptoGenericHashBytes))
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
       })
 
       // save signature
-      const signature = new DbTransactionSignature()
-      signature.transactionId = transaction.id
-      signature.signature = Buffer.from(sign)
-      signature.pubkey = senderUser.pubkey
-      await queryRunner.manager.save(signature).catch((error) => {
-        throw new Error('error saving signature: ' + error)
-      })
+      // const signature = new DbTransactionSignature()
+      // signature.transactionId = transaction.id
+      // signature.signature = Buffer.from('sign')
+      // signature.pubkey = senderUser.pubkey
+      // await queryRunner.manager.save(signature).catch((error) => {
+      //   throw new Error('error saving signature: ' + error)
+      // })
       await queryRunner.commitTransaction()
 
       // great way de debug mysql querys / typeorm
@@ -548,11 +537,7 @@ async function sendCoins(
 // helper function
 // target can be email, username or public_key
 // groupId if not null and another community, try to get public key from there
-async function getPublicKey(
-  target: string,
-  sessionId: number,
-  groupId = 0,
-): Promise<string | undefined> {
+async function getPublicKey(target: string, sessionId: number): Promise<string | undefined> {
   // if it is already a public key, return it
   if (isHexPublicKey(target)) {
     return target
@@ -628,7 +613,7 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    await sendCoins(userEntity, recipiantPublicKey, amount, memo, context.sessionId)
+    await sendCoins(userEntity, recipiantPublicKey, amount, memo)
     return 'success'
   }
 }
