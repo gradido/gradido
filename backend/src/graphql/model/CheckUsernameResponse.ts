@@ -6,16 +6,8 @@ import { ObjectType, Field } from 'type-graphql'
 export class CheckUsernameResponse {
   constructor(json: any) {
     this.state = json.state
-    this.msg = json.msg
-    this.groupId = json.group_id
   }
 
   @Field(() => String)
   state: string
-
-  @Field(() => String)
-  msg?: string
-
-  @Field(() => Number)
-  groupId?: number
 }
