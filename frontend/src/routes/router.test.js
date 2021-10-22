@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has twelve routes defined', () => {
-        expect(routes).toHaveLength(13)
+      it('has fourteen routes defined', () => {
+        expect(routes).toHaveLength(14)
       })
 
       describe('overview', () => {
@@ -61,6 +61,17 @@ describe('router', () => {
         it('loads the "Overview" component', async () => {
           const component = await routes.find((r) => r.path === '/overview').component()
           expect(component.default.name).toBe('Overview')
+        })
+      })
+
+      describe('send', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/send').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Send" component', async () => {
+          const component = await routes.find((r) => r.path === '/send').component()
+          expect(component.default.name).toBe('SendOverview')
         })
       })
 

@@ -89,33 +89,40 @@ describe('DashboardLayoutGdd', () => {
         navbar = wrapper.findAll('ul.navbar-nav').at(0)
       })
 
-      it('has three items in the navbar', () => {
-        expect(navbar.findAll('ul > a')).toHaveLength(3)
+      it('has four items in the navbar', () => {
+        expect(navbar.findAll('ul > a')).toHaveLength(4)
       })
 
-      it('has first item "send" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(0).text()).toEqual('send')
+      it('has first item "overview" in navbar', () => {
+        expect(navbar.findAll('ul > a').at(0).text()).toEqual('overview')
       })
 
-      it('has first item "send" linked to overview in navbar', () => {
-        navbar.findAll('ul > a').at(0).trigger('click')
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/overview')
+      it('has first item "overview" linked to overview in navbar', () => {
+        expect(navbar.findAll('ul > a > a').at(0).attributes('href')).toBe('/overview')
       })
 
-      it('has second item "transactions" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(1).text()).toEqual('transactions')
+      it('has second item "send" in navbar', () => {
+        expect(navbar.findAll('ul > a').at(1).text()).toEqual('send')
       })
 
-      it('has second item "transactions" linked to transactions in navbar', async () => {
-        expect(wrapper.findAll('a').at(3).attributes('href')).toBe('/transactions')
+      it('has second item "send" linked to /send in navbar', () => {
+        expect(wrapper.findAll('ul > a > a').at(1).attributes('href')).toBe('/send')
       })
 
-      it('has three items in the navbar', () => {
-        expect(navbar.findAll('ul > a')).toHaveLength(3)
+      it('has third item "transactions" in navbar', () => {
+        expect(navbar.findAll('ul > a').at(2).text()).toEqual('transactions')
       })
 
-      it('has third item "My profile" linked to profile in navbar', async () => {
-        expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/profile')
+      it('has third item "transactions" linked to transactions in navbar', async () => {
+        expect(wrapper.findAll('ul > a > a').at(2).attributes('href')).toBe('/transactions')
+      })
+
+      it('has fourth item "My profile" in navbar', () => {
+        expect(navbar.findAll('ul > a').at(3).text()).toEqual('site.navbar.my-profil')
+      })
+
+      it('has fourth item "My profile" linked to profile in navbar', async () => {
+        expect(wrapper.findAll('ul > a > a').at(3).attributes('href')).toBe('/profile')
       })
 
       it('has a link to the members area', () => {
