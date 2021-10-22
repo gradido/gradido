@@ -98,8 +98,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has first item "overview" linked to overview in navbar', () => {
-        navbar.findAll('ul > a').at(0).trigger('click')
-        expect(wrapper.findComponent(RouterLinkStub).props(0).to).toBe('/overview')
+        expect(navbar.findAll('ul > a > a').at(0).attributes('href')).toBe('/overview')
       })
 
       it('has second item "send" in navbar', () => {
@@ -107,8 +106,7 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has second item "send" linked to /send in navbar', () => {
-        navbar.findAll('ul > a').at(1).trigger('click')
-        expect(wrapper.findAll('a').at(3).attributes('href')).toBe('/send')
+        expect(wrapper.findAll('ul > a > a').at(1).attributes('href')).toBe('/send')
       })
 
       it('has third item "transactions" in navbar', () => {
@@ -116,16 +114,15 @@ describe('DashboardLayoutGdd', () => {
       })
 
       it('has third item "transactions" linked to transactions in navbar', async () => {
-        navbar.findAll('ul > a').at(2).trigger('click')
-        expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/transactions')
+        expect(wrapper.findAll('ul > a > a').at(2).attributes('href')).toBe('/transactions')
       })
 
-      it('has fourth item "M profile" in navbar', () => {
+      it('has fourth item "My profile" in navbar', () => {
         expect(navbar.findAll('ul > a').at(3).text()).toEqual('site.navbar.my-profil')
       })
 
       it('has fourth item "My profile" linked to profile in navbar', async () => {
-        expect(wrapper.findAll('a').at(7).attributes('href')).toBe('/profile')
+        expect(wrapper.findAll('ul > a > a').at(3).attributes('href')).toBe('/profile')
       })
 
       it('has a link to the members area', () => {
