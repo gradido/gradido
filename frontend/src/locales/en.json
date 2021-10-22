@@ -97,8 +97,9 @@
     "credit": "Credit",
     "factor": "Factor",
     "formula": "Calculation formula",
+    "funding": "Regarding the funding contributions",
     "gdt-received": "Gradido Transform (GDT) received",
-    "no-transactions": "You currently have no transactions",
+    "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Recruited Member"

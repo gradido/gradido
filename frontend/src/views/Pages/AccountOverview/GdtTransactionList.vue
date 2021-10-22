@@ -1,8 +1,12 @@
 <template>
   <div class="gdt-transaction-list">
-    <div class="list-group" style="background-color: #fff">
-      <div v-if="transactionGdtCount === 0">
+    <div class="list-group">
+      <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}
+        <hr />
+        <b-button class="gdt-funding" :href="link" target="_blank">
+          {{ $t('gdt.funding') }}
+        </b-button>
       </div>
       <div
         v-else
@@ -52,6 +56,7 @@ export default {
       transactionGdtCount: { type: Number, default: 0 },
       currentPage: 1,
       pageSize: 25,
+      link: 'https://gradido.net/' + this.$store.state.language + '/memberships/',
     }
   },
   methods: {
