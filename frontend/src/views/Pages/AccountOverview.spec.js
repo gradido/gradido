@@ -17,7 +17,6 @@ describe('AccountOverview', () => {
     return mount(AccountOverview, {
       localVue,
       mocks,
-      stubs: ['apexchart'],
     })
   }
 
