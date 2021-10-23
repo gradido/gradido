@@ -26,6 +26,7 @@ import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
+import { UserSetting } from '@entity/UserSetting'
 
 @Resolver()
 export class UserResolver {
@@ -121,22 +122,47 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const payload = {
+    // const payload = {
+    //   email,
+    //   first_name: firstName,
+    //   last_name: lastName,
+    //   password,
+    //   emailType: 2,
+    //   login_after_register: true,
+    //   language: language,
+    //   publisher_id: publisherId,
+    // }
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
+    // if (!result.success) {
+    //   throw new Error(result.data)
+    // }
+
+    // this.email = json.email
+    // this.firstName = json.first_name
+    // this.lastName = json.last_name
+    // this.username = json.username
+    // this.description = json.description
+    // this.pubkey = json.public_hex
+    // this.language = json.language
+    // this.publisherId = json.publisher_id
+    const userJson = {
       email,
-      first_name: firstName,
-      last_name: lastName,
+      firstName,
+      lastName,
       password,
       emailType: 2,
-      login_after_register: true,
+      login_after_register: false,
       language: language,
-      publisher_id: publisherId,
+      publisherId,
     }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
-    if (!result.success) {
-      throw new Error(result.data)
-    }
+    const dbUser: DbUser = new DbUser()
+    dbUser.email = email
+    dbUser.firstName = firstName
+    dbUser.lastName = firstName
+    
 
-    const user = new User(result.data.user)
+
+    const user = new User(userJson)
     const dbuser = new DbUser()
     dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
     dbuser.email = user.email
@@ -148,6 +174,7 @@ export class UserResolver {
       throw new Error('error saving user')
     })
 
+    // const emailOptIn: EmailOptIn = 
     return 'success'
   }
 
