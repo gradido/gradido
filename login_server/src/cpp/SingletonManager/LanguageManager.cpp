@@ -164,29 +164,27 @@ void LanguageManager::returnCatalog(LanguageCatalog* catalog)
 std::string LanguageManager::filenameForLanguage(Languages lang)
 {
 	switch (lang) {
-	case LANG_DE: return "de_DE";
-	case LANG_EN: return "en_GB";
+		case LANG_DE: return "de_DE";
+		case LANG_EN: return "en_GB";
+		default: return "en_GB";
 	}
-	return "en_GB";
 }
 
 Languages LanguageManager::languageFromString(const std::string& language_key)
 {
-	if (language_key == "de") {
-		return LANG_DE;
+	switch(language_key) {
+		case 'de': return LANG_DE;
+		case 'en': return LANG_EN;
+		default: return LANG_NULL;
 	}
-	if (language_key == "en") {
-		return LANG_EN;
-	}
-	return LANG_NULL;
 }
  std::string LanguageManager::keyForLanguage(Languages lang)
 {
 	 switch(lang) {
-	 case LANG_DE: return "de";
-	 case LANG_EN: return "en";
+	 	case LANG_DE: return "de";
+	 	case LANG_EN: return "en";
+		default: return "";
 	 }
-	 return "";
 }
 
 Poco::AutoPtr<LanguageCatalog> LanguageManager::getFreeCatalog(Languages lang)
