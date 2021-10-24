@@ -118,10 +118,10 @@ export class UserResolver {
     return 'success'
   }
 
-  @Mutation(() => String)
+  @Mutation(() => Boolean)
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
-  ): Promise<string> {
+  ): Promise<boolean> {
     // const payload = {
     //   email,
     //   first_name: firstName,
@@ -159,23 +159,19 @@ export class UserResolver {
     dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = firstName
-    
 
-
-    const user = new User(userJson)
     const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
-    dbuser.email = user.email
-    dbuser.firstName = user.firstName
-    dbuser.lastName = user.lastName
-    dbuser.username = user.username
+    dbuser.pubkey = Buffer.from(fromHex('pubkey'))
+    dbuser.email = email
+    dbuser.firstName = firstName
+    dbuser.lastName = lastName
+    dbuser.username = 'username'
 
     dbuser.save().catch(() => {
       throw new Error('error saving user')
     })
 
-    // const emailOptIn: EmailOptIn = 
-    return 'success'
+    return true
   }
 
   @Query(() => SendPasswordResetEmailResponse)
