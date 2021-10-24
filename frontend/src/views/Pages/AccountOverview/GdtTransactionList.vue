@@ -102,4 +102,8 @@ export default {
 .nav-tabs .nav-item.show .nav-link {
   background-color: #f8f9fe38;
 }
+
+.gdt-transaction-list-item {
+  outline: none !important;
+}
 </style>
