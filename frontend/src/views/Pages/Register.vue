@@ -235,14 +235,6 @@ export default {
       return this.form.email !== ''
     },
   },
-  created() {
-    this.messageError = ''
-    this.form.email = ''
-    this.form.firstname = ''
-    this.form.lastname = ''
-    this.form.password.password = ''
-    this.form.password.passwordRepeat = ''
-  },
 }
 </script>
 <style></style>
