@@ -161,6 +161,7 @@ import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { registerUser } from '../../graphql/mutations'
+import { communityInfo } from '../../graphql/queries'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
@@ -228,6 +229,20 @@ export default {
       this.form.password.passwordRepeat = ''
       this.language = ''
     },
+    async onCreated() {
+      if (!this.$state.store.community) {
+        this.$apollo
+          .query({
+            query: communityInfo,
+          })
+          .then((result) => {
+            this.$store.commit('community', result.data.getCommunityInfo)
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
+      }
+    },
   },
   computed: {
     namesFilled() {
@@ -241,6 +256,9 @@ export default {
     emailFilled() {
       return this.form.email !== ''
     },
+  },
+  created() {
+    this.onCreated()
   },
 }
 </script>
