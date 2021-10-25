@@ -49,12 +49,32 @@
   </div>
 </template>
 <script>
+import { communityInfo } from '../../graphql/queries'
+
 export default {
   name: 'registerCommunity',
   data() {
     return {}
   },
-  methods: {},
+  methods: {
+    async onCreated() {
+      if (!this.$state.store.community) {
+        this.$apollo
+          .query({
+            query: communityInfo,
+          })
+          .then((result) => {
+            this.$store.commit('community', result.data.getCommunityInfo)
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
+      }
+    },
+  },
+  created() {
+    this.onCreated()
+  },
 }
 </script>
 <style></style>
