@@ -161,6 +161,7 @@ import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { registerUser } from '../../graphql/mutations'
+import { localeChanged } from 'vee-validate'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
@@ -187,6 +188,10 @@ export default {
   methods: {
     updateLanguage(e) {
       this.language = e
+      console.log('language', this.language)
+      this.$store.commit('language', this.language)
+      this.$i18n.locale = this.language
+      localeChanged(this.language)
     },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
