@@ -17,7 +17,7 @@ module.exports = {
     },
   },
   lintOnSave: true,
-  publicPath: '/vue',
+  publicPath: '/admin',
   configureWebpack: {
     // Set up all the aliases we use in our app.
     resolve: {
