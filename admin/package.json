@@ -33,7 +33,6 @@
     "dotenv-webpack": "^7.0.3",
     "graphql": "^15.6.1",
     "jest": "26.6.3",
-    "jsdom-global": "^3.0.2",
     "stats-webpack-plugin": "^0.7.0",
     "vue": "^2.6.11",
     "vue-apollo": "^3.0.8",
