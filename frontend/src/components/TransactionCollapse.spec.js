@@ -4,15 +4,9 @@ import { GdtEntryType } from '../graphql/enums'
 
 import Vue from 'vue'
 
-// disable throwing Errors on warnings to catch the warning
-Vue.config.warnHandler = (w) => {}
-
 const localVue = global.localVue
 
 const consoleErrorMock = jest.fn()
-
-// eslint-disable-next-line no-console
-console.error = consoleErrorMock
 
 describe('TransactionCollapse', () => {
   let wrapper
@@ -28,6 +22,10 @@ describe('TransactionCollapse', () => {
 
   describe('no valid GDT entry type', () => {
     beforeEach(async () => {
+      // disable throwing Errors on warnings to catch the warning
+      Vue.config.warnHandler = (w) => {}
+      // eslint-disable-next-line no-console
+      console.error = consoleErrorMock
       const propsData = {
         amount: 100,
         gdt: 110,

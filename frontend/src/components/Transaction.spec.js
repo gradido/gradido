@@ -2,15 +2,9 @@ import { mount } from '@vue/test-utils'
 import Transaction from './Transaction'
 import Vue from 'vue'
 
-// disable throwing Errors on warnings to catch the warning
-Vue.config.warnHandler = (w) => {}
-
 const localVue = global.localVue
 
 const consoleErrorMock = jest.fn()
-
-// eslint-disable-next-line no-console
-console.error = consoleErrorMock
 
 describe('Transaction', () => {
   let wrapper
@@ -43,6 +37,10 @@ describe('Transaction', () => {
 
     describe('no valid GDT entry type', () => {
       beforeEach(async () => {
+        // disable throwing Errors on warnings to catch the warning
+        Vue.config.warnHandler = (w) => {}
+        // eslint-disable-next-line no-console
+        console.error = consoleErrorMock
         await wrapper.setProps({ gdtEntryType: 'NOT_VALID' })
       })
 
