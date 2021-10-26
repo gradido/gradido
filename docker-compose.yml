@@ -30,6 +30,30 @@ services:
       # - ./.env
       # - ./frontend/.env
 
+  ########################################################
+  # ADMIN INTERFACE ######################################
+  ########################################################
+  admin:
+    image: gradido/admin:latest
+    build:
+      context: ./admin
+      target: production
+    networks:
+      - internal-net
+    ports:
+      - 8080:8080
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=8090
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
+      - NODE_ENV="production"
+    # env_file:
+      # - ./.env
+      # - ./frontend/.env
+
   #########################################################
   ## MARIADB ##############################################
   #########################################################
