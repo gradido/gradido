@@ -1,4 +1,3 @@
-require('jsdom-global')
 module.exports = {
   verbose: true,
   collectCoverageFrom: ['src/**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
@@ -22,4 +21,5 @@ module.exports = {
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
+  testEnvironment: 'jest-environment-jsdom-sixteen',
 }

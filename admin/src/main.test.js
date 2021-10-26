@@ -2,6 +2,10 @@ import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import './main'
 import CONFIG from './config'
 
+import Vue from 'vue'
+
+jest.mock('vue')
+
 jest.mock('apollo-boost', () => {
   return {
     __esModule: true,
@@ -29,5 +33,9 @@ describe('main', () => {
 
   it('calls the InMemoryCache', () => {
     expect(InMemoryCache).toBeCalled()
+  })
+
+  it('calls Vue', () => {
+    expect(Vue).toBeCalled()
   })
 })

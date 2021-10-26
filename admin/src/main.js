@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+import router from './router/router'
+// import addNavigationGuards from './router/guards'
+
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 
@@ -42,9 +45,10 @@ const apolloProvider = new VueApollo({
 
 Vue.use(BootstrapVue)
 
-Vue.config.productionTip = false
+// addNavigationGuards(router, )
 
 new Vue({
+  router,
   apolloProvider,
   render: (h) => h(App),
 }).$mount('#app')
