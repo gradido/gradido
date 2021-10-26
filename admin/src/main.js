@@ -6,6 +6,8 @@ import store from './store/store'
 import router from './router/router'
 import addNavigationGuards from './router/guards'
 
+import i18n from './i18n'
+
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 
@@ -52,6 +54,7 @@ addNavigationGuards(router, store)
 new Vue({
   router,
   store,
+  i18n,
   apolloProvider,
   render: (h) => h(App),
 }).$mount('#app')

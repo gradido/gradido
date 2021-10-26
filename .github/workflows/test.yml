@@ -426,14 +426,14 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/admin.tar
       ##########################################################################
-      # UNIT TESTS FRONTEND ####################################################
+      # UNIT TESTS ADMIN INTERFACE #############################################
       ##########################################################################
       - name: Admin Interface | Unit tests
         run: |
           docker run -v ~/coverage:/app/coverage --rm gradido/admin:test yarn run test
           cp -r ~/coverage ./coverage
       ##########################################################################
-      # COVERAGE CHECK ADMIN INTERFACE##########################################
+      # COVERAGE CHECK ADMIN INTERFACE #########################################
       ##########################################################################
       - name: Admin Interface | Coverage check
         uses: webcraftmedia/coverage-check-action@master
@@ -441,7 +441,7 @@ jobs:
           report_name: Coverage Admin Interface
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 82
+          min_coverage: 65
           token: ${{ github.token }}
 
   ##############################################################################

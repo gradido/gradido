@@ -4,9 +4,11 @@ import CONFIG from './config'
 
 import Vue from 'vue'
 import Vuex from 'vuex'
+import VueI18n from 'vue-i18n'
 
 jest.mock('vue')
 jest.mock('vuex')
+jest.mock('vue-i18n')
 
 const storeMock = jest.fn()
 Vuex.Store = storeMock
@@ -42,6 +44,10 @@ describe('main', () => {
 
   it('calls Vue', () => {
     expect(Vue).toBeCalled()
+  })
+
+  it('calls VueI18n', () => {
+    expect(VueI18n).toBeCalled()
   })
 
   it.skip('creates a store', () => {
