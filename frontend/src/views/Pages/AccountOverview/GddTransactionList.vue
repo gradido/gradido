@@ -124,7 +124,7 @@
         :per-page="pageSize"
         :total-rows="transactionCount"
       ></pagination-buttons>
-      <div v-if="transactions.length === 0" class="mt-4 text-center">
+      <div v-if="transactionCount === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </div>
@@ -197,5 +197,9 @@ export default {
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
+}
+
+.gdd-transaction-list-item {
+  outline: none !important;
 }
 </style>
