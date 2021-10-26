@@ -7,10 +7,7 @@ const routes = [
       requiresAuth: true,
     },
   },
-  {
-    path: 'not-found',
-    component: NotFound,
-  },
+  { path: '*', component: NotFound },
 ]
 
 export default routes

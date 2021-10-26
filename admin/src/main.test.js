@@ -3,8 +3,13 @@ import './main'
 import CONFIG from './config'
 
 import Vue from 'vue'
+import Vuex from 'vuex'
 
 jest.mock('vue')
+jest.mock('vuex')
+
+const storeMock = jest.fn()
+Vuex.Store = storeMock
 
 jest.mock('apollo-boost', () => {
   return {
@@ -37,5 +42,9 @@ describe('main', () => {
 
   it('calls Vue', () => {
     expect(Vue).toBeCalled()
+  })
+
+  it.skip('creates a store', () => {
+    expect(storeMock).toBeCalled()
   })
 })
