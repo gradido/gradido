@@ -55,8 +55,7 @@ export class UserResolver {
     user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
     const userRepository = getCustomRepository(UserRepository)
-    let userEntity: void | DbUser 
-    console.log("user.pubkey", user.pubkey)
+    let userEntity: void | DbUser
     userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
       userEntity = new DbUser()
       userEntity.firstName = user.firstName
@@ -137,7 +136,7 @@ export class UserResolver {
       throw new Error(result.data)
     }
 
-    const user = new User(result.data.user)    
+    const user = new User(result.data.user)
     const dbuser = new DbUser()
     dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
     dbuser.email = user.email
