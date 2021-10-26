@@ -122,54 +122,16 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<boolean> {
-    // const payload = {
-    //   email,
-    //   first_name: firstName,
-    //   last_name: lastName,
-    //   password,
-    //   emailType: 2,
-    //   login_after_register: true,
-    //   language: language,
-    //   publisher_id: publisherId,
-    // }
-    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
-    // if (!result.success) {
-    //   throw new Error(result.data)
-    // }
+    // const dbuser = new DbUser()
+    // dbuser.pubkey = Buffer.from(fromHex('result.data.user.pubkey'))
+    // dbuser.email = email
+    // dbuser.firstName = firstName
+    // dbuser.lastName = lastName
+    // dbuser.username = 'username'
 
-    // this.email = json.email
-    // this.firstName = json.first_name
-    // this.lastName = json.last_name
-    // this.username = json.username
-    // this.description = json.description
-    // this.pubkey = json.public_hex
-    // this.language = json.language
-    // this.publisherId = json.publisher_id
-    const userJson = {
-      email,
-      firstName,
-      lastName,
-      password,
-      emailType: 2,
-      login_after_register: false,
-      language: language,
-      publisherId,
-    }
-    const dbUser: DbUser = new DbUser()
-    dbUser.email = email
-    dbUser.firstName = firstName
-    dbUser.lastName = firstName
-
-    const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex('pubkey'))
-    dbuser.email = email
-    dbuser.firstName = firstName
-    dbuser.lastName = lastName
-    dbuser.username = 'username'
-
-    dbuser.save().catch(() => {
+    /* dbuser.save().catch(() => {
       throw new Error('error saving user')
-    })
+    }) */
 
     return true
   }
