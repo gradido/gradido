@@ -33,6 +33,7 @@
     "dotenv-webpack": "^7.0.3",
     "graphql": "^15.6.1",
     "jest": "26.6.3",
+    "regenerator-runtime": "^0.13.9",
     "stats-webpack-plugin": "^0.7.0",
     "vue": "^2.6.11",
     "vue-apollo": "^3.0.8",

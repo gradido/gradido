@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+// without this async calls are not working
+import 'regenerator-runtime'
+
 import store from './store/store'
 
 import router from './router/router'
