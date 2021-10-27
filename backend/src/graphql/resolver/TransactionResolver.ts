@@ -23,7 +23,6 @@ import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { User as dbUser } from '@entity/User'
 import { UserTransaction as DbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as DbTransaction } from '@entity/Transaction'
-import { TransactionSignature as DbTransactionSignature } from '@entity/TransactionSignature'
 import { TransactionSendCoin as DbTransactionSendCoin } from '@entity/TransactionSendCoin'
 import { Balance as DbBalance } from '@entity/Balance'
 
@@ -322,47 +321,9 @@ async function sendCoins(
   }
 
   const centAmount = Math.trunc(amount * 10000)
-  // const transferAmount = new proto.gradido.TransferAmount({
-  //   pubkey: senderUser.pubkey,
-  //   amount: centAmount,
-  // })
 
   // no group id is given so we assume it is a local transfer
   if (!groupId) {
-    // const localTransfer = new proto.gradido.LocalTransfer({
-    //   sender: transferAmount,
-    //   recipiant: fromHex(recipiantPublicKey),
-    // })
-    // const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
-    // const transactionBody = new proto.gradido.TransactionBody({
-    //   memo: memo,
-    //   created: { seconds: new Date().getTime() / 1000 },
-    //   transfer: transferTransaction,
-    // })
-
-    // const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
-    // const bodyBytesBase64 = toBase64(bodyBytes, base64Variants.ORIGINAL)
-    // let Login-Server sign transaction
-
-    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'signTransaction', {
-    //   session_id: sessionId,
-    //   bodyBytes: bodyBytesBase64,
-    // })
-    // if (!result.success) throw new Error(result.data)
-    // // verify
-    // const sign = fromBase64(result.data.sign, base64Variants.ORIGINAL)
-    // if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
-    //   throw new Error('Could not verify signature')
-    // }
-
-    // const sigPair = new proto.gradido.SignaturePair({
-    //   pubKey: senderUser.pubkey,
-    //   ed25519: sign,
-    // })
-    // const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
-
-    // process db updates as transaction to able to rollback if an error occure
-
     const queryRunner = getConnection().createQueryRunner()
     // belong to debugging mysql query / typeorm line
     // const startTime = new Date()
@@ -433,36 +394,10 @@ async function sendCoins(
         throw new Error('error saving transaction send coin: ' + error)
       })
 
-      // tx hash
-      // const state = cryptoGenerichashInit(null, cryptoGenericHashBytes)
-      // if (transaction.id > 1) {
-      //   const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
-      //   if (!previousTransaction) {
-      //     throw new Error('Error previous transaction not found, please try again')
-      //   }
-      //   if (!previousTransaction.txHash) {
-      //     throw new Error('Previous tx hash is null')
-      //   }
-      //   cryptoGenerichashUpdate(state, previousTransaction.txHash)
-      // }
-      // cryptoGenerichashUpdate(state, transaction.id.toString())
-      // // should match previous used format: yyyy-MM-dd HH:mm:ss
-      // const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
-      // cryptoGenerichashUpdate(state, receivedString)
-      // cryptoGenerichashUpdate(state, proto.gradido.SignatureMap.encode(sigMap).finish())
-      // transaction.txHash = Buffer.from(cryptoGenerichashFinal(state, cryptoGenericHashBytes))
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
       })
 
-      // save signature
-      // const signature = new DbTransactionSignature()
-      // signature.transactionId = transaction.id
-      // signature.signature = Buffer.from('sign')
-      // signature.pubkey = senderUser.pubkey
-      // await queryRunner.manager.save(signature).catch((error) => {
-      //   throw new Error('error saving signature: ' + error)
-      // })
       await queryRunner.commitTransaction()
 
       // great way de debug mysql querys / typeorm
