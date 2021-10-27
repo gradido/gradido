@@ -132,8 +132,8 @@
     },
     "newsletter": {
       "newsletter": "Newsletter",
-      "newsletterFalse": "You are unsubscribed from newsletter system.",
-      "newsletterTrue": "You are subscribed to newsletter system."
+      "newsletterFalse": "You will not receive any information by e-mail.",
+      "newsletterTrue": "You will receive information by e-mail."
     },
     "password": {
       "change-password": "Change password",
