@@ -34,6 +34,3 @@
 [submodule "login_server/dependencies/protobuf"]
 	path = login_server/dependencies/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
-[submodule "backend/src/proto"]
-	path = backend/src/proto
-	url = git@github.com:gradido/gradido_protocol.git
