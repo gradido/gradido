@@ -122,16 +122,16 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<boolean> {
-    // const dbuser = new DbUser()
-    // dbuser.pubkey = Buffer.from(fromHex('result.data.user.pubkey'))
-    // dbuser.email = email
-    // dbuser.firstName = firstName
-    // dbuser.lastName = lastName
-    // dbuser.username = 'username'
+    const dbuser = new DbUser()
+    dbuser.pubkey = Buffer.from(fromHex('result.data.user.pubkey'))
+    dbuser.email = email
+    dbuser.firstName = firstName
+    dbuser.lastName = lastName
+    dbuser.username = 'username'
 
-    /* dbuser.save().catch(() => {
+    dbuser.save().catch(() => {
       throw new Error('error saving user')
-    }) */
+    })
 
     return true
   }
