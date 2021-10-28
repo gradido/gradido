@@ -2,6 +2,9 @@ import { createLocalVue } from '@vue/test-utils'
 import Vue from 'vue'
 import { BootstrapVue } from 'bootstrap-vue'
 
+// without this async calls are not working
+import 'regenerator-runtime'
+
 global.localVue = createLocalVue()
 
 global.localVue.use(BootstrapVue)
