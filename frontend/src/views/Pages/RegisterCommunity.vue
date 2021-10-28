@@ -49,32 +49,15 @@
   </div>
 </template>
 <script>
-import { communityInfo } from '../../graphql/queries'
+import { getCommunityInfo } from '../../mixin/getCommunityInfo'
 
 export default {
   name: 'registerCommunity',
   data() {
     return {}
   },
-  methods: {
-    async onCreated() {
-      if (!this.$state.store.community) {
-        this.$apollo
-          .query({
-            query: communityInfo,
-          })
-          .then((result) => {
-            this.$store.commit('community', result.data.getCommunityInfo)
-          })
-          .catch((error) => {
-            this.$toasted.error(error.message)
-          })
-      }
-    },
-  },
-  created() {
-    this.onCreated()
-  },
+  mixins: [getCommunityInfo],
+  methods: {},
 }
 </script>
 <style></style>
