@@ -1,10 +1,8 @@
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
-import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
 
 const localVue = global.localVue
-localVue.mixin(getCommunityInfoMixin)
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {

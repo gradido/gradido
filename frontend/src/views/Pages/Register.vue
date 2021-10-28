@@ -161,7 +161,7 @@ import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { registerUser } from '../../graphql/mutations'
-import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },

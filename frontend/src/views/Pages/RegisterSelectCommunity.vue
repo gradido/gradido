@@ -49,7 +49,7 @@
 </template>
 <script>
 import { communities } from '../../graphql/queries'
-import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   name: 'registerSelectCommunity',
