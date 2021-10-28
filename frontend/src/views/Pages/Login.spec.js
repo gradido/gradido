@@ -1,10 +1,10 @@
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
-import { getCommunityInfo } from '../../mixin/getCommunityInfo'
+import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
 
 const localVue = global.localVue
-localVue.mixin(getCommunityInfo)
+localVue.mixin(getCommunityInfoMixin)
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
@@ -19,11 +19,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
-const mockStoreCommit = jest.fn((target, community) => {
-  // console.log('mockStoreCommit', global.$store.state.community)
-  global.$store.state[target] = community
-  // console.log('mockStoreCommit', global.$store.state.community)
-})
+const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -31,21 +27,6 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
-
-global.$store = {
-  dispatch: mockStoreDispach,
-  commit: mockStoreCommit,
-  state: {
-    community: null,
-    publisherId: 12345,
-  },
-}
-global.$toasted = {
-  error: toastErrorMock,
-}
-global.$apollo = {
-  query: apolloQueryMock,
-}
 
 describe('Login', () => {
   let wrapper
@@ -55,15 +36,29 @@ describe('Login', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-    $store: global.$store,
+    $store: {
+      dispatch: mockStoreDispach,
+      commit: mockStoreCommit,
+      state: {
+        community: {
+          name: '',
+          description: '',
+        },
+        publisherId: 12345,
+      },
+    },
     $loading: {
       show: spinnerMock,
     },
     $router: {
       push: mockRouterPush,
     },
-    $toasted: global.$toasted,
-    $apollo: global.$apollo,
+    $toasted: {
+      error: toastErrorMock,
+    },
+    $apollo: {
+      query: apolloQueryMock,
+    },
   }
 
   const stubs = {
@@ -112,12 +107,23 @@ describe('Login', () => {
     })
 
     describe('Community Data', () => {
+      beforeEach(() => {
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+      })
+
       it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('test12')
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
       })
 
       it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe('test community 12')
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
+        )
       })
     })
 

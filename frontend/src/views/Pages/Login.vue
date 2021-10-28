@@ -63,7 +63,7 @@
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
 import { login } from '../../graphql/queries'
-import { getCommunityInfo } from '../../mixin/getCommunityInfo'
+import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
 
 export default {
   name: 'login',
@@ -71,7 +71,7 @@ export default {
     InputPassword,
     InputEmail,
   },
-  mixins: [getCommunityInfo],
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
