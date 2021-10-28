@@ -1,8 +1,10 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
+import { getCommunityInfo } from '../../mixin/getCommunityInfo'
 
 const localVue = global.localVue
+localVue.mixin(getCommunityInfo)
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
@@ -17,7 +19,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
-const mockStoreCommit = jest.fn()
+const mockStoreCommit = jest.fn((target, community) => {
+  // console.log('mockStoreCommit', global.$store.state.community)
+  global.$store.state[target] = community
+  // console.log('mockStoreCommit', global.$store.state.community)
+})
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -25,6 +31,21 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
+
+global.$store = {
+  dispatch: mockStoreDispach,
+  commit: mockStoreCommit,
+  state: {
+    community: null,
+    publisherId: 12345,
+  },
+}
+global.$toasted = {
+  error: toastErrorMock,
+}
+global.$apollo = {
+  query: apolloQueryMock,
+}
 
 describe('Login', () => {
   let wrapper
@@ -34,31 +55,15 @@ describe('Login', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-    $store: {
-      dispatch: mockStoreDispach,
-      commit: mockStoreCommit,
-      state: {
-        community: {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        },
-        publisherId: 12345,
-      },
-    },
+    $store: global.$store,
     $loading: {
       show: spinnerMock,
     },
     $router: {
       push: mockRouterPush,
     },
-    $toasted: {
-      error: toastErrorMock,
-    },
-    $apollo: {
-      query: apolloQueryMock,
-    },
+    $toasted: global.$toasted,
+    $apollo: global.$apollo,
   }
 
   const stubs = {
@@ -74,10 +79,6 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Login form', () => {
-      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
-    })
-
     it('commits the community info to the store', () => {
       expect(mockStoreCommit).toBeCalledWith('community', {
         name: 'test12',
@@ -85,6 +86,10 @@ describe('Login', () => {
         url: 'http://test12.test12/',
         registerUrl: 'http://test12.test12/vue/register',
       })
+    })
+
+    it('renders the Login form', () => {
+      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
     describe('communities gives back error', () => {
@@ -108,13 +113,11 @@ describe('Login', () => {
 
     describe('Community Data', () => {
       it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+        expect(wrapper.find('.test-communitydata b').text()).toBe('test12')
       })
 
       it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
+        expect(wrapper.find('.test-communitydata p').text()).toBe('test community 12')
       })
     })
 
