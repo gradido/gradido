@@ -334,7 +334,6 @@ async function sendCoins(
       let transaction = new DbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
-      const transactionRepository = getCustomRepository(TransactionRepository)
       const insertResult = await queryRunner.manager.insert(DbTransaction, transaction)
       transaction = await queryRunner.manager
         .findOneOrFail(DbTransaction, insertResult.generatedMaps[0].id)
