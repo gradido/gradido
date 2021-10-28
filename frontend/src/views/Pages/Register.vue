@@ -161,12 +161,12 @@ import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { registerUser } from '../../graphql/mutations'
-import { getCommunityInfo } from '../../mixin/getCommunityInfo'
+import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
   name: 'register',
-  mixins: [getCommunityInfo],
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {

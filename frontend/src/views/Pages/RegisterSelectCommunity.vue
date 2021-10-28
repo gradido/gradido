@@ -49,6 +49,7 @@
 </template>
 <script>
 import { communities } from '../../graphql/queries'
+import { getCommunityInfoMixin } from '../../mixin/getCommunityInfo'
 
 export default {
   name: 'registerSelectCommunity',
@@ -58,6 +59,7 @@ export default {
       pending: true,
     }
   },
+  mixins: [getCommunityInfoMixin],
   methods: {
     async getCommunities() {
       const loader = this.$loading.show({
