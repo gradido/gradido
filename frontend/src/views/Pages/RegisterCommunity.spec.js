@@ -93,11 +93,11 @@ describe('RegisterCommunity', () => {
       })
 
       it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+        expect(wrapper.find('.justify-content-center h1').text()).toBe('Gradido Entwicklung')
       })
 
       it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
+        expect(wrapper.find('.justify-content-center p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
       })
