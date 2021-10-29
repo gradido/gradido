@@ -8,7 +8,7 @@ The Gradido model can create global prosperity and peace
 The Corona crisis has fundamentally changed our world within a very short time.
 The dominant financial system threatens to fail around the globe, followed by mass insolvencies, record unemployment and abject poverty. Only with a sustainable new monetary system can humanity master these challenges of the 21st century. The Gradido Academy for Bionic Economy has developed such a system.
 
-Find out more about the Project on its [Website](https://gradido.net/) offering vast resources about the idea. The remaining document will discuss the gradido software only.
+Find out more about the Project on its [Website](https://gradido.net/). It is offering vast resources about the idea. The remaining document will discuss the gradido software only.
 ## Software requirements
 
 Currently we only support `docker` install instructions to run all services, since many different programming languages and frameworks are used.
@@ -23,7 +23,7 @@ sudo pacman -S docker
 sudo pacman -S docker-compose
 ```
 
-Add group `docker` and then your user to it in oder to allow you to run docker without sudo 
+Add group `docker` and then your user to it in order to allow you to run docker without sudo 
 ```bash
 sudo groupadd docker # may already exist `groupadd: group 'docker' already exists`
 sudo usermod -aG docker $USER
