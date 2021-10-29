@@ -120,12 +120,8 @@ describe('Register', () => {
         )
       })
 
-      it('does not update community data', () => {
-        expect(mockStoreCommit).not.toBeCalled()
-      })
-
-      it('does not update community data', () => {
-        expect(mockStoreCommit).not.toBeCalled()
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 
