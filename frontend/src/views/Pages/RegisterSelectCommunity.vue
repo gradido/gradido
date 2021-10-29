@@ -7,7 +7,7 @@
         <b-card class="border-0 mb-0" bg-variant="primary">
           <b>{{ $store.state.community.name }}</b>
           <br />
-          {{ $store.state.community.description }}
+          <p>{{ $store.state.community.description }}</p>
           <br />
           <router-link to="/register">
             <b-button variant="outline-secondary">
@@ -24,7 +24,7 @@
           <b-card bg-variant="secondary">
             <b>{{ community.name }}</b>
             <br />
-            {{ community.description }}
+            <p>{{ community.description }}</p>
             <br />
             <b>
               <small>
