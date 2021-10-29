@@ -1,3 +1,0 @@
-default-character-set=utf8mb4
-default-collation=utf8mb4_unicode_ci
-schema=gradido_login
