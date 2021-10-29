@@ -126,7 +126,7 @@ describe('Login', () => {
         )
       })
 
-      it('does not update community', () => {
+      it('does not update community data', () => {
         expect(mockStoreCommit).not.toBeCalled()
       })
     })
