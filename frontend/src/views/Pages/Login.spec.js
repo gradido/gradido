@@ -106,12 +106,14 @@ describe('Login', () => {
 
     describe('Community Data', () => {
       beforeEach(() => {
+        jest.clearAllMocks()
         mocks.$store.state.community = {
           name: 'Gradido Entwicklung',
           url: 'http://localhost/vue/',
           registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         }
+        wrapper = Wrapper()
       })
 
       it('has a Community name', () => {
@@ -122,6 +124,10 @@ describe('Login', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
+      })
+
+      it('does not update community', () => {
+        expect(mockStoreCommit).not.toBeCalled()
       })
     })
 
