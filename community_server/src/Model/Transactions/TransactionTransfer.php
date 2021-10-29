@@ -3,7 +3,6 @@
 namespace Model\Transactions;
 
 //use App\Model\Transactions\TransactionBase;
-use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\Mailer\Email;
 
@@ -75,7 +74,7 @@ class TransactionTransfer extends TransactionBase {
             //array_push($sigPubHexs, $pubkey);    
         }
       
-        $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+        $stateUsersTable = $this->getTable('state_users');
         $local_transfer = $this->protoTransactionTransfer->getLocal();
         $sender = $local_transfer->getSender();
         $senderPublic = $sender->getPubkey();
@@ -134,7 +133,7 @@ class TransactionTransfer extends TransactionBase {
       $senderAmount = $local_transfer->getSender();
       $receiver = $local_transfer->getReceiver();
       
-      $transactionTransferTable = TableRegistry::getTableLocator()->get('TransactionSendCoins');
+      $transactionTransferTable = $this->getTable('TransactionSendCoins');
       
       $senderUserId = $this->getStateUserId($senderAmount->getPubkey());
       $receiverUserId = $this->getStateUserId($receiver);

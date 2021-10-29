@@ -43,15 +43,13 @@ class TransactionBody extends TransactionBase {
       
     // check if creation time is in the past
     if($this->mProtoTransactionBody->getCreated()->getSeconds() > time()) {
-      $this->addError('TransactionBody::validate', 'Transaction were created in the past!');
+      $this->addError('TransactionBody::validate', 'Transaction were created in the future!');
       return false;
     }
     if(!$this->mSpecificTransaction->validate($sigPairs)) {
       $this->addErrors($this->mSpecificTransaction->getErrors());
       return false;
-    }
-    
-    
+    }   
       
     return true;
   }
