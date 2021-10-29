@@ -16,13 +16,13 @@ class ManageNodeRequest extends \Google\Protobuf\Internal\Message
     /**
      * Generated from protobuf field <code>.proto.gradido.SignatureMap sig_map = 1;</code>
      */
-    private $sig_map = null;
+    protected $sig_map = null;
     /**
      * ManageNodeBody
      *
      * Generated from protobuf field <code>bytes body_bytes = 2;</code>
      */
-    private $body_bytes = '';
+    protected $body_bytes = '';
 
     /**
      * Constructor.
@@ -42,11 +42,21 @@ class ManageNodeRequest extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.SignatureMap sig_map = 1;</code>
-     * @return \Proto\Gradido\SignatureMap
+     * @return \Proto\Gradido\SignatureMap|null
      */
     public function getSigMap()
     {
-        return $this->sig_map;
+        return isset($this->sig_map) ? $this->sig_map : null;
+    }
+
+    public function hasSigMap()
+    {
+        return isset($this->sig_map);
+    }
+
+    public function clearSigMap()
+    {
+        unset($this->sig_map);
     }
 
     /**

@@ -19,15 +19,15 @@ class GradidoCreation extends \Google\Protobuf\Internal\Message
     /**
      * 40 Byte
      *
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount receiver = 1;</code>
+     * Generated from protobuf field <code>.proto.gradido.TransferAmount recipiant = 1;</code>
      */
-    private $receiver = null;
+    protected $recipiant = null;
     /**
      * 8 Byte
      *
      * Generated from protobuf field <code>.proto.gradido.TimestampSeconds target_date = 3;</code>
      */
-    private $target_date = null;
+    protected $target_date = null;
 
     /**
      * Constructor.
@@ -35,7 +35,7 @@ class GradidoCreation extends \Google\Protobuf\Internal\Message
      * @param array $data {
      *     Optional. Data for populating the Message object.
      *
-     *     @type \Proto\Gradido\TransferAmount $receiver
+     *     @type \Proto\Gradido\TransferAmount $recipiant
      *           40 Byte
      *     @type \Proto\Gradido\TimestampSeconds $target_date
      *           8 Byte
@@ -49,25 +49,35 @@ class GradidoCreation extends \Google\Protobuf\Internal\Message
     /**
      * 40 Byte
      *
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount receiver = 1;</code>
-     * @return \Proto\Gradido\TransferAmount
+     * Generated from protobuf field <code>.proto.gradido.TransferAmount recipiant = 1;</code>
+     * @return \Proto\Gradido\TransferAmount|null
      */
-    public function getReceiver()
+    public function getRecipiant()
     {
-        return $this->receiver;
+        return isset($this->recipiant) ? $this->recipiant : null;
+    }
+
+    public function hasRecipiant()
+    {
+        return isset($this->recipiant);
+    }
+
+    public function clearRecipiant()
+    {
+        unset($this->recipiant);
     }
 
     /**
      * 40 Byte
      *
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount receiver = 1;</code>
+     * Generated from protobuf field <code>.proto.gradido.TransferAmount recipiant = 1;</code>
      * @param \Proto\Gradido\TransferAmount $var
      * @return $this
      */
-    public function setReceiver($var)
+    public function setRecipiant($var)
     {
         GPBUtil::checkMessage($var, \Proto\Gradido\TransferAmount::class);
-        $this->receiver = $var;
+        $this->recipiant = $var;
 
         return $this;
     }
@@ -76,11 +86,21 @@ class GradidoCreation extends \Google\Protobuf\Internal\Message
      * 8 Byte
      *
      * Generated from protobuf field <code>.proto.gradido.TimestampSeconds target_date = 3;</code>
-     * @return \Proto\Gradido\TimestampSeconds
+     * @return \Proto\Gradido\TimestampSeconds|null
      */
     public function getTargetDate()
     {
-        return $this->target_date;
+        return isset($this->target_date) ? $this->target_date : null;
+    }
+
+    public function hasTargetDate()
+    {
+        return isset($this->target_date);
+    }
+
+    public function clearTargetDate()
+    {
+        unset($this->target_date);
     }
 
     /**

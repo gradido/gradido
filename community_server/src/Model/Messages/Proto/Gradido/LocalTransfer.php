@@ -16,11 +16,11 @@ class LocalTransfer extends \Google\Protobuf\Internal\Message
     /**
      * Generated from protobuf field <code>.proto.gradido.TransferAmount sender = 1;</code>
      */
-    private $sender = null;
+    protected $sender = null;
     /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
+     * Generated from protobuf field <code>bytes recipiant = 2;</code>
      */
-    private $receiver = '';
+    protected $recipiant = '';
 
     /**
      * Constructor.
@@ -29,7 +29,7 @@ class LocalTransfer extends \Google\Protobuf\Internal\Message
      *     Optional. Data for populating the Message object.
      *
      *     @type \Proto\Gradido\TransferAmount $sender
-     *     @type string $receiver
+     *     @type string $recipiant
      * }
      */
     public function __construct($data = NULL) {
@@ -39,11 +39,21 @@ class LocalTransfer extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.TransferAmount sender = 1;</code>
-     * @return \Proto\Gradido\TransferAmount
+     * @return \Proto\Gradido\TransferAmount|null
      */
     public function getSender()
     {
-        return $this->sender;
+        return isset($this->sender) ? $this->sender : null;
+    }
+
+    public function hasSender()
+    {
+        return isset($this->sender);
+    }
+
+    public function clearSender()
+    {
+        unset($this->sender);
     }
 
     /**
@@ -60,23 +70,23 @@ class LocalTransfer extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
+     * Generated from protobuf field <code>bytes recipiant = 2;</code>
      * @return string
      */
-    public function getReceiver()
+    public function getRecipiant()
     {
-        return $this->receiver;
+        return $this->recipiant;
     }
 
     /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
+     * Generated from protobuf field <code>bytes recipiant = 2;</code>
      * @param string $var
      * @return $this
      */
-    public function setReceiver($var)
+    public function setRecipiant($var)
     {
         GPBUtil::checkString($var, False);
-        $this->receiver = $var;
+        $this->recipiant = $var;
 
         return $this;
     }

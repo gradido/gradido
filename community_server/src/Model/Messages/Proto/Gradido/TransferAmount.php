@@ -16,11 +16,11 @@ class TransferAmount extends \Google\Protobuf\Internal\Message
     /**
      * Generated from protobuf field <code>bytes pubkey = 1;</code>
      */
-    private $pubkey = '';
+    protected $pubkey = '';
     /**
      * Generated from protobuf field <code>sint64 amount = 2;</code>
      */
-    private $amount = 0;
+    protected $amount = 0;
 
     /**
      * Constructor.

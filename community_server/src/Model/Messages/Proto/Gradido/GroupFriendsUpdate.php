@@ -18,11 +18,11 @@ class GroupFriendsUpdate extends \Google\Protobuf\Internal\Message
      *
      * Generated from protobuf field <code>string group = 1;</code>
      */
-    private $group = '';
+    protected $group = '';
     /**
      * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate.Action action = 2;</code>
      */
-    private $action = 0;
+    protected $action = 0;
 
     /**
      * Constructor.
@@ -82,7 +82,7 @@ class GroupFriendsUpdate extends \Google\Protobuf\Internal\Message
      */
     public function setAction($var)
     {
-        GPBUtil::checkEnum($var, \Proto\Gradido\GroupFriendsUpdate_Action::class);
+        GPBUtil::checkEnum($var, \Proto\Gradido\GroupFriendsUpdate\Action::class);
         $this->action = $var;
 
         return $this;

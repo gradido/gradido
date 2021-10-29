@@ -14,23 +14,19 @@ use Google\Protobuf\Internal\GPBUtil;
 class CrossGroupTransfer extends \Google\Protobuf\Internal\Message
 {
     /**
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount sender = 1;</code>
+     * Generated from protobuf field <code>.proto.gradido.LocalTransfer transfer = 1;</code>
      */
-    private $sender = null;
-    /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
-     */
-    private $receiver = '';
+    protected $transfer = null;
     /**
      * Generated from protobuf field <code>string other_group = 3;</code>
      */
-    private $other_group = '';
+    protected $other_group = '';
     /**
      * this matches related OutboundTransfer.paired_transaction_id
      *
      * Generated from protobuf field <code>.proto.gradido.Timestamp paired_transaction_id = 4;</code>
      */
-    private $paired_transaction_id = null;
+    protected $paired_transaction_id = null;
 
     /**
      * Constructor.
@@ -38,8 +34,7 @@ class CrossGroupTransfer extends \Google\Protobuf\Internal\Message
      * @param array $data {
      *     Optional. Data for populating the Message object.
      *
-     *     @type \Proto\Gradido\TransferAmount $sender
-     *     @type string $receiver
+     *     @type \Proto\Gradido\LocalTransfer $transfer
      *     @type string $other_group
      *     @type \Proto\Gradido\Timestamp $paired_transaction_id
      *           this matches related OutboundTransfer.paired_transaction_id
@@ -51,45 +46,33 @@ class CrossGroupTransfer extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount sender = 1;</code>
-     * @return \Proto\Gradido\TransferAmount
+     * Generated from protobuf field <code>.proto.gradido.LocalTransfer transfer = 1;</code>
+     * @return \Proto\Gradido\LocalTransfer|null
      */
-    public function getSender()
+    public function getTransfer()
     {
-        return $this->sender;
+        return isset($this->transfer) ? $this->transfer : null;
+    }
+
+    public function hasTransfer()
+    {
+        return isset($this->transfer);
+    }
+
+    public function clearTransfer()
+    {
+        unset($this->transfer);
     }
 
     /**
-     * Generated from protobuf field <code>.proto.gradido.TransferAmount sender = 1;</code>
-     * @param \Proto\Gradido\TransferAmount $var
+     * Generated from protobuf field <code>.proto.gradido.LocalTransfer transfer = 1;</code>
+     * @param \Proto\Gradido\LocalTransfer $var
      * @return $this
      */
-    public function setSender($var)
+    public function setTransfer($var)
     {
-        GPBUtil::checkMessage($var, \Proto\Gradido\TransferAmount::class);
-        $this->sender = $var;
-
-        return $this;
-    }
-
-    /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
-     * @return string
-     */
-    public function getReceiver()
-    {
-        return $this->receiver;
-    }
-
-    /**
-     * Generated from protobuf field <code>bytes receiver = 2;</code>
-     * @param string $var
-     * @return $this
-     */
-    public function setReceiver($var)
-    {
-        GPBUtil::checkString($var, False);
-        $this->receiver = $var;
+        GPBUtil::checkMessage($var, \Proto\Gradido\LocalTransfer::class);
+        $this->transfer = $var;
 
         return $this;
     }
@@ -120,11 +103,21 @@ class CrossGroupTransfer extends \Google\Protobuf\Internal\Message
      * this matches related OutboundTransfer.paired_transaction_id
      *
      * Generated from protobuf field <code>.proto.gradido.Timestamp paired_transaction_id = 4;</code>
-     * @return \Proto\Gradido\Timestamp
+     * @return \Proto\Gradido\Timestamp|null
      */
     public function getPairedTransactionId()
     {
-        return $this->paired_transaction_id;
+        return isset($this->paired_transaction_id) ? $this->paired_transaction_id : null;
+    }
+
+    public function hasPairedTransactionId()
+    {
+        return isset($this->paired_transaction_id);
+    }
+
+    public function clearPairedTransactionId()
+    {
+        unset($this->paired_transaction_id);
     }
 
     /**

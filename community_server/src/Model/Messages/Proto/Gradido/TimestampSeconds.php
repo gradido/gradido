@@ -20,7 +20,7 @@ class TimestampSeconds extends \Google\Protobuf\Internal\Message
      *
      * Generated from protobuf field <code>int64 seconds = 1;</code>
      */
-    private $seconds = 0;
+    protected $seconds = 0;
 
     /**
      * Constructor.
