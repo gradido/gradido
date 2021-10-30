@@ -3,8 +3,8 @@
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { from_hex as fromHex } from 'libsodium-wrappers'
+import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
-import { CheckUsernameResponse } from '../model/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
@@ -22,7 +22,6 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
-import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
@@ -276,8 +275,8 @@ export class UserResolver {
     return response
   }
 
-  @Query(() => CheckUsernameResponse)
-  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<CheckUsernameResponse> {
+  @Query(() => Boolean)
+  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<Boolean> {
     // Username empty?
     if (username === '') {
       throw new Error('Username must be set.')
@@ -296,7 +295,7 @@ export class UserResolver {
       throw new Error(`Username "${username}" already taken.`)
     }
 
-    return new CheckUsernameResponse({ state: 'success' })
+    return true
   }
 
   @Query(() => CheckEmailResponse)
