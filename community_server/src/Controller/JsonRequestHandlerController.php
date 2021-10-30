@@ -122,9 +122,11 @@ class JsonRequestHandlerController extends AppController {
               'expected' => $last_transaction_id + $i + 1
             ]]);
           }
+          
           if(!$gradidoBlock->validate()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'validate failed', 'details' =>  $gradidoBlock->getErrors()]);
           }
+          
           if(!$gradidoBlock->save()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'save failed', 'details' =>  $gradidoBlock->getErrors()]);
           }

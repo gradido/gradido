@@ -20,7 +20,7 @@ class GradidoBlock extends TransactionBase {
     public function __construct($base64Data) 
     {
         try {
-            $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+            $transactionBin = sodium_base642bin($base64Data, SODIUM_BASE64_VARIANT_ORIGINAL);
         } catch(\SodiumException $e) {
             $transactionBin = base64_decode($base64Data, true);
             if($transactionBin == false) {
@@ -41,7 +41,11 @@ class GradidoBlock extends TransactionBase {
                 return;
             }
         }
-        $this->mTransaction = new Transaction($this->mProtoGradidoBlock->getTransaction());
+        if($this->mProtoGradidoBlock) {
+            $this->mTransaction = new Transaction($this->mProtoGradidoBlock->getTransaction());
+        } else {
+            $this->addError('GradidoBlock', 'gradido block is zero');
+        }
     }
 
     public function getId() {
@@ -109,7 +113,7 @@ class GradidoBlock extends TransactionBase {
         // Sodium use for the generichash function BLAKE2b today (11.11.2019), mabye change in the future
         $state = \Sodium\crypto_generichash_init();
         if($previousTxHash != null) {
-            \Sodium\crypto_generichash_update($state, stream_get_contents($previousTxHash));
+            \Sodium\crypto_generichash_update($state, substr(stream_get_contents($previousTxHash), 0, 32));
         }
         \Sodium\crypto_generichash_update($state, strval($transactionId));        
         \Sodium\crypto_generichash_update($state, $this->getReceived()->i18nFormat('yyyy-MM-dd HH:mm:ss'));
@@ -124,8 +128,8 @@ class GradidoBlock extends TransactionBase {
     {
         $connection = ConnectionManager::get('default');
         $connection->begin();
-               
-        if (!$this->saveTransactionBody()) {
+        $transactionBody = $this->mTransaction->getTransactionBody();
+        if (!$this->saveTransactionBody($transactionBody)) {
           $connection->rollback();
           // correct auto-increment value to prevent gaps
           $this->fixAutoIncrement();  
@@ -137,7 +141,7 @@ class GradidoBlock extends TransactionBase {
       $transactionsSignaturesTable = $this->getTable('transaction_signatures');
       $transactionId = $this->getId();
             
-      $sigPairs = $this->mProtoGradidoBlock->getTransaction->getSigMap()->getSigPair();
+      $sigPairs = $this->mProtoGradidoBlock->getTransaction()->getSigMap()->getSigPair();
       
       $signatureEntitys = [];
       foreach($sigPairs as $sigPair) {
@@ -164,29 +168,37 @@ class GradidoBlock extends TransactionBase {
       
       $connection->commit();
       
-      $specificTransaction = $this->mTransactionBody->getSpecificTransaction();
+      $specificTransaction = $transactionBody->getSpecificTransaction();
       
-      $specificTransaction->sendNotificationEmail($this->mTransactionBody->getMemo());
+      $specificTransaction->sendNotificationEmail($transactionBody->getMemo());
       $this->addWarnings($specificTransaction->getWarnings());
       return true;
     }
 
-    private function saveTransactionBody()
+    private function saveTransactionBody($transactionBody)
     {
       $transactionsTable = $this->getTable('transactions');
       $transactionEntity = $transactionsTable->newEntity();
-      $transactionBody = $this->mTransaction->getTransactionBody();
+      
+      $specificTransaction = $transactionBody->getSpecificTransaction();
       
       $transactionEntity->id = $this->getId();
-      $transactionEntity->transaction_type_id = $this->transactionTypeId;
-      $transactionEntity->txHash = $this->calculateTxHash();
+      $transactionEntity->transaction_type_id = $transactionBody->getTransactionTypeId();
+      $txHash =  $this->calculateTxHash();
+      if(!$txHash) {
+          $this->addError('GradidoBlock::saveTransactionBody', 'txHash is false');
+          return false;
+      }
+
+      $transactionEntity->tx_hash = $txHash;
       $transactionEntity->memo = $transactionBody->getMemo();
       $transactionEntity->received = $this->getReceived()->format("Y-m-d H:i:s");
       $transactionEntity->blockchain_type_id = 3; // iota
             
       if ($transactionsTable->save($transactionEntity)) {
-        if(!$this->mSpecificTransaction->save($transactionEntity->id, $firstPublic, $transactionEntity->received)) {
-          $this->addErrors($this->mSpecificTransaction->getErrors());
+        $firstPublic = $this->mTransaction->getFirstPublic();
+        if(!$specificTransaction->save($transactionEntity->id, $firstPublic, new FrozenTime($transactionEntity->received))) {
+          $this->addErrors($specificTransaction->getErrors());
           return false;
         }  
       } else {
