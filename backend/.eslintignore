@@ -1,4 +1,3 @@
 node_modules
 **/*.min.js
 build
-src/proto/bundle.d.ts
