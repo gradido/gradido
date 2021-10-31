@@ -276,7 +276,7 @@ export class UserResolver {
   }
 
   @Query(() => Boolean)
-  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<Boolean> {
+  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
     // Username empty?
     if (username === '') {
       throw new Error('Username must be set.')
