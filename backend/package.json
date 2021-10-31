@@ -11,7 +11,6 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "node build/index.js",
-    "predev": "pbjs -t static-module -w commonjs -o src/proto/bundle.js src/proto/gradido/*.proto && pbts -o src/proto/bundle.d.ts src/proto/bundle.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts",
     "test": "jest --coverage"
