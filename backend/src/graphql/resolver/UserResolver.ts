@@ -27,6 +27,39 @@ import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 
+// We will reuse this for changePassword
+const isPassword = (password: string): boolean => {
+  if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)) {
+    return false
+    // TODO we dont need this right, frontend does it?
+    /*
+    if(pwd.length < 8){
+      throw new Error('Your password is to short!')
+    }
+    if(!pwd.match(/[a-z]/)){
+      throw new Error('Your password does not contain lowercase letters!')
+    }
+    if(!pwd.match(/[A-Z]/)){
+      throw new Error('Your password does not contain any capital letters!')
+    }
+    if(!pwd.match(/[0-9]/)){
+      throw new Error('Your password does not contain any number!')
+    }
+    if(!pwd.match(/[^a-zA-Z0-9 \\t\\n\\r]/)){
+      throw new Error('Your password does not contain special characters!')
+    }
+    */
+  }
+  return true
+}
+
+const LANGUAGES = ['de', 'en']
+const DEFAULT_LANGUAGE = 'de'
+// very likely to be reused
+const isLanguage = (language: string): boolean => {
+  return LANGUAGES.includes(language)
+}
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -121,28 +154,84 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const payload = {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      password,
-      emailType: 2,
-      login_after_register: true,
-      language: language,
-      publisher_id: publisherId,
-    }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
-    if (!result.success) {
-      throw new Error(result.data)
+    const username = ''
+
+    // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
+    // default int publisher_id = 0;
+
+    // Validate Language (no throw)
+    if (!isLanguage(language)) {
+      language = DEFAULT_LANGUAGE
     }
 
-    const user = new User(result.data.user)
+    // Validate Password
+    // TODO Login Server ignored this when he got an empty password?!
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
+
+    // Validate username
+    // TODO: never true
+    if (username.length > 3 && !this.checkUsername({ username })) {
+      throw new Error('Username already in use')
+    }
+
+    // Validate email unique
+    // TODO: i can register an email in upper/lower case twice
+    const usersFound = await LoginUser.count({ email })
+    if (usersFound !== 0) {
+      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+      throw new Error(`User already exists.`)
+    }
+
+    const loginUser = new LoginUser()
+    loginUser.email = email
+    loginUser.firstName = firstName
+    loginUser.lastName = lastName
+    loginUser.username = username
+    loginUser.description = ''
+    loginUser.password = BigInt(0)
+    // TODO: This was never used according to my analysis. Therefore I consider it safe to set to 0
+    loginUser.emailHash = Buffer.from([0])
+    loginUser.language = language
+    loginUser.groupId = 1
+    loginUser.publisherId = publisherId
+
+    // TODO: check if this insert method is correct, we had problems with that!
+    loginUser.save().catch(() => {
+      // TODO: this triggered an EMail send
+      throw new Error('insert user failed')
+    })
+
+    // TODO: pubkey
+    // session->generateKeys(true, true);
+
+    // TODO: we do not login the user as before, since session management is not yet ported
+    // calculate encryption key, could need some time, will save encrypted privkey to db
+    // UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
+    // create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
+
+    // TODO: send EMail (EMAIL_OPT_IN_REGISTER)
+    // const emailType = 2
+    // auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+    // auto emailOptInModel = emailOptIn->getModel();
+    // if (!emailOptInModel->insertIntoDB(false)) {
+    //	emailOptInModel->sendErrorsAsEmail();
+    //	return stateError("insert emailOptIn failed");
+    // }
+    // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
+    // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+
+    // ------------------------------------------------------
+
     const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
-    dbuser.email = user.email
-    dbuser.firstName = user.firstName
-    dbuser.lastName = user.lastName
-    dbuser.username = user.username
+    dbuser.pubkey = Buffer.from(fromHex(pubkey))
+    dbuser.email = email
+    dbuser.firstName = firstName
+    dbuser.lastName = lastName
+    dbuser.username = username
 
     dbuser.save().catch(() => {
       throw new Error('error saving user')
