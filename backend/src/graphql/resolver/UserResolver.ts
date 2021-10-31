@@ -83,8 +83,8 @@ const PassphraseGenerate = (): string[] => {
 }
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
-  if (!passphrase.length) {
-    throw new Error('passphrase empty')
+  if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
+    throw new Error('passphrase empty or to short')
   }
 
   const wordIndicies = []
@@ -96,18 +96,15 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   // if (!wordIndicies || (!wordIndicies[0] && !wordIndicies[1] && !wordIndicies[2] && !wordIndicies[3])) {
   //	return null;
   // }
-  const clearPassphrase = passphrase.join(' ')
 
-  // Assuming this calls `crypto_hash_sha512_init`
   const hash = crypto_hash_sha512_instance()
 
-  // ****  convert word indices into uint64  ****
   // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
     const value = BigInt(wordIndicies[i])
     hash.update(Buffer.from(bigintToBuf(value)))
   }
-  // **** end converting into uint64 *****
+  const clearPassphrase = passphrase.join(' ')
   hash.update(Buffer.from(clearPassphrase))
   const outputHashBuffer = Buffer.alloc(crypto_hash_sha512_BYTES)
   hash.final(outputHashBuffer)
