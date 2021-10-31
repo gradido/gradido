@@ -69,7 +69,7 @@ namespace controller {
 
 			using namespace Poco::Data::Keywords;
 			Poco::Data::Statement select(session);
-			select << "SELECT id, first_name, last_name, email, username, description, pubkey, created, email_checked, disabled, group_id FROM " << db->getTableName();
+			select << "SELECT id, first_name, last_name, email, username, description, pubkey, created, email_checked, disabled, group_id, publisher_id FROM " << db->getTableName();
 			select << " where email_checked = 0 ";
 			select, into(resultFromDB);
 			if (searchString != "") {
