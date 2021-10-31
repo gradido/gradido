@@ -16,7 +16,6 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "@apollo/protobufjs": "^1.2.2",
     "@types/jest": "^27.0.2",
     "apollo-server-express": "^2.25.2",
     "axios": "^0.21.1",
