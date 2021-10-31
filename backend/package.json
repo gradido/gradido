@@ -8,7 +8,6 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "prebuild": "mkdir -p build/proto && pbjs -t static-module -w commonjs -o build/proto/bundle.js src/proto/gradido/*.proto && pbts -o src/proto/bundle.d.ts build/proto/bundle.js",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "node build/index.js",
