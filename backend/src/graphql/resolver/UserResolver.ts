@@ -120,7 +120,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
-const generateKeys = async (email: string, savePassphrase: boolean): Promise<Buffer[]> => {
+const generateKeys = async (email: string): Promise<Buffer[]> => {
   const mNewUser = await LoginUser.findOneOrFail({ email })
   // TODO figure mnemonic database
   // const lang = mNewUser.language
@@ -132,16 +132,14 @@ const generateKeys = async (email: string, savePassphrase: boolean): Promise<Buf
 
   const passphrase = PassphraseGenerate()
 
-  if (savePassphrase) {
-    const loginUserBackup = new LoginUserBackup()
-    loginUserBackup.userId = mNewUser.id
-    loginUserBackup.passphrase = passphrase.join(' ')
-    loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+  const loginUserBackup = new LoginUserBackup()
+  loginUserBackup.userId = mNewUser.id
+  loginUserBackup.passphrase = passphrase.join(' ')
+  loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-    await loginUserBackup.save().catch(() => {
-      throw new Error('insert user backup failed')
-    })
-  }
+  await loginUserBackup.save().catch(() => {
+    throw new Error('insert user backup failed')
+  })
 
   // keys
   const gradidoKeyPair = KeyPairEd25519Create(passphrase)
@@ -301,7 +299,7 @@ export class UserResolver {
       throw new Error('insert user failed')
     })
 
-    const keys = await generateKeys(email, true)
+    const keys = await generateKeys(email)
     const pubkey = keys[0]
 
     // TODO: we do not login the user as before, since session management is not yet ported
