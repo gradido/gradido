@@ -22,7 +22,7 @@ import schema from './graphql/schema'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-const DB_VERSION = '0002-add_settings'
+const DB_VERSION = '0003-add_blockchain_type.js'
 
 async function main() {
   // open mysql connection
