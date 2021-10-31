@@ -376,8 +376,7 @@ class JsonRequestHandlerController extends AppController {
       $state_user_email = $session->read('StateUser.email');
       $requestResult = $this->JsonRequestClient->getRunningUserTasks($state_user_email);;
       return $this->returnJson($requestResult);
-    }
-    
+    }    
     
     private function returnJsonSaveError($transaction, $errorArray) {
       $json = json_encode($errorArray);

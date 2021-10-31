@@ -16,6 +16,31 @@ class TransactionTransfer extends TransactionBase {
     public function getProto() {
       return $this->protoTransactionTransfer;
     }
+
+    public function getTransfer() {
+        if($this->protoTransactionTransfer->hasLocal()) {
+          return $this->protoTransactionTransfer->getLocal();
+        } else if($this->protoTransactionTransfer->hasInbound()) {
+          return $this->protoTransactionTransfer->getInbound()->getLocal();
+        } else if($this->protoTransactionTransfer->hasOutbound()) {
+          return $this->protoTransactionTransfer->getOutbound()->getLocal();
+        }
+        return null;      
+    }
+    // at the moment the community db support only one community
+    // so on cross group transaction it can be either the sender or the recipiant belonging to this community
+    public function isBelongSenderToCommunity() {
+        if($this->protoTransactionTransfer->hasInbound()) {
+          return false;
+        }
+        return true;
+    }
+    public function isBelongRecipiantToCommunity() {
+        if($this->protoTransactionTransfer->hasOutbound()) {
+          return false;
+        }
+        return true;
+    }
     
     static public function build($amount, $memo, $receiver_public_hex, $sender_public_hex) 
     {    
@@ -46,7 +71,7 @@ class TransactionTransfer extends TransactionBase {
 
         $transfer = new \Proto\Gradido\GradidoTransfer();
         $local_transfer = new \Proto\Gradido\LocalTransfer();
-        $local_transfer->setReceiver($receiverPubKeyBin);
+        $local_transfer->setRecipiant($receiverPubKeyBin);
         $local_transfer->setSender($sender);
         $transfer->setLocal($local_transfer);
         $transactionBody->setTransfer($transfer);
@@ -58,7 +83,7 @@ class TransactionTransfer extends TransactionBase {
         //return false;
         //$time = microtime(true);
         static $functionName = 'TransactionTransfer::validate';
-        
+                
         $sigPubHexs = [];
         foreach($sigPairs as $sigPair) 
         {
@@ -75,8 +100,18 @@ class TransactionTransfer extends TransactionBase {
         }
       
         $stateUsersTable = $this->getTable('state_users');
-        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $local_transfer = $this->getTransfer();
+        if(!$local_transfer) {
+          $this->addError($functionName, "error no local transfer found!");
+          return false;
+        }
         $sender = $local_transfer->getSender();
+        $amount = $sender->getAmount();
+        if($amount < 0) {
+            $this->addError($functionName, 'negative amount not supported');
+            return false;
+        }
+
         $senderPublic = $sender->getPubkey();
         $senderPublicHex = bin2hex($senderPublic);
         if(strlen($senderPublicHex) != 64) {
@@ -90,64 +125,75 @@ class TransactionTransfer extends TransactionBase {
           $this->addError($functionName, 'missing signature for sender');
           return false;
         }
+        
+
         // check if sender has enough Gradido
-        $amount = $sender->getAmount();
-        $user = $stateUsersTable
-                  ->find('all')
-                  ->select(['id'])
-                  ->where(['public_key' => $senderPublic])
-                  ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
-        if(!$user) {
-          $this->addError($functionName, 'couldn\'t find sender in db' );
-          return false;
-        }
-        //var_dump($user);
-        if(intval($user->state_balances[0]->amount) < intval($amount)) {
-          $this->addError($functionName, 'sender hasn\t enough GDD');
-          return false;
+        // only if it not a inbound cross group transaction
+        if($this->isBelongSenderToCommunity()) {
+            $user = $stateUsersTable
+                      ->find('all')
+                      ->select(['id'])
+                      ->where(['public_key' => $senderPublic])
+                      ->contain(['StateBalances' => ['fields' => ['amount', 'state_user_id']]])->first();
+            if(!$user) {
+              $this->addError($functionName, 'couldn\'t find sender in db' );
+              return false;
+            }
+            if(intval($user->state_balances[0]->amount) < intval($amount)) {
+              $this->addError($functionName, 'sender hasn\t enough GDD');
+              return false;
+            }
         }
       
-        $receiver_public_key = $local_transfer->getReceiver();
+        $receiver_public_key = $local_transfer->getRecipiant();
         if(strlen($receiver_public_key) != 32) {
           $this->addError($functionName, 'invalid receiver public key');
           return false;
         }
-        // check if receiver exist
-        $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
-        if(!$receiver_user) {
-            $this->addError($functionName, 'couldn\'t find receiver in db' );
-            return false;
+        if($this->isBelongRecipiantToCommunity()) {
+            // check if receiver exist
+            $receiver_user = $stateUsersTable->find('all')->select(['id'])->where(['public_key' => $receiver_public_key])->first();
+            if(!$receiver_user) {
+                $this->addError($functionName, 'couldn\'t find receiver in db' );
+                return false;
+            }
         }
-        if($amount < 0) {
-            $this->addError($functionName, 'negative amount not supported');
-            return false;
-        }
+        
         return true;
     }
     
     public function save($transaction_id, $firstPublic, $received) {
       
       static $functionName = 'TransactionCreation::save';
-      $local_transfer = $this->protoTransactionTransfer->getLocal();
+      $local_transfer = $this->getTransfer();
       
       $senderAmount = $local_transfer->getSender();
-      $receiver = $local_transfer->getReceiver();
+      $receiver = $local_transfer->getRecipiant();
       
       $transactionTransferTable = $this->getTable('TransactionSendCoins');
       
-      $senderUserId = $this->getStateUserId($senderAmount->getPubkey());
-      $receiverUserId = $this->getStateUserId($receiver);
-      
-      if($senderUserId === NULL || $receiverUserId === NULL) {
-        return false;
+      $senderUserId = NULL;
+      $recipiantUserId = NULL;
+      $finalSenderBalance = 0;
+      if($this->isBelongSenderToCommunity()) {
+          $senderUserId = $this->getStateUserId($senderAmount->getPubkey());
+          if(NULL === $senderUserId) {
+              return false;
+          }
+          $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received);
+          if(false === $finalSenderBalance) {
+              return false;
+          }
       }
-      
-      $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received);
-      if(false === $finalSenderBalance) {
-        return false;
-      }
-      if(false === $this->updateStateBalance($receiverUserId, $senderAmount->getAmount(), $received)) {
-        return false;
+
+      if($this->isBelongRecipiantToCommunity()) {
+          $recipiantUserId = $this->getStateUserId($receiver);
+          if(NULL === $recipiantUserId) {
+             return false;
+          }
+          if(false === $this->updateStateBalance($receiverUserId, $senderAmount->getAmount(), $received)) {
+             return false;
+          }
       }
       
       $transactionTransferEntity = $transactionTransferTable->newEntity();
@@ -186,7 +232,7 @@ class TransactionTransfer extends TransactionBase {
       $sender = $local_transfer->getSender();
       $senderAmount = $sender->getAmount();
       $senderUser = $this->getStateUserFromPublickey($sender->getPubkey());
-      $receiverUser = $this->getStateUserFromPublickey($local_transfer->getReceiver());
+      $receiverUser = $this->getStateUserFromPublickey($local_transfer->getRecipiant());
       
       $serverAdminEmail = Configure::read('ServerAdminEmail');
 
@@ -225,7 +271,7 @@ class TransactionTransfer extends TransactionBase {
     public function getReceiverUser()
     {
         $local_transfer = $this->protoTransactionTransfer->getLocal();
-        return $this->getStateUserFromPublickey($local_transfer->getReceiver());
+        return $this->getStateUserFromPublickey($local_transfer->getRecipiant());
     }
     
     public function getAmount()
