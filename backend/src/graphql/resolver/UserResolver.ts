@@ -123,7 +123,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 const generateKeys = async (email: string, savePassphrase: boolean): Promise<Buffer[]> => {
   const mNewUser = await LoginUser.findOneOrFail({ email })
   // TODO figure mnemonic database
-  const lang = mNewUser.language
+  // const lang = mNewUser.language
   /*
   if (LANG_DE == lang) {
 		mnemonic_type = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES;
