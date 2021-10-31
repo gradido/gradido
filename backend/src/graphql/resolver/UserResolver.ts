@@ -120,11 +120,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
-const generateKeys = async (
-  email: string,
-  savePrivkey: boolean,
-  savePassphrase: boolean,
-): Promise<Buffer[]> => {
+const generateKeys = async (email: string, savePassphrase: boolean): Promise<Buffer[]> => {
   const mNewUser = await LoginUser.findOneOrFail({ email })
   const lang = mNewUser.language
   /*
@@ -150,10 +146,7 @@ const generateKeys = async (
   const gradidoKeyPair = KeyPairEd25519Create(passphrase)
 
   mNewUser.pubKey = gradidoKeyPair[0]
-
-  if (savePrivkey) {
-    mNewUser.privKey = gradidoKeyPair[1]
-  }
+  mNewUser.privKey = gradidoKeyPair[1]
 
   await mNewUser.save().catch(() => {
     throw new Error(`Error saving new generated pub/priv keys, email: ${email}`)
@@ -307,7 +300,7 @@ export class UserResolver {
       throw new Error('insert user failed')
     })
 
-    const keys = await generateKeys(email, true, true)
+    const keys = await generateKeys(email, true)
     const pubkey = keys[0]
 
     // TODO: we do not login the user as before, since session management is not yet ported
