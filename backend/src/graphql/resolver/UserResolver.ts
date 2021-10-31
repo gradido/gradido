@@ -1,9 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { from_hex as fromHex } from 'libsodium-wrappers'
-import { getCustomRepository } from 'typeorm'
+import {
+  /* eslint-disable camelcase */
+  randombytes_random,
+  crypto_hash_sha512_instance,
+  crypto_hash_sha512_BYTES,
+  crypto_sign_seed_keypair,
+  crypto_sign_PUBLICKEYBYTES,
+  crypto_sign_SECRETKEYBYTES,
+  /* eslint-enable camelcase */
+} from 'sodium-native'
+import { getCustomRepository, NoNeedToReleaseEntityManagerError } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -26,6 +36,8 @@ import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepos
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
+import { LoginUserBackup } from '@entity/LoginUserBackup'
+import { bigintToBuf } from 'bigint-conversion'
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
@@ -58,6 +70,96 @@ const DEFAULT_LANGUAGE = 'de'
 // very likely to be reused
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
+}
+
+const PHRASE_WORD_COUNT = 24
+const WORDS = fs.readFileSync('src/config/mnemonic.english.txt').toString().split('\n')
+const PassphraseGenerate = (): string[] => {
+  const result = []
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    result.push(WORDS[randombytes_random() % 2048])
+  }
+  return result
+}
+
+const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
+  if (!passphrase.length) {
+    throw new Error('passphrase empty')
+  }
+
+  const wordIndicies = []
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    wordIndicies.push(WORDS.indexOf(passphrase[i]))
+  }
+
+  // TODO: wtf is this?
+  // if (!wordIndicies || (!wordIndicies[0] && !wordIndicies[1] && !wordIndicies[2] && !wordIndicies[3])) {
+  //	return null;
+  // }
+  const clearPassphrase = passphrase.join(' ')
+
+  // Assuming this calls `crypto_hash_sha512_init`
+  const hash = crypto_hash_sha512_instance()
+
+  // ****  convert word indices into uint64  ****
+  // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    const value = BigInt(wordIndicies[i])
+    hash.update(Buffer.from(bigintToBuf(value)))
+  }
+  // **** end converting into uint64 *****
+  hash.update(Buffer.from(clearPassphrase))
+  const outputHashBuffer = Buffer.alloc(crypto_hash_sha512_BYTES)
+  hash.final(outputHashBuffer)
+
+  const pubKey = Buffer.alloc(crypto_sign_PUBLICKEYBYTES)
+  const privKey = Buffer.alloc(crypto_sign_SECRETKEYBYTES)
+
+  crypto_sign_seed_keypair(pubKey, privKey, outputHashBuffer)
+
+  return [pubKey, privKey]
+}
+
+const generateKeys = async (
+  email: string,
+  savePrivkey: boolean,
+  savePassphrase: boolean,
+): Promise<Buffer[]> => {
+  const mNewUser = await LoginUser.findOneOrFail({ email })
+  const lang = mNewUser.language
+  /*
+  if (LANG_DE == lang) {
+		mnemonic_type = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES;
+	}
+  */
+
+  const passphrase = PassphraseGenerate()
+
+  if (savePassphrase) {
+    const loginUserBackup = new LoginUserBackup()
+    loginUserBackup.userId = mNewUser.id
+    loginUserBackup.passphrase = passphrase.join(' ')
+    loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+
+    await loginUserBackup.save().catch(() => {
+      throw new Error('insert user backup failed')
+    })
+  }
+
+  // keys
+  const gradidoKeyPair = KeyPairEd25519Create(passphrase)
+
+  mNewUser.pubKey = gradidoKeyPair[0]
+
+  if (savePrivkey) {
+    mNewUser.privKey = gradidoKeyPair[1]
+  }
+
+  await mNewUser.save().catch(() => {
+    throw new Error(`Error saving new generated pub/priv keys, email: ${email}`)
+  })
+
+  return gradidoKeyPair
 }
 
 @Resolver()
@@ -95,7 +197,7 @@ export class UserResolver {
       userEntity.lastName = user.lastName
       userEntity.username = user.username
       userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+      userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
 
       userEntity.save().catch(() => {
         throw new Error('error by save userEntity')
@@ -200,13 +302,13 @@ export class UserResolver {
     loginUser.publisherId = publisherId
 
     // TODO: check if this insert method is correct, we had problems with that!
-    loginUser.save().catch(() => {
+    await loginUser.save().catch(() => {
       // TODO: this triggered an EMail send
       throw new Error('insert user failed')
     })
 
-    // TODO: pubkey
-    // session->generateKeys(true, true);
+    const keys = await generateKeys(email, true, true)
+    const pubkey = keys[0]
 
     // TODO: we do not login the user as before, since session management is not yet ported
     // calculate encryption key, could need some time, will save encrypted privkey to db
@@ -227,13 +329,13 @@ export class UserResolver {
     // ------------------------------------------------------
 
     const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex(pubkey))
+    dbuser.pubkey = pubkey
     dbuser.email = email
     dbuser.firstName = firstName
     dbuser.lastName = lastName
     dbuser.username = username
 
-    dbuser.save().catch(() => {
+    await dbuser.save().catch(() => {
       throw new Error('error saving user')
     })
 
