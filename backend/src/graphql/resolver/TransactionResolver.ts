@@ -257,7 +257,7 @@ export class TransactionResolver {
       memo,
       auto_sign: true,
       transaction_type: 'transfer',
-      blockchain_type: 'mysql',
+      blockchain_type: 'iota',
     }
     const result = await apiPost(CONFIG.LOGIN_API_URL + 'createTransaction', payload)
     if (!result.success) {
