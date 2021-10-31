@@ -74,7 +74,8 @@ enum PageState {
 				{
 					//mSession->finalizeTransaction(false, true);
 					// 
-					if(!transaction.isNull() && transaction->getModel()->getUserId() == user_model->getID()) 
+					if(!transaction.isNull() && 
+                                          (transaction_body->isCreation() || transaction->getModel()->getUserId() == user_model->getID())) 
 					{
 						if(pt->removeTask(transaction)) {
 							transaction->deleteFromDB();
@@ -150,7 +151,7 @@ enum PageState {
 			transaction_body = transaction->getTransactionBody();
 			// user can only delete there own transactions
 			// TODO: Auto timeout for community transactions
-			if(transaction->getModel()->getUserId() == user_model->getID()) {
+			if(transaction_body->isCreation() || transaction->getModel()->getUserId() == user_model->getID()) {
 				transaction_removeable = true;
 			}
 		}
