@@ -27,7 +27,8 @@ class AppRequestsController extends AppController
         //$this->Auth->allow(['add', 'edit']);
         $this->Auth->allow([
             'index', 'sendCoins', 'createCoins', 'getBalance', 
-            'listTransactions','listGDTTransactions', 'getDecayStartBlock'
+            'listTransactions','listGDTTransactions', 'getDecayStartBlock',
+            'findUserPublicKey'
         ]);
     }
     
@@ -454,6 +455,12 @@ class AppRequestsController extends AppController
             return $this->returnJson(['state' => 'error', 'msg' => 'not found']);
         }
         return $this->returnJson(['state' => 'success', 'decay_start' => $decayStartBlock->first()->received]);
+    }
+
+    public function findUserPublicKey($var) {
+        $this->viewBuilder()->setLayout('ajax');
+        $requestResult = $this->JsonRequestClient->sendRequest(['ask' => ['account_publickey' => $var]], 'search');
+        return $this->returnJson($requestResult);      
     }
     
     private function acquireAccessToken($session_id)

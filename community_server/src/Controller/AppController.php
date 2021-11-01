@@ -284,6 +284,7 @@ class AppController extends Controller
                             if(preg_match('/client ip/', $json['msg'])) {
                                 return $this->redirect($this->loginServerUrl . 'account/error500/ipError', 303);
                             }
+
                             return $this->redirect($this->loginServerUrl . 'account/', 303);
                         }
                     }

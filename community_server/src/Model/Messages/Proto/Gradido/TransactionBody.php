@@ -18,15 +18,15 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      *
      * Generated from protobuf field <code>string memo = 1;</code>
      */
-    private $memo = '';
+    protected $memo = '';
     /**
      * Generated from protobuf field <code>.proto.gradido.TimestampSeconds created = 2;</code>
      */
-    private $created = null;
+    protected $created = null;
     /**
      * Generated from protobuf field <code>uint64 version_number = 3;</code>
      */
-    private $version_number = 0;
+    protected $version_number = 0;
     protected $data;
 
     /**
@@ -39,6 +39,7 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
      *           max 150 chars
      *     @type \Proto\Gradido\TimestampSeconds $created
      *     @type int|string $version_number
+     *     @type \Proto\Gradido\GlobalGroupAdd $groupAdd
      *     @type \Proto\Gradido\GradidoTransfer $transfer
      *     @type \Proto\Gradido\GradidoCreation $creation
      *     @type \Proto\Gradido\GroupFriendsUpdate $group_friends_update
@@ -78,11 +79,21 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.TimestampSeconds created = 2;</code>
-     * @return \Proto\Gradido\TimestampSeconds
+     * @return \Proto\Gradido\TimestampSeconds|null
      */
     public function getCreated()
     {
-        return $this->created;
+        return isset($this->created) ? $this->created : null;
+    }
+
+    public function hasCreated()
+    {
+        return isset($this->created);
+    }
+
+    public function clearCreated()
+    {
+        unset($this->created);
     }
 
     /**
@@ -121,12 +132,44 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * Generated from protobuf field <code>.proto.gradido.GlobalGroupAdd groupAdd = 5;</code>
+     * @return \Proto\Gradido\GlobalGroupAdd|null
+     */
+    public function getGroupAdd()
+    {
+        return $this->readOneof(5);
+    }
+
+    public function hasGroupAdd()
+    {
+        return $this->hasOneof(5);
+    }
+
+    /**
+     * Generated from protobuf field <code>.proto.gradido.GlobalGroupAdd groupAdd = 5;</code>
+     * @param \Proto\Gradido\GlobalGroupAdd $var
+     * @return $this
+     */
+    public function setGroupAdd($var)
+    {
+        GPBUtil::checkMessage($var, \Proto\Gradido\GlobalGroupAdd::class);
+        $this->writeOneof(5, $var);
+
+        return $this;
+    }
+
+    /**
      * Generated from protobuf field <code>.proto.gradido.GradidoTransfer transfer = 6;</code>
-     * @return \Proto\Gradido\GradidoTransfer
+     * @return \Proto\Gradido\GradidoTransfer|null
      */
     public function getTransfer()
     {
         return $this->readOneof(6);
+    }
+
+    public function hasTransfer()
+    {
+        return $this->hasOneof(6);
     }
 
     /**
@@ -144,11 +187,16 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.GradidoCreation creation = 7;</code>
-     * @return \Proto\Gradido\GradidoCreation
+     * @return \Proto\Gradido\GradidoCreation|null
      */
     public function getCreation()
     {
         return $this->readOneof(7);
+    }
+
+    public function hasCreation()
+    {
+        return $this->hasOneof(7);
     }
 
     /**
@@ -166,11 +214,16 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.GroupFriendsUpdate group_friends_update = 8;</code>
-     * @return \Proto\Gradido\GroupFriendsUpdate
+     * @return \Proto\Gradido\GroupFriendsUpdate|null
      */
     public function getGroupFriendsUpdate()
     {
         return $this->readOneof(8);
+    }
+
+    public function hasGroupFriendsUpdate()
+    {
+        return $this->hasOneof(8);
     }
 
     /**
@@ -188,11 +241,16 @@ class TransactionBody extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate group_member_update = 9;</code>
-     * @return \Proto\Gradido\GroupMemberUpdate
+     * @return \Proto\Gradido\GroupMemberUpdate|null
      */
     public function getGroupMemberUpdate()
     {
         return $this->readOneof(9);
+    }
+
+    public function hasGroupMemberUpdate()
+    {
+        return $this->hasOneof(9);
     }
 
     /**

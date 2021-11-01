@@ -13,7 +13,12 @@ use Google\Protobuf\Internal\GPBUtil;
  */
 class Key extends \Google\Protobuf\Internal\Message
 {
-    protected $key;
+    /**
+     * ed25519 signature (libsodium default)
+     *
+     * Generated from protobuf field <code>bytes ed25519 = 2;</code>
+     */
+    protected $ed25519 = '';
 
     /**
      * Constructor.
@@ -23,8 +28,6 @@ class Key extends \Google\Protobuf\Internal\Message
      *
      *     @type string $ed25519
      *           ed25519 signature (libsodium default)
-     *     @type string $ed25519_ref10
-     *           ed25519 ref10 signature
      * }
      */
     public function __construct($data = NULL) {
@@ -40,7 +43,7 @@ class Key extends \Google\Protobuf\Internal\Message
      */
     public function getEd25519()
     {
-        return $this->readOneof(2);
+        return $this->ed25519;
     }
 
     /**
@@ -53,43 +56,9 @@ class Key extends \Google\Protobuf\Internal\Message
     public function setEd25519($var)
     {
         GPBUtil::checkString($var, False);
-        $this->writeOneof(2, $var);
+        $this->ed25519 = $var;
 
         return $this;
-    }
-
-    /**
-     * ed25519 ref10 signature
-     *
-     * Generated from protobuf field <code>bytes ed25519_ref10 = 3;</code>
-     * @return string
-     */
-    public function getEd25519Ref10()
-    {
-        return $this->readOneof(3);
-    }
-
-    /**
-     * ed25519 ref10 signature
-     *
-     * Generated from protobuf field <code>bytes ed25519_ref10 = 3;</code>
-     * @param string $var
-     * @return $this
-     */
-    public function setEd25519Ref10($var)
-    {
-        GPBUtil::checkString($var, False);
-        $this->writeOneof(3, $var);
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getKey()
-    {
-        return $this->whichOneof("key");
     }
 
 }

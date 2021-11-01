@@ -133,7 +133,7 @@ class Transaction extends TransactionBase {
         foreach($sigPairs as $sigPair) {
           //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
           $pubkey = $sigPair->getPubKey();
-          $signature = $sigPair->getEd25519();
+          $signature = $sigPair->getSignature();
           //echo "verify bodybytes: <br>" . bin2hex($bodyBytes) . '<br>';
           if (!\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {
               $this->addError('Transaction::validate', 'signature for key ' . bin2hex($pubkey) . ' isn\'t valid ' );
@@ -179,7 +179,7 @@ class Transaction extends TransactionBase {
       foreach($sigPairs as $sigPair) {
           $signatureEntity = $transactionsSignaturesTable->newEntity();
           $signatureEntity->transaction_id = $transactionId;
-          $signatureEntity->signature = $sigPair->getEd25519();
+          $signatureEntity->signature = $sigPair->getSignature();
           $signatureEntity->pubkey = $sigPair->getPubKey();
           array_push($signatureEntitys, $signatureEntity);
       }
@@ -259,7 +259,7 @@ class Transaction extends TransactionBase {
         foreach($sigPairs as $sigPair) {
           //echo 'sig Pair: '; var_dump($sigPair); echo "<br>";
           $pubkey = $sigPair->getPubKey();
-          $signature = $sigPair->getEd25519();
+          $signature = $sigPair->getSignature();
           if(!$createRight) {
             while($createTrys < 500) {
               if(\Sodium\crypto_sign_verify_detached($signature, $bodyBytes, $pubkey)) {

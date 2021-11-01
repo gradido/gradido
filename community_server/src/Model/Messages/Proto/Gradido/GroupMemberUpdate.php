@@ -16,21 +16,21 @@ class GroupMemberUpdate extends \Google\Protobuf\Internal\Message
     /**
      * Generated from protobuf field <code>bytes user_pubkey = 1;</code>
      */
-    private $user_pubkey = '';
+    protected $user_pubkey = '';
     /**
      * Generated from protobuf field <code>.proto.gradido.GroupMemberUpdate.MemberUpdateType member_update_type = 2;</code>
      */
-    private $member_update_type = 0;
+    protected $member_update_type = 0;
     /**
      * this only makes sense for user move, TODO: probably restructure
      *
      * Generated from protobuf field <code>.proto.gradido.Timestamp paired_transaction_id = 3;</code>
      */
-    private $paired_transaction_id = null;
+    protected $paired_transaction_id = null;
     /**
      * Generated from protobuf field <code>string target_group = 4;</code>
      */
-    private $target_group = '';
+    protected $target_group = '';
 
     /**
      * Constructor.
@@ -88,7 +88,7 @@ class GroupMemberUpdate extends \Google\Protobuf\Internal\Message
      */
     public function setMemberUpdateType($var)
     {
-        GPBUtil::checkEnum($var, \Proto\Gradido\GroupMemberUpdate_MemberUpdateType::class);
+        GPBUtil::checkEnum($var, \Proto\Gradido\GroupMemberUpdate\MemberUpdateType::class);
         $this->member_update_type = $var;
 
         return $this;
@@ -98,11 +98,21 @@ class GroupMemberUpdate extends \Google\Protobuf\Internal\Message
      * this only makes sense for user move, TODO: probably restructure
      *
      * Generated from protobuf field <code>.proto.gradido.Timestamp paired_transaction_id = 3;</code>
-     * @return \Proto\Gradido\Timestamp
+     * @return \Proto\Gradido\Timestamp|null
      */
     public function getPairedTransactionId()
     {
-        return $this->paired_transaction_id;
+        return isset($this->paired_transaction_id) ? $this->paired_transaction_id : null;
+    }
+
+    public function hasPairedTransactionId()
+    {
+        return isset($this->paired_transaction_id);
+    }
+
+    public function clearPairedTransactionId()
+    {
+        unset($this->paired_transaction_id);
     }
 
     /**
