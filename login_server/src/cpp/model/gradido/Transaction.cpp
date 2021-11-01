@@ -150,14 +150,33 @@ namespace model {
 				return result;
 			}
 
-			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
-			auto receiver_model = receiver->getModel();
+			auto sender_model = sender->getModel();
+			auto senderPublicKey = sender_model->getPublicKeyCopy();
+			auto recipiantGroupAlias = recipiantGroup->getModel()->getAlias();
+			auto senderGroupAlias = sender->getGroup()->getModel()->getAlias();
+			Poco::Timestamp now;
 
-			auto sender_groups = controller::Group::load(senderGroupAlias);
-			if (!sender_groups.size()) {
-				em->addError(new ParamError(function_name, "couldn't find group", senderGroupAlias));
-				em->sendErrorsAsEmail();
-				return result;
+			for (int i = 0; i < 2; i++) {
+				TransactionTransferType type = TRANSFER_CROSS_GROUP_INBOUND;
+				std::string groupAlias = senderGroupAlias;
+				if (1 == i) {
+					type = TRANSFER_CROSS_GROUP_OUTBOUND;
+					groupAlias = recipiantGroupAlias;
+				}
+				Poco::AutoPtr<TransactionBody> body = TransactionBody::create(memo, senderPublicKey, recipiantPubkey, amount, type, groupAlias, now);
+				body->setBlockchainType(blockchainType);
+				Poco::AutoPtr<Transaction> transaction(new Transaction(body));
+				transaction->setParam("blockchain_type", (int)blockchainType);
+				transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
+				if (0 == i) {
+					inboundTransaction = transaction;
+					inboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(recipiantGroupAlias);
+				}
+				else if (1 == i) {
+					outboundTransaction = transaction;
+					outboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(senderGroupAlias);
+				} 
+				PendingTasksManager::getInstance()->addTask(transaction);
 			}
 			Poco::AutoPtr<controller::Group> transaction_group;
 			Poco::AutoPtr<controller::Group> topic_group = controller::Group::load(receiver_model->getGroupId());
@@ -520,7 +539,31 @@ namespace model {
 			{
 
 				if (mTransactionBody->isMysqlBlockchain()) {
-					return runSendTransactionMysql();
+					// finale to base64
+					auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+
+					if (base_64_message == "") {
+						addError(new Error(function_name, "error convert final transaction to base64"));
+						return -7;
+					}
+
+					return runSendTransactionMysql(base_64_message, group);
+				} else if(mTransactionBody->isIotaBlockchain()) {
+
+					// finale to hex for iota
+					auto hex_message = DataTypeConverter::binToHex(raw_message);
+					if (hex_message == "") {
+						addError(new Error(function_name, "error convert final transaction to hex"));
+						return -7;
+					}
+					if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isCrossGroup()) {
+						auto groups = controller::Group::load(mTransactionBody->getTransferTransaction()->getOwnGroupAlias());
+						if (groups.size() == 1) {
+							group = groups[0];
+						}
+					}
+
+                    return runSendTransactionIota(hex_message, group);
 				}
 				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
 				return -10;

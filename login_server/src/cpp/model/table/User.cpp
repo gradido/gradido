@@ -119,6 +119,37 @@ namespace model {
 			return select;
 		}
 
+		Poco::Data::Statement User::_loadFromDB(Poco::Data::Session session, const std::vector<std::string>& fieldNames, MysqlConditionType conditionType /*= MYSQL_CONDITION_AND*/)
+		{
+			Poco::Data::Statement select(session);
+			if (fieldNames.size() <= 1) {
+				throw Poco::NullValueException("User::_loadFromDB fieldNames empty or contain only one field");
+			}
+
+			select << "SELECT " << getTableName() << ".id, email, first_name, last_name, username, description, password, pubkey, privkey, email_hash, created, email_checked, language, disabled, group_id, publisher_id, user_roles.role_id "
+				   << " FROM " << getTableName()
+				   << " LEFT JOIN user_roles ON " << getTableName() << ".id = user_roles.user_id "
+	  			   << " where " << fieldNames[0] << " = ? ";
+			if (conditionType == MYSQL_CONDITION_AND) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " AND " << fieldNames[i] << " = ? ";
+				}
+			}
+			else if (conditionType == MYSQL_CONDITION_OR) {
+				for (int i = 1; i < fieldNames.size(); i++) {
+					select << " OR " << fieldNames[i] << " = ? ";
+				}
+			}
+			else {
+				addError(new ParamError("User::_loadFromDB", "condition type not implemented", conditionType));
+			}
+			select, into(mID), into(mEmail), into(mFirstName), into(mLastName), into(mUsername), into(mDescription), into(mPasswordHashed),
+				into(mPublicKey), into(mPrivateKey), into(mEmailHash), into(mCreated), into(mEmailChecked),
+				into(mLanguageKey), into(mDisabled), into(mGroupId), into(mPublisherId), into(mRole);
+
+			return select;
+		}
+
 		Poco::Data::Statement User::_loadMultipleFromDB(Poco::Data::Session session, const std::string& fieldName)
 		{
 			Poco::Data::Statement select(session);

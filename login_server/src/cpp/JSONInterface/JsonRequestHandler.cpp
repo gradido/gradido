@@ -398,11 +398,31 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 {
 	if (!mSession) {
 		int session_id = 0;
-		auto session_id_result = getIntParameter(params, "session_id", session_id);
-		if (session_id_result.IsObject()) {
-			return session_id_result;
-		}
 
+		Value::ConstMemberIterator itr = params.FindMember("session_id");
+		
+		if (itr == params.MemberEnd()) {
+			return stateError("session_id not found");
+		}
+		else if (itr->value.IsInt64()) {
+			session_id = static_cast<int>(itr->value.GetInt64());
+		}
+		else if (itr->value.IsInt()) {
+			session_id = static_cast<int>(itr->value.GetInt());
+		}		
+		else if (itr->value.IsUint64()) {
+			session_id = static_cast<int>(itr->value.GetUint64());
+		}
+		else if (itr->value.IsUint()) {
+			session_id = static_cast<int>(itr->value.GetUint());
+		}
+		else if (itr->value.IsString()) {
+			DataTypeConverter::strToInt(itr->value.GetString(), session_id);
+		}
+		else {
+			return stateError("session_id is unhandled type");
+		}
+		
 		if (!session_id) {
 			return stateError("empty session id");
 		}
