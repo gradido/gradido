@@ -160,6 +160,8 @@ bool KeyPairEd25519::verify(const std::string& message, const std::string& signa
 	return true;
 }
 
+
+
 MemoryBin* KeyPairEd25519::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const
 {
 	if (password.isNull()) return nullptr;
