@@ -4,7 +4,6 @@ namespace Model\Transactions;
 
 //use App\Model\Transactions\TransactionBase;
 
-use Cake\ORM\TableRegistry;
 use Cake\Core\Configure;
 use Cake\Mailer\Email;
 use Cake\I18n\FrozenTime;
@@ -19,7 +18,7 @@ class TransactionCreation extends TransactionBase {
     
     public function __construct($protoTransactionCreation) {
       $this->protoTransactionCreation = $protoTransactionCreation;
-      $this->transactionCreationsTable = TableRegistry::getTableLocator()->get('transaction_creations');
+      $this->transactionCreationsTable = $this->getTable('transaction_creations');
       $this->receiver_pubkey_hex = bin2hex($this->getReceiverPublic());
     }
     
@@ -65,11 +64,11 @@ class TransactionCreation extends TransactionBase {
     
     
     public function getAmount() {
-      return $this->protoTransactionCreation->getReceiver()->getAmount();
+      return $this->protoTransactionCreation->getRecipiant()->getAmount();
     }
     
     public function getReceiverPublic() {
-      return $this->protoTransactionCreation->getReceiver()->getPubkey();
+      return $this->protoTransactionCreation->getRecipiant()->getPubkey();
     }
     
     public function getReceiverUser() {
@@ -221,7 +220,7 @@ class TransactionCreation extends TransactionBase {
       $protoCreation = new \Proto\Gradido\GradidoCreation();
       
       //var_dump($transactionCreationEntity);
-      $stateUsersTable = TableRegistry::getTableLocator()->get('state_users');
+      $stateUsersTable = $this->getTable('state_users');
       //return new TransactionCreation($protoCreation);
       $userId = $transactionCreationEntity->state_user_id;
       

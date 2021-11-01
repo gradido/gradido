@@ -33,11 +33,16 @@ class GradidoTransfer extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.LocalTransfer local = 1;</code>
-     * @return \Proto\Gradido\LocalTransfer
+     * @return \Proto\Gradido\LocalTransfer|null
      */
     public function getLocal()
     {
         return $this->readOneof(1);
+    }
+
+    public function hasLocal()
+    {
+        return $this->hasOneof(1);
     }
 
     /**
@@ -55,11 +60,16 @@ class GradidoTransfer extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.CrossGroupTransfer inbound = 2;</code>
-     * @return \Proto\Gradido\CrossGroupTransfer
+     * @return \Proto\Gradido\CrossGroupTransfer|null
      */
     public function getInbound()
     {
         return $this->readOneof(2);
+    }
+
+    public function hasInbound()
+    {
+        return $this->hasOneof(2);
     }
 
     /**
@@ -77,11 +87,16 @@ class GradidoTransfer extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>.proto.gradido.CrossGroupTransfer outbound = 3;</code>
-     * @return \Proto\Gradido\CrossGroupTransfer
+     * @return \Proto\Gradido\CrossGroupTransfer|null
      */
     public function getOutbound()
     {
         return $this->readOneof(3);
+    }
+
+    public function hasOutbound()
+    {
+        return $this->hasOneof(3);
     }
 
     /**

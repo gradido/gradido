@@ -405,7 +405,7 @@ class TransactionCreationsController extends AppController
                     if('success' != $requestAnswear['state']) {
                       $this->addAdminError('TransactionCreations', 'createMulti', $requestAnswear, $user['id']);
                         if ($requestResult['type'] == 'request error') {
-                            $this->Flash->error(__('Error by requesting LoginServer, please try again'));
+                            $this->Flash->error(__('Error by requesting LoginServer, please try again (' . $requestResult['details'] . ')' ));
                         } else {
                             $this->Flash->error(__('Error, please wait for the admin to fix it'));
                         }
