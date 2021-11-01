@@ -38,10 +38,10 @@ public:
 	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); } 
 
 protected:
-	Poco::SharedPtr<Poco::Net::HTTPClientSession> JsonRequest::createClientSession();
+	Poco::SharedPtr<Poco::Net::HTTPClientSession> createClientSession();
 	std::string GET(const char* path);
 	std::string POST(const char* path);
-	rapidjson::Document JsonRequest::parseResponse(std::string responseString);
+	rapidjson::Document parseResponse(std::string responseString);
 
 	int mServerPort;
 	std::string mServerHost;
