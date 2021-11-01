@@ -21,9 +21,9 @@ class TransactionTransfer extends TransactionBase {
         if($this->protoTransactionTransfer->hasLocal()) {
           return $this->protoTransactionTransfer->getLocal();
         } else if($this->protoTransactionTransfer->hasInbound()) {
-          return $this->protoTransactionTransfer->getInbound()->getLocal();
+          return $this->protoTransactionTransfer->getInbound()->getTransfer();
         } else if($this->protoTransactionTransfer->hasOutbound()) {
-          return $this->protoTransactionTransfer->getOutbound()->getLocal();
+          return $this->protoTransactionTransfer->getOutbound()->getTransfer();
         }
         return null;      
     }
@@ -228,7 +228,7 @@ class TransactionTransfer extends TransactionBase {
        $disable_email = Configure::read('disableEmail', false);  
        if($disable_email) return true;
         
-      $local_transfer = $this->protoTransactionTransfer->getLocal();
+      $local_transfer = $this->protoTransactionTransfer->getTransfer();
       $sender = $local_transfer->getSender();
       $senderAmount = $sender->getAmount();
       $senderUser = $this->getStateUserFromPublickey($sender->getPubkey());
@@ -264,19 +264,19 @@ class TransactionTransfer extends TransactionBase {
     
     public function getSenderUser()
     {
-        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $local_transfer = $this->getTransfer();
         return $this->getStateUserFromPublickey($local_transfer->getSender()->getPubkey());
     }
     
     public function getReceiverUser()
     {
-        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $local_transfer = $this->getTransfer();
         return $this->getStateUserFromPublickey($local_transfer->getRecipiant());
     }
     
     public function getAmount()
     {
-        $local_transfer = $this->protoTransactionTransfer->getLocal();
+        $local_transfer = $this->getTransfer();
         $sender = $local_transfer->getSender();
         return $sender->getAmount();
     }
