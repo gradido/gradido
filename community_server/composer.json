@@ -9,7 +9,7 @@
         "cakephp/cakephp": "3.9.*",
         "cakephp/plugin-installer": "^1.0",
         "datto/json-rpc": "^6.0",
-        "google/protobuf": "v3.10.*",
+        "google/protobuf": "v3.13.*",
         "mobiledetect/mobiledetectlib": "2.*",
         "paragonie/sodium_compat": "^1.11",
         "tuupola/base58": "^2.0"
