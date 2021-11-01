@@ -14,13 +14,12 @@
 class JsonUpdateUserInfos : public JsonRequestHandler
 {
 public:
-	JsonUpdateUserInfos(Session* session);
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	JsonUpdateUserInfos(Session* session) : JsonRequestHandler(session) {};
 
-protected:
+	rapidjson::Document handle(const rapidjson::Document& params);
 
-	std::string validateString(Poco::Dynamic::Var value, const char* fieldName, Poco::JSON::Array& errorArray);
-	bool isOldPasswordValid(Poco::JSON::Object::Ptr updates, Poco::JSON::Array& errors);
+protected:	
+	bool isOldPasswordValid(const rapidjson::Value& updates, rapidjson::Value& errors, rapidjson::Document::AllocatorType& alloc);
 
 
 };

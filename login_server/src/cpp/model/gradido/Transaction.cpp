@@ -1,21 +1,25 @@
 #include "Transaction.h"
-#include "../../SingletonManager/ErrorManager.h"
-#include "../../SingletonManager/PendingTasksManager.h"
-#include "../../SingletonManager/LanguageManager.h"
-#include "../../ServerConfig.h"
+#include "SingletonManager/ErrorManager.h"
+#include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/LanguageManager.h"
+#include "SingletonManager/CronManager.h"
+#include "SingletonManager/MemoryManager.h"
+#include "ServerConfig.h"
 
 
-#include "../../lib/DataTypeConverter.h"
-#include "../../lib/Profiler.h"
-#include "../../lib/JsonRequest.h"
+#include "lib/DataTypeConverter.h"
+#include "lib/Profiler.h"
+#include "lib/JsonRequest.h"
 
+
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 #include <google/protobuf/util/json_util.h>
 
-#include "Poco/JSON/Parser.h"
-
 #include <inttypes.h>
 
+using namespace rapidjson;
 
 namespace model {
 	namespace gradido {
@@ -48,7 +52,11 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 		}
 
-		Poco::AutoPtr<Transaction> Transaction::createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group)
+		Poco::AutoPtr<Transaction> Transaction::createGroupMemberUpdate(
+			Poco::AutoPtr<controller::User> user,
+			Poco::AutoPtr<controller::Group> group,
+			BlockchainType blockchainType
+		)
 		{
 			auto em = ErrorManager::getInstance();
 			static const char* function_name = "Transaction::create group member update";
@@ -58,9 +66,15 @@ namespace model {
 			}
 			auto group_model = group->getModel();
 
-			auto body = TransactionBody::create("", user, proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER, group_model->getAlias());
-
+			auto body = TransactionBody::create(
+				"",
+				user,
+				proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER,
+				group_model->getAlias(),
+				blockchainType
+			);
 			Poco::AutoPtr<Transaction> result = new Transaction(body);
+			result->setParam("blockchain_type", (int)blockchainType);
 			auto model = result->getModel();
 			result->insertPendingTaskIntoDB(user, model::table::TASK_TYPE_GROUP_ADD_MEMBER);
 			PendingTasksManager::getInstance()->addTask(result);
@@ -72,7 +86,8 @@ namespace model {
 			Poco::UInt32 amount,
 			Poco::DateTime targetDate,
 			const std::string& memo,
-			BlockchainType blockchainType
+			BlockchainType blockchainType,
+			bool addToPendingTaskManager/* = true*/
 			)
 		{
 			auto em = ErrorManager::getInstance();
@@ -89,38 +104,38 @@ namespace model {
 			result->setParam("blockchain_type", (int)blockchainType);
 			auto model = result->getModel();
 
-
-			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
-			PendingTasksManager::getInstance()->addTask(result);
+			if (addToPendingTaskManager) {
+				result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
+				PendingTasksManager::getInstance()->addTask(result);
+			}
 			return result;
 		}
-
-		Poco::AutoPtr<Transaction> Transaction::createTransfer(
+		Poco::AutoPtr<Transaction> Transaction::createTransferLocal(
 			Poco::AutoPtr<controller::User> sender,
-			const MemoryBin* receiverPubkey,
-			Poco::AutoPtr<controller::Group> receiverGroup,
+			const MemoryBin* recipiantPubkey,
 			Poco::UInt32 amount,
 			const std::string& memo,
-			BlockchainType blockchainType,
-			bool inbound/* = true*/
+			BlockchainType blockchainType
 		)
 		{
 			Poco::AutoPtr<Transaction> transaction;
 			Poco::AutoPtr<TransactionBody> transaction_body;
 			auto em = ErrorManager::getInstance();
-			static const char* function_name = "Transaction::create transfer";
+			static const char* function_name = "Transaction::createTransferLocal";
 
-			if (sender.isNull() || !sender->getModel() || !receiverPubkey || !amount) {
+			if (sender.isNull() || !sender->getModel() || !recipiantPubkey || !amount) {
 				return transaction;
 			}
 
 			auto sender_model = sender->getModel();
+			auto senderPublicKey = sender_model->getPublicKeyCopy();
+			
+			transaction_body = TransactionBody::create(memo, senderPublicKey, recipiantPubkey, amount, TRANSFER_LOCAL);
+			transaction_body->setBlockchainType(blockchainType);
 
-
-			if (blockchainType == BLOCKCHAIN_MYSQL) {
-				transaction_body = TransactionBody::create(memo, sender, receiverPubkey, amount, blockchainType);
-				transaction = new Transaction(transaction_body);
-			}
+			transaction = new Transaction(transaction_body);
+			MemoryManager::getInstance()->releaseMemory(senderPublicKey);
+			senderPublicKey = nullptr;
 
 			transaction->setParam("blockchain_type", (int)blockchainType);
 			transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
@@ -129,64 +144,60 @@ namespace model {
 			return transaction;
 		}
 
-
-		Poco::AutoPtr<Transaction> Transaction::createTransfer(
-			const MemoryBin* senderPubkey,
-			Poco::AutoPtr<controller::User> receiver,
-			std::string senderGroupAlias,
+		Poco::AutoPtr<Transaction> Transaction::createTransferCrossGroup(
+			Poco::AutoPtr<controller::User> sender,
+			const MemoryBin* recipiantPubkey,
+			Poco::AutoPtr<controller::Group> recipiantGroup,
 			Poco::UInt32 amount,
 			const std::string& memo,
-			BlockchainType blockchainType
-			)
+			BlockchainType blockchainType)
 		{
-			Poco::AutoPtr<Transaction> result;
+			Poco::AutoPtr<Transaction> outboundTransaction;
+			Poco::AutoPtr<Transaction> inboundTransaction;
+			
 			auto em = ErrorManager::getInstance();
-			static const char* function_name = "Transaction::create transfer 2";
+			static const char* function_name = "Transaction::createTransferCrossGroup";
 
-			if (receiver.isNull() || !receiver->getModel() || !senderPubkey || !amount) {
-				return result;
+			if (sender.isNull() || !sender->getModel() || !recipiantPubkey || !amount || recipiantGroup.isNull()) {
+				return outboundTransaction;
 			}
 
-			//std::vector<Poco::AutoPtr<TransactionBody>> bodys;
-			auto receiver_model = receiver->getModel();
+			auto sender_model = sender->getModel();
+			auto senderPublicKey = sender_model->getPublicKeyCopy();
+			auto groupAlias = recipiantGroup->getModel()->getAlias();
+			Poco::Timestamp now;
 
-			auto sender_groups = controller::Group::load(senderGroupAlias);
-			if (!sender_groups.size()) {
-				em->addError(new ParamError(function_name, "couldn't find group", senderGroupAlias));
-				em->sendErrorsAsEmail();
-				return result;
+			for (int i = 0; i < 2; i++) {
+				TransactionTransferType type = TRANSFER_CROSS_GROUP_INBOUND;
+				if (1 == i) {
+					type = TRANSFER_CROSS_GROUP_OUTBOUND;
+				}
+				Poco::AutoPtr<TransactionBody> body = TransactionBody::create(memo, senderPublicKey, recipiantPubkey, amount, type, groupAlias, now);
+				body->setBlockchainType(blockchainType);
+				Poco::AutoPtr<Transaction> transaction(new Transaction(body));
+				transaction->setParam("blockchain_type", (int)blockchainType);
+				transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
+				if (0 == i) {
+					inboundTransaction = transaction;
+				}
+				else if (1 == i) {
+					outboundTransaction = transaction;
+				} 
+				PendingTasksManager::getInstance()->addTask(transaction);
 			}
-			Poco::AutoPtr<controller::Group> transaction_group;
-			Poco::AutoPtr<controller::Group> topic_group = controller::Group::load(receiver_model->getGroupId());
-			if (topic_group.isNull()) {
-				em->addError(new ParamError(function_name, "topic group not found", receiver_model->getGroupId()));
-				em->sendErrorsAsEmail();
-				return result;
-			}
-			// default constructor set it to now
-			Poco::Timestamp pairedTransactionId;
-			// create only inbound transaction, and outbound before sending to hedera
-			//for (int i = 0; i < 1; i++) {
+			auto outboundTransactionModel = outboundTransaction->getModel();
+			auto inboundTransactionModel = inboundTransaction->getModel();
+			outboundTransactionModel->setChildPendingTaskId(inboundTransactionModel->getID());
+			outboundTransactionModel->updateParentAndChildIds();
 
-			//transaction_group = receiverGroup;
-			//topic_group = sender_group;
+			inboundTransactionModel->setParentPendingTaskId(outboundTransactionModel->getID());
+			inboundTransactionModel->updateParentAndChildIds();
 
-			if (transaction_group.isNull()) {
-				em->addError(new Error(function_name, "transaction group is zero, inbound"));
-				em->sendErrorsAsEmail();
-				return result;
-			}
+			MemoryManager::getInstance()->releaseMemory(senderPublicKey);
+			senderPublicKey = nullptr;
 
-			auto body = TransactionBody::create(memo, senderPubkey, receiver, amount, pairedTransactionId, transaction_group);
-			result = new Transaction(body);
-
-			result->setParam("blockchain_type", (int)blockchainType);
-			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_TRANSFER);
-			PendingTasksManager::getInstance()->addTask(result);
-
-			return result;
+			return outboundTransaction;
 		}
-
 
 		Poco::AutoPtr<Transaction> Transaction::load(model::table::PendingTask* dbModel)
 		{
@@ -198,10 +209,8 @@ namespace model {
 			// check if transaction was already finished
 			auto json = transaction->getModel()->getResultJson();
 			bool finished = false;
-			if (!json.isNull()) {
-				if (!json->get("state").isEmpty()) {
-					finished = true;
-				}
+			if (json.IsObject() && json.HasMember("state")) {
+				finished = true;
 			}
 			// try not finished but signed transactions again
 			if (!finished && ServerConfig::g_resendUnfinishedTransactionOnStart) {
@@ -322,7 +331,7 @@ namespace model {
 			auto pubkeyBytes = sigPair->mutable_pubkey();
 			*pubkeyBytes = std::string((const char*)pubkeyBin, crypto_sign_PUBLICKEYBYTES);
 
-			auto sigBytes = sigPair->mutable_ed25519();
+			auto sigBytes = sigPair->mutable_signature();
 			*sigBytes = std::string((char*)*sign, crypto_sign_BYTES);
 			auto sign_hex_string = DataTypeConverter::binToHex(sign);
 			//printf("sign hex: %s\n", sign_hex_string.data());
@@ -335,19 +344,17 @@ namespace model {
 
 		bool Transaction::ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user)
 		{
+			auto pt = PendingTasksManager::getInstance();
 			// check if enough signatures exist for next step
 			if (getSignCount() >= mTransactionBody->getTransactionBase()->getMinSignatureCount())
 			{
 				if (getTransactionBody()->isTransfer() && !user.isNull()) {
 					auto transfer = getTransactionBody()->getTransferTransaction();
 					if (transfer->isOutbound()) {
-						auto transaction = transfer->createInbound(getTransactionBody()->getMemo());
-						if (!transaction.isNull()) {
-							transaction->sign(user);
-							// dirty hack because gn crashes if its get transactions out of order
-							mPairedTransaction = transaction;
-							// removed because now using only one hedera node
-							//Poco::Thread::sleep(1000);
+						auto inboundTransaction =  pt->getPendingGradidoTransaction(getModel()->getChildPendingTaskId());
+						mPairedTransaction = inboundTransaction;
+						if (!inboundTransaction.isNull()) {
+							inboundTransaction->sign(user);
 						}
 						else {
 							addError(new Error("Transaction::ifEnoughSignsProceed", "Error creating outbound transaction"));
@@ -357,8 +364,7 @@ namespace model {
 					}
 				}
 				//UniLib::controller::TaskPtr transaction_send_task(new SendTransactionTask(Poco::AutoPtr<Transaction>(this, true)));
-				//transaction_send_task->scheduleTask(transaction_send_task);
-				auto pt = PendingTasksManager::getInstance();
+				//transaction_send_task->scheduleTask(transaction_send_task);				
 
 				// pt->removeTask(Poco::AutoPtr<Transaction>(this, true));
 				// deleteFromDB();
@@ -389,7 +395,7 @@ namespace model {
 			for (auto it = sig_map.sigpair().begin(); it != sig_map.sigpair().end(); it++)
 			{
 				KeyPairEd25519 key_pair((const unsigned char*)it->pubkey().data());
-				if (!key_pair.verify(body_bytes, it->ed25519())) {
+				if (!key_pair.verify(body_bytes, it->signature())) {
 					return TRANSACTION_VALID_INVALID_SIGN;
 				}
 			}
@@ -433,6 +439,10 @@ namespace model {
 			if (hasSigned(user)) return false;
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto transaction_base = mTransactionBody->getTransactionBase();
+			// inbound transaction will be auto signed when outbound transaction will be signed
+			if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isInbound()) {
+				return false;
+			}
 			return transaction_base->isPublicKeyRequired(user->getModel()->getPublicKey());
 		}
 
@@ -442,6 +452,10 @@ namespace model {
 			if (hasSigned(user)) return false;
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			auto transaction_base = mTransactionBody->getTransactionBase();
+			// inbound transaction will be auto signed when outbound transaction will be signed
+			if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isInbound()) {
+				return false;
+			}
 			return !transaction_base->isPublicKeyForbidden(user->getModel()->getPublicKey());
 		}
 
@@ -517,9 +531,52 @@ namespace model {
 			}
 			else
 			{
+				std::string raw_message = mProtoTransaction.SerializeAsString();
+                if (raw_message == "") {
+                    addError(new Error(function_name, "error serializing final transaction"));
+                    return -6;
+                }
+               
+				Poco::AutoPtr<controller::Group> group;
+                auto user = getUser();
+                if (!user.isNull()) {
+					group = user->getGroup();
+				}
+				
+                if (group.isNull()) {
+					if (mTransactionBody->isGroupMemberUpdate()) {
+						auto alias = mTransactionBody->getGroupMemberUpdate()->getTargetGroupAlias();
+						auto groups = controller::Group::load(alias);
+						if (groups.size() == 1) {
+							group = groups[0];
+						}
+						else {
+							addError(new ParamError(function_name, "invalid or unknown group alias in group member update", alias));
+							return -8;
+						}
+					}
+                }
 
 				if (mTransactionBody->isMysqlBlockchain()) {
-					return runSendTransactionMysql();
+					// finale to base64
+					auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+
+					if (base_64_message == "") {
+						addError(new Error(function_name, "error convert final transaction to base64"));
+						return -7;
+					}
+
+					return runSendTransactionMysql(base_64_message, group);
+				} else if(mTransactionBody->isIotaBlockchain()) {
+
+					// finale to hex for iota
+					auto hex_message = DataTypeConverter::binToHex(raw_message);
+					if (hex_message == "") {
+						addError(new Error(function_name, "error convert final transaction to hex"));
+						return -7;
+					}
+
+                    return runSendTransactionIota(hex_message, group);
 				}
 				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
 				return -10;
@@ -527,41 +584,16 @@ namespace model {
 
 		}
 
-		int Transaction::runSendTransactionMysql()
+		int Transaction::runSendTransactionMysql(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group)
 		{
 			static const char* function_name = "Transaction::runSendTransactionMysql";
-			auto mm = MemoryManager::getInstance();
-			std::string raw_message = mProtoTransaction.SerializeAsString();
-			if (raw_message == "") {
-				addError(new Error("SigningTransaction", "error serializing final transaction"));
-				return -6;
-			}
-
-			// finale to base64
-			auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-
-			if (base_64_message == "") {
-				addError(new Error(function_name, "error convert final transaction to base64"));
-				return -7;
-			}
-
 
 			// create json request
-			auto user = getUser();
-			if (user.isNull()) {
-				addError(new Error(function_name, "user is zero"));
-				return -8;
-			}
-			auto group = user->getGroup();
-			if (group.isNull()) {
-				addError(new Error(function_name, "group is zero"));
-				return -9;
-			}
 			auto json_request = group->createJsonRequest();
-
-			Poco::Net::NameValueCollection param;
-			param.set("transaction", base_64_message);
-			auto result = json_request.request("putTransaction", param);
+			auto alloc = json_request.getJsonAllocator();
+			Value param(kObjectType);
+			param.AddMember("transaction", Value(transaction_base64.data(), transaction_base64.size(), alloc), alloc);
+			auto result = json_request.request("putTransaction", param.Move());
 			json_request.getWarnings(&json_request);
 
 			if (JSON_REQUEST_RETURN_OK == result)
@@ -581,6 +613,38 @@ namespace model {
 
 			return -1;
 		}
+
+		int Transaction::runSendTransactionIota(const std::string& transaction_hex, Poco::AutoPtr<controller::Group> group)
+		{
+            static const char* function_name = "Transaction::runSendTransactionIota";
+
+			std::string index = "GRADIDO." + group->getModel()->getAlias();
+			std::string message = transaction_hex;
+
+			/*
+			* std::string transaction_detailed;
+			transaction_detailed += "{\"json\":\"";
+			transaction_detailed += getTransactionAsJson(true);
+			transaction_detailed += "\", \"base64\":\"";
+			transaction_detailed += transaction_base64;
+			transaction_detailed += "\"}";
+
+			printf("transaction: %s\n", transaction_detailed.data());
+			*/
+			
+			auto message_id = ServerConfig::g_IotaRequestHandler->sendMessage(DataTypeConverter::binToHex(index), message, this);
+			setResult("message_id", message_id, false);
+			if (message_id != "") {
+				setResult("state", "success", true);
+			}
+			
+			// sometimes iota is faster so let's try different times
+			CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(15, 0));
+			CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(30, 0));
+			// iota has ca. every 60 seconds a new milestone, so we wait 68 seconds to make sure that node server has get the transaction then
+			CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(68, 0));
+            return 1;
+        }
 
 		std::string Transaction::getTransactionAsJson(bool replaceBase64WithHex/* = false*/)
 		{
@@ -611,19 +675,20 @@ namespace model {
 			//printf("json: %s\n", json_message.data());
 
 			if (replaceBase64WithHex) {
-				Poco::JSON::Parser json_parser;
-				try {
-					auto json = json_parser.parse(json_message);
-					Poco::JSON::Object::Ptr object = json.extract<Poco::JSON::Object::Ptr>();
-					if (DataTypeConverter::replaceBase64WithHex(object)) {
-						std::ostringstream oss;
-						Poco::JSON::Stringifier::stringify(json, oss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER);
-						json_message = oss.str();
-					}
+				Document parsed_json;
+				parsed_json.Parse(json_message.data(), json_message.size());
+				if (parsed_json.HasParseError()) {
+					addError(new ParamError(function_name, "error by parsing or printing json", parsed_json.GetParseError()));
+					addError(new ParamError(function_name, "parsing error offset ", parsed_json.GetErrorOffset()));
 				}
-				catch (Poco::Exception& ex) {
-					addError(new ParamError(function_name, "exception by parsing or printing json", ex.message()));
-					addError(new ParamError(function_name, "pending task id: ", getModel()->getID()));
+				else {
+					if (DataTypeConverter::replaceBase64WithHex(parsed_json, parsed_json.GetAllocator())) {
+						StringBuffer buffer;
+						Writer<StringBuffer> writer(buffer);
+						parsed_json.Accept(writer);
+
+						json_message = std::string(buffer.GetString(), buffer.GetLength());
+					}
 				}
 			}
 
@@ -686,9 +751,10 @@ namespace model {
 			// delete because of error
 			if (-1 == result) {
 				//mTransaction->deleteFromDB();
-				Poco::JSON::Object::Ptr errors = new Poco::JSON::Object;
-				errors->set("errors", mTransaction->getErrorsArray());
-				errors->set("state", "error");
+				Document errors(kObjectType);
+				auto alloc = errors.GetAllocator();
+				errors.AddMember("errors", mTransaction->getErrorsArray(alloc), alloc);
+				errors.AddMember("state", "error", alloc);
 				auto model = mTransaction->getModel();
 				model->setResultJson(errors);
 				model->updateFinishedAndResult();

@@ -21,7 +21,12 @@ namespace controller {
 
 	void TableControllerBase::duplicate()
 	{
-		lock("TableControllerBase::duplicate");
+		std::string name = "TableControllerBase::duplicate";
+		if (!mDBModel.isNull()) {
+			name += ": ";
+			name += mDBModel->getTableName();
+		}
+		lock(name.data());
 		mReferenceCount++;
 		//printf("[ModelBase::duplicate] new value: %d\n", mReferenceCount);
 		unlock();

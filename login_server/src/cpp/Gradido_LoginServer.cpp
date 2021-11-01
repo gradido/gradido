@@ -9,6 +9,7 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 #include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/CronManager.h"
 
 #include "controller/User.h"
 
@@ -21,6 +22,7 @@
 #include "Poco/Environment.h"
 #include "Poco/Logger.h"
 #include "Poco/Path.h"
+#include "Poco/File.h"
 #include "Poco/AsyncChannel.h"
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/FileChannel.h"
@@ -208,6 +210,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		ServerConfig::initEMailAccount(config());
 		EmailManager::getInstance()->init(config());
 
+
+
 		// start cpu scheduler
 		uint8_t worker_count = (uint8_t)config().getInt("cpu_worker", Poco::Environment::processorCount() * 2);
 
@@ -259,6 +263,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 		controller::User::addMissingEmailHashes();
 
+        ServerConfig::initIota(config());
+
 		// HTTP Interface Server
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
@@ -280,12 +286,11 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// load pending tasks not finished in last session
 		PendingTasksManager::getInstance()->load();
 		int php_server_ping = config().getInt("phpServer.ping", 600000);
+		CronManager::getInstance()->init(php_server_ping);
 
-		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
 		// wait for CTRL-C or kill
 		waitForTerminationRequest();
-
 
 		// Stop the HTTPServer
 		srv.stop();

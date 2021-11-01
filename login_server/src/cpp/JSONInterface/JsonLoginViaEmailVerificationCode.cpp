@@ -13,33 +13,15 @@
 #include "Poco/URI.h"
 #include "Poco/JSON/Array.h"
 
-Poco::JSON::Object* JsonLoginViaEmailVerificationCode::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+Document JsonLoginViaEmailVerificationCode::handle(const Document& params)
 {
-
 	auto sm = SessionManager::getInstance();
-	
-	/*
-		email verification code
-	*/
-	// incoming
-	unsigned long long code = 0;
-	if (params.isVector()) {
-		const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
-		std::string codeString;
-		for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
-			if (it->first == "emailVerificationCode") {
-				codeString = it->second;
-				break;
-			}
-		}
-		if (codeString == "") {
-			return stateError("emailVerificationCode not found");
-		}
-		if (DataTypeConverter::NUMBER_PARSE_OKAY != DataTypeConverter::strToInt(codeString, code)) {
-			return stateError("couldn't parse emailVerificationCode");
-		}
+	Poco::UInt64 code = 0;
+	auto paramError = getUInt64Parameter(params, "emailVerificationCode", code);
+	if (paramError.IsObject()) return paramError;
 
-	}
 	auto session = sm->findByEmailVerificationCode(code);
 	if (!session) {
 		session = sm->getNewSession();
@@ -47,24 +29,28 @@ Poco::JSON::Object* JsonLoginViaEmailVerificationCode::handle(Poco::Dynamic::Var
 			return stateError("couldn't login with emailVerificationCode");
 		}
 	}
-	session->setClientIp(mClientIP);
-	auto result = new Poco::JSON::Object;
-	result->set("state", "success");
-	result->set("session_id", session->getHandle());
-	result->set("email_verification_code_type", model::table::EmailOptIn::typeToString(session->getEmailVerificationType()));
-	Poco::JSON::Array info;
+	session->setClientIp(mClientIp);
+	Document result(kObjectType); 
+	auto alloc = result.GetAllocator();
+	result.AddMember("state", "success", alloc);
+	result.AddMember("session_id", session->getHandle(), alloc);
+	auto email_verification_type_string = model::table::EmailOptIn::typeToString(session->getEmailVerificationType());
+	result.AddMember("email_verification_code_type", Value(email_verification_type_string, alloc), alloc);
+
+	Value info(kArrayType);
+	
 	auto user = session->getNewUser();
 
 	if (!user->getModel()->getPasswordHashed()) {
-		info.add("user has no password");
+		info.PushBack("user has no password", alloc);
 	}
 	auto update_email_verification_result = session->updateEmailVerification(code);
 	if (1 == update_email_verification_result) {
-		info.add("email already activated");
+		info.PushBack("email already activated", alloc);
 	}
-	result->set("user", user->getJson());
+	result.AddMember("user", user->getJson(alloc), alloc);
 
-	result->set("info", info);
+	result.AddMember("info", info, alloc);
 
 
 	return result;

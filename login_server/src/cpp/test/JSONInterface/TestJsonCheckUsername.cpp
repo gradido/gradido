@@ -2,126 +2,118 @@
 
 #include "JSONInterface/JsonCheckUsername.h"
 
+using namespace rapidjson;
+
 TEST(TestJsonCheckUsername, InvalidGroupAlias)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("group_alias", "robert");
-	auto result = jsonCall.handle(params);
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "unknown group");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("group_alias", "robert", alloc);
+	Document result;
+ 	result = jsonCall.handle(params);
 
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "error");
+
+	std::string msg;
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "unknown group");
 }
 
 TEST(TestJsonCheckUsername, InvalidGroupId)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("group_id", "4");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("group_id", 4, alloc);
 	auto result = jsonCall.handle(params);
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "unknown group");
 
-	delete result;
+	std::string msg;
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "unknown group");
 }
 
 TEST(TestJsonCheckUsername, ValidGroupAlias)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("group_alias", "gdd1");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("group_alias", "gdd1", alloc);
 	auto result = jsonCall.handle(params);
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
 
-	auto group_id = result->get("group_id");
-	ASSERT_FALSE(group_id.isEmpty());
-	ASSERT_TRUE(group_id.isInteger());
-	int group_id_int = 0;
-	group_id.convert(group_id_int);
-	ASSERT_EQ(group_id_int, 1);
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "success");
 
-	delete result;
+	int group_id = 0;
+	jsonCall.getIntParameter(result, "group_id", group_id);
+	ASSERT_EQ(group_id, 1);
+
 }
 
 TEST(TestJsonCheckUsername, UsernameWithoutGroup)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("username", "maxi");
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("username", "maxi", alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "error");
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "error");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "no group given");
-	
-	delete result;
+	std::string msg;
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "no group given");
 }
 
 TEST(TestJsonCheckUsername, ExistingUsername)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("username", "Erfinder");
-	params->set("group_id", 1);
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("username", "Erfinder", alloc);
+	params.AddMember("group_id", 1, alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "warning");
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "warning");
 
-	auto msg = result->get("msg");
-	ASSERT_FALSE(msg.isEmpty());
-	ASSERT_TRUE(msg.isString());
-	ASSERT_EQ(msg.toString(), "username already in use");
-
-	delete result;
+	std::string msg;
+	jsonCall.getStringParameter(result, "msg", msg);
+	ASSERT_EQ(msg, "username already in use");
 }
 
 TEST(TestJsonCheckUsername, NewUsername)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("username", "Maxi");
-	params->set("group_id", 1);
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("username", "Maxi", alloc);
+	params.AddMember("group_id", 1, alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
-
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "success");	
 }
 
 TEST(TestJsonCheckUsername, UsernameExistInOtherGroup)
 {
 	JsonCheckUsername jsonCall;
-	Poco::JSON::Object::Ptr params = new Poco::JSON::Object;
-	params->set("username", "Erfinder");
-	params->set("group_id", 2);
+	Document params(kObjectType);
+	auto alloc = params.GetAllocator();
+	params.AddMember("username", "Erfinder", alloc);
+	params.AddMember("group_id", 2, alloc);
 	auto result = jsonCall.handle(params);
 
-	auto state = result->get("state");
-	ASSERT_FALSE(state.isEmpty());
-	ASSERT_TRUE(state.isString());
-	ASSERT_EQ(state.toString(), "success");
-
-	delete result;
+	std::string state;
+	jsonCall.getStringParameter(result, "state", state);
+	ASSERT_EQ(state, "success");
 }
 
 

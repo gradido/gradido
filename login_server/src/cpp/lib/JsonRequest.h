@@ -10,7 +10,7 @@
 
 #include "NotificationList.h"
 #include "Poco/Net/NameValueCollection.h"
-#include "Poco/JSON/Object.h"
+#include "Poco/Net/HTTPClientSession.h"
 
 #ifndef __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
 #define __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
@@ -30,14 +30,22 @@ public:
 	JsonRequest(const std::string& serverHost, int serverPort);
 	~JsonRequest();
 
-	JsonRequestReturn request(const char* methodName, const Poco::Net::NameValueCollection& payload);
-	JsonRequestReturn request(const char* methodName, const Poco::JSON::Object& payload);
 	JsonRequestReturn request(const char* methodName);
+	JsonRequestReturn request(const char* methodName, rapidjson::Value& payload);
+
+	rapidjson::Document requestLogin(const char* path, rapidjson::Value& payload);
+
+	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); } 
 
 protected:
+	Poco::SharedPtr<Poco::Net::HTTPClientSession> JsonRequest::createClientSession();
+	std::string GET(const char* path);
+	std::string POST(const char* path);
+	rapidjson::Document JsonRequest::parseResponse(std::string responseString);
+
 	int mServerPort;
 	std::string mServerHost;
-	
+	rapidjson::Document mJsonDocument;
 };
 
 

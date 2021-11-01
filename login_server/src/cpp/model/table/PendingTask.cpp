@@ -3,7 +3,11 @@
 #include "Poco/JSON/Parser.h"
 //#include <sstream>
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 using namespace Poco::Data::Keywords;
+using namespace rapidjson;
 
 namespace model
 {
@@ -38,77 +42,56 @@ namespace model
 			mRequest.assignRaw((const unsigned char*)serializedProto.data(), serializedProto.size());
 		}
 
-		void PendingTask::setResultJson(Poco::JSON::Object::Ptr result)
+		void PendingTask::setResultJson(Document& result)
 		{
+			
+			StringBuffer buffer;
+			Writer<StringBuffer> writer(buffer);
+			result.Accept(writer);
+
 			UNIQUE_LOCK;
-			std::stringstream ss;
-			try {
-				result->stringify(ss);
-			}
-			catch (Poco::Exception& ex) {
-				addError(new ParamError("PendingTask::setResultJson", "exception by json -> string", ex.displayText()));
-			}
-			mResultJsonString = ss.str();
+			mResultJsonString = std::string(buffer.GetString(), buffer.GetSize());
 		}
 
-		void PendingTask::setParamJson(Poco::JSON::Object::Ptr param)
+		void PendingTask::setParamJson(Document& param)
 		{
-			UNIQUE_LOCK;
-			std::stringstream ss;
-			try {
-				param->stringify(ss);
-			}
-			catch (Poco::Exception& ex) {
-				addError(new ParamError("PendingTask::setParamJson", "exception by json -> string", ex.displayText()));
-			}
-			mParamJsonString = ss.str();
-		}
+			StringBuffer buffer;
+			Writer<StringBuffer> writer(buffer);
+			param.Accept(writer);
 
-		Poco::JSON::Object::Ptr PendingTask::getResultJson() const
+			UNIQUE_LOCK;
+			mParamJsonString = std::string(buffer.GetString(), buffer.GetSize());
+		}
+		
+	
+		Document PendingTask::getResultJson() const
 		{
 			std::string temp;
 			{
 				SHARED_LOCK;
 				temp = mResultJsonString;
-				if(!mResultJsonString.size()) {
-                    return new Poco::JSON::Object;
+				if (!mResultJsonString.size()) {
+					return Document(kObjectType);
 				}
 			}
-
-			Poco::JSON::Parser parser;
-			Poco::Dynamic::Var result;
-			try
-			{
-				result = parser.parse(temp);
-			}
-			catch (Poco::JSON::JSONException& json)
-			{
-				return new Poco::JSON::Object;
-			}
-
-			return result.extract<Poco::JSON::Object::Ptr>();
-
+			Document result;
+			result.Parse(temp.data());
+			return result;
 		}
 
-		Poco::JSON::Object::Ptr PendingTask::getParamJson() const
+		Document PendingTask::getParamJson() const
 		{
 			std::string temp;
 			{
 				SHARED_LOCK;
 				temp = mParamJsonString;
+				if (!mResultJsonString.size()) {
+					return Document(kObjectType);
+				}
 			}
-			Poco::JSON::Parser parser;
-			Poco::Dynamic::Var result;
-			try
-			{
-				result = parser.parse(temp);
-			}
-			catch (Poco::JSON::JSONException& jsone)
-			{
-				return new Poco::JSON::Object;
-			}
-
-			return result.extract<Poco::JSON::Object::Ptr>();
+			Document result;
+			result.Parse(temp.data());
+			return result;
 		}
 
 
@@ -184,6 +167,32 @@ namespace model
 			}
 			catch (Poco::Exception& ex) {
 				addError(new ParamError(getTableName(), "[updateParam] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return false;
+		}
+
+		bool PendingTask::updateParentAndChildIds()
+		{
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			SHARED_LOCK;
+			if (!mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET child_pending_task_id = ?, parent_pending_task_id = ? where id = ?;",
+				use(mChildPendingTaskId), use(mParentPendingTaskId), use(mID);
+
+			try {
+				return 1 == update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateParentAndChildIds] mysql error by update", ex.displayText().data()));
 				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
 			}
 			//printf("data valid: %s\n", toString().data());

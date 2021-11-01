@@ -13,6 +13,7 @@
 #include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
+#include "JsonSignTransaction.h"
 #include "JsonUnknown.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
@@ -77,6 +78,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
 	}
+	else if (url_first_part == "/signTransaction") {
+		return new JsonSignTransaction;
+	}
 	else if (url_first_part == "/checkUsername") {
 		return new JsonCheckUsername;
 	}
@@ -123,12 +127,7 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 		return new JsonLogout(client_host);
 	}
 	else if (url_first_part == "/acquireAccessToken") {
-		auto requestHandler = new JsonAquireAccessToken;
-		requestHandler->setSession(s);
-		return requestHandler;
-	}
-	else if (url_first_part == "/unsecureLogin" && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS)) {
-		return new JsonUnsecureLogin(client_host);
+		return new JsonAquireAccessToken(s);
 	}
 	else if (url_first_part == "/appLogin") {
 		return new JsonAppLogin;
@@ -138,12 +137,10 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 			sm->releaseSession(s);
 		}
 	}
-	else if (url_first_part == "/logout") {
-		return new JsonLogout(client_host);
-	}
 	else if (url_first_part == "/hasElopage") {
 		return new JsonHasElopage;
 	}
+
 
 	return new JsonUnknown;
 }

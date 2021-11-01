@@ -10,6 +10,7 @@
 #include "../../controller/Group.h"
 
 using namespace Poco::Data::Keywords;
+using namespace rapidjson;
 
 namespace model {
 	namespace table {
@@ -66,15 +67,25 @@ namespace model {
 
 		void User::setEmail(const std::string& email) 
 		{
+			auto emailHash = createEmailHash(email);
+
 			std::unique_lock<std::shared_mutex> _lock(mSharedMutex); 
 			mEmail = email;
 
-			unsigned char email_hash[crypto_generichash_BYTES];
+			mEmailHash = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(emailHash->data(), emailHash->size()));
+			MemoryManager::getInstance()->releaseMemory(emailHash);
+		}
 
-			crypto_generichash(email_hash, crypto_generichash_BYTES,
+		// TODO: add server specific key to make usage of rainbow tables harder
+		MemoryBin* User::createEmailHash(const std::string& email)
+		{
+			auto mm = MemoryManager::getInstance();
+			auto hash = mm->getFreeMemory(crypto_generichash_BYTES);
+			// uses BLAKE2b, maybe better use argon2 too, like for password hashing
+			crypto_generichash(hash->data(), crypto_generichash_BYTES,
 				(const unsigned char*)email.data(), email.size(),
 				NULL, 0);
-			mEmailHash = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(email_hash, crypto_generichash_BYTES));
+			return hash;
 		}
 
 		Poco::Data::Statement User::_insertIntoDB(Poco::Data::Session session)
@@ -411,29 +422,28 @@ namespace model {
 			return privkeyHexString;
 		}
 
-
-		Poco::JSON::Object User::getJson()
+		Value User::getJson(Document::AllocatorType& alloc)
 		{
+			lock("User::getJson rapid");
+			Value userObj; userObj.SetObject();
 
-			lock("User::getJson");
-			Poco::JSON::Object userObj;
-
-			userObj.set("first_name", mFirstName);
-			userObj.set("last_name", mLastName);
-			userObj.set("email", mEmail);
-			userObj.set("username", mUsername);
-			userObj.set("description", mDescription);
+			userObj.AddMember("first_name", Value(mFirstName.data(), alloc), alloc);
+			userObj.AddMember("last_name", Value(mLastName.data(), alloc), alloc);
+			userObj.AddMember("email", Value(mEmail.data(), alloc), alloc);
+			userObj.AddMember("username", Value(mUsername.data(), alloc), alloc);
+			userObj.AddMember("description", Value(mDescription.data(), alloc), alloc);
 
 			//userObj.set("state", userStateToString(mState));
 			auto createTimeStamp = mCreated.timestamp();
-			userObj.set("created", createTimeStamp.raw() / createTimeStamp.resolution());
-			userObj.set("email_checked", mEmailChecked);
-			userObj.set("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()));
-			userObj.set("language", mLanguageKey);
-			userObj.set("disabled", mDisabled);
-			userObj.set("publisher_id", mPublisherId);
+			userObj.AddMember("created", createTimeStamp.raw() / createTimeStamp.resolution(), alloc);
+			userObj.AddMember("email_checked", mEmailChecked, alloc);
+			userObj.AddMember("ident_hash", DRMakeStringHash(mEmail.data(), mEmail.size()), alloc);
+			userObj.AddMember("language", Value(mLanguageKey.data(), alloc), alloc);
+			userObj.AddMember("disabled", mDisabled, alloc);
+			userObj.AddMember("publisher_id", mPublisherId, alloc);
 			try {
-				userObj.set("role", UserRole::typeToString(getRole()));
+				std::string role_name = UserRole::typeToString(getRole());
+				userObj.AddMember("role", Value(role_name.data(), alloc), alloc);
 			}
 			catch (Poco::Exception ex) {
 				addError(new ParamError("User::getJson", "exception by getting role", ex.displayText().data()));
@@ -441,7 +451,7 @@ namespace model {
 			}
 			auto group = controller::Group::load(mGroupId);
 			if (!group.isNull()) {
-				userObj.set("group_alias", group->getModel()->getAlias());
+				userObj.AddMember("group_alias", Value(group->getModel()->getAlias().data(), alloc), alloc);
 			}
 			unlock();
 

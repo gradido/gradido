@@ -6,7 +6,11 @@
 #include "../lib/Profiler.h"
 
 SecretKeyCryptography::SecretKeyCryptography()
+#ifdef _TEST_BUILD
+	: mOpsLimit(2),  mMemLimit(1048576), mAlgo(2), mEncryptionKey(nullptr), mEncryptionKeyHash(0)
+#else 
 	: mOpsLimit(10), mMemLimit(33554432), mAlgo(2), mEncryptionKey(nullptr), mEncryptionKeyHash(0)
+#endif //_TEST_BUILD
 {
 }
 

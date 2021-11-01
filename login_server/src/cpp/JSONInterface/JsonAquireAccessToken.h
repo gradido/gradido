@@ -6,7 +6,8 @@
 class JsonAquireAccessToken : public JsonRequestHandler
 {
 public:
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	JsonAquireAccessToken(Session* s) : JsonRequestHandler(s) {}
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
 

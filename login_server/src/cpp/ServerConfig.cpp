@@ -6,7 +6,6 @@
 #include "lib/DataTypeConverter.h"
 #include "sodium.h"
 
-
 #include "Poco/Net/SSLManager.h"
 #include "Poco/Net/KeyConsoleHandler.h"
 #include "Poco/Net/RejectCertificateHandler.h"
@@ -20,8 +19,6 @@
 #include "Poco/DateTimeFormat.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Environment.h"
-
-
 
 using Poco::Net::SSLManager;
 using Poco::Net::Context;
@@ -42,6 +39,7 @@ namespace ServerConfig {
 	UniLib::controller::CPUSheduler* g_CPUScheduler = nullptr;
 	UniLib::controller::CPUSheduler* g_CryptoCPUScheduler = nullptr;
 	Context::Ptr g_SSL_CLient_Context = nullptr;
+	IotaRequest* g_IotaRequestHandler = nullptr;
 	Poco::Util::Timer	   g_CronJobsTimer;
 	EmailAccount g_EmailAccount;
 	int g_SessionTimeout = SESSION_TIMEOUT_DEFAULT;
@@ -63,8 +61,8 @@ namespace ServerConfig {
 	std::string g_gRPCRelayServerFullURL;
 	MemoryBin*  g_CryptoAppSecret = nullptr;
 	AllowUnsecure g_AllowUnsecureFlags = NOT_UNSECURE;
-
 #ifdef __linux__
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
@@ -312,6 +310,15 @@ namespace ServerConfig {
 		return true;
 	}
 
+	bool initIota(const Poco::Util::LayeredConfiguration& cfg)
+	{
+        std::string iota_host = cfg.getString("iota.host", "api.lb-0.h.chrysalis-devnet.iota.cafe");
+        int iota_port = cfg.getInt("iota.port", 443);
+		g_IotaRequestHandler = new IotaRequest(iota_host, iota_port, "/api/v1/");
+
+        return true;
+	}
+
 	void unload() {
 		if (g_ServerCryptoKey) {
 			delete g_ServerCryptoKey;
@@ -329,6 +336,10 @@ namespace ServerConfig {
 		if (g_CryptoAppSecret) {
 			MemoryManager::getInstance()->releaseMemory(g_CryptoAppSecret);
 			g_CryptoAppSecret = nullptr;
+		}
+		if (g_IotaRequestHandler) {
+			delete g_IotaRequestHandler;
+			g_IotaRequestHandler = nullptr;
 		}
 	}
 

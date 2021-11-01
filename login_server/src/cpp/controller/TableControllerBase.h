@@ -34,7 +34,9 @@ namespace controller {
 	template<class T>
 	Poco::AutoPtr<T> TableControllerBase::_getModel() {
 		// TODO: Maybe update name for error search
-		lock("TableControllerBase::_getModel");
+		std::string name = "TableControllerBase::_getModel: ";
+		name += mDBModel->getTableName();
+		lock(name.data());
 		T* result = static_cast<T*>(mDBModel.get());
 		unlock();
 		return Poco::AutoPtr<T>(result, true);

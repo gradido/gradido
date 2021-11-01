@@ -1,69 +1,51 @@
 #include "JsonCreateTransaction.h"
 
-#include "../controller/User.h"
+#include "controller/User.h"
 
-#include "../lib/DataTypeConverter.h"
+#include "lib/DataTypeConverter.h"
 
-#include "../model/gradido/Transaction.h"
+#include "model/gradido/Transaction.h"
 
-#include "../SingletonManager/ErrorManager.h"
+#include "SingletonManager/ErrorManager.h"
 
-Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
+#include "Poco/DateTimeParser.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/pointer.h"
+
+using namespace rapidjson;
+
+Document JsonCreateTransaction::handle(const Document& params)
 {
-	auto sm = SessionManager::getInstance();
+	auto paramError = checkAndLoadSession(params);
+	if (paramError.IsObject()) { return paramError; }
 
-	int session_id = 0;
 	std::string transaction_type;
-	std::string blockchain_type;
+	paramError = getStringParameter(params, "transaction_type", transaction_type);
+	if (paramError.IsObject()) { return paramError; }
 
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		try {
-			paramJsonObject->get("session_id").convert(session_id);
-			paramJsonObject->get("transaction_type").convert(transaction_type);
-			paramJsonObject->get("blockchain_type").convert(blockchain_type);
-			paramJsonObject->get("memo").convert(mMemo);
-			auto auto_sign = paramJsonObject->get("auto_sign");
-			if (!auto_sign.isEmpty()) {
-				auto_sign.convert(mAutoSign);
-			}
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
-		}
-	}
-	else {
-		return stateError("parameter format unknown");
-	}
+	std::string blockchain_type;
+	paramError = getStringParameter(params, "blockchain_type", blockchain_type);
+	if (paramError.IsObject()) { return paramError; }
+
+	paramError = getStringParameter(params, "memo", mMemo);
+	if (paramError.IsObject()) { return paramError; }
+
+	getBoolParameter(params, "auto_sign", mAutoSign);
+
 	mBlockchainType = model::gradido::TransactionBody::blockchainTypeFromString(blockchain_type);
 	if (model::gradido::BLOCKCHAIN_UNKNOWN == mBlockchainType) {
 		return stateError("unknown blockchain type");
 	}
 	// allow session_id from community server (allowed caller)
 	// else use cookie (if call cames from vue)
-	if (!session_id) {
-		return stateError("session_id invalid");
-	}
-
-	mSession = sm->getSession(session_id);
 	if (!mSession) {
 		return stateError("session not found");
 	}
+
 	auto user = mSession->getNewUser();
-	if (user.isNull()) {
-		auto em = ErrorManager::getInstance();
-		em->addError(new Error("JsonCreateTransaction", "session hasn't a user, check code"));
-		em->sendErrorsAsEmail();
-		return customStateError("code error", "user is zero");
-	}
-	
-	if (mBlockchainType == model::gradido::BLOCKCHAIN_HEDERA) {
+
+	if (mBlockchainType != model::gradido::BLOCKCHAIN_MYSQL) {
 		getTargetGroup(params);
 	}
 	else {
@@ -83,197 +65,158 @@ Poco::JSON::Object* JsonCreateTransaction::handle(Poco::Dynamic::Var params)
 
 }
 
-Poco::JSON::Object* JsonCreateTransaction::transfer(Poco::Dynamic::Var params)
+Document JsonCreateTransaction::transfer(const Document& params)
 {
 	static const char* function_name = "JsonCreateTransaction::transfer";
+	auto mm = MemoryManager::getInstance();
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return customStateError("not found", "receiver not found");
 	}
+
+	Poco::UInt32 amount = 0;
+	auto param_error = getUIntParameter(params, "amount", amount);
+	if (param_error.IsObject()) { return param_error; }
 
 	auto sender_user = mSession->getNewUser();
-	Poco::UInt32 amount = 0;
-	auto mm = MemoryManager::getInstance();
-	Poco::JSON::Object* result = nullptr;
+	Document result(kObjectType);
+	auto alloc = result.GetAllocator();
 
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		try {
-			paramJsonObject->get("amount").convert(amount);
+	Value warnings(kArrayType);
+
+	try {
+		Poco::AutoPtr<model::gradido::Transaction> transaction;
+		if (!mTargetGroup.isNull() && sender_user->getModel()->getGroupId() != mTargetGroup->getModel()->getID()) {
+			// cross group transfer transaction
+			transaction = model::gradido::Transaction::createTransferCrossGroup(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
 		}
-		catch (Poco::Exception& ex) {
-			result = stateError("json exception", ex.displayText());
+		else {
+			// local transfer transaction
+			transaction = model::gradido::Transaction::createTransferLocal(sender_user, target_pubkey, amount, mMemo, mBlockchainType);
 		}
-	}
-	else {
-		result = stateError("parameter format unknown");
-	}
-	if (mMemo.size() < 5 || mMemo.size() > 150) {
-		result = stateError("memo is not set or not in expected range [5;150]");
-	}
-	if (result) {
+		
 		mm->releaseMemory(target_pubkey);
-		return result;
-	}
-	
-	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
-		auto receiver_user_model = mReceiverUser->getModel();
-		if (receiver_user_model->isDisabled()) {
-			result = customStateError("disabled", "receiver is disabled");
-		}
-		if (!mTargetGroup.isNull() && receiver_user_model->getGroupId() != mTargetGroup->getModel()->getID()) {
-			result = stateError("user not in group", "receiver user isn't in target group");
-		}
-	}
-	
-	auto gradido_key_pair = sender_user->getGradidoKeyPair();
-	if (gradido_key_pair) {
-		if (gradido_key_pair->isTheSame(*target_pubkey)) {
-			result = stateError("sender and receiver are the same");
-		}
-	}
-	else {
-		printf("user hasn't valid key pair set\n");
-	}
-	Poco::JSON::Array* json_warnings = nullptr;
-	if (!result) {
-		try {
-			auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		target_pubkey = nullptr;
 
-			if (mSession->lastTransactionTheSame(transaction)) {
-				return stateError("transaction are the same as the last (within 100 seconds)");
+		auto transfer_transaction = transaction->getTransactionBody()->getTransferTransaction();
+		if (transfer_transaction->prepare()) {
+			return stateError("error in transaction details", transfer_transaction);
+		}
+		if (transfer_transaction->validate()) {
+			return stateError("error in validate transaction", transfer_transaction);
+		}
+
+		if (mSession->lastTransactionTheSame(transaction)) {
+			return stateError("transaction are the same as the last (within 100 seconds)");
+		}
+		else {
+			mSession->setLastTransaction(transaction);
+		}
+
+		if (mAutoSign) {
+			Value errors(kArrayType);
+			
+			transaction->sign(sender_user);
+			if (transaction->errorCount() > 0) {
+				errors = transaction->getErrorsArray(alloc);
 			}
-			else {
-				mSession->setLastTransaction(transaction);
+			if (transaction->warningCount() > 0) {
+				warnings = transaction->getWarningsArray(alloc);
+				result.AddMember("warnings", warnings, alloc);
 			}
 
-			if (mAutoSign) {
-				Poco::JSON::Array errors;
-				transaction->sign(sender_user);
-				if (transaction->errorCount() > 0) {
-					errors.add(transaction->getErrorsArray());
-				}
-
-				if (errors.size() > 0) {
-					return stateError("error by signing transaction", errors);
-				}
-				if (transaction->warningCount() > 0) {
-					json_warnings = new Poco::JSON::Array;
-					json_warnings->add(transaction->getWarningsArray());
-				}
+			if (errors.Size() > 0) {
+				result.AddMember("state", "error", alloc);
+				result.AddMember("msg", "error by signing transaction", alloc);
+				result.AddMember("details", errors, alloc);
+				return result;
 			}
+
 		}
-		catch (Poco::Exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		} 
-		catch (std::exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		}
-		result = stateSuccess();
-		if (json_warnings) {
-			result->set("warnings", json_warnings);
-			delete json_warnings;
-		}		
 	}
-	mm->releaseMemory(target_pubkey);
+	catch (Poco::Exception& ex) {
+		mm->releaseMemory(target_pubkey);
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
+		errors.sendErrorsAsEmail();
+		return stateError("exception");
+	}
+	catch (std::exception& ex) {
+		mm->releaseMemory(target_pubkey);
+		NotificationList errors;
+		errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
+		errors.sendErrorsAsEmail();
+		return stateError("exception");
+	}
+	result.AddMember("state", "success", alloc);
 	return result;
 }
-Poco::JSON::Object* JsonCreateTransaction::creation(Poco::Dynamic::Var params)
-{
-	static const char* function_name = "JsonCreateTransaction::creation";
-	auto target_pubkey = getTargetPubkey(params);
-	if (!target_pubkey) {
-		return customStateError("not found", "receiver not found");
-	} 
 
+
+Document JsonCreateTransaction::creation(const Document& params)
+{
 	Poco::UInt32 amount = 0;
 	Poco::DateTime target_date;
-	auto mm = MemoryManager::getInstance();
-	Poco::JSON::Object* result = nullptr;
+	auto param_error = getUIntParameter(params, "amount", amount);
+	if (param_error.IsObject()) { return param_error; }
 
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) 
-	{
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		try {
-			paramJsonObject->get("amount").convert(amount);
-			paramJsonObject->get("target_date").convert(target_date);
-		}
-		catch (Poco::Exception& ex) {
-			result = stateError("json exception", ex.displayText());
-		}
+	std::string date_string;
+	param_error = getStringParameter(params, "target_date", date_string);
+	if (param_error.IsObject()) { return param_error; }
+	int timezoneDifferential = 0;
+	try {
+		target_date = Poco::DateTimeParser::parse(date_string, timezoneDifferential);
 	}
-	else 
-	{
-		result = stateError("parameter format unknown");
+	catch (Poco::Exception& ex) {
+		return stateError("cannot parse target_date", ex.what());
 	}
-	
-	if (amount <= 0 || amount > 10000000) {
-		result = customStateError("invalid parameter", "invalid amount", "GDD amount in GDD cent ]0,10000000]");
+
+	auto mm = MemoryManager::getInstance();
+
+	auto target_pubkey = getTargetPubkey(params);
+	if (!target_pubkey) {
+		return customStateError("not found", "recipient not found");
 	}
 
 	if (mReceiverUser.isNull()) {
 		mReceiverUser = controller::User::create();
 		if (1 != mReceiverUser->load(target_pubkey->data())) {
 			mReceiverUser.assign(nullptr);
-			result = customStateError("not found", "receiver not found");
+			mm->releaseMemory(target_pubkey);
+			return customStateError("not found", "recipient not found");
 		}
-	}
-
-	if (result) {
-		mm->releaseMemory(target_pubkey);
-		return result;
-	}
-	
-	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
-		auto receiver_user_model = mReceiverUser->getModel();
-		
-		if (receiver_user_model->isDisabled()) {
-			result = customStateError("disabled", "receiver is disabled");
-		}
-		if (!receiver_user_model->getGroupId()) {
-			result = stateError("receiver user hasn't group");
-		}
-		if (receiver_user_model->getGroupId() != mSession->getNewUser()->getModel()->getGroupId()) {
-			result = stateError("user not in group", "target user is in another group");
-		}
-	}
-	
-	if(!result) {
-		try {
-			auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType);
-			if (mAutoSign) {
-				if (!transaction->sign(mSession->getNewUser())) {
-					return stateError("error by signing transaction", transaction);
-				}
-			}
-		} 
-		catch (Poco::Exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "poco exception: ", ex.displayText()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		} 
-		catch (std::exception& ex) {
-			NotificationList errors;
-			errors.addError(new ParamError(function_name, "std::exception: ", ex.what()));
-			errors.sendErrorsAsEmail();
-			return stateError("exception");
-		}
-		
-		result = stateSuccess();
 	}
 	mm->releaseMemory(target_pubkey);
-	
-	return result;
 
+	if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
+		if (mReceiverUser->getModel()->getGroupId() != mSession->getNewUser()->getModel()->getGroupId()) {
+			return stateError("user not in group", "target user is in another group");
+		}
+	}
+
+	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType, true);
+	auto creation_transaction = transaction->getTransactionBody()->getCreationTransaction();
+	if (creation_transaction->prepare()) {
+		return stateError("error in transaction details", creation_transaction);
+	}
+	if (creation_transaction->validate()) {
+		return stateError("error in validate transaction", creation_transaction);
+	}
+	if (mSession->lastTransactionTheSame(transaction)) {
+		return stateError("transaction are the same as the last (within 100 seconds)");
+	}
+	else {
+		mSession->setLastTransaction(transaction);
+	}
+	if (mAutoSign) {
+		if (!transaction->sign(mSession->getNewUser())) {
+			return stateError("error by signing transaction", transaction);
+		}
+	}
+	return stateSuccess();
 }
-Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var params)
+
+Document JsonCreateTransaction::groupMemberUpdate(const Document& params)
 {
 	if (mBlockchainType == model::gradido::BLOCKCHAIN_MYSQL) {
 		return stateError("groupMemberUpdate not allowed with mysql blockchain");
@@ -281,60 +224,54 @@ Poco::JSON::Object* JsonCreateTransaction::groupMemberUpdate(Poco::Dynamic::Var 
 	if (mTargetGroup.isNull()) {
 		return stateError("group not found");
 	}
-	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
+	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup, mBlockchainType);
+	auto group_member_update_transaction = transaction->getTransactionBody()->getGroupMemberUpdate();
+	if (group_member_update_transaction->prepare()) {
+		return stateError("error in transaction details", group_member_update_transaction);
+	}
+	if (group_member_update_transaction->validate()) {
+		return stateError("error in validate transaction", group_member_update_transaction);
+	}
+	if (mSession->lastTransactionTheSame(transaction)) {
+		return stateError("transaction are the same as the last (within 100 seconds)");
+	}
+	else {
+		mSession->setLastTransaction(transaction);
+	}
 	if (mAutoSign) {
 		if (!transaction->sign(mSession->getNewUser())) {
 			return stateError("error by signing transaction", transaction);
 		}
 	}
 	return stateSuccess();
-
 }
-MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
+
+MemoryBin* JsonCreateTransaction::getTargetPubkey(const Document& params)
 {
-	std::string email;
-	std::string target_username;
-	std::string target_pubkey_hex;
-	
-	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-	auto fields = paramJsonObject->getNames();
-	try {
-		for (auto it = fields.begin(); it != fields.end(); it++) {
-			if (*it == "target_email") {
-				paramJsonObject->get("target_email").convert(email);
-				break;
-			}
-			if (*it == "target_username") {
-				paramJsonObject->get("target_username").convert(target_username);
-				break;
-			}
-			if (*it == "target_pubkey") {
-				paramJsonObject->get("target_pubkey").convert(target_pubkey_hex);
-				break;
-			}
-		}
-	}
-	catch (Poco::Exception& ex) {
-		return nullptr;
-	}
+	std::string email, username, pubkeyHex;
+	getStringParameter(params, "target_email", email);
+	getStringParameter(params, "target_username", username);
+	getStringParameter(params, "target_pubkey", pubkeyHex);
+
 	mReceiverUser = controller::User::create();
 	int result_count = 0;
-	
+
+	int group_id = 0;
+	if (!mTargetGroup.isNull()) {
+		group_id = mTargetGroup->getModel()->getID();
+	} else {
+		mSession->getNewUser()->getModel()->getGroupId();
+	}
+
 	MemoryBin* result = nullptr;
-	if (email != "") {
-		result_count = mReceiverUser->load(email);
+	if (email.size()) {
+		result_count = mReceiverUser->getModel()->loadFromDB({ "email", "group_id" }, email, group_id, model::table::MYSQL_CONDITION_AND);
 	}
-	else if (target_username != "") {
-		int group_id = 0;
-		if (!mTargetGroup.isNull()) {
-			group_id = mTargetGroup->getModel()->getID();
-		} else {
-			mSession->getNewUser()->getModel()->getGroupId();
-		}
-		result_count = mReceiverUser->getModel()->loadFromDB({ "username", "group_id" }, target_username, group_id, model::table::MYSQL_CONDITION_AND);
+	else if (username.size()) {
+		result_count = mReceiverUser->getModel()->loadFromDB({ "username", "group_id" }, username, group_id, model::table::MYSQL_CONDITION_AND);
 	}
-	else if (target_pubkey_hex != "") {
-		result = DataTypeConverter::hexToBin(target_pubkey_hex);
+	else if (pubkeyHex != "") {
+		result = DataTypeConverter::hexToBin(pubkeyHex);
 	}
 	if (1 == result_count) {
 		result = mReceiverUser->getModel()->getPublicKeyCopy();
@@ -342,28 +279,34 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(Poco::Dynamic::Var params)
 	else {
 		mReceiverUser.assign(nullptr);
 	}
+	if (!result && !mTargetGroup.isNull()) 
+	{
+		// assume that login-server is running on same url as community server under login_api
+		auto request = mTargetGroup->createJsonRequest();
+		auto alloc = request.getJsonAllocator();
+
+		Value params(kObjectType);
+		Value ask(kObjectType);
+		
+		if (email.size()) {
+			auto emailHash = model::table::User::createEmailHash(email);
+			auto emailHashBase64 = DataTypeConverter::binToBase64(emailHash);
+			MemoryManager::getInstance()->releaseMemory(emailHash);
+			ask.AddMember("account_publickey", Value(emailHashBase64.data(), alloc), alloc);
+		}
+		else if (username.size()) {
+			ask.AddMember("account_publickey", Value(username.data(), alloc), alloc);
+		}
+		params.AddMember("ask", ask, alloc);
+		auto response = request.requestLogin("/login_api/search", params);
+
+		Value* pubkeyJson = Pointer("/results/account_publickey").Get(response);
+		if (pubkeyJson && pubkeyJson->IsString()) {
+			result = DataTypeConverter::base64ToBin(pubkeyJson->GetString(), pubkeyJson->GetStringLength());
+		}
+	}
+	
 	return result;
 }
 
-bool JsonCreateTransaction::getTargetGroup(Poco::Dynamic::Var params)
-{
-	std::string target_group_alias;
-	Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-	try 
-	{
-		auto target_group = paramJsonObject->get("group");
-		if (!target_group.isEmpty()) {
-			target_group.convert(target_group_alias);
-			auto groups = controller::Group::load(target_group_alias);
-			if (groups.size() == 1) {
-				mTargetGroup = groups[0];
-				return true;
-			}
-		}
-	
-	}
-	catch (Poco::Exception& ex) {
-		return false;
-	}
-	return false;
-}
+

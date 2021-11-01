@@ -13,6 +13,7 @@
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
 #include "TestUserGenerator.h"
+#include "TestIotaPage.h"
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
 #include "UserUpdatePasswordPage.h"
@@ -24,6 +25,7 @@
 #include "DebugPassphrasePage.h"
 #include "DebugMnemonicPage.h"
 #include "AdminCheckUserBackupPage.h"
+#include "AdminNodeServerPage.h"
 #include "TranslatePassphrasePage.h"
 #include "AdminUserPasswordResetPage.h"
 #include "RegisterDirectPage.h"
@@ -188,6 +190,12 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			if (url_first_part == "/groups") {
 				return basicSetup(new AdminGroupsPage(s), request, timeUsed);
 			}
+			if (url_first_part == "/nodes") {
+				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
+			}
+		}
+		if (url_first_part == "/testIota") {
+			return basicSetup(new TestIotaPage, request, timeUsed);
 		}
 
 		if(url_first_part == "/logout") {

@@ -2,6 +2,7 @@
 #include "../lib/JsonRequest.h"
 #include "ErrorManager.h"
 
+#include "JSONInterface/JsonRequestHandler.h"
 
 PendingTasksManager::PendingTasksManager()
 	: mCheckForFinishedTimer(2000, 2000)
@@ -194,9 +195,11 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 				auto transaction = *list_it;
 				auto json = transaction->getModel()->getResultJson();
 				bool removeIt = false;
-				if (!json.isNull()) {
-					auto state = json->get("state");
-					if (!state.isEmpty() && state.toString() == "success") {
+				if (json.IsObject()) {
+					std::string state;
+					JsonRequestHandler::getStringParameter(json, "state", state);
+					
+					if (state == "success") {
 						removeIt = true;
 					}
 				}

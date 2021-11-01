@@ -23,6 +23,8 @@ namespace model {
 			auto sm = SessionManager::getInstance();
 			auto mm = MemoryManager::getInstance();
 
+			if (mIsPrepared) return 0;
+
 			if (mProtoMemberUpdate.user_pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				return -1;
 			}
@@ -50,7 +52,8 @@ namespace model {
 						// now we need the voting system to decide how many and which signatures are needed
 
 						// for current version we need only one another
-						mMinSignatureCount = 2;
+						//mMinSignatureCount = 2;
+						mMinSignatureCount = 1;
 					}
 				}
 				/*if (groups.size() != 1) {
@@ -128,7 +131,8 @@ namespace model {
 					user_model->updateIntoDB("group_id", group_model->getID());
 
 					JsonRequest request(group_model->getUrl(), 443);
-					request.request("addUser", user->getJson());
+					
+					request.request("addUser", user->getJson(request.getJsonAllocator()).Move());
 					
 					printf("[GroupMemberUpdate::transactionAccepted] finished\n");
 				}

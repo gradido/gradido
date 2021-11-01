@@ -8,24 +8,28 @@
 
 #include "../lib/DataTypeConverter.h"
 
-Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+Document JsonGetLogin::handle(const Document& params)
 {
 	auto sm = SessionManager::getInstance();
 	auto pt = PendingTasksManager::getInstance();
 	auto observer = SingletonTaskObserver::getInstance();
 
 	//if(!mClientIp.isLoopback())
-	auto session_check_result = checkAndLoadSession(params, false);
-	if (session_check_result) {
+	auto session_check_result = checkAndLoadSession(params);
+	if (!session_check_result.IsNull()) {
 		return session_check_result;
 	}
 
-	Poco::JSON::Object* result = new Poco::JSON::Object;
-	result->set("state", "success");
+	Document result(kObjectType);
+	auto alloc = result.GetAllocator();
+	result.AddMember("state", "success", alloc);
 	//result->set("clientIP", mSession->getClientIp().toString());
 	auto userNew = mSession->getNewUser();
 	try {
-		result->set("user", userNew->getJson());
+		result.AddMember("user", userNew->getJson(alloc), alloc);
+
 	}
 	catch (Poco::Exception ex) {
 		auto em = ErrorManager::getInstance();
@@ -40,20 +44,16 @@ Poco::JSON::Object* JsonGetLogin::handle(Poco::Dynamic::Var params)
 	int pending = 0;
 	auto user_must_sign = pt->getTransactionsUserMustSign(userNew);
 	pending = user_must_sign.size();
-	result->set("Transactions.pending", pending);
+	result.AddMember("Transactions.pending", pending, alloc);
 
 	auto some_must_sign = pt->getTransactionSomeoneMustSign(userNew);
 	//pending = some_must_sign.size();
-	result->set("Transactions.can_signed", some_must_sign.size());
+	result.AddMember("Transactions.can_signed", some_must_sign.size(), alloc);
 
 	auto executing = observer->getTaskCount(userNew->getModel()->getEmail(), TASK_OBSERVER_SIGN_TRANSACTION);
 	if (executing < 0) {
 		executing = 0;
 	}
-	result->set("Transactions.executing", executing);
-	//printf("pending: %d\n", session->getProcessingTransactionCount());
-	//std::string user_string = userModel->toString();
-	//printf("[JsonGetLogin] %s\n", user_string.data());
+	result.AddMember("Transactions.executing", executing, alloc);
 	return result;
-
 }

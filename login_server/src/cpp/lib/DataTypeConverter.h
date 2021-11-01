@@ -7,13 +7,14 @@
 #include "Poco/Timespan.h"
 #include "Poco/Nullable.h"
 #include "Poco/Data/LOB.h"
-#include "Poco/JSON/Object.h"
-#include "Poco/JSON/Array.h"
+#include "Poco/Dynamic/Var.h"
 #include "../SingletonManager/LanguageManager.h"
 
 #include "proto/gradido/BasicTypes.pb.h"
 
 #include "sodium.h"
+
+#include "rapidjson/document.h"
 
 namespace DataTypeConverter {
 
@@ -42,10 +43,12 @@ namespace DataTypeConverter {
 		return binToBase64((const unsigned char*)proto_bin.data(), proto_bin.size(), variant);
 	}
 
+	
 	std::string binToHex(const unsigned char* data, size_t size);
 	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);
 	inline std::string binToHex(const MemoryBin* data) { return binToHex(data->data(), data->size());}
 	inline std::string binToHex(const std::vector<unsigned char>& data) { return binToHex(data.data(), data.size()); }
+	inline std::string binToHex(const std::string& str) { return binToHex((const unsigned char*)str.data(), str.size()); }
 
 	//! \param pubkey pointer to array with crypto_sign_PUBLICKEYBYTES size
 	std::string pubkeyToHex(const unsigned char* pubkey);
@@ -65,9 +68,10 @@ namespace DataTypeConverter {
 
 	//! \brief go through json object and replace every string entry in base64 format into hex format
 	//! \return count of replaced strings
-	int replaceBase64WithHex(Poco::JSON::Object::Ptr json);
-	int replaceBase64WithHex(Poco::JSON::Array::Ptr json);
+	int replaceBase64WithHex(rapidjson::Value& json, rapidjson::Document::AllocatorType& alloc);
 	std::string replaceNewLineWithBr(std::string& in);
+
+	bool PocoDynVarToRapidjsonValue(const Poco::Dynamic::Var& pocoVar, rapidjson::Value& rapidjsonValue, rapidjson::Document::AllocatorType& alloc);
 };
 
 #endif // __GRADIDO_LOGIN_SERVER_LIB_DATA_TYPE_CONVERTER_H

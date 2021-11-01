@@ -1,62 +1,31 @@
 #include "JsonCheckUsername.h"
-#include "Poco/URI.h"
 #include "controller/User.h"
-#include "lib/DataTypeConverter.h"
 
-Poco::JSON::Object* JsonCheckUsername::handle(Poco::Dynamic::Var params)
+#include "rapidjson/document.h"
+
+using namespace rapidjson;
+
+Document JsonCheckUsername::handle(const Document& params)
 {
 	std::string username;
 	int group_id = 0;
 	std::string group_alias;
 
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		
-		auto username_obj = paramJsonObject->get("username");
-		auto group_id_obj = paramJsonObject->get("group_id");
-		auto group_alias_obj = paramJsonObject->get("group_alias");
-
-		try {
-			
-			if (!username_obj.isEmpty()) {
-				username_obj.convert(username);
+	for (auto it = params.MemberBegin(); it != params.MemberEnd(); it++) {
+		auto name = it->name.GetString();
+		if (it->value.IsString()) {
+			if (strcmp(name, "username") == 0) {
+				username = it->value.GetString();
 			}
-
-			if (!group_id_obj.isEmpty()) {
-				group_id_obj.convert(group_id);
-			}
-			if (!group_alias_obj.isEmpty()) {
-				group_alias_obj.convert(group_alias);
-			}
-
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("Poco Exception", ex.displayText());
-		}
-		
-	}
-	else if (params.isVector()) {
-		const Poco::URI::QueryParameters queryParams = params.extract<Poco::URI::QueryParameters>();
-		for (auto it = queryParams.begin(); it != queryParams.end(); it++) {
-			if (it->first == "username") {
-				username = it->second;
-			}
-			else if (it->first == "group_id") {
-				DataTypeConverter::strToInt(it->second, group_id);
-			}
-			else if (it->first == "group_alias") {
-				group_alias = it->second;
+			else if (strcmp(name, "group_alias") == 0) {
+				group_alias = it->value.GetString();
 			}
 		}
-	}
-	else {
-		return stateError("format not implemented", std::string(params.type().name()));
+		else if (it->value.IsInt()) {
+			if (strcmp(name, "group_id") == 0) {
+				group_id = it->value.GetInt();
+			}
+		}
 	}
 	
 	if (!group_id && group_alias == "") {
@@ -79,9 +48,10 @@ Poco::JSON::Object* JsonCheckUsername::handle(Poco::Dynamic::Var params)
 	auto user = controller::User::create();
 	user->getModel()->setGroupId(group_id);
 	if (username == "") {
-		Poco::JSON::Object* result = new Poco::JSON::Object;
-		result->set("state", "success");
-		result->set("group_id", group_id);
+		Document result(kObjectType);
+		
+		result.AddMember("state", "success", result.GetAllocator());
+		result.AddMember("group_id", group_id, result.GetAllocator());
 		return result;
 	}
 	if (user->isUsernameAlreadyUsed(username)) {

@@ -13,6 +13,8 @@
 #include "SingletonManager/LanguageManager.h"
 #include "SingletonManager/MemoryManager.h"
 
+#include "lib/IotaRequest.h"
+
 #define DISABLE_EMAIL
 
 namespace ServerConfig {
@@ -58,6 +60,7 @@ namespace ServerConfig {
 	extern UniLib::controller::CPUSheduler* g_CPUScheduler;
 	extern UniLib::controller::CPUSheduler* g_CryptoCPUScheduler;
 	extern Poco::Net::Context::Ptr g_SSL_CLient_Context;
+	extern IotaRequest* g_IotaRequestHandler;
 	extern Poco::Util::Timer	   g_CronJobsTimer;
 	extern EmailAccount g_EmailAccount;
 	extern int g_SessionTimeout;
@@ -80,11 +83,11 @@ namespace ServerConfig {
 	extern MemoryBin*  g_CryptoAppSecret;
 	extern AllowUnsecure g_AllowUnsecureFlags;
 
-
 	bool loadMnemonicWordLists();
 	bool initServerCrypto(const Poco::Util::LayeredConfiguration& cfg);
 	bool initEMailAccount(const Poco::Util::LayeredConfiguration& cfg);
 	bool initSSLClientContext();
+	bool initIota(const Poco::Util::LayeredConfiguration& cfg);
 
 
 	void writeToFile(std::istream& datas, std::string fileName);

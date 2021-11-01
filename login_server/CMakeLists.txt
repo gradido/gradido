@@ -20,6 +20,7 @@ include_directories(
 	"dependencies/mariadb-connector-c/build/include"
 	"dependencies/spirit-po/include"
 	"dependencies/protobuf/src"
+	"dependencies/rapidjson/include"
 	"build"
 	"build/proto"
 	"build/http_pages"

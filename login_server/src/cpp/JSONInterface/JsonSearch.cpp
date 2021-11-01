@@ -4,86 +4,76 @@
 #include "../controller/User.h"
 #include "../SingletonManager/SessionManager.h"
 
-Poco::JSON::Object* JsonSearch::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+// TODO: monitor caller ip and allow not to much calls per second to prevent attackers using this function to check against with hundreds of email addresses
+// TODO: block requester which call with to many unknown email hashes / usernames in a row
+Document JsonSearch::handle(const Document& params)
 {
-	/*
-		'ask' = ['account_publickey' => '<email_blake2b_base64>']
-	*/
-	// incoming
-	
-	Poco::JSON::Object::Ptr ask;
-
-	// if is json object
-	if (params.type() == typeid(Poco::JSON::Object::Ptr)) {
-		Poco::JSON::Object::Ptr paramJsonObject = params.extract<Poco::JSON::Object::Ptr>();
-		/// Throws a RangeException if the value does not fit
-		/// into the result variable.
-		/// Throws a NotImplementedException if conversion is
-		/// not available for the given type.
-		/// Throws InvalidAccessException if Var is empty.
-		try {
-			ask = paramJsonObject->getObject("ask");
-		}
-		catch (Poco::Exception& ex) {
-			return stateError("json exception", ex.displayText());
-		}
-	}
-	else {
-		return stateError("parameter format unknown");
-	}
-
-	
-	if (ask.isNull()) {
-		return stateError("ask is zero or not an object");
-	}
-
-
-	Poco::JSON::Object* result = new Poco::JSON::Object;
-	result->set("state", "success");
-	Poco::JSON::Array  jsonErrorsArray;
-	Poco::JSON::Object result_fields;
 	auto sm = SessionManager::getInstance();
 	auto mm = MemoryManager::getInstance();
-	for (auto it = ask->begin(); it != ask->end(); it++) {
-		std::string name = it->first;
-		auto value = it->second;
 
+	auto paramError = checkObjectParameter(params, "ask");
+	if (paramError.IsObject()) { return paramError; }
+	auto itr = params.FindMember("ask");
+	const Value& ask = itr->value;
 
-		try {
-			if ("account_publickey" == name) {
-				if (!value.isString()) {
-					jsonErrorsArray.add("account_publickey isn't a string");
+	Document result(kObjectType);
+	auto alloc = result.GetAllocator();
+
+	Value resultFields(kObjectType);
+	Value jsonErrors(kArrayType);
+
+	for (auto it = ask.MemberBegin(); it != ask.MemberEnd(); it++)
+	{
+		if (!it->name.IsString()) {
+			return stateError("ask array member isn't a string");
+		}
+		std::string ask_name(it->name.GetString(), it->name.GetStringLength());
+		std::string string_value;
+		if (it->value.IsString()) {
+			string_value = std::string(it->value.GetString(), it->value.GetStringLength());
+		}
+
+		if (ask_name == "account_publickey") {
+			auto user = controller::User::create();
+			if (!string_value.size()) 
+			{
+				jsonErrors.PushBack("account_publickey isn't a string or empty", alloc);
+			}
+			else 
+			{
+				MemoryBin* email_hash = nullptr;
+				if (sm->isValid(string_value, VALIDATE_ONLY_HEX)) {
+					email_hash = DataTypeConverter::hexToBin(string_value);
+				}
+				if (!email_hash) {
+					email_hash = DataTypeConverter::base64ToBin(string_value);
+				}
+				if (!email_hash) 
+				{	
+					if (sm->isValid(string_value, VALIDATE_USERNAME)) {
+						user->load(string_value);
+					} else {				
+						jsonErrors.PushBack("account_publickey isn't valid base64 or hex or username", alloc);
+					}
 				}
 				else {
-					MemoryBin* email_hash = nullptr;
-					if (sm->isValid(value, VALIDATE_ONLY_HEX)) {
-						email_hash = DataTypeConverter::hexToBin(value);
-					}
-					if (!email_hash) {
-						email_hash = DataTypeConverter::base64ToBin(value);
-					}
-					if (!email_hash) {
-						jsonErrorsArray.add("account_publickey isn't valid base64 or hex");
-					}
-					else {
-						auto user = controller::User::create();
-						user->load(email_hash);
-						mm->releaseMemory(email_hash);
-						auto user_model = user->getModel();
-						auto public_key_base64 = DataTypeConverter::binToBase64(user_model->getPublicKey(), user_model->getPublicKeySize());
-						result_fields.set("account_publickey", public_key_base64);
-					}
+					user->load(email_hash);
+					mm->releaseMemory(email_hash);
 				}
 			}
-		}
-		catch (Poco::Exception& ex) {
-			jsonErrorsArray.add("update parameter invalid");
+			auto user_model = user->getModel();
+			if (user_model->getID()) {
+				auto public_key_base64 = DataTypeConverter::binToBase64(user_model->getPublicKey(), user_model->getPublicKeySize());
+				resultFields.AddMember("account_publickey", Value(public_key_base64.data(), alloc), alloc);
+			}
 		}
 	}
-	
-	result->set("errors", jsonErrorsArray);
-	result->set("results", result_fields);
-	result->set("state", "success");
+
+	result.AddMember("state", "success", alloc);
+	result.AddMember("errors", jsonErrors, alloc);
+	result.AddMember("results", resultFields, alloc);	
 
 	return result;
 }

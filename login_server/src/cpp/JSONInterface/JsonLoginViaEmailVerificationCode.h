@@ -6,13 +6,11 @@
 class JsonLoginViaEmailVerificationCode : public JsonRequestHandler
 {
 public:
-	JsonLoginViaEmailVerificationCode(Poco::Net::IPAddress ip) : mClientIP(ip) {}
-	Poco::JSON::Object* handle(Poco::Dynamic::Var params);
+	JsonLoginViaEmailVerificationCode(Poco::Net::IPAddress ip) : JsonRequestHandler(ip) {}
+	rapidjson::Document handle(const rapidjson::Document& params);
 
 protected:
-	Poco::Net::IPAddress mClientIP;
-
-
+	
 };
 
 #endif // __JSON_INTERFACE_JSON_LOGIN_VIA_EMAIL_VERIFICATION_CODE_

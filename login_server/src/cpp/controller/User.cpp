@@ -17,6 +17,7 @@
 
 #include "Poco/Timestamp.h"
 
+using namespace rapidjson;
 
 namespace controller {
 	User::User(model::table::User* dbModel)
@@ -69,7 +70,7 @@ namespace controller {
 
 			using namespace Poco::Data::Keywords;
 			Poco::Data::Statement select(session);
-			select << "SELECT id, first_name, last_name, email, username, description, pubkey, created, email_checked, disabled, group_id FROM " << db->getTableName();
+			select << "SELECT id, first_name, last_name, email, username, description, pubkey, created, email_checked, disabled, group_id, publisher_id FROM " << db->getTableName();
 			select << " where email_checked = 0 ";
 			select, into(resultFromDB);
 			if (searchString != "") {
@@ -157,8 +158,7 @@ namespace controller {
 
 		auto mm = MemoryManager::getInstance();
 
-		lock("User::getJson");
-		Poco::JSON::Object userObj;
+		lock("User::getPublicHex");
 
 		auto pubkey = getModel()->getPublicKey();
 
@@ -183,13 +183,13 @@ namespace controller {
 		return ss.str();
 	}
 
-	Poco::JSON::Object User::getJson()
+
+	Value User::getJson(Document::AllocatorType& alloc)
 	{
-		auto json = getModel()->getJson();
+		auto json = getModel()->getJson(alloc);
 		auto pubkey = getPublicHex();
-		//printf("[controller::User::getJson] this: %d\n", (int)this);
 		if (pubkey != "") {
-			json.set("public_hex", pubkey);
+			json.AddMember("public_hex", Value(pubkey.data(), alloc), alloc);
 		}
 		return json;
 	}
@@ -519,6 +519,7 @@ namespace controller {
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
+		auto mm = MemoryManager::getInstance();
 		static const char* function_name = "User::addMissingEmailHashes";
 
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -542,15 +543,13 @@ namespace controller {
 		std::vector<Poco::Tuple<Poco::Data::BLOB, int>> updates;
 		// calculate hashes
 		updates.reserve(results.size());
-		unsigned char email_hash[crypto_generichash_BYTES];
 		for (auto it = results.begin(); it != results.end(); it++) {
-			memset(email_hash, 0, crypto_generichash_BYTES);
 			auto id = it->get<0>();
 			auto email = it->get<1>();
-			crypto_generichash(email_hash, crypto_generichash_BYTES,
-				(const unsigned char*)email.data(), email.size(),
-				NULL, 0);
-			updates.push_back(Poco::Tuple<Poco::Data::BLOB, int>(Poco::Data::BLOB(email_hash, crypto_generichash_BYTES), id));
+			auto emailHash = model::table::User::createEmailHash(email);
+			
+			updates.push_back(Poco::Tuple<Poco::Data::BLOB, int>(Poco::Data::BLOB(emailHash->data(), emailHash->size()), id));
+			mm->releaseMemory(emailHash);
 		}
 
 		// update db

@@ -78,7 +78,8 @@ namespace controller {
 		static Poco::AutoPtr<User> sload(int user_id);
 		int load(const unsigned char* pubkey_array);
 		int load(MemoryBin* emailHash);
-		Poco::JSON::Object getJson();
+
+		rapidjson::Value getJson(rapidjson::Document::AllocatorType& alloc);
 
 		inline Poco::AutoPtr<model::table::User> getModel() { return _getModel<model::table::User>(); }
 		inline const model::table::User* getModel() const { return _getModel<model::table::User>(); }

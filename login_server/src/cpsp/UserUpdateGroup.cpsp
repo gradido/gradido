@@ -46,7 +46,7 @@ enum PageState {
 					addError(new Error(gettext("Fehler"), gettext("Interner Fehler")));
 				} else {
 					auto addGroupMemberTransaction = 
-						model::gradido::Transaction::createGroupMemberUpdate(user, choosen_group);
+						model::gradido::Transaction::createGroupMemberUpdate(user, choosen_group, model::gradido::BLOCKCHAIN_IOTA);
 					response.redirect(ServerConfig::g_serverPath + "/checkTransactions");
 					return;
 					state = PAGE_STATE_REQUEST_IS_RUNNING;

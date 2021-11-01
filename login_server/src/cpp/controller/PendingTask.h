@@ -43,6 +43,7 @@ namespace controller {
 		void calledFromTimer(Poco::Timer& timer);
 
 		Poco::AutoPtr<controller::User> getUser();
+		inline void setUser(Poco::AutoPtr<controller::User> user) { mUser = user; }
 
 		void finishSuccess();
 

@@ -18,12 +18,14 @@ namespace model {
 
 		int TransactionCreation::prepare()
 		{
+			if (mIsPrepared) return 0;
+
 			const static char functionName[] = { "TransactionCreation::prepare" };
-			if (!mProtoCreation.has_receiver()) {
+			if (!mProtoCreation.has_recipiant()) {
 				addError(new Error(functionName, "hasn't receiver amount"));
 				return -1;
 			}
-			auto receiver_amount = mProtoCreation.receiver();
+			auto receiver_amount = mProtoCreation.recipiant();
 
 			auto receiverPublic = receiver_amount.pubkey();
 			if (receiverPublic.size() != KeyPairEd25519::getPublicKeySize()) {
@@ -101,14 +103,33 @@ namespace model {
 					return TRANSACTION_VALID_INVALID_TARGET_DATE;
 				}
 			}
-			if (mProtoCreation.receiver().amount() > 1000 * 10000) {
+			auto amount = mProtoCreation.recipiant().amount();
+			if (amount > 1000 * 10000) {
 				addError(new Error(function_name, "creation amount to high, max 1000 per month"));
 				return TRANSACTION_VALID_CREATION_OUT_OF_BORDER;
 			}
+			if (amount < 10000) {
+				addError(new Error(function_name, "creation amount to low, min 1 GDD"));
+				return TRANSACTION_VALID_CREATION_OUT_OF_BORDER;
+			}			
 
-			if (mProtoCreation.receiver().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+			if (mProtoCreation.recipiant().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "receiver pubkey has invalid size"));
 				return TRANSACTION_VALID_INVALID_PUBKEY;
+			}
+
+			// check recipient user account
+			if (!mReceiverUser.isNull() && mReceiverUser->getModel()) {
+				auto receiver_user_model = mReceiverUser->getModel();
+
+				if (receiver_user_model->isDisabled()) {
+					addError(new Error(function_name, "user account is disabled"));
+					return TRANSACTION_VALID_INVALID_USER_ACCOUNT_STATE;
+				}
+				if (!receiver_user_model->getGroupId()) {
+					addError(new Error(function_name, "receiver user hasn't group"));
+					return TRANSACTION_VALID_INVALID_USER_ACCOUNT_STATE;
+				}
 			}
 
 			// TODO: check creation amount from last 3 month from node server

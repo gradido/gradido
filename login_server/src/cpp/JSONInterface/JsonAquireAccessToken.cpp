@@ -5,17 +5,19 @@
 #include "../controller/AppAccessToken.h"
 #include "../controller/Group.h"
 
+#include "rapidjson/document.h"
 
-Poco::JSON::Object* JsonAquireAccessToken::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+Document JsonAquireAccessToken::handle(const Document& params)
 {
-	if (!mSession || mSession->getNewUser().isNull()) {
-		auto session_result = checkAndLoadSession(params, true);
-		if (session_result) {
-			return session_result;
-		}
+	auto session_result = checkAndLoadSession(params);
+	if (session_result.IsObject()) {
+		return session_result;
 	}
-	Poco::JSON::Object* result = new Poco::JSON::Object;
-	result->set("state", "success");
+	
+	Document result(kObjectType);
+	result.AddMember("state", "success", result.GetAllocator());
 	auto user = mSession->getNewUser();
 	auto user_id = user->getModel()->getID();
 	auto access_tokens = controller::AppAccessToken::load(user_id);
@@ -32,13 +34,13 @@ Poco::JSON::Object* JsonAquireAccessToken::handle(Poco::Dynamic::Var params)
 		// default 
 		//access_token->getModel()->insertIntoDB(false);
 	}
-
-	result->set("access_token", std::to_string(access_token->getModel()->getCode()));
+	std::string access_token_string = std::to_string(access_token->getModel()->getCode());
+	result.AddMember("access_token", Value(access_token_string.data(), result.GetAllocator()).Move(), result.GetAllocator());
 
 	auto group_base_url = user->getGroupBaseUrl();
 	auto group = controller::Group::load(user->getModel()->getGroupId());
 	if (!group.isNull()) {
-		result->set("group_base_url", group->getModel()->getUrl());
+		result.AddMember("group_base_url", Value(group->getModel()->getUrl().data(), result.GetAllocator()).Move(), result.GetAllocator());
 	}
 
 	return result;

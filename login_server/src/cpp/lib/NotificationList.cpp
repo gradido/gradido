@@ -173,6 +173,19 @@ std::vector<std::string> NotificationList::getErrorsArray()
 	return result;
 }
 
+rapidjson::Value NotificationList::getErrorsArray(rapidjson::Document::AllocatorType& alloc)
+{
+	rapidjson::Value value;
+	value.SetArray();
+	while (mErrorStack.size() > 0) {
+		auto error = mErrorStack.top();
+		mErrorStack.pop();
+		value.PushBack(rapidjson::Value(error->getString().data(), alloc), alloc);
+		delete error;
+	}
+	return value;
+}
+
 std::vector<std::string> NotificationList::getWarningsArray()
 {
 	std::vector<std::string> result;
@@ -186,6 +199,19 @@ std::vector<std::string> NotificationList::getWarningsArray()
 		delete warning;
 	}
 	return result;
+}
+
+rapidjson::Value NotificationList::getWarningsArray(rapidjson::Document::AllocatorType& alloc)
+{
+	rapidjson::Value value;
+	value.SetArray();
+	while (mWarningStack.size() > 0) {
+		auto warning = mWarningStack.top();
+		mWarningStack.pop();
+		value.PushBack(rapidjson::Value(warning->getString().data(), alloc), alloc);
+		delete warning;
+	}
+	return value;
 }
 
 std::string NotificationList::getErrorsHtml()

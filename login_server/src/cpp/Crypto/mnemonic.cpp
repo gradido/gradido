@@ -344,7 +344,7 @@ void Mnemonic::printToFile(const char* filename)
 	}
 }
 
-Poco::JSON::Array Mnemonic::getSortedWordList()
+std::string Mnemonic::getSortedWordListJsonString()
 {
 	std::shared_lock<std::shared_mutex> _lock(mWorkingMutex);
 	std::list<std::string> words;
@@ -352,10 +352,15 @@ Poco::JSON::Array Mnemonic::getSortedWordList()
 		words.push_back(mWords[it->second]);
 	}
 	words.sort();
-	Poco::JSON::Array json;
+
+	std::string json_string;
+	json_string += '[';
 	for (auto it = words.begin(); it != words.end(); it++) {
-		json.add(*it);
+		if (it != words.begin()) {
+			json_string += ',';
+		}
+		json_string += *it;
 	}
-//	json.stringify()
-	return json;
+	json_string += ']';
+	return json_string;
 }

@@ -19,6 +19,7 @@ include_directories(
 	"dependencies" 
 	"dependencies/tinf/src" 
 	"dependencies/spirit-po/include"
+	"dependencies/rapidjson/include"
 	"/usr/local/include/mariadb"
 	"build"
 	"build/proto"
@@ -155,7 +156,6 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 	find_library(POCO_UTIL_LIB PocoUtild PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_NET_SSL_LIB PocoNetSSLd PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_DATA_LIB PocoDatad PATHS ${BUILD_LIB_PATH} REQUIRED)
-	find_library(POCO_JSON_LIB PocoJSONd PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_NET_LIB PocoNetd PATHS ${BUILD_LIB_PATH} REQUIRED)
 	message("use Poco Debug libs")
 ELSE()
@@ -163,12 +163,11 @@ ELSE()
 	find_library(POCO_UTIL_LIB PocoUtil PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_NET_SSL_LIB PocoNetSSL PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_DATA_LIB PocoData PATHS ${BUILD_LIB_PATH} REQUIRED)
-	find_library(POCO_JSON_LIB PocoJSON PATHS ${BUILD_LIB_PATH} REQUIRED)
 	find_library(POCO_NET_LIB PocoNet PATHS ${BUILD_LIB_PATH} REQUIRED)
 	message("use Poco Release libs")
 ENDIF()
 
-set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO_DATA_LIB} ${POCO_JSON_LIB} ${POCO_NET_LIB})
+set(POCO_LIBS ${POCO_FOUNDATION_LIB} ${POCO_UTIL_LIB} ${POCO_NET_SSL_LIB} ${POCO_DATA_LIB} ${POCO_NET_LIB})
 
 
 ############################## build login server ###################################

@@ -1,15 +1,16 @@
 
 #include "KeyPairEd25519.h"
+#include "KeyPairEd25519Ex.h"
 #include <assert.h>
 
 #include "../SingletonManager/ErrorManager.h"
 
 #include "../lib/DataTypeConverter.h"
 
+#include "ed25519_bip32_c_interface.h"
 
-
-KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
-	: mSodiumSecret(privateKey)
+KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey, MemoryBin* chainCode/* = nullptr*/)
+	: mSodiumSecret(privateKey), mChainCode(chainCode)
 {
 	//memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
 	// read pubkey from private key, so we are sure it is the correct pubkey for the private key
@@ -17,23 +18,29 @@ KeyPairEd25519::KeyPairEd25519(MemoryBin* privateKey)
 	crypto_sign_ed25519_sk_to_pk(mSodiumPublic, *privateKey);
 }
 
-KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey)
-	: mSodiumSecret(nullptr)
+KeyPairEd25519::KeyPairEd25519(const unsigned char* publicKey, MemoryBin* chainCode /* = nullptr*/ )
+	: mSodiumSecret(nullptr), mChainCode(chainCode)
 {
 	memcpy(mSodiumPublic, publicKey, crypto_sign_PUBLICKEYBYTES);
+	mChainCode = chainCode;
 }
 
 KeyPairEd25519::KeyPairEd25519()
-	: mSodiumSecret(nullptr)
+	: mSodiumSecret(nullptr), mChainCode(nullptr)
 {
 	memset(mSodiumPublic, 0, crypto_sign_PUBLICKEYBYTES);
 }
 
 KeyPairEd25519::~KeyPairEd25519()
 {
+	auto mm = MemoryManager::getInstance();
 	if (mSodiumSecret) {
-		MemoryManager::getInstance()->releaseMemory(mSodiumSecret);
+		mm->releaseMemory(mSodiumSecret);
 		mSodiumSecret = nullptr;
+	}
+	if (mChainCode) {
+		mm->releaseMemory(mChainCode);
+		mChainCode = nullptr;
 	}
 }
 
@@ -94,8 +101,13 @@ KeyPairEd25519* KeyPairEd25519::create(const Poco::AutoPtr<Passphrase> passphras
 	if (!key_pair->mSodiumSecret) {
 		key_pair->mSodiumSecret = mm->getFreeMemory(crypto_sign_SECRETKEYBYTES);
 	}
-
+	if (!key_pair->mChainCode) {
+		key_pair->mChainCode = mm->getFreeMemory(32);
+	}
+	
 	crypto_sign_seed_keypair(key_pair->mSodiumPublic, *key_pair->mSodiumSecret, hash);
+
+	memcpy(key_pair->mChainCode->data(), &hash[32], 32);
 	
 	return key_pair;
 
@@ -158,6 +170,55 @@ bool KeyPairEd25519::verify(const std::string& message, const std::string& signa
 		return false;
 	}
 	return true;
+}
+
+bool KeyPairEd25519::is3rdHighestBitClear() const
+{
+	assert(mChainCode);
+	assert(mSodiumSecret);
+	return is_3rd_highest_bit_clear(*mSodiumSecret, *mChainCode);
+}
+
+DerivationType KeyPairEd25519::getDerivationType(Poco::UInt32 index)
+{
+	if(index >= 0x80000000) {
+		return DERIVATION_HARD;
+	}
+	else {
+		return DERIVATION_SOFT;
+	}
+}
+
+KeyPairEd25519Ex* KeyPairEd25519::deriveChild(Poco::UInt32 index, NotificationList* errors /* = nullptr*/)
+{
+	auto mm = MemoryManager::getInstance();
+	auto temp_key = mm->getFreeMemory(32);
+	auto temp_chain_code = mm->getFreeMemory(32);
+
+	KeyPairEd25519Ex* result = nullptr;
+
+	if (hasPrivateKey()) {
+		derivePrivateKey(mSodiumPublic, *mChainCode, index, *temp_key, *temp_chain_code);
+		result = new KeyPairEd25519Ex(temp_key, temp_chain_code, index);
+	}
+	else {
+		if (derivePublicKey(*mSodiumSecret, *mChainCode, index, *temp_key, *temp_chain_code)) {
+			result = new KeyPairEd25519Ex(*temp_key, temp_chain_code, index);
+		} else if(errors) {
+			static const char* function_name = "KeyPairEd25519::deriveChild";
+			if (getDerivationType(index) == DERIVATION_HARD) {
+				errors->addError(new ParamError(function_name, "hard derivation with public key not possible", index));
+			}
+			else {
+				errors->addError(new Error(function_name, "derivePublicKey failed"));
+			}
+		}
+		if(!result) {
+			mm->releaseMemory(temp_chain_code);
+		}
+		mm->releaseMemory(temp_key);
+	}
+	return result;
 }
 
 MemoryBin* KeyPairEd25519::getCryptedPrivKey(const Poco::AutoPtr<SecretKeyCryptography> password) const

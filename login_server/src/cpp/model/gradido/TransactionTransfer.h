@@ -45,8 +45,6 @@ namespace model {
 			std::string getTargetGroupAlias();
 			bool isInbound() { return mProtoTransfer.has_inbound(); }
 			bool isOutbound() { return mProtoTransfer.has_outbound(); }
-			Poco::AutoPtr<Transaction> createOutbound(const std::string& memo);
-			Poco::AutoPtr<Transaction> createInbound(const std::string& memo);
 
 			void transactionAccepted(Poco::AutoPtr<controller::User> user);
 
