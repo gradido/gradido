@@ -164,13 +164,16 @@ namespace model {
 
 			auto sender_model = sender->getModel();
 			auto senderPublicKey = sender_model->getPublicKeyCopy();
-			auto groupAlias = recipiantGroup->getModel()->getAlias();
+			auto recipiantGroupAlias = recipiantGroup->getModel()->getAlias();
+			auto senderGroupAlias = sender->getGroup()->getModel()->getAlias();
 			Poco::Timestamp now;
 
 			for (int i = 0; i < 2; i++) {
 				TransactionTransferType type = TRANSFER_CROSS_GROUP_INBOUND;
+				std::string groupAlias = senderGroupAlias;
 				if (1 == i) {
 					type = TRANSFER_CROSS_GROUP_OUTBOUND;
+					groupAlias = recipiantGroupAlias;
 				}
 				Poco::AutoPtr<TransactionBody> body = TransactionBody::create(memo, senderPublicKey, recipiantPubkey, amount, type, groupAlias, now);
 				body->setBlockchainType(blockchainType);
@@ -179,9 +182,11 @@ namespace model {
 				transaction->insertPendingTaskIntoDB(sender, model::table::TASK_TYPE_TRANSFER);
 				if (0 == i) {
 					inboundTransaction = transaction;
+					inboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(recipiantGroupAlias);
 				}
 				else if (1 == i) {
 					outboundTransaction = transaction;
+					outboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(senderGroupAlias);
 				} 
 				PendingTasksManager::getInstance()->addTask(transaction);
 			}
@@ -574,6 +579,12 @@ namespace model {
 					if (hex_message == "") {
 						addError(new Error(function_name, "error convert final transaction to hex"));
 						return -7;
+					}
+					if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isCrossGroup()) {
+						auto groups = controller::Group::load(mTransactionBody->getTransferTransaction()->getOwnGroupAlias());
+						if (groups.size() == 1) {
+							group = groups[0];
+						}
 					}
 
                     return runSendTransactionIota(hex_message, group);

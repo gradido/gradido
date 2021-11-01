@@ -43,8 +43,11 @@ namespace model {
 			const std::string& getAmountCell(int index);
 
 			std::string getTargetGroupAlias();
+			// needed for iota index
+			std::string getOwnGroupAlias() { return mOwnGroupAlias; }
 			bool isInbound() { return mProtoTransfer.has_inbound(); }
 			bool isOutbound() { return mProtoTransfer.has_outbound(); }
+			bool isCrossGroup() { return mProtoTransfer.has_inbound() || mProtoTransfer.has_outbound(); }
 
 			void transactionAccepted(Poco::AutoPtr<controller::User> user);
 
