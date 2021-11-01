@@ -20,10 +20,6 @@
 
 #include "lib/NotificationList.h"
 
-enum DerivationType {
-	DERIVATION_SOFT,
-	DERIVATION_HARD
-};
 
 class KeyPairEd25519Ex;
 
@@ -41,16 +37,12 @@ public:
 	//! \return create KeyPairEd25519, caller muss call delete at return after finish
 	static KeyPairEd25519* create(const Poco::AutoPtr<Passphrase> passphrase);
 
-	KeyPairEd25519Ex* deriveChild(Poco::UInt32 index, NotificationList* errors = nullptr);
-	static DerivationType getDerivationType(Poco::UInt32 index);
-
 	//! \return caller take ownership of return value
 	inline MemoryBin* sign(const MemoryBin* message) const { return sign(message->data(), message->size()); }
 	inline MemoryBin* sign(const std::string& bodyBytes) const { return sign((const unsigned char*)bodyBytes.data(), bodyBytes.size()); }
 
 	virtual MemoryBin* sign(const unsigned char* message, size_t messageSize) const;
-	virtual bool verify(const std::string& message, const std::string& signature) const;
-	virtual bool is3rdHighestBitClear() const;
+	virtual bool verify(const std::string& message, const std::string& signature) const;	
 
 	inline const unsigned char* getPublicKey() const { return mSodiumPublic; }
 	inline MemoryBin* getChainCode() const { return mChainCode; }
