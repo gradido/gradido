@@ -396,6 +396,7 @@ Document JsonRequestHandler::checkObjectParameter(const Document& params, const 
 
 Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 {
+	auto sm = SessionManager::getInstance();
 	if (!mSession) {
 		int session_id = 0;
 
@@ -404,20 +405,25 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 		if (itr == params.MemberEnd()) {
 			return stateError("session_id not found");
 		}
-		else if (itr->value.IsInt64()) {
+		if (itr->value.IsInt64()) {
 			session_id = static_cast<int>(itr->value.GetInt64());
+			mSession = sm->getSession(session_id);
 		}
-		else if (itr->value.IsInt()) {
+		if (!mSession && itr->value.IsInt()) {
 			session_id = static_cast<int>(itr->value.GetInt());
+			mSession = sm->getSession(session_id);
 		}		
-		else if (itr->value.IsUint64()) {
+		if (!mSession && itr->value.IsUint64()) {
 			session_id = static_cast<int>(itr->value.GetUint64());
+			mSession = sm->getSession(session_id);
 		}
-		else if (itr->value.IsUint()) {
+		if (!mSession && itr->value.IsUint()) {
 			session_id = static_cast<int>(itr->value.GetUint());
+			mSession = sm->getSession(session_id);
 		}
-		else if (itr->value.IsString()) {
+		if (!mSession && itr->value.IsString()) {
 			DataTypeConverter::strToInt(itr->value.GetString(), session_id);
+			mSession = sm->getSession(session_id);
 		}
 		else {
 			return stateError("session_id is unhandled type");
@@ -425,10 +431,8 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 		
 		if (!session_id) {
 			return stateError("empty session id");
-		}
-
-		auto sm = SessionManager::getInstance();
-		mSession = sm->getSession(session_id);
+		}	
+		
 	}
 	if (!mSession) {
 		return customStateError("not found", "session not found");
