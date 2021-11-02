@@ -3,16 +3,17 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import {
-  /* eslint-disable camelcase */
-  randombytes_random,
-  crypto_hash_sha512_instance,
-  crypto_hash_sha512_BYTES,
-  crypto_sign_seed_keypair,
-  crypto_sign_PUBLICKEYBYTES,
-  crypto_sign_SECRETKEYBYTES,
-  /* eslint-enable camelcase */
-} from 'sodium-native'
+// import {
+//  /* eslint-disable camelcase */
+//  randombytes_random,
+//  crypto_hash_sha512_instance,
+//  crypto_hash_sha512_BYTES,
+//  crypto_sign_seed_keypair,
+//  crypto_sign_PUBLICKEYBYTES,
+//  crypto_sign_SECRETKEYBYTES,
+//  /* eslint-enable camelcase */
+// } from 'sodium-native'
+
 import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
@@ -40,6 +41,9 @@ import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBac
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { bigintToBuf } from 'bigint-conversion'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sodium = require('sodium-native')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
@@ -79,10 +83,41 @@ const WORDS = fs.readFileSync('src/config/mnemonic.english.txt').toString().spli
 const PassphraseGenerate = (): string[] => {
   const result = []
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
-    result.push(WORDS[randombytes_random() % 2048])
+    result.push(WORDS[sodium.randombytes_random() % 2048])
   }
   return result
 }
+
+/*
+  return [
+    'avoid',
+    'security',
+    'heavy',
+    'mercy',
+    'exit',
+    'avocado',
+    'actress',
+    'apple',
+    'crowd',
+    'drop',
+    'rib',
+    'photo',
+    'valley',
+    'test',
+    'board',
+    'evidence',
+    'blast',
+    'pencil',
+    'frost',
+    'frame',
+    'come',
+    'vanish',
+    'very',
+    'inner',
+  ]
+*/
+// pub:  0xdd1b7bb
+// priv: 0xbcadd66
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
@@ -98,23 +133,29 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   // if (!wordIndicies || (!wordIndicies[0] && !wordIndicies[1] && !wordIndicies[2] && !wordIndicies[3])) {
   //	return null;
   // }
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
 
-  const hash = crypto_hash_sha512_instance()
+  // sodium.crypto_hash_sha256_init(state /* , [key], outlen */)
+  sodium.crypto_hash_sha512_init(state)
 
   // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
     const value = BigInt(wordIndicies[i])
-    hash.update(Buffer.from(bigintToBuf(value)))
+    sodium.crypto_hash_sha512_update(state, Buffer.from(bigintToBuf(value))) // hash.update(Buffer.from(bigintToBuf(value)))
   }
   const clearPassphrase = passphrase.join(' ')
-  hash.update(Buffer.from(clearPassphrase))
-  const outputHashBuffer = Buffer.alloc(crypto_hash_sha512_BYTES)
-  hash.final(outputHashBuffer)
+  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase)) // hash.update(Buffer.from(clearPassphrase))
+  const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, outputHashBuffer) // hash.final(outputHashBuffer)
 
-  const pubKey = Buffer.alloc(crypto_sign_PUBLICKEYBYTES)
-  const privKey = Buffer.alloc(crypto_sign_SECRETKEYBYTES)
+  const pubKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  const privKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
-  crypto_sign_seed_keypair(pubKey, privKey, outputHashBuffer)
+  sodium.crypto_sign_seed_keypair(
+    pubKey,
+    privKey,
+    outputHashBuffer.slice(sodium.crypto_sign_SEEDBYTES),
+  )
 
   return [pubKey, privKey]
 }
