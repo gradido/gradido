@@ -425,7 +425,7 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 			DataTypeConverter::strToInt(itr->value.GetString(), session_id);
 			mSession = sm->getSession(session_id);
 		}
-		else {
+		if(!mSession) {
 			return stateError("session_id is unhandled type");
 		}
 		
@@ -435,6 +435,7 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 		
 	}
 	if (!mSession) {
+
 		return customStateError("not found", "session not found");
 	}
 	// doesn't work perfect, must be debugged first
