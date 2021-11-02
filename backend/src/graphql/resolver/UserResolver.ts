@@ -35,6 +35,8 @@ import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBackup'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { bigintToBuf } from 'bigint-conversion'
@@ -118,7 +120,8 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 }
 
 const generateKeys = async (email: string): Promise<Buffer[]> => {
-  const mNewUser = await LoginUser.findOneOrFail({ email })
+  const loginUserRepository = getCustomRepository(LoginUserRepository)
+  const mNewUser = await loginUserRepository.findOneOrFail({ email })
   // TODO figure mnemonic database
   // const lang = mNewUser.language
   /*
@@ -134,7 +137,8 @@ const generateKeys = async (email: string): Promise<Buffer[]> => {
   loginUserBackup.passphrase = passphrase.join(' ')
   loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-  await loginUserBackup.save().catch(() => {
+  const loginUserBackupRepository = getCustomRepository(LoginUserBackupRepository)
+  await loginUserBackupRepository.save(loginUserBackup).catch(() => {
     throw new Error('insert user backup failed')
   })
 
@@ -144,7 +148,7 @@ const generateKeys = async (email: string): Promise<Buffer[]> => {
   mNewUser.pubKey = gradidoKeyPair[0]
   mNewUser.privKey = gradidoKeyPair[1]
 
-  await mNewUser.save().catch(() => {
+  await loginUserRepository.save(mNewUser).catch(() => {
     throw new Error(`Error saving new generated pub/priv keys, email: ${email}`)
   })
 
@@ -188,7 +192,7 @@ export class UserResolver {
       userEntity.email = user.email
       userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
 
-      userEntity.save().catch(() => {
+      userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
       })
     })
@@ -271,7 +275,8 @@ export class UserResolver {
 
     // Validate email unique
     // TODO: i can register an email in upper/lower case twice
-    const usersFound = await LoginUser.count({ email })
+    const userRepository = getCustomRepository(UserRepository)
+    const usersFound = await userRepository.count({ email })
     if (usersFound !== 0) {
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
       throw new Error(`User already exists.`)
@@ -291,8 +296,10 @@ export class UserResolver {
     loginUser.publisherId = publisherId
 
     // TODO: check if this insert method is correct, we had problems with that!
-    await loginUser.save().catch(() => {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    await loginUserRepository.save(loginUser).catch((error) => {
       // TODO: this triggered an EMail send
+      console.log('insert user failed', error)
       throw new Error('insert user failed')
     })
 
@@ -324,7 +331,7 @@ export class UserResolver {
     dbuser.lastName = lastName
     dbuser.username = username
 
-    await dbuser.save().catch(() => {
+    await userRepository.save(dbuser).catch(() => {
       throw new Error('error saving user')
     })
 
@@ -426,7 +433,7 @@ export class UserResolver {
         userEntityChanged = true
       }
       if (userEntityChanged) {
-        userEntity.save().catch((error) => {
+        userRepository.save(userEntity).catch((error) => {
           throw new Error(error)
         })
       }
