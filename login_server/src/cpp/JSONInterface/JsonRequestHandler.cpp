@@ -402,6 +402,7 @@ Document JsonRequestHandler::checkObjectParameter(const Document& params, const 
 Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 {
 	auto sm = SessionManager::getInstance();
+	int validTypes = 0;
 	if (!mSession) {
 		int session_id = 0;
 
@@ -413,35 +414,40 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 		if (itr->value.IsInt64()) {
 			session_id = static_cast<int>(itr->value.GetInt64());
 			mSession = sm->getSession(session_id);
+			printf("int64: %d\n", session_id);
+			validTypes++;
 		}
 		if (!mSession && itr->value.IsInt()) {
 			session_id = static_cast<int>(itr->value.GetInt());
 			mSession = sm->getSession(session_id);
+			printf("int: %d\n", session_id);
+			validTypes++;
 		}		
 		if (!mSession && itr->value.IsUint64()) {
 			session_id = static_cast<int>(itr->value.GetUint64());
 			mSession = sm->getSession(session_id);
+			printf("Uint64: %d\n", session_id);
+			validTypes++;
 		}
 		if (!mSession && itr->value.IsUint()) {
 			session_id = static_cast<int>(itr->value.GetUint());
 			mSession = sm->getSession(session_id);
+			printf("Uint: %d\n", session_id);
+			validTypes++;
 		}
 		if (!mSession && itr->value.IsString()) {
 			DataTypeConverter::strToInt(itr->value.GetString(), session_id);
 			mSession = sm->getSession(session_id);
+			printf("string: %d\n", session_id);
+			validTypes++;
 		}
-		if(!mSession) {
+		if(!mSession && !validTypes) {
 			return stateError("session_id is unhandled type");
 		}
 		
-		if (!session_id) {
-			return stateError("empty session id");
-		}	
-		
 	}
 	if (!mSession) {
-
-		return customStateError("not found", "session not found");
+		return customStateError("not found", "session not found", "valid types: " + std::to_string(validTypes));
 	}
 	// doesn't work perfect, must be debugged first
 	bool checkIp = false;
