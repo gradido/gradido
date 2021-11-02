@@ -158,8 +158,8 @@ class AppController extends Controller
         // decide in which order session_ids are tried
         if($sessionId != 0) {
             $session_id = $sessionId;
-        } else if($php_session_id != 0) {
-            $session_id = $php_session_id;
+        //} else if($php_session_id != 0) {
+            //$session_id = $php_session_id;
         } else if($cookie_session_id != 0) {
             $session_id = $cookie_session_id;
         } 
