@@ -13,7 +13,7 @@ import {
   crypto_sign_SECRETKEYBYTES,
   /* eslint-enable camelcase */
 } from 'sodium-native'
-import { getCustomRepository, NoNeedToReleaseEntityManagerError } from 'typeorm'
+import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -298,7 +298,7 @@ export class UserResolver {
     // TODO: check if this insert method is correct, we had problems with that!
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     await loginUserRepository.save(loginUser).catch((error) => {
-      // TODO: this triggered an EMail send
+      // eslint-disable-next-line no-console
       console.log('insert user failed', error)
       throw new Error('insert user failed')
     })
