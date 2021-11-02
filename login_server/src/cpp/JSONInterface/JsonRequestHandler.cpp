@@ -14,6 +14,7 @@
 #include "../SingletonManager/SessionManager.h"
 
 #include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
@@ -90,10 +91,14 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	if (!rapid_json_result.IsNull()) {
 		// 3. Stringify the DOM
 		StringBuffer buffer;
+		StringBuffer debugBuffer;
 		Writer<StringBuffer> writer(buffer);
+		PrettyWriter<StringBuffer> debugWriter(debugBuffer);
 		rapid_json_result.Accept(writer);
+		rapid_json_result.Accept(debugWriter);
 
 		responseStream << buffer.GetString() << std::endl;
+		printf("%s\n", debugBuffer.GetString());
 	}
 	if (rapid_json_result.IsObject())
 	{
