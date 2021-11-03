@@ -65,33 +65,47 @@ const PassphraseGenerate = (): string[] => {
   return result
   /*
   return [
-    'avoid',
-    'security',
-    'heavy',
-    'mercy',
-    'exit',
-    'avocado',
-    'actress',
-    'apple',
-    'crowd',
-    'drop',
-    'rib',
-    'photo',
-    'valley',
-    'test',
-    'board',
-    'evidence',
-    'blast',
-    'pencil',
+    'behind',
+    'salmon',
+    'fluid',
+    'orphan',
     'frost',
-    'frame',
-    'come',
-    'vanish',
-    'very',
-    'inner',
+    'elder',
+    'amateur',
+    'always',
+    'panel',
+    'palm',
+    'leopard',
+    'essay',
+    'punch',
+    'title',
+    'fun',
+    'annual',
+    'page',
+    'hundred',
+    'journey',
+    'select',
+    'figure',
+    'tunnel',
+    'casual',
+    'bar',
   ]
   */
 }
+
+/*
+Test results:
+INSERT INTO `login_users` (`id`, `email`, `first_name`, `last_name`, `username`, `description`, `password`, `pubkey`, `privkey`, `email_hash`, `created`, `email_checked`, `passphrase_shown`, `language`, `disabled`, `group_id`, `publisher_id`) VALUES
+// old
+(1, 'peter@lustig.de', 'peter', 'lustig', '', '', 4747956395458240931, 0x8c75edd507f470e5378f927489374694d68f3d155523f1c4402c36affd35a7ed, 0xb0e310655726b088631ccfd31ad6470ee50115c161dde8559572fa90657270ff13dc1200b2d3ea90dfbe92f3a4475ee4d9cee4989e39736a0870c33284bc73a8ae690e6da89f241a121eb3b500c22885, 0x9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036, '2021-11-03 20:05:04', 0, 0, 'de', 0, 1, 0);
+// new
+(2, 'peter@lustig.de', 'peter', 'lustig', '', '', 4747956395458240931, 0x8c75edd507f470e5378f927489374694d68f3d155523f1c4402c36affd35a7ed, 0xb0e310655726b088631ccfd31ad6470ee50115c161dde8559572fa90657270ff13dc1200b2d3ea90dfbe92f3a4475ee4d9cee4989e39736a0870c33284bc73a8ae690e6da89f241a121eb3b500c22885, 0x9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036, '2021-11-03 20:22:15', 0, 0, 'de', 0, 1, 0);
+INSERT INTO `login_user_backups` (`id`, `user_id`, `passphrase`, `mnemonic_type`) VALUES
+// old
+(1, 1, 'behind salmon fluid orphan frost elder amateur always panel palm leopard essay punch title fun annual page hundred journey select figure tunnel casual bar ', 2);
+// new
+(2, 2, 'behind salmon fluid orphan frost elder amateur always panel palm leopard essay punch title fun annual page hundred journey select figure tunnel casual bar ', 2);
+*/
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
