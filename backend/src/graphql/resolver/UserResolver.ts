@@ -101,18 +101,14 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
     throw new Error('passphrase empty or to short')
   }
 
-  const wordIndicies = []
-  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
-    wordIndicies.push(WORDS.indexOf(passphrase[i]))
-  }
-
   const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
   sodium.crypto_hash_sha512_init(state)
 
   // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
     const value = Buffer.alloc(8)
-    value.writeBigInt64LE(BigInt(wordIndicies[i]))
+    const wordIndex = WORDS.indexOf(passphrase[i])
+    value.writeBigInt64LE(BigInt(wordIndex))
     sodium.crypto_hash_sha512_update(state, value)
   }
   // trailing space is part of the login_server implementation
@@ -350,7 +346,9 @@ export class UserResolver {
     dbUser.username = username
 
     // TDOO transaction
-    await userRepository.save(dbUser).catch(() => {
+    await userRepository.save(dbUser).catch((er) => {
+      // eslint-disable-next-line no-console
+      console.log('Error while saving dbUser', er)
       throw new Error('error saving user')
     })
 
