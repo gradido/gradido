@@ -3,17 +3,6 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-// import {
-//  /* eslint-disable camelcase */
-//  randombytes_random,
-//  crypto_hash_sha512_instance,
-//  crypto_hash_sha512_BYTES,
-//  crypto_sign_seed_keypair,
-//  crypto_sign_PUBLICKEYBYTES,
-//  crypto_sign_SECRETKEYBYTES,
-//  /* eslint-enable camelcase */
-// } from 'sodium-native'
-
 import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
@@ -42,38 +31,26 @@ import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 
 // TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
+// import {
+//  /* eslint-disable camelcase */
+//  randombytes_random,
+//  crypto_hash_sha512_instance,
+//  crypto_hash_sha512_BYTES,
+//  crypto_sign_seed_keypair,
+//  crypto_sign_PUBLICKEYBYTES,
+//  crypto_sign_SECRETKEYBYTES,
+//  /* eslint-enable camelcase */
+// } from 'sodium-native'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
-  if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)) {
-    return false
-    // TODO we dont need this right, frontend does it?
-    /*
-    if(pwd.length < 8){
-      throw new Error('Your password is to short!')
-    }
-    if(!pwd.match(/[a-z]/)){
-      throw new Error('Your password does not contain lowercase letters!')
-    }
-    if(!pwd.match(/[A-Z]/)){
-      throw new Error('Your password does not contain any capital letters!')
-    }
-    if(!pwd.match(/[0-9]/)){
-      throw new Error('Your password does not contain any number!')
-    }
-    if(!pwd.match(/[^a-zA-Z0-9 \\t\\n\\r]/)){
-      throw new Error('Your password does not contain special characters!')
-    }
-    */
-  }
-  return true
+  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
 const LANGUAGES = ['de', 'en']
 const DEFAULT_LANGUAGE = 'de'
-// very likely to be reused
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -131,10 +108,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 
   // eslint-disable-next-line no-console
   console.log(wordIndicies)
-  // TODO: wtf is this?
-  // if (!wordIndicies || (!wordIndicies[0] && !wordIndicies[1] && !wordIndicies[2] && !wordIndicies[3])) {
-  //	return null;
-  // }
 
   const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
   sodium.crypto_hash_sha512_init(state)
@@ -161,42 +134,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   )
 
   return [pubKey, privKey]
-}
-
-const generateKeys = async (email: string): Promise<Buffer[]> => {
-  const loginUserRepository = getCustomRepository(LoginUserRepository)
-  const mNewUser = await loginUserRepository.findOneOrFail({ email })
-  // TODO figure mnemonic database
-  // const lang = mNewUser.language
-  /*
-  if (LANG_DE == lang) {
-		mnemonic_type = ServerConfig::MNEMONIC_GRADIDO_BOOK_GERMAN_RANDOM_ORDER_FIXED_CASES;
-	}
-  */
-
-  const passphrase = PassphraseGenerate()
-
-  const loginUserBackup = new LoginUserBackup()
-  loginUserBackup.userId = mNewUser.id
-  loginUserBackup.passphrase = passphrase.join(' ')
-  loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-
-  const loginUserBackupRepository = getCustomRepository(LoginUserBackupRepository)
-  await loginUserBackupRepository.save(loginUserBackup).catch(() => {
-    throw new Error('insert user backup failed')
-  })
-
-  // keys
-  const gradidoKeyPair = KeyPairEd25519Create(passphrase)
-
-  mNewUser.pubKey = gradidoKeyPair[0]
-  mNewUser.privKey = gradidoKeyPair[1]
-
-  await loginUserRepository.save(mNewUser).catch(() => {
-    throw new Error(`Error saving new generated pub/priv keys, email: ${email}`)
-  })
-
-  return gradidoKeyPair
 }
 
 @Resolver()
@@ -326,30 +263,59 @@ export class UserResolver {
       throw new Error(`User already exists.`)
     }
 
+    const passphrase = PassphraseGenerate()
+    const keyPair = KeyPairEd25519Create(passphrase)
+
+    // Table: login_users
     const loginUser = new LoginUser()
     loginUser.email = email
     loginUser.firstName = firstName
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
+    // TODO password?
     loginUser.password = BigInt(0)
     // TODO: This was never used according to my analysis. Therefore I consider it safe to set to 0
     loginUser.emailHash = Buffer.from([0])
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
+    loginUser.pubKey = keyPair[0]
+    loginUser.privKey = keyPair[1]
 
-    // TODO: check if this insert method is correct, we had problems with that!
+    // TODO transaction
     const loginUserRepository = getCustomRepository(LoginUserRepository)
-    await loginUserRepository.save(loginUser).catch((error) => {
+    const { id: loginUserId } = await loginUserRepository.save(loginUser).catch((error) => {
       // eslint-disable-next-line no-console
       console.log('insert user failed', error)
       throw new Error('insert user failed')
     })
 
-    const keys = await generateKeys(email)
-    const pubkey = keys[0]
+    // Table: login_user_backups
+    const loginUserBackup = new LoginUserBackup()
+    loginUserBackup.userId = loginUserId
+    loginUserBackup.passphrase = passphrase.join(' ')
+    loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
+    // TODO transaction
+    const loginUserBackupRepository = getCustomRepository(LoginUserBackupRepository)
+    await loginUserBackupRepository.save(loginUserBackup).catch(() => {
+      throw new Error('insert user backup failed')
+    })
+
+    // Table: state_users
+    const dbuser = new DbUser()
+    dbuser.pubkey = keyPair[0]
+    dbuser.email = email
+    dbuser.firstName = firstName
+    dbuser.lastName = lastName
+    dbuser.username = username
+
+    await userRepository.save(dbuser).catch(() => {
+      throw new Error('error saving user')
+    })
+
+    // TODO this is the password encryption
     // TODO: we do not login the user as before, since session management is not yet ported
     // calculate encryption key, could need some time, will save encrypted privkey to db
     // UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
@@ -365,19 +331,6 @@ export class UserResolver {
     // }
     // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
     // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
-
-    // ------------------------------------------------------
-
-    const dbuser = new DbUser()
-    dbuser.pubkey = pubkey
-    dbuser.email = email
-    dbuser.firstName = firstName
-    dbuser.lastName = lastName
-    dbuser.username = username
-
-    await userRepository.save(dbuser).catch(() => {
-      throw new Error('error saving user')
-    })
 
     return 'success'
   }
