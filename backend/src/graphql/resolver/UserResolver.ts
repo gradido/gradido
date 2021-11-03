@@ -311,6 +311,7 @@ export class UserResolver {
     dbUser.lastName = lastName
     dbUser.username = username
 
+    // TDOO transaction
     await userRepository.save(dbUser).catch(() => {
       throw new Error('error saving user')
     })
