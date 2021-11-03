@@ -136,6 +136,42 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
+const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
+  // TODO: put that in the actual config
+  const configCryptoAppSecret = Buffer.from('21ffbbc616fe', 'hex')
+  const configCryptoServerKey = Buffer.from('a51ef8ac7ef1abf162fb7a65261acd7a', 'hex')
+  if (configCryptoServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
+    throw new Error(
+      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
+    )
+  }
+
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
+  sodium.crypto_hash_sha512_update(state, Buffer.from(configCryptoAppSecret))
+  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, hash)
+
+  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
+  const opsLimit = 10
+  const memLimit = 33554432
+  const algo = 2
+  sodium.crypto_pwhash(
+    encryptionKey,
+    Buffer.from(password),
+    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
+    opsLimit,
+    memLimit,
+    algo,
+  )
+
+  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
+  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configCryptoServerKey)
+
+  return [encryptionKeyHash, encryptionKey]
+}
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -265,6 +301,7 @@ export class UserResolver {
 
     const passphrase = PassphraseGenerate()
     const keyPair = KeyPairEd25519Create(passphrase)
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password)
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -273,9 +310,10 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    // TODO password?
-    loginUser.password = BigInt(0)
-    // TODO: This was never used according to my analysis. Therefore I consider it safe to set to 0
+    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // TODO: This was never used according to my analysis. Therefore I consider it
+    // safe to set to 0, since we can generate it whenever we need it, assuming
+    // that its actually the email hash and the password is not involved
     loginUser.emailHash = Buffer.from([0])
     loginUser.language = language
     loginUser.groupId = 1
@@ -315,12 +353,6 @@ export class UserResolver {
     await userRepository.save(dbUser).catch(() => {
       throw new Error('error saving user')
     })
-
-    // TODO this is the password encryption
-    // TODO: we do not login the user as before, since session management is not yet ported
-    // calculate encryption key, could need some time, will save encrypted privkey to db
-    // UniLib::controller::TaskPtr create_authenticated_encrypten_key = new AuthenticatedEncryptionCreateKeyTask(user, password);
-    // create_authenticated_encrypten_key->scheduleTask(create_authenticated_encrypten_key);
 
     // TODO: send EMail (EMAIL_OPT_IN_REGISTER)
     // const emailType = 2
