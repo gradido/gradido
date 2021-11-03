@@ -40,8 +40,8 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBackup'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
-import { bigintToBuf } from 'bigint-conversion'
 
+// TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 
@@ -117,7 +117,7 @@ const PassphraseGenerate = (): string[] => {
   ]
 */
 // pub:  0xdd1b7bb
-// priv: 0xbcadd66
+// priv: 0xbcadd66 (wrong?)
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
@@ -129,24 +129,27 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
     wordIndicies.push(WORDS.indexOf(passphrase[i]))
   }
 
+  // eslint-disable-next-line no-console
+  console.log(wordIndicies)
   // TODO: wtf is this?
   // if (!wordIndicies || (!wordIndicies[0] && !wordIndicies[1] && !wordIndicies[2] && !wordIndicies[3])) {
   //	return null;
   // }
-  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
 
-  // sodium.crypto_hash_sha256_init(state /* , [key], outlen */)
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
   sodium.crypto_hash_sha512_init(state)
 
   // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
-    const value = BigInt(wordIndicies[i])
-    sodium.crypto_hash_sha512_update(state, Buffer.from(bigintToBuf(value))) // hash.update(Buffer.from(bigintToBuf(value)))
+    const value = Buffer.alloc(8)
+    value.writeBigInt64LE(BigInt(wordIndicies[i]))
+    sodium.crypto_hash_sha512_update(state, value)
   }
-  const clearPassphrase = passphrase.join(' ')
-  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase)) // hash.update(Buffer.from(clearPassphrase))
+  // TODO trailing space in login_server
+  const clearPassphrase = passphrase.join(' ') + ' '
+  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase))
   const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  sodium.crypto_hash_sha512_final(state, outputHashBuffer) // hash.final(outputHashBuffer)
+  sodium.crypto_hash_sha512_final(state, outputHashBuffer)
 
   const pubKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const privKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
@@ -154,7 +157,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   sodium.crypto_sign_seed_keypair(
     pubKey,
     privKey,
-    outputHashBuffer.slice(sodium.crypto_sign_SEEDBYTES),
+    outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
   )
 
   return [pubKey, privKey]
