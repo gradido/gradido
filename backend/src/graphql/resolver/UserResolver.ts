@@ -304,14 +304,14 @@ export class UserResolver {
     })
 
     // Table: state_users
-    const dbuser = new DbUser()
-    dbuser.pubkey = keyPair[0]
-    dbuser.email = email
-    dbuser.firstName = firstName
-    dbuser.lastName = lastName
-    dbuser.username = username
+    const dbUser = new DbUser()
+    dbUser.pubkey = keyPair[0]
+    dbUser.email = email
+    dbUser.firstName = firstName
+    dbUser.lastName = lastName
+    dbUser.username = username
 
-    await userRepository.save(dbuser).catch(() => {
+    await userRepository.save(dbUser).catch(() => {
       throw new Error('error saving user')
     })
 
