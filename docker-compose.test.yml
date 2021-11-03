@@ -29,6 +29,7 @@ services:
       - MARIADB_USER=root
     networks: 
       - internal-net
+      - external-net
     ports: 
       - 3306:3306
     volumes: 
