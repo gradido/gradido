@@ -13,7 +13,7 @@
     "start": "node build/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts",
-    "test": "jest --coverage --runInBand"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
