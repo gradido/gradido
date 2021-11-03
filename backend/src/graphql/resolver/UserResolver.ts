@@ -63,9 +63,7 @@ const PassphraseGenerate = (): string[] => {
     result.push(WORDS[sodium.randombytes_random() % 2048])
   }
   return result
-}
-
-/*
+  /*
   return [
     'avoid',
     'security',
@@ -92,9 +90,8 @@ const PassphraseGenerate = (): string[] => {
     'very',
     'inner',
   ]
-*/
-// pub:  0xdd1b7bb
-// priv: 0xbcadd66 (wrong?)
+  */
+}
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
@@ -169,6 +166,15 @@ const getEmailHash = (email: string): Buffer => {
   const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
   sodium.crypto_generichash(emailHash, Buffer.from(email))
   return emailHash
+}
+
+const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
+  const encrypted = Buffer.alloc(sodium.crypto_secretbox_MACBYTES + message.length)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
+  return encrypted
 }
 
 @Resolver()
@@ -298,9 +304,10 @@ export class UserResolver {
     }
 
     const passphrase = PassphraseGenerate()
-    const keyPair = KeyPairEd25519Create(passphrase)
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password)
+    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const emailHash = getEmailHash(email)
+    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -315,7 +322,7 @@ export class UserResolver {
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
     loginUser.pubKey = keyPair[0]
-    loginUser.privKey = keyPair[1]
+    loginUser.privKey = encryptedPrivkey
 
     // TODO transaction
     const loginUserRepository = getCustomRepository(LoginUserRepository)
@@ -328,7 +335,7 @@ export class UserResolver {
     // Table: login_user_backups
     const loginUserBackup = new LoginUserBackup()
     loginUserBackup.userId = loginUserId
-    loginUserBackup.passphrase = passphrase.join(' ')
+    loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
     loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
     // TODO transaction
