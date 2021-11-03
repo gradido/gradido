@@ -106,9 +106,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
     wordIndicies.push(WORDS.indexOf(passphrase[i]))
   }
 
-  // eslint-disable-next-line no-console
-  console.log(wordIndicies)
-
   const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
   sodium.crypto_hash_sha512_init(state)
 
@@ -172,10 +169,9 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   return [encryptionKeyHash, encryptionKey]
 }
 
-const getEmailHash = (email:string):Buffer => 
-{
+const getEmailHash = (email: string): Buffer => {
   const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
-  sodium.crypto_generichash(emailHash,Buffer.from(email));
+  sodium.crypto_generichash(emailHash, Buffer.from(email))
   return emailHash
 }
 
@@ -284,7 +280,6 @@ export class UserResolver {
     }
 
     // Validate Password
-    // TODO Login Server ignored this when he got an empty password?!
     if (!isPassword(password)) {
       throw new Error(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
