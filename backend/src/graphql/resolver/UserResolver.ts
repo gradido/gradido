@@ -118,7 +118,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
     value.writeBigInt64LE(BigInt(wordIndicies[i]))
     sodium.crypto_hash_sha512_update(state, value)
   }
-  // TODO trailing space in login_server
+  // trailing space is part of the login_server implementation
   const clearPassphrase = passphrase.join(' ') + ' '
   sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase))
   const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
