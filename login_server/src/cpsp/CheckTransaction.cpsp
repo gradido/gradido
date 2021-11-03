@@ -339,15 +339,14 @@ enum PageState {
 							<%= gettext("Transaktion unterzeichnen") %>
 						</button>
 					<% } %>
+					<button type="submit" class="form-button button-cancel" name="skip" value="skip">
+                                                <i class="material-icons-outlined">debug-step-over</i>
+                                                <%= gettext("Transaktion &uuml;berspringen") %>
+                                        </button>
 					<% if(transaction_removeable) { %>
 						<button type="submit" class="form-button button-cancel" name="abort" value="abort">
 							<i class="material-icons-outlined">delete</i>
 							<%= gettext("Transaktion verwerfen") %>
-						</button>
-					<% } else { %>
-						<button type="submit" class="form-button button-cancel" name="skip" value="skip">
-							<i class="material-icons-outlined">debug-step-over</i>
-							<%= gettext("Transaktion &uuml;berspringen") %>
 						</button>
 					<% } %>
 				</form>
