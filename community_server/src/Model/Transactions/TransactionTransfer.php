@@ -180,10 +180,12 @@ class TransactionTransfer extends TransactionBase {
           if(NULL === $senderUserId) {
               return false;
           }
-          $finalSenderBalance = $this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received);
-          if(false === $finalSenderBalance) {
+          if(!$this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received)) {
               return false;
           }
+          if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
+            return false;
+        }
       }
 
       if($this->isBelongRecipiantToCommunity()) {
@@ -191,8 +193,11 @@ class TransactionTransfer extends TransactionBase {
           if(NULL === $recipiantUserId) {
              return false;
           }
-          if(false === $this->updateStateBalance($receiverUserId, $senderAmount->getAmount(), $received)) {
+          if(!$this->updateStateBalance($recipiantUserId, $senderAmount->getAmount(), $received)) {
              return false;
+          }
+          if(!$this->addStateUserTransaction($recipiantUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
+            return false;
           }
       }
       
@@ -201,7 +206,7 @@ class TransactionTransfer extends TransactionBase {
       $transactionTransferEntity->state_user_id  = $senderUserId;
       $transactionTransferEntity->sender_public_key = $senderAmount->getPubkey();
       $transactionTransferEntity->receiver_public_key = $receiver;
-      $transactionTransferEntity->receiver_user_id = $receiverUserId;
+      $transactionTransferEntity->receiver_user_id = $recipiantUserId;
       $transactionTransferEntity->amount = $senderAmount->getAmount();
       $transactionTransferEntity->sender_final_balance = $finalSenderBalance;
       
@@ -209,13 +214,7 @@ class TransactionTransfer extends TransactionBase {
         $this->addError($functionName, 'error saving transactionSendCoins with errors: ' . json_encode($transactionTransferEntity->getErrors()));
         return false;
       }
-      
-      if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
-          return false;
-      }
-      if(!$this->addStateUserTransaction($receiverUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
-          return false;
-      }
+     
       
       //$this->addError('TransactionTransfer::save', 'not implemented yet');
       //return false;
@@ -226,13 +225,13 @@ class TransactionTransfer extends TransactionBase {
     {
       // send notification email
        $disable_email = Configure::read('disableEmail', false);  
-       if($disable_email) return true;
+       if($disable_email || !$this->isBelongRecipiantToCommunity()) return true;
         
-      $local_transfer = $this->protoTransactionTransfer->getTransfer();
+      $local_transfer = $this->getTransfer();
       $sender = $local_transfer->getSender();
       $senderAmount = $sender->getAmount();
       $senderUser = $this->getStateUserFromPublickey($sender->getPubkey());
-      $receiverUser = $this->getStateUserFromPublickey($local_transfer->getRecipiant());
+      $recipiantUser = $this->getStateUserFromPublickey($local_transfer->getRecipiant());
       
       $serverAdminEmail = Configure::read('ServerAdminEmail');
 
@@ -240,18 +239,19 @@ class TransactionTransfer extends TransactionBase {
         $email = new Email();
         $emailViewBuilder = $email->viewBuilder();
         $emailViewBuilder->setTemplate('notificationTransfer')
-                         ->setVars(['receiverUser' => $receiverUser,
+                         ->setVars(['receiverUser' => $recipiantUser,
                                     'senderUser' => $senderUser,
+                                    'senderPublicKey' => $sender->getPubkey(),
                                     'gdd_cent' => $senderAmount, 
                                     'memo' => $memo]);
-        $receiverNames = $receiverUser->getNames();
-        if($receiverNames == '' || $receiverUser->email == '') {
-            $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $receiverUser->id);
+        $recipiantNames = $recipiantUser->getNames();
+        if($recipiantNames == '' || $recipiantUser->email == '') {
+            $this->addError('TransactionCreation::sendNotificationEmail', 'to email is empty for user: ' . $recipiantUser->id);
             return false;
           }
         $noReplyEmail = Configure::read('noReplyEmail');
         $email->setFrom([$noReplyEmail => 'Gradido (nicht antworten)'])
-              ->setTo([$receiverUser->email => $receiverUser->getNames()])
+              ->setTo([$recipiantUser->email => $recipiantUser->getNames()])
               ->setSubject(__('Gradidos erhalten'))
               ->send();
       } catch(Exception $e) {
