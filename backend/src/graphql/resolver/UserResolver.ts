@@ -172,6 +172,13 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   return [encryptionKeyHash, encryptionKey]
 }
 
+const getEmailHash = (email:string):Buffer => 
+{
+  const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash(emailHash,Buffer.from(email));
+  return emailHash
+}
+
 @Resolver()
 export class UserResolver {
   @Query(() => User)
@@ -302,6 +309,7 @@ export class UserResolver {
     const passphrase = PassphraseGenerate()
     const keyPair = KeyPairEd25519Create(passphrase)
     const passwordHash = SecretKeyCryptographyCreateKey(email, password)
+    const emailHash = getEmailHash(email)
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -311,10 +319,7 @@ export class UserResolver {
     loginUser.username = username
     loginUser.description = ''
     loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    // TODO: This was never used according to my analysis. Therefore I consider it
-    // safe to set to 0, since we can generate it whenever we need it, assuming
-    // that its actually the email hash and the password is not involved
-    loginUser.emailHash = Buffer.from([0])
+    loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
