@@ -16,6 +16,12 @@ services:
       - NODE_ENV="test"
       - DB_HOST=mariadb
 
+  ########################################################
+  # DATABASE #############################################
+  ########################################################
+  database:
+    restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
+
   #########################################################
   ## MARIADB ##############################################
   #########################################################
@@ -34,7 +40,6 @@ services:
       - 3306:3306
     volumes: 
       - db_test_vol:/var/lib/mysql
-    restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## LOGIN SERVER #########################################
