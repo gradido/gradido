@@ -44,9 +44,18 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
+const email = {
+  EMAIL: process.env.EMAIL === 'true' || false,
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
+  EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
+  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+}
+
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...loginServer }
+const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...email, ...loginServer }
 
 export default CONFIG
