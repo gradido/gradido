@@ -113,7 +113,9 @@ class GradidoBlock extends TransactionBase {
         // Sodium use for the generichash function BLAKE2b today (11.11.2019), mabye change in the future
         $state = \Sodium\crypto_generichash_init();
         if($previousTxHash != null) {
-            \Sodium\crypto_generichash_update($state, substr(stream_get_contents($previousTxHash), 0, 32));
+            $previousTxHashCutted = substr(stream_get_contents($previousTxHash), 0, 32);
+            \Sodium\crypto_generichash_update($state, $previousTxHashCutted);
+            //$this->addError("prev tx hash", \Sodium\bin2hex($previousTxHashCutted));
         }
         \Sodium\crypto_generichash_update($state, strval($transactionId));        
         \Sodium\crypto_generichash_update($state, $this->getReceived()->i18nFormat('yyyy-MM-dd HH:mm:ss'));
