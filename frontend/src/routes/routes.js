@@ -15,6 +15,13 @@ const routes = [
     },
   },
   {
+    path: '/send',
+    component: () => import('../views/Pages/SendOverview.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/profile',
     component: () => import('../views/Pages/UserProfileOverview.vue'),
     meta: {
