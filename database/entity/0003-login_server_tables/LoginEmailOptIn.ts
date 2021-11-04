@@ -6,10 +6,10 @@ export class LoginEmailOptIn extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column()
+  @Column({ name: 'user_id' })
   userId: number
 
-  @Column({ name: 'verification_code', type: 'bigint', unsigned: true })
+  @Column({ name: 'verification_code', type: 'bigint', unsigned: true, unique: true })
   verificationCode: BigInt
 
   @Column({ name: 'email_opt_in_type_id' })
