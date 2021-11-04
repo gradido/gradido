@@ -49,6 +49,8 @@ namespace controller {
 		bool setResult(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB = false);
 		bool setParam(const std::string& key, const Poco::Dynamic::Var& value, bool saveIntoDB = false);
 		int getIntParam(const std::string& key);
+
+		bool canBeLocked();
 		
 	protected:
 		static Poco::AutoPtr<PendingTask> loadCorrectDerivedClass(model::table::PendingTask* dbModel);
