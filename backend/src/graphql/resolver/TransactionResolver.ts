@@ -412,31 +412,33 @@ export class TransactionResolver {
           throw new Error('error loading saved transaction: ' + error)
         })
 
-      // update state balance
-      const senderStateBalance = await updateStateBalance(
-        senderUser,
-        -centAmount,
-        transaction.received,
-        queryRunner,
-      )
-      const recipiantStateBalance = await updateStateBalance(
-        recipiantUser,
-        centAmount,
-        transaction.received,
-        queryRunner,
-      )
-
-      // update user transactions
+      // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
         senderUser,
         transaction,
         -centAmount,
         queryRunner,
       )
+      // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
         recipiantUser,
         transaction,
         centAmount,
+        queryRunner,
+      )
+
+      // Update Balance: sender - amount
+      const senderStateBalance = await updateStateBalance(
+        senderUser,
+        -centAmount,
+        transaction.received,
+        queryRunner,
+      )
+      // Update Balance: recipiant + amount
+      const recipiantStateBalance = await updateStateBalance(
+        recipiantUser,
+        centAmount,
+        transaction.received,
         queryRunner,
       )
 
